@@ -19,3 +19,5 @@
 | `AI_TIMEOUT` | 설정된 실행 제한 초과 |
 
 모델 다운로드는 Adapter 책임이 아니다. ACE-Step을 선택해도 애플리케이션 import·시작 시 모델을 로드하지 않으며, 실제 Job 실행 때 설치 검증 후 subprocess가 로드한다.
+
+Phase 2.5 benchmark runner는 Adapter 계약을 바꾸지 않고 공식 runtime의 상주 반복 성능만 측정한다. 0.6B LM 환경 변수는 benchmark 전용이며 Backend Provider 설정으로 노출하지 않았다. 기본 Adapter는 no-LM·Job별 subprocess를 유지한다.

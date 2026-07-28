@@ -54,7 +54,12 @@ class SubprocessAceStepRuntime:
     def generate(self, request: dict[str, object], job_id: str) -> AceStepRuntimeResult:
         self.config.validate()
         output_dir = (self.config.output_root / job_id).resolve()
-        output_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            raise AIOutputNotCreatedError(
+                "ACE-Step 출력 디렉터리를 준비할 수 없습니다."
+            ) from exc
         metadata_path = output_dir / "metadata.json"
         request_path = self._write_request(output_dir, request)
         try:

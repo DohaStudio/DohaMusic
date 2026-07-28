@@ -35,6 +35,6 @@ Backend 안정성과 선택 설치성이 높아지고 오류 경계가 명확해
 
 ## 재검토와 마이그레이션
 
-수동 품질 평가를 통과하고 반복 작업 처리량이 필요해지면 상주 subprocess 또는 별도 AI service를 비교 벤치마크한다. 변경 시 프로세스 재시작, timeout, cancellation, health, 동시성, VRAM 누수를 먼저 검증하고 대체 ADR을 작성한다.
+수동 품질 평가를 통과하고 반복 작업 처리량이 필요해지면 상주 subprocess 또는 별도 AI service를 비교 벤치마크한다. 변경 시 프로세스 재시작, timeout, cancellation, health, 동시성, VRAM 누수를 먼저 검증하고 대체 ADR을 작성한다. Phase 2.5 반복 벤치마크 결과와 현재 수명 주기 결정은 [ADR-007](ADR-007-ace-step-runtime-lifecycle.md)에서 이어서 관리한다.
 
 관련 구현·실험은 [EXP-001](../../reports/experiments/EXP-001-ace-step-local-inference.md)과 develop 대상 Phase 2 PR에서 추적한다.
