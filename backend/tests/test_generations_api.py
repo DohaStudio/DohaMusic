@@ -75,5 +75,5 @@ def test_worker_failure_updates_job_state(client: TestClient) -> None:
 
     failed = wait_for_terminal_state(client, response.json()["id"])
     assert failed["status"] == "FAILED"
-    assert failed["error_code"] == "MOCK_GENERATION_FAILED"
-    assert failed["error_message"] == "Mock 생성 작업에 실패했습니다."
+    assert failed["error_code"] == "AI_INFERENCE_FAILED"
+    assert failed["error_message"] == "AI 생성 작업에 실패했습니다."

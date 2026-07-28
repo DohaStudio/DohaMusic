@@ -9,7 +9,7 @@ import time
 
 from fastapi import FastAPI, Request, Response
 
-from backend.ai.mock.music_generator import MockMusicGenerator
+from backend.ai.factory import create_music_generator
 from backend.api.exception_handlers import register_exception_handlers
 from backend.api.router import api_router
 from backend.core.config import Settings, get_settings
@@ -20,7 +20,7 @@ from backend.services.generation_service import GenerationService
 from backend.services.voice_profile_service import VoiceProfileService
 from backend.storage.service import StorageService
 from backend.workers.dispatcher import ThreadPoolJobDispatcher
-from backend.workers.generation_worker import MockGenerationWorker
+from backend.workers.generation_worker import GenerationWorker
 
 logger = get_logger(__name__)
 
@@ -38,14 +38,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         upgrade_database(resolved_settings.database_url)
 
         session_factory = create_session_factory(resolved_settings.database_url)
-        music_generator = MockMusicGenerator(
-            sample_file=storage.sample_file,
-            output_root=storage.outputs_dir,
-            delay_seconds=resolved_settings.mock_generation_delay_seconds,
-            model_name=resolved_settings.model_name,
+        music_generator = create_music_generator(resolved_settings, storage)
+        logger.info(
+            "provider_configured provider=%s model=%s",
+            resolved_settings.music_generator,
+            music_generator.model_name,
         )
-        logger.info("model_loaded model=%s", resolved_settings.model_name)
-        worker = MockGenerationWorker(
+        worker = GenerationWorker(
             session_factory=session_factory,
             music_generator=music_generator,
             storage=storage,
