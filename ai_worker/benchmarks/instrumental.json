@@ -1,0 +1,9 @@
+{
+  "experiment_case": "instrumental",
+  "prompt": "calm lo-fi instrumental, soft piano, warm bass, slow tempo, no vocals, suitable for a late-night coding session",
+  "lyrics": null,
+  "instrumental": true,
+  "duration_seconds": 15,
+  "seed": 20260729,
+  "vocal_language": "unknown"
+}

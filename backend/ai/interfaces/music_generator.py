@@ -17,7 +17,23 @@ class GenerationInput:
     seed: int | None
 
 
+@dataclass(frozen=True, slots=True)
+class GenerationResult:
+    audio_path: Path
+    provider: str
+    model_name: str
+    model_version: str
+    seed: int | None
+    duration_seconds: float
+    generation_time_seconds: float
+    peak_vram_mb: float | None
+    file_type: str
+    metadata_path: Path | None = None
+
+
 class MusicGenerator(Protocol):
-    def generate(self, request: GenerationInput) -> Path:
-        """Generate one audio file and return its local path."""
+    model_name: str
+
+    def generate(self, request: GenerationInput) -> GenerationResult:
+        """Generate one validated audio file and return common metadata."""
         ...

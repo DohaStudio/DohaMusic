@@ -1,7 +1,7 @@
 # 개발 로드맵
 
 > 문서 목적: 단계별 산출물, 완료 조건, 다음 단계 진입 조건을 정의한다.
-> 현재 상태: **Phase 1 Backend Foundation 완료**
+> 현재 상태: **Phase 2 진행 중 — 기술 검증 완료, 수동 품질 평가 대기**
 
 각 Phase는 앞 단계의 산출물과 검증 결과를 입력으로 삼는다. 일정은 모델 라이선스와 RTX 3060 Ti 8GB 실측 결과에 따라 조정한다.
 
@@ -21,12 +21,17 @@
 - 로컬 Storage, 환경 변수, 예외·로그, 자동 테스트
 - 완료 조건: Mock Job 종단 간 실행, migration, API와 실패 경로 검증
 
-## Phase 2. AI Adapter와 로컬 추론 검증 — [계획]
+## Phase 2. AI Adapter와 로컬 추론 검증 — [진행 중]
 
-- `MusicGenerator` 계약을 유지한 실제 Adapter 후보 구현
-- 음악 생성 후보 실행, 가사·한국어 발음 확인
-- GPU 메모리·시간·결과 파일 측정
+- [완료] `MusicGenerator` 계약을 유지한 ACE-Step Adapter·Provider Factory 구현
+- [완료] ACE-Step 1.5 v0.1.8 2B Turbo 단독 추론과 Backend 종단 간 연결
+- [완료] RTX 3060 Ti 8GB에서 시간·VRAM·WAV 신호 지표 측정
+- [완료] 고정 instrumental·한국어 가사 입력과 재현용 실행기 추가
+- [수동 청취 평가 필요] 한국어 발음·가사 정렬·반복·음악성·청감 잡음 판정
+- [보류] 0.6B LM 사용 여부와 상주 Worker 생명주기 결정
 - 완료 조건: 최소 한 후보의 재현 가능한 실험 보고서와 도입 판정
+
+ACE-Step은 선택적 실험 Provider이며 제품 기본 모델로 채택하지 않았다. 품질 게이트가 남아 있으므로 Phase 2 전체를 완료 처리하지 않는다. 근거는 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md)을 따른다.
 
 ## Phase 3. 음색 변환 및 AI 파이프라인 — [계획]
 

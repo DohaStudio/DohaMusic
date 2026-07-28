@@ -50,6 +50,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 .test-tmp/
+.test-tmp-*/
+.gpu-test-tmp/
 cover/
 
 # Translations
@@ -71,6 +73,18 @@ backend/storage/voices/*
 !backend/storage/voices/.gitkeep
 backend/storage/samples/*
 !backend/storage/samples/.gitkeep
+backend/storage/experiments/*
+
+# Local AI runtimes, model caches, checkpoints, and generated artifacts
+/.ace-step-runtime/
+/checkpoints/
+/models/
+/model-cache/
+/.huggingface/
+*.ckpt
+*.safetensors
+*.pt
+*.pth
 
 # Flask stuff:
 instance/

@@ -1,8 +1,10 @@
 # 로깅과 모니터링
 
-> 문서 목적: 작업 추적, 성능 관찰과 개인정보 보호 로깅 기준을 정의한다.
-> 현재 상태: **Phase 1 애플리케이션 로그 구현 / 외부 모니터링 미구현**
+> 문서 목적: 작업 추적·성능 측정과 입력 보호 기준을 정의한다.
+> 현재 상태: **Backend·ACE-Step 실험 로그 구현**
 
-Phase 1은 Python 표준 로깅을 사용하며 로그 레벨은 `LOG_LEVEL`로 설정한다. 요청 시작·완료, Job 생성, Worker 시작·종료, 모델 로드, 추론 시작·종료, 예외, 처리 시간을 기록한다. Worker 로그에는 `job_id`와 설정된 Mock 모델 이름을 포함한다. prompt·lyrics·비밀 정보는 기본 로그에 남기지 않는다.
+Backend는 요청, Job 생성, Worker·추론 시작/종료, Provider·모델·버전, 처리 시간, 최대 VRAM과 예외 코드를 기록한다. ACE-Step 실행기는 모델 로드·추론·전체 시간, Torch allocated/reserved, `nvidia-smi` 전체 사용량, process RSS, 장치·양자화·offload, 실제 Seed와 WAV 정보를 metadata JSON에 기록한다.
 
-Phase 1은 GPU를 사용하지 않으므로 GPU/VRAM 값은 수집하지 않는다. 구조화 JSON 로그, request ID, 상태별 작업 수, 단계별 실패율, 큐 지연, 외부 메트릭 수집과 경보는 후속 운영 단계에서 도입한다.
+prompt·lyrics·비밀 값과 로컬 절대 경로는 Backend 로그에 기록하지 않는다. 공식 ACE-Step 라이브러리가 `conditioning_text`를 INFO로 출력하는 동작을 확인해 실행기에서 해당 record를 필터링했다. 로그를 외부로 전송할 때는 재차 민감 정보 검사를 수행한다.
+
+`nvidia-smi` 수치는 같은 GPU의 시스템 전체 값이다. 다중 샘플 평균, 외부 메트릭 저장, 경보와 상주 Worker 누수 모니터링은 아직 구현하지 않았다.
