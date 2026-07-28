@@ -21,3 +21,14 @@
 | `DOHAMUSIC_AI_ACE_STEP_TIMEOUT_SECONDS` | subprocess 제한 | `900` |
 
 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step 경로는 Mock 사용에 영향을 주지 않으며, `ace_step` Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
+
+## 벤치마크 전용 변수
+
+다음 변수는 `ai_worker/scripts/run_ace_step_benchmark.py`에서만 읽는다. Backend `Settings`와 `.env.example`의 운영 기본값에는 포함하지 않는다.
+
+| 변수 | 용도 | 기본값 |
+|---|---|---|
+| `DOHAMUSIC_AI_ACE_STEP_LM_MODEL` | 비교 실험용 LM 모델 식별자 또는 로컬 경로 | 빈 값(no LM) |
+| `DOHAMUSIC_AI_ACE_STEP_LM_BACKEND` | 비교 실험용 LM 실행 backend | `pt` |
+
+벤치마크 실행기는 모델을 자동 다운로드하지 않는다. LM 비교는 공식 설치 도구로 사용자가 준비한 로컬 모델만 사용하며, 모델 파일과 실험 WAV는 Git에 포함하지 않는다.

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -13,10 +14,13 @@ from backend.ai.adapters.ace_step.runtime import (
 )
 from backend.ai.errors import (
     AIDependencyNotInstalledError,
+    AIInferenceError,
     AIModelLoadError,
+    AIModelNotFoundError,
     AIOutOfMemoryError,
     AIOutputNotCreatedError,
     AIProviderNotConfiguredError,
+    AITimeoutError,
 )
 from backend.ai.factory import create_music_generator
 from backend.ai.interfaces.music_generator import GenerationInput
@@ -44,6 +48,7 @@ def ace_config(tmp_path: Path) -> AceStepConfig:
     checkpoint_path = tmp_path / "checkpoints"
     project_root.mkdir()
     checkpoint_path.mkdir()
+    (checkpoint_path / "test-variant").mkdir()
     return AceStepConfig(
         runtime_python=runtime_python,
         runner_path=runner_path,
@@ -150,6 +155,27 @@ def test_ace_step_config_reports_missing_runtime(tmp_path: Path) -> None:
         config.validate()
 
 
+def test_ace_step_config_reports_missing_model_variant(tmp_path: Path) -> None:
+    config = ace_config(tmp_path)
+    config = AceStepConfig(
+        runtime_python=config.runtime_python,
+        runner_path=config.runner_path,
+        project_root=config.project_root,
+        checkpoint_path=config.checkpoint_path,
+        output_root=config.output_root,
+        model_variant="missing-variant",
+        model_version=config.model_version,
+        device=config.device,
+        quantization=config.quantization,
+        cpu_offload=config.cpu_offload,
+        dit_cpu_offload=config.dit_cpu_offload,
+        timeout_seconds=config.timeout_seconds,
+    )
+
+    with pytest.raises(AIModelNotFoundError):
+        config.validate()
+
+
 def test_factory_rejects_unsupported_provider(tmp_path: Path) -> None:
     storage = StorageService(tmp_path / "storage")
     storage.ensure_layout()
@@ -193,6 +219,44 @@ def test_runtime_maps_model_load_error() -> None:
                 "error_message": "test load failure",
             }
         )
+
+
+def test_runtime_maps_subprocess_timeout(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = ace_config(tmp_path)
+
+    def raise_timeout(*_args: object, **_kwargs: object) -> None:
+        raise subprocess.TimeoutExpired("ace-step", 30)
+
+    monkeypatch.setattr(subprocess, "run", raise_timeout)
+
+    with pytest.raises(AITimeoutError):
+        SubprocessAceStepRuntime(config).generate({}, "timeout-job")
+
+
+def test_runtime_maps_output_directory_failure(tmp_path: Path) -> None:
+    config = ace_config(tmp_path)
+    config.output_root.write_text("not a directory", encoding="utf-8")
+
+    with pytest.raises(AIOutputNotCreatedError):
+        SubprocessAceStepRuntime(config).generate({}, "output-job")
+
+
+def test_runtime_maps_abnormal_subprocess_exit(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = ace_config(tmp_path)
+    completed = subprocess.CompletedProcess(
+        args=["ace-step"],
+        returncode=7,
+        stdout='{"success": false, "error_code": "AI_INFERENCE_FAILED"}',
+        stderr="runtime failed",
+    )
+    monkeypatch.setattr(subprocess, "run", lambda *_args, **_kwargs: completed)
+
+    with pytest.raises(AIInferenceError):
+        SubprocessAceStepRuntime(config).generate({}, "abnormal-job")
 
 
 def test_settings_load_ace_step_environment(monkeypatch: pytest.MonkeyPatch) -> None:

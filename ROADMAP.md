@@ -1,7 +1,7 @@
 # 개발 로드맵
 
 > 문서 목적: 단계별 산출물, 완료 조건, 다음 단계 진입 조건을 정의한다.
-> 현재 상태: **Phase 2 진행 중 — 기술 검증 완료, 수동 품질 평가 대기**
+> 현재 상태: **Phase 2.5 진행 중 — 반복 기술 검증 완료, 사용자 품질 평가 대기**
 
 각 Phase는 앞 단계의 산출물과 검증 결과를 입력으로 삼는다. 일정은 모델 라이선스와 RTX 3060 Ti 8GB 실측 결과에 따라 조정한다.
 
@@ -27,11 +27,15 @@
 - [완료] ACE-Step 1.5 v0.1.8 2B Turbo 단독 추론과 Backend 종단 간 연결
 - [완료] RTX 3060 Ti 8GB에서 시간·VRAM·WAV 신호 지표 측정
 - [완료] 고정 instrumental·한국어 가사 입력과 재현용 실행기 추가
-- [수동 청취 평가 필요] 한국어 발음·가사 정렬·반복·음악성·청감 잡음 판정
-- [보류] 0.6B LM 사용 여부와 상주 Worker 생명주기 결정
+- [완료] 동일 Seed PCM 재현성·다른 Seed 파형 다양성 확인
+- [완료] 상주 프로세스 6회 suite 2회, 총 12/12 기술 실행
+- [완료] 0.6B LM의 8GB 실행 가능성과 성능 비교
+- [완료] 현재 운영 수명을 Job별 격리 subprocess로 결정
+- [진행 중] EVAL-001 사용자 청취 평가: 한국어 발음·가사 정렬·음악성·청감 잡음
+- [검토 필요] 사용자 평가 후 ACE-Step 기본 Provider 채택 여부 재검토
 - 완료 조건: 최소 한 후보의 재현 가능한 실험 보고서와 도입 판정
 
-ACE-Step은 선택적 실험 Provider이며 제품 기본 모델로 채택하지 않았다. 품질 게이트가 남아 있으므로 Phase 2 전체를 완료 처리하지 않는다. 근거는 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md)을 따른다.
+ACE-Step은 선택적 실험 Provider이며 제품 기본 모델로 채택하지 않았다. 기술 반복 게이트는 통과했지만 품질 게이트가 남아 있으므로 Phase 2 전체를 완료 처리하지 않는다. 근거는 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 따른다.
 
 ## Phase 3. 음색 변환 및 AI 파이프라인 — [계획]
 

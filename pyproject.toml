@@ -31,4 +31,5 @@ markers = [
   "integration: isolated runtime integration test",
   "gpu: requires a CUDA-capable GPU",
   "slow: long-running model load or inference test",
+  "benchmark: explicit repeatability or performance benchmark",
 ]

@@ -1,7 +1,7 @@
 # DohaMusic
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 2 진행 중 — ACE-Step 로컬 추론·Adapter 연결 검증 완료, 수동 청취 평가 필요**
+> 현재 상태: **Phase 2.5 진행 중 — ACE-Step 반복 기술 검증 완료, 사용자 청취 평가 필요**
 > 최종 수정일: 2026-07-29
 > 관련 문서: [Codex 작업 지침](AGENTS.md), [개발 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -21,6 +21,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | 동의 확인이 필수인 음성 프로필 생성·삭제 API |
 | [완료] | 교체 가능한 `MusicGenerator` 결과 계약과 Provider Factory |
 | [실험 완료] | ACE-Step 1.5 v0.1.8 2B Turbo 로컬 추론·Backend Adapter 연결 |
+| [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
 | [계획] | 프롬프트 및 직접 작성 가사 기반 음악 생성 |
 | [계획] | 장르·분위기·BPM·길이·Seed 설정 |
 | [계획] | 보컬/반주 분리 및 개별 출력 |
@@ -31,7 +32,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
 
-기본 Provider는 계속 Mock이다. 선택적 ACE-Step Adapter는 공식 런타임을 격리된 subprocess로 실행하며, 설치와 모델 경로를 명시적으로 설정한 경우에만 동작한다. 모델·가중치·실험 오디오는 저장소에 포함하지 않는다. 음색 변환, 인증, Frontend, Redis/Celery는 아직 구현하지 않았다.
+기본 Provider는 계속 Mock이다. 선택적 ACE-Step Adapter는 공식 런타임을 Job별 격리 subprocess로 실행하며, 설치와 모델 경로를 명시적으로 설정한 경우에만 동작한다. 상주 방식은 warm 속도가 빨랐지만 6회 동안 CPU RSS가 약 14.2GiB 증가해 보류했다. 모델·가중치·실험 오디오는 저장소에 포함하지 않는다. 음색 변환, 인증, Frontend, Redis/Celery는 아직 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
@@ -91,7 +92,7 @@ API 문서는 실행 후 `http://127.0.0.1:8000/docs`, health는 `GET /health`�
 
 ## 개발 로드맵
 
-Phase 2 ACE-Step 실험의 환경·설정·성능·제약은 [EXP-001 보고서](reports/experiments/EXP-001-ace-step-local-inference.md)에 있다. 설치되지 않은 AI 의존성은 Backend 개발 환경에 섞지 않으며 자세한 절차는 [로컬 개발 환경](docs/10-operations/local-development.md)을 따른다.
+Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), Phase 2.5 재현성·반복·LM·운영 판단은 [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md)에 있다. 청취 점수는 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)에 사용자가 직접 기록한다. 설치되지 않은 AI 의존성은 Backend 개발 환경에 섞지 않는다.
 
 ## 문서 안내
 

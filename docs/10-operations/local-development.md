@@ -28,4 +28,6 @@ python -m uvicorn backend.main:app --reload
 
 `backend/.env.example`의 `DOHAMUSIC_AI_ACE_STEP_*` 경로를 로컬 절대 경로로 설정하고 `DOHAMUSIC_MUSIC_GENERATOR=ace_step`을 선택한다. 기본값 `mock`은 AI 설치 없이 동작한다. 실제 GPU 통합 테스트는 모델을 설치한 환경에서만 `RUN_ACE_STEP_GPU_TEST=1`과 `pytest -m "integration and gpu and slow"`로 명시 실행한다.
 
-실험 WAV·로그·모델·runtime은 Git 제외 대상이다. FFmpeg는 검증 PC에 없었으므로 WAV만 확인했으며 MP3/AAC는 검증하지 않았다. 상세 명령과 실패 이력은 [EXP-001](../../reports/experiments/EXP-001-ace-step-local-inference.md)에 있다.
+반복 benchmark는 `ai_worker/scripts/run_ace_step_benchmark.py`에 `quality-resident.json` 같은 suite를 명시해 실행한다. `benchmark`, `gpu`, `slow`, `integration` 작업은 opt-in이며 일반 `pytest`에서 모델을 로드하지 않는다. 0.6B LM 비교는 공식 모델을 사용자가 먼저 설치하고 benchmark 환경에 `DOHAMUSIC_AI_ACE_STEP_LM_MODEL=acestep-5Hz-lm-0.6B`, backend `pt`를 명시한 경우에만 실행한다. 이 LM 변수는 제품 Backend 설정이 아니다.
+
+실험 WAV·로그·모델·runtime은 Git 제외 대상이다. FFmpeg는 검증 PC에 없었으므로 WAV만 확인했으며 MP3/AAC는 검증하지 않았다. 설치·연결은 [EXP-001](../../reports/experiments/EXP-001-ace-step-local-inference.md), 반복·LM은 [EXP-002](../../reports/experiments/EXP-002-ace-step-quality-and-stability.md)에 있다.
