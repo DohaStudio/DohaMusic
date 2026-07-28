@@ -3,7 +3,7 @@
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 3 완료 — HTDemucs Stem 분리 Adapter·Backend E2E 검증 완료, 사용자 청취 평가 필요**
 > 최종 수정일: 2026-07-29
-> 관련 문서: [Codex 작업 지침](AGENTS.md), [개발 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
+> 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다.
 
@@ -26,7 +26,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
 | [계획] | 프롬프트 및 직접 작성 가사 기반 음악 생성 |
 | [계획] | 장르·분위기·BPM·길이·Seed 설정 |
-| [계획] | 보컬/반주 분리 및 개별 출력 |
+| [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
 | [계획] | 동의받은 참조 음성을 이용한 보컬 음색 변환 |
 | [계획] | 변환 보컬과 반주 믹싱, WAV 저장 및 MP3 변환 |
 | [계획] | 비동기 작업 상태·진행률·오류·재시도 관리 |
@@ -69,9 +69,10 @@ flowchart LR
 DohaMusic/
 ├─ backend/    # FastAPI, DB, Worker, AI interface·adapter, tests
 ├─ ai_worker/  # 선택적 로컬 AI 실행기와 재현용 benchmark 입력
-├─ docs/       # 개요, 조사, 요구사항, 설계, 정책, 운영, ADR
+├─ docs/       # 개요, 조사, 요구사항, 설계, 정책, 운영, ADR, Phase DoD
 ├─ planning/   # 단계별 실행 계획과 백로그
 ├─ reports/    # 실험 및 벤치마크 기록 템플릿
+├─ MASTER_ROADMAP.md
 ├─ README.md
 ├─ ROADMAP.md
 ├─ CHANGELOG.md
@@ -94,11 +95,14 @@ API 문서는 실행 후 `http://127.0.0.1:8000/docs`, health는 `GET /health`�
 
 ## 개발 로드맵
 
-Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), Phase 2.5 재현성·운영 판단은 [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), Phase 3 Stem 분리 실측은 [EXP-003](reports/experiments/EXP-003-stem-separation.md)에 있다. 생성 품질은 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md), Stem 품질은 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 사용자가 직접 기록한다. 설치되지 않은 AI 의존성은 Backend 개발 환경에 섞지 않는다.
+전체 Phase·진행률·선행 조건·산출물은 [Master Roadmap](MASTER_ROADMAP.md), 완료 판정은 [Phase별 Definition of Done](docs/DoD/README.md), 현재 실행 우선순위는 [ROADMAP](ROADMAP.md)에서 관리한다. 새 기능 작업은 `MASTER_ROADMAP → 해당 Phase DoD → AGENTS.md` 순서로 확인한다.
+
+Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), Phase 2.5 재현성·운영 판단은 [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), Phase 3 Stem 분리 실측은 [EXP-003](reports/experiments/EXP-003-stem-separation.md)에 있다. 생성 품질은 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md), Stem 품질은 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 사용자가 직접 기록한다.
 
 ## 문서 안내
 
 - 저장소 작업 규칙: [Codex 작업 지침](AGENTS.md)
+- 전체 일정과 완료 기준: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md)
 - 목표와 범위: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md)
 - 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md)
 - 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md)

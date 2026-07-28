@@ -9,7 +9,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-07-29
 > 관련 기능: 저장소 전체 작업 절차
-> 관련 문서: [README](README.md), [개발 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
+> 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [README](README.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 ## 1. 프로젝트 기본 정보
 
@@ -571,3 +571,24 @@ AI 관련 변경은 가능한 경우 다음 항목을 실험 보고서에 기록
 20. 후속 작업
 
 단순히 “작업 완료”라고만 보고하지 않는다.
+
+## 24. Master Roadmap과 Definition of Done 운영
+
+`MASTER_ROADMAP.md`는 프로젝트 전체 Phase·상태·진행률·선행 조건의 최상위 기준이고, `docs/DoD/`는 Phase 완료 판정 기준이다. 새로운 기능 작업은 다음 순서로 범위와 완료 조건을 확인한다.
+
+```text
+MASTER_ROADMAP.md
+→ 해당 docs/DoD/Phase-*.md
+→ AGENTS.md
+```
+
+작업 시작 시 Master의 현재 Phase와 해당 DoD의 미완료 항목을 작업 범위에 매핑한다. 작업 종료 시 다음 문서를 같은 커밋에서 검토하고 실제 변경이 있으면 갱신한다.
+
+- `MASTER_ROADMAP.md` 상태와 진행률
+- 해당 Phase DoD 체크리스트와 완료 증거
+- `README.md`
+- `ROADMAP.md`
+- `CHANGELOG.md`
+- 관련 ADR·실험·평가 보고서
+
+진행률은 해당 DoD의 완료 판정 항목 수를 전체 판정 항목 수로 나누어 계산한다. 구현·테스트·문서·Git 이력 또는 사용자 평가 증거가 없는 항목은 체크하지 않는다. 기존 상태와 새 사실이 충돌하면 실제 구현을 기준으로 Master, DoD, README와 ROADMAP을 함께 바로잡는다.
