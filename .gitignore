@@ -52,6 +52,7 @@ coverage.xml
 .test-tmp/
 .test-tmp-*/
 .gpu-test-tmp/
+.gpu-test-tmp-*/
 cover/
 
 # Translations
@@ -73,10 +74,16 @@ backend/storage/voices/*
 !backend/storage/voices/.gitkeep
 backend/storage/samples/*
 !backend/storage/samples/.gitkeep
+backend/storage/stems/*
+!backend/storage/stems/vocals/
+!backend/storage/stems/instrumentals/
+!backend/storage/stems/vocals/.gitkeep
+!backend/storage/stems/instrumentals/.gitkeep
 backend/storage/experiments/*
 
 # Local AI runtimes, model caches, checkpoints, and generated artifacts
 /.ace-step-runtime/
+/.stem-separation-runtime/
 /checkpoints/
 /models/
 /model-cache/

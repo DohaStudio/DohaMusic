@@ -2,7 +2,13 @@ from pathlib import Path
 
 import pytest
 
-from ai_worker.benchmarking import aggregate_runs, hash_file, hash_text, summarize
+from ai_worker.benchmarking import (
+    aggregate_runs,
+    aggregate_stem_runs,
+    hash_file,
+    hash_text,
+    summarize,
+)
 from ai_worker.scripts.run_ace_step_benchmark import load_suite
 
 
@@ -48,6 +54,26 @@ def test_aggregate_runs_tracks_failures_and_available_metrics() -> None:
     assert result["success_rate"] == 0.5
     assert result["inference_time_seconds"]["mean"] == 10.0
     assert result["peak_nvidia_smi_mb"] is None
+
+
+def test_aggregate_stem_runs_tracks_objective_resources() -> None:
+    result = aggregate_stem_runs(
+        [
+            {
+                "success": True,
+                "separation_time_seconds": 4.2,
+                "total_time_seconds": 9.5,
+                "peak_nvidia_smi_mb": 2529,
+                "process_cpu_percent_peak": 605,
+            },
+            {"success": False, "error_code": "STEM_SEPARATION_FAILED"},
+        ]
+    )
+
+    assert result["run_count"] == 2
+    assert result["success_rate"] == 0.5
+    assert result["separation_time_seconds"]["mean"] == 4.2
+    assert result["peak_nvidia_smi_mb"]["mean"] == 2529.0
 
 
 def test_benchmark_suite_serialization_contract(tmp_path: Path) -> None:

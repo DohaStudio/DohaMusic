@@ -1,7 +1,7 @@
 # 개발 로드맵
 
 > 문서 목적: 단계별 산출물, 완료 조건, 다음 단계 진입 조건을 정의한다.
-> 현재 상태: **Phase 2.5 진행 중 — 반복 기술 검증 완료, 사용자 품질 평가 대기**
+> 현재 상태: **Phase 3 Stem Separation 구현·기술 검증 완료, 사용자 청취 평가 대기**
 
 각 Phase는 앞 단계의 산출물과 검증 결과를 입력으로 삼는다. 일정은 모델 라이선스와 RTX 3060 Ti 8GB 실측 결과에 따라 조정한다.
 
@@ -37,15 +37,21 @@
 
 ACE-Step은 선택적 실험 Provider이며 제품 기본 모델로 채택하지 않았다. 기술 반복 게이트는 통과했지만 품질 게이트가 남아 있으므로 Phase 2 전체를 완료 처리하지 않는다. 근거는 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 따른다.
 
-## Phase 3. 음색 변환 및 AI 파이프라인 — [계획]
+## Phase 3. Stem Separation Adapter — [완료]
+
+- [완료] Demucs·HTDemucs·MDX-Net·Open-Unmix 공식 자료와 라이선스 비교
+- [완료] RTX 3060 Ti 8GB 기준 HTDemucs 4.1.0 선택 및 20초 입력 3/3 분리
+- [완료] `StemSeparator`, `MockStemSeparator`, `DemucsAdapter`, Provider Factory
+- [완료] `POST /api/stems`, 상태·파일 조회 API, `stem_jobs`·`stem_files` migration
+- [완료] 48kHz Stereo float32 `vocals.wav`·`instrumental.wav`와 객관 지표 metadata
+- [완료] EXP-003, EVAL-002, ADR-008 및 GPU Backend E2E
+- 완료 조건: 기술 실행·Backend 연결·자동 품질 검증 완료. 청취 품질 판정은 사용자 평가로 분리
+
+## 다음 Phase. Seed-VC 음색 변환 Adapter — [계획]
 
 - 본인 참조 음성 준비와 동의 기록
 - 말하기/노래 음성 차이, 음질·음색 유사도·발음 보존 평가
 - 완료 조건: 안전 정책을 충족하는 변환 후보와 실패 기준 확정
-
-- 음악 생성 → 분리 → 변환 → 믹싱 → 인코딩 연결
-- 단계별 오류 처리, 모델 순차 로드/해제
-- 완료 조건: 단일 로컬 작업의 종단 간 재현과 산출물 기록
 
 ## Phase 4. API 확장 — [계획]
 

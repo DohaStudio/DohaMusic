@@ -7,14 +7,24 @@ class JobStatus(StrEnum):
     PENDING = "PENDING"
     VALIDATING = "VALIDATING"
     GENERATING = "GENERATING"
+    STEM_SEPARATING = "STEM_SEPARATING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
 
 ALLOWED_TRANSITIONS: dict[JobStatus, set[JobStatus]] = {
     JobStatus.PENDING: {JobStatus.VALIDATING, JobStatus.FAILED},
-    JobStatus.VALIDATING: {JobStatus.GENERATING, JobStatus.FAILED},
-    JobStatus.GENERATING: {JobStatus.COMPLETED, JobStatus.FAILED},
+    JobStatus.VALIDATING: {
+        JobStatus.GENERATING,
+        JobStatus.STEM_SEPARATING,
+        JobStatus.FAILED,
+    },
+    JobStatus.GENERATING: {
+        JobStatus.STEM_SEPARATING,
+        JobStatus.COMPLETED,
+        JobStatus.FAILED,
+    },
+    JobStatus.STEM_SEPARATING: {JobStatus.COMPLETED, JobStatus.FAILED},
     JobStatus.COMPLETED: set(),
     JobStatus.FAILED: set(),
 }

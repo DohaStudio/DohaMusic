@@ -17,4 +17,6 @@ backend/storage/
 
 `StorageService`는 루트 밖으로 벗어나는 상대 경로를 거부한다. 현재 API는 파일 다운로드나 실제 업로드를 제공하지 않으며, `voice_profiles.reference_file_path`는 메타데이터만 저장한다.
 
+Stem 산출물은 `stems/vocals/{job}.wav`, `stems/instrumentals/{job}.wav`, `stems/metadata/{job}.json`에 저장한다. 임시 work 경로와 모델 cache, 실험 오디오는 Git에서 제외한다. API와 DB에는 Storage 루트 기준 상대 경로만 기록하며 원본 생성 파일을 덮어쓰지 않는다.
+
 향후 객체 저장소를 도입할 때는 Service와 Worker가 저장소 구현 세부사항에 의존하지 않도록 현재 Storage 경계를 Adapter 인터페이스로 확장한다. 보존·삭제 정책은 [오디오 데이터 정책](../05-data/audio-data-policy.md)을 따른다.

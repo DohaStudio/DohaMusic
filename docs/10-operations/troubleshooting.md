@@ -22,3 +22,9 @@ RTX 3060 Ti 8GB 검증은 공식 0.6B 모델, PyTorch backend, CPU offload 조�
 ## 오디오 오류
 
 실제 디코딩, 형식·크기·길이, 저장소 해시, 단계별 출력 검증을 확인한다. 같은 Seed 재현성은 WAV 파일 hash뿐 아니라 sample hash·RMSE도 확인한다. ACE-Step WAV는 IEEE float32일 수 있어 PCM16 전용 reader로 실패할 수 있다. 원본을 덮어쓰지 않는다.
+
+## Demucs Stem 실패
+
+`DOHAMUSIC_STEM_PROVIDER=demucs`, 격리 Python·runner·model cache 경로, cache 안의 `.safetensors`, CUDA 인식 순으로 확인한다. 실행기는 오프라인이므로 누락 모델을 내려받지 않고 `STEM_MODEL_NOT_FOUND`로 중단한다. OOM이면 다른 프로세스를 강제 종료하지 말고 GPU 동시성 1, segment 7초 설정과 시스템 GPU 사용량을 확인한다.
+
+결과가 생성됐지만 품질이 낮다고 느껴지면 파일 존재·48kHz·Stereo·동일 길이·RMS·clipping을 먼저 확인한 뒤 EVAL-002에 보컬 누락·누출·잔향·노이즈 구간을 기록한다. 자동 지표만으로 모델을 교체하거나 Seed-VC에 연결하지 않는다.
