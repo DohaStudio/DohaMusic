@@ -10,6 +10,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가
 
+- 프로젝트 전체 Phase·실제 진행률·선행 조건·산출물·다음 작업을 관리하는 `MASTER_ROADMAP.md`를 추가했다.
+- Phase 1~9의 완료 판정과 공통 Git·문서 게이트를 관리하는 `docs/DoD/` 문서 체계를 추가했다.
+
 - `StemSeparator` 인터페이스, `MockStemSeparator`, 격리형 `DemucsAdapter`, `mock`·`demucs` Provider Factory를 추가했다.
 - 비동기 Stem 생성·조회·파일 조회 API와 `stem_jobs`, `stem_files`, `STEM_SEPARATING` 상태를 추가했다.
 - HTDemucs 오프라인 단독 실행기, 3회 Benchmark, opt-in GPU Backend E2E 및 자동 오디오 검증을 추가했다.
@@ -28,6 +31,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 변경
 
+- 새 기능 작업은 Master Roadmap, 해당 Phase DoD, AGENTS 지침 순으로 확인하고 완료 후 진행률·DoD·README·ROADMAP·CHANGELOG를 함께 갱신하도록 운영 규칙을 확장했다.
+
 - AI 작업은 생성 Worker와 Stem Worker가 GPU 동시성 1인 공유 ThreadPool을 사용하도록 조립했다.
 - 개발 상태를 Phase 3 Stem Separation 기술 검증 완료·사용자 청취 평가 대기로 갱신했다.
 
@@ -44,6 +49,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 ### 보안
 
 ### 문서
+
+- README와 ROADMAP을 Master Roadmap·DoD에 연결하고 기존 Phase 4 이후 명칭을 Voice Conversion → Pipeline → Lyrics AI → Doha Voice → Doha Studio → Production 체계로 통합했다.
 
 - Demucs·HTDemucs·MDX-Net·Open-Unmix 비교, Demucs 코드·가중치 MIT 확인, RTX 3060 Ti 실측을 조사·모델·Architecture·API·DB·평가·운영 문서에 반영했다.
 

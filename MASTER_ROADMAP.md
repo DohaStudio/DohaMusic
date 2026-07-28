@@ -1,0 +1,205 @@
+# DohaMusic Master Roadmap
+
+> 문서 상태: [운영 기준]
+> 최종 수정일: 2026-07-29
+> 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.
+> 관련 문서: [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md), [작업 지침](AGENTS.md), [ADR](docs/11-decisions/README.md), [변경 이력](CHANGELOG.md)
+
+이 문서는 프로젝트의 최상위 진행 기준이다. 기능 작업을 시작할 때 `MASTER_ROADMAP → 해당 Phase DoD → AGENTS.md` 순서로 범위와 완료 조건을 확인한다. 작업을 마치면 이 문서의 상태·진행률, 해당 DoD, README, ROADMAP과 CHANGELOG를 실제 구현에 맞게 갱신한다.
+
+## 상태와 진행률 원칙
+
+- 상태는 `[완료]`, `[진행 중]`, `[계획]`, `[검토 필요]`, `[보류]`만 사용한다.
+- 진행률은 해당 Phase DoD의 완료 항목 수를 전체 판정 항목 수로 나눈 값이다. 증거가 없는 항목은 완료로 계산하지 않는다.
+- 막대는 10칸 단위 근사 표시이며 숫자 백분율이 정확한 값이다.
+- 문서 생성만으로 기능·품질·운영 준비가 완료된 것으로 보지 않는다.
+- 사용자 청취 평가가 비어 있으면 관련 품질 게이트를 완료 처리하지 않는다.
+
+## 전체 흐름과 현재 상태
+
+```text
+Phase 0  프로젝트 문서화             [완료]
+  ↓
+Phase 1  Backend Foundation          [완료]
+  ↓
+Phase 2  Music Generation            [진행 중]
+  ↓
+Phase 2.5 Quality Benchmark           [진행 중]
+  ↓
+Phase 3  Stem Separation             [완료]
+  ↓
+Phase 4  Voice Conversion            [계획]
+  ↓
+Phase 5  Pipeline Integration        [계획]
+  ↓
+Phase 6  Lyrics AI                   [계획]
+  ↓
+Phase 7  Doha Voice                  [계획]
+  ↓
+Phase 8  Doha Studio                 [계획]
+  ↓
+Phase 9  Production                  [계획]
+```
+
+| Phase | 상태 | 진행률 | 사실 기준 | DoD |
+|---|---|---:|---|---|
+| 0. 프로젝트 문서화 | [완료] | `██████████ 100%` | 초기 문서·정책·ADR 체계 구축 | 이 문서의 Phase 0 기준 |
+| 1. Backend Foundation | [완료] | `██████████ 100%` | FastAPI·SQLite·Alembic·Mock Job 검증 | [Phase-01](docs/DoD/Phase-01.md) |
+| 2. Music Generation | [진행 중] | `█████████░ 93%` | ACE-Step 기술 연결 완료, 사용자 품질 승인 대기 | [Phase-02](docs/DoD/Phase-02.md) |
+| 2.5 Quality Benchmark | [진행 중] | `█████████░ 93%` | 재현성·반복·VRAM·ADR 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
+| 3. Stem Separation | [완료] | `██████████ 100%` | HTDemucs Adapter·API·Benchmark·평가표 구축 | [Phase-03](docs/DoD/Phase-03.md) |
+| 4. Voice Conversion | [계획] | `░░░░░░░░░░ 0%` | Seed-VC 미구현 | [Phase-04](docs/DoD/Phase-04.md) |
+| 5. Pipeline Integration | [계획] | `░░░░░░░░░░ 0%` | 변환·믹싱·통합 Job 미구현 | [Phase-05](docs/DoD/Phase-05.md) |
+| 6. Lyrics AI | [계획] | `░░░░░░░░░░ 0%` | Lyrics Generator 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
+| 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
+| 8. Doha Studio | [계획] | `░░░░░░░░░░ 0%` | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
+| 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
+
+## Phase 0. 프로젝트 문서화 — [완료]
+
+- 목표: 프로젝트 목표·범위·정책·설계·작업 규칙을 추적 가능한 문서로 확립한다.
+- 구현 범위·포함 기능: README, ROADMAP, AGENTS, 요구사항, Architecture, API·DB·평가·보안·운영 문서, ADR·실험 보고서 구조.
+- 제외 기능: 실제 Backend와 AI 모델 실행.
+- 선행 조건: 저장소와 프로젝트 목표 확정.
+- 완료 조건: 문서 구조·상대 링크·상태·작업 규칙 검토 완료.
+- 산출물: `README.md`, `AGENTS.md`, `docs/`, `planning/`, `reports/`.
+- 관련 문서: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md).
+- 관련 ADR·실험: [ADR-001~004](docs/11-decisions/README.md), 실험 없음.
+- 예상 다음 단계: Phase 1 Backend Foundation.
+
+## Phase 1. Backend Foundation — [완료]
+
+- 목표: AI Provider가 없어도 검증 가능한 비동기 Backend 기반을 만든다.
+- 구현 범위·포함 기능: FastAPI 계층, SQLite·SQLAlchemy·Alembic, 생성 Job·파일·음성 프로필, Mock Worker, Storage, 로그·예외·테스트.
+- 제외 기능: 실제 AI, 인증, 외부 Queue, Frontend.
+- 선행 조건: Phase 0 문서·아키텍처 기준.
+- 완료 조건: [Phase-01 DoD](docs/DoD/Phase-01.md)의 모든 항목과 Mock E2E 통과.
+- 산출물: `backend/`, 초기 migration, API·DB 문서.
+- 관련 문서: [Backend Architecture](docs/03-architecture/backend-architecture.md), [API](docs/06-api/api-overview.md), [ERD](docs/07-database/erd.md).
+- 관련 ADR·실험: [ADR-002](docs/11-decisions/ADR-002-modular-ai-pipeline.md), [ADR-003](docs/11-decisions/ADR-003-async-job-processing.md), 별도 AI 실험 없음.
+- 예상 다음 단계: Phase 2 Music Generation.
+
+## Phase 2. Music Generation — [진행 중]
+
+- 목표: 교체 가능한 음악 생성 Adapter와 로컬 생성 경로를 검증한다.
+- 구현 범위·포함 기능: ACE-Step 공식 조사·격리 runtime·`MusicGenerator` Adapter·Provider Factory·Backend E2E·WAV·성능 metadata.
+- 제외 기능: ACE-Step 기본 Provider 확정, 사용자 품질 승인, Lyrics AI, 음색 변환.
+- 선행 조건: Phase 1 Backend와 RTX 3060 Ti 8GB 환경.
+- 완료 조건: [Phase-02 DoD](docs/DoD/Phase-02.md)와 EVAL-001 사용자 판정 후 Provider 채택 여부 결정.
+- 산출물: ACE-Step Adapter·runner·GPU 통합 테스트·EXP-001.
+- 관련 문서: [Music Generation Adapter](docs/04-models/music-generation-adapter.md), [Model Comparison](docs/01-research/model-comparison.md).
+- 관련 ADR: [ADR-005](docs/11-decisions/ADR-005-ai-worker-dependency-isolation.md), [ADR-006](docs/11-decisions/ADR-006-ace-step-primary-provider.md).
+- 관련 실험: [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md).
+- 예상 다음 단계: EVAL-001 작성과 Phase 2 Provider 판정.
+
+## Phase 2.5. Quality Benchmark — [진행 중]
+
+- 목표: 음악 생성의 재현성·다양성·반복 안정성·자원 사용과 운영 수명을 판정한다.
+- 구현 범위·포함 기능: 동일·다른 Seed, 반복 실행, 0.6B LM 비교, VRAM·RSS·시간, WAV 비교, runtime 수명 ADR.
+- 제외 기능: Codex의 청감 점수 작성, 모델 기본값 강제 변경.
+- 선행 조건: Phase 2 ACE-Step 단독 추론 성공.
+- 완료 조건: [Phase-02.5 DoD](docs/DoD/Phase-02.5.md)와 사용자 EVAL-001 완료.
+- 산출물: benchmark suite·집계 도구·EXP-002·EVAL-001 양식.
+- 관련 문서: [평가 전략](docs/08-evaluation/evaluation-strategy.md), [Benchmark](docs/08-evaluation/benchmark-scenarios.md).
+- 관련 ADR: [ADR-006](docs/11-decisions/ADR-006-ace-step-primary-provider.md), [ADR-007](docs/11-decisions/ADR-007-ace-step-runtime-lifecycle.md).
+- 관련 실험: [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md).
+- 예상 다음 단계: 사용자 청취 판정 반영 후 Phase 2·2.5 종료 여부 결정.
+
+## Phase 3. Stem Separation — [완료]
+
+- 목표: 생성 음원을 `vocals.wav`와 `instrumental.wav`로 분리하는 교체 가능한 경로를 만든다.
+- 구현 범위·포함 기능: HTDemucs 선정, `StemSeparator`, Mock·Demucs Provider, Stem API·DB·Worker, 48kHz Stereo 출력, Benchmark·자동 검사.
+- 제외 기능: Seed-VC, 음색 변환, 믹싱.
+- 선행 조건: Phase 1 Backend와 생성 파일 metadata.
+- 완료 조건: [Phase-03 DoD](docs/DoD/Phase-03.md)의 기술 범위와 EVAL-002 평가 양식 구축.
+- 산출물: Stem Adapter·API·migration·runner·EXP-003·EVAL-002.
+- 관련 문서: [Stem Adapter](docs/04-models/source-separation-adapter.md), [Stem API](docs/06-api/stem-api.md).
+- 관련 ADR: [ADR-008](docs/11-decisions/ADR-008-stem-separation-provider.md).
+- 관련 실험: [EXP-003](reports/experiments/EXP-003-stem-separation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md).
+- 예상 다음 단계: Phase 4 Seed-VC 후보 조사와 EVAL-002 사용자 판정.
+
+## Phase 4. Voice Conversion — [계획]
+
+- 목표: 동의된 본인 음성으로 분리 보컬의 음색을 변환한다.
+- 구현 범위·포함 기능: Seed-VC 공식 조사, `VoiceConverter` Adapter·Mock·Provider, Voice Profile 연결, API·Worker·Benchmark·EXP·EVAL.
+- 제외 기능: 무단 Voice Clone, Dataset 학습, 전체 Pipeline 믹싱.
+- 선행 조건: EVAL-002 검토, 음성 동의·삭제·보안 정책 재검토.
+- 완료 조건: [Phase-04 DoD](docs/DoD/Phase-04.md), 공식 라이선스·RTX 3060 Ti 실행·품질·실패 경로 검증.
+- 산출물: Voice Conversion Adapter, API/DB 변경, ADR, EXP-004, EVAL-003(예정).
+- 관련 문서: [Voice Conversion 조사](docs/01-research/voice-conversion.md), [Voice Adapter](docs/04-models/voice-conversion-adapter.md).
+- 관련 ADR·실험: 새 Provider·음성 처리 ADR 필요, 아직 없음.
+- 예상 다음 단계: Phase 5 Pipeline Integration.
+
+## Phase 5. Pipeline Integration — [계획]
+
+- 목표: Music → Stem → Voice → Mixer를 하나의 추적 가능한 비동기 Pipeline으로 연결한다.
+- 구현 범위·포함 기능: 단계 오케스트레이션, Mixer, 통합 API·Worker·상태·파일, 실패·재시도 정책, Benchmark·통합 테스트.
+- 제외 기능: Lyrics AI, Frontend, 외부 운영 Queue의 제품 선정.
+- 선행 조건: Phase 2·3·4 Provider 계약과 품질 게이트.
+- 완료 조건: [Phase-05 DoD](docs/DoD/Phase-05.md), 단일 E2E Job과 회귀·실패 검증.
+- 산출물: Pipeline Service·Worker·API, 통합 ADR·실험 보고서.
+- 관련 문서: [AI Pipeline](docs/03-architecture/ai-pipeline.md), [Job State](docs/07-database/job-state-model.md).
+- 관련 ADR·실험: Pipeline 순서·상태·저장 정책 ADR 필요, 아직 없음.
+- 예상 다음 단계: Phase 6 Lyrics AI.
+
+## Phase 6. Lyrics AI — [계획]
+
+- 목표: 사용자 의도를 안전한 가사와 음악 생성 prompt로 변환한다.
+- 구현 범위·포함 기능: `LyricsGenerator`, prompt 계약, API·Backend 연결, 한국어 품질·안전 Benchmark.
+- 제외 기능: 저작권 침해 가사 복제, Doha Voice 학습, Studio UI.
+- 선행 조건: 생성 Provider 입력 계약과 콘텐츠 정책 검토.
+- 완료 조건: [Phase-06 DoD](docs/DoD/Phase-06.md), 모델·라이선스·안전·품질 검증.
+- 산출물: Lyrics Adapter·API·실험·평가·ADR.
+- 관련 문서: [Generated Content Policy](docs/09-security/generated-content-policy.md), [Music Generation Models](docs/01-research/music-generation-models.md).
+- 관련 ADR·실험: 모델 선정 ADR·실험 필요, 아직 없음.
+- 예상 다음 단계: Phase 7 Doha Voice 또는 Phase 8 Studio 선행 설계 검토.
+
+## Phase 7. Doha Voice — [계획]
+
+- 목표: 동의·삭제 가능한 본인 가창 Dataset으로 개인화 음성 품질을 검증한다.
+- 구현 범위·포함 기능: Dataset, preprocessing, LoRA·Fine Tuning 후보, Benchmark·Evaluation.
+- 제외 기능: 타인 음성 학습, 무동의 수집, 대규모 기반 모델 사전학습.
+- 선행 조건: Voice Conversion baseline, 동의·삭제·라이선스·보안 ADR 승인.
+- 완료 조건: [Phase-07 DoD](docs/DoD/Phase-07.md), 데이터 계보·삭제·전후 비교·사용 승인.
+- 산출물: Dataset schema·전처리 도구·학습 실험·평가·Model Card.
+- 관련 문서: [Audio Data Policy](docs/05-data/audio-data-policy.md), [Voice Consent](docs/09-security/voice-consent-policy.md).
+- 관련 ADR·실험: 개인 음성 학습 ADR·실험 필요, 아직 없음.
+- 예상 다음 단계: Phase 8 Doha Studio.
+
+## Phase 8. Doha Studio — [계획]
+
+- 목표: 생성·편집·재생·이력·파일 관리를 제공하는 사용자 Studio를 구축한다.
+- 구현 범위·포함 기능: Frontend, Player, History, Download·Upload, Voice·Prompt 화면과 API 연동.
+- 제외 기능: Production 인프라 전환과 공개 운영 승인.
+- 선행 조건: Phase 5 Pipeline API와 인증·소유권 설계.
+- 완료 조건: [Phase-08 DoD](docs/DoD/Phase-08.md), 주요 화면·접근성·빌드·E2E·권한 검증.
+- 산출물: Frontend 애플리케이션, UI 문서, E2E 결과.
+- 관련 문서: [Frontend Architecture](docs/03-architecture/frontend-architecture.md), [User Scenarios](docs/00-overview/user-scenarios.md).
+- 관련 ADR·실험: Frontend·인증 결정 ADR 검토 필요, 아직 없음.
+- 예상 다음 단계: Phase 9 Production.
+
+## Phase 9. Production — [계획]
+
+- 목표: DohaMusic을 복구·관측·보안 가능한 운영 환경으로 전환한다.
+- 구현 범위·포함 기능: PostgreSQL, Redis·Celery 후보 검증, Docker, HTTPS, Monitoring, Backup, Security·배포 자동화.
+- 제외 기능: 검증 없는 클라우드·Queue·DB 선택과 `main` 자동 배포.
+- 선행 조건: Studio MVP, 부하·보안·비용 요구사항, 릴리스 승인.
+- 완료 조건: [Phase-09 DoD](docs/DoD/Phase-09.md), migration·복구·부하·보안·배포·rollback 검증.
+- 산출물: 배포 구성, Runbook, 모니터링·백업·보안 보고서, 릴리스 기록.
+- 관련 문서: [Deployment Guide](docs/10-operations/deployment-guide.md), [Security Policy](docs/09-security/security-policy.md).
+- 관련 ADR·실험: DB·Queue·Storage·배포·보안 ADR와 부하 실험 필요, 아직 없음.
+- 예상 다음 단계: 사용자 승인 후 `develop → main` 안정화 릴리스.
+
+## 현재 권장 다음 작업
+
+```text
+Phase 3 기술 범위 완료
+  ↓
+EVAL-002 사용자 Stem 청취 평가
+  ↓
+Phase 4 Voice Conversion 공식 조사
+  ↓
+Seed-VC 라이선스·RTX 3060 Ti 단독 추론 검증
+```
+
+EVAL-001도 별도로 완료해 Phase 2·2.5의 Provider 품질 게이트를 닫아야 한다.

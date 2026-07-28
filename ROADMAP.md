@@ -1,81 +1,55 @@
-# 개발 로드맵
+# DohaMusic 실행 로드맵
 
-> 문서 목적: 단계별 산출물, 완료 조건, 다음 단계 진입 조건을 정의한다.
-> 현재 상태: **Phase 3 Stem Separation 구현·기술 검증 완료, 사용자 청취 평가 대기**
+> 문서 상태: [운영 중]
+> 최종 수정일: 2026-07-29
+> 현재 상태: **Phase 3 Stem Separation 기술 범위 완료 / Phase 2·2.5 사용자 품질 평가 대기 / Phase 4 계획**
+> 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
+> 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)
 
-각 Phase는 앞 단계의 산출물과 검증 결과를 입력으로 삼는다. 일정은 모델 라이선스와 RTX 3060 Ti 8GB 실측 결과에 따라 조정한다.
+이 문서는 현재 실행 순서와 가까운 다음 작업만 요약한다. 전체 Phase의 목표·포함·제외·선행 조건·산출물·진행률은 `MASTER_ROADMAP.md`, 세부 완료 판정은 해당 DoD를 따른다. 같은 설명을 여러 문서에 복제하지 않는다.
 
-## Phase 0. 프로젝트 설계 — [완료]
+## 현재 Phase 현황
 
-- 문서 구조와 요구사항 정의
-- 모델 후보와 라이선스 조사 기준 수립
-- 개발 환경, 데이터 및 동의 정책 정의
-- 완료 조건: 문서 링크·범위·정책·ADR 검토 완료
+| Phase | 상태 | 현재 판정 | DoD |
+|---|---|---|---|
+| 0. 프로젝트 문서화 | [완료] | 초기 설계·정책·문서 체계 구축 | Master Phase 0 |
+| 1. Backend Foundation | [완료] | FastAPI·DB·Mock Job E2E | [Phase-01](docs/DoD/Phase-01.md) |
+| 2. Music Generation | [진행 중] | ACE-Step 기술 연결 완료, EVAL-001 대기 | [Phase-02](docs/DoD/Phase-02.md) |
+| 2.5 Quality Benchmark | [진행 중] | 재현성·반복·운영 수명 검증 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
+| 3. Stem Separation | [완료] | HTDemucs Adapter·API·Benchmark·EVAL 양식 | [Phase-03](docs/DoD/Phase-03.md) |
+| 4. Voice Conversion | [계획] | Seed-VC 공식 조사 전 | [Phase-04](docs/DoD/Phase-04.md) |
+| 5. Pipeline Integration | [계획] | Voice 단계 선행 필요 | [Phase-05](docs/DoD/Phase-05.md) |
+| 6. Lyrics AI | [계획] | 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
+| 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
+| 8. Doha Studio | [계획] | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
+| 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
-## Phase 1. Backend Foundation — [완료]
+## 현재 우선 작업
 
-- FastAPI Router·Service·Repository 계층
-- SQLAlchemy·Alembic·SQLite 초기 schema
-- Mock `MusicGenerator`와 비동기 ThreadPool Worker
-- 생성 Job·결과 파일·음성 프로필 API
-- 로컬 Storage, 환경 변수, 예외·로그, 자동 테스트
-- 완료 조건: Mock Job 종단 간 실행, migration, API와 실패 경로 검증
+1. [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 Stem 분리 청취 결과를 사용자가 기록한다.
+2. Phase 4 작업 전 [Phase-04 DoD](docs/DoD/Phase-04.md)를 기준으로 Seed-VC와 대안의 공식 문서·라이선스·음성 안전 정책을 조사한다.
+3. RTX 3060 Ti 8GB에서 단독 추론을 먼저 검증한 후 Adapter·Backend 범위를 결정한다.
+4. 별도로 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료해 Phase 2·2.5와 ADR-006 상태를 갱신한다.
 
-## Phase 2. AI Adapter와 로컬 추론 검증 — [진행 중]
+## 다음 작업 흐름
 
-- [완료] `MusicGenerator` 계약을 유지한 ACE-Step Adapter·Provider Factory 구현
-- [완료] ACE-Step 1.5 v0.1.8 2B Turbo 단독 추론과 Backend 종단 간 연결
-- [완료] RTX 3060 Ti 8GB에서 시간·VRAM·WAV 신호 지표 측정
-- [완료] 고정 instrumental·한국어 가사 입력과 재현용 실행기 추가
-- [완료] 동일 Seed PCM 재현성·다른 Seed 파형 다양성 확인
-- [완료] 상주 프로세스 6회 suite 2회, 총 12/12 기술 실행
-- [완료] 0.6B LM의 8GB 실행 가능성과 성능 비교
-- [완료] 현재 운영 수명을 Job별 격리 subprocess로 결정
-- [진행 중] EVAL-001 사용자 청취 평가: 한국어 발음·가사 정렬·음악성·청감 잡음
-- [검토 필요] 사용자 평가 후 ACE-Step 기본 Provider 채택 여부 재검토
-- 완료 조건: 최소 한 후보의 재현 가능한 실험 보고서와 도입 판정
+```text
+EVAL-002 사용자 평가
+  ↓
+Phase 4 Voice Conversion 조사
+  ↓
+Seed-VC 또는 대안 단독 추론 검증
+  ↓
+VoiceConverter Adapter·Backend·Benchmark
+  ↓
+Phase 5 Pipeline Integration
+```
 
-ACE-Step은 선택적 실험 Provider이며 제품 기본 모델로 채택하지 않았다. 기술 반복 게이트는 통과했지만 품질 게이트가 남아 있으므로 Phase 2 전체를 완료 처리하지 않는다. 근거는 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 따른다.
+## 완료 처리 규칙
 
-## Phase 3. Stem Separation Adapter — [완료]
+- 구현되지 않은 기능과 실행하지 않은 테스트는 완료로 표시하지 않는다.
+- Phase 상태 변경 시 Master Roadmap, 해당 DoD, README와 CHANGELOG를 같은 작업에서 검토한다.
+- AI 품질은 Codex가 추정하지 않고 EXP의 객관 지표와 EVAL의 사용자 평가를 분리한다.
+- 일반 작업은 작업 브랜치 → `develop` PR로 병합하며 `main`은 명시적 안정화 요청에서만 변경한다.
 
-- [완료] Demucs·HTDemucs·MDX-Net·Open-Unmix 공식 자료와 라이선스 비교
-- [완료] RTX 3060 Ti 8GB 기준 HTDemucs 4.1.0 선택 및 20초 입력 3/3 분리
-- [완료] `StemSeparator`, `MockStemSeparator`, `DemucsAdapter`, Provider Factory
-- [완료] `POST /api/stems`, 상태·파일 조회 API, `stem_jobs`·`stem_files` migration
-- [완료] 48kHz Stereo float32 `vocals.wav`·`instrumental.wav`와 객관 지표 metadata
-- [완료] EXP-003, EVAL-002, ADR-008 및 GPU Backend E2E
-- 완료 조건: 기술 실행·Backend 연결·자동 품질 검증 완료. 청취 품질 판정은 사용자 평가로 분리
-
-## 다음 Phase. Seed-VC 음색 변환 Adapter — [계획]
-
-- 본인 참조 음성 준비와 동의 기록
-- 말하기/노래 음성 차이, 음질·음색 유사도·발음 보존 평가
-- 완료 조건: 안전 정책을 충족하는 변환 후보와 실패 기준 확정
-
-## Phase 4. API 확장 — [계획]
-
-- 실제 모델 Adapter와 생성 API 연결
-- 모델 상태, 재시도, 취소, 인증·접근 제어
-- 외부 Queue와 객체 Storage 도입 여부 결정
-- 완료 조건: [API 인수 기준](docs/02-requirements/acceptance-criteria.md) 충족
-
-## Phase 5. 웹 MVP — [계획]
-
-- 프롬프트·가사·참조 음성 입력
-- 진행률, 재생, WAV 다운로드, 이력
-- 완료 조건: 동의된 개인 음성으로 MVP 사용자 시나리오 통과
-
-## Phase 6. 품질 개선 — [계획]
-
-- 한국어 발음, 음색 유사도, 고음 안정성, 보컬/반주 균형, 속도 개선
-- 완료 조건: 고정 벤치마크의 목표값 합의 및 회귀 기준 수립
-
-## Phase 7. 개인화 학습 — [검증 필요]
-
-- 개인 가창 데이터셋과 전처리 검토
-- LoRA 또는 파인튜닝 실험, 전후 비교
-- 전용 가창 모델 검토
-- 진입 조건: 동의·삭제·라이선스·보안 영향 검토와 별도 ADR 승인
-
-세부 계획은 [planning](planning/phase-01-research.md), 미확정 작업은 [백로그](planning/backlog.md)를 참고한다.
+미확정 세부 작업은 [백로그](planning/backlog.md), 주요 기술 결정은 [ADR 목록](docs/11-decisions/README.md), 실험 근거는 [reports](reports/)에서 추적한다.
