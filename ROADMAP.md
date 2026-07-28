@@ -1,39 +1,48 @@
 # 개발 로드맵
 
 > 문서 목적: 단계별 산출물, 완료 조건, 다음 단계 진입 조건을 정의한다.
-> 현재 상태: **Phase 0 진행 중**
+> 현재 상태: **Phase 1 Backend Foundation 완료**
 
 각 Phase는 앞 단계의 산출물과 검증 결과를 입력으로 삼는다. 일정은 모델 라이선스와 RTX 3060 Ti 8GB 실측 결과에 따라 조정한다.
 
-## Phase 0. 프로젝트 설계 — [진행 중]
+## Phase 0. 프로젝트 설계 — [완료]
 
 - 문서 구조와 요구사항 정의
 - 모델 후보와 라이선스 조사 기준 수립
 - 개발 환경, 데이터 및 동의 정책 정의
 - 완료 조건: 문서 링크·범위·정책·ADR 검토 완료
 
-## Phase 1. 로컬 추론 검증 — [계획]
+## Phase 1. Backend Foundation — [완료]
 
+- FastAPI Router·Service·Repository 계층
+- SQLAlchemy·Alembic·SQLite 초기 schema
+- Mock `MusicGenerator`와 비동기 ThreadPool Worker
+- 생성 Job·결과 파일·음성 프로필 API
+- 로컬 Storage, 환경 변수, 예외·로그, 자동 테스트
+- 완료 조건: Mock Job 종단 간 실행, migration, API와 실패 경로 검증
+
+## Phase 2. AI Adapter와 로컬 추론 검증 — [계획]
+
+- `MusicGenerator` 계약을 유지한 실제 Adapter 후보 구현
 - 음악 생성 후보 실행, 가사·한국어 발음 확인
 - GPU 메모리·시간·결과 파일 측정
 - 완료 조건: 최소 한 후보의 재현 가능한 실험 보고서와 도입 판정
 
-## Phase 2. 음색 변환 검증 — [계획]
+## Phase 3. 음색 변환 및 AI 파이프라인 — [계획]
 
 - 본인 참조 음성 준비와 동의 기록
 - 말하기/노래 음성 차이, 음질·음색 유사도·발음 보존 평가
 - 완료 조건: 안전 정책을 충족하는 변환 후보와 실패 기준 확정
 
-## Phase 3. AI 파이프라인 통합 — [계획]
-
 - 음악 생성 → 분리 → 변환 → 믹싱 → 인코딩 연결
 - 단계별 오류 처리, 모델 순차 로드/해제
 - 완료 조건: 단일 로컬 작업의 종단 간 재현과 산출물 기록
 
-## Phase 4. API 구축 — [계획]
+## Phase 4. API 확장 — [계획]
 
-- 생성 요청·작업 조회·결과·모델 상태 API
-- 비동기 처리, 재시도, 취소, 접근 제어
+- 실제 모델 Adapter와 생성 API 연결
+- 모델 상태, 재시도, 취소, 인증·접근 제어
+- 외부 Queue와 객체 Storage 도입 여부 결정
 - 완료 조건: [API 인수 기준](docs/02-requirements/acceptance-criteria.md) 충족
 
 ## Phase 5. 웹 MVP — [계획]
