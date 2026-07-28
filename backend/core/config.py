@@ -22,6 +22,8 @@ class Settings(BaseModel):
     model_version: str = "mock"
     worker_max_threads: int = Field(default=1, ge=1, le=8)
     mock_generation_delay_seconds: float = Field(default=3.0, ge=0, le=60)
+    stem_provider: str = "mock"
+    mock_stem_delay_seconds: float = Field(default=0.1, ge=0, le=60)
     ace_step_runtime_python: str = ""
     ace_step_runner_path: str = ""
     ace_step_project_root: str = ""
@@ -33,6 +35,16 @@ class Settings(BaseModel):
     ace_step_cpu_offload: bool = True
     ace_step_dit_cpu_offload: bool = True
     ace_step_timeout_seconds: int = Field(default=900, ge=10, le=7_200)
+    demucs_runtime_python: str = ""
+    demucs_runner_path: str = "ai_worker/scripts/run_demucs_separation.py"
+    demucs_model_cache_path: str = ""
+    demucs_model_name: str = "htdemucs"
+    demucs_model_version: str = "4.1.0"
+    demucs_device: str = "cuda"
+    demucs_segment_seconds: float = Field(default=7.0, ge=1.0, le=7.8)
+    demucs_shifts: int = Field(default=1, ge=0, le=10)
+    demucs_overlap: float = Field(default=0.25, ge=0.0, lt=1.0)
+    demucs_timeout_seconds: int = Field(default=900, ge=10, le=7_200)
     log_level: str = "INFO"
 
     @field_validator("log_level")
@@ -54,6 +66,8 @@ class Settings(BaseModel):
             "MODEL_VERSION": "model_version",
             "WORKER_MAX_THREADS": "worker_max_threads",
             "MOCK_GENERATION_DELAY_SECONDS": "mock_generation_delay_seconds",
+            "DOHAMUSIC_STEM_PROVIDER": "stem_provider",
+            "MOCK_STEM_DELAY_SECONDS": "mock_stem_delay_seconds",
             "DOHAMUSIC_AI_ACE_STEP_RUNTIME_PYTHON": "ace_step_runtime_python",
             "DOHAMUSIC_AI_ACE_STEP_RUNNER_PATH": "ace_step_runner_path",
             "DOHAMUSIC_AI_ACE_STEP_PROJECT_ROOT": "ace_step_project_root",
@@ -65,6 +79,16 @@ class Settings(BaseModel):
             "DOHAMUSIC_AI_ACE_STEP_CPU_OFFLOAD": "ace_step_cpu_offload",
             "DOHAMUSIC_AI_ACE_STEP_DIT_CPU_OFFLOAD": "ace_step_dit_cpu_offload",
             "DOHAMUSIC_AI_ACE_STEP_TIMEOUT_SECONDS": "ace_step_timeout_seconds",
+            "DOHAMUSIC_STEM_DEMUCS_RUNTIME_PYTHON": "demucs_runtime_python",
+            "DOHAMUSIC_STEM_DEMUCS_RUNNER_PATH": "demucs_runner_path",
+            "DOHAMUSIC_STEM_DEMUCS_MODEL_CACHE_PATH": "demucs_model_cache_path",
+            "DOHAMUSIC_STEM_DEMUCS_MODEL_NAME": "demucs_model_name",
+            "DOHAMUSIC_STEM_DEMUCS_MODEL_VERSION": "demucs_model_version",
+            "DOHAMUSIC_STEM_DEMUCS_DEVICE": "demucs_device",
+            "DOHAMUSIC_STEM_DEMUCS_SEGMENT_SECONDS": "demucs_segment_seconds",
+            "DOHAMUSIC_STEM_DEMUCS_SHIFTS": "demucs_shifts",
+            "DOHAMUSIC_STEM_DEMUCS_OVERLAP": "demucs_overlap",
+            "DOHAMUSIC_STEM_DEMUCS_TIMEOUT_SECONDS": "demucs_timeout_seconds",
             "LOG_LEVEL": "log_level",
         }
         for environment_name, field_name in mapping.items():

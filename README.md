@@ -1,7 +1,7 @@
 # DohaMusic
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 2.5 진행 중 — ACE-Step 반복 기술 검증 완료, 사용자 청취 평가 필요**
+> 현재 상태: **Phase 3 완료 — HTDemucs Stem 분리 Adapter·Backend E2E 검증 완료, 사용자 청취 평가 필요**
 > 최종 수정일: 2026-07-29
 > 관련 문서: [Codex 작업 지침](AGENTS.md), [개발 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -21,6 +21,8 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | 동의 확인이 필수인 음성 프로필 생성·삭제 API |
 | [완료] | 교체 가능한 `MusicGenerator` 결과 계약과 Provider Factory |
 | [실험 완료] | ACE-Step 1.5 v0.1.8 2B Turbo 로컬 추론·Backend Adapter 연결 |
+| [완료] | `StemSeparator`·Mock/Demucs Provider와 비동기 Stem API |
+| [실험 완료] | HTDemucs 4.1.0 보컬/반주 분리, 48kHz Stereo 출력, RTX 3060 Ti Benchmark |
 | [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
 | [계획] | 프롬프트 및 직접 작성 가사 기반 음악 생성 |
 | [계획] | 장르·분위기·BPM·길이·Seed 설정 |
@@ -32,7 +34,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
 
-기본 Provider는 계속 Mock이다. 선택적 ACE-Step Adapter는 공식 런타임을 Job별 격리 subprocess로 실행하며, 설치와 모델 경로를 명시적으로 설정한 경우에만 동작한다. 상주 방식은 warm 속도가 빨랐지만 6회 동안 CPU RSS가 약 14.2GiB 증가해 보류했다. 모델·가중치·실험 오디오는 저장소에 포함하지 않는다. 음색 변환, 인증, Frontend, Redis/Celery는 아직 구현하지 않았다.
+음악 생성과 Stem 분리의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step과 Demucs Adapter는 격리 subprocess를 실행하며, 설치와 모델 경로를 명시한 경우에만 동작한다. HTDemucs는 20초 입력 3회에서 3/3 성공했고 순수 분리 평균 3.915초, 전체 프로세스 평균 9.381초, 시스템 GPU 메모리 피크 평균 2,555.7MiB를 기록했다. 모델·가중치·실험 오디오는 저장소에 포함하지 않는다. 수동 청취 점수는 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 사용자가 기록한다. Seed-VC, 인증, Frontend, Redis/Celery는 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
@@ -53,7 +55,7 @@ flowchart LR
 - Frontend: Next.js
 - Backend/Orchestrator: FastAPI **[완료]**
 - Persistence: SQLAlchemy 2, Alembic, SQLite **[완료]**
-- AI Worker: Provider-neutral ThreadPool Worker **[완료]**, 격리형 ACE-Step subprocess **[실험 완료]**
+- AI Worker: Provider-neutral 공유 ThreadPool Worker **[완료]**, 격리형 ACE-Step·Demucs subprocess **[실험 완료]**
 - Database: SQLite **[완료]**, PostgreSQL/MySQL 교체 **[계획]**
 - Task Queue: 프로세스 내부 단일 ThreadPool **[완료]**, 외부 Queue **[계획]**
 - Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
@@ -92,7 +94,7 @@ API 문서는 실행 후 `http://127.0.0.1:8000/docs`, health는 `GET /health`�
 
 ## 개발 로드맵
 
-Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), Phase 2.5 재현성·반복·LM·운영 판단은 [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md)에 있다. 청취 점수는 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)에 사용자가 직접 기록한다. 설치되지 않은 AI 의존성은 Backend 개발 환경에 섞지 않는다.
+Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), Phase 2.5 재현성·운영 판단은 [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), Phase 3 Stem 분리 실측은 [EXP-003](reports/experiments/EXP-003-stem-separation.md)에 있다. 생성 품질은 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md), Stem 품질은 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 사용자가 직접 기록한다. 설치되지 않은 AI 의존성은 Backend 개발 환경에 섞지 않는다.
 
 ## 문서 안내
 

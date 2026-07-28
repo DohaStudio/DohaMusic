@@ -3,6 +3,7 @@
 from fastapi import Request
 
 from backend.services.generation_service import GenerationService
+from backend.services.stem_service import StemService
 from backend.services.voice_profile_service import VoiceProfileService
 
 
@@ -12,3 +13,7 @@ def get_generation_service(request: Request) -> GenerationService:
 
 def get_voice_profile_service(request: Request) -> VoiceProfileService:
     return request.app.state.voice_profile_service
+
+
+def get_stem_service(request: Request) -> StemService:
+    return request.app.state.stem_service

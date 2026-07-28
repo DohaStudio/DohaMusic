@@ -13,6 +13,10 @@ class StorageService:
         self.outputs_dir = self.root / "outputs"
         self.voices_dir = self.root / "voices"
         self.samples_dir = self.root / "samples"
+        self.stems_dir = self.root / "stems"
+        self.stem_vocals_dir = self.stems_dir / "vocals"
+        self.stem_instrumentals_dir = self.stems_dir / "instrumentals"
+        self.stem_metadata_dir = self.stems_dir / "metadata"
         self.sample_file = self.samples_dir / "sample.wav"
 
     def ensure_layout(self) -> None:
@@ -21,6 +25,9 @@ class StorageService:
             self.outputs_dir,
             self.voices_dir,
             self.samples_dir,
+            self.stem_vocals_dir,
+            self.stem_instrumentals_dir,
+            self.stem_metadata_dir,
         ):
             directory.mkdir(parents=True, exist_ok=True)
         if not self.sample_file.exists():
@@ -31,6 +38,12 @@ class StorageService:
         if not resolved.is_relative_to(self.root):
             raise ValueError("File must remain inside the configured storage root")
         return resolved.relative_to(self.root).as_posix()
+
+    def resolve_relative_path(self, file_path: str) -> Path:
+        resolved = (self.root / file_path).resolve()
+        if not resolved.is_relative_to(self.root):
+            raise ValueError("File must remain inside the configured storage root")
+        return resolved
 
     @staticmethod
     def _write_silent_wav(file_path: Path) -> None:

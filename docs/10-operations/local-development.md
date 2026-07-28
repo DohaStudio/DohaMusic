@@ -1,7 +1,7 @@
 # 로컬 개발 환경
 
 > 문서 목적: Backend와 선택적 AI 런타임을 재현 가능하게 분리한다.
-> 현재 상태: **Backend·ACE-Step 격리 실행 절차 검증**
+> 현재 상태: **Backend·ACE-Step·Demucs 격리 실행 절차 검증**
 
 ## Backend
 
@@ -31,3 +31,9 @@ python -m uvicorn backend.main:app --reload
 반복 benchmark는 `ai_worker/scripts/run_ace_step_benchmark.py`에 `quality-resident.json` 같은 suite를 명시해 실행한다. `benchmark`, `gpu`, `slow`, `integration` 작업은 opt-in이며 일반 `pytest`에서 모델을 로드하지 않는다. 0.6B LM 비교는 공식 모델을 사용자가 먼저 설치하고 benchmark 환경에 `DOHAMUSIC_AI_ACE_STEP_LM_MODEL=acestep-5Hz-lm-0.6B`, backend `pt`를 명시한 경우에만 실행한다. 이 LM 변수는 제품 Backend 설정이 아니다.
 
 실험 WAV·로그·모델·runtime은 Git 제외 대상이다. FFmpeg는 검증 PC에 없었으므로 WAV만 확인했으며 MP3/AAC는 검증하지 않았다. 설치·연결은 [EXP-001](../../reports/experiments/EXP-001-ace-step-local-inference.md), 반복·LM은 [EXP-002](../../reports/experiments/EXP-002-ace-step-quality-and-stability.md)에 있다.
+
+## 선택적 Demucs 런타임
+
+Demucs 4.1.0은 Backend와 별도 Python 3.11 환경에 설치한다. 검증 환경은 torch·torchaudio 2.7.1+cu128, `demucs==4.1.0`, `psutil`, `soundfile`이며 HTDemucs checkpoint는 사용자가 공식 배포에서 미리 준비한다. 실행 중 `HF_HUB_OFFLINE=1`을 강제하므로 자동 다운로드하지 않는다.
+
+`backend/.env.example`의 `DOHAMUSIC_STEM_DEMUCS_*` 경로를 설정하고 `DOHAMUSIC_STEM_PROVIDER=demucs`를 선택한다. 기본값 `mock`은 Demucs 설치 없이 동작한다. 3회 반복은 `ai_worker/scripts/run_demucs_benchmark.py`, 실제 Backend E2E는 `RUN_DEMUCS_GPU_TEST=1` 및 `DEMUCS_TEST_RUNTIME_PYTHON`, `DEMUCS_TEST_MODEL_CACHE`, `DEMUCS_TEST_SOURCE_AUDIO`를 명시해 실행한다. 모델·cache·실험 WAV·원시 metadata는 Git에 포함하지 않는다. 자세한 고정 환경은 [EXP-003](../../reports/experiments/EXP-003-stem-separation.md)에 있다.
