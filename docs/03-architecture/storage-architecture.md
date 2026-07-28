@@ -1,10 +1,20 @@
 # 저장소 아키텍처
 
-> 문서 목적: 오디오·중간 산출물의 저장 키, 수명과 접근 경계를 정의한다.
-> 현재 상태: **설계 초안**
+> 문서 목적: Phase 1 로컬 파일 저장 규칙과 후속 교체 경계를 정의한다.
+> 현재 상태: **로컬 Storage 구현 완료**
 
-논리 키는 `users/{user_id}/jobs/{job_id}/{artifact_type}/{file_id}` 형태를 사용하고 실제 로컬 절대 경로는 API에 노출하지 않는다. DB에는 논리 키, 해시, MIME, 크기, 생성 시각, 보존 상태를 기록한다.
+```text
+backend/storage/
+├── inputs/
+├── outputs/
+│   └── {job_id}/generated.wav
+├── voices/
+└── samples/
+    └── sample.wav
+```
 
-입력 참조 음성, 중간 Stem, 최종 결과의 보존 기간을 분리한다. 다운로드는 권한 검사 후 제한 시간 URL 또는 스트리밍으로 제공한다. 삭제는 객체와 DB 상태를 일관되게 처리하고 실패 시 재시도 가능한 삭제 작업을 남긴다.
+루트 경로는 `AUDIO_STORAGE_ROOT` 환경 변수로 설정한다. 애플리케이션 시작 시 네 디렉터리를 만들고, 테스트용 `sample.wav`가 없으면 짧은 무음 WAV를 생성한다. 생성 결과는 루트 기준 상대 경로로 `generated_files.file_path`에 기록한다.
 
-초기 로컬 구현과 S3 전환 모두 동일 Storage 인터페이스를 사용한다. 정책은 [오디오 데이터 정책](../05-data/audio-data-policy.md)을 따른다.
+`StorageService`는 루트 밖으로 벗어나는 상대 경로를 거부한다. 현재 API는 파일 다운로드나 실제 업로드를 제공하지 않으며, `voice_profiles.reference_file_path`는 메타데이터만 저장한다.
+
+향후 객체 저장소를 도입할 때는 Service와 Worker가 저장소 구현 세부사항에 의존하지 않도록 현재 Storage 경계를 Adapter 인터페이스로 확장한다. 보존·삭제 정책은 [오디오 데이터 정책](../05-data/audio-data-policy.md)을 따른다.

@@ -1,7 +1,7 @@
 # DohaMusic
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **초기 설계 — Phase 0**
+> 현재 상태: **Backend Foundation 완료 — Phase 1**
 > 최종 수정일: 2026-07-29
 > 관련 문서: [Codex 작업 지침](AGENTS.md), [개발 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -15,6 +15,10 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 
 | 상태 | 기능 |
 |---|---|
+| [완료] | FastAPI Router·Service·Repository·SQLAlchemy 기반 Backend Foundation |
+| [완료] | SQLite·Alembic 초기 schema와 로컬 Storage 구성 |
+| [완료] | Mock Worker 기반 비동기 Job 생성·조회·결과 파일 목록 |
+| [완료] | 동의 확인이 필수인 음성 프로필 생성·삭제 API |
 | [계획] | 프롬프트 및 직접 작성 가사 기반 음악 생성 |
 | [계획] | 장르·분위기·BPM·길이·Seed 설정 |
 | [계획] | 보컬/반주 분리 및 개별 출력 |
@@ -24,7 +28,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
 | [검증 필요] | 한국어 가사 발음, 음질, 음색 유사도 및 8GB VRAM 적합성 |
 
-구현 완료 기능은 아직 없다. 현재 저장소는 설계와 검증 계획만 포함한다.
+현재 구현은 Mock adapter가 3초 후 무음 샘플 WAV를 복사하는 Backend Foundation이다. 실제 음악 생성·음색 변환, 인증, Frontend, Redis/Celery, GPU 처리는 아직 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
@@ -43,11 +47,12 @@ flowchart LR
 ## 예상 기술 스택
 
 - Frontend: Next.js
-- Backend/Orchestrator: FastAPI
-- AI Worker: Python, PyTorch
-- Database: PostgreSQL 우선 검토, MySQL 대안 검토
-- Task Queue: 초기 DB 기반 작업 큐, 이후 Redis 기반 큐로 확장
-- Audio Storage: 초기 로컬 파일 저장소, 이후 S3 호환 객체 저장소
+- Backend/Orchestrator: FastAPI **[완료]**
+- Persistence: SQLAlchemy 2, Alembic, SQLite **[완료]**
+- AI Worker: Python ThreadPool Mock Worker **[완료]**, PyTorch Worker **[계획]**
+- Database: SQLite **[완료]**, PostgreSQL/MySQL 교체 **[계획]**
+- Task Queue: 프로세스 내부 단일 ThreadPool **[완료]**, 외부 Queue **[계획]**
+- Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
 - AI 모델: 어댑터를 통한 교체 가능한 공개 사전학습 모델
 
 모델명은 후보일 뿐이며, 라이선스와 로컬 벤치마크를 통과하기 전에는 채택하지 않는다. 자세한 기준은 [모델 비교](docs/01-research/model-comparison.md)와 [모델 선정 정책](docs/04-models/model-selection-policy.md)을 따른다.
@@ -56,6 +61,7 @@ flowchart LR
 
 ```text
 DohaMusic/
+├─ backend/    # FastAPI, DB, Mock Worker, AI interface, tests
 ├─ docs/       # 개요, 조사, 요구사항, 설계, 정책, 운영, ADR
 ├─ planning/   # 단계별 실행 계획과 백로그
 ├─ reports/    # 실험 및 벤치마크 기록 템플릿
@@ -67,16 +73,21 @@ DohaMusic/
 
 ## 빠른 시작
 
-현재는 실행 가능한 애플리케이션이 없다. 개발자는 다음 순서로 문서 검토와 모델 검증을 시작한다.
+Python 3.11 이상이 필요하다.
 
-1. [프로젝트 개요](docs/00-overview/project-overview.md)와 [MVP 범위](docs/02-requirements/mvp-scope.md)를 읽는다.
-2. [로컬 개발 환경](docs/10-operations/local-development.md)에 따라 향후 환경 기준을 확인한다.
-3. [Phase 1 로컬 추론](planning/phase-02-local-inference.md)과 [모델 테스트 템플릿](reports/model-test-template.md)으로 후보를 검증한다.
-4. 검증 결과를 근거로 ADR 또는 모델 레지스트리 문서를 갱신한다.
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -e ".[dev]"
+python -m alembic -c backend/alembic.ini upgrade head
+python -m uvicorn backend.main:app --reload
+```
+
+API 문서는 실행 후 `http://127.0.0.1:8000/docs`, health는 `GET /health`에서 확인한다. 테스트는 `python -m pytest -q`로 실행한다. 자세한 설정은 [로컬 개발 환경](docs/10-operations/local-development.md)을 따른다.
 
 ## 개발 로드맵
 
-Phase 0 설계부터 Phase 7 개인화 학습 검토까지의 단계와 진입 조건은 [ROADMAP.md](ROADMAP.md)에 있다.
+Phase 1 Backend Foundation 이후 Phase 2 AI Adapter·로컬 추론부터 Phase 7 개인화 학습 검토까지의 단계와 진입 조건은 [ROADMAP.md](ROADMAP.md)에 있다.
 
 ## 문서 안내
 

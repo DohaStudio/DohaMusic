@@ -1,8 +1,15 @@
 # 데이터베이스 개요
 
-> 문서 목적: 영속 데이터 범위, 선택 기준과 무결성 원칙을 정의한다.
-> 현재 상태: **논리 설계 / DB 미선정**
+> 문서 목적: Phase 1 영속 계층과 교체 경계를 정의한다.
+> 현재 상태: **SQLite/SQLAlchemy/Alembic 구현 완료**
 
-PostgreSQL을 우선 후보로 두고 MySQL을 대안으로 검토한다. 최종 선택은 JSON 메타데이터, 잠금 기반 작업 획득, 운영 경험을 기준으로 ADR에서 확정한다.
+현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
-DB에는 사용자, 음성 프로필·샘플·동의, 요청·작업, 생성 트랙·파일, 모델 레지스트리·실행 로그를 저장한다. 오디오 바이너리는 저장하지 않고 Storage key와 해시를 참조한다.
+SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 애플리케이션 시작 시 `head`까지 마이그레이션하며, 수동 실행은 다음 명령을 사용한다.
+
+```bash
+python -m alembic -c backend/alembic.ini upgrade head
+python -m alembic -c backend/alembic.ini current
+```
+
+Phase 1 테이블은 `generation_jobs`, `generated_files`, `voice_profiles` 세 개다. PostgreSQL 또는 MySQL 전환은 실제 운영 요구를 확인한 뒤 별도 검증하며, 현재 스키마에는 벤더 전용 타입이나 SQL을 사용하지 않는다.
