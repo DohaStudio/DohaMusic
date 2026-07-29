@@ -1,5 +1,13 @@
 # DohaMusic 실행 로드맵
 
+## Phase 6.5 후속 게이트
+
+1. API Key와 비용 승인을 받은 opt-in 환경에서 한국어 발라드·시티팝·구조 유지 수정·영문 팝을 실제 측정한다.
+2. EVAL-006에서 Template/External 결과를 사용자가 블라인드 평가한다.
+3. OpenAI 데이터 보존·ZDR/DPA·상업 이용·생성물 권리의 법률·보안 검토를 완료한다.
+4. 5초를 넘는 운영 호출은 비동기 Job으로 전환하고 인증·소유권·사용량 한도를 설계한다.
+5. 위 게이트 전에는 External Provider를 Stable로 승격하거나 Pipeline에 자동 연결하지 않는다.
+
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-07-29
 > 현재 상태: **Phase 6 로컬 Lyrics AI 기반 완료 / 외부 LLM·운영 Voice Provider 보류**

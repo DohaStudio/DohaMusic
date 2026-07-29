@@ -1,5 +1,9 @@
 # DohaMusic
 
+> Phase 6.5: OpenAI Responses API Lyrics Adapter가 `Experimental`로 추가되었고 기본 Provider는 계속 `template`입니다. 외부 API Key가 없어 실제 한국어 품질·지연·token·비용은 `[검증 필요]`, EVAL-006은 `[사용자 평가 필요]`입니다.
+
+External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
+
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 6 Lyrics AI 로컬 Template·Mock 기반 완료 — 외부 LLM 도입 보류**
 > 최종 수정일: 2026-07-29

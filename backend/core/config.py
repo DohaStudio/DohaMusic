@@ -32,6 +32,18 @@ class Settings(BaseModel):
     pipeline_step_timeout_seconds: float = Field(default=900, ge=0.01, le=7_200)
     audio_mixer: Literal["mock", "default"] = "default"
     lyrics_provider: str = "template"
+    lyrics_model: str = "gpt-5-mini-2025-08-07"
+    lyrics_api_key: str = ""
+    lyrics_base_url: str = "https://api.openai.com/v1"
+    lyrics_timeout_seconds: float = Field(default=2.0, ge=0.1, le=4.5)
+    lyrics_total_deadline_seconds: float = Field(default=5.0, ge=0.5, le=5.0)
+    lyrics_max_retries: int = Field(default=1, ge=0, le=2)
+    lyrics_temperature: float | None = Field(default=None, ge=0.0, le=2.0)
+    lyrics_max_output_tokens: int = Field(default=2_000, ge=256, le=8_000)
+    lyrics_input_cost_per_million: float | None = Field(default=None, ge=0.0)
+    lyrics_output_cost_per_million: float | None = Field(default=None, ge=0.0)
+    lyrics_pricing_version: str = ""
+    lyrics_max_cost_per_request: float | None = Field(default=None, ge=0.0)
     mixer_vocal_gain_db: float = Field(default=0.0, ge=-24.0, le=24.0)
     mixer_instrumental_gain_db: float = Field(default=0.0, ge=-24.0, le=24.0)
     mixer_headroom_db: float = Field(default=1.0, ge=0.1, le=12.0)
@@ -112,6 +124,18 @@ class Settings(BaseModel):
             "DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS": "pipeline_step_timeout_seconds",
             "DOHAMUSIC_AUDIO_MIXER": "audio_mixer",
             "DOHAMUSIC_LYRICS_PROVIDER": "lyrics_provider",
+            "DOHAMUSIC_LYRICS_MODEL": "lyrics_model",
+            "DOHAMUSIC_LYRICS_API_KEY": "lyrics_api_key",
+            "DOHAMUSIC_LYRICS_BASE_URL": "lyrics_base_url",
+            "DOHAMUSIC_LYRICS_TIMEOUT_SECONDS": "lyrics_timeout_seconds",
+            "DOHAMUSIC_LYRICS_TOTAL_DEADLINE_SECONDS": "lyrics_total_deadline_seconds",
+            "DOHAMUSIC_LYRICS_MAX_RETRIES": "lyrics_max_retries",
+            "DOHAMUSIC_LYRICS_TEMPERATURE": "lyrics_temperature",
+            "DOHAMUSIC_LYRICS_MAX_OUTPUT_TOKENS": "lyrics_max_output_tokens",
+            "DOHAMUSIC_LYRICS_INPUT_COST_PER_MILLION": "lyrics_input_cost_per_million",
+            "DOHAMUSIC_LYRICS_OUTPUT_COST_PER_MILLION": "lyrics_output_cost_per_million",
+            "DOHAMUSIC_LYRICS_PRICING_VERSION": "lyrics_pricing_version",
+            "DOHAMUSIC_LYRICS_MAX_COST_PER_REQUEST": "lyrics_max_cost_per_request",
             "DOHAMUSIC_MIXER_VOCAL_GAIN_DB": "mixer_vocal_gain_db",
             "DOHAMUSIC_MIXER_INSTRUMENTAL_GAIN_DB": "mixer_instrumental_gain_db",
             "DOHAMUSIC_MIXER_HEADROOM_DB": "mixer_headroom_db",

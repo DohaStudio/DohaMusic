@@ -40,6 +40,7 @@ class LyricsCreate(BaseModel):
     additional_instructions: str | None = Field(
         default=None, max_length=MAX_INSTRUCTIONS_LENGTH
     )
+    allow_template_fallback: bool = False
 
     @field_validator("topic", "genre", "mood", "additional_instructions")
     @classmethod
@@ -96,6 +97,19 @@ class LyricsValidationRequest(BaseModel):
         return normalized
 
 
+class LyricsRevisionCreate(BaseModel):
+    instruction: str = Field(min_length=1, max_length=MAX_INSTRUCTIONS_LENGTH)
+    preserve_structure: bool = True
+
+    @field_validator("instruction")
+    @classmethod
+    def normalize_instruction(cls, value: str) -> str:
+        normalized = normalize_plain_text(value)
+        if not normalized:
+            raise ValueError("instruction is required")
+        return normalized
+
+
 class LyricsSectionRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -121,6 +135,11 @@ class LyricsDocumentRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    parent_id: str | None
+    version: int
+    revision_instruction: str | None
+    source_hash: str | None
+    result_hash: str | None
     title: str | None
     language: str
     topic: str

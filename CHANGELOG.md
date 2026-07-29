@@ -8,6 +8,27 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### Phase 6.5 — External Lyrics LLM Provider
+
+#### 추가
+
+- OpenAI Responses API `gpt-5-mini-2025-08-07` Experimental Lyrics Adapter, strict JSON Schema mapper, Provider Factory와 opt-in paid integration test를 추가했다.
+- `POST /api/lyrics/{id}/revise`, 원본 보존 parent/version·수정 지시·전후 SHA-256, Alembic 0006을 추가했다.
+- retry·5초 deadline·안전한 오류 변환·명시적 Template fallback·token/예상 비용 metadata를 추가했다.
+
+#### 변경
+
+- 기본 Provider는 `template`로 유지하고 외부 Provider를 명시 선택했을 때만 API Key를 요구한다.
+- `httpx`를 실제 Adapter runtime 의존성으로 이동했다.
+
+#### 보안
+
+- 외부 전송 필드를 가사 입력으로 제한하고 `store=false`, 비밀·ID·경로·음성 제외, 원문 Provider 오류 비노출 정책을 적용했다.
+
+#### 문서
+
+- Provider 공식 비교, 선정 정책, 데이터·운영 정책, ADR-015, EXP-008, EVAL-006과 API·DB·Architecture·DoD를 최신화했다. 외부 실측은 API Key 부재로 `[차단]`이다.
+
 ### 추가
 
 - `LyricsGenerator` 인터페이스와 외부 통신 없는 `TemplateLyricsGenerator`, 테스트용 `MockLyricsGenerator`, `template`·`mock` Provider Factory를 추가했다.
