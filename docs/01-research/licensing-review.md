@@ -1,7 +1,7 @@
 # 라이선스 검토
 
 > 문서 목적: 코드·가중치·의존성·출력 사용 조건을 모델별로 추적한다.
-> 현재 상태: **ACE-Step 1.5·Demucs 4.1.0 1차 기술 검토 완료 / 법률 결론 아님**
+> 현재 상태: **ACE-Step·Demucs·Seed-VC 기술 검토 완료 / 법률 결론 아님**
 
 ## ACE-Step 1.5 v0.1.8
 
@@ -26,3 +26,17 @@
 | HTDemucs 가중치 | [공식 모델 카드](https://huggingface.co/adefossez/HTDemucs) | MIT | 사용 checkpoint의 공식 표시 확인 |
 
 코드·가중치 표시 확인은 입력 음악, 원곡, 학습 데이터와 분리 출력에 대한 권리 결론이 아니다. 제품 배포·상업 사용 전 `[법률 검토 필요]`다.
+
+## Seed-VC
+
+확인일은 2026-07-29이다.
+
+| 대상 | 공식 근거 | 표시 | 기술 판정 |
+|---|---|---|---|
+| Seed-VC 코드 | [공식 GitHub](https://github.com/Plachtaa/seed-vc) | GPL-3.0, 2025-11-21 archive | 상업 이용 금지 라이선스는 아니나 복제·배포 시 GPL 의무 검토 필요 |
+| 공식 가중치 | [Hugging Face 모델 카드](https://huggingface.co/Plachta/Seed-VC) | GPL-3.0 표시 | 배포 시 고지·대응 소스 범위와 transitive 구성 검토 필요 |
+| 서버 전용 실행 | [GNU GPL FAQ](https://www.gnu.org/licenses/gpl-faq.html.en) | GPL은 네트워크 사용만으로 배포 의무를 추가하지 않음 | SaaS 품질·법률 승인을 의미하지 않음 |
+
+GPL-3.0은 상업적 이용을 금지하지 않는다. GNU FAQ에 따르면 수정한 GPL 프로그램을 웹 서버에서만 실행하고 사본을 배포하지 않으면 GPL만으로 소스 공개 의무가 발생하지 않는다. 반대로 바이너리·Docker·온프레미스 번들 등 사본을 조직 외부에 제공하면 해당 GPL 대상의 라이선스 고지와 대응 소스 제공을 포함한 의무를 검토해야 한다.
+
+DohaMusic이 Seed-VC를 subprocess로 호출한다는 기술 사실만으로 두 프로그램의 법적 결합 여부를 확정하지 않는다. 상용 SaaS와 외부 배포는 코드·가중치·의존성 inventory, 제공 방식, 수정 내용과 사용자 권리를 확정한 뒤 법률 검토한다. 검토 전 상태는 `[배포 보류]`이며 이 문서는 법률 자문이 아니다.

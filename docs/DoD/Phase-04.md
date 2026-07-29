@@ -25,6 +25,6 @@
 
 ## 판정
 
-기술 구현과 GPU 검증은 완료했다. 공식 예제 30-step 3/3 성공, 48kHz stereo 출력, peak VRAM 약 5.07GB를 확인했다. 그러나 EVAL-003 사용자 청취 평가가 비어 있고 반복 출력에서 clipping 경고가 감지됐으므로 Phase 4 전체와 Seed-VC 운영 채택은 완료 처리하지 않는다.
+기술 구현과 GPU 검증은 완료했다. 공식 예제 30-step 3/3 성공, 48kHz stereo 출력, peak VRAM 약 5.07GB를 확인했다. Phase 4.5 Quality Gate는 기존 결과를 재분석해 Seed-VC를 `Experimental`·운영 보류로 결정했다. EVAL-003 사용자 청취 평가, clipping/export 회귀 검증, 라이선스·유지보수 승인이 남았으므로 진행률은 15/16, 94%로 유지한다.
 
-Phase 5 Pipeline Integration은 이번 작업에서 구현하지 않았다. 사용자 품질 게이트와 clipping 정책을 결정한 뒤 착수한다.
+Phase 5 Pipeline Integration은 이번 작업에서 구현하지 않았다. [QG-001](../../reports/quality-gates/QG-001-voice-conversion-operational-readiness.md)의 해제 조건과 Music·Stem 품질 게이트를 모두 충족한 뒤에만 착수를 재검토한다.

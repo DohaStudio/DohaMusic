@@ -1,7 +1,7 @@
 # 평가 전략
 
 > 문서 목적: 모델과 파이프라인을 재현 가능하게 평가한다.
-> 현재 상태: **ACE-Step·HTDemucs 기술 베이스라인 확보 / 사용자 청취 평가 대기**
+> 현재 상태: **ACE-Step·HTDemucs·Seed-VC 기술 베이스라인 확보 / 사용자 청취 평가 대기**
 
 평가는 실행 가능성, 성능, 객관적 신호, 주관적 청취를 분리한다. 고정 JSON 입력에 모델 버전, Seed, 길이, 장치·양자화·offload 설정을 기록한다. EXP-002는 같은 Seed 3회, 다른 Seed 3회와 상주 6회 suite 2개를 사용했다. 표본이 작고 단일 PC 결과이므로 다른 환경으로 일반화하지 않는다.
 
@@ -20,3 +20,5 @@ EXP-003 Stem 평가는 같은 20초 입력을 HTDemucs로 3회 분리하고 성�
 현재 위 청취 항목은 모두 `[사용자 평가 필요]`다. [EVAL-001](../../reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)에 사용자가 직접 점수와 근거를 기록하기 전에는 ACE-Step을 제품 기본 모델로 승인하지 않는다.
 
 Stem 분리의 보컬 누락·누출·반주 손상·잔향·노이즈·Seed-VC 활용 가능성은 [EVAL-002](../../reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 사용자가 기록한다. 자동 신호 지표만으로 HTDemucs 청감 품질을 승인하지 않는다.
+
+Voice Conversion은 [EXP-004](../../reports/experiments/EXP-004-seed-vc.md)의 객관 지표와 [EVAL-003](../../reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md)의 사용자 청취 평가를 분리한다. 3회 추론 성공과 파일 형식 통과만으로 음색 품질 또는 운영 가능성을 승인하지 않는다. Phase 4.5 판정은 clipping 위험과 미완료 청취 평가 때문에 운영 보류다.

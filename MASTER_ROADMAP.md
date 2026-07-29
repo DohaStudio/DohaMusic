@@ -48,8 +48,8 @@ Phase 9  Production                  [계획]
 | 2. Music Generation | [진행 중] | `█████████░ 93%` | ACE-Step 기술 연결 완료, 사용자 품질 승인 대기 | [Phase-02](docs/DoD/Phase-02.md) |
 | 2.5 Quality Benchmark | [진행 중] | `█████████░ 93%` | 재현성·반복·VRAM·ADR 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | `██████████ 100%` | HTDemucs Adapter·API·Benchmark·평가표 구축 | [Phase-03](docs/DoD/Phase-03.md) |
-| 4. Voice Conversion | [검증 필요] | `█████████░ 94%` | Adapter·API·GPU 완료, EVAL-003 대기 | [Phase-04](docs/DoD/Phase-04.md) |
-| 5. Pipeline Integration | [계획] | `░░░░░░░░░░ 0%` | 변환·믹싱·통합 Job 미구현 | [Phase-05](docs/DoD/Phase-05.md) |
+| 4. Voice Conversion | [검증 필요] | `█████████░ 94%` | Quality Gate 운영 보류, EVAL-003·clipping·라이선스 해제 조건 대기 | [Phase-04](docs/DoD/Phase-04.md) |
+| 5. Pipeline Integration | [계획] | `░░░░░░░░░░ 0%` | Voice 운영 보류로 착수 불가 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [계획] | `░░░░░░░░░░ 0%` | Lyrics Generator 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | `░░░░░░░░░░ 0%` | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
@@ -125,10 +125,11 @@ Phase 9  Production                  [계획]
 - 제외 기능: 무단 Voice Clone, Dataset 학습, 전체 Pipeline 믹싱.
 - 선행 조건: EVAL-002 검토, 음성 동의·삭제·보안 정책 재검토.
 - 완료 조건: [Phase-04 DoD](docs/DoD/Phase-04.md), 공식 라이선스·RTX 3060 Ti 실행·품질·실패 경로 검증.
-- 산출물: Voice Conversion Adapter, API/DB migration, ADR-009, EXP-004, EVAL-003 사용자 양식.
-- 관련 문서: [Voice Conversion 조사](docs/01-research/voice-conversion.md), [Voice Adapter](docs/04-models/voice-conversion-adapter.md).
-- 관련 ADR·실험: [ADR-009](docs/11-decisions/ADR-009-seed-vc-voice-provider.md), [EXP-004](reports/experiments/EXP-004-seed-vc.md), [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md).
-- 예상 다음 단계: Phase 5 Pipeline Integration.
+- 산출물: Voice Conversion Adapter, API/DB migration, ADR-009·010, EXP-004, EVAL-003 사용자 양식, QG-001.
+- 관련 문서: [Voice Conversion 조사](docs/01-research/voice-conversion.md), [Voice Adapter](docs/04-models/voice-conversion-adapter.md), [Provider 정책](docs/04-models/voice-provider-selection-policy.md).
+- 관련 ADR·실험: [ADR-009](docs/11-decisions/ADR-009-seed-vc-voice-provider.md), [ADR-010](docs/11-decisions/ADR-010-voice-provider-selection-policy.md), [EXP-004](reports/experiments/EXP-004-seed-vc.md), [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [QG-001](reports/quality-gates/QG-001-voice-conversion-operational-readiness.md).
+- Quality Gate: Seed-VC는 `Experimental`·운영 보류다. EVAL-003, clipping/export 회귀 검증, 배포 라이선스 승인과 upstream 유지보수 계획 전에는 Phase 5로 진행하지 않는다.
+- 예상 다음 단계: Phase 4 품질 게이트 해제 조건 처리.
 
 ## Phase 5. Pipeline Integration — [계획]
 
@@ -193,13 +194,15 @@ Phase 9  Production                  [계획]
 ## 현재 권장 다음 작업
 
 ```text
-Phase 4 기술 구현·GPU 검증 완료
+Phase 4.5 Quality Gate: Seed-VC 운영 보류
   ↓
 EVAL-003 사용자 Voice Conversion 청취 평가
   ↓
-clipping·라이선스·운영 Provider 결정
+clipping/export 회귀·라이선스·유지보수 조건 해제
   ↓
-Phase 5 Pipeline Integration 검토
+Music·Stem 품질 게이트 포함 재검토
+  ↓
+Phase 5 Pipeline Integration 착수 여부 결정
 ```
 
-EVAL-001도 별도로 완료해 Phase 2·2.5의 Provider 품질 게이트를 닫아야 한다.
+현재 Phase 4 진행률은 15/16 DoD에 따라 94%로 유지한다. EVAL-001과 EVAL-002도 각각 완료해 Phase 2·2.5와 Stem Provider 품질 게이트를 닫아야 한다.
