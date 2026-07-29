@@ -47,6 +47,14 @@
 | `DOHAMUSIC_PIPELINE_VERSION` | Pipeline metadata 계약 버전 | `1` |
 | `DOHAMUSIC_PIPELINE_MAX_RETRIES` | 단계별 추가 시도 횟수 | `1` |
 | `DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS` | Orchestrator 단계 제한 | `900` |
+| `DOHAMUSIC_AUDIO_MIXER` | `default` 또는 `mock` Mixer Provider | `default` |
+| `DOHAMUSIC_MIXER_VOCAL_GAIN_DB` | 보컬 gain dB | `0.0` |
+| `DOHAMUSIC_MIXER_INSTRUMENTAL_GAIN_DB` | 반주 gain dB | `0.0` |
+| `DOHAMUSIC_MIXER_HEADROOM_DB` | 목표 peak headroom dB | `1.0` |
+| `DOHAMUSIC_MIXER_NORMALIZATION` | `peak` 또는 `off` | `peak` |
+| `DOHAMUSIC_MIXER_LIMITER` | `soft` 또는 `bypass` | `soft` |
+| `DOHAMUSIC_MIXER_FADE_IN_MS` | 시작 linear fade | `10.0` |
+| `DOHAMUSIC_MIXER_FADE_OUT_MS` | 종료 linear fade | `10.0` |
 
 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 

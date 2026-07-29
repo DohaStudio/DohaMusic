@@ -12,8 +12,11 @@ python -m pip install -e ".[dev]"
 python -m alembic -c backend/alembic.ini upgrade head
 python -m pytest -q
 python -m backend.scripts.benchmark_pipeline
+python -m backend.scripts.benchmark_audio_mixer
 python -m uvicorn backend.main:app --reload
 ```
+
+Backend 설치에는 Mixer용 NumPy·SciPy와 resource 측정용 psutil이 포함된다. 기본 `DOHAMUSIC_AUDIO_MIXER=default`는 별도 AI·FFmpeg 설치 없이 실제 WAV를 합성한다. `mock`은 Pipeline 격리·회귀 검증에서만 명시적으로 선택한다. DSP 기본 정책과 제한은 [Audio Quality Engine](../03-architecture/audio-quality-engine.md), 실측은 [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)을 따른다.
 
 ## 선택적 ACE-Step 런타임
 

@@ -2,8 +2,8 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-07-29
-> 관련 기능: Phase 5 Mock 기반 AI Workflow
-> 관련 문서: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md)
+> 관련 기능: Phase 5 Mock AI Workflow / Phase 5.1 실제 Audio Mixer
+> 관련 문서: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)
 
 ## 책임과 경계
 
@@ -27,7 +27,9 @@ Music·Stem·Voice 단계는 각각 `MusicGenerator`, `StemSeparator`, `VoiceCon
 
 `PipelineContext`는 prompt, lyrics, seed, 동의된 Voice Profile과 단계별 파일 경로를 전달한다. 단계가 완료될 때 다음 단계 입력만 채우며 전역 상태나 AI Adapter 내부 객체를 노출하지 않는다.
 
-성공 시 `music`, `vocals`, `instrumental`, `converted_voice`, `final`, `metadata` 파일을 등록한다. Mock Mixer는 실제 합성을 하지 않고 변환 보컬을 복사해 인터페이스와 48kHz Stereo 출력 계약만 검증한다.
+성공 시 `music`, `vocals`, `instrumental`, `converted_voice`, `final`, `metadata` 파일을 등록한다. 기본 `DefaultAudioMixer`는 변환 보컬과 반주를 실제 합성하고 48kHz Stereo PCM16, -1dBFS headroom, peak normalization, soft limiter와 fade를 적용한다. `MockAudioMixer`는 명시적 설정에서만 복사 기반 계약 검증에 사용한다.
+
+Mixer의 gain·quality·clipping·CPU·RSS·처리 시간은 Pipeline `result_metadata.step_execution[].details.audio_quality`와 최종 `metadata.json`에 기록한다. True Peak는 현재 미지원이므로 지원 여부를 거짓 없이 별도 필드로 표시한다.
 
 ## 재시도·timeout·오류
 

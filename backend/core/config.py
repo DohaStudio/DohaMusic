@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -29,6 +30,14 @@ class Settings(BaseModel):
     pipeline_version: str = "1"
     pipeline_max_retries: int = Field(default=1, ge=0, le=5)
     pipeline_step_timeout_seconds: float = Field(default=900, ge=0.01, le=7_200)
+    audio_mixer: Literal["mock", "default"] = "default"
+    mixer_vocal_gain_db: float = Field(default=0.0, ge=-24.0, le=24.0)
+    mixer_instrumental_gain_db: float = Field(default=0.0, ge=-24.0, le=24.0)
+    mixer_headroom_db: float = Field(default=1.0, ge=0.1, le=12.0)
+    mixer_normalization: Literal["off", "peak"] = "peak"
+    mixer_limiter: Literal["bypass", "soft"] = "soft"
+    mixer_fade_in_ms: float = Field(default=10.0, ge=0.0, le=5_000.0)
+    mixer_fade_out_ms: float = Field(default=10.0, ge=0.0, le=5_000.0)
     ace_step_runtime_python: str = ""
     ace_step_runner_path: str = ""
     ace_step_project_root: str = ""
@@ -68,6 +77,13 @@ class Settings(BaseModel):
     def normalize_log_level(cls, value: str) -> str:
         return value.upper()
 
+    @field_validator(
+        "audio_mixer", "mixer_normalization", "mixer_limiter", mode="before"
+    )
+    @classmethod
+    def normalize_choice(cls, value: str) -> str:
+        return value.strip().lower()
+
     @classmethod
     def from_environment(cls) -> "Settings":
         """Read supported settings without loading or exposing secrets."""
@@ -89,6 +105,14 @@ class Settings(BaseModel):
             "DOHAMUSIC_PIPELINE_VERSION": "pipeline_version",
             "DOHAMUSIC_PIPELINE_MAX_RETRIES": "pipeline_max_retries",
             "DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS": "pipeline_step_timeout_seconds",
+            "DOHAMUSIC_AUDIO_MIXER": "audio_mixer",
+            "DOHAMUSIC_MIXER_VOCAL_GAIN_DB": "mixer_vocal_gain_db",
+            "DOHAMUSIC_MIXER_INSTRUMENTAL_GAIN_DB": "mixer_instrumental_gain_db",
+            "DOHAMUSIC_MIXER_HEADROOM_DB": "mixer_headroom_db",
+            "DOHAMUSIC_MIXER_NORMALIZATION": "mixer_normalization",
+            "DOHAMUSIC_MIXER_LIMITER": "mixer_limiter",
+            "DOHAMUSIC_MIXER_FADE_IN_MS": "mixer_fade_in_ms",
+            "DOHAMUSIC_MIXER_FADE_OUT_MS": "mixer_fade_out_ms",
             "DOHAMUSIC_AI_ACE_STEP_RUNTIME_PYTHON": "ace_step_runtime_python",
             "DOHAMUSIC_AI_ACE_STEP_RUNNER_PATH": "ace_step_runner_path",
             "DOHAMUSIC_AI_ACE_STEP_PROJECT_ROOT": "ace_step_project_root",

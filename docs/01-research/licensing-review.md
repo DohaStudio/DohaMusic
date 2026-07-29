@@ -53,3 +53,15 @@ DohaMusic이 Seed-VC를 subprocess로 호출한다는 기술 사실만으로 두
 | Amphion Vevo2 | MIT | CC BY-NC-ND 4.0 | 불가 | 상업 배포 불가, 별도 허가 필요 |
 
 OpenVoice와 CosyVoice의 permissive 라이선스는 공식 Singing VC 지원을 의미하지 않는다. 반대로 Vevo2의 기술적 SVC 적합성은 비상업·변경금지 가중치 조건을 해제하지 않는다. 상세 시나리오와 공식 링크는 [Voice Provider 비교](voice-provider-comparison.md)를 따른다.
+
+## Phase 5.1 Audio Mixer 의존성
+
+확인일은 2026-07-29이다.
+
+| 의존성 | 공식 근거 | 표시 | 기술 판정 |
+|---|---|---|---|
+| NumPy | [공식 License](https://numpy.org/doc/2.0/license.html) | BSD-3-Clause | 배포 고지 inventory에 포함 |
+| SciPy | [공식 GitHub LICENSE](https://github.com/scipy/scipy/blob/main/LICENSE.txt) | BSD-3-Clause | bundled component 고지 포함 여부를 배포 artifact에서 재확인 |
+| psutil | [공식 GitHub](https://github.com/giampaolo/psutil) | BSD-3-Clause | 배포 고지 inventory에 포함 |
+
+세 라이브러리는 모델·가중치 라이선스 문제를 추가하지 않지만, binary wheel과 transitive/bundled component의 고지는 실제 Docker·설치 번들 생성 시 다시 고정한다. 이 확인은 제품 전체의 법률 승인과 동일하지 않다.

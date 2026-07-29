@@ -26,7 +26,8 @@ Phase 2·3·4의 Provider 인터페이스를 재사용한다. Voice 운영 품�
 - [x] Music 단계 연결
 - [x] Stem 단계 연결
 - [x] Voice 단계 연결
-- [x] Mixer와 48kHz 출력 계약
+- [x] Default/Mock Mixer와 실제 48kHz Stereo PCM16 출력 계약
+- [x] gain·headroom·peak normalization·soft limiter·fade·품질 metadata
 - [x] Pipeline API·Service
 - [x] 비동기 Worker·단계 상태
 - [x] 단계 실패·정리·재시도 정책
@@ -41,7 +42,7 @@ Phase 2·3·4의 Provider 인터페이스를 재사용한다. Voice 운영 품�
 
 ## 완료 조건
 
-고정 Mock 입력 한 건이 모든 단계를 통과하고 각 단계 실패가 안전한 상태·파일 정리로 귀결돼 완료했다. 실제 AI 품질과 실제 Mixer는 별도 게이트다.
+고정 Mock AI 입력 한 건이 모든 단계를 통과하고 각 단계 실패가 안전한 상태·파일 정리로 귀결돼 완료했다. Phase 5.1에서 실제 Mixer의 합성·format·headroom·clipping 자동 검증을 완료했다. 실제 AI와 Mixer 청감 품질은 EVAL 사용자 게이트다.
 
 ## 산출물
 
@@ -50,7 +51,7 @@ Pipeline Service·Worker·API·Mixer, schema·문서·ADR·통합 실험 보고�
 ## 관련 문서·ADR·실험
 
 - 문서: [Worker Architecture](../03-architecture/worker-architecture.md), [Job State](../07-database/job-state-model.md)
-- ADR·실험: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md)
+- ADR·실험: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](../../reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)
 
 ## 예상 다음 단계
 

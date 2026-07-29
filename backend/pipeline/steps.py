@@ -5,11 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Protocol
 
+from backend.audio.interfaces import AudioMixInput, AudioMixer
 from backend.ai.interfaces.music_generator import GenerationInput, MusicGenerator
 from backend.ai.interfaces.stem_separator import StemSeparationInput, StemSeparator
 from backend.ai.interfaces.voice_converter import VoiceConversionInput, VoiceConverter
 from backend.core.job_status import JobStatus
-from backend.pipeline.audio import AudioExporter, AudioMixer
+from backend.pipeline.audio import AudioExporter
 from backend.pipeline.context import PipelineContext
 from backend.pipeline.errors import OutputError, ValidationError
 
@@ -126,13 +127,20 @@ class MixStep:
         if context.instrumental_file is None or context.converted_voice is None:
             raise ValidationError(self.name, "Mixer 입력이 완성되지 않았습니다.")
         result = self.mixer.mix(
-            context.job_id, context.instrumental_file, context.converted_voice
+            AudioMixInput(
+                job_id=context.job_id,
+                vocals_path=context.converted_voice,
+                instrumental_path=context.instrumental_file,
+            )
         )
         if not result.audio_path.is_file():
             raise OutputError(self.name, "Mixer 출력 파일이 없습니다.")
         context.mixed_file = result.audio_path
         context.providers[self.name] = {"provider": result.provider}
-        return {"mock": result.provider == "mock"}
+        return {
+            "provider_time_seconds": result.mixing_time_seconds,
+            "audio_quality": result.metadata,
+        }
 
 
 @dataclass(slots=True)
