@@ -43,3 +43,5 @@ Demucs 4.1.0은 Backend와 별도 Python 3.11 환경에 설치한다. 검증 환
 공식 저장소를 별도 무시 경로에 checkout하고 commit `51383efd921027683c89e5348211d93ff12ac2a8`로 고정한다. Python 3.11 격리 환경과 공식 44k F0 checkpoint·config, RMVPE, CAMPPlus, Whisper-small, BigVGAN cache를 요청 처리 전에 준비한다. Windows 검증 환경은 torch 2.7.1+cu128과 `webrtcvad-wheels`를 사용했다. 공식 requirements의 비표준 옵션과 Torch 2.4 DLL 문제 때문에 이 차이를 EXP-004에 기록했다.
 
 `backend/.env.example`의 `DOHAMUSIC_VOICE_SEED_VC_*` 절대 경로를 설정하고 `DOHAMUSIC_VOICE_PROVIDER=seed_vc`를 선택한다. Backend runner는 offline 모드로 실행되어 모델을 자동 다운로드하지 않는다. 실제 GPU 테스트는 `DOHAMUSIC_RUN_SEED_VC_GPU_TEST=1`과 테스트 source/reference 경로를 명시한 경우에만 실행한다. 본인 또는 명시적으로 동의받은 reference만 `voices/references` 아래에 두며 모델·개인 음성·출력은 Git에 포함하지 않는다. 자세한 결과는 [EXP-004](../../reports/experiments/EXP-004-seed-vc.md)를 따른다.
+
+`seed_vc`는 현재 `Experimental`이므로 로컬 기술 검증에만 명시적으로 선택한다. 기본 `mock`을 변경하지 않고, 실제 사용자 트래픽·공개 Preview·Pipeline Integration에는 연결하지 않는다. 저장 전·resample 후·PCM16 export 후 peak를 검증하기 전에는 clipping 경고를 무시하지 않는다.
