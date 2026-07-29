@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-07-29
-> 현재 상태: **Phase 3 Stem Separation 기술 범위 완료 / Phase 2·2.5 사용자 품질 평가 대기 / Phase 4 계획**
+> 현재 상태: **Phase 4 Voice Conversion 기술 범위 완료 / EVAL-003 사용자 품질 평가 대기**
 > 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
 > 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)
 
@@ -17,7 +17,7 @@
 | 2. Music Generation | [진행 중] | ACE-Step 기술 연결 완료, EVAL-001 대기 | [Phase-02](docs/DoD/Phase-02.md) |
 | 2.5 Quality Benchmark | [진행 중] | 재현성·반복·운영 수명 검증 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | HTDemucs Adapter·API·Benchmark·EVAL 양식 | [Phase-03](docs/DoD/Phase-03.md) |
-| 4. Voice Conversion | [계획] | Seed-VC 공식 조사 전 | [Phase-04](docs/DoD/Phase-04.md) |
+| 4. Voice Conversion | [검증 필요] | Seed-VC Adapter·API·GPU 검증 완료, EVAL-003 대기 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [계획] | Voice 단계 선행 필요 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [계획] | 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
@@ -26,21 +26,19 @@
 
 ## 현재 우선 작업
 
-1. [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 Stem 분리 청취 결과를 사용자가 기록한다.
-2. Phase 4 작업 전 [Phase-04 DoD](docs/DoD/Phase-04.md)를 기준으로 Seed-VC와 대안의 공식 문서·라이선스·음성 안전 정책을 조사한다.
-3. RTX 3060 Ti 8GB에서 단독 추론을 먼저 검증한 후 Adapter·Backend 범위를 결정한다.
-4. 별도로 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료해 Phase 2·2.5와 ADR-006 상태를 갱신한다.
+1. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md)에 동의된 본인 음성의 청취 결과를 사용자가 기록한다.
+2. 반복 추론의 clipping 경고와 GPL·transitive 모델 라이선스를 검토해 운영 Provider 채택 여부를 결정한다.
+3. 별도로 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)와 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
+4. 품질 게이트가 닫힌 뒤 Phase 5 Pipeline Integration을 제안한다.
 
 ## 다음 작업 흐름
 
 ```text
-EVAL-002 사용자 평가
+Phase 4 VoiceConverter Adapter·Backend·Benchmark 완료
   ↓
-Phase 4 Voice Conversion 조사
+EVAL-003 사용자 평가
   ↓
-Seed-VC 또는 대안 단독 추론 검증
-  ↓
-VoiceConverter Adapter·Backend·Benchmark
+clipping·라이선스 결정
   ↓
 Phase 5 Pipeline Integration
 ```

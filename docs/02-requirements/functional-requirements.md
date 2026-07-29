@@ -19,4 +19,4 @@
 
 검증 가능한 행위는 [인수 기준](acceptance-criteria.md), API는 [API 개요](../06-api/api-overview.md)에 매핑한다.
 
-`Foundation 완료`와 `부분 완료`는 전체 제품 기능 완료를 의미하지 않는다. ACE-Step과 HTDemucs는 선택적 실험 Provider이며 사용자 청취 평가가 남아 있다. Seed-VC·믹싱·MP3·인증은 구현하지 않았다.
+`Foundation 완료`와 `부분 완료`는 전체 제품 기능 완료를 의미하지 않는다. ACE-Step, HTDemucs, Seed-VC는 선택적 실험 Provider이며 사용자 청취 평가가 남아 있다. 믹싱·MP3·인증은 구현하지 않았다.

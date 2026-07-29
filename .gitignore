@@ -71,7 +71,10 @@ backend/storage/inputs/*
 backend/storage/outputs/*
 !backend/storage/outputs/.gitkeep
 backend/storage/voices/*
-!backend/storage/voices/.gitkeep
+!backend/storage/voices/references/
+!backend/storage/voices/converted/
+!backend/storage/voices/references/.gitkeep
+!backend/storage/voices/converted/.gitkeep
 backend/storage/samples/*
 !backend/storage/samples/.gitkeep
 backend/storage/stems/*
@@ -84,6 +87,7 @@ backend/storage/experiments/*
 # Local AI runtimes, model caches, checkpoints, and generated artifacts
 /.ace-step-runtime/
 /.stem-separation-runtime/
+/.seed-vc-runtime/
 /checkpoints/
 /models/
 /model-cache/

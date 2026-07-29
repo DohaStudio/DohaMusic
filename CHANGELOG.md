@@ -10,6 +10,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가
 
+- `VoiceConverter`, `MockVoiceConverter`, 격리형 `SeedVCAdapter`와 `mock`·`seed_vc` Provider Factory를 추가했다.
+- 비동기 Voice Conversion API, `voice_conversion_jobs/files`, `VOICE_CONVERTING`, Alembic migration을 추가했다.
+- Seed-VC 44k F0 runner, 3회 GPU Benchmark, opt-in GPU 통합 테스트와 48kHz stereo PCM16 자동 검증을 추가했다.
+- EXP-004, 사용자 EVAL-003 양식, Seed-VC 검증 Provider 결정을 기록한 ADR-009를 추가했다.
+
 - 프로젝트 전체 Phase·실제 진행률·선행 조건·산출물·다음 작업을 관리하는 `MASTER_ROADMAP.md`를 추가했다.
 - Phase 1~9의 완료 판정과 공통 Git·문서 게이트를 관리하는 `docs/DoD/` 문서 체계를 추가했다.
 
@@ -31,6 +36,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 변경
 
+- 생성·Stem·Voice Worker가 동일한 GPU 동시성 1 executor를 공유하도록 확장했다.
+- Phase 4를 기술 구현 완료·사용자 품질 평가 대기인 `[검증 필요]` 94%로 갱신했다.
+
 - 새 기능 작업은 Master Roadmap, 해당 Phase DoD, AGENTS 지침 순으로 확인하고 완료 후 진행률·DoD·README·ROADMAP·CHANGELOG를 함께 갱신하도록 운영 규칙을 확장했다.
 
 - AI 작업은 생성 Worker와 Stem Worker가 GPU 동시성 1인 공유 ThreadPool을 사용하도록 조립했다.
@@ -48,7 +56,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 보안
 
+- Voice Conversion 입력을 DB의 vocals Stem과 명시적 동의 Voice Profile로 제한하고 참조 경로가 `voices/references` 밖으로 벗어나면 거부한다.
+
 ### 문서
+
+- Seed-VC·OpenVoice·CosyVoice·Fish Speech의 공식 용도와 라이선스, archive 위험, RTX 3060 Ti 실측을 연구·모델·Architecture·API·DB·평가·운영 문서에 반영했다.
 
 - README와 ROADMAP을 Master Roadmap·DoD에 연결하고 기존 Phase 4 이후 명칭을 Voice Conversion → Pipeline → Lyrics AI → Doha Voice → Doha Studio → Production 체계로 통합했다.
 

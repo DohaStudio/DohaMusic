@@ -1,28 +1,15 @@
 # Backend 아키텍처
 
-> 문서 목적: FastAPI Backend Foundation의 계층과 책임을 정의한다.
-> 현재 상태: **Phase 3 생성·Stem Provider와 API·DB 경계 구현**
+> 현재 상태: Phase 4 생성·Stem·Voice Provider와 API·DB 경계 구현
 
 ```text
-backend/
-├── alembic/       # DB 마이그레이션
-├── ai/             # 생성·Stem 인터페이스, Provider Factory, Mock·ACE-Step·Demucs Adapter
-├── api/            # Router, Dependency, 예외 응답
-├── app/            # 애플리케이션 팩토리와 lifespan
-├── core/           # 환경 설정, 로깅, 오류, 상태 전이
-├── db/             # SQLAlchemy Base/Session, Alembic 실행
-├── models/         # ORM 모델
-├── repositories/   # 영속성 접근
-├── schemas/        # 요청·응답 계약
-├── services/       # 유스케이스 조정
-├── storage/        # 로컬 저장소와 샘플 관리
-├── tests/          # API·DB·Worker 테스트
-├── workers/        # Dispatcher와 Provider-neutral Worker
-└── main.py         # ASGI 진입점
+API → Service → Repository → SQLAlchemy Model
+                ↓
+        asynchronous Dispatcher → Worker → AI Interface → Adapter
 ```
 
-의존 방향은 `API → Service → Repository → Model`이다. Worker도 Repository와 `MusicGenerator` 또는 `StemSeparator` 인터페이스만 사용하며 특정 AI 라이브러리를 직접 참조하지 않는다. FastAPI Dependency는 앱 lifespan에서 구성된 서비스를 Router에 제공한다.
+FastAPI lifespan은 Storage와 Alembic migration을 준비한 뒤 `MusicGenerator`, `StemSeparator`, `VoiceConverter` Provider Factory를 조립한다. Router는 Service만, Worker는 Repository와 AI Interface만 사용하므로 모델 라이브러리가 API 프로세스 전체로 퍼지지 않는다.
 
-애플리케이션 시작 시 저장소 디렉터리를 준비하고 Alembic을 `head`까지 적용한 뒤 Repository, Service, Provider Factory와 Worker를 조립한다. 기본 Mock은 즉시 준비되며 ACE-Step과 Demucs는 시작 시 공식 패키지나 모델을 로드하지 않는다. 실제 AI Job에서만 격리 runtime 경로를 검증한다. 생성·Stem Dispatcher는 GPU 동시성 1인 executor를 공유한다. 공개 오류는 공통 `{ "error": { "code", "message" } }` 형식으로 변환하며 내부 예외 정보는 로그에만 남긴다.
+기본 Provider는 모두 Mock이다. ACE-Step, Demucs, Seed-VC는 실제 Job에서만 설정을 검증하고 격리 subprocess를 시작한다. 세 Worker는 `max_workers=1`인 shared executor를 사용해 RTX 3060 Ti GPU 점유를 직렬화한다. 외부 Queue, Redis, Celery는 아직 사용하지 않는다.
 
-설정은 환경 변수로 덮어쓸 수 있다. 세부 항목은 [환경 변수](../10-operations/environment-variables.md), API 계약은 [API 개요](../06-api/api-overview.md)를 따른다.
+Voice Conversion은 기존 Stem·Voice Profile을 재사용하는 독립 Job이며 Phase 5 전체 Pipeline orchestration은 구현하지 않았다.
