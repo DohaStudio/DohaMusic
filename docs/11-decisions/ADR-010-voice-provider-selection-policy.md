@@ -26,6 +26,8 @@ Voice Provider의 수명주기를 `Experimental → Preview → Stable → Depre
 
 Seed-VC는 `Preview` 승격 전까지 운영 트래픽과 Phase 5 통합 대상이 아니다.
 
+Phase 4.6의 후보별 역할과 Primary 미선정 결정은 [ADR-011](ADR-011-voice-provider-selection.md)이 적용한다. 이 ADR의 수명주기 기준은 그대로 유지된다.
+
 ## 결과
 
 장점은 기술 PoC와 운영 승인을 명확히 분리하고 대체 Provider 추가 시 같은 기준을 재사용할 수 있다는 점이다. 단점은 승격에 추가 검증과 문서 승인이 필요하다는 점이며, 이는 운영 위험을 통제하기 위한 의도된 비용이다.

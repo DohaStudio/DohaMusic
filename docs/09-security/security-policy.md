@@ -10,3 +10,5 @@ API와 Storage 접근은 사용자·자원 소유권을 확인하고 Worker는 �
 ## Experimental Voice Provider 통제
 
 Seed-VC는 명시적으로 동의된 참조 음성의 로컬 기술 검증에만 허용한다. 기본 Provider는 `mock`이며 운영 트래픽과 Phase 5 Pipeline에 연결하지 않는다. 모델·가중치·참조 음성·변환 결과를 저장소나 Docker image에 포함하지 않는다. 외부 배포는 GPL 준수·개인정보 처리·삭제 경로·감사 로그·법률 검토가 승인될 때까지 차단한다.
+
+후보 평가 점수나 Stars를 신뢰 경계로 사용하지 않는다. 새 Provider를 구현하기 전에는 공식 배포 경로의 checkpoint hash, pickle 등 역직렬화 형식, 원격 코드 실행 요구, 의존성 lock, 취약점과 모델 출처를 검토한다. RVC처럼 사용자별 학습 산출물을 만드는 후보는 동의 철회 시 checkpoint·feature index·cache까지 삭제하는 정책이 먼저 필요하다. Experimental과 Rejected Provider는 자동 fallback 또는 사용자 입력 처리 경로에 참여하지 않는다.

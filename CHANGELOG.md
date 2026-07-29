@@ -10,6 +10,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가
 
+- Seed-VC, OpenVoice, CosyVoice, Fish Speech, RVC, Amphion Vevo2의 공식 근거 비교표와 100점 Provider Score를 추가했다.
+- Primary 미선정, RVC Secondary 평가 후보, Seed-VC·Vevo2 Experimental 결정을 기록한 ADR-011을 추가했다.
+
 - Voice Provider 수명주기와 승격 조건을 정의한 ADR-010, Provider 정책, Voice Conversion 운영 준비도 QG-001을 추가했다.
 
 - `VoiceConverter`, `MockVoiceConverter`, 격리형 `SeedVCAdapter`와 `mock`·`seed_vc` Provider Factory를 추가했다.
@@ -38,6 +41,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 변경
 
+- Voice Provider Matrix를 `Primary 미선정 → Fallback 미선정 → Experimental → Mock`으로 정리하고 Experimental의 자동 fallback 참여를 금지했다.
+- Phase 4를 Provider 평가 완료·Primary 미선정인 `[검증 필요]` 94%로 유지하고 Phase 5 착수를 계속 보류했다.
+
 - Seed-VC를 `Experimental`·운영 보류로 확정하고 기본 Provider `mock`을 유지했다.
 - Phase 4는 EVAL-003과 clipping·라이선스 해제 조건이 남아 `[검증 필요]` 94%로 유지하고 Phase 5 착수를 보류했다.
 
@@ -61,11 +67,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 보안
 
+- 신규 Voice Provider 검증 전에 checkpoint 출처·hash·역직렬화·원격 코드·의존성 lock과 학습 산출물 삭제 정책을 확인하도록 공급망 통제를 보강했다.
+
 - Seed-VC 상용 SaaS와 Docker·온프레미스 외부 배포는 배포 단위별 GPL 준수 목록과 법률 검토 전까지 보류하도록 명시했다.
 
 - Voice Conversion 입력을 DB의 vocals Stem과 명시적 동의 Voice Profile로 제한하고 참조 경로가 `voices/references` 밖으로 벗어나면 거부한다.
 
 ### 문서
+
+- README, Master Roadmap, ROADMAP, Voice Model, Architecture, Operations, Security와 ADR 목록을 Phase 4.6 선정 결과에 맞게 최신화했다.
 
 - EXP-004 기존 결과를 재실험 없이 재집계해 시간·VRAM·RMS·peak·파일 크기·hash와 clipping 원인·미확정 경계를 기록했다.
 - EVAL-003의 사용자 평가표·체크리스트·기준을 보강하고 점수와 최종 청취 판정은 비워 두었다.
