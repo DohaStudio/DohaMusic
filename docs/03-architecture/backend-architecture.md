@@ -1,6 +1,6 @@
 # Backend 아키텍처
 
-> 현재 상태: Phase 5 생성·Stem·Voice Provider와 Pipeline Orchestrator 경계 구현
+> 현재 상태: Phase 5.1 생성·Stem·Voice Provider, Pipeline Orchestrator와 Audio Quality Engine 경계 구현
 
 ```text
 API → Service → Repository → SQLAlchemy Model

@@ -15,4 +15,4 @@ Seed-VC는 `Experimental`·운영 보류다. 현재 상태에서는 운영 기�
 
 Phase 4.6 평가에서도 Primary와 Fallback은 미선정이다. RVC는 학습형 Secondary 평가 후보일 뿐 배포 Provider가 아니며, Vevo2는 CC BY-NC-ND 4.0 가중치, Fish Speech는 별도 상업 계약 때문에 상용 배포 대상에서 제외한다. OpenVoice와 CosyVoice는 permissive 라이선스지만 공식 Singing VC 근거가 없어 이 Pipeline에 배포하지 않는다.
 
-Phase 5 Pipeline Orchestrator는 Mock 기반 개발 검증 상태다. 인프로세스 ThreadPool은 프로세스 장애 시 Job을 복구하지 않으며 Mock Mixer도 실제 합성을 수행하지 않는다. 외부 운영 배포 전 내구성 Queue, idempotency, 취소·timeout 강제 종료, 실제 Mixer 품질, 인증·파일 소유권과 Primary Voice 게이트를 별도로 승인해야 한다.
+Phase 5 Pipeline Orchestrator의 AI 단계는 Mock 기반 개발 검증 상태지만 Phase 5.1 Mixer는 실제 DSP 합성을 수행한다. 인프로세스 ThreadPool은 프로세스 장애 시 Job을 복구하지 않는다. 외부 운영 배포 전 내구성 Queue, idempotency, 취소·timeout 강제 종료, EVAL-004 Mixer 청감 품질, True Peak·loudness 정책, 인증·파일 소유권과 Primary Voice 게이트를 별도로 승인해야 한다.

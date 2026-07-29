@@ -7,6 +7,7 @@ import shutil
 import tempfile
 import time
 from pathlib import Path
+from typing import Literal
 
 from fastapi.testclient import TestClient
 
@@ -14,7 +15,9 @@ from backend.app.factory import create_app
 from backend.core.config import Settings
 
 
-def run_benchmark() -> dict[str, object]:
+def run_benchmark(
+    audio_mixer: Literal["mock", "default"] = "mock",
+) -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix="dohamusic-pipeline-") as temp_dir:
         root = Path(temp_dir)
         app = create_app(
@@ -24,6 +27,7 @@ def run_benchmark() -> dict[str, object]:
                 mock_generation_delay_seconds=0.01,
                 mock_stem_delay_seconds=0.01,
                 mock_voice_delay_seconds=0.01,
+                audio_mixer=audio_mixer,
                 worker_max_threads=1,
                 log_level="WARNING",
             )

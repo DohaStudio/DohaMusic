@@ -10,6 +10,7 @@ import time
 
 from fastapi import FastAPI, Request, Response
 
+from backend.audio.factory import create_audio_mixer
 from backend.ai.factory import create_music_generator
 from backend.ai.stem_factory import create_stem_separator
 from backend.ai.voice_factory import create_voice_converter
@@ -25,7 +26,7 @@ from backend.services.stem_service import StemService
 from backend.services.voice_profile_service import VoiceProfileService
 from backend.services.voice_conversion_service import VoiceConversionService
 from backend.storage.service import StorageService
-from backend.pipeline.audio import MockAudioMixer, WavExporter
+from backend.pipeline.audio import WavExporter
 from backend.pipeline.executor import PipelineExecutor
 from backend.pipeline.steps import (
     ExportStep,
@@ -59,6 +60,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         music_generator = create_music_generator(resolved_settings, storage)
         stem_separator = create_stem_separator(resolved_settings, storage)
         voice_converter = create_voice_converter(resolved_settings, storage)
+        audio_mixer = create_audio_mixer(resolved_settings, storage.pipeline_dir)
         logger.info(
             "provider_configured provider=%s model=%s",
             resolved_settings.music_generator,
@@ -74,6 +76,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             resolved_settings.voice_provider,
             voice_converter.model_name,
         )
+        logger.info("audio_mixer_configured provider=%s", resolved_settings.audio_mixer)
         worker = GenerationWorker(
             session_factory=session_factory,
             music_generator=music_generator,
@@ -110,7 +113,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 GenerateMusicStep(music_generator),
                 StemSeparationStep(stem_separator),
                 VoiceConversionStep(voice_converter),
-                MixStep(MockAudioMixer(storage.pipeline_dir)),
+                MixStep(audio_mixer),
                 ExportStep(WavExporter(storage.pipeline_dir)),
             ],
             max_retries=resolved_settings.pipeline_max_retries,

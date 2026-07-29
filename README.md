@@ -1,7 +1,7 @@
 # DohaMusic
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 5 Mock Pipeline Orchestrator 완료 — 운영 Voice Provider·실제 Mixer 보류**
+> 현재 상태: **Phase 5.1 Default Audio Mixer·Audio Quality Engine 완료 — 운영 Voice Provider 보류**
 > 최종 수정일: 2026-07-29
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -29,15 +29,17 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
 | [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
 | [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
-| [완료] | Music → Stem → Mock Voice → Mock Mixer → WAV Export 비동기 Pipeline |
+| [완료] | Music → Stem → Mock Voice → Default Audio Mixer → WAV Export 비동기 Pipeline |
 | [완료] | 단계별 진행률·재시도·timeout 판정·오류·metadata·Benchmark |
-| [계획] | 변환 보컬과 반주 믹싱, WAV 저장 및 MP3 변환 |
+| [완료] | 변환 보컬·반주 gain, -1dBFS headroom, peak normalization, soft limiter, fade, 48kHz WAV 합성 |
+| [수동 평가 필요] | 최종 Mixer volume·balance·naturalness·noise·clipping 청감 |
+| [계획] | MP3 변환 |
 | [계획] | 비동기 작업 상태·진행률·오류·재시도 관리 |
 | [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
 
-음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Phase 4.6에서 Primary와 Fallback은 미선정됐으므로 Phase 5는 `MockVoiceConverter`와 Mock Mixer로만 Workflow 경계를 검증했다. 실제 음색 변환·믹싱 품질이나 운영 배포 승인을 의미하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 인증, Frontend, Redis/Celery는 구현하지 않았다.
+음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Mixer 기본값은 AI와 독립된 `DefaultAudioMixer`이며 Mock은 테스트용으로 유지한다. Phase 4.6에서 Voice Primary와 Fallback은 미선정됐으므로 실제 음색 변환 품질이나 운영 배포 승인을 의미하지 않는다. Mixer 청감도 EVAL-004 사용자 평가 전에는 승인하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 인증, Frontend, Redis/Celery는 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
@@ -62,6 +64,7 @@ flowchart LR
 - Database: SQLite **[완료]**, PostgreSQL/MySQL 교체 **[계획]**
 - Task Queue: 프로세스 내부 단일 ThreadPool **[완료]**, 외부 Queue **[계획]**
 - Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
+- Audio DSP: NumPy·SciPy 기반 Default Mixer **[완료]**, True Peak·LUFS **[계획]**
 - AI 모델: 어댑터를 통한 교체 가능한 공개 사전학습 모델
 
 모델명은 후보일 뿐이며, 라이선스와 로컬 벤치마크를 통과하기 전에는 채택하지 않는다. 자세한 기준은 [모델 비교](docs/01-research/model-comparison.md)와 [모델 선정 정책](docs/04-models/model-selection-policy.md)을 따른다.
@@ -112,7 +115,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - API와 데이터: [API 개요](docs/06-api/api-overview.md), [ERD](docs/07-database/erd.md)
 - 안전과 권리: [음성 동의 정책](docs/09-security/voice-consent-policy.md), [생성 콘텐츠 정책](docs/09-security/generated-content-policy.md)
 - 의사결정: [ADR 목록](docs/11-decisions/README.md)
-- Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md)
+- Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Audio Quality Engine](docs/03-architecture/audio-quality-engine.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)
 
 ## 안전 및 음성 사용 정책
 

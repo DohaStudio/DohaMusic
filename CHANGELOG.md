@@ -10,6 +10,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가
 
+- `AudioMixer` 인터페이스, 실제 NumPy/SciPy 기반 `DefaultAudioMixer`, 유지되는 `MockAudioMixer`와 `default`·`mock` Provider Factory를 추가했다.
+- gain, 48kHz Stereo 동기화, length padding, -1dBFS headroom, peak normalization, soft limiter, fade와 PCM16 WAV 출력을 추가했다.
+- peak·RMS·headroom·clipping·처리 시간·CPU·RSS·출력 크기 metadata, Mixer benchmark, EXP-006, 사용자 EVAL-004와 ADR-013을 추가했다.
+- gain·headroom·clipping·fade·metadata·format sync·Provider·Pipeline 연결 테스트를 추가했다.
+
 - `PipelineService`, `PipelineContext`, `PipelineExecutor`, 5개 `PipelineStep`과 Mock Mixer·WAV Exporter를 추가했다.
 - `pipeline_jobs`, `pipeline_files`, Alembic 0004와 비동기 Pipeline 생성·조회·파일 API를 추가했다.
 - 단계별 진행률, 자동 재시도, timeout 판정, 구조화 오류, 부분 출력 정리와 JSON metadata를 추가했다.
@@ -45,6 +50,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 생성 성공·조회·Mock Worker 실패·입력 예외·음성 동의·migration·Storage를 검증하는 테스트를 추가했다.
 
 ### 변경
+
+- Pipeline Mixer 기본값을 Mock 복사에서 실제 `DefaultAudioMixer`로 교체하고 Mock AI 단계와 Orchestrator 구조는 유지했다.
+- `numpy`, `scipy`, `psutil`을 Backend DSP·resampling·resource 측정 의존성으로 추가했다.
 
 - 공유 단일 ThreadPool에 Pipeline Worker를 연결하고 애플리케이션 종료 시 SQLAlchemy Engine을 명시적으로 dispose하도록 변경했다.
 - Phase 5를 Mock Voice 기반 기술 Orchestrator 완료로 갱신하되 Primary Voice와 실제 Mixer의 운영 게이트는 유지했다.
@@ -82,6 +90,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Voice Conversion 입력을 DB의 vocals Stem과 명시적 동의 Voice Profile로 제한하고 참조 경로가 `voices/references` 밖으로 벗어나면 거부한다.
 
 ### 문서
+
+- README, Master Roadmap, ROADMAP, Pipeline·Architecture·API·Evaluation·Operations·라이선스·Phase 5 DoD를 실제 Audio Mixer 기준으로 최신화했다.
 
 - README, Master Roadmap, ROADMAP, Architecture, API, ERD, 상태, Evaluation, Operations, Security와 Phase 5 DoD를 실제 Pipeline 구현에 맞게 최신화했다.
 

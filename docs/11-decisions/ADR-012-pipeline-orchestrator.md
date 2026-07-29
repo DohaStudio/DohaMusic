@@ -12,7 +12,7 @@ Music, Stem, Voice는 독립 Job과 Adapter로 검증됐지만 단일 Workflow�
 ## 결정
 
 1. `PipelineService → PipelineWorker → PipelineExecutor → PipelineStep` 구조를 채택한다.
-2. 단계 순서는 Music → Stem → Voice → Mock Mixer → WAV Export로 고정한다.
+2. 단계 순서는 Music → Stem → Voice → Audio Mixer → WAV Export로 고정한다. 당시 Mixer는 Mock이었으며 실제 기본 구현은 [ADR-013](ADR-013-audio-mixing-engine.md)이 대체한다.
 3. AI 단계는 기존 인터페이스만 의존하고 애플리케이션 조립부에서 Provider를 주입한다.
 4. Voice 기본값은 `mock`이며 Primary 미선정 결정을 변경하지 않는다.
 5. 단계별 자동 재시도는 기본 1회로 제한하고 Validation·Output 오류는 재시도하지 않는다.
@@ -23,7 +23,7 @@ Music, Stem, Voice는 독립 Job과 Adapter로 검증됐지만 단일 Workflow�
 
 ## 선택 이유
 
-기존 Adapter와 공유 ThreadPool을 재사용하면서 특정 AI 구현이 Workflow로 누출되지 않는다. 독립 Job API도 유지하므로 회귀 범위가 작고, 향후 외부 Queue나 실제 Mixer로 교체할 경계가 명확하다.
+기존 Adapter와 공유 ThreadPool을 재사용하면서 특정 AI 구현이 Workflow로 누출되지 않는다. 독립 Job API도 유지하므로 회귀 범위가 작고, 향후 외부 Queue나 Mixer Provider를 교체할 경계가 명확하다.
 
 ## 대안
 
@@ -34,13 +34,13 @@ Music, Stem, Voice는 독립 Job과 Adapter로 검증됐지만 단일 Workflow�
 ## 영향과 한계
 
 - `pipeline_jobs`, `pipeline_files`, migration 0004가 추가된다.
-- Mock Mixer 결과는 음악적 믹싱 품질을 의미하지 않는다.
+- Phase 5 당시 Mock Mixer 결과는 음악적 믹싱 품질을 의미하지 않는다. Phase 5.1 자동 DSP 결과와 사용자 청감 평가는 ADR-013·EXP-006·EVAL-004에서 분리한다.
 - timeout은 완료 후 제한 초과를 판정하며 실제 subprocess 종료는 Adapter timeout에 의존한다.
 - 인증, 소유권, 외부 Queue, 강제 취소와 crash recovery는 미구현이다.
 
 ## 재검토 조건
 
-Primary Voice 승인, 실제 Mixer 도입, 외부 Queue 선정, 취소·재개 요구 또는 단계 순서 변경 시 재검토한다.
+Primary Voice 승인, Mixer 계약 변경, 외부 Queue 선정, 취소·재개 요구 또는 단계 순서 변경 시 재검토한다.
 
 ## 관련 PR
 

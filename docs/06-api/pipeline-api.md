@@ -28,6 +28,8 @@
 
 상태는 `PENDING → VALIDATING → GENERATING → STEM_SEPARATING → VOICE_CONVERTING → MIXING → EXPORTING → COMPLETED` 순서다. 어느 단계에서든 `FAILED`로 종료할 수 있다.
 
-응답의 `result_metadata`에는 Pipeline 버전, Provider·모델, seed, 전체·단계 시간, attempt, VRAM 가능한 값, 성공 여부, 실패 단계와 오류가 포함된다. Mock 실행의 GPU·VRAM·CPU 사용률은 추측하지 않고 `null`로 기록한다.
+응답의 `result_metadata`에는 Pipeline 버전, Provider·모델, seed, 전체·단계 시간, attempt, VRAM 가능한 값, 성공 여부, 실패 단계와 오류가 포함된다. Mock AI 실행의 GPU·VRAM은 추측하지 않고 `null`로 기록한다.
+
+Mixer step의 `details.audio_quality`에는 provider·처리 시간, 출력 duration·sample rate·channels·size, 보컬·반주·normalization gain, 목표·실제 headroom, peak·RMS, normalization·limiter·fade, silence, PCM 직전 clipping과 보호 처리 전 over-range가 포함된다. True Peak는 현재 미지원이므로 `true_peak_supported=false`, `true_peak_dbfs=null`이다.
 
 취소·수동 재시도·다운로드 API와 인증·소유권 검사는 이번 범위에 포함하지 않는다.

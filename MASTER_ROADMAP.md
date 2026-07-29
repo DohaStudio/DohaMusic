@@ -135,13 +135,13 @@ Phase 9  Production                  [계획]
 ## Phase 5. Pipeline Integration — [완료]
 
 - 목표: Music → Stem → Voice → Mixer를 하나의 추적 가능한 비동기 Pipeline으로 연결한다.
-- 구현 범위·포함 기능: 단계 오케스트레이션, Mock Mixer, 통합 API·Worker·상태·파일, 실패·재시도·timeout 정책, Benchmark·통합 테스트.
+- 구현 범위·포함 기능: 단계 오케스트레이션, Default/Mock Audio Mixer, gain·headroom·peak normalization·soft limiter·fade·품질 metadata, 통합 API·Worker·상태·파일, 실패·재시도·timeout 정책, Benchmark·통합 테스트.
 - 제외 기능: Lyrics AI, Frontend, 외부 운영 Queue의 제품 선정.
 - 선행 조건: Phase 2·3·4 Provider 인터페이스. Voice 품질 게이트 미충족은 Mock Voice 고정으로 격리한다.
-- 완료 조건: [Phase-05 DoD](docs/DoD/Phase-05.md), Mock 단일 E2E Job과 회귀·실패 검증.
-- 산출물: Pipeline Service·Worker·API, 통합 ADR·실험 보고서.
-- 관련 문서: [Pipeline Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Pipeline API](docs/06-api/pipeline-api.md), [Job State](docs/07-database/job-state-model.md).
-- 관련 ADR·실험: [ADR-012](docs/11-decisions/ADR-012-pipeline-orchestrator.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md).
+- 완료 조건: [Phase-05 DoD](docs/DoD/Phase-05.md), Mock AI 단일 E2E Job, 실제 Mixer와 회귀·실패 검증.
+- 산출물: Pipeline Service·Worker·API, Audio Quality Engine, 통합 ADR·실험·평가 보고서.
+- 관련 문서: [Pipeline Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Audio Quality Engine](docs/03-architecture/audio-quality-engine.md), [Pipeline API](docs/06-api/pipeline-api.md), [Job State](docs/07-database/job-state-model.md).
+- 관련 ADR·실험: [ADR-012](docs/11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](docs/11-decisions/ADR-013-audio-mixing-engine.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md).
 - 예상 다음 단계: Phase 6 Lyrics AI.
 
 ## Phase 6. Lyrics AI — [계획]
@@ -195,11 +195,11 @@ Phase 9  Production                  [계획]
 ## 현재 권장 다음 작업
 
 ```text
-Phase 5 Mock Pipeline 기술 기반 완료
+Phase 5.1 실제 Audio Mixer 기술 기반 완료
   ↓
 Phase 6 Lyrics AI 계약·안전 범위 검토
   ↓ 병행 게이트
-Voice Primary·실제 Mixer·사용자 품질 검증
+Voice Primary·Mixer 사용자 품질 검증
   ↓
 운영 Pipeline Provider 승인
 ```

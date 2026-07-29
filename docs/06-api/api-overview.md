@@ -19,7 +19,7 @@
 | `POST` | `/api/voice-conversion` | 202 | vocals와 동의된 Voice Profile로 변환 Job 생성 |
 | `GET` | `/api/voice-conversion/{job}` | 200 | Voice Conversion Job 조회 |
 | `GET` | `/api/voice-conversion/{job}/files` | 200 | converted_voice·metadata 조회 |
-| `POST` | `/api/pipelines` | 202 | 전체 Mock Pipeline Job 생성 |
+| `POST` | `/api/pipelines` | 202 | Mock AI·Default Audio Mixer Pipeline Job 생성 |
 | `GET` | `/api/pipelines/{job}` | 200 | 단계·진행률·metadata 조회 |
 | `GET` | `/api/pipelines/{job}/files` | 200 | Pipeline 결과 파일 metadata 조회 |
 

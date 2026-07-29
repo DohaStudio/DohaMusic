@@ -77,9 +77,15 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
         "music": "mock",
         "stem": "mock",
         "voice": "mock",
-        "mixer": "mock",
+        "mixer": "default",
         "export": "wav",
     }
+    mixer_metrics = next(
+        item for item in metadata["step_execution"] if item["step"] == "mixer"
+    )
+    assert mixer_metrics["audio_quality"]["sample_rate"] == 48_000
+    assert mixer_metrics["audio_quality"]["channels"] == 2
+    assert mixer_metrics["audio_quality"]["clipping"]["detected"] is False
 
     files = client.get(f"/api/pipelines/{job['id']}/files").json()
     assert {item["file_type"] for item in files} == {

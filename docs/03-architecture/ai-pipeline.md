@@ -1,7 +1,7 @@
 # AI 파이프라인
 
 > 문서 목적: 생성·Stem·Voice와 Pipeline Orchestrator의 모델 교체 계약을 정의한다.
-> 현재 상태: **음악·Stem·Voice Mock 기본 / 선택적 Adapter / Mock Pipeline 통합 완료**
+> 현재 상태: **음악·Stem·Voice Mock 기본 / 선택적 Adapter / Default Audio Mixer 통합 완료**
 
 ```mermaid
 flowchart LR
@@ -46,12 +46,12 @@ flowchart LR
   X --> G[MusicGenerator]
   G --> S[StemSeparator]
   S --> V[VoiceConverter]
-  V --> M[MockAudioMixer]
+  V --> M[AudioMixer Provider]
   M --> E[WavExporter]
   E --> R[final.wav·metadata.json]
 ```
 
-각 단계는 `PipelineContext`의 다음 입력만 채운다. 재시도·진행률·오류·benchmark는 Executor와 Worker가 통합 관리한다. 현재 Mixer는 인터페이스 검증용 Mock이며 음악적 합성을 수행하지 않는다. 자세한 경계는 [Pipeline Orchestrator](pipeline-orchestrator.md)를 따른다.
+각 단계는 `PipelineContext`의 다음 입력만 채운다. 재시도·진행률·오류·benchmark는 Executor와 Worker가 통합 관리한다. Mixer 기본 Provider는 실제 합성을 수행하는 `DefaultAudioMixer`이고 `MockAudioMixer`는 회귀·격리 테스트용으로 유지한다. 자세한 DSP 경계는 [Audio Quality Engine](audio-quality-engine.md), Workflow 경계는 [Pipeline Orchestrator](pipeline-orchestrator.md)를 따른다.
 
 ## 향후 Voice Provider Matrix
 

@@ -17,5 +17,6 @@
 | [ADR-010](ADR-010-voice-provider-selection-policy.md) | Voice Provider 수명주기와 운영 승격 기준 | 승인 |
 | [ADR-011](ADR-011-voice-provider-selection.md) | Voice Provider 평가와 역할 선정 | Primary 미선정, 운영 통합 보류 |
 | [ADR-012](ADR-012-pipeline-orchestrator.md) | Mock 기반 Pipeline Orchestrator와 단계 정책 | 승인 |
+| [ADR-013](ADR-013-audio-mixing-engine.md) | Default Audio Mixer의 gain·headroom·limiter·normalization·metadata 정책 | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
