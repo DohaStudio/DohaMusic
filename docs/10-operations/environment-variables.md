@@ -1,7 +1,7 @@
 # 환경 변수
 
 > 문서 목적: 서비스와 선택적 AI 실행 설정의 책임을 정의한다.
-> 현재 상태: **Mock·ACE-Step·Demucs Provider 변수 구현**
+> 현재 상태: **Mock·선택적 AI Provider·Pipeline 변수 구현**
 
 | 변수 | 용도 | 기본값 |
 |---|---|---|
@@ -44,6 +44,9 @@
 | `DOHAMUSIC_VOICE_SEED_VC_DEVICE` | 실행 장치 | `cuda` |
 | `DOHAMUSIC_VOICE_SEED_VC_DIFFUSION_STEPS` | 확산 step | `30` |
 | `DOHAMUSIC_VOICE_SEED_VC_TIMEOUT_SECONDS` | subprocess 제한 | `1800` |
+| `DOHAMUSIC_PIPELINE_VERSION` | Pipeline metadata 계약 버전 | `1` |
+| `DOHAMUSIC_PIPELINE_MAX_RETRIES` | 단계별 추가 시도 횟수 | `1` |
+| `DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS` | Orchestrator 단계 제한 | `900` |
 
 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 

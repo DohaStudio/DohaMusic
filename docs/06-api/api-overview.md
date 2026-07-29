@@ -1,7 +1,7 @@
 # API 개요
 
 > 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
-> 현재 상태: **Backend Foundation + Stem + Voice Conversion API 구현 완료**
+> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Pipeline API 구현 완료**
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
@@ -19,8 +19,11 @@
 | `POST` | `/api/voice-conversion` | 202 | vocals와 동의된 Voice Profile로 변환 Job 생성 |
 | `GET` | `/api/voice-conversion/{job}` | 200 | Voice Conversion Job 조회 |
 | `GET` | `/api/voice-conversion/{job}/files` | 200 | converted_voice·metadata 조회 |
+| `POST` | `/api/pipelines` | 202 | 전체 Mock Pipeline Job 생성 |
+| `GET` | `/api/pipelines/{job}` | 200 | 단계·진행률·metadata 조회 |
+| `GET` | `/api/pipelines/{job}/files` | 200 | Pipeline 결과 파일 metadata 조회 |
 
-생성과 Stem 요청은 비동기이며 `202 Accepted`와 `PENDING` Job을 반환한다. Stem 계약은 [Stem 분리 API](stem-api.md)를 따른다. 오류는 다음 형식을 사용한다.
+생성, Stem, Voice, Pipeline 요청은 비동기이며 `202 Accepted`와 `PENDING` Job을 반환한다. Pipeline 계약은 [Pipeline API](pipeline-api.md)를 따른다. 오류는 다음 형식을 사용한다.
 
 ```json
 {

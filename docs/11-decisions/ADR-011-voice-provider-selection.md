@@ -1,6 +1,6 @@
 # ADR-011: Voice Provider Selection
 
-> 상태: 승인 — Primary 미선정, Phase 5 보류
+> 상태: 승인 — Primary 미선정, 운영 Voice Provider 통합 보류
 > 작성일: 2026-07-29
 > 최종 수정일: 2026-07-29
 
@@ -51,7 +51,7 @@ Primary와 Fallback은 `Preview` 이상의 동일 출력 계약 Provider가 생�
 
 - 코드, API, 환경 변수와 기본 `mock`은 변경하지 않는다.
 - Phase 4는 94% `[검증 필요]`를 유지한다.
-- 표준 Primary가 없으므로 Phase 5 Pipeline Integration을 시작하지 않는다.
+- 표준 Primary가 없으므로 실제 Voice Provider를 사용하는 운영 Pipeline Integration은 시작하지 않는다. 이후 [ADR-012](ADR-012-pipeline-orchestrator.md)에서 사용자 승인에 따라 Mock Voice 기반 Orchestrator 기술 경계만 예외적으로 검증했다.
 - 다음 작업은 새 구현이 아니라 후보별 차단 조건을 해소하는 검증이어야 한다.
 
 ## 재검토 조건

@@ -30,7 +30,7 @@ Phase 3  Stem Separation             [완료]
   ↓
 Phase 4  Voice Conversion            [검증 필요]
   ↓
-Phase 5  Pipeline Integration        [계획]
+Phase 5  Pipeline Integration        [완료]
   ↓
 Phase 6  Lyrics AI                   [계획]
   ↓
@@ -49,7 +49,7 @@ Phase 9  Production                  [계획]
 | 2.5 Quality Benchmark | [진행 중] | `█████████░ 93%` | 재현성·반복·VRAM·ADR 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | `██████████ 100%` | HTDemucs Adapter·API·Benchmark·평가표 구축 | [Phase-03](docs/DoD/Phase-03.md) |
 | 4. Voice Conversion | [검증 필요] | `█████████░ 94%` | 6개 Provider 평가 완료, Primary 미선정 | [Phase-04](docs/DoD/Phase-04.md) |
-| 5. Pipeline Integration | [계획] | `░░░░░░░░░░ 0%` | Voice Primary·Fallback 미선정으로 착수 불가 | [Phase-05](docs/DoD/Phase-05.md) |
+| 5. Pipeline Integration | [완료] | `██████████ 100%` | Mock Voice 기반 Orchestrator·API·실패 정책 검증 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [계획] | `░░░░░░░░░░ 0%` | Lyrics Generator 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | `░░░░░░░░░░ 0%` | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
@@ -129,19 +129,19 @@ Phase 9  Production                  [계획]
 - 관련 문서: [Voice Conversion 조사](docs/01-research/voice-conversion.md), [Provider 비교](docs/01-research/voice-provider-comparison.md), [Voice Adapter](docs/04-models/voice-conversion-adapter.md), [Provider Score](docs/04-models/voice-provider-score.md), [Provider 정책](docs/04-models/voice-provider-selection-policy.md).
 - 관련 ADR·실험: [ADR-009](docs/11-decisions/ADR-009-seed-vc-voice-provider.md), [ADR-010](docs/11-decisions/ADR-010-voice-provider-selection-policy.md), [ADR-011](docs/11-decisions/ADR-011-voice-provider-selection.md), [EXP-004](reports/experiments/EXP-004-seed-vc.md), [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [QG-001](reports/quality-gates/QG-001-voice-conversion-operational-readiness.md).
 - Provider Selection: Primary·Fallback 미선정, RVC Secondary 평가 후보, Seed-VC·Vevo2 Experimental, OpenVoice·CosyVoice·Fish Speech Rejected.
-- Quality Gate: EVAL-003, clipping/export 회귀, 배포 라이선스, 8GB 후보 실측과 유지보수 조건 전에는 Phase 5로 진행하지 않는다.
+- Quality Gate: EVAL-003, clipping/export 회귀, 배포 라이선스, 8GB 후보 실측과 유지보수 조건 전에는 실제 Voice Provider를 운영 Pipeline에 연결하지 않는다. Mock 기반 Orchestrator 기술 검증은 ADR-012에 따라 분리했다.
 - 예상 다음 단계: Primary 차단 조건을 해소할 후보 검증 범위 결정.
 
-## Phase 5. Pipeline Integration — [계획]
+## Phase 5. Pipeline Integration — [완료]
 
 - 목표: Music → Stem → Voice → Mixer를 하나의 추적 가능한 비동기 Pipeline으로 연결한다.
-- 구현 범위·포함 기능: 단계 오케스트레이션, Mixer, 통합 API·Worker·상태·파일, 실패·재시도 정책, Benchmark·통합 테스트.
+- 구현 범위·포함 기능: 단계 오케스트레이션, Mock Mixer, 통합 API·Worker·상태·파일, 실패·재시도·timeout 정책, Benchmark·통합 테스트.
 - 제외 기능: Lyrics AI, Frontend, 외부 운영 Queue의 제품 선정.
-- 선행 조건: Phase 2·3·4 Provider 계약과 품질 게이트.
-- 완료 조건: [Phase-05 DoD](docs/DoD/Phase-05.md), 단일 E2E Job과 회귀·실패 검증.
+- 선행 조건: Phase 2·3·4 Provider 인터페이스. Voice 품질 게이트 미충족은 Mock Voice 고정으로 격리한다.
+- 완료 조건: [Phase-05 DoD](docs/DoD/Phase-05.md), Mock 단일 E2E Job과 회귀·실패 검증.
 - 산출물: Pipeline Service·Worker·API, 통합 ADR·실험 보고서.
-- 관련 문서: [AI Pipeline](docs/03-architecture/ai-pipeline.md), [Job State](docs/07-database/job-state-model.md).
-- 관련 ADR·실험: Pipeline 순서·상태·저장 정책 ADR 필요, 아직 없음.
+- 관련 문서: [Pipeline Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Pipeline API](docs/06-api/pipeline-api.md), [Job State](docs/07-database/job-state-model.md).
+- 관련 ADR·실험: [ADR-012](docs/11-decisions/ADR-012-pipeline-orchestrator.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md).
 - 예상 다음 단계: Phase 6 Lyrics AI.
 
 ## Phase 6. Lyrics AI — [계획]
@@ -195,15 +195,13 @@ Phase 9  Production                  [계획]
 ## 현재 권장 다음 작업
 
 ```text
-Phase 4.6 Provider Evaluation: Primary 미선정
+Phase 5 Mock Pipeline 기술 기반 완료
   ↓
-RVC 학습형 구조 또는 상업 사용 가능한 zero-shot SVC 후보 검토
+Phase 6 Lyrics AI 계약·안전 범위 검토
+  ↓ 병행 게이트
+Voice Primary·실제 Mixer·사용자 품질 검증
   ↓
-RTX 3060 Ti·라이선스·사용자 품질 게이트
-  ↓
-Music·Stem 품질 게이트 포함 재검토
-  ↓
-Phase 5 Pipeline Integration 착수 여부 결정
+운영 Pipeline Provider 승인
 ```
 
 현재 Phase 4 진행률은 15/16 DoD에 따라 94%로 유지한다. EVAL-001과 EVAL-002도 각각 완료해 Phase 2·2.5와 Stem Provider 품질 게이트를 닫아야 한다.

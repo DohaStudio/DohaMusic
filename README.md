@@ -1,7 +1,7 @@
 # DohaMusic
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 4.6 Provider 평가 완료 — Primary 미선정·Phase 5 착수 불가**
+> 현재 상태: **Phase 5 Mock Pipeline Orchestrator 완료 — 운영 Voice Provider·실제 Mixer 보류**
 > 최종 수정일: 2026-07-29
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -29,13 +29,15 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
 | [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
 | [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
+| [완료] | Music → Stem → Mock Voice → Mock Mixer → WAV Export 비동기 Pipeline |
+| [완료] | 단계별 진행률·재시도·timeout 판정·오류·metadata·Benchmark |
 | [계획] | 변환 보컬과 반주 믹싱, WAV 저장 및 MP3 변환 |
 | [계획] | 비동기 작업 상태·진행률·오류·재시도 관리 |
 | [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
 
-음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Phase 4.6에서 Seed-VC, OpenVoice, CosyVoice, Fish Speech, RVC, Amphion Vevo2를 비교했지만 직접 SVC·현재 계약·상업 라이선스·8GB 실측·사용자 품질 게이트를 모두 통과한 후보가 없어 Primary와 Fallback은 미선정이다. RVC는 Secondary 평가 후보, Seed-VC와 Vevo2는 Experimental이다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않는다. 인증, Frontend, Redis/Celery와 Phase 5 통합 Pipeline은 구현하지 않았고 Primary 선정 전에는 Phase 5를 시작할 수 없다.
+음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Phase 4.6에서 Primary와 Fallback은 미선정됐으므로 Phase 5는 `MockVoiceConverter`와 Mock Mixer로만 Workflow 경계를 검증했다. 실제 음색 변환·믹싱 품질이나 운영 배포 승인을 의미하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 인증, Frontend, Redis/Celery는 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
@@ -54,7 +56,7 @@ flowchart LR
 ## 예상 기술 스택
 
 - Frontend: Next.js
-- Backend/Orchestrator: FastAPI **[완료]**
+- Backend/Orchestrator: FastAPI + PipelineExecutor **[완료]**
 - Persistence: SQLAlchemy 2, Alembic, SQLite **[완료]**
 - AI Worker: Provider-neutral 공유 ThreadPool Worker **[완료]**, 격리형 ACE-Step·Demucs·Seed-VC subprocess **[실험 완료]**
 - Database: SQLite **[완료]**, PostgreSQL/MySQL 교체 **[계획]**
@@ -110,6 +112,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - API와 데이터: [API 개요](docs/06-api/api-overview.md), [ERD](docs/07-database/erd.md)
 - 안전과 권리: [음성 동의 정책](docs/09-security/voice-consent-policy.md), [생성 콘텐츠 정책](docs/09-security/generated-content-policy.md)
 - 의사결정: [ADR 목록](docs/11-decisions/README.md)
+- Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md)
 
 ## 안전 및 음성 사용 정책
 
