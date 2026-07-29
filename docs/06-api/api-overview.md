@@ -1,7 +1,7 @@
 # API 개요
 
 > 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
-> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Pipeline API 구현 완료**
+> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Pipeline + Lyrics API 구현 완료**
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
@@ -22,8 +22,12 @@
 | `POST` | `/api/pipelines` | 202 | Mock AI·Default Audio Mixer Pipeline Job 생성 |
 | `GET` | `/api/pipelines/{job}` | 200 | 단계·진행률·metadata 조회 |
 | `GET` | `/api/pipelines/{job}/files` | 200 | Pipeline 결과 파일 metadata 조회 |
+| `POST` | `/api/lyrics` | 201 | Template·Mock 가사 초안 생성·저장 |
+| `GET` | `/api/lyrics/{id}` | 200 | 가사 문서 조회 |
+| `POST` | `/api/lyrics/validate` | 200 | 직접 작성 가사 정규화·검증 |
+| `DELETE` | `/api/lyrics/{id}` | 204 | 가사 문서 삭제 |
 
-생성, Stem, Voice, Pipeline 요청은 비동기이며 `202 Accepted`와 `PENDING` Job을 반환한다. Pipeline 계약은 [Pipeline API](pipeline-api.md)를 따른다. 오류는 다음 형식을 사용한다.
+생성, Stem, Voice, Pipeline 요청은 비동기이며 `202 Accepted`와 `PENDING` Job을 반환한다. Lyrics는 빠른 로컬 Provider를 사용하는 동기 `201` API다. Pipeline 계약은 [Pipeline API](pipeline-api.md), 가사 계약은 [Lyrics API](lyrics-api.md)를 따른다. 오류는 다음 형식을 사용한다.
 
 ```json
 {

@@ -10,6 +10,7 @@ def test_database_storage_and_health_are_initialized(client) -> None:
     assert {
         "generation_jobs",
         "generated_files",
+        "lyrics_documents",
         "stem_jobs",
         "stem_files",
         "pipeline_jobs",

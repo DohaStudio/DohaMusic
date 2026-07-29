@@ -10,6 +10,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가
 
+- `LyricsGenerator` 인터페이스와 외부 통신 없는 `TemplateLyricsGenerator`, 테스트용 `MockLyricsGenerator`, `template`·`mock` Provider Factory를 추가했다.
+- 한국어·영어 구조화 가사 생성, 섹션 파싱, 길이·반복·구조 검증, 생성·검증 metadata를 추가했다.
+- 동기식 가사 생성·조회·검증·삭제 API, `lyrics_documents`, Alembic 0005를 추가했다.
+- Lyrics benchmark, EXP-007, 사용자 EVAL-005, ADR-014와 Provider·API·검증·오류 회귀 테스트를 추가했다.
+
 - `AudioMixer` 인터페이스, 실제 NumPy/SciPy 기반 `DefaultAudioMixer`, 유지되는 `MockAudioMixer`와 `default`·`mock` Provider Factory를 추가했다.
 - gain, 48kHz Stereo 동기화, length padding, -1dBFS headroom, peak normalization, soft limiter, fade와 PCM16 WAV 출력을 추가했다.
 - peak·RMS·headroom·clipping·처리 시간·CPU·RSS·출력 크기 metadata, Mixer benchmark, EXP-006, 사용자 EVAL-004와 ADR-013을 추가했다.
@@ -51,6 +56,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 변경
 
+- Phase 6을 로컬 Template·Mock 기반 완료로 갱신하고, 실제 LLM 도입과 Pipeline 자동 연결은 별도 검토로 유지했다.
+
 - Pipeline Mixer 기본값을 Mock 복사에서 실제 `DefaultAudioMixer`로 교체하고 Mock AI 단계와 Orchestrator 구조는 유지했다.
 - `numpy`, `scipy`, `psutil`을 Backend DSP·resampling·resource 측정 의존성으로 추가했다.
 
@@ -83,6 +90,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 보안
 
+- 가사 요청의 입력 개수·길이 상한, HTML·script·control 문자 제거, 구조화 오류 응답과 원문 전체를 남기지 않는 로그 정책을 적용했다.
+
 - 신규 Voice Provider 검증 전에 checkpoint 출처·hash·역직렬화·원격 코드·의존성 lock과 학습 산출물 삭제 정책을 확인하도록 공급망 통제를 보강했다.
 
 - Seed-VC 상용 SaaS와 Docker·온프레미스 외부 배포는 배포 단위별 GPL 준수 목록과 법률 검토 전까지 보류하도록 명시했다.
@@ -90,6 +99,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Voice Conversion 입력을 DB의 vocals Stem과 명시적 동의 Voice Profile로 제한하고 참조 경로가 `voices/references` 밖으로 벗어나면 거부한다.
 
 ### 문서
+
+- README, Master Roadmap, ROADMAP, DoD, Architecture, API, Database, Evaluation, Operations, Security 문서를 Phase 6 구현과 외부 LLM 보류 상태에 맞게 갱신했다.
 
 - README, Master Roadmap, ROADMAP, Pipeline·Architecture·API·Evaluation·Operations·라이선스·Phase 5 DoD를 실제 Audio Mixer 기준으로 최신화했다.
 

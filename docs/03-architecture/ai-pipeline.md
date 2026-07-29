@@ -66,3 +66,5 @@ Mock          현재 기본값
 ```
 
 이 Matrix는 [ADR-011](../11-decisions/ADR-011-voice-provider-selection.md)의 목표 구조다. Phase 5는 Mock으로만 통합됐으며 Primary와 Fallback은 동일한 `VoiceConverter` 결과 계약과 `Preview` 이상 상태를 충족할 때만 추가한다.
+
+Phase 6 Lyrics AI는 이 Pipeline 밖의 독립 모듈이다. `LyricsGenerator`가 만든 문서를 Pipeline이나 MusicGenerator에 자동 전달하지 않는다. 향후 입력 계약은 [Lyrics AI 아키텍처](lyrics-ai.md)를 따른다.

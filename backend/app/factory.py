@@ -11,6 +11,7 @@ import time
 from fastapi import FastAPI, Request, Response
 
 from backend.audio.factory import create_audio_mixer
+from backend.lyrics.factory import create_lyrics_generator
 from backend.ai.factory import create_music_generator
 from backend.ai.stem_factory import create_stem_separator
 from backend.ai.voice_factory import create_voice_converter
@@ -21,6 +22,7 @@ from backend.core.logging import configure_logging, get_logger
 from backend.db.migrations import upgrade_database
 from backend.db.session import create_session_factory
 from backend.services.generation_service import GenerationService
+from backend.services.lyrics_service import LyricsService
 from backend.services.pipeline_service import PipelineService
 from backend.services.stem_service import StemService
 from backend.services.voice_profile_service import VoiceProfileService
@@ -61,6 +63,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         stem_separator = create_stem_separator(resolved_settings, storage)
         voice_converter = create_voice_converter(resolved_settings, storage)
         audio_mixer = create_audio_mixer(resolved_settings, storage.pipeline_dir)
+        lyrics_generator = create_lyrics_generator(resolved_settings)
         logger.info(
             "provider_configured provider=%s model=%s",
             resolved_settings.music_generator,
@@ -77,6 +80,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             voice_converter.model_name,
         )
         logger.info("audio_mixer_configured provider=%s", resolved_settings.audio_mixer)
+        logger.info(
+            "lyrics_provider_configured provider=%s model=%s",
+            lyrics_generator.provider,
+            lyrics_generator.model_name,
+        )
         worker = GenerationWorker(
             session_factory=session_factory,
             music_generator=music_generator,
@@ -143,6 +151,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.generation_service = GenerationService(
             session_factory=session_factory,
             dispatcher=dispatcher,
+        )
+        app.state.lyrics_service = LyricsService(
+            session_factory=session_factory,
+            generator=lyrics_generator,
         )
         app.state.voice_profile_service = VoiceProfileService(
             session_factory=session_factory,

@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-07-29
-> 현재 상태: **Phase 5.1 Default Audio Mixer 완료 / 운영 Voice Provider 통합 보류**
+> 현재 상태: **Phase 6 로컬 Lyrics AI 기반 완료 / 외부 LLM·운영 Voice Provider 보류**
 > 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
 > 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)
 
@@ -19,25 +19,26 @@
 | 3. Stem Separation | [완료] | HTDemucs Adapter·API·Benchmark·EVAL 양식 | [Phase-03](docs/DoD/Phase-03.md) |
 | 4. Voice Conversion | [검증 필요] | Provider 평가 완료, Primary·Fallback 미선정, 94% 유지 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [완료] | Mock Voice 기반 Orchestrator·실제 Audio Mixer·API·Benchmark 검증 | [Phase-05](docs/DoD/Phase-05.md) |
-| 6. Lyrics AI | [계획] | 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
+| 6. Lyrics AI | [완료] | Template·Mock Generator·동기 API·검증·EXP/EVAL/ADR 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## 현재 우선 작업
 
-1. Phase 6 Lyrics AI의 입력·안전·저작권 계약을 설계한다.
-2. [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에서 실제 곡의 balance·자연스러움·noise·clipping을 사용자가 평가한다.
-3. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
-4. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
-5. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
+1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
+2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
+3. [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에서 실제 곡의 balance·자연스러움·noise·clipping을 사용자가 평가한다.
+4. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
+5. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
+6. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
 
 ## 다음 작업 흐름
 
 ```text
 Phase 5.1: 실제 Audio Mixer 완료
   ↓
-Phase 6: Lyrics AI
+Phase 6: 로컬 Lyrics AI 기반 완료
   ↓ 병행
 Voice Primary·Mixer 청감 품질 게이트
   ↓

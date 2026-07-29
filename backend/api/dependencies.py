@@ -3,6 +3,7 @@
 from fastapi import Request
 
 from backend.services.generation_service import GenerationService
+from backend.services.lyrics_service import LyricsService
 from backend.services.pipeline_service import PipelineService
 from backend.services.stem_service import StemService
 from backend.services.voice_profile_service import VoiceProfileService
@@ -11,6 +12,10 @@ from backend.services.voice_conversion_service import VoiceConversionService
 
 def get_generation_service(request: Request) -> GenerationService:
     return request.app.state.generation_service
+
+
+def get_lyrics_service(request: Request) -> LyricsService:
+    return request.app.state.lyrics_service
 
 
 def get_pipeline_service(request: Request) -> PipelineService:
