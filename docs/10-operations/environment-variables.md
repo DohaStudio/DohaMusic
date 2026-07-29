@@ -31,6 +31,19 @@
 | `DOHAMUSIC_STEM_DEMUCS_SHIFTS` | shift 수 | `1` |
 | `DOHAMUSIC_STEM_DEMUCS_OVERLAP` | segment overlap | `0.25` |
 | `DOHAMUSIC_STEM_DEMUCS_TIMEOUT_SECONDS` | subprocess 제한 | `900` |
+| `DOHAMUSIC_VOICE_PROVIDER` | `mock` 또는 `seed_vc` | `mock` |
+| `MOCK_VOICE_DELAY_SECONDS` | Mock Voice 지연 | `0.1` |
+| `DOHAMUSIC_VOICE_SEED_VC_RUNTIME_PYTHON` | 격리 Seed-VC Python | 빈 값 |
+| `DOHAMUSIC_VOICE_SEED_VC_RUNNER_PATH` | DohaMusic Seed-VC runner | `ai_worker/scripts/run_seed_vc_conversion.py` |
+| `DOHAMUSIC_VOICE_SEED_VC_PROJECT_ROOT` | 고정 공식 checkout | 빈 값 |
+| `DOHAMUSIC_VOICE_SEED_VC_CHECKPOINT_PATH` | 44k F0 checkpoint | 빈 값 |
+| `DOHAMUSIC_VOICE_SEED_VC_CONFIG_PATH` | 44k F0 config | 빈 값 |
+| `DOHAMUSIC_VOICE_SEED_VC_MODEL_CACHE_PATH` | 사전 준비 offline cache | 빈 값 |
+| `DOHAMUSIC_VOICE_SEED_VC_MODEL_NAME` | 모델 식별자 | `seed-uvit-whisper-base-f0-44k` |
+| `DOHAMUSIC_VOICE_SEED_VC_MODEL_VERSION` | 고정 commit | `51383efd...` |
+| `DOHAMUSIC_VOICE_SEED_VC_DEVICE` | 실행 장치 | `cuda` |
+| `DOHAMUSIC_VOICE_SEED_VC_DIFFUSION_STEPS` | 확산 step | `30` |
+| `DOHAMUSIC_VOICE_SEED_VC_TIMEOUT_SECONDS` | subprocess 제한 | `1800` |
 
 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 

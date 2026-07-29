@@ -28,7 +28,7 @@ Phase 2.5 Quality Benchmark           [진행 중]
   ↓
 Phase 3  Stem Separation             [완료]
   ↓
-Phase 4  Voice Conversion            [계획]
+Phase 4  Voice Conversion            [검증 필요]
   ↓
 Phase 5  Pipeline Integration        [계획]
   ↓
@@ -48,7 +48,7 @@ Phase 9  Production                  [계획]
 | 2. Music Generation | [진행 중] | `█████████░ 93%` | ACE-Step 기술 연결 완료, 사용자 품질 승인 대기 | [Phase-02](docs/DoD/Phase-02.md) |
 | 2.5 Quality Benchmark | [진행 중] | `█████████░ 93%` | 재현성·반복·VRAM·ADR 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | `██████████ 100%` | HTDemucs Adapter·API·Benchmark·평가표 구축 | [Phase-03](docs/DoD/Phase-03.md) |
-| 4. Voice Conversion | [계획] | `░░░░░░░░░░ 0%` | Seed-VC 미구현 | [Phase-04](docs/DoD/Phase-04.md) |
+| 4. Voice Conversion | [검증 필요] | `█████████░ 94%` | Adapter·API·GPU 완료, EVAL-003 대기 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [계획] | `░░░░░░░░░░ 0%` | 변환·믹싱·통합 Job 미구현 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [계획] | `░░░░░░░░░░ 0%` | Lyrics Generator 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
@@ -118,16 +118,16 @@ Phase 9  Production                  [계획]
 - 관련 실험: [EXP-003](reports/experiments/EXP-003-stem-separation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md).
 - 예상 다음 단계: Phase 4 Seed-VC 후보 조사와 EVAL-002 사용자 판정.
 
-## Phase 4. Voice Conversion — [계획]
+## Phase 4. Voice Conversion — [검증 필요]
 
 - 목표: 동의된 본인 음성으로 분리 보컬의 음색을 변환한다.
 - 구현 범위·포함 기능: Seed-VC 공식 조사, `VoiceConverter` Adapter·Mock·Provider, Voice Profile 연결, API·Worker·Benchmark·EXP·EVAL.
 - 제외 기능: 무단 Voice Clone, Dataset 학습, 전체 Pipeline 믹싱.
 - 선행 조건: EVAL-002 검토, 음성 동의·삭제·보안 정책 재검토.
 - 완료 조건: [Phase-04 DoD](docs/DoD/Phase-04.md), 공식 라이선스·RTX 3060 Ti 실행·품질·실패 경로 검증.
-- 산출물: Voice Conversion Adapter, API/DB 변경, ADR, EXP-004, EVAL-003(예정).
+- 산출물: Voice Conversion Adapter, API/DB migration, ADR-009, EXP-004, EVAL-003 사용자 양식.
 - 관련 문서: [Voice Conversion 조사](docs/01-research/voice-conversion.md), [Voice Adapter](docs/04-models/voice-conversion-adapter.md).
-- 관련 ADR·실험: 새 Provider·음성 처리 ADR 필요, 아직 없음.
+- 관련 ADR·실험: [ADR-009](docs/11-decisions/ADR-009-seed-vc-voice-provider.md), [EXP-004](reports/experiments/EXP-004-seed-vc.md), [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md).
 - 예상 다음 단계: Phase 5 Pipeline Integration.
 
 ## Phase 5. Pipeline Integration — [계획]
@@ -193,13 +193,13 @@ Phase 9  Production                  [계획]
 ## 현재 권장 다음 작업
 
 ```text
-Phase 3 기술 범위 완료
+Phase 4 기술 구현·GPU 검증 완료
   ↓
-EVAL-002 사용자 Stem 청취 평가
+EVAL-003 사용자 Voice Conversion 청취 평가
   ↓
-Phase 4 Voice Conversion 공식 조사
+clipping·라이선스·운영 Provider 결정
   ↓
-Seed-VC 라이선스·RTX 3060 Ti 단독 추론 검증
+Phase 5 Pipeline Integration 검토
 ```
 
 EVAL-001도 별도로 완료해 Phase 2·2.5의 Provider 품질 게이트를 닫아야 한다.

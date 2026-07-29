@@ -79,3 +79,35 @@ class StemAudioDecodeError(StemSeparationError):
 
 class StemTimeoutError(StemSeparationError):
     code = "STEM_TIMEOUT"
+
+
+class VoiceConversionError(RuntimeError):
+    code = "VOICE_CONVERSION_FAILED"
+
+
+class VoiceProviderNotConfiguredError(VoiceConversionError):
+    code = "VOICE_PROVIDER_NOT_CONFIGURED"
+
+
+class VoiceDependencyNotInstalledError(VoiceConversionError):
+    code = "VOICE_DEPENDENCY_NOT_INSTALLED"
+
+
+class VoiceModelLoadError(VoiceConversionError):
+    code = "VOICE_MODEL_LOAD_FAILED"
+
+
+class VoiceInferenceError(VoiceConversionError):
+    code = "VOICE_CONVERSION_FAILED"
+
+
+class VoiceOutOfMemoryError(VoiceConversionError):
+    code = "VOICE_OUT_OF_MEMORY"
+
+
+class VoiceOutputNotCreatedError(VoiceConversionError):
+    code = "VOICE_OUTPUT_NOT_CREATED"
+
+
+class VoiceTimeoutError(VoiceConversionError):
+    code = "VOICE_TIMEOUT"

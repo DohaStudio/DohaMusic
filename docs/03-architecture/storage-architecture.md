@@ -1,22 +1,20 @@
 # 저장소 아키텍처
 
-> 문서 목적: Phase 1 로컬 파일 저장 규칙과 후속 교체 경계를 정의한다.
-> 현재 상태: **로컬 Storage 구현 완료**
-
 ```text
 backend/storage/
-├── inputs/
-├── outputs/
-│   └── {job_id}/generated.wav
-├── voices/
-└── samples/
-    └── sample.wav
+├─ inputs/
+├─ outputs/
+├─ samples/
+├─ stems/
+│  ├─ vocals/
+│  ├─ instrumentals/
+│  └─ metadata/
+└─ voices/
+   ├─ references/
+   ├─ converted/
+   └─ metadata/
 ```
 
-루트 경로는 `AUDIO_STORAGE_ROOT` 환경 변수로 설정한다. 애플리케이션 시작 시 네 디렉터리를 만들고, 테스트용 `sample.wav`가 없으면 짧은 무음 WAV를 생성한다. 생성 결과는 루트 기준 상대 경로로 `generated_files.file_path`에 기록한다.
+루트는 `AUDIO_STORAGE_ROOT`로 설정한다. DB에는 루트 기준 상대 경로만 저장하며 `StorageService`는 path traversal과 루트 밖 접근을 거부한다. Voice Worker는 참조 경로에 더 엄격한 `voices/references` 경계를 적용한다.
 
-`StorageService`는 루트 밖으로 벗어나는 상대 경로를 거부한다. 현재 API는 파일 다운로드나 실제 업로드를 제공하지 않으며, `voice_profiles.reference_file_path`는 메타데이터만 저장한다.
-
-Stem 산출물은 `stems/vocals/{job}.wav`, `stems/instrumentals/{job}.wav`, `stems/metadata/{job}.json`에 저장한다. 임시 work 경로와 모델 cache, 실험 오디오는 Git에서 제외한다. API와 DB에는 Storage 루트 기준 상대 경로만 기록하며 원본 생성 파일을 덮어쓰지 않는다.
-
-향후 객체 저장소를 도입할 때는 Service와 Worker가 저장소 구현 세부사항에 의존하지 않도록 현재 Storage 경계를 Adapter 인터페이스로 확장한다. 보존·삭제 정책은 [오디오 데이터 정책](../05-data/audio-data-policy.md)을 따른다.
+Voice 출력은 `voices/converted/{job_id}.wav`, 실행 metadata는 `voices/metadata/{job_id}.json`이다. 참조 음성·변환 음성·모델·cache·실험 파일은 Git에서 제외한다. 현재 실제 업로드·다운로드 API는 없으며 동의된 참조 파일을 운영자가 안전하게 배치한다.

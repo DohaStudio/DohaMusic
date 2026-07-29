@@ -37,3 +37,9 @@ python -m uvicorn backend.main:app --reload
 Demucs 4.1.0은 Backend와 별도 Python 3.11 환경에 설치한다. 검증 환경은 torch·torchaudio 2.7.1+cu128, `demucs==4.1.0`, `psutil`, `soundfile`이며 HTDemucs checkpoint는 사용자가 공식 배포에서 미리 준비한다. 실행 중 `HF_HUB_OFFLINE=1`을 강제하므로 자동 다운로드하지 않는다.
 
 `backend/.env.example`의 `DOHAMUSIC_STEM_DEMUCS_*` 경로를 설정하고 `DOHAMUSIC_STEM_PROVIDER=demucs`를 선택한다. 기본값 `mock`은 Demucs 설치 없이 동작한다. 3회 반복은 `ai_worker/scripts/run_demucs_benchmark.py`, 실제 Backend E2E는 `RUN_DEMUCS_GPU_TEST=1` 및 `DEMUCS_TEST_RUNTIME_PYTHON`, `DEMUCS_TEST_MODEL_CACHE`, `DEMUCS_TEST_SOURCE_AUDIO`를 명시해 실행한다. 모델·cache·실험 WAV·원시 metadata는 Git에 포함하지 않는다. 자세한 고정 환경은 [EXP-003](../../reports/experiments/EXP-003-stem-separation.md)에 있다.
+
+## 선택적 Seed-VC 런타임
+
+공식 저장소를 별도 무시 경로에 checkout하고 commit `51383efd921027683c89e5348211d93ff12ac2a8`로 고정한다. Python 3.11 격리 환경과 공식 44k F0 checkpoint·config, RMVPE, CAMPPlus, Whisper-small, BigVGAN cache를 요청 처리 전에 준비한다. Windows 검증 환경은 torch 2.7.1+cu128과 `webrtcvad-wheels`를 사용했다. 공식 requirements의 비표준 옵션과 Torch 2.4 DLL 문제 때문에 이 차이를 EXP-004에 기록했다.
+
+`backend/.env.example`의 `DOHAMUSIC_VOICE_SEED_VC_*` 절대 경로를 설정하고 `DOHAMUSIC_VOICE_PROVIDER=seed_vc`를 선택한다. Backend runner는 offline 모드로 실행되어 모델을 자동 다운로드하지 않는다. 실제 GPU 테스트는 `DOHAMUSIC_RUN_SEED_VC_GPU_TEST=1`과 테스트 source/reference 경로를 명시한 경우에만 실행한다. 본인 또는 명시적으로 동의받은 reference만 `voices/references` 아래에 두며 모델·개인 음성·출력은 Git에 포함하지 않는다. 자세한 결과는 [EXP-004](../../reports/experiments/EXP-004-seed-vc.md)를 따른다.

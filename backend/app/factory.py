@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request, Response
 
 from backend.ai.factory import create_music_generator
 from backend.ai.stem_factory import create_stem_separator
+from backend.ai.voice_factory import create_voice_converter
 from backend.api.exception_handlers import register_exception_handlers
 from backend.api.router import api_router
 from backend.core.config import Settings, get_settings
@@ -21,10 +22,12 @@ from backend.db.session import create_session_factory
 from backend.services.generation_service import GenerationService
 from backend.services.stem_service import StemService
 from backend.services.voice_profile_service import VoiceProfileService
+from backend.services.voice_conversion_service import VoiceConversionService
 from backend.storage.service import StorageService
 from backend.workers.dispatcher import ThreadPoolJobDispatcher
 from backend.workers.generation_worker import GenerationWorker
 from backend.workers.stem_worker import StemWorker
+from backend.workers.voice_conversion_worker import VoiceConversionWorker
 
 logger = get_logger(__name__)
 
@@ -44,6 +47,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         session_factory = create_session_factory(resolved_settings.database_url)
         music_generator = create_music_generator(resolved_settings, storage)
         stem_separator = create_stem_separator(resolved_settings, storage)
+        voice_converter = create_voice_converter(resolved_settings, storage)
         logger.info(
             "provider_configured provider=%s model=%s",
             resolved_settings.music_generator,
@@ -53,6 +57,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "stem_provider_configured provider=%s model=%s",
             resolved_settings.stem_provider,
             stem_separator.model_name,
+        )
+        logger.info(
+            "voice_provider_configured provider=%s model=%s",
+            resolved_settings.voice_provider,
+            voice_converter.model_name,
         )
         worker = GenerationWorker(
             session_factory=session_factory,
@@ -76,6 +85,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             worker=stem_worker,
             executor=shared_executor,
         )
+        voice_worker = VoiceConversionWorker(
+            session_factory=session_factory,
+            voice_converter=voice_converter,
+            storage=storage,
+        )
+        voice_dispatcher = ThreadPoolJobDispatcher(
+            worker=voice_worker,
+            executor=shared_executor,
+        )
 
         app.state.settings = resolved_settings
         app.state.session_factory = session_factory
@@ -84,6 +102,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.dispatcher = dispatcher
         app.state.stem_worker = stem_worker
         app.state.stem_dispatcher = stem_dispatcher
+        app.state.voice_worker = voice_worker
+        app.state.voice_dispatcher = voice_dispatcher
         app.state.generation_service = GenerationService(
             session_factory=session_factory,
             dispatcher=dispatcher,
@@ -94,6 +114,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.stem_service = StemService(
             session_factory=session_factory,
             dispatcher=stem_dispatcher,
+        )
+        app.state.voice_conversion_service = VoiceConversionService(
+            session_factory=session_factory,
+            dispatcher=voice_dispatcher,
         )
         logger.info("application_started")
         try:

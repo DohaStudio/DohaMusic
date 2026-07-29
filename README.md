@@ -1,7 +1,7 @@
 # DohaMusic
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 3 완료 — HTDemucs Stem 분리 Adapter·Backend E2E 검증 완료, 사용자 청취 평가 필요**
+> 현재 상태: **Phase 4 기술 구현 완료 — Seed-VC Adapter·Backend·GPU 검증 완료, 사용자 EVAL-003 필요**
 > 최종 수정일: 2026-07-29
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -27,14 +27,15 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [계획] | 프롬프트 및 직접 작성 가사 기반 음악 생성 |
 | [계획] | 장르·분위기·BPM·길이·Seed 설정 |
 | [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
-| [계획] | 동의받은 참조 음성을 이용한 보컬 음색 변환 |
+| [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
+| [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
 | [계획] | 변환 보컬과 반주 믹싱, WAV 저장 및 MP3 변환 |
 | [계획] | 비동기 작업 상태·진행률·오류·재시도 관리 |
 | [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
 
-음악 생성과 Stem 분리의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step과 Demucs Adapter는 격리 subprocess를 실행하며, 설치와 모델 경로를 명시한 경우에만 동작한다. HTDemucs는 20초 입력 3회에서 3/3 성공했고 순수 분리 평균 3.915초, 전체 프로세스 평균 9.381초, 시스템 GPU 메모리 피크 평균 2,555.7MiB를 기록했다. 모델·가중치·실험 오디오는 저장소에 포함하지 않는다. 수동 청취 점수는 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 사용자가 기록한다. Seed-VC, 인증, Frontend, Redis/Celery는 구현하지 않았다.
+음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Seed-VC 공식 예제 30-step은 3/3 성공하고 평균 27.224초, peak VRAM 약 5.07GB였지만 clipping 경고가 3/3 감지됐다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않는다. 수동 점수는 EVAL 문서에 사용자가 기록한다. 인증, Frontend, Redis/Celery와 Phase 5 통합 Pipeline은 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
@@ -55,7 +56,7 @@ flowchart LR
 - Frontend: Next.js
 - Backend/Orchestrator: FastAPI **[완료]**
 - Persistence: SQLAlchemy 2, Alembic, SQLite **[완료]**
-- AI Worker: Provider-neutral 공유 ThreadPool Worker **[완료]**, 격리형 ACE-Step·Demucs subprocess **[실험 완료]**
+- AI Worker: Provider-neutral 공유 ThreadPool Worker **[완료]**, 격리형 ACE-Step·Demucs·Seed-VC subprocess **[실험 완료]**
 - Database: SQLite **[완료]**, PostgreSQL/MySQL 교체 **[계획]**
 - Task Queue: 프로세스 내부 단일 ThreadPool **[완료]**, 외부 Queue **[계획]**
 - Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
@@ -119,5 +120,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 저장소 코드와 문서: [Apache License 2.0](LICENSE)
 - AI 모델·가중치·데이터셋·의존성: **[검증 필요]**
 - 상업적 이용 가능 여부: 모델별로 별도 판정하며 추정하지 않는다.
+
+Seed-VC 기술 실측은 [EXP-004](reports/experiments/EXP-004-seed-vc.md), 사용자 음색 평가는 [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md)에 분리한다. 공식 저장소 archive, GPL-3.0 검토와 clipping 경고 때문에 운영 채택은 보류한다.
 
 검토 절차와 승인 기준은 [라이선스 검토](docs/01-research/licensing-review.md)를 따른다.

@@ -12,6 +12,9 @@ class StorageService:
         self.inputs_dir = self.root / "inputs"
         self.outputs_dir = self.root / "outputs"
         self.voices_dir = self.root / "voices"
+        self.voice_references_dir = self.voices_dir / "references"
+        self.voice_converted_dir = self.voices_dir / "converted"
+        self.voice_metadata_dir = self.voices_dir / "metadata"
         self.samples_dir = self.root / "samples"
         self.stems_dir = self.root / "stems"
         self.stem_vocals_dir = self.stems_dir / "vocals"
@@ -24,6 +27,9 @@ class StorageService:
             self.inputs_dir,
             self.outputs_dir,
             self.voices_dir,
+            self.voice_references_dir,
+            self.voice_converted_dir,
+            self.voice_metadata_dir,
             self.samples_dir,
             self.stem_vocals_dir,
             self.stem_instrumentals_dir,
@@ -43,6 +49,12 @@ class StorageService:
         resolved = (self.root / file_path).resolve()
         if not resolved.is_relative_to(self.root):
             raise ValueError("File must remain inside the configured storage root")
+        return resolved
+
+    def resolve_voice_reference(self, file_path: str) -> Path:
+        resolved = self.resolve_relative_path(file_path)
+        if not resolved.is_relative_to(self.voice_references_dir.resolve()):
+            raise ValueError("Reference voice must be stored under voices/references")
         return resolved
 
     @staticmethod

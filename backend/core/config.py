@@ -24,6 +24,8 @@ class Settings(BaseModel):
     mock_generation_delay_seconds: float = Field(default=3.0, ge=0, le=60)
     stem_provider: str = "mock"
     mock_stem_delay_seconds: float = Field(default=0.1, ge=0, le=60)
+    voice_provider: str = "mock"
+    mock_voice_delay_seconds: float = Field(default=0.1, ge=0, le=60)
     ace_step_runtime_python: str = ""
     ace_step_runner_path: str = ""
     ace_step_project_root: str = ""
@@ -45,6 +47,17 @@ class Settings(BaseModel):
     demucs_shifts: int = Field(default=1, ge=0, le=10)
     demucs_overlap: float = Field(default=0.25, ge=0.0, lt=1.0)
     demucs_timeout_seconds: int = Field(default=900, ge=10, le=7_200)
+    seed_vc_runtime_python: str = ""
+    seed_vc_runner_path: str = "ai_worker/scripts/run_seed_vc_conversion.py"
+    seed_vc_project_root: str = ""
+    seed_vc_checkpoint_path: str = ""
+    seed_vc_config_path: str = ""
+    seed_vc_model_cache_path: str = ""
+    seed_vc_model_name: str = "seed-uvit-whisper-base-f0-44k"
+    seed_vc_model_version: str = "51383efd921027683c89e5348211d93ff12ac2a8"
+    seed_vc_device: str = "cuda"
+    seed_vc_diffusion_steps: int = Field(default=30, ge=1, le=100)
+    seed_vc_timeout_seconds: int = Field(default=1800, ge=10, le=7_200)
     log_level: str = "INFO"
 
     @field_validator("log_level")
@@ -68,6 +81,8 @@ class Settings(BaseModel):
             "MOCK_GENERATION_DELAY_SECONDS": "mock_generation_delay_seconds",
             "DOHAMUSIC_STEM_PROVIDER": "stem_provider",
             "MOCK_STEM_DELAY_SECONDS": "mock_stem_delay_seconds",
+            "DOHAMUSIC_VOICE_PROVIDER": "voice_provider",
+            "MOCK_VOICE_DELAY_SECONDS": "mock_voice_delay_seconds",
             "DOHAMUSIC_AI_ACE_STEP_RUNTIME_PYTHON": "ace_step_runtime_python",
             "DOHAMUSIC_AI_ACE_STEP_RUNNER_PATH": "ace_step_runner_path",
             "DOHAMUSIC_AI_ACE_STEP_PROJECT_ROOT": "ace_step_project_root",
@@ -89,6 +104,17 @@ class Settings(BaseModel):
             "DOHAMUSIC_STEM_DEMUCS_SHIFTS": "demucs_shifts",
             "DOHAMUSIC_STEM_DEMUCS_OVERLAP": "demucs_overlap",
             "DOHAMUSIC_STEM_DEMUCS_TIMEOUT_SECONDS": "demucs_timeout_seconds",
+            "DOHAMUSIC_VOICE_SEED_VC_RUNTIME_PYTHON": "seed_vc_runtime_python",
+            "DOHAMUSIC_VOICE_SEED_VC_RUNNER_PATH": "seed_vc_runner_path",
+            "DOHAMUSIC_VOICE_SEED_VC_PROJECT_ROOT": "seed_vc_project_root",
+            "DOHAMUSIC_VOICE_SEED_VC_CHECKPOINT_PATH": "seed_vc_checkpoint_path",
+            "DOHAMUSIC_VOICE_SEED_VC_CONFIG_PATH": "seed_vc_config_path",
+            "DOHAMUSIC_VOICE_SEED_VC_MODEL_CACHE_PATH": "seed_vc_model_cache_path",
+            "DOHAMUSIC_VOICE_SEED_VC_MODEL_NAME": "seed_vc_model_name",
+            "DOHAMUSIC_VOICE_SEED_VC_MODEL_VERSION": "seed_vc_model_version",
+            "DOHAMUSIC_VOICE_SEED_VC_DEVICE": "seed_vc_device",
+            "DOHAMUSIC_VOICE_SEED_VC_DIFFUSION_STEPS": "seed_vc_diffusion_steps",
+            "DOHAMUSIC_VOICE_SEED_VC_TIMEOUT_SECONDS": "seed_vc_timeout_seconds",
             "LOG_LEVEL": "log_level",
         }
         for environment_name, field_name in mapping.items():
