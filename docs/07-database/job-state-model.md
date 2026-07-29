@@ -3,6 +3,8 @@
 > 문서 목적: 독립 AI Job과 통합 Pipeline Job의 유효 상태 전이를 정의한다.
 > 현재 상태: **구현 완료**
 
+Lyrics 생성·검증은 로컬 Template·Mock Provider 기준 동기식 경로이므로 이 Job 상태 모델을 사용하지 않는다. 외부 Provider 도입으로 실행 시간이 길어질 때에만 별도 ADR과 migration으로 비동기 전환을 검토한다.
+
 ```mermaid
 stateDiagram-v2
   [*] --> PENDING

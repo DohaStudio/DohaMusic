@@ -1,7 +1,7 @@
 # 벤치마크 시나리오
 
 > 문서 목적: 모델 후보와 파이프라인을 동일 조건에서 비교할 최소 시나리오를 정의한다.
-> 현재 상태: **B-01·B-05·B-07·B-08·B-09·B-10·B-11 실행 / 나머지 계획**
+> 현재 상태: **B-01·B-05·B-07·B-08·B-09·B-10·B-11·B-12 실행 / 나머지 계획**
 
 | ID | 시나리오 | 주요 관찰 |
 |---|---|---|
@@ -16,6 +16,7 @@
 | B-09 | 같은 20초 입력 HTDemucs 3회 | 3/3 성공, 분리 평균 3.915초, GPU 전체 peak 평균 2,555.67MiB |
 | B-10 | Mock 5단계 Pipeline 1회 | 성공, 전체 0.099139초, 실패·재시도·timeout 자동 테스트 |
 | B-11 | 합성 10초 vocals+instrumental Default Mixer | 성공, 0.069688초, -1dBFS, 48kHz Stereo, clipping 0 |
+| B-12 | 한국어·영문 Template Lyrics API 각 1회 | 모두 검증 통과, 한국어 0.027959초·영문 0.011878초 |
 
 실행 환경과 결과는 [EXP-002](../../reports/experiments/EXP-002-ace-step-quality-and-stability.md), 청취 결과는 [EVAL-001](../../reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)에 기록한다.
 
@@ -24,3 +25,5 @@ Stem 분리 환경·결과는 [EXP-003](../../reports/experiments/EXP-003-stem-s
 Pipeline 결과는 [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md)에 기록한다. Mock 결과를 실제 AI 성능으로 해석하지 않는다.
 
 Audio Mixer 결과는 [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)에 기록한다. 단일 합성 신호 결과를 실제 곡 청감이나 운영 SLO로 일반화하지 않는다.
+
+Lyrics 결과는 [EXP-007](../../reports/experiments/EXP-007-lyrics-generation.md)에 기록한다. Template 결과를 실제 LLM 품질로 해석하지 않는다.

@@ -32,7 +32,7 @@ Phase 4  Voice Conversion            [검증 필요]
   ↓
 Phase 5  Pipeline Integration        [완료]
   ↓
-Phase 6  Lyrics AI                   [계획]
+Phase 6  Lyrics AI                   [완료]
   ↓
 Phase 7  Doha Voice                  [계획]
   ↓
@@ -50,7 +50,7 @@ Phase 9  Production                  [계획]
 | 3. Stem Separation | [완료] | `██████████ 100%` | HTDemucs Adapter·API·Benchmark·평가표 구축 | [Phase-03](docs/DoD/Phase-03.md) |
 | 4. Voice Conversion | [검증 필요] | `█████████░ 94%` | 6개 Provider 평가 완료, Primary 미선정 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [완료] | `██████████ 100%` | Mock Voice 기반 Orchestrator·API·실패 정책 검증 | [Phase-05](docs/DoD/Phase-05.md) |
-| 6. Lyrics AI | [계획] | `░░░░░░░░░░ 0%` | Lyrics Generator 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
+| 6. Lyrics AI | [완료] | `██████████ 100%` | 로컬 Template·Mock Generator·API·검증·Benchmark 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | `░░░░░░░░░░ 0%` | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -144,16 +144,16 @@ Phase 9  Production                  [계획]
 - 관련 ADR·실험: [ADR-012](docs/11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](docs/11-decisions/ADR-013-audio-mixing-engine.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md).
 - 예상 다음 단계: Phase 6 Lyrics AI.
 
-## Phase 6. Lyrics AI — [계획]
+## Phase 6. Lyrics AI — [완료]
 
-- 목표: 사용자 의도를 안전한 가사와 음악 생성 prompt로 변환한다.
-- 구현 범위·포함 기능: `LyricsGenerator`, prompt 계약, API·Backend 연결, 한국어 품질·안전 Benchmark.
+- 목표: 사용자 의도를 안전하고 구조화된 가사 초안으로 변환한다.
+- 구현 범위·포함 기능: `LyricsGenerator`, Template·Mock Provider, 동기식 API·DB, 한국어·영어 구조화·검증·안전 Benchmark.
 - 제외 기능: 저작권 침해 가사 복제, Doha Voice 학습, Studio UI.
 - 선행 조건: 생성 Provider 입력 계약과 콘텐츠 정책 검토.
-- 완료 조건: [Phase-06 DoD](docs/DoD/Phase-06.md), 모델·라이선스·안전·품질 검증.
-- 산출물: Lyrics Adapter·API·실험·평가·ADR.
-- 관련 문서: [Generated Content Policy](docs/09-security/generated-content-policy.md), [Music Generation Models](docs/01-research/music-generation-models.md).
-- 관련 ADR·실험: 모델 선정 ADR·실험 필요, 아직 없음.
+- 완료 조건: [Phase-06 DoD](docs/DoD/Phase-06.md), 로컬 Provider·안전·Backend·자동 품질 검증. 실제 창작 품질은 사용자 평가로 분리한다.
+- 산출물: Lyrics Adapter·API·`lyrics_documents`·Benchmark·안전 평가·ADR·EXP·EVAL.
+- 관련 문서: [Lyrics AI](docs/03-architecture/lyrics-ai.md), [Lyrics API](docs/06-api/lyrics-api.md), [Generated Content Policy](docs/09-security/generated-content-policy.md).
+- 관련 ADR·실험: [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md).
 - 예상 다음 단계: Phase 7 Doha Voice 또는 Phase 8 Studio 선행 설계 검토.
 
 ## Phase 7. Doha Voice — [계획]
@@ -197,7 +197,7 @@ Phase 9  Production                  [계획]
 ```text
 Phase 5.1 실제 Audio Mixer 기술 기반 완료
   ↓
-Phase 6 Lyrics AI 계약·안전 범위 검토
+Phase 6 로컬 Lyrics AI 기반 완료
   ↓ 병행 게이트
 Voice Primary·Mixer 사용자 품질 검증
   ↓

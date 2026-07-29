@@ -31,6 +31,7 @@ class Settings(BaseModel):
     pipeline_max_retries: int = Field(default=1, ge=0, le=5)
     pipeline_step_timeout_seconds: float = Field(default=900, ge=0.01, le=7_200)
     audio_mixer: Literal["mock", "default"] = "default"
+    lyrics_provider: str = "template"
     mixer_vocal_gain_db: float = Field(default=0.0, ge=-24.0, le=24.0)
     mixer_instrumental_gain_db: float = Field(default=0.0, ge=-24.0, le=24.0)
     mixer_headroom_db: float = Field(default=1.0, ge=0.1, le=12.0)
@@ -78,7 +79,11 @@ class Settings(BaseModel):
         return value.upper()
 
     @field_validator(
-        "audio_mixer", "mixer_normalization", "mixer_limiter", mode="before"
+        "audio_mixer",
+        "lyrics_provider",
+        "mixer_normalization",
+        "mixer_limiter",
+        mode="before",
     )
     @classmethod
     def normalize_choice(cls, value: str) -> str:
@@ -106,6 +111,7 @@ class Settings(BaseModel):
             "DOHAMUSIC_PIPELINE_MAX_RETRIES": "pipeline_max_retries",
             "DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS": "pipeline_step_timeout_seconds",
             "DOHAMUSIC_AUDIO_MIXER": "audio_mixer",
+            "DOHAMUSIC_LYRICS_PROVIDER": "lyrics_provider",
             "DOHAMUSIC_MIXER_VOCAL_GAIN_DB": "mixer_vocal_gain_db",
             "DOHAMUSIC_MIXER_INSTRUMENTAL_GAIN_DB": "mixer_instrumental_gain_db",
             "DOHAMUSIC_MIXER_HEADROOM_DB": "mixer_headroom_db",

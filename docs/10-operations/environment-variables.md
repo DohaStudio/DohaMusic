@@ -1,7 +1,7 @@
 # 환경 변수
 
 > 문서 목적: 서비스와 선택적 AI 실행 설정의 책임을 정의한다.
-> 현재 상태: **Mock·선택적 AI Provider·Pipeline 변수 구현**
+> 현재 상태: **Mock·선택적 AI·Lyrics Provider·Pipeline 변수 구현**
 
 | 변수 | 용도 | 기본값 |
 |---|---|---|
@@ -48,6 +48,7 @@
 | `DOHAMUSIC_PIPELINE_MAX_RETRIES` | 단계별 추가 시도 횟수 | `1` |
 | `DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS` | Orchestrator 단계 제한 | `900` |
 | `DOHAMUSIC_AUDIO_MIXER` | `default` 또는 `mock` Mixer Provider | `default` |
+| `DOHAMUSIC_LYRICS_PROVIDER` | `template` 또는 `mock` Lyrics Provider | `template` |
 | `DOHAMUSIC_MIXER_VOCAL_GAIN_DB` | 보컬 gain dB | `0.0` |
 | `DOHAMUSIC_MIXER_INSTRUMENTAL_GAIN_DB` | 반주 gain dB | `0.0` |
 | `DOHAMUSIC_MIXER_HEADROOM_DB` | 목표 peak headroom dB | `1.0` |

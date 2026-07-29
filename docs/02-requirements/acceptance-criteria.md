@@ -26,3 +26,11 @@
 - Given 분리 결과, When 품질을 승인, Then 사용자가 EVAL-002의 누락·누출·잔향·노이즈·활용 가능성을 직접 평가한다. **[사용자 평가 필요]**
 
 정확한 상태 전이는 [작업 상태 모델](../07-database/job-state-model.md)을 따른다.
+
+## Lyrics AI
+
+- Given 유효한 topic·structure, When `POST /api/lyrics`, Then Template 초안과 Provider·구조·시간 metadata를 저장하고 `201`을 반환한다. **[Phase 6 검증 완료]**
+- Given 직접 작성 가사, When `POST /api/lyrics/validate`, Then 정규화 결과, section, 경고·오류와 통계를 반환한다. **[Phase 6 검증 완료]**
+- Given 지원하지 않는 언어·section 또는 초과 입력, When 요청 검증, Then Provider 실행 전 `INVALID_INPUT`으로 거절한다. **[Phase 6 검증 완료]**
+- Given 저장된 가사, When 조회·삭제, Then 동일 문서를 반환하고 삭제 후 `RESOURCE_NOT_FOUND`를 반환한다. **[Phase 6 검증 완료]**
+- Given Template 초안, When 품질 승인, Then 사용자가 EVAL-005에서 주제·자연스러움·독창성·활용 가능성을 평가한다. **[사용자 평가 필요]**

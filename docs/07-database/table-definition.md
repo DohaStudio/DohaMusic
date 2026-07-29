@@ -5,6 +5,28 @@
 
 모든 ID는 애플리케이션에서 생성하는 UUID 문자열이다. 시각은 UTC 기준으로 기록한다.
 
+## `lyrics_documents`
+
+| 필드 | 타입 | Null | 설명 |
+|---|---|---|---|
+| `id` | varchar(36) | 아니요 | 기본키 |
+| `title` | varchar(300) | 예 | Provider가 제안한 제목 |
+| `language` | varchar(10) | 아니요 | `ko` 또는 `en`, 인덱스 |
+| `topic` | text | 아니요 | 정규화된 생성 주제 |
+| `genre`, `mood` | varchar(100) | 예 | 선택 입력 |
+| `keywords` | json | 아니요 | 정규화된 keyword 배열 |
+| `structure` | json | 아니요 | 생성 section 순서 |
+| `sections` | json | 아니요 | section type과 line 배열 |
+| `full_text` | text | 아니요 | 정규화된 전체 가사 |
+| `provider` | varchar(50) | 아니요 | `template` 또는 `mock`, 인덱스 |
+| `model_name` | varchar(100) | 아니요 | Provider 구현 식별자 |
+| `model_version` | varchar(100) | 예 | Provider 버전 |
+| `status` | varchar(32) | 아니요 | 현재 `GENERATED`, 인덱스 |
+| `metadata` | json | 아니요 | 구조·통계·시간·경고 |
+| `created_at`, `updated_at` | datetime | 아니요 | UTC 시각 |
+
+빠른 로컬 Provider를 동기 실행하므로 `lyrics_generation_jobs`는 만들지 않았다. 외부 LLM 비동기 처리 도입 시 migration과 상태 모델을 별도로 추가한다.
+
 ## `generation_jobs`
 
 | 필드 | 타입 | Null | 설명 |

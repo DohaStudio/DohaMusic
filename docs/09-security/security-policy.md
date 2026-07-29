@@ -14,3 +14,7 @@ Seed-VC는 명시적으로 동의된 참조 음성의 로컬 기술 검증에만
 Pipeline 생성 요청도 기존 Voice Profile 동의와 `voices/references` Storage 경계를 재검증한다. 성공·실패 metadata에는 Profile ID만 저장하며 참조 음성 절대 경로, prompt·lyrics 원문, 비밀 값은 로그에 남기지 않는다.
 
 후보 평가 점수나 Stars를 신뢰 경계로 사용하지 않는다. 새 Provider를 구현하기 전에는 공식 배포 경로의 checkpoint hash, pickle 등 역직렬화 형식, 원격 코드 실행 요구, 의존성 lock, 취약점과 모델 출처를 검토한다. RVC처럼 사용자별 학습 산출물을 만드는 후보는 동의 철회 시 checkpoint·feature index·cache까지 삭제하는 정책이 먼저 필요하다. Experimental과 Rejected Provider는 자동 fallback 또는 사용자 입력 처리 경로에 참여하지 않는다.
+
+## Lyrics 입력 통제
+
+Lyrics API는 topic·keywords·instructions·직접 작성 가사의 길이를 제한하고 제어 문자와 script/style·HTML을 제거한다. 로그는 Provider·언어·문서 ID·처리 시간만 기록하며 전체 사용자 입력을 남기지 않는다. 현재 인증·소유권이 없으므로 `lyrics_documents`는 개발 환경 전용이며 운영 배포 전 사용자별 조회·삭제 권한과 보존 기간을 구현해야 한다.
