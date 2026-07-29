@@ -1,5 +1,17 @@
 # DohaMusic Master Roadmap
 
+## Phase 6.5 External Lyrics LLM 상태
+
+| 항목 | 상태 | 근거 |
+|---|---|---|
+| Phase 6 Lyrics AI | [완료] | 기존 Template·Mock 기반 DoD 유지 |
+| OpenAI Lyrics Adapter | [Experimental] | strict Schema·Factory·오류·retry·fallback·Revision 자동 검증 완료 |
+| 외부 Provider 실제 실측 | [차단] | API Key 없음; 호출·청구 0회 |
+| External Provider 품질 승인 | [사용자 평가 필요] | EVAL-006 미작성 |
+| Stable 승격·Pipeline 연결 | [보류] | 품질·비용·지연·데이터·법률·인증 게이트 미통과 |
+
+Phase 번호는 변경하지 않는다. 기본 Provider는 `template`이며 Phase 6 자체의 완료 상태와 External Provider의 Experimental 상태를 분리한다.
+
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-07-29
 > 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.

@@ -26,3 +26,6 @@ Voice Conversion은 [EXP-004](../../reports/experiments/EXP-004-seed-vc.md)의 �
 Audio Mixer는 [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)에서 gain·peak·RMS·headroom·clipping·format·resource를 자동 검증하고 [EVAL-004](../../reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에서 사용자가 volume·balance·naturalness·noise·clipping·overall을 평가한다. Codex는 청취 점수를 작성하지 않으며 sample peak를 True Peak로 해석하지 않는다.
 
 Lyrics Template은 [EXP-007](../../reports/experiments/EXP-007-lyrics-generation.md)에서 생성·검증·저장·API 시간과 글자·줄·section 수만 측정한다. 실제 LLM 품질로 해석하지 않으며 주제·감정·장르·자연스러움·후렴·독창성과 활용 가능성은 [EVAL-005](../../reports/evaluations/EVAL-005-lyrics-quality.md)에 사용자가 기록한다.
+# External Lyrics 평가 원칙
+
+구조·언어·빈 section·반복·길이·금지 태그는 자동 평가한다. 감정, 한국어 문학성, 후렴 기억성, 장르, 운율, 독창성과 가창 적합성은 자동 점수화하지 않는다. Template와 External Provider는 [EVAL-006](../../reports/evaluations/EVAL-006-external-lyrics-llm.md)에서 블라인드 사용자 평가한다.

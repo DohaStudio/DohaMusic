@@ -8,6 +8,7 @@ from backend.api.dependencies import get_lyrics_service
 from backend.schemas.lyrics import (
     LyricsCreate,
     LyricsDocumentRead,
+    LyricsRevisionCreate,
     LyricsValidationRead,
     LyricsValidationRequest,
 )
@@ -22,6 +23,17 @@ def create_lyrics(
     request: LyricsCreate, service: LyricsServiceDependency
 ) -> LyricsDocumentRead:
     return LyricsDocumentRead.model_validate(service.create(request))
+
+
+@router.post(
+    "/{lyrics_id}/revise",
+    response_model=LyricsDocumentRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def revise_lyrics(
+    lyrics_id: str, request: LyricsRevisionCreate, service: LyricsServiceDependency
+) -> LyricsDocumentRead:
+    return LyricsDocumentRead.model_validate(service.revise(lyrics_id, request))
 
 
 @router.post("/validate", response_model=LyricsValidationRead)

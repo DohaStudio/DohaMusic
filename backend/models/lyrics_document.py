@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import DateTime, JSON, String, Text
+from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.db.base import Base
@@ -22,6 +22,13 @@ class LyricsDocument(Base):
     id: Mapped[str] = mapped_column(
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
+    parent_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("lyrics_documents.id", ondelete="RESTRICT"), index=True
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    revision_instruction: Mapped[str | None] = mapped_column(Text)
+    source_hash: Mapped[str | None] = mapped_column(String(64))
+    result_hash: Mapped[str | None] = mapped_column(String(64))
     title: Mapped[str | None] = mapped_column(String(300))
     language: Mapped[str] = mapped_column(String(10), nullable=False, index=True)
     topic: Mapped[str] = mapped_column(Text, nullable=False)

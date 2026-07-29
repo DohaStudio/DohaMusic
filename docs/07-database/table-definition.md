@@ -10,6 +10,10 @@
 | 필드 | 타입 | Null | 설명 |
 |---|---|---|---|
 | `id` | varchar(36) | 아니요 | 기본키 |
+| `parent_id` | varchar(36) | 예 | 직전 원본 `lyrics_documents.id`, self FK·인덱스 |
+| `version` | integer | 아니요 | 원본 1부터 증가하는 버전 |
+| `revision_instruction` | text | 예 | 정규화된 수정 지시 |
+| `source_hash`, `result_hash` | varchar(64) | 예 | 수정 전후 SHA-256; 원본은 result만 기록 |
 | `title` | varchar(300) | 예 | Provider가 제안한 제목 |
 | `language` | varchar(10) | 아니요 | `ko` 또는 `en`, 인덱스 |
 | `topic` | text | 아니요 | 정규화된 생성 주제 |
@@ -18,14 +22,14 @@
 | `structure` | json | 아니요 | 생성 section 순서 |
 | `sections` | json | 아니요 | section type과 line 배열 |
 | `full_text` | text | 아니요 | 정규화된 전체 가사 |
-| `provider` | varchar(50) | 아니요 | `template` 또는 `mock`, 인덱스 |
+| `provider` | varchar(50) | 아니요 | `template`, `mock` 또는 `openai`, 인덱스 |
 | `model_name` | varchar(100) | 아니요 | Provider 구현 식별자 |
 | `model_version` | varchar(100) | 예 | Provider 버전 |
-| `status` | varchar(32) | 아니요 | 현재 `GENERATED`, 인덱스 |
+| `status` | varchar(32) | 아니요 | `GENERATED` 또는 `REVISED`, 인덱스 |
 | `metadata` | json | 아니요 | 구조·통계·시간·경고 |
 | `created_at`, `updated_at` | datetime | 아니요 | UTC 시각 |
 
-빠른 로컬 Provider를 동기 실행하므로 `lyrics_generation_jobs`는 만들지 않았다. 외부 LLM 비동기 처리 도입 시 migration과 상태 모델을 별도로 추가한다.
+Alembic 0006이 수정 이력 필드를 추가한다. 원본은 덮어쓰지 않으며 자식이 있는 원본 삭제를 거부한다. 외부 호출은 전체 5초 deadline으로 제한한다. 더 긴 외부 LLM 비동기 처리 도입 시 generation job과 상태 모델을 별도로 추가한다.
 
 ## `generation_jobs`
 

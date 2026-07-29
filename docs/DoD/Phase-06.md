@@ -54,3 +54,11 @@ Lyrics Adapter·API·`lyrics_documents`·Benchmark·안전 평가·ADR-014·EXP-
 ## 예상 다음 단계
 
 Phase 7 Doha Voice와 Phase 8 Studio 우선순위를 재검토한다.
+# Phase 6.5 확장 상태 (2026-07-29)
+
+- Phase 6 로컬 Lyrics AI의 완료 상태는 유지한다.
+- OpenAI 외부 Adapter·Factory·strict Schema·오류·retry·명시적 fallback·비용 metadata: `[Experimental 구현 완료]`
+- Revision API·원본 보존 버전 이력·Alembic 0006: `[구현 완료]`
+- 실제 외부 네 시나리오·한국어 품질·지연·token·비용: `[차단/사용자 평가 필요]` (API Key 없음)
+- 기본 Provider: `template` 유지
+- Stable 승격 및 Pipeline 연결: 미승인
