@@ -40,3 +40,16 @@
 GPL-3.0은 상업적 이용을 금지하지 않는다. GNU FAQ에 따르면 수정한 GPL 프로그램을 웹 서버에서만 실행하고 사본을 배포하지 않으면 GPL만으로 소스 공개 의무가 발생하지 않는다. 반대로 바이너리·Docker·온프레미스 번들 등 사본을 조직 외부에 제공하면 해당 GPL 대상의 라이선스 고지와 대응 소스 제공을 포함한 의무를 검토해야 한다.
 
 DohaMusic이 Seed-VC를 subprocess로 호출한다는 기술 사실만으로 두 프로그램의 법적 결합 여부를 확정하지 않는다. 상용 SaaS와 외부 배포는 코드·가중치·의존성 inventory, 제공 방식, 수정 내용과 사용자 권리를 확정한 뒤 법률 검토한다. 검토 전 상태는 `[배포 보류]`이며 이 문서는 법률 자문이 아니다.
+
+## Phase 4.6 Voice 후보
+
+| 후보 | 코드 | 평가 대상 가중치 | 상업 SaaS | 외부 배포 기술 판정 |
+|---|---|---|---|---|
+| Seed-VC | GPL-3.0 | GPL-3.0 표시 | 법률 검토 후 조건부 | GPL 대응 소스·고지 검토 |
+| OpenVoice V1/V2 | MIT | 공식 README가 V1/V2 MIT 명시 | 가능 | MIT 고지와 transitive 구성 검토 |
+| CosyVoice | Apache-2.0 | CosyVoice2-0.5B Apache-2.0 | 가능 | LICENSE·NOTICE·변경·특허 조항 검토 |
+| Fish Speech | Fish Audio Research License | 동일 Research License | 별도 서면 계약 필요 | 별도 계약과 필수 표시 필요 |
+| RVC | MIT | 공식 배포 모델 카드 MIT 표시 | 구성요소 검토 후 조건부 | encoder·vocoder·학습 데이터·사용자 checkpoint 권리 검토 |
+| Amphion Vevo2 | MIT | CC BY-NC-ND 4.0 | 불가 | 상업 배포 불가, 별도 허가 필요 |
+
+OpenVoice와 CosyVoice의 permissive 라이선스는 공식 Singing VC 지원을 의미하지 않는다. 반대로 Vevo2의 기술적 SVC 적합성은 비상업·변경금지 가중치 조건을 해제하지 않는다. 상세 시나리오와 공식 링크는 [Voice Provider 비교](voice-provider-comparison.md)를 따른다.

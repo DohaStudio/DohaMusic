@@ -1,7 +1,7 @@
 # DohaMusic
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 4.5 Quality Gate — Seed-VC Experimental·운영 보류, Phase 5 착수 불가**
+> 현재 상태: **Phase 4.6 Provider 평가 완료 — Primary 미선정·Phase 5 착수 불가**
 > 최종 수정일: 2026-07-29
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -35,7 +35,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
 
-음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Seed-VC 공식 예제 30-step은 3/3 성공하고 평균 27.224초, peak VRAM 약 5.07GB였지만 clipping 위험, 미완료 EVAL-003, GPL-3.0 배포 경계와 archive upstream 위험 때문에 `Experimental`·운영 보류로 판정했다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않는다. 인증, Frontend, Redis/Celery와 Phase 5 통합 Pipeline은 구현하지 않았고 현재 품질 게이트에서는 Phase 5를 시작할 수 없다.
+음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Phase 4.6에서 Seed-VC, OpenVoice, CosyVoice, Fish Speech, RVC, Amphion Vevo2를 비교했지만 직접 SVC·현재 계약·상업 라이선스·8GB 실측·사용자 품질 게이트를 모두 통과한 후보가 없어 Primary와 Fallback은 미선정이다. RVC는 Secondary 평가 후보, Seed-VC와 Vevo2는 Experimental이다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않는다. 인증, Frontend, Redis/Celery와 Phase 5 통합 Pipeline은 구현하지 않았고 Primary 선정 전에는 Phase 5를 시작할 수 없다.
 
 ## 전체 AI 생성 흐름
 
@@ -121,6 +121,6 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - AI 모델·가중치·데이터셋·의존성: **[검증 필요]**
 - 상업적 이용 가능 여부: 모델별로 별도 판정하며 추정하지 않는다.
 
-Seed-VC 기술 실측은 [EXP-004](reports/experiments/EXP-004-seed-vc.md), 사용자 음색 평가는 [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md)에 분리한다. Phase 4.5 결정과 해제 조건은 [QG-001](reports/quality-gates/QG-001-voice-conversion-operational-readiness.md), Provider 수명주기는 [ADR-010](docs/11-decisions/ADR-010-voice-provider-selection-policy.md)을 따른다.
+Seed-VC 기술 실측은 [EXP-004](reports/experiments/EXP-004-seed-vc.md), 사용자 음색 평가는 [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md)에 분리한다. Phase 4.5 결정은 [QG-001](reports/quality-gates/QG-001-voice-conversion-operational-readiness.md), Provider 수명주기는 [ADR-010](docs/11-decisions/ADR-010-voice-provider-selection-policy.md), Phase 4.6 비교·점수·선정은 [Provider 비교](docs/01-research/voice-provider-comparison.md), [Provider Score](docs/04-models/voice-provider-score.md), [ADR-011](docs/11-decisions/ADR-011-voice-provider-selection.md)을 따른다.
 
 검토 절차와 승인 기준은 [라이선스 검토](docs/01-research/licensing-review.md)를 따른다.

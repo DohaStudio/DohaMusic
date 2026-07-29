@@ -1,6 +1,6 @@
 # Voice Provider Selection Policy
 
-> 현재 Seed-VC 상태: **Experimental / 운영 보류**
+> 현재 상태: **Primary·Fallback 미선정 / Seed-VC Experimental / 운영 보류**
 
 ## 상태 정의
 
@@ -43,3 +43,16 @@ Seed-VC는 RTX 3060 Ti에서 기술 추론에 성공했으나 clipping 위험, �
 - 외부 배포와 상용 사용: ADR-009의 라이선스 및 품질 재검토 조건 통과 전 보류
 
 상태 변경은 ADR을 갱신하고 README, MASTER_ROADMAP, ROADMAP, CHANGELOG, 운영·보안 문서를 같은 변경에서 최신화한다.
+
+## Phase 4.6 Provider 분류
+
+| 역할 | Provider | 런타임 참여 여부 |
+|---|---|---|
+| Primary | 미선정 | 없음 |
+| Fallback | 미선정 | 없음 |
+| Secondary 평가 후보 | RVC | 구현되지 않음 |
+| Experimental | Seed-VC, Amphion Vevo2 | Seed-VC만 opt-in 구현, Vevo2 미구현 |
+| Rejected | OpenVoice V2, CosyVoice, Fish Speech | 없음 |
+| Mock | `mock` | 현재 기본값 |
+
+향후 선택 순서는 `Primary → 호환 Fallback → 명시적 Experimental → Mock 개발 경로`다. Experimental은 운영 자동 fallback으로 사용하지 않는다. 점수와 상세 근거는 [Voice Provider Score](voice-provider-score.md)와 [Voice Provider 비교](../01-research/voice-provider-comparison.md)를 따른다.
