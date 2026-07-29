@@ -20,12 +20,23 @@ from backend.core.logging import configure_logging, get_logger
 from backend.db.migrations import upgrade_database
 from backend.db.session import create_session_factory
 from backend.services.generation_service import GenerationService
+from backend.services.pipeline_service import PipelineService
 from backend.services.stem_service import StemService
 from backend.services.voice_profile_service import VoiceProfileService
 from backend.services.voice_conversion_service import VoiceConversionService
 from backend.storage.service import StorageService
+from backend.pipeline.audio import MockAudioMixer, WavExporter
+from backend.pipeline.executor import PipelineExecutor
+from backend.pipeline.steps import (
+    ExportStep,
+    GenerateMusicStep,
+    MixStep,
+    StemSeparationStep,
+    VoiceConversionStep,
+)
 from backend.workers.dispatcher import ThreadPoolJobDispatcher
 from backend.workers.generation_worker import GenerationWorker
+from backend.workers.pipeline_worker import PipelineWorker
 from backend.workers.stem_worker import StemWorker
 from backend.workers.voice_conversion_worker import VoiceConversionWorker
 
@@ -94,6 +105,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             worker=voice_worker,
             executor=shared_executor,
         )
+        pipeline_executor = PipelineExecutor(
+            steps=[
+                GenerateMusicStep(music_generator),
+                StemSeparationStep(stem_separator),
+                VoiceConversionStep(voice_converter),
+                MixStep(MockAudioMixer(storage.pipeline_dir)),
+                ExportStep(WavExporter(storage.pipeline_dir)),
+            ],
+            max_retries=resolved_settings.pipeline_max_retries,
+            step_timeout_seconds=resolved_settings.pipeline_step_timeout_seconds,
+        )
+        pipeline_worker = PipelineWorker(
+            session_factory=session_factory,
+            executor=pipeline_executor,
+            storage=storage,
+        )
+        pipeline_dispatcher = ThreadPoolJobDispatcher(
+            worker=pipeline_worker,
+            executor=shared_executor,
+        )
 
         app.state.settings = resolved_settings
         app.state.session_factory = session_factory
@@ -104,6 +135,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.stem_dispatcher = stem_dispatcher
         app.state.voice_worker = voice_worker
         app.state.voice_dispatcher = voice_dispatcher
+        app.state.pipeline_worker = pipeline_worker
+        app.state.pipeline_dispatcher = pipeline_dispatcher
         app.state.generation_service = GenerationService(
             session_factory=session_factory,
             dispatcher=dispatcher,
@@ -119,11 +152,17 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             session_factory=session_factory,
             dispatcher=voice_dispatcher,
         )
+        app.state.pipeline_service = PipelineService(
+            session_factory=session_factory,
+            dispatcher=pipeline_dispatcher,
+            pipeline_version=resolved_settings.pipeline_version,
+        )
         logger.info("application_started")
         try:
             yield
         finally:
             shared_executor.shutdown(wait=True, cancel_futures=False)
+            session_factory.kw["bind"].dispose()
             logger.info("application_stopped")
 
     app = FastAPI(

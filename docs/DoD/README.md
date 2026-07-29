@@ -41,7 +41,7 @@ DoD는 각 Phase를 완료로 선언하기 위한 검증 가능한 체크리스�
 | 2.5 Quality Benchmark | [Phase-02.5](Phase-02.5.md) | [진행 중] |
 | 3. Stem Separation | [Phase-03](Phase-03.md) | [완료] |
 | 4. Voice Conversion | [Phase-04](Phase-04.md) | [검증 필요] |
-| 5. Pipeline Integration | [Phase-05](Phase-05.md) | [계획] |
+| 5. Pipeline Integration | [Phase-05](Phase-05.md) | [완료] |
 | 6. Lyrics AI | [Phase-06](Phase-06.md) | [계획] |
 | 7. Doha Voice | [Phase-07](Phase-07.md) | [계획] |
 | 8. Doha Studio | [Phase-08](Phase-08.md) | [계획] |

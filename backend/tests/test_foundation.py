@@ -12,6 +12,8 @@ def test_database_storage_and_health_are_initialized(client) -> None:
         "generated_files",
         "stem_jobs",
         "stem_files",
+        "pipeline_jobs",
+        "pipeline_files",
         "voice_profiles",
         "alembic_version",
     }.issubset(set(inspector.get_table_names()))
@@ -24,3 +26,4 @@ def test_database_storage_and_health_are_initialized(client) -> None:
     assert storage.stem_vocals_dir.is_dir()
     assert storage.stem_instrumentals_dir.is_dir()
     assert storage.stem_metadata_dir.is_dir()
+    assert storage.pipeline_dir.is_dir()

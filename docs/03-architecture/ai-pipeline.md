@@ -1,7 +1,7 @@
 # AI 파이프라인
 
-> 문서 목적: 생성·Stem 분리 경계와 모델 교체 계약을 정의한다.
-> 현재 상태: **음악·Stem·Voice Mock 기본 / ACE-Step·Demucs·Seed-VC 선택적 Provider 구현 / Pipeline 미통합**
+> 문서 목적: 생성·Stem·Voice와 Pipeline Orchestrator의 모델 교체 계약을 정의한다.
+> 현재 상태: **음악·Stem·Voice Mock 기본 / 선택적 Adapter / Mock Pipeline 통합 완료**
 
 ```mermaid
 flowchart LR
@@ -36,7 +36,22 @@ Backend 환경은 ACE-Step을 import하지 않는다. Adapter가 격리 Python�
 
 Phase 2.5 상주 suite는 warm 추론 속도 이점을 확인했지만 6회 동안 process RSS가 약 14.2GiB 증가했다. 따라서 운영 경로는 계속 Job마다 subprocess를 만들고 종료한다. 다회 상주 실행기는 제품 경로가 아니라 명시적 benchmark 도구다. [ADR-007](../11-decisions/ADR-007-ace-step-runtime-lifecycle.md)을 따른다.
 
-Stem 분리는 생성과 별도 Job으로 구현됐다. `StemSeparator` 결과는 `vocals`, `instrumental`, 선택 metadata이며 Demucs 전용 4-stem 구조는 Adapter 밖으로 나오지 않는다. Voice Conversion도 Stem과 Voice Profile을 입력으로 받는 별도 Job이며 `mock` 또는 명시적 `seed_vc`를 사용한다. 생성·Stem·Voice Worker는 같은 단일 executor를 공유해 GPU AI 작업을 직렬화한다. Mixer와 전체 Pipeline orchestration은 구현하지 않았다. Provider 선택은 시작 시 환경 변수로 고정되며 작업별 동적 선택은 없다.
+Stem 분리는 생성과 별도 Job으로 구현됐다. `StemSeparator` 결과는 `vocals`, `instrumental`, 선택 metadata이며 Demucs 전용 4-stem 구조는 Adapter 밖으로 나오지 않는다. Voice Conversion도 Stem과 Voice Profile을 입력으로 받는 별도 Job이며 `mock` 또는 명시적 `seed_vc`를 사용한다. 생성·Stem·Voice Worker는 같은 단일 executor를 공유해 GPU AI 작업을 직렬화한다. Provider 선택은 시작 시 환경 변수로 고정되며 작업별 동적 선택은 없다.
+
+Phase 5에서는 독립 Job을 제거하지 않고 `PipelineExecutor`가 동일 인터페이스를 직접 연결한다.
+
+```mermaid
+flowchart LR
+  P[PipelineService] --> X[PipelineExecutor]
+  X --> G[MusicGenerator]
+  G --> S[StemSeparator]
+  S --> V[VoiceConverter]
+  V --> M[MockAudioMixer]
+  M --> E[WavExporter]
+  E --> R[final.wav·metadata.json]
+```
+
+각 단계는 `PipelineContext`의 다음 입력만 채운다. 재시도·진행률·오류·benchmark는 Executor와 Worker가 통합 관리한다. 현재 Mixer는 인터페이스 검증용 Mock이며 음악적 합성을 수행하지 않는다. 자세한 경계는 [Pipeline Orchestrator](pipeline-orchestrator.md)를 따른다.
 
 ## 향후 Voice Provider Matrix
 
@@ -50,4 +65,4 @@ Experimental  seed_vc / 향후 검증 Adapter
 Mock          현재 기본값
 ```
 
-이 Matrix는 [ADR-011](../11-decisions/ADR-011-voice-provider-selection.md)의 목표 구조이며 이번 문서 작업에서 Factory나 API를 변경하지 않는다. Primary와 Fallback은 동일한 `VoiceConverter` 결과 계약과 `Preview` 이상 상태를 충족할 때만 추가한다.
+이 Matrix는 [ADR-011](../11-decisions/ADR-011-voice-provider-selection.md)의 목표 구조다. Phase 5는 Mock으로만 통합됐으며 Primary와 Fallback은 동일한 `VoiceConverter` 결과 계약과 `Preview` 이상 상태를 충족할 때만 추가한다.

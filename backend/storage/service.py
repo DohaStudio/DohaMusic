@@ -20,6 +20,7 @@ class StorageService:
         self.stem_vocals_dir = self.stems_dir / "vocals"
         self.stem_instrumentals_dir = self.stems_dir / "instrumentals"
         self.stem_metadata_dir = self.stems_dir / "metadata"
+        self.pipeline_dir = self.root / "pipelines"
         self.sample_file = self.samples_dir / "sample.wav"
 
     def ensure_layout(self) -> None:
@@ -34,6 +35,7 @@ class StorageService:
             self.stem_vocals_dir,
             self.stem_instrumentals_dir,
             self.stem_metadata_dir,
+            self.pipeline_dir,
         ):
             directory.mkdir(parents=True, exist_ok=True)
         if not self.sample_file.exists():

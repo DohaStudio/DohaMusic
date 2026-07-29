@@ -26,6 +26,9 @@ class Settings(BaseModel):
     mock_stem_delay_seconds: float = Field(default=0.1, ge=0, le=60)
     voice_provider: str = "mock"
     mock_voice_delay_seconds: float = Field(default=0.1, ge=0, le=60)
+    pipeline_version: str = "1"
+    pipeline_max_retries: int = Field(default=1, ge=0, le=5)
+    pipeline_step_timeout_seconds: float = Field(default=900, ge=0.01, le=7_200)
     ace_step_runtime_python: str = ""
     ace_step_runner_path: str = ""
     ace_step_project_root: str = ""
@@ -83,6 +86,9 @@ class Settings(BaseModel):
             "MOCK_STEM_DELAY_SECONDS": "mock_stem_delay_seconds",
             "DOHAMUSIC_VOICE_PROVIDER": "voice_provider",
             "MOCK_VOICE_DELAY_SECONDS": "mock_voice_delay_seconds",
+            "DOHAMUSIC_PIPELINE_VERSION": "pipeline_version",
+            "DOHAMUSIC_PIPELINE_MAX_RETRIES": "pipeline_max_retries",
+            "DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS": "pipeline_step_timeout_seconds",
             "DOHAMUSIC_AI_ACE_STEP_RUNTIME_PYTHON": "ace_step_runtime_python",
             "DOHAMUSIC_AI_ACE_STEP_RUNNER_PATH": "ace_step_runner_path",
             "DOHAMUSIC_AI_ACE_STEP_PROJECT_ROOT": "ace_step_project_root",

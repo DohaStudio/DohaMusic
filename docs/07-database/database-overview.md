@@ -12,4 +12,6 @@ python -m alembic -c backend/alembic.ini upgrade head
 python -m alembic -c backend/alembic.ini current
 ```
 
-현재 테이블은 `generation_jobs`, `generated_files`, `voice_profiles`, `stem_jobs`, `stem_files`, `voice_conversion_jobs`, `voice_conversion_files` 일곱 개다. Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동의된 Voice Profile을 참조하고 결과 파일을 별도 추적한다. PostgreSQL 또는 MySQL 전환은 실제 운영 요구를 확인한 뒤 별도 검증하며, 현재 스키마에는 벤더 전용 타입이나 SQL을 사용하지 않는다.
+현재 테이블은 기존 생성·Stem·Voice Profile·Voice Conversion 7개와 `pipeline_jobs`, `pipeline_files`를 합한 9개다. Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동의된 Voice Profile을 참조한다. Pipeline Job은 동의된 Voice Profile과 요청·진행률·결과 metadata를 보존한다. PostgreSQL 또는 MySQL 전환은 실제 운영 요구를 확인한 뒤 별도 검증하며, 현재 스키마에는 벤더 전용 타입이나 SQL을 사용하지 않는다.
+
+Pipeline 필드와 보존 규칙은 [Pipeline 테이블](pipeline-tables.md)을 따른다.

@@ -592,3 +592,10 @@ MASTER_ROADMAP.md
 - 관련 ADR·실험·평가 보고서
 
 진행률은 해당 DoD의 완료 판정 항목 수를 전체 판정 항목 수로 나누어 계산한다. 구현·테스트·문서·Git 이력 또는 사용자 평가 증거가 없는 항목은 체크하지 않는다. 기존 상태와 새 사실이 충돌하면 실제 구현을 기준으로 Master, DoD, README와 ROADMAP을 함께 바로잡는다.
+## 25. Pipeline Orchestrator 원칙
+
+- 새로운 기능은 AI 모델에 직접 접근하지 않는다.
+- 전체 음악 제작 요청은 Pipeline Orchestrator를 통해 실행한다.
+- AI 모듈은 서로 직접 호출하지 않는다.
+- Music, Stem, Voice, Mixer는 독립 모듈로 유지한다.
+- Pipeline만 전체 Workflow를 관리한다.

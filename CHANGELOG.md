@@ -10,6 +10,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가
 
+- `PipelineService`, `PipelineContext`, `PipelineExecutor`, 5개 `PipelineStep`과 Mock Mixer·WAV Exporter를 추가했다.
+- `pipeline_jobs`, `pipeline_files`, Alembic 0004와 비동기 Pipeline 생성·조회·파일 API를 추가했다.
+- 단계별 진행률, 자동 재시도, timeout 판정, 구조화 오류, 부분 출력 정리와 JSON metadata를 추가했다.
+- 재현 가능한 Mock benchmark 실행기, EXP-005, ADR-012와 성공·Music/Stem/Voice 실패·재시도·timeout 테스트를 추가했다.
+
 - Seed-VC, OpenVoice, CosyVoice, Fish Speech, RVC, Amphion Vevo2의 공식 근거 비교표와 100점 Provider Score를 추가했다.
 - Primary 미선정, RVC Secondary 평가 후보, Seed-VC·Vevo2 Experimental 결정을 기록한 ADR-011을 추가했다.
 
@@ -40,6 +45,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 생성 성공·조회·Mock Worker 실패·입력 예외·음성 동의·migration·Storage를 검증하는 테스트를 추가했다.
 
 ### 변경
+
+- 공유 단일 ThreadPool에 Pipeline Worker를 연결하고 애플리케이션 종료 시 SQLAlchemy Engine을 명시적으로 dispose하도록 변경했다.
+- Phase 5를 Mock Voice 기반 기술 Orchestrator 완료로 갱신하되 Primary Voice와 실제 Mixer의 운영 게이트는 유지했다.
 
 - Voice Provider Matrix를 `Primary 미선정 → Fallback 미선정 → Experimental → Mock`으로 정리하고 Experimental의 자동 fallback 참여를 금지했다.
 - Phase 4를 Provider 평가 완료·Primary 미선정인 `[검증 필요]` 94%로 유지하고 Phase 5 착수를 계속 보류했다.
@@ -74,6 +82,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Voice Conversion 입력을 DB의 vocals Stem과 명시적 동의 Voice Profile로 제한하고 참조 경로가 `voices/references` 밖으로 벗어나면 거부한다.
 
 ### 문서
+
+- README, Master Roadmap, ROADMAP, Architecture, API, ERD, 상태, Evaluation, Operations, Security와 Phase 5 DoD를 실제 Pipeline 구현에 맞게 최신화했다.
 
 - README, Master Roadmap, ROADMAP, Voice Model, Architecture, Operations, Security와 ADR 목록을 Phase 4.6 선정 결과에 맞게 최신화했다.
 

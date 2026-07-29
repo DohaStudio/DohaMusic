@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-07-29
-> 현재 상태: **Phase 4.6 Provider 평가 완료 / Primary 미선정 / Phase 5 착수 불가**
+> 현재 상태: **Phase 5 Mock Pipeline Orchestrator 완료 / 운영 Provider 통합 보류**
 > 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
 > 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)
 
@@ -18,7 +18,7 @@
 | 2.5 Quality Benchmark | [진행 중] | 재현성·반복·운영 수명 검증 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | HTDemucs Adapter·API·Benchmark·EVAL 양식 | [Phase-03](docs/DoD/Phase-03.md) |
 | 4. Voice Conversion | [검증 필요] | Provider 평가 완료, Primary·Fallback 미선정, 94% 유지 | [Phase-04](docs/DoD/Phase-04.md) |
-| 5. Pipeline Integration | [계획] | Voice Primary·품질 게이트 부재로 착수 불가 | [Phase-05](docs/DoD/Phase-05.md) |
+| 5. Pipeline Integration | [완료] | Mock Voice 기반 Orchestrator·API·Benchmark 검증 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [계획] | 미구현 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
@@ -26,24 +26,22 @@
 
 ## 현재 우선 작업
 
-1. RVC의 사용자별 학습 구조를 Phase 7과 함께 검토할지, 상업 사용 가능한 zero-shot SVC를 계속 탐색할지 결정한다.
-2. 선택한 후보에 대해 RTX 3060 Ti 8GB 단독 benchmark와 Backend 계약 검증 범위를 승인한다.
-3. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), clipping/export와 후보별 라이선스 조건을 해소한다.
-4. 별도로 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)와 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
-5. Primary가 `Preview` 이상이고 모든 품질 게이트가 닫힌 뒤 Phase 5를 다시 제안한다.
+1. Phase 6 Lyrics AI의 입력·안전·저작권 계약을 설계한다.
+2. 실제 Audio Mixer의 gain·headroom·clipping·48kHz 출력 정책을 별도 검증한다.
+3. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
+4. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
+5. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
 
 ## 다음 작업 흐름
 
 ```text
-Phase 4.6: Primary 미선정
+Phase 5: Mock Pipeline 완료
   ↓
-Secondary/Experimental 차단 조건 검토
+Phase 6: Lyrics AI
+  ↓ 병행
+Voice Primary·실제 Mixer·품질 게이트
   ↓
-후보 8GB·품질·라이선스 검증
-  ↓
-Music·Stem·Voice 품질 게이트 재검토
-  ↓
-Phase 5 Pipeline Integration 결정
+운영 Pipeline 승인
 ```
 
 ## 완료 처리 규칙
