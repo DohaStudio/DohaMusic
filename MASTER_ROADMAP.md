@@ -6,7 +6,7 @@
 |---|---|---|
 | Phase 6 Lyrics AI | [완료] | 기존 Template·Mock 기반 DoD 유지 |
 | OpenAI Lyrics Adapter | [Experimental] | strict Schema·Factory·오류·retry·fallback·Revision 자동 검증 완료 |
-| 외부 Provider 실제 실측 | [차단] | API Key 없음; 호출·청구 0회 |
+| 외부 Provider 실제 실측 | [사용자 승인 필요] [API Key 필요] [유료 실측 미수행] | 실제 유료 API 호출 없음, 발생 비용 0원, API Key 사용 없음 |
 | External Provider 품질 승인 | [사용자 평가 필요] | EVAL-006 미작성 |
 | Stable 승격·Pipeline 연결 | [보류] | 품질·비용·지연·데이터·법률·인증 게이트 미통과 |
 

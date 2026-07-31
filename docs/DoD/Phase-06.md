@@ -67,7 +67,8 @@ Phase 7 Doha Voice와 Phase 8 Studio 우선순위를 재검토한다.
 - Local Lyrics LLM 확장은 Phase 7 Doha Voice의 음성 개인화와 별개이며 Phase 8 Frontend 요청 계약을 변경하지 않는다.
 - 세부 완료 기준은 [Local Lyrics LLM Roadmap](../../planning/local-lyrics-llm-roadmap.md)을 따른다. 문서 작성만으로 기존 14/14 Phase 6 DoD에 새 완료 증거를 추가하지 않는다.
 - Revision API·원본 보존 버전 이력·Alembic 0006: `[구현 완료]`
-- 실제 외부 네 시나리오·한국어 품질·지연·token·비용: `[차단/사용자 평가 필요]` (API Key 없음)
+- 실제 외부 네 시나리오·한국어 품질·지연·token·비용: `[사용자 승인 필요] [API Key 필요] [유료 실측 미수행]`
+- 비용 상태: 실제 유료 API 호출 없음, 발생 비용 0원, API Key 사용 없음
 - 기본 Provider: `template` 유지
 - Stable 승격 및 Pipeline 연결: 미승인
 

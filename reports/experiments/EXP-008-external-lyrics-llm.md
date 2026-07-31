@@ -1,12 +1,21 @@
 # EXP-008 — External Lyrics LLM
 
 > 실험일: 2026-07-29
-> 상태: **[외부 실측 차단] / Adapter 자동 검증 완료**
+> 상태: **[사용자 승인 필요] [API Key 필요] [유료 실측 미수행] / Adapter 자동 검증 완료**
 > Provider: OpenAI `gpt-5-mini-2025-08-07` Experimental
 
 ## 목적과 환경
 
-OpenAI Adapter의 strict 구조 매핑, 수정, retry, fallback, 오류, 비용 metadata를 검증하고 한국어 발라드·시티팝·수정·영문 팝의 실제 품질·지연·비용 측정을 준비한다. Windows, Python 3.12에서 수행했다. `DOHAMUSIC_LYRICS_API_KEY`가 없어 실제 API를 호출하지 않았다.
+OpenAI Adapter의 strict 구조 매핑, 수정, retry, fallback, 오류, 비용 metadata를 검증하고 한국어 발라드·시티팝·수정·영문 팝의 실제 품질·지연·비용 측정을 준비한다. Windows, Python 3.12에서 수행했다. 사용자 승인과 `DOHAMUSIC_LYRICS_API_KEY`가 없어 실제 API를 호출하지 않았다.
+
+## 비용 발생 여부
+
+```text
+실제 유료 API 호출 없음
+발생 비용 0원
+API Key 사용 없음
+외부 Provider 품질·지연시간·Token·비용은 미측정
+```
 
 ## 조사와 선정
 
@@ -16,7 +25,7 @@ OpenAI, Gemini, Claude, Qwen API·로컬을 공식 자료로 조사했다. OpenA
 
 | 항목 | 결과 |
 |---|---|
-| 실제 외부 호출 | `[차단]` Key 없음, 0회, 청구 없음 |
+| 실제 외부 호출 | `[사용자 승인 필요] [API Key 필요] [유료 실측 미수행]`, 0회 |
 | 실제 한국어 발라드·시티팝·수정·영문 출력 | `[검증 필요]` |
 | 실제 응답·검증·전체 시간 | `[실측 필요]` |
 | 실제 input/output/cached token | `[실측 필요]` |
@@ -24,7 +33,7 @@ OpenAI, Gemini, Claude, Qwen API·로컬을 공식 자료로 조사했다. OpenA
 | Mock transport Adapter benchmark | 100/100 성공 |
 | Adapter-only latency | min 0.0209ms, mean 0.0315ms, max 0.1324ms |
 | synthetic usage | input 100, output 50 token |
-| synthetic 공식표 추정 | $0.000125, 청구액 아님 |
+| 비용 계산 모듈 | Stub token과 설정 단가로 산식만 검증, 실제 비용 수치 아님 |
 
 Mock transport 수치는 네트워크·Provider 추론을 포함하지 않으며 외부 응답 속도로 해석하지 않는다.
 
@@ -43,3 +52,5 @@ Prompt는 허용 필드만 포함하고 `store=false`다. 공식 정책상 기�
 ## 결론과 다음 작업
 
 Adapter는 Experimental 상태로 유지하고 기본값은 Template다. EVAL-006 사용자 블라인드 평가, Key를 사용한 opt-in 네 시나리오 실측, 비용·지연 기록, 법률·개인정보 승인 후 Preview 승격을 검토한다.
+
+향후 사용자가 별도로 승인한 뒤 API Key가 제공된 경우에만 네 시나리오의 실제 품질·지연·Token·비용을 측정한다. 무료 한도 또는 무료 크레딧만을 근거로 임의 실행하지 않는다.

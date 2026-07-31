@@ -16,6 +16,8 @@ template (Stable 기본값)
 
 기본값은 `template`이며 OpenAI를 자동 선택하지 않는다. OpenAI 실패는 timeout, 일시적 network/5xx, rate limit에만 재시도한다. 인증·잘못된 요청·콘텐츠 차단·유효하지 않은 출력은 재시도하지 않는다. Template fallback은 `allow_template_fallback=true`일 때만 수행하고 실제 Provider와 사유를 metadata에 남긴다.
 
+실제 외부 호출은 사용자 별도 승인, API Key 제공, paid opt-in을 모두 충족해야 한다. 무료 크레딧·무료 한도만으로 호출하지 않으며 결제 수단 등록을 요청하지 않는다. 일반 테스트와 CI에서는 `external`, `integration`, `paid` 테스트를 실행하지 않는다.
+
 가격은 설정 한 곳과 비용 모듈에서만 계산한다. 가격·버전이 설정되지 않으면 `estimated_cost=null`이다. 요청 후 계산되는 비용 한도는 이미 발생한 청구를 예방하지 못하므로 운영 전 사전 token budget·계정 한도도 필요하다.
 
 사용자 인증이 없어 `DOHAMUSIC_LYRICS_MAX_DAILY_REQUESTS` 같은 사용자별 일일 제한은 이번에 구현하지 않았다. 운영 전 인증 주체와 원자적 사용량 저장소를 먼저 설계한다.
