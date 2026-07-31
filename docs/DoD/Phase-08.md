@@ -2,8 +2,8 @@
 
 > 상태: [계획]
 > 진행률: 0/15, 0%
-> 최종 수정일: 2026-07-29
-> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-8-doha-studio--계획), [Frontend Architecture](../03-architecture/frontend-architecture.md)
+> 최종 수정일: 2026-07-31
+> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-8-doha-studio--계획), [Frontend Overview](../03-architecture/frontend-overview.md), [Frontend Architecture](../03-architecture/frontend-architecture.md), [Frontend Roadmap](../../planning/frontend-roadmap.md)
 
 ## 목표
 
@@ -20,6 +20,8 @@ Production 인프라 전환, 공개 서비스 릴리스와 미승인 Voice 기�
 ## 선행 조건
 
 Phase 5 Pipeline API, 인증·권한·파일 소유권과 안전 정책이 확정되어야 한다.
+
+현재 API는 upload/download·audio content·Voice Profile list/get·프로젝트 이력·Job cancel/retry·인증·소유권을 제공하지 않는다. 관련 UX는 이 계약 전까지 완료로 체크하지 않는다.
 
 ## 완료 체크리스트
 
