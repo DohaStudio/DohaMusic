@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from backend.audio_analysis import public_audio_analysis
 from backend.db.base import Base
 from backend.kpop.options import public_generation_metadata
 
@@ -90,3 +91,7 @@ class PipelineJob(Base):
     @property
     def kpop_prompt_compiler_version(self) -> str | None:
         return public_generation_metadata(self.input_snapshot)[1]
+
+    @property
+    def audio_analysis(self) -> object | None:
+        return public_audio_analysis(self.result_metadata)

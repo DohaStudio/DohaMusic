@@ -1,6 +1,6 @@
 # Audio Quality Engine
 
-> 현재 상태: **Phase 5.1 Default Audio Mixer 구현 완료**
+> 현재 상태: **Phase 5.1 Default Audio Mixer + K3.1 final WAV Quality Analyzer 구현 완료**
 > 관련 결정: [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md)
 
 ## 책임과 경계
@@ -42,14 +42,16 @@ Mixer는 처리 시간, CPU time, process RSS 전후·증감, 출력 크기, 길
 
 ## K3 Audio Analysis와의 경계
 
-Mixer metadata는 처리 직전·직후 신호를 설명하는 현행 단계 metadata이며 K3의 최종 WAV 분석 결과가 아니다. K3.0은 최종 `final.wav`를 별도 후처리 계층에서 다시 읽어 Sample Peak·clipping·Integrated LUFS와 향후 검증된 True Peak를 versioned 결과로 기록하도록 계약만 정의했다.
+Mixer metadata는 처리 직전·직후 신호를 설명하는 단계 metadata다. K3.1의 `AudioQualityAnalyzer`는 독립 계층에서 최종 `final.wav`를 다시 읽어 duration·sample rate·channels·Sample Peak·clipping·Integrated LUFS를 versioned 결과로 기록한다. Pipeline·Provider·Frontend DTO·Repository에 의존하지 않는다.
+
+SciPy `wavfile`로 PCM WAV를 decode하고 NumPy `float64`로 정규화한다. Sample Peak는 전체 채널 scalar sample의 절댓값 최대, clipping은 `abs(sample) >= 1 - 1/32768`이며 ratio 분모는 전체 scalar sample 수다. 무음 peak와 계산 불가 LUFS는 JSON `null`과 safe warning으로 저장하고 NaN·Infinity는 거부한다. pyloudnorm 0.2.x의 BS.1770 meter를 Integrated LUFS에 사용하며 RMS fallback을 LUFS로 기록하지 않는다.
 
 - 현행 `peak_dbfs`: Mixer가 계산한 Sample Peak
 - K3 `sample_peak_dbfs`: 최종 export WAV에서 측정할 Sample Peak `[계획]`
 - K3 `integrated_lufs`: ITU-R BS.1770/EBU R 128 reference 검증 후 제공 `[계획]`
 - K3 `true_peak_dbtp`: oversampling과 reference 검증 통과 전 미지원 `[계획]`
 
-구체 계약은 [K3 제품 정의](../02-product/k3-audio-analysis-product-definition.md)와 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 따른다. K3.0에서는 Mixer 코드·설정·metadata를 변경하지 않는다.
+구체 계약은 [K3 제품 정의](../02-product/k3-audio-analysis-product-definition.md)와 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 따른다. Mixer 코드·설정·기존 step metadata는 변경하지 않았고 True Peak는 구현하지 않았다.
 
 ## 실패와 제한
 

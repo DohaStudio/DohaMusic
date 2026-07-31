@@ -1,8 +1,8 @@
 # Audio Analysis 결과·저장 계약
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-31
-> 관련 기능: K3.0 Audio Analysis version·storage·public allowlist
+> 최종 수정일: 2026-08-01
+> 관련 기능: K3.0 계약, K3.1 versioned storage·public allowlist
 > 관련 문서: [제품 정의](../02-product/k3-audio-analysis-product-definition.md), [실패 정책](audio-analysis-failure-policy.md), [Pipeline API](../06-api/pipeline-api.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
 ## 현재 저장소와 K3 MVP 결정
@@ -17,7 +17,7 @@ K3 MVP는 대안 A인 기존 Result metadata JSON 확장을 채택한다.
 | B. 별도 Audio Analysis 테이블 | 상태·버전·재분석 추적과 통계에 유리 | Migration과 수명주기 복잡도 | Re-analysis·검색 요구 시 재검토 |
 | C. 최소 컬럼 + 상세 JSON | 자주 찾는 값만 인덱스 가능 | 이중 schema 동기화 | 운영 검색 요구 확인 후 검토 |
 
-Preview는 `pipeline_files.file_type=preview` 후보로 등록하고 내부 상대 경로만 저장한다. 실제 schema·DTO·Migration은 K3.0에서 만들지 않는다.
+K3.1은 schema·Migration 없이 `result_metadata.audio_analysis`만 추가했다. Preview의 `pipeline_files.file_type=preview` 후보는 K3.4 계획이며 아직 구현하지 않았다.
 
 ## 버전된 내부 구조
 
@@ -25,8 +25,8 @@ Preview는 `pipeline_files.file_type=preview` 후보로 등록하고 내부 상�
 {
   "audio_analysis": {
     "audio_analysis_version": "1.0",
-    "analysis_status": "completed",
-    "source_file_role": "final",
+    "analysis_status": "COMPLETED",
+    "source_file_role": "final_mix",
     "quality": {
       "duration_seconds": 60.1,
       "sample_rate": 44100,
@@ -35,41 +35,14 @@ Preview는 `pipeline_files.file_type=preview` 후보로 등록하고 내부 상�
       "clipping_detected": false,
       "clipping_sample_count": 0,
       "clipping_ratio": 0.0,
-      "integrated_lufs": -13.8,
-      "true_peak_dbtp": null
+      "integrated_lufs": -13.8
     },
-    "tempo": {
-      "requested_bpm": 124,
-      "detected_bpm": 122.6,
-      "confidence": 0.78,
-      "confidence_level": "medium",
-      "bpm_error": -1.4,
-      "absolute_bpm_error": 1.4
-    },
-    "structure": {
-      "first_chorus_candidate_seconds": null,
-      "hook_candidate": {
-        "start_seconds": 42.0,
-        "end_seconds": 57.0,
-        "confidence": 0.63,
-        "confidence_level": "medium"
-      }
-    },
-    "preview": {
-      "status": "completed",
-      "file_id": "opaque-file-id",
-      "start_seconds": 42.0,
-      "end_seconds": 57.0,
-      "duration_seconds": 15.0,
-      "selection_strategy": "hook_candidate"
-    },
-    "warnings": [],
-    "completed_at": "2026-07-31T00:00:00Z"
+    "warnings": []
   }
 }
 ```
 
-`true_peak_dbtp`는 oversampling 기반 구현과 reference 검증 전 `null`이다. `first_chorus_candidate_seconds`와 `hook_candidate`는 추정값이다. `file_id`는 opaque ID이며 path가 아니다.
+K3.1은 True Peak·tempo·Hook/Chorus·Preview 필드를 만들지 않는다. 내부 `source_file_role`도 공개 DTO에서 제거한다.
 
 ## 최소 버전 계약
 
@@ -84,20 +57,20 @@ Preview는 `pipeline_files.file_type=preview` 후보로 등록하고 내부 상�
 
 | 화면/API | 공개 범위 |
 |---|---|
-| Pipeline Result | analysis status/version, quality, tempo, Hook/Chorus 후보, Preview capability·URL |
-| History 목록 | analysis status, detected BPM·confidence 요약, Preview 가능 여부 |
+| Pipeline Result | analysis status/version, duration, sample rate, channels, Sample Peak, clipping, Integrated LUFS, safe warnings |
+| History 목록 | analysis status, clipping, Integrated LUFS 요약 |
 | History 상세 | Result 공개 범위와 동일 |
-| Project Job 목록 | status, detected BPM 요약, Preview 가능 여부 |
-| Files | 기존 필드 + Preview의 opaque `file_id`, secure content/download URL |
+| Project Job 목록 | History와 같은 간결한 quality 요약 |
+| Files | 기존 final WAV secure content/download 계약 유지 |
 
-공개 가능 값은 duration, sample rate, channels, Sample Peak, clipping, Integrated LUFS, 검증된 True Peak, detected/requested BPM 차이, confidence, Hook/Chorus 후보 시간, Preview URL, status와 version이다.
+K3.1 공개 가능 값은 duration, sample rate, channels, Sample Peak, clipping count·ratio, Integrated LUFS, safe warnings, status와 version이다.
 
 다음은 공개하지 않는다.
 
 - 내부 절대·상대 파일 경로와 Storage root
 - 실행 command, temporary path, model path
 - stack trace와 raw analyzer debug data
-- 전체 `result_metadata`, 내부 benchmark trace와 미검증 partial 값
+- analyzer warning code, `source_file_role`, 전체 내부 benchmark trace와 미검증 값
 
 공개 DTO는 nested allowlist를 별도로 생성해야 하며 내부 JSON을 그대로 직렬화하지 않는다.
 
@@ -115,4 +88,4 @@ Preview는 `pipeline_files.file_type=preview` 후보로 등록하고 내부 상�
 
 ## 호환성과 무결성
 
-구형 Result는 `audio_analysis`가 없으며 이를 `not_requested`와 동일하게 표시할 수 있다. 알 수 없는 version이나 malformed JSON은 공개하지 않고 `unavailable`로 처리한다. 분석 metadata가 없어도 final WAV row와 secure access 검증이 통과하면 재생·다운로드는 가능하다.
+구형 Result는 `audio_analysis`가 없으며 Frontend는 “품질 분석 정보가 없습니다”로 표시한다. malformed JSON은 공개하지 않고 unavailable로 처리한다. 분석 metadata가 없어도 final WAV row와 secure access 검증이 통과하면 재생·다운로드는 가능하다.

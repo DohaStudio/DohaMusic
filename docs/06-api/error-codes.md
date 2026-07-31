@@ -55,6 +55,10 @@
 | `FILE_MISSING_FROM_STORAGE` | DB 기록에 대응하는 regular file 없음 |
 | `UNSUPPORTED_AUDIO_FILE` | 허용되지 않은 type·MIME·확장자·WAV header |
 | `INVALID_RANGE` | 지원하지 않거나 만족할 수 없는 byte Range |
+| `AUDIO_ANALYSIS_DECODE_FAILED` | final WAV decode 실패, Pipeline은 `COMPLETED` 유지 |
+| `AUDIO_ANALYSIS_UNSUPPORTED` | 지원하지 않는 WAV 형식·채널 |
+| `AUDIO_ANALYSIS_LUFS_UNAVAILABLE` | Integrated LUFS 계산 불가, quality는 `PARTIAL` |
+| `AUDIO_ANALYSIS_INTERNAL_ERROR` | 안전한 분석 실패, Pipeline·final WAV 영향 없음 |
 | `VOICE_CONSENT_REQUIRED` | Voice upload 동의 누락 또는 false |
 | `VOICE_FILE_REQUIRED` | multipart 음성 파일 누락 |
 | `VOICE_FILE_EMPTY` | 빈 음성 파일 |
@@ -69,7 +73,7 @@
 | `VOICE_STORAGE_WRITE_FAILED` | 안전한 Voice 저장 실패 |
 | `VOICE_STORAGE_DELETE_FAILED` | 관리 Voice 파일 삭제 실패 |
 
-API 오류는 `{ "error": { "code", "message" } }` 형식이다. 비동기 Worker 오류는 해당 `generation_jobs` 또는 `stem_jobs`의 `error_code`와 안전한 사용자 메시지로 기록되고 Job은 `FAILED`가 된다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않는다.
+API 오류는 `{ "error": { "code", "message" } }` 형식이다. Audio Analysis 오류는 기본 API 실패가 아니라 `audio_analysis.analysis_status`와 safe warning으로 표시하며 Pipeline Job을 `FAILED`로 바꾸지 않는다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않는다.
 # External Lyrics 오류
 
 `LYRICS_API_KEY_MISSING`, `LYRICS_PROVIDER_NOT_SUPPORTED`, `LYRICS_PROVIDER_UNAVAILABLE`, `LYRICS_RATE_LIMITED`, `LYRICS_TIMEOUT`, `LYRICS_AUTHENTICATION_FAILED`, `LYRICS_REQUEST_REJECTED`, `LYRICS_OUTPUT_INVALID`, `LYRICS_CONTENT_BLOCKED`, `LYRICS_COST_LIMIT_EXCEEDED`, `LYRICS_REVISION_FAILED`를 구분한다. Provider 원문 body·request ID·인증 정보는 응답에 노출하지 않는다.

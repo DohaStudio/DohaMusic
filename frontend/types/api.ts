@@ -102,6 +102,29 @@ export interface KPopGenerationOptionsDto {
   vocal_energy?: "low" | "medium" | "high";
   concept?: string;
 }
+export type AudioAnalysisStatusDto =
+  | "NOT_REQUESTED"
+  | "PENDING"
+  | "COMPLETED"
+  | "PARTIAL"
+  | "FAILED"
+  | "UNSUPPORTED";
+export interface AudioQualityMetricsDto {
+  duration_seconds: number;
+  sample_rate: number;
+  channels: number;
+  sample_peak_dbfs: number | null;
+  clipping_detected: boolean;
+  clipping_sample_count: number;
+  clipping_ratio: number;
+  integrated_lufs: number | null;
+}
+export interface AudioAnalysisDto {
+  audio_analysis_version: string;
+  analysis_status: AudioAnalysisStatusDto;
+  quality: AudioQualityMetricsDto | null;
+  warnings: string[];
+}
 export interface PipelineJobDto {
   id: string;
   project_id: string | null;
@@ -129,6 +152,7 @@ export interface PipelineJobDto {
   can_retry: boolean;
   generation_options?: KPopGenerationOptionsDto | null;
   kpop_prompt_compiler_version?: string | null;
+  audio_analysis?: AudioAnalysisDto | null;
 }
 export interface PipelineCancelDto {
   job_id: string;
@@ -152,6 +176,7 @@ export interface HistoryItemDto {
   retry_of_job_id: string | null;
   generation_options?: KPopGenerationOptionsDto | null;
   kpop_prompt_compiler_version?: string | null;
+  audio_analysis?: AudioAnalysisDto | null;
 }
 export interface HistoryDetailDto extends HistoryItemDto {
   prompt: string;

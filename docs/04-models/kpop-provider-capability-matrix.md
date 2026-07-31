@@ -1,7 +1,7 @@
 # K-POP Provider Capability Matrix
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 관련 기능: K-POP Generation Capability
 > 관련 문서: [Generation Options](../03-architecture/kpop-generation-options.md), [K3 제품 정의](../02-product/k3-audio-analysis-product-definition.md), [EVAL-007](../../reports/evaluations/EVAL-007-kpop-dance-generation.md), [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)
 
@@ -49,16 +49,16 @@ K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Cap
 
 ## K3 분석 Capability 목표
 
-분석은 Provider capability가 아니라 최종 WAV에 적용하는 Provider-neutral 후처리 capability다. K3.0은 계약만 완료했으므로 현재 지원 상태는 바꾸지 않는다.
+분석은 Provider capability가 아니라 최종 WAV에 적용하는 Provider-neutral 후처리 capability다. K3.1 Quality Metrics는 모든 Provider의 유효 final PCM WAV에 같은 후처리를 적용한다.
 
 | Capability | 현재 | K3 목표 | 단계 |
 |---|---|---|---|
 | requested BPM | `PROMPT_COMPILED` | 유지 | K2 |
 | detected BPM | `NOT_SUPPORTED` | 분석 예정 | K3.2 |
 | BPM confidence | `NOT_SUPPORTED` | 분석 예정 | K3.2 |
-| Sample Peak | Mixer metadata 일부 | 최종 WAV 측정 예정 | K3.1 |
-| Integrated LUFS | `NOT_SUPPORTED` | 분석 예정 | K3.1 |
-| True Peak | `NOT_SUPPORTED` | 표준 검증 후 K3.1 또는 후속 | K3.1 조건부 |
+| Sample Peak·clipping | `ANALYZED` | final WAV 직접 측정 | K3.1 완료 |
+| Integrated LUFS | `ANALYZED` | pyloudnorm BS.1770 후처리 | K3.1 완료 |
+| True Peak | `NOT_SUPPORTED` | oversampling·reference 검증 전 미지원 | 후속 검토 |
 | Hook/Chorus candidate | `NOT_SUPPORTED` | 후보 추정 예정 | K3.3 |
 | 15초 Preview | `NOT_SUPPORTED` | export 예정 | K3.4 |
 

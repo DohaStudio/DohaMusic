@@ -8,6 +8,8 @@ import { Badge, Button, ErrorAlert } from "@/components/ui";
 import { usePipeline } from "@/hooks/use-pipeline";
 import { mapSafeFiles, selectPreferredAudioFile } from "@/lib/mappers";
 import { publicMetadataRows } from "@/lib/result-metadata";
+import { parseAudioAnalysis } from "@/lib/audio-analysis";
+import { AudioQualitySummary } from "@/features/audio/audio-quality-summary";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import { usePlayerStore } from "@/stores/player-store";
@@ -56,6 +58,9 @@ export function ResultPanel({ jobId }: { jobId: string }) {
     );
 
   const metadata = publicMetadataRows(job.result_metadata);
+  const audioAnalysis = parseAudioAnalysis(
+    job.audio_analysis ?? job.result_metadata,
+  );
   return (
     <section className="result-layout">
       <div className="result-hero">
@@ -107,6 +112,7 @@ export function ResultPanel({ jobId }: { jobId: string }) {
             <Meta key={item.label} label={item.label} value={item.value} />
           ))}
         </dl>
+        <AudioQualitySummary analysis={audioAnalysis} />
         <h3>재생할 파일</h3>
         {filesQuery.error && (
           <ErrorAlert message="생성 파일 목록을 조회할 수 없습니다." />

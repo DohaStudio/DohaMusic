@@ -15,6 +15,7 @@ from backend.ai.voice_factory import create_voice_converter
 from backend.api.exception_handlers import register_exception_handlers
 from backend.api.router import api_router
 from backend.audio.factory import create_audio_mixer
+from backend.audio_analysis import DefaultAudioQualityAnalyzer
 from backend.core.config import Settings, get_settings
 from backend.core.logging import configure_logging, get_logger
 from backend.db.migrations import upgrade_database
@@ -132,6 +133,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             session_factory=session_factory,
             executor=pipeline_executor,
             storage=storage,
+            audio_quality_analyzer=DefaultAudioQualityAnalyzer(),
         )
         pipeline_dispatcher = ThreadPoolJobDispatcher(
             worker=pipeline_worker,

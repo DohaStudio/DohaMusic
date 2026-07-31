@@ -1,7 +1,7 @@
 # Studio UX Flow
 
-> 문서 상태: [계획]
-> 최종 수정일: 2026-07-31
+> 문서 상태: [완료]
+> 최종 수정일: 2026-08-01
 > 관련 문서: [Frontend Architecture](frontend-architecture.md), [Page Structure](page-structure.md), [Pipeline API](../06-api/pipeline-api.md)
 
 ## 전체 Flow
@@ -92,7 +92,7 @@ stateDiagram-v2
 - Voice 단계는 등록 목록에서 Profile을 선택하며, 목록이 비면 `/voice` upload로 안내한다. UUID 직접 입력과 서버 경로 생성은 개발 플래그에서만 보조 수단으로 제공한다.
 - 실패·취소된 작업의 “같은 설정으로 다시 만들기”는 서버의 원본 Prompt·Structured Options·Seed·Voice·Project Snapshot을 검증해 새 Pipeline Job을 생성하며 기존 Job을 변경하지 않는다. 성공 Result에는 이 Retry action을 표시하지 않는다.
 
-### K3 Audio Analysis 목표 UX [계획]
+### K3.1 Audio Quality Metrics UX [완료]
 
 Pipeline 결과와 분석 상태를 분리한다.
 
@@ -104,7 +104,7 @@ Pipeline 결과와 분석 상태를 분리한다.
 | failed/unsupported | 분석할 수 없음 | 가능 |
 | 없음 | 분석 정보 없음 | 구형 Result 정책 유지 |
 
-예상 템포·요청 BPM 차이, Hook/Chorus 후보와 confidence를 참고 정보로 표시한다. 낮은 confidence는 사용자 확인이 필요함을 함께 표시한다. Preview는 K3.4 secure endpoint가 구현된 뒤에만 재생 action을 제공하며 내부 경로나 가짜 URL을 만들지 않는다. 일반 UI는 raw analyzer metadata를 노출하지 않고 개발자 정보도 기존 flag 뒤의 allowlist만 사용한다.
+Result의 오디오 분석 영역은 상태, 길이, sample rate, 채널, Sample Peak dBFS, clipping, Integrated LUFS를 표시한다. PARTIAL·FAILED·UNSUPPORTED는 음악 생성 실패와 구분된 설명을 제공하고 구형 Result는 fallback 문구를 사용한다. History·Project에는 간결한 상태·clipping·LUFS만 표시한다. Tempo·Hook·Chorus·Preview·True Peak는 노출하지 않는다.
 
 ## 오류·복구
 

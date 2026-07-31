@@ -445,6 +445,19 @@
   text-align: right;
   overflow-wrap: anywhere;
 }
+.audio-quality {
+  margin: 24px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #141414;
+}
+.audio-quality h3 { margin: 0; }
+.audio-quality-notice,
+.audio-quality-warnings,
+.audio-quality-compact { color: var(--muted); font-size: .82rem; }
+.audio-quality-warnings { margin: 14px 0 0; padding-left: 20px; }
+.audio-quality-compact { display: block; margin-top: 7px; }
 .file-list {
   list-style: none;
   padding: 0;

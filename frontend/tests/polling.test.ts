@@ -62,4 +62,14 @@ describe("adaptive polling", () => {
       ),
     ).toBe(false);
   });
+  it("Pipeline 완료 후 분석이 PENDING이면 분석 결과까지 polling한다", () => {
+    const completed = job("COMPLETED");
+    completed.audio_analysis = {
+      audio_analysis_version: "1.0",
+      analysis_status: "PENDING",
+      quality: null,
+      warnings: [],
+    };
+    expect(getPollingInterval(state({ job: completed }))).toBe(1000);
+  });
 });

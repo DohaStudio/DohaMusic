@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import select
 
 from backend.core.job_status import JobStatus
+from backend.audio_analysis import AudioAnalysisResult
 from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
 from backend.pipeline.context import PipelineContext
@@ -24,7 +25,10 @@ def wait_for_pipeline(client: TestClient, job_id: str) -> dict[str, object]:
         response = client.get(f"/api/pipelines/{job_id}")
         assert response.status_code == 200
         job = response.json()
-        if job["status"] in {"COMPLETED", "FAILED", "CANCELLED"}:
+        analysis_status = (job.get("audio_analysis") or {}).get("analysis_status")
+        if job["status"] in {"FAILED", "CANCELLED"} or (
+            job["status"] == "COMPLETED" and analysis_status != "PENDING"
+        ):
             return job
         time.sleep(0.01)
     raise AssertionError("Pipeline did not reach a terminal state")
@@ -69,6 +73,11 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     assert completed["status"] == "COMPLETED"
     assert completed["progress_percent"] == 100
     assert completed["current_step"] == "completed"
+    # The repository mock fixture is intentionally 0.1 s, shorter than the
+    # BS.1770 gating block, so WAV metrics succeed while LUFS is PARTIAL.
+    assert completed["audio_analysis"]["analysis_status"] == "PARTIAL"
+    assert completed["audio_analysis"]["quality"]["integrated_lufs"] is None
+    assert "source_file_role" not in completed["audio_analysis"]
     metadata = completed["result_metadata"]
     assert metadata["success"] is True
     assert [item["step"] for item in metadata["step_execution"]] == [
@@ -91,6 +100,7 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     assert mixer_metrics["audio_quality"]["sample_rate"] == 48_000
     assert mixer_metrics["audio_quality"]["channels"] == 2
     assert mixer_metrics["audio_quality"]["clipping"]["detected"] is False
+    assert "source_file_role" not in metadata["audio_analysis"]
 
     files = client.get(f"/api/pipelines/{job['id']}/files").json()
     assert {item["file_type"] for item in files} == {
@@ -146,6 +156,86 @@ def test_pipeline_retries_retryable_provider_failure(client: TestClient) -> None
     ]
     assert [item["status"] for item in attempts] == ["FAILED", "COMPLETED"]
     assert flaky.calls == 2
+
+
+class FailingAudioAnalyzer:
+    def analyze(self, _file_path: object) -> AudioAnalysisResult:
+        raise RuntimeError("private analyzer detail")
+
+
+def test_audio_analysis_failure_does_not_fail_pipeline_or_hide_final_file(
+    client: TestClient,
+) -> None:
+    client.app.state.pipeline_worker.audio_quality_analyzer = FailingAudioAnalyzer()
+    job = create_pipeline(client, create_profile(client))
+    completed = wait_for_pipeline(client, str(job["id"]))
+
+    assert completed["status"] == "COMPLETED"
+    assert completed["audio_analysis"]["analysis_status"] == "FAILED"
+    assert "private analyzer detail" not in str(completed["audio_analysis"])
+    files = client.get(f"/api/pipelines/{job['id']}/files").json()
+    assert any(item["file_type"] == "final" for item in files)
+
+
+def test_audio_analysis_metadata_failure_keeps_pipeline_completed(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    original = PipelineRepository.set_metadata
+    calls = 0
+
+    def fail_once(
+        repository: PipelineRepository,
+        current: PipelineJob,
+        metadata: dict[str, object],
+    ) -> None:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise RuntimeError("temporary metadata failure")
+        original(repository, current, metadata)
+
+    monkeypatch.setattr(PipelineRepository, "set_metadata", fail_once)
+    job = create_pipeline(client, create_profile(client))
+    completed = wait_for_pipeline(client, str(job["id"]))
+
+    assert completed["status"] == "COMPLETED"
+    assert completed["audio_analysis"]["analysis_status"] == "FAILED"
+    assert calls == 2
+
+
+class CompletionBoundaryAnalyzer:
+    def __init__(self, session_factory: object) -> None:
+        self.session_factory = session_factory
+
+    def analyze(self, file_path: object) -> AudioAnalysisResult:
+        job_id = file_path.parent.name
+        with self.session_factory() as session:
+            job = session.get(PipelineJob, job_id)
+            assert job is not None
+            assert job.status == JobStatus.COMPLETED.value
+        return AudioAnalysisResult.failed()
+
+
+def test_analysis_runs_after_irreversible_pipeline_completion(
+    client: TestClient,
+) -> None:
+    profile_id = create_profile(client)
+    client.app.state.pipeline_worker.audio_quality_analyzer = (
+        CompletionBoundaryAnalyzer(client.app.state.session_factory)
+    )
+    response = client.post(
+        "/api/pipelines",
+        json={
+            "prompt": "completion boundary",
+            "duration_seconds": 10,
+            "voice_profile_id": profile_id,
+        },
+    )
+    job_id = response.json()["id"]
+
+    completed = wait_for_pipeline(client, job_id)
+    assert completed["status"] == "COMPLETED"
+    assert client.post(f"/api/pipelines/{job_id}/cancel").status_code == 409
 
 
 class AlwaysFailingConverter:
@@ -303,6 +393,8 @@ def test_retry_creates_new_job_with_snapshot_and_relation(
     assert payload["job"]["retry_of_job_id"] == source.id
     assert payload["job"]["seed"] == 77
     assert payload["job"]["project_id"] == source.project_id
+    assert payload["job"]["audio_analysis"] is None
+    assert "audio_analysis" not in payload["job"]["result_metadata"]
     repeated = client.post(f"/api/pipelines/{source.id}/retry")
     assert repeated.status_code == 202
     assert repeated.json()["job"]["id"] == payload["job"]["id"]

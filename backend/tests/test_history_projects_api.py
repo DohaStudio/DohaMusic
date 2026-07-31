@@ -35,6 +35,8 @@ def test_history_detail_filter_search_and_public_dto(client: TestClient) -> None
     assert item["has_audio"] is True
     assert item["duration"] == 10
     assert item["voice_profile_name"] == "Pipeline 동의 음성"
+    assert item["audio_analysis"]["analysis_status"] == "PARTIAL"
+    assert "source_file_role" not in item["audio_analysis"]
     assert not {
         "file_path",
         "storage_path",
@@ -65,12 +67,14 @@ def test_project_crud_detail_and_safe_delete_keeps_jobs(client: TestClient) -> N
         },
     )
     assert pipeline.status_code == 202
+    wait_for_pipeline(client, pipeline.json()["id"])
 
     projects = client.get("/api/projects").json()
     assert next(item for item in projects if item["id"] == project_id)["job_count"] == 1
     detail = client.get(f"/api/projects/{project_id}")
     assert detail.status_code == 200
     assert detail.json()["jobs"][0]["job_id"] == pipeline.json()["id"]
+    assert detail.json()["jobs"][0]["audio_analysis"]["analysis_status"] == "PARTIAL"
 
     updated = client.patch(
         f"/api/projects/{project_id}",

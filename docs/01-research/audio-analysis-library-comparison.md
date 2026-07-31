@@ -1,13 +1,13 @@
 # Audio Analysis 라이브러리 후보 비교
 
-> 문서 상태: [검토 완료·채택 전]
-> 최종 수정일: 2026-07-31
+> 문서 상태: [K3.1 후보 검토·pyloudnorm 채택 완료]
+> 최종 수정일: 2026-08-01
 > 관련 기능: K3 Audio Analysis 기술 후보
 > 관련 문서: [K3 제품 정의](../02-product/k3-audio-analysis-product-definition.md), [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
 ## 조사 원칙과 현재 환경
 
-공식 문서·공식 저장소의 2026-07-31 확인 결과를 기록한다. 설치·실측은 수행하지 않았으며 버전·Windows wheel·Python 지원은 K3 구현 PR에서 다시 고정한다. 현재 Backend에는 NumPy와 SciPy만 직접 의존성으로 존재한다.
+공식 문서·공식 저장소의 확인 결과와 K3.1 선택을 기록한다. WAV decode는 기존 SciPy, peak·clipping은 NumPy, Integrated LUFS는 `pyloudnorm>=0.2,<0.3`을 채택했다. pyloudnorm 0.2.0 pure Python wheel을 Windows·Python 3.12에서 설치하고 mono/stereo reference와 전체 테스트를 통과했다.
 
 ## 후보 비교
 
@@ -16,7 +16,7 @@
 | [NumPy](https://numpy.org/doc/stable/license.html) | BSD 계열, 공식 저장소 활동 확인 | 공식 wheel, 이미 사용 | sample 연산, peak·clipping 기초 | BPM·LUFS·True Peak 완성 구현 아님. **기반 유지** |
 | [SciPy](https://scipy.org/) | BSD-3-Clause, 공식 저장소 활동 확인 | Windows wheel, 이미 사용 | signal, resampling, filter primitives | 표준 loudness·tempo 제품 계약은 별도 구현 필요. **기반 유지** |
 | [python-soundfile](https://python-soundfile.readthedocs.io/) | BSD-3-Clause, libsndfile 기반 | PyPI wheel이 Windows 포함 libsndfile 제공 여부 재검증 | WAV metadata·sample format 보존 I/O | Decoder 경계와 libsndfile 고지 필요. **K3.1 우선 평가** |
-| [pyloudnorm](https://github.com/csteinmetz1/pyloudnorm) | MIT, ITU-R BS.1770-4 구현, 2026-01 release 확인 | pure Python + NumPy/SciPy 후보 | Integrated LUFS, Loudness Range 후보 | 현재 ITU-R BS.1770-5·EBU test set과 오차 검증 필요, True Peak 제공 여부 별도. **K3.1 우선 평가** |
+| [pyloudnorm](https://github.com/csteinmetz1/pyloudnorm) | MIT, ITU-R BS.1770-4 구현, 0.2.0(2026-01) | pure Python wheel + 기존 NumPy/SciPy, Windows 확인 | Integrated LUFS | mono/stereo 1 kHz reference 허용 오차 검증 완료, True Peak는 제공하지 않음. **K3.1 채택** |
 | [librosa](https://librosa.org/doc/latest/index.html) | ISC, 0.11 공식 문서와 저장소 활동 확인 | PyPI, 의존성 규모 중간 | onset·beat·tempo·tempogram, segmentation primitives | BPM은 추정이며 confidence API를 직접 설계·calibrate해야 함. **K3.2 우선 평가** |
 | [FFmpeg](https://ffmpeg.org/documentation.html) | 기본 LGPL-2.1+, build 옵션에 따라 GPL; [법적 고지](https://ffmpeg.org/legal.html) 확인 필요 | 공식 프로젝트는 source 제공, Windows build는 연결된 제3자 배포 | decode/export, ebur128/loudnorm 기반 reference 후보 | 외부 실행·binary 배포·라이선스·command 보안 부담. **reference/후속 후보** |
 | [Essentia](https://github.com/MTG/essentia) | AGPL-3.0, 공식 저장소 활동 확인 | C++/Python, Windows binding·배포 검증 필요 | 광범위한 rhythm·structure·descriptor | AGPL 및 설치·배포 크기 부담. **MVP 비채택** |
@@ -52,4 +52,4 @@
 4. analyzer output·confidence·version 계약을 고정한다.
 5. 실패·취소·secure file access와 cleanup을 검증한다.
 
-이번 문서 작업에서는 패키지를 설치하거나 코드를 실행하지 않았다.
+K3.1에서 pyloudnorm 0.2.0을 설치해 1 kHz -20 dBFS mono 약 -23.05 LUFS, 동일 stereo 약 -20.03 LUFS를 0.1 LU 허용 오차로 확인했다. 30/60초 합성 WAV 성능은 EVAL-008에 기록했다.
