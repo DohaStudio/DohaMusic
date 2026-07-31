@@ -22,8 +22,10 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 
 ## 1. Music Settings
 
-- prompt, genre, duration, seed와 instrumental 여부를 편집한다.
-- 현재 Pipeline API가 받는 필드만 활성화한다. BPM·고급 모델 선택은 Backend 계약 전까지 planned/disabled다.
+- 현재 활성 필드는 `prompt`, `genre`, `duration_seconds`, `seed`다.
+- `lyrics`와 `voice_profile_id`는 Lyrics·Voice 후속 단계에서 결합해 Review의 Pipeline 요청을 구성한다.
+- instrumental 생성 옵션은 현재 Pipeline API에 없으므로 `planned/disabled` 상태다. Backend 계약이 추가되기 전까지 실제 요청에 포함하지 않으며 UI에 노출하더라도 “준비 중” 또는 비활성 기능으로만 표현한다.
+- BPM·고급 모델 선택도 Backend 계약 전까지 `planned/disabled`다.
 - 입력 validity와 권장 범위를 inline으로 안내한다.
 
 ## 2. Lyrics

@@ -19,8 +19,13 @@
 | [ADR-012](ADR-012-pipeline-orchestrator.md) | Mock 기반 Pipeline Orchestrator와 단계 정책 | 승인 |
 | [ADR-013](ADR-013-audio-mixing-engine.md) | Default Audio Mixer의 gain·headroom·limiter·normalization·metadata 정책 | 승인 |
 | [ADR-014](ADR-014-lyrics-generator-architecture.md) | LyricsGenerator·Template Provider·Validator·DB·Pipeline 경계 | 승인 |
+| [ADR-017](ADR-017-frontend-technology-stack.md) | Phase 8 Frontend framework·style·state·form·test stack | 검토 필요 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 # Phase 6.5
 
 - [ADR-015 — External Lyrics LLM Provider](ADR-015-external-lyrics-llm-provider.md): OpenAI Responses API Adapter를 Experimental로 추가하고 Template 기본값, strict Schema, retry·fallback·비용·데이터 경계를 결정한다.
+
+# Phase 8
+
+- [ADR-017 — Frontend Technology Stack](ADR-017-frontend-technology-stack.md): F0 계약 검증과 함께 Frontend library·toolchain을 비교하며 최종 결정 전 구현·의존성 추가를 보류한다.

@@ -3,7 +3,7 @@
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 8 Doha Studio
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [Frontend Roadmap](../../planning/frontend-roadmap.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
@@ -72,7 +72,7 @@ frontend/
 └─ styles/
 ```
 
-실제 파일 확장자나 라이브러리는 구현 ADR에서 확정한다. 이 구조는 책임 경계이지 지금 파일을 생성하라는 지시가 아니다.
+실제 파일 확장자와 라이브러리는 `[검토 필요]` 상태의 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)에서 확정한다. F0 완료 전 구현 브랜치에서 임의로 package를 추가하지 않는다. 이 구조는 책임 경계이지 지금 파일을 생성하라는 지시가 아니다.
 
 ## 상태 모델
 
@@ -122,7 +122,9 @@ sequenceDiagram
 | 프로젝트·생성 이력 목록 | 불가 | 목록 API 선행 필요, 빈 shell만 설계 |
 | Job 취소·수동 retry | 불가 | 기능 비활성 및 후속 API 표시 |
 | 인증·소유권 | 불가 | 공개 운영 차단 조건 |
-| 모델 목록 | 문서와 실제 API 확인 필요 | UI에서 하드코딩된 선택 기능 금지 |
+| 모델 목록 | 불가 | `Backend Required`; UI에서 하드코딩된 선택 기능 금지 |
+
+상태 분류의 단일 기준은 [Frontend Overview의 지원 범위](frontend-overview.md#frontend-지원-범위)다. 이 표의 “가능”은 `Available`, “부분 가능”은 `Partial`, “불가”는 `Backend Required`를 뜻한다.
 
 ## 페이지별 API 상태 설계
 

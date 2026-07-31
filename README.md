@@ -2,7 +2,7 @@
 
 > Phase 6.5: OpenAI Responses API Lyrics Adapter가 `Experimental`로 추가되었고 기본 Provider는 계속 `template`입니다. 외부 API Key가 없어 실제 한국어 품질·지연·token·비용은 `[검증 필요]`, EVAL-006은 `[사용자 평가 필요]`입니다.
 
-> Phase 8: Doha Studio는 Premium Dark Music Workspace 방향의 Frontend 설계가 완료된 `[계획]` 상태입니다. React·Next.js 코드와 UI 컴포넌트는 아직 구현하지 않았으며 현재 Backend에 없는 upload/download·history·cancel/retry·인증 기능은 선행 조건으로 분리했습니다.
+> Phase 8: Doha Studio는 Premium Dark Music Workspace의 설계·F0 계약 검토 문서가 준비된 `[계획] 0%` 상태입니다. React·Next.js 코드와 UI 컴포넌트는 아직 구현하지 않았으며 현재 Backend에 없는 upload/download·history·cancel/retry·인증 기능은 `Backend Required`로 분리했습니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
@@ -66,7 +66,7 @@ flowchart LR
 
 ## 예상 기술 스택
 
-- Frontend: Next.js
+- Frontend: Next.js App Router 후보 **[검토 필요]**, 최종 stack은 [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)에서 결정
 - Backend/Orchestrator: FastAPI + PipelineExecutor **[완료]**
 - Persistence: SQLAlchemy 2, Alembic, SQLite **[완료]**
 - AI Worker: Provider-neutral 공유 ThreadPool Worker **[완료]**, 격리형 ACE-Step·Demucs·Seed-VC subprocess **[실험 완료]**
@@ -122,7 +122,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 목표와 범위: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md)
 - 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md)
 - 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md)
-- Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md)
+- Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md), [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
 - API와 데이터: [API 개요](docs/06-api/api-overview.md), [ERD](docs/07-database/erd.md)
 - 안전과 권리: [음성 동의 정책](docs/09-security/voice-consent-policy.md), [생성 콘텐츠 정책](docs/09-security/generated-content-policy.md)
 - 의사결정: [ADR 목록](docs/11-decisions/README.md)

@@ -4,6 +4,8 @@
 > 최종 수정일: 2026-07-31
 > 관련 문서: [Frontend Overview](frontend-overview.md), [Studio UX Flow](studio-ux-flow.md), [Navigation Guide](navigation-guide.md)
 
+페이지 기능 상태는 [Frontend 지원 범위](frontend-overview.md#frontend-지원-범위)의 `Available`, `Partial`, `Backend Required`, `Planned`를 사용한다.
+
 ## Landing
 
 - 목적: “음악을 만드는 공간”이라는 가치와 안전한 개인 창작 흐름 전달.
@@ -27,7 +29,7 @@
 
 - 목적: 명시적 동의가 있는 profile metadata 관리.
 - 구성: consent notice, create metadata form, current-session cards, delete confirmation.
-- API: `POST`, `DELETE /api/voice-profiles`; list/get/upload가 없음을 empty state에 명시.
+- API: `POST`, `DELETE /api/voice-profiles`는 `Partial`; list/get/upload는 `Backend Required`임을 empty state에 명시.
 
 ## Generation Progress
 
@@ -39,7 +41,7 @@
 
 - 목적: 완료 설정과 품질 metadata, 결과 file inventory 검토.
 - 구성: artwork/vinyl, disabled-or-active player, track info, quality panel, remake action.
-- API: Pipeline Job + files. 오디오 content/download는 Backend endpoint 선행 필요.
+- API: Pipeline Job + files metadata는 `Available`. 오디오 content streaming/download는 `Backend Required`다.
 
 ## Settings
 
