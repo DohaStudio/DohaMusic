@@ -6,9 +6,15 @@ from pathlib import Path
 from typing import Protocol
 
 from backend.ai.adapters.seed_vc.config import SeedVCConfig
-from backend.ai.adapters.seed_vc.runtime import SeedVCRuntimeResult, SubprocessSeedVCRuntime
+from backend.ai.adapters.seed_vc.runtime import (
+    SeedVCRuntimeResult,
+    SubprocessSeedVCRuntime,
+)
 from backend.ai.errors import VoiceOutputNotCreatedError
-from backend.ai.interfaces.voice_converter import VoiceConversionInput, VoiceConversionResult
+from backend.ai.interfaces.voice_converter import (
+    VoiceConversionInput,
+    VoiceConversionResult,
+)
 
 
 class SeedVCRuntime(Protocol):
@@ -20,7 +26,9 @@ class SeedVCRuntime(Protocol):
 class SeedVCAdapter:
     provider = "seed_vc"
 
-    def __init__(self, config: SeedVCConfig, runtime: SeedVCRuntime | None = None) -> None:
+    def __init__(
+        self, config: SeedVCConfig, runtime: SeedVCRuntime | None = None
+    ) -> None:
         self.config = config
         self.runtime = runtime or SubprocessSeedVCRuntime(config)
         self.model_name = config.model_name
@@ -29,7 +37,10 @@ class SeedVCAdapter:
         result = self.runtime.convert(
             request.source_path, request.reference_path, request.job_id
         )
-        if not result.converted_path.is_file() or result.converted_path.stat().st_size == 0:
+        if (
+            not result.converted_path.is_file()
+            or result.converted_path.stat().st_size == 0
+        ):
             raise VoiceOutputNotCreatedError("Seed-VC 출력 파일이 생성되지 않았습니다.")
         return VoiceConversionResult(
             converted_path=result.converted_path,

@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from backend.audio.interfaces import AudioMixInput, AudioMixer
 from backend.ai.interfaces.music_generator import GenerationInput, MusicGenerator
 from backend.ai.interfaces.stem_separator import StemSeparationInput, StemSeparator
 from backend.ai.interfaces.voice_converter import VoiceConversionInput, VoiceConverter
+from backend.audio.interfaces import AudioMixer, AudioMixInput
 from backend.core.job_status import JobStatus
 from backend.pipeline.audio import AudioExporter
 from backend.pipeline.context import PipelineContext

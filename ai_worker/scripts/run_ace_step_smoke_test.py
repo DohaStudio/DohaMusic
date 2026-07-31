@@ -17,7 +17,7 @@ import sys
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -213,7 +213,7 @@ def execute(
     baseline_vram = query_system_vram_mb()
     metadata: dict[str, Any] = {
         "experiment_id": output_dir.name,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "success": False,
         "request": asdict(request),
         "model_name": "ACE-Step 1.5",
@@ -324,7 +324,7 @@ def execute(
     except soundfile.LibsndfileError as exc:
         metadata.update(error_code="AI_AUDIO_DECODE_FAILED", error_message=str(exc))
         return EXIT_OUTPUT
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - 외부 추론 예외를 smoke 결과로 변환한다.
         metadata.update(error_code="AI_INFERENCE_FAILED", error_message=str(exc))
         return EXIT_INFERENCE
     finally:

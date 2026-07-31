@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class StemJob(Base):
@@ -48,7 +48,7 @@ class StemJob(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    files: Mapped[list["StemFile"]] = relationship(
+    files: Mapped[list[StemFile]] = relationship(
         back_populates="job",
         cascade="all, delete-orphan",
     )

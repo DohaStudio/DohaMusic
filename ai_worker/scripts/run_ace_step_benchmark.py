@@ -9,7 +9,7 @@ import os
 import sys
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +17,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from ai_worker.benchmarking import aggregate_runs, hash_file, hash_text  # noqa: E402
+from ai_worker.benchmarking import aggregate_runs, hash_file, hash_text
 
 
 class ResourceSampler:
@@ -299,7 +299,7 @@ def run_one(
             "error_message": type(exc).__name__,
             "seed": seed,
         }
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - 모델 런타임 예외를 벤치마크 결과로 격리한다.
         return {
             "run_id": run["run_id"],
             "success": False,
@@ -348,7 +348,7 @@ def execute(suite_path: Path, output_dir: Path, metadata_path: Path) -> int:
     configure_logs(output_dir)
     metadata: dict[str, Any] = {
         "experiment_id": suite["experiment_id"],
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "model_name": "ACE-Step 1.5",
         "model_version": required_env("DOHAMUSIC_AI_ACE_STEP_MODEL_VERSION"),
         "model_variant": required_env("DOHAMUSIC_AI_ACE_STEP_MODEL_VARIANT"),
@@ -399,7 +399,7 @@ def execute(suite_path: Path, output_dir: Path, metadata_path: Path) -> int:
             error_message=type(exc).__name__,
         )
         return 3
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - 외부 모델 초기화 실패를 metadata로 기록한다.
         metadata.update(
             success=False,
             error_code="AI_BENCHMARK_SETUP_FAILED",

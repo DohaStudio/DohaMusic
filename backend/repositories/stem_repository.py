@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -55,7 +55,7 @@ class StemRepository:
             )
         job.status = target.value
         job.current_step = current_step
-        job.updated_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(UTC)
         if target == JobStatus.COMPLETED:
             job.completed_at = job.updated_at
         self.session.commit()
@@ -75,7 +75,7 @@ class StemRepository:
         job.current_step = "failed"
         job.error_code = code
         job.error_message = message
-        job.updated_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(UTC)
         job.completed_at = job.updated_at
         self.session.commit()
         self.session.refresh(job)

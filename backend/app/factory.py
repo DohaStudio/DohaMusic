@@ -2,32 +2,24 @@
 
 from __future__ import annotations
 
-from collections.abc import Awaitable, Callable
-from collections.abc import AsyncIterator
+import time
+from collections.abc import AsyncIterator, Awaitable, Callable
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
-import time
 
 from fastapi import FastAPI, Request, Response
 
-from backend.audio.factory import create_audio_mixer
-from backend.lyrics.factory import create_lyrics_generator
 from backend.ai.factory import create_music_generator
 from backend.ai.stem_factory import create_stem_separator
 from backend.ai.voice_factory import create_voice_converter
 from backend.api.exception_handlers import register_exception_handlers
 from backend.api.router import api_router
+from backend.audio.factory import create_audio_mixer
 from backend.core.config import Settings, get_settings
 from backend.core.logging import configure_logging, get_logger
 from backend.db.migrations import upgrade_database
 from backend.db.session import create_session_factory
-from backend.services.generation_service import GenerationService
-from backend.services.lyrics_service import LyricsService
-from backend.services.pipeline_service import PipelineService
-from backend.services.stem_service import StemService
-from backend.services.voice_profile_service import VoiceProfileService
-from backend.services.voice_conversion_service import VoiceConversionService
-from backend.storage.service import StorageService
+from backend.lyrics.factory import create_lyrics_generator
 from backend.pipeline.audio import WavExporter
 from backend.pipeline.executor import PipelineExecutor
 from backend.pipeline.steps import (
@@ -37,6 +29,13 @@ from backend.pipeline.steps import (
     StemSeparationStep,
     VoiceConversionStep,
 )
+from backend.services.generation_service import GenerationService
+from backend.services.lyrics_service import LyricsService
+from backend.services.pipeline_service import PipelineService
+from backend.services.stem_service import StemService
+from backend.services.voice_conversion_service import VoiceConversionService
+from backend.services.voice_profile_service import VoiceProfileService
+from backend.storage.service import StorageService
 from backend.workers.dispatcher import ThreadPoolJobDispatcher
 from backend.workers.generation_worker import GenerationWorker
 from backend.workers.pipeline_worker import PipelineWorker

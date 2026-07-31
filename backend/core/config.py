@@ -102,7 +102,7 @@ class Settings(BaseModel):
         return value.strip().lower()
 
     @classmethod
-    def from_environment(cls) -> "Settings":
+    def from_environment(cls) -> Settings:
         """Read supported settings without loading or exposing secrets."""
 
         values: dict[str, object] = {}

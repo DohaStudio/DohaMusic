@@ -10,7 +10,7 @@ import os
 import subprocess
 import threading
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -143,7 +143,7 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
 
     metadata: dict[str, Any] = {
         "experiment_id": args.experiment_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "provider": "demucs",
         "model_name": args.model_name,
         "model_version": args.model_version,
@@ -243,7 +243,7 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
             error_message=type(exc).__name__,
         )
         return 3, metadata
-    except Exception as exc:
+    except Exception as exc:  # noqa: BLE001 - Demucs 경계의 예외를 구조화된 오류로 변환한다.
         metadata.update(
             success=False,
             error_code=(

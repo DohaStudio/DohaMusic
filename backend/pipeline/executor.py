@@ -5,10 +5,10 @@ from __future__ import annotations
 import time
 from collections.abc import Callable, Sequence
 
+from backend.core.logging import get_logger
 from backend.pipeline.context import PipelineContext
 from backend.pipeline.errors import PipelineError, ProviderError, StepTimeoutError
 from backend.pipeline.steps import PipelineStep
-from backend.core.logging import get_logger
 
 StepStartedCallback = Callable[[PipelineStep], None]
 logger = get_logger(__name__)

@@ -17,7 +17,11 @@ class VoiceConversionDispatcher(Protocol):
 
 
 class VoiceConversionService:
-    def __init__(self, session_factory: Callable[[], Session], dispatcher: VoiceConversionDispatcher) -> None:
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        dispatcher: VoiceConversionDispatcher,
+    ) -> None:
         self.session_factory = session_factory
         self.dispatcher = dispatcher
 

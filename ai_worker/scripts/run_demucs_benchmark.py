@@ -8,7 +8,7 @@ import os
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +16,7 @@ REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 if str(REPOSITORY_ROOT) not in sys.path:
     sys.path.insert(0, str(REPOSITORY_ROOT))
 
-from ai_worker.benchmarking import aggregate_stem_runs, hash_file  # noqa: E402
+from ai_worker.benchmarking import aggregate_stem_runs, hash_file
 
 
 def run_once(args: argparse.Namespace, run_number: int) -> dict[str, Any]:
@@ -121,7 +121,7 @@ def main() -> int:
     runs = [run_once(args, run_number) for run_number in range(1, args.runs + 1)]
     report = {
         "experiment_id": args.experiment_id,
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "input": {
             "name": args.input_path.name,
             "size_bytes": args.input_path.stat().st_size,

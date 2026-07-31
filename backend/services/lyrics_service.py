@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from hashlib import sha256
 
 from sqlalchemy.orm import Session
@@ -102,7 +102,7 @@ class LyricsService:
             "line_count": validation.line_count,
             "section_count": validation.section_count,
             "warnings": list(validation.warnings),
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
         values: dict[str, object] = {
             "result_hash": _content_hash(validation.normalized_lyrics),
@@ -208,7 +208,7 @@ class LyricsService:
             "generation_time_seconds": result.generation_time_seconds,
             "validation_time_seconds": validation_time,
             "warnings": list(validation.warnings),
-            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
         values: dict[str, object] = {
             "parent_id": source.id,

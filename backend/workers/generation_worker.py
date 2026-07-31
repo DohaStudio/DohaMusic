@@ -7,8 +7,8 @@ from collections.abc import Callable
 
 from sqlalchemy.orm import Session
 
-from backend.ai.interfaces.music_generator import GenerationInput, MusicGenerator
 from backend.ai.errors import MusicGenerationError
+from backend.ai.interfaces.music_generator import GenerationInput, MusicGenerator
 from backend.core.job_status import JobStatus
 from backend.core.logging import get_logger
 from backend.repositories.generation_repository import GenerationRepository

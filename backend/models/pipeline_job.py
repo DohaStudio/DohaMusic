@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.base import Base
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class PipelineJob(Base):
@@ -49,6 +49,6 @@ class PipelineJob(Base):
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    files: Mapped[list["PipelineFile"]] = relationship(
+    files: Mapped[list[PipelineFile]] = relationship(
         back_populates="job", cascade="all, delete-orphan"
     )

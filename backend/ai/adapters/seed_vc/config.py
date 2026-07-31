@@ -38,9 +38,7 @@ class SeedVCConfig:
             label for label, path in required_files.items() if not path.is_file()
         ]
         missing.extend(
-            label
-            for label, path in required_directories.items()
-            if not path.is_dir()
+            label for label, path in required_directories.items() if not path.is_dir()
         )
         if missing:
             raise VoiceProviderNotConfiguredError(
