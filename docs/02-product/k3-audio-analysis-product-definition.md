@@ -148,4 +148,3 @@ confidence는 `0.0`~`1.0`이며 알고리즘 검증 전 다음 경계는 provisi
 ## 성능 예산
 
 60초 Stereo WAV의 K3.1~K3.3 분석은 일반 로컬 CPU에서 수 초~수십 초 이내를 provisional 목표로 둔다. peak memory, CPU time, wall time, 입력 길이, sample rate, cancellation 관찰 지점을 기록한다. 실제 benchmark 전 고정 숫자를 승인 기준으로 사용하지 않으며 긴 곡과 동시 Job 예산은 K3.1 구현 PR에서 확정한다.
-

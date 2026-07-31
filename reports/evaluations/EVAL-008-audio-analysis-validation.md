@@ -92,4 +92,3 @@ Hook ground truth는 본질적으로 주관적이므로 “정확도” 단일 �
 - [ ] 실패·partial·unsupported와 구형 Result 회귀 통과
 
 현재 결과: `[미실행]`
-

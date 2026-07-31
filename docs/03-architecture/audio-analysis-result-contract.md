@@ -116,4 +116,3 @@ Preview는 `pipeline_files.file_type=preview` 후보로 등록하고 내부 상�
 ## 호환성과 무결성
 
 구형 Result는 `audio_analysis`가 없으며 이를 `not_requested`와 동일하게 표시할 수 있다. 알 수 없는 version이나 malformed JSON은 공개하지 않고 `unavailable`로 처리한다. 분석 metadata가 없어도 final WAV row와 secure access 검증이 통과하면 재생·다운로드는 가능하다.
-

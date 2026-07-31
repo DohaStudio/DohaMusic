@@ -65,4 +65,3 @@ Audio Analysis와 Preview dispatcher를 비활성화하고 신규 Result에서 �
 - JSON 크기·동시 update·atomicity가 문제가 됨
 - 외부 공개 운영에서 인증·소유권·retention 요구가 강화됨
 - EVAL-008이 후보 알고리즘의 정확도·성능·라이선스를 승인하지 못함
-

@@ -69,4 +69,3 @@ Retry와 Re-analysis는 식별자·수명주기·비용이 다른 작업이다. 
 ## 복구와 Rollback
 
 분석 기능을 비활성화하면 새 Result는 `not_requested`로 기록하거나 분석 필드를 생략한다. 기존 Result·WAV·secure content/download는 변경 없이 유지한다. 분석 장애가 반복되어도 Provider나 Mixer fallback으로 변환하지 않는다.
-
