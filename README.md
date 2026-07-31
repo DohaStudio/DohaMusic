@@ -6,12 +6,12 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> K-POP Creation Control Track: K0 문서·계약은 `[완료]`, K1 Preset MVP는 `[진행 중]`입니다. Dance·Easy Listening·Performance Preset을 Provider-neutral Prompt로 컴파일해 기존 Pipeline 요청에 연결하며, API DTO·DB·Provider 기본값은 변경하지 않습니다.
+> K-POP Creation Control Track: K0 문서·계약과 K1 Preset MVP는 `[완료]`입니다. Dance·Easy Listening·Performance Preset을 Provider-neutral Prompt로 컴파일해 기존 Pipeline 요청에 연결하며, API DTO·DB·Provider 기본값은 변경하지 않습니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0 완료 — K1 Preset MVP 진행 중**
+> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1 완료**
 > 최종 수정일: 2026-07-31
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 

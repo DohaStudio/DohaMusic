@@ -1,6 +1,6 @@
 # K-POP Provider Capability Matrix
 
-> 문서 상태: [진행 중]
+> 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
 > 관련 기능: K-POP Generation Capability
 > 관련 문서: [Generation Options](../03-architecture/kpop-generation-options.md), [EVAL-007](../../reports/evaluations/EVAL-007-kpop-dance-generation.md)

@@ -1,6 +1,6 @@
 # KPopPromptCompiler 설계
 
-> 문서 상태: [진행 중]
+> 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Provider-neutral K-POP Prompt 컴파일
 > 관련 문서: [Generation Options](kpop-generation-options.md), [Music Adapter](../04-models/music-generation-adapter.md), [ADR-022](../11-decisions/ADR-022-kpop-generation-control-layer.md)

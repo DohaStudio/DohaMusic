@@ -39,7 +39,7 @@
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| K0~K4. K-POP Creation Control | [진행 중] | K0 완료, K1 Preset Registry·Compiler·Studio 연결 구현 및 검증 진행 중 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
+| K0~K4. K-POP Creation Control | [진행 중] | K0·K1 완료, K2 Structured Generation Options 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## 현재 우선 작업

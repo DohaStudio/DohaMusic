@@ -24,7 +24,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Dance·Easy Listening·Performance Preset Registry와 Provider-neutral `KPopPromptCompiler`를 추가하고 사용자 Prompt를 최우선으로 유지했다.
 - Studio에서 기본 Dance Preset, Preset 설명과 Prompt Preview를 제공하고 컴파일 결과를 기존 Pipeline DTO의 `prompt`·`genre`로만 전송하도록 연결했다.
 - K-POP Lyrics Template에 Intro·Verse·Pre-Chorus·Chorus·Post-Chorus·Bridge·Final Chorus 구조와 저작권·아티스트 모방 방지 규칙을 반영했다.
-- K1을 `[진행 중]`으로 갱신했으며 `generation_options`, API·DB Migration, Provider 전용 제어, BPM·Hook Timestamp·Audio Analysis·LoRA·Dataset은 구현하지 않았다.
+- K1 Preset MVP의 Backend·Frontend·Desktop·Mobile 회귀 검증을 완료해 `[완료]`로 갱신했다. `generation_options`, API·DB Migration, Provider 전용 제어, BPM·Hook Timestamp·Audio Analysis·LoRA·Dataset은 구현하지 않았다.
 - Phase 8 이후 별도 K0~K4 제품 고도화 Track과 K-POP Dance·Easy Listening·Performance Preset 계약을 정의했다.
 - Generation Options, `KPopPromptCompiler`, Lyrics Template, Provider Capability Matrix와 capability 기반 Frontend UX 경계를 문서화했다.
 - EVAL-007 평가 계획, 권리 중심 Style Dataset 정책, ADR-022를 추가하고 현재 API·DB·Provider·Frontend에는 구현되지 않았음을 명시했다.

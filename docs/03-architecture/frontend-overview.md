@@ -81,7 +81,7 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 | `Backend Required` | 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
 
-K-POP 3종 Preset과 Prompt Preview는 K1 `Partial`로 Studio에 구현했다. 선택값은 Frontend의 버전이 고정된 Provider-neutral Compiler를 거쳐 기존 `prompt`·`genre`로 변환되며 `preset_id`나 `generation_options`를 전송하지 않는다. 구조화 Options와 Capability API는 `Planned`이고 실제 BPM 제어처럼 표시하지 않는다.
+K-POP 3종 Preset과 Prompt Preview는 K1 `[완료]` 범위로 Studio에 구현했다. 선택값은 Frontend의 버전이 고정된 Provider-neutral Compiler를 거쳐 기존 `prompt`·`genre`로 변환되며 `preset_id`나 `generation_options`를 전송하지 않는다. 구조화 Options와 Capability API는 `Planned`이고 실제 BPM 제어처럼 표시하지 않는다.
 
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.
 

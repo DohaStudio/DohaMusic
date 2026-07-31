@@ -46,9 +46,9 @@
 
 | ID | 표시 이름 | 목표 경험 | 기본 장르·분위기 | BPM 목표 | 에너지 | 보컬·Hook | Post-Chorus / Dance Break | 현재 상태 |
 |---|---|---|---|---:|---|---|---|---|
-| `kpop_dance` | K-POP Dance | 밝고 춤추기 쉬운 상업 Pop | dance pop, bright·confident | 120~128 | medium~high | 선명한 여성 보컬, 짧은 제목 반복 | 권장 / 선택 | [진행 중], Prompt Compiler |
-| `kpop_easy_listening` | K-POP Easy Listening | 편안하고 반복 청취 가능한 Pop | soft pop, warm·fresh | 100~120 | low~medium | 자연스러운 여성 보컬, 부드러운 Hook | 선택 / 미지원 | [진행 중], Prompt Compiler |
-| `kpop_performance` | K-POP Performance | 무대 대비와 강한 퍼포먼스 | performance pop, bold·intense | 120~140 | high | chant Hook, 강한 Chorus | 선택 / 선택 | [진행 중], Prompt Compiler |
+| `kpop_dance` | K-POP Dance | 밝고 춤추기 쉬운 상업 Pop | dance pop, bright·confident | 120~128 | medium~high | 선명한 여성 보컬, 짧은 제목 반복 | 권장 / 선택 | [완료], Prompt Compiler |
+| `kpop_easy_listening` | K-POP Easy Listening | 편안하고 반복 청취 가능한 Pop | soft pop, warm·fresh | 100~120 | low~medium | 자연스러운 여성 보컬, 부드러운 Hook | 선택 / 미지원 | [완료], Prompt Compiler |
+| `kpop_performance` | K-POP Performance | 무대 대비와 강한 퍼포먼스 | performance pop, bold·intense | 120~140 | high | chant Hook, 강한 Chorus | 선택 / 선택 | [완료], Prompt Compiler |
 
 향후 후보는 K-POP R&B, K-POP Pop Rock, Custom이다. Provider에 Preset을 직접 전달하지 않고 Compiler가 반영한다.
 
