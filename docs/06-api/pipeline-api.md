@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
-> 관련 기능: Phase 5 Pipeline Orchestrator, Phase 8 Audio Player·WAV Download·Cancel·Retry
+> 관련 기능: Phase 5 Pipeline Orchestrator, Phase 8 Audio Player·WAV Download·Cancel·Retry, K3.0 Audio Analysis 계약
 
 ## 생성
 
@@ -69,3 +69,18 @@ Files response는 `id`, `job_id`, `file_type`, `mime_type`, `created_at`, `conte
 Mixer step의 `details.audio_quality`에는 provider·처리 시간, 출력 duration·sample rate·channels·size, 보컬·반주·normalization gain, 목표·실제 headroom, peak·RMS, normalization·limiter·fade, silence, PCM 직전 clipping과 보호 처리 전 over-range가 포함된다. True Peak는 현재 미지원이므로 `true_peak_supported=false`, `true_peak_dbfs=null`이다.
 
 인증·소유권 검사는 포함하지 않는다. Generation·Stem·Voice Conversion 개별 API에는 content endpoint를 추가하지 않았으며 첫 제공 범위는 Pipeline 결과다.
+
+## K3 Audio Analysis 공개 계약 [계획]
+
+K3.0 문서 단계에서는 endpoint·DTO·DB를 추가하지 않는다. K3 구현 시 공개 Pipeline Result는 optional nested allowlist로 다음 범위만 제공한다.
+
+- `analysis_status`, `audio_analysis_version`
+- duration·sample rate·channels·Sample Peak·clipping·Integrated LUFS
+- 검증을 통과한 경우에만 True Peak
+- detected BPM·confidence·requested BPM 차이
+- Hook/Chorus 후보 시간과 confidence
+- Preview 상태와 opaque file ID 기반 secure content/download URL
+
+내부 path·command·temporary/model path·stack trace·raw analyzer debug와 전체 metadata는 반환하지 않는다. Preview는 기존 Files API의 완료 Job·WAV·Storage·symlink·MIME·RIFF 검증과 `private, no-store` 정책을 재사용하는 것이 목표다.
+
+분석 실패는 기본적으로 Pipeline `COMPLETED`와 final WAV 재생·다운로드를 바꾸지 않는다. 구형 Result와 분석 미요청 Result에는 필드가 없을 수 있다. 상세 계약은 [Audio Analysis 결과 계약](../03-architecture/audio-analysis-result-contract.md)과 [실패 정책](../03-architecture/audio-analysis-failure-policy.md)을 따른다.

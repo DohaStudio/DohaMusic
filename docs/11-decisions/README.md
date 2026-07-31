@@ -26,6 +26,7 @@
 | [ADR-020](ADR-020-project-history-retention.md) | History projection·Default Project·Project 삭제 시 Job/파일 보존 | 승인 |
 | [ADR-021](ADR-021-pipeline-job-cancel-retry.md) | cooperative Cancel·새 Job Retry·입력 Snapshot·원본 관계 | 승인 |
 | [ADR-022](ADR-022-kpop-generation-control-layer.md) | K-POP Preset·Generation Options·Prompt Compiler·Capability 경계 | 승인 |
+| [ADR-023](ADR-023-audio-analysis-and-preview-architecture.md) | 최종 WAV 비차단 Audio Analysis·Preview·저장·실패 경계 | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 # Phase 6.5
@@ -47,3 +48,4 @@
 # K-POP Creation Control
 
 - [ADR-022 — K-POP Generation Control Layer](ADR-022-kpop-generation-control-layer.md): Provider-neutral Preset·Options·Compiler·Capability·Snapshot·평가·권리 경계를 결정한다.
+- [ADR-023 — Audio Analysis와 Preview 아키텍처](ADR-023-audio-analysis-and-preview-architecture.md): 최종 WAV 기반 비차단 분석, versioned metadata, confidence, Preview와 secure access 경계를 결정한다.

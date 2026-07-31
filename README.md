@@ -6,12 +6,12 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> K-POP Creation Control Track: K0·K1·K2는 `[완료]`입니다. optional Structured Generation Options를 Backend validation·Prompt Compiler·JSON Input Snapshot·Retry와 Studio·History·Project에 연결했으며 DB Migration과 Provider 기본값은 변경하지 않았습니다.
+> K-POP Creation Control Track: K0·K1·K2와 K3.0 계약·평가 문서는 `[완료]`입니다. K3.1~K3.4 Audio Quality·Tempo·Hook Candidate·Preview 기능은 `[계획]`이며 실제 분석값이나 Preview는 아직 제공하지 않습니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2 완료**
+> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2 및 K3.0 문서 완료**
 > 최종 수정일: 2026-07-31
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -35,7 +35,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [실험 완료] | HTDemucs 4.1.0 보컬/반주 분리, 48kHz Stereo 출력, RTX 3060 Ti Benchmark |
 | [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
 | [진행 중] | Responsive Studio에서 프롬프트·직접 작성/생성 가사 기반 Pipeline 요청 |
-| [완료] | Pipeline 장르·길이·Seed와 K-POP 목표 BPM Prompt 설정; 실제 BPM 분석은 K3 계획 |
+| [완료] | Pipeline 장르·길이·Seed와 K-POP 목표 BPM Prompt 설정; 실제 분석은 K3.1~K3.4 계획 |
 | [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
 | [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
 | [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
@@ -51,6 +51,8 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | Frontend Pipeline 상태·진행률·오류·cooperative Cancel·새 Job Retry |
 | [완료] | Pipeline 기반 생성 History·Project 관리와 Result 재진입·재생·다운로드 |
 | [완료] | K-POP Structured Generation Options 검증·Prompt 컴파일·Snapshot·Retry·공개 설정 요약 |
+| [완료] | K3.0 Audio Analysis 제품·결과·실패·평가·라이브러리·ADR 계약 문서 |
+| [계획] | K3.1 Quality Metrics·K3.2 Tempo·K3.3 Hook Candidate·K3.4 Preview 실제 구현 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 
@@ -151,7 +153,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 의사결정: [ADR 목록](docs/11-decisions/README.md)
 - Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Audio Quality Engine](docs/03-architecture/audio-quality-engine.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)
 - Lyrics AI: [Architecture](docs/03-architecture/lyrics-ai.md), [API](docs/06-api/lyrics-api.md), [Dataset Policy](docs/05-data/lyrics-dataset-policy.md), [Local LLM Roadmap](planning/local-lyrics-llm-roadmap.md), [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)
-- K-POP 제작 제어: [제품 정의](docs/02-product/kpop-creation-product-definition.md), [Generation Options](docs/03-architecture/kpop-generation-options.md), [Prompt Compiler](docs/03-architecture/kpop-prompt-compiler.md), [Capability Matrix](docs/04-models/kpop-provider-capability-matrix.md), [Dataset Policy](docs/05-data/kpop-style-dataset-policy.md), [Roadmap](planning/kpop-creation-roadmap.md), [ADR-022](docs/11-decisions/ADR-022-kpop-generation-control-layer.md), [EVAL-007](reports/evaluations/EVAL-007-kpop-dance-generation.md)
+- K-POP 제작 제어: [제품 정의](docs/02-product/kpop-creation-product-definition.md), [Generation Options](docs/03-architecture/kpop-generation-options.md), [Prompt Compiler](docs/03-architecture/kpop-prompt-compiler.md), [Capability Matrix](docs/04-models/kpop-provider-capability-matrix.md), [K3 Audio Analysis](docs/02-product/k3-audio-analysis-product-definition.md), [K3 결과 계약](docs/03-architecture/audio-analysis-result-contract.md), [Roadmap](planning/kpop-creation-roadmap.md), [ADR-023](docs/11-decisions/ADR-023-audio-analysis-and-preview-architecture.md), [EVAL-008](reports/evaluations/EVAL-008-audio-analysis-validation.md)
 
 ## 안전 및 음성 사용 정책
 

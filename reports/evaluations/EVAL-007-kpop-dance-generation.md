@@ -3,7 +3,7 @@
 > 상태: [계획]
 > 작성일: 2026-07-31
 > 최종 수정일: 2026-07-31
-> 관련 문서: [Capability Matrix](../../docs/04-models/kpop-provider-capability-matrix.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md), [EVAL-001](EVAL-001-ace-step-listening-evaluation.md)
+> 관련 문서: [Capability Matrix](../../docs/04-models/kpop-provider-capability-matrix.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md), [EVAL-001](EVAL-001-ace-step-listening-evaluation.md), [EVAL-008](EVAL-008-audio-analysis-validation.md)
 
 ## 목적과 원칙
 
@@ -31,7 +31,9 @@ Korean Dance Pop을 DohaMusic의 대표 제품 평가 시나리오로 검증한�
 | 1 | 30초, 동일 Prompt, Seed 3개 이상, K-POP Dance, 0.6B LM 우선 후보 | 기본 리듬·음질·Prompt 반영 | [계획] |
 | 2 | 60초, 동일 Prompt·Lyrics, Seed 3개 이상 | 구조·Hook·발음·가사 일치 | [계획] |
 | 3 | 동의된 본인 Voice Conversion 적용 | 발음·음색·고음·빠른 가사·입력 적합성 | [계획] |
-| 4 | BPM·Hook timestamp·15초 Preview·LUFS·True Peak | 구현 후 자동·청취 평가 | [보류: 기능 미구현] |
+| 4 | BPM·Hook candidate·15초 Preview·LUFS·True Peak | EVAL-008 계약과 구현 후 자동·청취 평가 | [보류: K3.1~K3.4 미구현] |
+
+K3.0에서 분석·평가 계약만 완료했다. `detected_bpm`, Hook/Chorus 시간과 confidence는 추정값이며 EVAL-008 검증 전 EVAL-007의 생성 품질 점수나 Provider 승격 근거로 사용하지 않는다.
 
 ## 점수 기준
 

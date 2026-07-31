@@ -21,6 +21,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### K-POP Creation Control Layer
 
+- K3.0 Audio Analysis의 최종 `final.wav` 분석 source, 비차단 Pipeline 성공 경계, versioned Result metadata JSON, 공개 allowlist와 secure Preview 수명주기를 정의했다.
+- Quality Metrics·Tempo·Hook Candidate·15초 Preview를 K3.1~K3.4로 분리하고 confidence·실패·Cancel·Retry/Re-analysis·fallback·단계별 DoD를 문서화했다.
+- Audio Analysis 라이브러리·ITU-R BS.1770-5·EBU R 128 후보 비교, EVAL-008 검증 계획과 ADR-023을 추가했다. 코드·DTO·DB·의존성은 변경하지 않았고 K3 기능은 `[계획]`으로 유지했다.
 - optional `generation_options`에 Preset·목표 BPM·언어 비율·Hook·Post-Chorus·Dance Break·보컬 에너지·Concept strict DTO와 사용자 친화 validation 오류를 추가했다.
 - Backend 최종 `KPopPromptCompiler` 결과와 원본·정규화 옵션·compiler version을 기존 JSON Input Snapshot에 저장하고 Retry·History·Project·Result 공개 allowlist에 연결했다.
 - Studio에 Preset별 기본 Structured Options, 고급 설정·초기화·즉시 Prompt Preview·Review·Desktop/Mobile History 요약을 추가했다.
