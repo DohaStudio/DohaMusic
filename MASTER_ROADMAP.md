@@ -13,7 +13,7 @@
 Phase 번호는 변경하지 않는다. 기본 Provider는 `template`이며 Phase 6 자체의 완료 상태와 External Provider의 Experimental 상태를 분리한다.
 
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.
 > 관련 문서: [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md), [작업 지침](AGENTS.md), [ADR](docs/11-decisions/README.md), [변경 이력](CHANGELOG.md)
 
@@ -64,7 +64,7 @@ Phase 9  Production                  [계획]
 | 5. Pipeline Integration | [완료] | `██████████ 100%` | Mock Voice 기반 Orchestrator·API·실패 정책 검증 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [완료] | `██████████ 100%` | 로컬 Template·Mock Generator·API·검증·Benchmark 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [계획] | `░░░░░░░░░░ 0%` | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [계획] | `░░░░░░░░░░ 0%` | Premium Studio UX·Architecture 문서 완료, Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## Phase 0. 프로젝트 문서화 — [완료]
@@ -183,12 +183,12 @@ Phase 9  Production                  [계획]
 ## Phase 8. Doha Studio — [계획]
 
 - 목표: 생성·편집·재생·이력·파일 관리를 제공하는 사용자 Studio를 구축한다.
-- 구현 범위·포함 기능: Frontend, Player, History, Download·Upload, Voice·Prompt 화면과 API 연동.
+- 구현 범위·포함 기능: Premium Dark Studio shell, responsive workspace, Lyrics·Voice·Prompt 화면, Pipeline 상태, Player·History·Download·Upload와 API 연동 계획.
 - 제외 기능: Production 인프라 전환과 공개 운영 승인.
 - 선행 조건: Phase 5 Pipeline API와 인증·소유권 설계.
 - 완료 조건: [Phase-08 DoD](docs/DoD/Phase-08.md), 주요 화면·접근성·빌드·E2E·권한 검증.
-- 산출물: Frontend 애플리케이션, UI 문서, E2E 결과.
-- 관련 문서: [Frontend Architecture](docs/03-architecture/frontend-architecture.md), [User Scenarios](docs/00-overview/user-scenarios.md).
+- 산출물: Frontend 애플리케이션, Design System·Component·Responsive·Studio UX 문서, E2E 결과.
+- 관련 문서: [Frontend Overview](docs/03-architecture/frontend-overview.md), [Frontend Architecture](docs/03-architecture/frontend-architecture.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Frontend Roadmap](planning/frontend-roadmap.md), [User Scenarios](docs/00-overview/user-scenarios.md).
 - 관련 ADR·실험: Frontend·인증 결정 ADR 검토 필요, 아직 없음.
 - 예상 다음 단계: Phase 9 Production.
 

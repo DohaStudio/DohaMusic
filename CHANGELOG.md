@@ -2,11 +2,20 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### Phase 8 — Doha Studio Frontend Design
+
+#### 문서
+
+- 첨부된 Vinyl Music Dashboard를 기준으로 Premium Dark Music Studio의 Frontend Overview, Architecture, Design System, Atomic Component, Responsive, Studio UX, Navigation과 Page Structure를 설계했다.
+- Desktop 3-column workspace, Tablet drawer, Mobile bottom navigation·step flow와 Player·Waveform·motion·접근성 기준을 정의했다.
+- 현재 FastAPI endpoint별 page·request·response·loading·error·retry·polling 흐름과 upload/download·history·cancel/retry·인증 등 미구현 API gap을 구분했다.
+- Phase 8 상태는 Frontend 코드 미구현에 따라 `[계획] 0%`로 유지하고 구현 순서를 Frontend Roadmap으로 정리했다.
 
 ### Phase 6.5 — External Lyrics LLM Provider
 
