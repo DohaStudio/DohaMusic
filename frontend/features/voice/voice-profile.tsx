@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Button, ErrorAlert, Field, Input } from "@/components/ui";
-import { ApiError } from "@/services/api-client";
+import { userErrorMessage } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import type { VoiceProfileDto } from "@/types/api";
@@ -69,9 +69,9 @@ export function VoiceProfilePanel() {
   return (
     <section className="page-stack">
       <header className="page-heading">
-        <p className="eyebrow">VOICE PROFILE</p>
-        <h1>동의된 목소리만, 안전하게</h1>
-        <p>WAV를 등록하고 Studio에서 사용할 Voice Profile을 선택하세요.</p>
+        <p className="eyebrow">내 목소리</p>
+        <h1>내 목소리로 노래할 준비</h1>
+        <p>깨끗하게 녹음한 목소리를 등록하고 음악 만들기에 사용하세요.</p>
       </header>
       <div className="two-panel">
         <form
@@ -84,8 +84,8 @@ export function VoiceProfilePanel() {
             upload.mutate();
           }}
         >
-          <h2>새 Voice Profile</h2>
-          <Field label="Profile 이름" htmlFor="voice-upload-name">
+          <h2>새 목소리 등록</h2>
+          <Field label="목소리 이름" htmlFor="voice-upload-name">
             <Input
               id="voice-upload-name"
               value={name}
@@ -94,9 +94,9 @@ export function VoiceProfilePanel() {
             />
           </Field>
           <Field
-            label="참조 음성 WAV"
+            label="목소리 파일"
             htmlFor="voice-upload-file"
-            hint="25MB 이하 · 5~60초 · 16kHz 이상 · mono/stereo 16-bit PCM"
+            hint="주변 소음과 음악이 없는 10~30초 WAV 녹음을 권장합니다. 최대 25MB입니다."
           >
             <input
               id="voice-upload-file"
@@ -123,11 +123,11 @@ export function VoiceProfilePanel() {
           {clientError && <ErrorAlert message={clientError} />}
           {upload.isPending && <p role="status">파일 업로드와 음성 검증을 진행 중입니다…</p>}
           <Button disabled={!name || !file || !consent || upload.isPending}>
-            {upload.isPending ? "등록 중…" : "Voice Profile 등록"}
+            {upload.isPending ? "등록 중…" : "내 목소리 등록"}
           </Button>
         </form>
         <article className="surface-card">
-          <h2>등록된 Voice Profile</h2>
+          <h2>등록한 목소리</h2>
           {profiles.isPending ? (
             <p role="status">목록을 불러오는 중입니다…</p>
           ) : profiles.data?.length ? (
@@ -148,14 +148,14 @@ export function VoiceProfilePanel() {
           ) : (
             <div className="empty">
               <span>◉</span>
-              <p>등록된 목소리가 없습니다. 새 Voice Profile을 업로드하세요.</p>
+              <p>아직 등록한 목소리가 없습니다. 왼쪽에서 첫 목소리를 등록해 보세요.</p>
             </div>
           )}
         </article>
       </div>
       {error && (
         <ErrorAlert
-          message={error instanceof ApiError ? error.message : "요청에 실패했습니다."}
+          message={userErrorMessage(error)}
         />
       )}
       {isDevVoicePathEnabled() && <DevelopmentVoiceProfileForm />}
@@ -184,7 +184,7 @@ export function ProfileCard({
         <p>
           {profile.duration_seconds?.toFixed(1) ?? "—"}초 · {profile.sample_rate ? `${profile.sample_rate / 1000}kHz` : "—"} · {profile.channels ? `${profile.channels}ch` : "—"}
         </p>
-        <small>{profile.status}{selected ? " · Studio에서 선택됨" : ""}</small>
+        <small>{profile.status}{selected ? " · 음악 만들기에 선택됨" : ""}</small>
         {profile.quality_warnings.map((warning) => (
           <small className="warning-copy" key={warning}>{warning}</small>
         ))}

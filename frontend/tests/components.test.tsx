@@ -29,7 +29,7 @@ describe("Frontend components", () => {
   });
   it("모바일에서도 사용되는 step에 aria-current를 표시한다", () => {
     render(<StepIndicator current="voice" />);
-    expect(screen.getByText("목소리").closest("li")).toHaveAttribute(
+    expect(screen.getByText("내 목소리").closest("li")).toHaveAttribute(
       "aria-current",
       "step",
     );

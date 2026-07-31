@@ -13,10 +13,10 @@ export function ApiStatus() {
       tone={query.isSuccess ? "success" : query.isPending ? "neutral" : "error"}
     >
       {query.isSuccess
-        ? "API 연결됨"
+        ? "음악 만들기 가능"
         : query.isPending
-          ? "API 확인 중"
-          : "API 오프라인"}
+          ? "연결 확인 중"
+          : "음악 생성 서버에 연결할 수 없습니다"}
     </Badge>
   );
 }

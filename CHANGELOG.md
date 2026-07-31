@@ -25,6 +25,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### Phase 8 — Doha Studio Frontend MVP
 
+- 기술 중심의 화면 문구를 일반 사용자 중심의 한국어 창작 흐름으로 개편하고 장르·분위기·길이 선택, 단계별 도움말, 첫 방문 안내와 비활성 사유를 추가했다.
+- `NEXT_PUBLIC_ENABLE_DEVELOPER_INFO` 플래그로 내부 연결·생성 방식 정보를 기본 화면에서 분리하고, 사용자 친화적 오류·로딩·빈 상태와 키보드 포커스 동작을 보강했다.
+- 기존 API 계약과 Backend 동작, Phase 8 `14/15, 93%` 진행률은 변경하지 않았다.
+
 - History 최신순·검색·상태·페이지네이션·상세 API와 Project CRUD·Default Project 자동 연결을 추가했다.
 - Project 삭제 시 Pipeline Job·결과 파일을 보존하고 연결만 해제하는 migration과 ADR-020을 추가했다.
 - `/history`, `/projects`, `/projects/[id]` 화면, Zustand Store, Result 재진입·Player·Download 연결을 추가하고 Phase 8을 `14/15, 93%`로 갱신했다.

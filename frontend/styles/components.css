@@ -526,3 +526,15 @@
     transform: rotate(360deg);
   }
 }
+.choice-group { border: 0; padding: 0; margin: 0; }
+.choice-group legend { font-weight: 700; margin-bottom: .35rem; }
+.choice-group > p, .disabled-reason { color: var(--muted); font-size: .875rem; margin: .25rem 0 .75rem; }
+.choice-chips, .duration-presets { display: flex; flex-wrap: wrap; gap: .65rem; }
+.choice-chips button, .duration-presets button { border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--text); padding: .65rem 1rem; }
+.choice-chips button.selected, .choice-chips button[aria-pressed="true"], .duration-presets button.selected { border-color: var(--red); background: color-mix(in srgb, var(--red) 18%, transparent); }
+.advanced-settings, .dev-only { border: 1px solid var(--line); border-radius: 1rem; padding: 1rem; }
+.advanced-settings summary, .dev-only summary { cursor: pointer; font-weight: 700; }
+.modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgba(0, 0, 0, .72); }
+.onboarding-dialog { width: min(32rem, 100%); border: 1px solid var(--line); border-radius: 1.5rem; padding: 2rem; background: var(--surface); color: var(--text); box-shadow: 0 1.5rem 5rem rgba(0,0,0,.45); }
+.onboarding-dialog ol { display: grid; gap: .8rem; padding-left: 1.4rem; }
+button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }

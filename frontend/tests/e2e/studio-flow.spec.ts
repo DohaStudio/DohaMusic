@@ -37,6 +37,9 @@ const pipeline = {
   updated_at: "2026-07-31T00:00:01Z",
   completed_at: "2026-07-31T00:00:01Z",
 };
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem("doha-studio-settings", JSON.stringify({ state: { reducedMotion: null, onboardingCompleted: true }, version: 0 })));
+});
 async function mockBackend(page: Page) {
   await page.route("**/backend/health", (r) =>
     r.fulfill({ json: { status: "ok" } }),
@@ -108,9 +111,9 @@ test("History에서 Result와 Player로 다시 이동한다", async ({ page }) =
   await mockBackend(page);
   await page.goto("/history");
   await expect(page.getByRole("heading", { name: "새벽 도시 R&B" })).toBeVisible();
-  await page.getByRole("button", { name: "Play" }).click();
+  await page.locator(".history-row").getByRole("button", { name: "재생" }).click();
   await expect(page.locator("audio")).toHaveAttribute("src", "/backend/api/pipelines/job-001/files/file-1/content");
-  await page.getByRole("link", { name: "Open" }).click();
+  await page.getByRole("link", { name: "자세히 보기" }).click();
   await expect(page).toHaveURL(/\/result\/job-001/);
   await expect(page.getByRole("link", { name: "WAV 다운로드" })).toBeVisible();
 });
@@ -129,20 +132,20 @@ test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async 
     page.getByRole("heading", { name: /당신의 이야기가/ }),
   ).toBeVisible();
   await page.getByRole("link", { name: /첫 곡 만들기/ }).click();
-  await page.getByLabel("음악 설명").fill("새벽 도시 R&B");
-  await page.getByLabel("길이 (초)").fill("45");
-  await page.getByRole("button", { name: "가사 단계로" }).click();
-  await page.getByLabel("가사").fill("[Verse]\n빛나는 거리");
-  await page.getByRole("button", { name: "가사 검증" }).click();
-  await expect(page.getByText("검증을 통과했습니다.")).toBeVisible();
-  await page.getByRole("button", { name: "목소리 선택" }).click();
+  await page.getByLabel("노래 설명").fill("새벽 도시 R&B");
+  await page.getByRole("button", { name: /1절 중심/ }).click();
+  await page.getByRole("button", { name: "가사 준비하기" }).click();
+  await page.getByRole("textbox", { name: "가사" }).fill("[Verse]\n빛나는 거리");
+  await page.getByRole("button", { name: "작성 내용 확인" }).click();
+  await expect(page.getByText("가사 구성을 확인했습니다.")).toBeVisible();
+  await page.getByRole("button", { name: "내 목소리 선택" }).click();
   await page.getByRole("radio", { name: /Doha Voice/ }).click();
-  await page.getByRole("button", { name: "생성 확인" }).click();
-  await expect(page.getByText("45초")).toBeVisible();
-  await page.getByRole("button", { name: "음악 생성 시작" }).click();
+  await page.getByRole("button", { name: "최종 확인" }).click();
+  await expect(page.getByText("60초")).toBeVisible();
+  await page.getByRole("button", { name: "음악 만들기" }).click();
   await expect(page).toHaveURL(/\/result\/job-001/);
   await expect(
-    page.getByRole("heading", { name: "결과 Metadata" }),
+    page.getByRole("heading", { name: "완성 정보" }),
   ).toBeVisible();
   await expect(
     page.getByRole("link", { name: "WAV 다운로드" }),
@@ -154,14 +157,14 @@ test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async 
     "src",
     "/backend/api/pipelines/job-001/files/file-1/content",
   );
-  await page.getByRole("button", { name: "Player에서 재생" }).click();
+  await page.locator(".result-hero").getByRole("button", { name: "재생" }).click();
   const resultPause = page.locator(".result-hero").getByRole("button", {
     name: "일시정지",
   });
   await expect(resultPause).toBeVisible();
   await resultPause.click();
   await expect(
-    page.getByRole("button", { name: "Player에서 재생" }),
+    page.locator(".result-hero").getByRole("button", { name: "재생" }),
   ).toBeVisible();
   await expect(page.getByText("C:/internal/final.wav")).toHaveCount(0);
 });
@@ -170,16 +173,16 @@ test("Voice WAV를 등록하고 목록에서 선택한다", async ({
 }, testInfo) => {
   await mockBackend(page);
   await page.goto("/voice");
-  await page.getByLabel("Profile 이름").fill("Doha Voice");
-  await page.getByLabel("참조 음성 WAV").setInputFiles({
+  await page.getByLabel("목소리 이름").fill("Doha Voice");
+  await page.getByLabel("목소리 파일").setInputFiles({
     name: "voice-reference.wav",
     mimeType: "audio/wav",
     buffer: Buffer.from("RIFFmock-dataWAVE"),
   });
   await page.getByRole("checkbox").check();
-  await page.getByRole("button", { name: "Voice Profile 등록" }).click();
+  await page.getByRole("button", { name: "내 목소리 등록" }).click();
   await expect(page.getByText("Doha Voice").first()).toBeVisible();
-  await expect(page.getByText(/Studio에서 선택됨/)).toBeVisible();
+  await expect(page.getByText(/음악 만들기에 선택됨/)).toBeVisible();
   await expect(page.getByLabel("서버 참조 파일 경로")).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
     await expect(
@@ -228,9 +231,9 @@ test("Template 가사는 의미 기반 revision을 활성화하지 않는다", a
 
   await page.goto("/lyrics");
   await page.getByLabel("주제").fill("밤");
-  await page.getByRole("button", { name: "가사 생성" }).click();
+  await page.getByRole("button", { name: "가사 만들어보기" }).click();
 
-  await expect(page.getByText("의미 기반 수정 미지원")).toBeVisible();
+  await expect(page.getByText(/AI에게 다시 고쳐달라고 요청하는 기능은 준비 중/)).toBeVisible();
   await expect(page.getByLabel("수정 지시")).toHaveCount(0);
 });
 
@@ -243,9 +246,9 @@ test("네트워크 오류에서도 Job ID를 보존하고 수동 재조회를 �
 
   await page.goto("/generation/network-job");
 
-  await expect(page.getByText("Backend 연결이 불안정합니다")).toBeVisible();
-  await expect(page.getByText(/Job은 취소되지 않았습니다/)).toBeVisible();
-  await expect(page.getByRole("button", { name: "수동 재조회" })).toBeVisible();
+  await expect(page.getByText("진행 상태를 불러오지 못했습니다")).toBeVisible();
+  await expect(page.getByText("음악 생성 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "다시 확인" })).toBeVisible();
   await page.reload();
   await expect(page).toHaveURL(/\/generation\/network-job/);
 });

@@ -27,7 +27,7 @@ export const useHistoryStore = create<HistoryState>((set, get) => ({
       const items = await dohaApi.getHistory({ q: query || undefined, status: status || undefined });
       set({ items, loading: false });
     } catch {
-      set({ loading: false, error: "History를 불러오지 못했습니다." });
+      set({ loading: false, error: "만든 음악을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." });
     }
   },
 }));
