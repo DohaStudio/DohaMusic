@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-01
-> 관련 기능: Phase 8 History·Project, K3.1 Audio Quality Metrics
+> 관련 기능: Phase 8 History·Project, K3.1 Quality, K3.2 Tempo
 > 관련 문서: [Pipeline API](pipeline-api.md), [ADR-020](../11-decisions/ADR-020-project-history-retention.md)
 
 ## Endpoint
@@ -23,11 +23,11 @@ History와 Project Job 공개 필드는 기존 필드에 allowlist `generation_o
 
 취소된 Job은 History와 Project에서 삭제하지 않는다. Retry Job은 원본 Structured Options·Seed·Voice·Project를 복원해 최신순 History에 별도 Job으로 표시한다. 원본 Project가 없으면 기존 Default Project 정책을 적용하고, 구형 Job에는 기존 Snapshot 호환 경로를 사용한다.
 
-## K3.1 Audio Analysis 표시 계약 [완료]
+## K3.1·K3.2 Audio Analysis 표시 계약 [완료]
 
-- History 목록: analysis status, clipping, Integrated LUFS 요약
-- History 상세: Result와 같은 K3.1 quality allowlist
-- Project Job 목록: History와 같은 간결한 quality 요약
+- History 목록: analysis status, clipping, Integrated LUFS와 Tempo status 요약
+- History 상세: Result와 같은 quality·Tempo allowlist
+- Project Job 목록: 간결한 quality와 예상 Tempo 요약
 - 구형·미분석 Job: 분석 정보 없음으로 표시하고 final WAV capability는 유지
 
-Project 삭제는 현행처럼 Job 연결만 해제하므로 분석 metadata는 Job과 함께 보존한다. 내부 path·source role·warning code·raw metadata·stack은 노출하지 않는다. Tempo·Hook·Preview는 K3.2~K3.4 계획이다.
+Project 삭제는 현행처럼 Job 연결만 해제하므로 분석 metadata는 Job과 함께 보존한다. 내부 path·source role·warning code·raw onset/frame/FFT·stack은 노출하지 않는다. Hook·Preview는 K3.3~K3.4 계획이다.

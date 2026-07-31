@@ -2,14 +2,14 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-01
-> 관련 기능: K3.0 계약·평가, K3.1 Audio Quality Metrics MVP
+> 관련 기능: K3.0 계약·평가, K3.1 Audio Quality Metrics MVP, K3.2 Tempo Analysis MVP
 > 관련 문서: [결과 계약](../03-architecture/audio-analysis-result-contract.md), [실패 정책](../03-architecture/audio-analysis-failure-policy.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
 ## 목적과 제품 경계
 
 K3 Audio Analysis는 생성된 WAV의 기술적 품질과 음악적 특성을 후처리 단계에서 분석해 사용자에게 참고 정보를 제공하는 계층이다. 분석값은 생성 모델의 구조 준수를 보장하지 않으며 오탐·미탐·실패 가능성이 있는 측정 또는 추정 결과다. K3는 K2의 Prompt 목표를 검증할 단서를 제공하지만 Provider를 제어하거나 결과를 교정하지 않는다.
 
-K3.0 계약에 따라 K3.1은 완료 Pipeline의 `final.wav`를 Provider-neutral 후처리로 분석한다. DB·Provider·기존 파일 API는 변경하지 않았으며 K3.2~K3.4는 `[계획]`이다.
+K3.0 계약에 따라 K3.1·K3.2는 완료 Pipeline의 `final.wav`를 Provider-neutral 후처리로 분석한다. DB·Provider·기존 파일 API는 변경하지 않았으며 K3.3~K3.4는 `[계획]`이다.
 
 ## 값의 의미
 
@@ -78,9 +78,9 @@ DoD:
 
 차단 조건: 표준 구현 미확정, reference 오차 기준 미충족, 내부 경로 공개, Pipeline 성공과 분석 성공의 결합.
 
-### K3.2 Tempo Analysis — [계획]
+### K3.2 Tempo Analysis — [완료]
 
-계약 필드는 `requested_bpm`, `detected_bpm`, `bpm_confidence`, `bpm_error`, `absolute_bpm_error`다. `tempo_stability`와 half/double-time 후보는 후속 권장이다.
+계약 필드는 `requested_bpm`, `detected_bpm`, `confidence`, `bpm_error`, `absolute_bpm_error`, `half_time_candidate`, `double_time_candidate`, `version`, `status`다. `tempo_stability`는 후속 권장이다. 분석기는 기존 NumPy·SciPy로 onset energy autocorrelation을 계산하며 요청 BPM을 estimator prior로 사용하지 않는다.
 
 ```text
 bpm_error = detected_bpm - requested_bpm
@@ -91,9 +91,11 @@ absolute_bpm_error = abs(detected_bpm - requested_bpm)
 
 DoD:
 
-- EVAL-008의 합성·드럼·half/double·무박 인트로·tempo change fixture를 검증한다.
+- EVAL-008의 60·80·100·120·140·160 BPM 합성 fixture, half/double 후보, silence·short·invalid 경계를 검증한다.
 - confidence 산출 근거와 버전을 기록하고 낮은 confidence는 단정적으로 노출하지 않는다.
 - 요청값과 분석값을 분리하고 error는 둘 다 있을 때만 계산한다.
+
+고정 BPM 자동 검증과 요청값 비편향은 완료했다. 실제 드럼 loop·무박 intro·tempo change·생성곡 confidence 분포는 운영 품질 후속 평가이며 K3.2 MVP 완료를 취소하지 않는다.
 
 차단 조건: ground truth 세트 부재, half/double 오류 미분류, confidence calibration 근거 부재.
 
@@ -134,7 +136,7 @@ DoD:
 
 ## 신뢰도와 사용자 표현
 
-confidence는 `0.0`~`1.0`이며 알고리즘 검증 전 다음 경계는 provisional이다.
+confidence는 `0.0`~`1.0`이며 K3.2 UI는 다음 경계를 사용한다. 실제 음악 분포에 따른 재보정 가능성은 남아 있다.
 
 | 값 | 등급 | 표현 |
 |---:|---|---|

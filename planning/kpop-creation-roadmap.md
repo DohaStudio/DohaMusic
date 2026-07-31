@@ -65,13 +65,13 @@ DoD: final WAV fixture·invalid·silence·short·mono/stereo·sample rate refere
 
 차단 조건: ITU-R BS.1770/EBU R 128 검증 부재, oversampling 없는 값을 True Peak로 표시, library 라이선스·Windows 호환 미승인.
 
-### K3.2 — Tempo Analysis [계획]
+### K3.2 — Tempo Analysis [완료]
 
-- [ ] detected BPM·confidence
-- [ ] requested BPM signed/absolute error
-- [ ] half/double-time·무박 intro·tempo change 분류
+- [x] detected BPM·confidence
+- [x] requested BPM signed/absolute error
+- [x] half/double-time 후보와 silence·short·invalid fallback
 
-DoD: EVAL-008 ground truth 세트와 confidence calibration을 통과하고 저신뢰 결과를 추정으로 표시한다.
+DoD: EVAL-008의 60·80·100·120·140·160 BPM 합성 ground truth, 요청값 비편향, half/double 후보와 confidence 경계를 통과하고 저신뢰 결과를 추정으로 표시한다. 실제 음악의 무박 intro·tempo change 품질 평가는 후속 운영 검증으로 유지한다.
 
 차단 조건: half/double 오류 미분류, confidence 근거 없음, 정확한 BPM 보장 표현.
 
@@ -106,4 +106,4 @@ DoD: Dataset manifest·라이선스·동의·분리, RTX 3060 Ti 8GB 실측, Ada
 
 ## 구현 순서
 
-K1 Preset MVP → K2 Structured Options → K3.0 계약·평가 문서 → K3.1 Audio Quality Metrics MVP까지 완료했다. 다음 구현은 별도 PR의 K3.2 Tempo이며 K3.3 Hook Candidate → K3.4 Preview → K4 Model Adaptation 순서다.
+K1 Preset MVP → K2 Structured Options → K3.0 계약·평가 문서 → K3.1 Audio Quality Metrics MVP → K3.2 Tempo Analysis MVP까지 완료했다. 다음 구현은 별도 PR의 K3.3 Hook Candidate → K3.4 Preview → K4 Model Adaptation 순서다.

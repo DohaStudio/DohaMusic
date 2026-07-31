@@ -119,10 +119,22 @@ export interface AudioQualityMetricsDto {
   clipping_ratio: number;
   integrated_lufs: number | null;
 }
+export interface TempoAnalysisDto {
+  version: string;
+  status: AudioAnalysisStatusDto;
+  requested_bpm: number | null;
+  detected_bpm: number | null;
+  confidence: number | null;
+  bpm_error: number | null;
+  absolute_bpm_error: number | null;
+  half_time_candidate: boolean;
+  double_time_candidate: boolean;
+}
 export interface AudioAnalysisDto {
   audio_analysis_version: string;
   analysis_status: AudioAnalysisStatusDto;
   quality: AudioQualityMetricsDto | null;
+  tempo?: TempoAnalysisDto | null;
   warnings: string[];
 }
 export interface PipelineJobDto {

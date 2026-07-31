@@ -24,7 +24,7 @@ Phase 6 완료 상태는 변경하지 않는다. 기본 Provider는 `template`�
 전체 LLM 사전학습은 범위 밖이다. 공개 Instruct Base 후보를 라이선스·상업 이용·파생 모델 조건과 RTX 3060 Ti 8GB 실행성으로 검토하고 권리 확보 Lyrics Dataset으로 QLoRA SFT를 우선 검토한다. 세부 기준은 [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md)과 [Roadmap](planning/local-lyrics-llm-roadmap.md)을 따른다.
 
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.
 > 관련 문서: [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md), [작업 지침](AGENTS.md), [ADR](docs/11-decisions/README.md), [변경 이력](CHANGELOG.md)
 
@@ -63,7 +63,7 @@ Phase 7  Doha Voice                  [계획]
   ↓
 Phase 8  Doha Studio                 [완료]
   ↓
-K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1 완료 / K3.2~K4 계획]
+K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2 완료 / K3.3~K4 계획]
   ↓ 병행
 Phase 9  Production                  [계획]
 ```
@@ -81,10 +81,10 @@ Phase 9  Production                  [계획]
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1 완료 / K3.2~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
+| K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2 완료 / K3.3~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
-K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0과 K3.1 Audio Quality Metrics를 완료했다. BPM·Hook·Preview는 K3.2~K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
+K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics와 K3.2 Tempo Analysis를 완료했다. Hook·Preview는 K3.3~K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

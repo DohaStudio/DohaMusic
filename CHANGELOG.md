@@ -21,11 +21,16 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### K-POP Creation Control Layer
 
+- Provider-neutral `TempoAnalyzer`를 추가해 완료 Pipeline의 `final.wav`에서 예상 BPM과 `0.0~1.0` confidence를 추정하고 요청 BPM signed/absolute error와 half/double-time 후보를 기록한다.
+- K3.1의 비차단 완료 경계를 유지한 채 `result_metadata.audio_analysis.tempo`만 확장하고, Retry는 새 Job의 새 WAV를 다시 분석하며 이전 Tempo 결과를 복사하지 않는다.
+- 공개 DTO를 requested/detected BPM·confidence·error·candidate·status·version allowlist로 제한하고 Result 상세 Tempo 카드, History 상태, Project 요약과 구형·partial·failed fallback을 추가했다.
+- 60·80·100·120·140·160 BPM 합성 fixture, 요청값 비편향, half/double·무음·짧은·손상 WAV, Pipeline·Retry·Frontend·Desktop/Mobile 회귀를 검증해 K3.2를 `[완료]`로 갱신했다.
+- 새 의존성·DB Migration·Provider 변경 없이 기존 NumPy·SciPy를 사용했으며 K3.3 Hook/Chorus, K3.4 Preview, True Peak·LoRA·Dataset·Voice 학습은 구현하지 않았다.
 - Provider-neutral `AudioQualityAnalyzer`와 SciPy WAV decode·NumPy Sample Peak/clipping·pyloudnorm BS.1770 Integrated LUFS 구현을 추가했다.
 - `final.wav`와 Pipeline Result를 먼저 `COMPLETED`로 확정한 뒤 versioned `result_metadata.audio_analysis`를 비차단 갱신해 분석·저장 실패가 재생·다운로드를 막지 않도록 했다.
 - Pipeline·History·Project 공개 DTO와 Frontend parser를 allowlist로 제한하고 Result 전체 품질 요약, History·Project 간결 상태, 구형·partial·failed fallback을 추가했다.
 - mono/stereo·sine·silence·clipping·short·invalid fixture, LUFS reference, Pipeline 완료 경쟁·실패·Retry·DTO, Frontend·Desktop/Mobile E2E와 30/60초 성능을 검증해 K3.1을 `[완료]`로 갱신했다.
-- DB Migration·Provider 변경 없이 K3.2 Tempo, K3.3 Hook/Chorus Candidate, K3.4 Preview와 True Peak는 구현하지 않았다.
+- DB Migration·Provider 변경 없이 K3.1에서는 K3.2 Tempo, K3.3 Hook/Chorus Candidate, K3.4 Preview와 True Peak를 구현하지 않았다.
 - K3.0 Audio Analysis의 최종 `final.wav` 분석 source, 비차단 Pipeline 성공 경계, versioned Result metadata JSON, 공개 allowlist와 secure Preview 수명주기를 정의했다.
 - Quality Metrics·Tempo·Hook Candidate·15초 Preview를 K3.1~K3.4로 분리하고 confidence·실패·Cancel·Retry/Re-analysis·fallback·단계별 DoD를 문서화했다.
 - Audio Analysis 라이브러리·ITU-R BS.1770-5·EBU R 128 후보 비교, EVAL-008 검증 계획과 ADR-023을 추가했다. 코드·DTO·DB·의존성은 변경하지 않았고 K3 기능은 `[계획]`으로 유지했다.

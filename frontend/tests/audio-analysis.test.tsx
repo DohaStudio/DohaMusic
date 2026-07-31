@@ -40,6 +40,7 @@ describe("audio analysis allowlist parser", () => {
         clippingRatio: 0,
         integratedLufs: -13.8,
       },
+      tempo: null,
       warnings: [],
     });
   });

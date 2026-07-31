@@ -1,7 +1,7 @@
 # Doha Studio Frontend Roadmap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 관련 Phase: Phase 8 Doha Studio
 > 관련 문서: [Frontend Overview](../docs/03-architecture/frontend-overview.md), [Frontend Architecture](../docs/03-architecture/frontend-architecture.md), [Phase-08 DoD](../docs/DoD/Phase-08.md)
 
@@ -14,7 +14,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - 기본 탐색과 단계명은 한국어 창작 용어를 사용하고 내부 기술명은 기본 화면에서 숨긴다.
 - 첫 방문 안내, 단계별 도움말, loading·empty·error·disabled 이유를 제공한다.
 - Dance Pop 추천 장르와 분위기 최대 3개, 30초·60초 길이 선택을 제공한다.
-- 긴 곡·BPM 등 미지원 기능은 가짜 요청을 보내지 않고 `준비 중` 사유를 표시한다.
+- 긴 곡·Hook·Preview 등 미지원 기능은 가짜 요청을 보내지 않고 `준비 중` 사유를 표시한다.
 - 사용자 중심 UX 이후 Cancel·Retry API와 화면을 연결해 Phase 8 `15/15, 100%`를 완료했다.
 
 ## F0 — Frontend Contract Verification [완료]
@@ -110,3 +110,5 @@ Frontend shared mapper와 Result metadata allowlist는 루트 `lib/` ignore 규�
 K1 `[완료]`에서는 K-POP Preset·Prompt Preview를 Studio에 연결하고 Dance·Easy Listening·Performance 선택을 Provider-neutral Prompt와 기존 `genre`로 컴파일했다. 당시 Generation Options는 전송하지 않았고 BPM·언어 비율·Hook·Dance Break를 작동하는 제어로 노출하지 않았다.
 
 K2 `[완료]`에서 typed Structured Options Store, Preset별 기본값, Custom 값 보존·초기화, client validation, 즉시 Preview, snake_case Pipeline mapping과 History·Project·Result 설정 요약을 연결했다. Backend Compiler와 validation이 최종 권위이며 화면은 BPM·Hook·구조 옵션을 실제 분석·정밀 제어로 표현하지 않는다.
+
+K3.1·K3.2 `[완료]`에서 공개 Audio Analysis를 camelCase view model로 엄격히 파싱한다. Result는 Quality와 예상 Tempo 상세, History는 Tempo 상태만, Project는 예상 Tempo 요약을 표시한다. confidence는 High/Medium/Low/Unavailable 경계를 사용하고 실패·부분 완료·구형 결과 fallback 및 Desktop/Mobile E2E를 유지한다.

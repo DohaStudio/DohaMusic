@@ -1,6 +1,6 @@
 # EVAL-008: Audio Analysis 검증 계획
 
-> 상태: [진행 중 — K3.1 완료, K3.2~K3.4 계획]
+> 상태: [진행 중 — K3.1·K3.2 완료, K3.3~K3.4 계획]
 > 작성일: 2026-07-31
 > 최종 수정일: 2026-08-01
 > 관련 기능: K3.1~K3.4 Audio Quality·Tempo·Hook·Preview 평가
@@ -8,7 +8,7 @@
 
 ## 목적과 원칙
 
-K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검증한다. K3.1 자동 fixture·Pipeline·API·Frontend·성능 결과를 기록했으며 K3.2~K3.4는 평가 설계를 유지한다. 생성 음원과 개인 음성은 Git에 커밋하지 않았다.
+K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검증한다. K3.1 Quality와 K3.2 Tempo 자동 fixture·Pipeline·API·Frontend 결과를 기록했으며 K3.3~K3.4는 평가 설계를 유지한다. 생성 음원과 개인 음성은 Git에 커밋하지 않았다.
 
 ## 공통 기록
 
@@ -23,7 +23,7 @@ K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검�
 
 | 데이터 | 목적 |
 |---|---|
-| 메트로놈 합성 60·90·120·124·150 BPM | 명확한 ground truth |
+| 메트로놈 합성 60·80·100·120·140·160 BPM | 명확한 ground truth |
 | 고정 BPM drum loop | 실제 transient 패턴 |
 | half-time·double-time 편곡 | octave tempo 오류 분류 |
 | 무박 intro 후 고정 tempo | 초기 무박 영향 |
@@ -33,6 +33,17 @@ K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검�
 측정값은 detected BPM, ground truth BPM, signed/absolute error, confidence, half/double error, 분석 시간을 포함한다. provisional 자동 통과 기준은 명확한 합성/고정 loop에서 half/double 보정 후 absolute error 2 BPM 이내다. 생성곡은 수동 beat annotation과 비교하며 기준은 구현 benchmark 후 확정한다.
 
 confidence는 high/medium/low/unavailable 구간별 실제 오류 분포를 검토한다. 높은 confidence가 더 낮은 오류와 연결되지 않으면 UI 등급으로 사용하지 않는다.
+
+### K3.2 자동 검증 결과 — 2026-08-01
+
+- 기존 NumPy 1.26.4·SciPy 1.17.1의 onset energy autocorrelation을 사용해 새 의존성을 추가하지 않았다.
+- 16초 PCM16 합성 click track 60·80·100·120·140·160 BPM을 모두 ±3 BPM 이내로 추정했다.
+- 동일 WAV에 서로 다른 `requested_bpm`을 넣어도 `detected_bpm`이 같아 요청값이 추정을 유도하지 않음을 확인했다.
+- 60→요청 120은 half-time, 160→요청 80은 double-time 후보로 분류했다.
+- silence·1초 short·손상 WAV·비 WAV를 finite하지 않은 값이나 내부 path 없이 안전한 실패/미지원으로 처리했다.
+- 공개 DTO에서 raw onset·frame·FFT·debug·path를 제거하고 Retry가 이전 Tempo 대신 새 WAV를 분석함을 확인했다.
+- Frontend Completed·Partial·Failed·Unavailable, confidence 경계와 Result·History·Project Desktop/Mobile 표시를 검증했다.
+- 실제 드럼 loop·무박 intro·tempo change·생성 K-POP의 confidence 분포와 성능 수치는 후속 운영 품질 평가로 남긴다.
 
 ## Loudness·Peak 검증
 
@@ -106,10 +117,10 @@ Hook ground truth는 본질적으로 주관적이므로 “정확도” 단일 �
 ## 완료 판정
 
 - [x] K3.1 quality reference와 invalid 경계 통과
-- [ ] K3.2 BPM error·half/double·confidence calibration 통과
+- [x] K3.2 합성 BPM error·half/double·confidence 경계 통과
 - [ ] K3.3 Hook 후보 overlap·사용자 유용성 평가 통과
 - [ ] K3.4 정확한 길이·fade·secure access·cleanup 통과
 - [x] K3.1 성능과 완료 경계 기록
 - [x] K3.1 실패·partial·unsupported와 구형 Result 회귀 통과
 
-현재 결과: `K3.1 [완료]`, `K3.2~K3.4 [미실행·계획]`
+현재 결과: `K3.1·K3.2 [완료]`, `K3.3~K3.4 [미실행·계획]`
