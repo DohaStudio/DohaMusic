@@ -177,6 +177,20 @@ def test_public_metadata_allowlist_removes_analysis_internals() -> None:
             "analyzer_command": "private command",
             "stack_trace": "private stack",
             "quality": None,
+            "tempo": {
+                "version": "1.0",
+                "status": "COMPLETED",
+                "requested_bpm": 120,
+                "detected_bpm": 119.8,
+                "confidence": 0.9,
+                "bpm_error": -0.2,
+                "absolute_bpm_error": 0.2,
+                "half_time_candidate": False,
+                "double_time_candidate": False,
+                "raw_onset_envelope": [1, 2, 3],
+                "source_path": "D:/private/final.wav",
+                "warnings": [{"code": "PRIVATE", "message": "private"}],
+            },
             "warnings": [
                 {"code": "AUDIO_DECODE_FAILED", "message": "조작된 비공개 안내"}
             ],
@@ -190,6 +204,17 @@ def test_public_metadata_allowlist_removes_analysis_internals() -> None:
         "audio_analysis_version": "1.0",
         "analysis_status": "FAILED",
         "quality": None,
+        "tempo": {
+            "version": "1.0",
+            "status": "COMPLETED",
+            "requested_bpm": 120.0,
+            "detected_bpm": 119.8,
+            "confidence": 0.9,
+            "bpm_error": -0.2,
+            "absolute_bpm_error": 0.2,
+            "half_time_candidate": False,
+            "double_time_candidate": False,
+        },
         "warnings": ["오디오 파일을 읽지 못해 품질을 분석하지 못했습니다."],
     }
     assert "private" not in json.dumps(public, ensure_ascii=False)

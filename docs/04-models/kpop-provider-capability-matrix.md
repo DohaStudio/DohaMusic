@@ -39,27 +39,27 @@ ACE-Step 0.6B LM은 실행 가능성만 확인됐으며 단일 표본에서 no-L
     "dance_break": "prompt_compiled",
     "vocal_energy": "prompt_compiled",
     "concept": "prompt_compiled",
-    "detected_bpm": "not_supported",
+    "detected_bpm": "analyzed",
     "hook_preview": "not_supported"
   }
 }
 ```
 
-K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Capability endpoint는 추가하지 않고 문서와 Frontend typed 상수 계약을 사용한다. `detected_bpm`, Hook timestamp와 Preview 분석은 계속 `NOT_SUPPORTED`이며 Prompt 기반 지시를 실제 수치 제어로 표현하지 않는다.
+K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Capability endpoint는 추가하지 않고 문서와 Frontend typed 상수 계약을 사용한다. K3.2 `detected_bpm`은 Provider 제어가 아닌 final WAV 후처리 `ANALYZED`이며 Hook timestamp와 Preview는 계속 `NOT_SUPPORTED`다. Prompt 기반 요청 BPM을 실제 수치 제어로 표현하지 않는다.
 
 ## K3 분석 Capability 목표
 
-분석은 Provider capability가 아니라 최종 WAV에 적용하는 Provider-neutral 후처리 capability다. K3.1 Quality Metrics는 모든 Provider의 유효 final PCM WAV에 같은 후처리를 적용한다.
+분석은 Provider capability가 아니라 최종 WAV에 적용하는 Provider-neutral 후처리 capability다. K3.1 Quality Metrics와 K3.2 Tempo는 모든 Provider의 유효 final PCM WAV에 같은 후처리를 적용한다.
 
 | Capability | 현재 | K3 목표 | 단계 |
 |---|---|---|---|
 | requested BPM | `PROMPT_COMPILED` | 유지 | K2 |
-| detected BPM | `NOT_SUPPORTED` | 분석 예정 | K3.2 |
-| BPM confidence | `NOT_SUPPORTED` | 분석 예정 | K3.2 |
+| detected BPM | `ANALYZED` | final WAV 추정 | K3.2 완료 |
+| BPM confidence | `ANALYZED` | `0.0~1.0` 추정 신뢰도 | K3.2 완료 |
 | Sample Peak·clipping | `ANALYZED` | final WAV 직접 측정 | K3.1 완료 |
 | Integrated LUFS | `ANALYZED` | pyloudnorm BS.1770 후처리 | K3.1 완료 |
 | True Peak | `NOT_SUPPORTED` | oversampling·reference 검증 전 미지원 | 후속 검토 |
 | Hook/Chorus candidate | `NOT_SUPPORTED` | 후보 추정 예정 | K3.3 |
 | 15초 Preview | `NOT_SUPPORTED` | export 예정 | K3.4 |
 
-Frontend capability 상수와 실제 API는 K3 구현 전까지 `not_supported`를 유지한다.
+Frontend는 별도 Provider capability 제어를 추가하지 않고 공개 `audio_analysis.tempo` DTO가 있을 때만 추정 결과를 표시한다.

@@ -70,12 +70,13 @@ Mixer step의 `details.audio_quality`에는 provider·처리 시간, 출력 dura
 
 인증·소유권 검사는 포함하지 않는다. Generation·Stem·Voice Conversion 개별 API에는 content endpoint를 추가하지 않았으며 첫 제공 범위는 Pipeline 결과다.
 
-## K3.1 Audio Analysis 공개 계약 [완료]
+## K3.1·K3.2 Audio Analysis 공개 계약 [완료]
 
 기존 조회 응답에 optional `audio_analysis` nested allowlist를 추가한다. 별도 endpoint·DB·Migration은 없다.
 
 - `analysis_status`, `audio_analysis_version`
 - duration·sample rate·channels·Sample Peak·clipping·Integrated LUFS
+- Tempo requested/detected BPM·confidence·signed/absolute error·half/double candidate·status·version
 - safe warning 문자열
 
 ```json
@@ -93,11 +94,22 @@ Mixer step의 `details.audio_quality`에는 provider·처리 시간, 출력 dura
       "clipping_ratio": 0.0,
       "integrated_lufs": -13.8
     },
+    "tempo": {
+      "version": "1.0",
+      "status": "COMPLETED",
+      "requested_bpm": 120.0,
+      "detected_bpm": 119.8,
+      "confidence": 0.91,
+      "bpm_error": -0.2,
+      "absolute_bpm_error": 0.2,
+      "half_time_candidate": false,
+      "double_time_candidate": false
+    },
     "warnings": []
   }
 }
 ```
 
-내부 `source_file_role`, path·command·temporary/model path·stack trace·raw sample·warning code는 반환하지 않는다. True Peak·Tempo·Hook/Chorus·Preview 필드는 없다.
+내부 `source_file_role`, path·command·temporary/model path·stack trace·raw sample·raw onset/frame/FFT·warning code는 반환하지 않는다. True Peak·Hook/Chorus·Preview 필드는 없다.
 
 분석 실패는 기본적으로 Pipeline `COMPLETED`와 final WAV 재생·다운로드를 바꾸지 않는다. 구형 Result와 분석 미요청 Result에는 필드가 없을 수 있다. 상세 계약은 [Audio Analysis 결과 계약](../03-architecture/audio-analysis-result-contract.md)과 [실패 정책](../03-architecture/audio-analysis-failure-policy.md)을 따른다.

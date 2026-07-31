@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-01
-> 관련 기능: Phase 5 Pipeline / Phase 5.1 Mixer / K3.1 Audio Quality Metrics
+> 관련 기능: Phase 5 Pipeline / Phase 5.1 Mixer / K3.1 Quality / K3.2 Tempo
 > 관련 문서: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)
 
 ## 책임과 경계
@@ -31,9 +31,9 @@ Music·Stem·Voice 단계는 각각 `MusicGenerator`, `StemSeparator`, `VoiceCon
 
 Mixer의 gain·quality·clipping·CPU·RSS·처리 시간은 Pipeline `result_metadata.step_execution[].details.audio_quality`와 최종 `metadata.json`에 기록한다. True Peak는 현재 미지원이므로 지원 여부를 거짓 없이 별도 필드로 표시한다.
 
-## K3 비차단 후처리 계약 [계획]
+## K3 비차단 후처리 계약 [구현 완료: K3.1·K3.2]
 
-K3.1은 다음 경계를 구현했다.
+K3.1·K3.2는 다음 경계를 구현했다.
 
 ```text
 ExportStep(final.wav)
@@ -43,7 +43,7 @@ ExportStep(final.wav)
 → Result metadata 최종화
 ```
 
-최종 WAV·기본 metadata·file row와 Pipeline `COMPLETED`를 먼저 확정하고 `PENDING` 분석 metadata를 둔다. 그 뒤 `DefaultAudioQualityAnalyzer`가 final file role의 WAV를 읽어 `audio_analysis` key만 병합한다. 분석 예외·DB 갱신 오류는 Worker 실패 경계 밖에서 처리하므로 Job과 final WAV capability를 되돌리지 않는다. 새 Pipeline step·DB table·Migration·Provider 의존성은 없다. Preview는 K3.4 계획이다.
+최종 WAV·기본 metadata·file row와 Pipeline `COMPLETED`를 먼저 확정하고 `PENDING` 분석 metadata를 둔다. 그 뒤 `DefaultAudioQualityAnalyzer`와 `DefaultTempoAnalyzer`가 final file role의 WAV를 독립적으로 읽어 기존 `audio_analysis` key만 병합한다. 요청 BPM은 오차와 half/double 후보 비교에만 쓰고 Tempo estimator를 유도하지 않는다. 분석 예외·DB 갱신 오류는 Worker 실패 경계 밖에서 처리하므로 Job과 final WAV capability를 되돌리지 않는다. 새 Pipeline step·DB table·Migration·Provider 의존성은 없다. Preview는 K3.4 계획이다.
 
 세부 실패·Cancel·Retry 계약은 [Audio Analysis 실패 정책](audio-analysis-failure-policy.md), 저장 계약은 [결과 계약](audio-analysis-result-contract.md), 결정은 [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)을 따른다.
 

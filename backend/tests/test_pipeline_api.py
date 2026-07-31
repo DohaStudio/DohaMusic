@@ -77,6 +77,8 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     # BS.1770 gating block, so WAV metrics succeed while LUFS is PARTIAL.
     assert completed["audio_analysis"]["analysis_status"] == "PARTIAL"
     assert completed["audio_analysis"]["quality"]["integrated_lufs"] is None
+    assert completed["audio_analysis"]["tempo"]["status"] == "FAILED"
+    assert completed["audio_analysis"]["tempo"]["detected_bpm"] is None
     assert "source_file_role" not in completed["audio_analysis"]
     metadata = completed["result_metadata"]
     assert metadata["success"] is True
@@ -101,7 +103,6 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     assert mixer_metrics["audio_quality"]["channels"] == 2
     assert mixer_metrics["audio_quality"]["clipping"]["detected"] is False
     assert "source_file_role" not in metadata["audio_analysis"]
-
     files = client.get(f"/api/pipelines/{job['id']}/files").json()
     assert {item["file_type"] for item in files} == {
         "music",
@@ -124,6 +125,33 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     with wave.open(str(final_path), "rb") as audio:
         assert audio.getframerate() == 48_000
         assert audio.getnchannels() == 2
+
+
+def test_pipeline_preserves_requested_bpm_only_as_tempo_comparison_metadata(
+    client: TestClient,
+) -> None:
+    response = client.post(
+        "/api/pipelines",
+        json={
+            "prompt": "tempo comparison",
+            "genre": "kpop_dance",
+            "duration_seconds": 10,
+            "voice_profile_id": create_profile(client),
+            "generation_options": {
+                "preset_id": "kpop_dance",
+                "requested_bpm": 120,
+            },
+        },
+    )
+    assert response.status_code == 202
+
+    completed = wait_for_pipeline(client, response.json()["id"])
+
+    assert completed["status"] == "COMPLETED"
+    assert completed["audio_analysis"]["tempo"]["requested_bpm"] == 120.0
+    assert completed["result_metadata"]["generation_options"]["requested_bpm"] == 120
+    assert "source_path" not in completed["audio_analysis"]["tempo"]
+    assert "raw_onset_envelope" not in completed["audio_analysis"]["tempo"]
 
 
 class FlakyMusicGenerator:
@@ -399,6 +427,50 @@ def test_retry_creates_new_job_with_snapshot_and_relation(
     assert repeated.status_code == 202
     assert repeated.json()["job"]["id"] == payload["job"]["id"]
     assert client.get(f"/api/pipelines/{source.id}").json()["status"] == source_status
+
+
+def test_retry_analyzes_new_wav_instead_of_copying_source_tempo(
+    client: TestClient,
+) -> None:
+    source = create_stored_pipeline(client, JobStatus.FAILED)
+    with client.app.state.session_factory() as session:
+        stored = session.get(PipelineJob, source.id)
+        assert stored is not None
+        stored.result_metadata = {
+            "audio_analysis": {
+                "audio_analysis_version": "1.0",
+                "analysis_status": "PARTIAL",
+                "quality": None,
+                "tempo": {
+                    "version": "1.0",
+                    "status": "COMPLETED",
+                    "requested_bpm": None,
+                    "detected_bpm": 99.9,
+                    "confidence": 0.99,
+                    "bpm_error": None,
+                    "absolute_bpm_error": None,
+                    "half_time_candidate": False,
+                    "double_time_candidate": False,
+                    "warnings": [],
+                },
+                "warnings": [],
+            }
+        }
+        session.commit()
+
+    response = client.post(f"/api/pipelines/{source.id}/retry")
+    assert response.status_code == 202
+    retried = wait_for_pipeline(client, response.json()["job"]["id"])
+
+    assert retried["status"] == "COMPLETED"
+    assert retried["audio_analysis"]["tempo"]["detected_bpm"] is None
+    assert retried["audio_analysis"]["tempo"]["confidence"] is None
+    assert (
+        client.get(f"/api/pipelines/{source.id}").json()["audio_analysis"]["tempo"][
+            "detected_bpm"
+        ]
+        == 99.9
+    )
 
 
 @pytest.mark.parametrize(

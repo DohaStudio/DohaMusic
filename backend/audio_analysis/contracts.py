@@ -17,6 +17,11 @@ PUBLIC_WARNING_MESSAGES = {
     "INVALID_AUDIO_DATA": "유효한 오디오 데이터가 없어 품질을 분석하지 못했습니다.",
     "AUDIO_DECODE_FAILED": "오디오 파일을 읽지 못해 품질을 분석하지 못했습니다.",
     "ANALYSIS_INTERNAL_ERROR": "오디오 품질 분석을 완료하지 못했습니다.",
+    "TEMPO_AUDIO_TOO_SHORT": "템포를 추정하기에 오디오 길이가 충분하지 않습니다.",
+    "TEMPO_SILENT_AUDIO": "무음 오디오에서는 템포를 추정할 수 없습니다.",
+    "TEMPO_DETECTION_FAILED": "템포를 안정적으로 추정하지 못했습니다.",
+    "TEMPO_CONFIDENCE_LOW": "템포 추정 신뢰도가 낮아 참고용으로만 제공됩니다.",
+    "TEMPO_UNSUPPORTED_AUDIO": "현재 오디오 형식은 템포 분석을 지원하지 않습니다.",
 }
 
 
@@ -49,6 +54,45 @@ class AudioQualityMetrics(BaseModel):
     integrated_lufs: float | None
 
 
+class TempoAnalysisResult(BaseModel):
+    """Internal tempo result. Diagnostic details stay outside the public DTO."""
+
+    model_config = ConfigDict(extra="ignore", allow_inf_nan=False)
+
+    version: str = "1.0"
+    status: AudioAnalysisStatus
+    requested_bpm: float | None = Field(default=None, gt=0)
+    detected_bpm: float | None = Field(default=None, gt=0)
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    bpm_error: float | None = None
+    absolute_bpm_error: float | None = Field(default=None, ge=0)
+    half_time_candidate: bool = False
+    double_time_candidate: bool = False
+    warnings: list[AudioAnalysisWarning] = Field(default_factory=list)
+
+    @classmethod
+    def pending(cls, requested_bpm: float | None) -> TempoAnalysisResult:
+        return cls(status=AudioAnalysisStatus.PENDING, requested_bpm=requested_bpm)
+
+    @classmethod
+    def failed(
+        cls,
+        requested_bpm: float | None,
+        warning: AudioAnalysisWarning,
+        *,
+        unsupported: bool = False,
+    ) -> TempoAnalysisResult:
+        return cls(
+            status=(
+                AudioAnalysisStatus.UNSUPPORTED
+                if unsupported
+                else AudioAnalysisStatus.FAILED
+            ),
+            requested_bpm=requested_bpm,
+            warnings=[warning],
+        )
+
+
 class AudioAnalysisResult(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -56,27 +100,29 @@ class AudioAnalysisResult(BaseModel):
     analysis_status: AudioAnalysisStatus
     source_file_role: str = "final_mix"
     quality: AudioQualityMetrics | None
+    tempo: TempoAnalysisResult | None = None
     warnings: list[AudioAnalysisWarning]
 
     @classmethod
-    def pending(cls) -> AudioAnalysisResult:
+    def pending(cls, requested_bpm: float | None = None) -> AudioAnalysisResult:
         return cls(
             analysis_status=AudioAnalysisStatus.PENDING,
             quality=None,
+            tempo=TempoAnalysisResult.pending(requested_bpm),
             warnings=[],
         )
 
     @classmethod
-    def failed(cls) -> AudioAnalysisResult:
+    def failed(cls, requested_bpm: float | None = None) -> AudioAnalysisResult:
+        warning = AudioAnalysisWarning(
+            code="ANALYSIS_INTERNAL_ERROR",
+            message="오디오 품질 분석을 완료하지 못했습니다.",
+        )
         return cls(
             analysis_status=AudioAnalysisStatus.FAILED,
             quality=None,
-            warnings=[
-                AudioAnalysisWarning(
-                    code="ANALYSIS_INTERNAL_ERROR",
-                    message="오디오 품질 분석을 완료하지 못했습니다.",
-                )
-            ],
+            tempo=TempoAnalysisResult.failed(requested_bpm, warning),
+            warnings=[warning],
         )
 
 
@@ -88,7 +134,27 @@ class PublicAudioAnalysis(BaseModel):
     audio_analysis_version: str
     analysis_status: AudioAnalysisStatus
     quality: AudioQualityMetrics | None
+    tempo: PublicTempoAnalysis | None
     warnings: list[str]
+
+
+class PublicTempoAnalysis(BaseModel):
+    """Strict allowlist for public Tempo Analysis metadata."""
+
+    model_config = ConfigDict(extra="ignore", allow_inf_nan=False)
+
+    version: str
+    status: AudioAnalysisStatus
+    requested_bpm: float | None
+    detected_bpm: float | None
+    confidence: float | None
+    bpm_error: float | None
+    absolute_bpm_error: float | None
+    half_time_candidate: bool
+    double_time_candidate: bool
+
+
+PublicAudioAnalysis.model_rebuild()
 
 
 def public_audio_analysis(metadata: object) -> PublicAudioAnalysis | None:
@@ -107,6 +173,21 @@ def public_audio_analysis(metadata: object) -> PublicAudioAnalysis | None:
         audio_analysis_version=internal.audio_analysis_version,
         analysis_status=internal.analysis_status,
         quality=internal.quality,
+        tempo=(
+            PublicTempoAnalysis(
+                version=internal.tempo.version,
+                status=internal.tempo.status,
+                requested_bpm=internal.tempo.requested_bpm,
+                detected_bpm=internal.tempo.detected_bpm,
+                confidence=internal.tempo.confidence,
+                bpm_error=internal.tempo.bpm_error,
+                absolute_bpm_error=internal.tempo.absolute_bpm_error,
+                half_time_candidate=internal.tempo.half_time_candidate,
+                double_time_candidate=internal.tempo.double_time_candidate,
+            )
+            if internal.tempo is not None
+            else None
+        ),
         warnings=[
             PUBLIC_WARNING_MESSAGES[warning.code]
             for warning in internal.warnings

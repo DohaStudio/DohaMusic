@@ -15,7 +15,20 @@ export interface AudioAnalysisSummary {
   version: string;
   status: AudioAnalysisStatusDto;
   quality: AudioQualityMetrics | null;
+  tempo: TempoAnalysisSummary | null;
   warnings: string[];
+}
+
+export interface TempoAnalysisSummary {
+  version: string;
+  status: AudioAnalysisStatusDto;
+  requestedBpm: number | null;
+  detectedBpm: number | null;
+  confidence: number | null;
+  bpmError: number | null;
+  absoluteBpmError: number | null;
+  halfTimeCandidate: boolean;
+  doubleTimeCandidate: boolean;
 }
 
 const analysisStatuses = new Set<AudioAnalysisStatusDto>([
@@ -40,12 +53,53 @@ export function parseAudioAnalysis(value: unknown): AudioAnalysisSummary | null 
   }
   const quality = parseQuality(candidate.quality);
   if (candidate.quality !== null && quality === null) return null;
+  const tempo = parseTempo(candidate.tempo);
+  if (candidate.tempo !== null && candidate.tempo !== undefined && tempo === null) return null;
   return {
     version: candidate.audio_analysis_version,
     status: candidate.analysis_status,
     quality,
+    tempo,
     warnings: [...candidate.warnings],
   };
+}
+
+function parseTempo(value: unknown): TempoAnalysisSummary | null {
+  if (value === null || value === undefined) return null;
+  if (!isRecord(value)) return null;
+  if (
+    value.version !== "1.0" ||
+    !isAnalysisStatus(value.status) ||
+    !isNullablePositiveNumber(value.requested_bpm) ||
+    !isNullablePositiveNumber(value.detected_bpm) ||
+    !isNullableFiniteNumber(value.confidence) ||
+    (value.confidence !== null && (value.confidence < 0 || value.confidence > 1)) ||
+    !isNullableFiniteNumber(value.bpm_error) ||
+    !isNullableFiniteNumber(value.absolute_bpm_error) ||
+    (value.absolute_bpm_error !== null && value.absolute_bpm_error < 0) ||
+    typeof value.half_time_candidate !== "boolean" ||
+    typeof value.double_time_candidate !== "boolean"
+  ) {
+    return null;
+  }
+  return {
+    version: value.version,
+    status: value.status,
+    requestedBpm: value.requested_bpm,
+    detectedBpm: value.detected_bpm,
+    confidence: value.confidence,
+    bpmError: value.bpm_error,
+    absoluteBpmError: value.absolute_bpm_error,
+    halfTimeCandidate: value.half_time_candidate,
+    doubleTimeCandidate: value.double_time_candidate,
+  };
+}
+
+export function tempoConfidenceLabel(confidence: number | null): string {
+  if (confidence === null) return "Unavailable";
+  if (confidence >= 0.8) return "High";
+  if (confidence >= 0.5) return "Medium";
+  return "Low";
 }
 
 function parseQuality(value: unknown): AudioQualityMetrics | null {
@@ -104,6 +158,10 @@ function isFiniteNumber(value: unknown): value is number {
 
 function isNullableFiniteNumber(value: unknown): value is number | null {
   return value === null || isFiniteNumber(value);
+}
+
+function isNullablePositiveNumber(value: unknown): value is number | null {
+  return value === null || (isFiniteNumber(value) && value > 0);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -6,12 +6,12 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1은 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Sample Peak·clipping·Integrated LUFS를 측정하며 K3.2~K3.4 Tempo·Hook Candidate·Preview는 `[계획]`입니다.
+> K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1·K3.2는 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Quality Metrics와 예상 Tempo·신뢰도·요청 BPM 오차를 분석하며 K3.3 Hook Candidate와 K3.4 Preview는 `[계획]`입니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1 완료**
+> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1·K3.2 완료**
 > 최종 수정일: 2026-08-01
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -35,7 +35,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [실험 완료] | HTDemucs 4.1.0 보컬/반주 분리, 48kHz Stereo 출력, RTX 3060 Ti Benchmark |
 | [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
 | [진행 중] | Responsive Studio에서 프롬프트·직접 작성/생성 가사 기반 Pipeline 요청 |
-| [완료] | Pipeline 장르·길이·Seed와 K-POP 목표 BPM Prompt 설정; 실제 Tempo 분석은 K3.2 계획 |
+| [완료] | Pipeline 장르·길이·Seed와 K-POP 목표 BPM Prompt 설정 및 final WAV 예상 Tempo 분석 |
 | [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
 | [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
 | [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
@@ -53,7 +53,8 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | K-POP Structured Generation Options 검증·Prompt 컴파일·Snapshot·Retry·공개 설정 요약 |
 | [완료] | K3.0 Audio Analysis 제품·결과·실패·평가·라이브러리·ADR 계약 문서 |
 | [완료] | K3.1 final WAV duration·sample rate·channels·Sample Peak·clipping·Integrated LUFS 분석과 Result·History·Project UI |
-| [계획] | K3.2 Tempo·K3.3 Hook Candidate·K3.4 Preview 실제 구현 |
+| [완료] | K3.2 final WAV detected BPM·confidence·요청 BPM 오차·half/double-time 후보와 Result·History·Project UI |
+| [계획] | K3.3 Hook Candidate·K3.4 Preview 실제 구현 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 

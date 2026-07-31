@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import time
 from collections.abc import Callable
 from pathlib import Path
@@ -10,7 +11,14 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from backend.audio_analysis import AudioAnalysisResult, AudioQualityAnalyzer
+from backend.audio_analysis import (
+    AudioAnalysisResult,
+    AudioAnalysisStatus,
+    AudioAnalysisWarning,
+    AudioQualityAnalyzer,
+    TempoAnalysisResult,
+    TempoAnalyzer,
+)
 from backend.core.job_status import JobStatus
 from backend.core.logging import get_logger
 from backend.kpop.options import public_generation_metadata
@@ -35,11 +43,13 @@ class PipelineWorker:
         executor: PipelineExecutor,
         storage: StorageService,
         audio_quality_analyzer: AudioQualityAnalyzer,
+        tempo_analyzer: TempoAnalyzer,
     ) -> None:
         self.session_factory = session_factory
         self.executor = executor
         self.storage = storage
         self.audio_quality_analyzer = audio_quality_analyzer
+        self.tempo_analyzer = tempo_analyzer
 
     def run(self, job_id: str) -> None:
         started_at = time.perf_counter()
@@ -81,9 +91,10 @@ class PipelineWorker:
                 self._ensure_not_cancelled(repository, job)
                 metadata = self._metadata(context, started_at, success=True)
                 metadata.update(self._kpop_metadata(job.input_snapshot))
-                metadata["audio_analysis"] = AudioAnalysisResult.pending().model_dump(
-                    mode="json"
-                )
+                requested_bpm = self._requested_bpm(job.input_snapshot)
+                metadata["audio_analysis"] = AudioAnalysisResult.pending(
+                    requested_bpm
+                ).model_dump(mode="json")
                 metadata_path = self._write_metadata(job.id, metadata)
                 context.metadata_file = metadata_path
                 self._ensure_not_cancelled(repository, job)
@@ -242,14 +253,35 @@ class PipelineWorker:
     ) -> None:
         """Best-effort post-processing after the Pipeline success boundary."""
 
+        requested_bpm = self._requested_bpm(job.input_snapshot)
         if context.output_file is None:
-            analysis = AudioAnalysisResult.failed()
+            analysis = AudioAnalysisResult.failed(requested_bpm)
         else:
             try:
                 analysis = self.audio_quality_analyzer.analyze(context.output_file)
             except Exception:
                 logger.exception("audio_analysis_failed job_id=%s", job.id)
-                analysis = AudioAnalysisResult.failed()
+                analysis = AudioAnalysisResult.failed(requested_bpm)
+            try:
+                tempo = self.tempo_analyzer.analyze(
+                    context.output_file, requested_bpm=requested_bpm
+                )
+            except Exception:
+                logger.exception("tempo_analysis_failed job_id=%s", job.id)
+                tempo_warning = AudioAnalysisWarning(
+                    code="TEMPO_DETECTION_FAILED",
+                    message="템포를 안정적으로 추정하지 못했습니다.",
+                )
+                tempo = TempoAnalysisResult.failed(requested_bpm, tempo_warning)
+            analysis = analysis.model_copy(
+                update={
+                    "analysis_status": self._combined_analysis_status(
+                        analysis.analysis_status, tempo.status
+                    ),
+                    "tempo": tempo,
+                    "warnings": [*analysis.warnings, *tempo.warnings],
+                }
+            )
 
         updated_metadata = dict(metadata)
         updated_metadata["audio_analysis"] = analysis.model_dump(mode="json")
@@ -259,9 +291,9 @@ class PipelineWorker:
             repository.session.rollback()
             logger.exception("audio_analysis_metadata_save_failed job_id=%s", job.id)
             updated_metadata = dict(metadata)
-            updated_metadata["audio_analysis"] = (
-                AudioAnalysisResult.failed().model_dump(mode="json")
-            )
+            updated_metadata["audio_analysis"] = AudioAnalysisResult.failed(
+                requested_bpm
+            ).model_dump(mode="json")
             try:
                 repository.set_metadata(job, updated_metadata)
             except Exception:
@@ -292,6 +324,33 @@ class PipelineWorker:
             "generation_options": options,
             "kpop_prompt_compiler_version": version,
         }
+
+    @staticmethod
+    def _requested_bpm(snapshot: object) -> float | None:
+        options, _ = public_generation_metadata(snapshot)
+        if not isinstance(options, dict):
+            return None
+        value = options.get("requested_bpm")
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return None
+        parsed = float(value)
+        return parsed if math.isfinite(parsed) and parsed > 0 else None
+
+    @staticmethod
+    def _combined_analysis_status(
+        quality_status: AudioAnalysisStatus, tempo_status: AudioAnalysisStatus
+    ) -> AudioAnalysisStatus:
+        if quality_status in {
+            AudioAnalysisStatus.FAILED,
+            AudioAnalysisStatus.UNSUPPORTED,
+        }:
+            return quality_status
+        if (
+            quality_status is AudioAnalysisStatus.COMPLETED
+            and tempo_status is AudioAnalysisStatus.COMPLETED
+        ):
+            return AudioAnalysisStatus.COMPLETED
+        return AudioAnalysisStatus.PARTIAL
 
     def _file_entries(self, context: PipelineContext) -> list[tuple[str, str, str]]:
         entries = (
