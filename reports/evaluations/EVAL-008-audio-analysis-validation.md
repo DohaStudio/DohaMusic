@@ -1,6 +1,6 @@
 # EVAL-008: Audio Analysis 검증 계획
 
-> 상태: [진행 중 — K3.1·K3.2 완료, K3.3~K3.4 계획]
+> 상태: [진행 중 — K3.1·K3.2·K3.3 완료, K3.4 계획]
 > 작성일: 2026-07-31
 > 최종 수정일: 2026-08-01
 > 관련 기능: K3.1~K3.4 Audio Quality·Tempo·Hook·Preview 평가
@@ -8,7 +8,7 @@
 
 ## 목적과 원칙
 
-K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검증한다. K3.1 Quality와 K3.2 Tempo 자동 fixture·Pipeline·API·Frontend 결과를 기록했으며 K3.3~K3.4는 평가 설계를 유지한다. 생성 음원과 개인 음성은 Git에 커밋하지 않았다.
+K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검증한다. K3.1 Quality, K3.2 Tempo와 K3.3 Hook 자동 fixture·Pipeline·API·Frontend 결과를 기록했으며 K3.4는 평가 설계를 유지한다. 생성 음원과 개인 음성은 Git에 커밋하지 않았다.
 
 ## 공통 기록
 
@@ -70,6 +70,16 @@ LUFS·True Peak 허용 오차는 사용 library와 EBU test set의 compliance �
 
 Hook ground truth는 본질적으로 주관적이므로 “정확도” 단일 숫자로 승인하지 않는다. Stage A의 제품 Gate는 top-1 후보의 Preview 유용성과 저신뢰 결과의 안전한 fallback이다.
 
+### K3.3 자동 검증 결과 — 2026-08-01
+
+- 자체 합성 60초 WAV의 두 반복 고에너지 구간에서 15초 `energy_repetition` 후보와 `0.50` 이상 confidence를 선택했다.
+- 단일 고에너지 구간은 `energy_peak`, 일정한 tone과 낮은 confidence는 곡 중앙 `fallback_middle`로 분류했다.
+- 15초 미만 WAV는 전체 길이의 PARTIAL fallback, 무음·손상·미지원 입력은 candidate 없이 안전한 FAILED/UNSUPPORTED로 처리했다.
+- Hook 실패·fallback 이후에도 Pipeline은 `COMPLETED`와 final WAV capability를 유지하고 aggregate analysis만 `PARTIAL` 또는 `FAILED`로 구분했다.
+- 공개 DTO에서 raw frame score·경로를 제외하고 Retry가 이전 Hook metadata 대신 새 WAV를 분석함을 확인했다.
+- Frontend Result의 “후렴 후보/추정 구간”, History 후보 유무, Project 요약과 Completed·Partial·Failed·Unavailable Desktop/Mobile 표시를 검증했다.
+- 실제 음악의 사용자 label·temporal overlap·confidence calibration과 Preview 유용성은 후속 운영 품질 평가로 남긴다.
+
 ## Preview 검증
 
 - 원본이 15초 이상이면 frame 기준 정확히 15초
@@ -118,9 +128,9 @@ Hook ground truth는 본질적으로 주관적이므로 “정확도” 단일 �
 
 - [x] K3.1 quality reference와 invalid 경계 통과
 - [x] K3.2 합성 BPM error·half/double·confidence 경계 통과
-- [ ] K3.3 Hook 후보 overlap·사용자 유용성 평가 통과
+- [x] K3.3 합성 Hook 후보·fallback·비차단·공개/UI 경계 통과
 - [ ] K3.4 정확한 길이·fade·secure access·cleanup 통과
 - [x] K3.1 성능과 완료 경계 기록
 - [x] K3.1 실패·partial·unsupported와 구형 Result 회귀 통과
 
-현재 결과: `K3.1·K3.2 [완료]`, `K3.3~K3.4 [미실행·계획]`
+현재 결과: `K3.1·K3.2·K3.3 [완료]`, `K3.4 [미실행·계획]`. 실제 음악의 overlap·사용자 유용성 평가는 K3.3 운영 품질 후속 항목이다.

@@ -75,13 +75,13 @@ DoD: EVAL-008의 60·80·100·120·140·160 BPM 합성 ground truth, 요청값 �
 
 차단 조건: half/double 오류 미분류, confidence 근거 없음, 정확한 BPM 보장 표현.
 
-### K3.3 — Structure·Hook Candidate [계획]
+### K3.3 — Structure·Hook Candidate [완료]
 
-- [ ] 에너지·반복 기반 Hook 후보 1개(Stage A)
-- [ ] first Chorus 후보·confidence
-- [ ] 후보 없음·저신뢰 fallback
+- [x] 에너지·반복 기반 15초 후렴 후보 1개(Stage A)
+- [x] 후보 구간·confidence·selection strategy·analyzer version
+- [x] 후보 없음·저신뢰 곡 중앙 fallback과 비차단 실패 경계
 
-DoD: 사용자 label·temporal overlap·15초 Preview 유용성 평가와 안전한 `not_found` 처리를 통과한다.
+DoD: 반복·에너지 피크·후보 없음·짧은 WAV·무음 fixture, 비차단 Pipeline·Retry·공개 allowlist와 Desktop/Mobile 표시를 통과한다. 실제 음악의 사용자 label·temporal overlap·Preview 유용성은 EVAL-008 후속 운영 평가로 유지한다.
 
 차단 조건: Hook/Chorus 확정 표현, 권리 확보 평가 데이터 부재, 저신뢰 자동 선택.
 
@@ -106,4 +106,4 @@ DoD: Dataset manifest·라이선스·동의·분리, RTX 3060 Ti 8GB 실측, Ada
 
 ## 구현 순서
 
-K1 Preset MVP → K2 Structured Options → K3.0 계약·평가 문서 → K3.1 Audio Quality Metrics MVP → K3.2 Tempo Analysis MVP까지 완료했다. 다음 구현은 별도 PR의 K3.3 Hook Candidate → K3.4 Preview → K4 Model Adaptation 순서다.
+K1 Preset MVP → K2 Structured Options → K3.0 계약·평가 문서 → K3.1 Audio Quality Metrics MVP → K3.2 Tempo Analysis MVP → K3.3 Hook Candidate MVP까지 완료했다. 다음 구현은 별도 PR의 K3.4 Preview → K4 Model Adaptation 순서다.

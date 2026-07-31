@@ -191,6 +191,20 @@ def test_public_metadata_allowlist_removes_analysis_internals() -> None:
                 "source_path": "D:/private/final.wav",
                 "warnings": [{"code": "PRIVATE", "message": "private"}],
             },
+            "hook": {
+                "hook_analysis_version": "1.0",
+                "status": "COMPLETED",
+                "candidate": {
+                    "start_seconds": 42.1,
+                    "end_seconds": 57.1,
+                    "duration_seconds": 15.0,
+                    "confidence": 0.74,
+                    "selection_strategy": "energy_repetition",
+                    "raw_frame_scores": [0.1, 0.9],
+                    "source_path": "D:/private/final.wav",
+                },
+                "warnings": [{"code": "PRIVATE", "message": "private"}],
+            },
             "warnings": [
                 {"code": "AUDIO_DECODE_FAILED", "message": "조작된 비공개 안내"}
             ],
@@ -214,6 +228,17 @@ def test_public_metadata_allowlist_removes_analysis_internals() -> None:
             "absolute_bpm_error": 0.2,
             "half_time_candidate": False,
             "double_time_candidate": False,
+        },
+        "hook": {
+            "hook_analysis_version": "1.0",
+            "status": "COMPLETED",
+            "candidate": {
+                "start_seconds": 42.1,
+                "end_seconds": 57.1,
+                "duration_seconds": 15.0,
+                "confidence": 0.74,
+                "selection_strategy": "energy_repetition",
+            },
         },
         "warnings": ["오디오 파일을 읽지 못해 품질을 분석하지 못했습니다."],
     }

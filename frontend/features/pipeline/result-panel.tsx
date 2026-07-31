@@ -11,6 +11,7 @@ import { publicMetadataRows } from "@/lib/result-metadata";
 import { parseAudioAnalysis } from "@/lib/audio-analysis";
 import { AudioQualitySummary } from "@/features/audio/audio-quality-summary";
 import { TempoSummary } from "@/features/audio/tempo-summary";
+import { HookSummary } from "@/features/audio/hook-summary";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import { usePlayerStore } from "@/stores/player-store";
@@ -115,6 +116,7 @@ export function ResultPanel({ jobId }: { jobId: string }) {
         </dl>
         <AudioQualitySummary analysis={audioAnalysis} />
         <TempoSummary analysis={audioAnalysis} />
+        <HookSummary analysis={audioAnalysis} />
         <h3>재생할 파일</h3>
         {filesQuery.error && (
           <ErrorAlert message="생성 파일 목록을 조회할 수 없습니다." />

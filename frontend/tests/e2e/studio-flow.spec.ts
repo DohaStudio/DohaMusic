@@ -65,6 +65,17 @@ const pipeline = {
       half_time_candidate: false,
       double_time_candidate: false,
     },
+    hook: {
+      hook_analysis_version: "1.0",
+      status: "COMPLETED",
+      candidate: {
+        start_seconds: 12.1,
+        end_seconds: 27,
+        duration_seconds: 14.9,
+        confidence: 0.74,
+        selection_strategy: "energy_repetition",
+      },
+    },
     warnings: [],
   },
 };
@@ -162,6 +173,8 @@ test("History에서 Result와 Player로 다시 이동한다", async ({ page }) =
   await expect(page.getByText("감지되지 않음")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Tempo 분석" })).toBeVisible();
   await expect(page.getByText("예상 템포는 약 119.8 BPM입니다.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "후렴 후보" })).toBeVisible();
+  await expect(page.getByText("00:12~00:27")).toBeVisible();
 });
 
 test("PARTIAL 분석과 구형 Result fallback을 안전하게 표시한다", async ({ page }) => {
@@ -185,10 +198,13 @@ test("History와 Project에서 분석 상태를 간결하게 표시한다", asyn
   await page.goto("/history");
   await expect(page.getByText(/분석 완료 · 클리핑 없음 · -13.8 LUFS/)).toBeVisible();
   await expect(page.getByText("Tempo 완료")).toBeVisible();
+  await expect(page.getByText("후렴 후보 있음")).toBeVisible();
   await expect(page.getByText(/119\.8 BPM/)).toHaveCount(0);
+  await expect(page.getByText(/00:12~00:27/)).toHaveCount(0);
   await page.goto("/projects/project-001");
   await expect(page.getByText(/분석 완료 · 클리핑 없음 · -13.8 LUFS/)).toBeVisible();
   await expect(page.getByText(/예상 템포는 약 119\.8 BPM/)).toBeVisible();
+  await expect(page.getByText(/후렴 후보 · 추정 구간 00:12~00:27/)).toBeVisible();
 });
 test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async ({ page }) => {
   await page.addInitScript(() => {

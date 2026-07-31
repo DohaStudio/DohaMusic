@@ -41,6 +41,7 @@ describe("audio analysis allowlist parser", () => {
         integratedLufs: -13.8,
       },
       tempo: null,
+      hook: null,
       warnings: [],
     });
   });

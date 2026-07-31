@@ -16,7 +16,26 @@ export interface AudioAnalysisSummary {
   status: AudioAnalysisStatusDto;
   quality: AudioQualityMetrics | null;
   tempo: TempoAnalysisSummary | null;
+  hook: HookAnalysisSummary | null;
   warnings: string[];
+}
+
+export type HookSelectionStrategy =
+  | "energy_repetition"
+  | "energy_peak"
+  | "fallback_middle"
+  | "unavailable";
+
+export interface HookAnalysisSummary {
+  version: string;
+  status: AudioAnalysisStatusDto;
+  candidate: {
+    startSeconds: number;
+    endSeconds: number;
+    durationSeconds: number;
+    confidence: number;
+    selectionStrategy: HookSelectionStrategy;
+  } | null;
 }
 
 export interface TempoAnalysisSummary {
@@ -55,13 +74,64 @@ export function parseAudioAnalysis(value: unknown): AudioAnalysisSummary | null 
   if (candidate.quality !== null && quality === null) return null;
   const tempo = parseTempo(candidate.tempo);
   if (candidate.tempo !== null && candidate.tempo !== undefined && tempo === null) return null;
+  const hook = parseHook(candidate.hook);
+  if (candidate.hook !== null && candidate.hook !== undefined && hook === null) return null;
   return {
     version: candidate.audio_analysis_version,
     status: candidate.analysis_status,
     quality,
     tempo,
+    hook,
     warnings: [...candidate.warnings],
   };
+}
+
+function parseHook(value: unknown): HookAnalysisSummary | null {
+  if (value === null || value === undefined) return null;
+  if (!isRecord(value)) return null;
+  if (
+    value.hook_analysis_version !== "1.0" ||
+    !isAnalysisStatus(value.status) ||
+    !(value.candidate === null || isRecord(value.candidate))
+  ) {
+    return null;
+  }
+  if (value.candidate === null) {
+    return { version: value.hook_analysis_version, status: value.status, candidate: null };
+  }
+  const candidate = value.candidate;
+  if (
+    !isFiniteNumber(candidate.start_seconds) || candidate.start_seconds < 0 ||
+    !isFiniteNumber(candidate.end_seconds) || candidate.end_seconds <= candidate.start_seconds ||
+    !isFiniteNumber(candidate.duration_seconds) || candidate.duration_seconds <= 0 ||
+    !isFiniteNumber(candidate.confidence) || candidate.confidence < 0 || candidate.confidence > 1 ||
+    !isHookSelectionStrategy(candidate.selection_strategy)
+  ) {
+    return null;
+  }
+  return {
+    version: value.hook_analysis_version,
+    status: value.status,
+    candidate: {
+      startSeconds: candidate.start_seconds,
+      endSeconds: candidate.end_seconds,
+      durationSeconds: candidate.duration_seconds,
+      confidence: candidate.confidence,
+      selectionStrategy: candidate.selection_strategy,
+    },
+  };
+}
+
+function isHookSelectionStrategy(value: unknown): value is HookSelectionStrategy {
+  return value === "energy_repetition" || value === "energy_peak" ||
+    value === "fallback_middle" || value === "unavailable";
+}
+
+export function analysisConfidenceLabel(confidence: number | null): string {
+  if (confidence === null) return "Unavailable";
+  if (confidence >= 0.8) return "High";
+  if (confidence >= 0.5) return "Medium";
+  return "Low";
 }
 
 function parseTempo(value: unknown): TempoAnalysisSummary | null {
@@ -96,10 +166,7 @@ function parseTempo(value: unknown): TempoAnalysisSummary | null {
 }
 
 export function tempoConfidenceLabel(confidence: number | null): string {
-  if (confidence === null) return "Unavailable";
-  if (confidence >= 0.8) return "High";
-  if (confidence >= 0.5) return "Medium";
-  return "Low";
+  return analysisConfidenceLabel(confidence);
 }
 
 function parseQuality(value: unknown): AudioQualityMetrics | null {

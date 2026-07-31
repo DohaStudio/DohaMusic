@@ -45,7 +45,7 @@ ACE-Step 0.6B LM은 실행 가능성만 확인됐으며 단일 표본에서 no-L
 }
 ```
 
-K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Capability endpoint는 추가하지 않고 문서와 Frontend typed 상수 계약을 사용한다. K3.2 `detected_bpm`은 Provider 제어가 아닌 final WAV 후처리 `ANALYZED`이며 Hook timestamp와 Preview는 계속 `NOT_SUPPORTED`다. Prompt 기반 요청 BPM을 실제 수치 제어로 표현하지 않는다.
+K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Capability endpoint는 추가하지 않고 문서와 Frontend typed 상수 계약을 사용한다. K3.2 `detected_bpm`과 K3.3 후렴 후보는 Provider 제어가 아닌 final WAV 후처리 `ANALYZED`다. Preview는 계속 `NOT_SUPPORTED`이며 Prompt 기반 요청 BPM을 실제 수치 제어로 표현하지 않는다.
 
 ## K3 분석 Capability 목표
 
@@ -59,7 +59,7 @@ K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Cap
 | Sample Peak·clipping | `ANALYZED` | final WAV 직접 측정 | K3.1 완료 |
 | Integrated LUFS | `ANALYZED` | pyloudnorm BS.1770 후처리 | K3.1 완료 |
 | True Peak | `NOT_SUPPORTED` | oversampling·reference 검증 전 미지원 | 후속 검토 |
-| Hook/Chorus candidate | `NOT_SUPPORTED` | 후보 추정 예정 | K3.3 |
+| Hook/Chorus candidate | `ANALYZED` | 에너지·반복 기반 추정 구간과 confidence, Chorus 확정 아님 | K3.3 완료 |
 | 15초 Preview | `NOT_SUPPORTED` | export 예정 | K3.4 |
 
 Frontend는 별도 Provider capability 제어를 추가하지 않고 공개 `audio_analysis.tempo` DTO가 있을 때만 추정 결과를 표시한다.

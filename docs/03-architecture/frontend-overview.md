@@ -81,7 +81,7 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 | `Backend Required` | 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
 
-K-POP 3종 Preset과 Prompt Preview에 K2 Structured Options를 연결했다. Frontend는 typed snake_case DTO를 보내고 Backend Compiler가 최종 Prompt 권위가 된다. K3.1·K3.2는 allowlist `audio_analysis` DTO를 안전한 camelCase view model로 파싱한다. Result는 Quality와 Tempo 상세, History는 Tempo 상태만, Project는 예상 Tempo 요약을 표시한다. Hook timestamp·Preview는 `Planned`다.
+K-POP 3종 Preset과 Prompt Preview에 K2 Structured Options를 연결했다. Frontend는 typed snake_case DTO를 보내고 Backend Compiler가 최종 Prompt 권위가 된다. K3.1·K3.2·K3.3은 allowlist `audio_analysis` DTO를 안전한 camelCase view model로 파싱한다. Result는 Quality·Tempo·후렴 후보 상세, History 목록은 Hook 후보 유무만, Project 상세은 예상 Tempo와 Hook 추정 구간 요약을 표시한다. Preview는 `Planned`다.
 
 `분석 중`, `완료`, `일부 완료`, `분석 실패`, `미지원`은 Pipeline 상태와 분리한다. Result는 길이·sample rate·mono/stereo·dBFS·clipping·LUFS와 safe warning, 예상 BPM·confidence·오차를 label·unit로 제공하고, 구형 Result는 분석 정보 없음으로 표시한다. `COMPLETED`이면서 분석이 `PENDING`인 동안만 polling과 `aria-live`를 유지한다. Tempo는 “예상 템포는 약 … BPM”으로 표현하며 “정확한 BPM”을 사용하지 않는다. Hook/Chorus·Preview와 True Peak UI는 없다.
 

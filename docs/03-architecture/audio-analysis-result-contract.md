@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-01
-> 관련 기능: K3.0 계약, K3.1 Quality, K3.2 Tempo versioned storage·public allowlist
+> 관련 기능: K3.0 계약, K3.1 Quality, K3.2 Tempo, K3.3 Hook versioned storage·public allowlist
 > 관련 문서: [제품 정의](../02-product/k3-audio-analysis-product-definition.md), [실패 정책](audio-analysis-failure-policy.md), [Pipeline API](../06-api/pipeline-api.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
 ## 현재 저장소와 K3 MVP 결정
@@ -17,7 +17,7 @@ K3 MVP는 대안 A인 기존 Result metadata JSON 확장을 채택한다.
 | B. 별도 Audio Analysis 테이블 | 상태·버전·재분석 추적과 통계에 유리 | Migration과 수명주기 복잡도 | Re-analysis·검색 요구 시 재검토 |
 | C. 최소 컬럼 + 상세 JSON | 자주 찾는 값만 인덱스 가능 | 이중 schema 동기화 | 운영 검색 요구 확인 후 검토 |
 
-K3.1·K3.2는 schema·Migration 없이 `result_metadata.audio_analysis`만 확장했다. Preview의 `pipeline_files.file_type=preview` 후보는 K3.4 계획이며 아직 구현하지 않았다.
+K3.1·K3.2·K3.3은 schema·Migration 없이 `result_metadata.audio_analysis`만 확장했다. Preview의 `pipeline_files.file_type=preview` 후보는 K3.4 계획이며 아직 구현하지 않았다.
 
 ## 버전된 내부 구조
 
@@ -48,17 +48,28 @@ K3.1·K3.2는 schema·Migration 없이 `result_metadata.audio_analysis`만 확�
       "half_time_candidate": false,
       "double_time_candidate": false
     },
+    "hook": {
+      "hook_analysis_version": "1.0",
+      "status": "COMPLETED",
+      "candidate": {
+        "start_seconds": 42.1,
+        "end_seconds": 57.0,
+        "duration_seconds": 14.9,
+        "confidence": 0.74,
+        "selection_strategy": "energy_repetition"
+      }
+    },
     "warnings": []
   }
 }
 ```
 
-K3.2는 기존 K3.1 품질 구조를 보존하고 `tempo`만 추가한다. True Peak·Hook/Chorus·Preview 필드는 만들지 않는다. 내부 `source_file_role`도 공개 DTO에서 제거한다.
+K3.3은 기존 K3.1·K3.2 구조를 보존하고 `hook`만 추가한다. 후보는 Chorus 확정값이 아니라 에너지·반복 기반 추정이며 `candidate=null`일 수 있다. Preview 필드는 만들지 않으며 내부 `source_file_role`도 공개 DTO에서 제거한다.
 
 ## 최소 버전 계약
 
 - 필수: `audio_analysis_version`
-- 구현: `tempo.version`; 향후 선택: `loudness_analyzer_version`, `hook_analyzer_version`, `preview_exporter_version`
+- 구현: `tempo.version`, `hook.hook_analysis_version`; 향후 선택: `loudness_analyzer_version`, `preview_exporter_version`
 - 알고리즘, 중요 기본값 또는 calibration 변경 시 version을 올려 기존 결과와 구분한다.
 - 같은 version에서 같은 WAV와 설정은 허용 오차 안에서 재현 가능해야 한다.
 
@@ -68,13 +79,13 @@ K3.2는 기존 K3.1 품질 구조를 보존하고 `tempo`만 추가한다. True 
 
 | 화면/API | 공개 범위 |
 |---|---|
-| Pipeline Result | quality 공개값과 Tempo requested/detected BPM·confidence·error·candidate·status·version |
-| History 목록 | analysis status, clipping, Integrated LUFS와 Tempo status 요약 |
+| Pipeline Result | quality 공개값, Tempo 공개값, Hook 후보 구간·confidence·strategy·status·version |
+| History 목록 | analysis status, clipping, Integrated LUFS, Tempo status와 Hook 후보 유무 요약 |
 | History 상세 | Result 공개 범위와 동일 |
-| Project Job 목록 | 간결한 quality와 예상 Tempo 요약 |
+| Project Job 목록 | 간결한 quality·예상 Tempo·Hook 추정 구간 요약 |
 | Files | 기존 final WAV secure content/download 계약 유지 |
 
-K3.2 Tempo 공개 가능 값은 requested/detected BPM, confidence, signed/absolute error, half/double candidate, status와 version뿐이다. raw onset·frame·FFT·debug·path는 공개하지 않는다.
+K3.2 Tempo 공개 가능 값은 requested/detected BPM, confidence, signed/absolute error, half/double candidate, status와 version뿐이다. K3.3 Hook은 candidate start/end/duration, confidence, selection strategy, status와 version만 공개한다. raw onset·energy/frame score·FFT·debug·path는 공개하지 않는다.
 
 다음은 공개하지 않는다.
 

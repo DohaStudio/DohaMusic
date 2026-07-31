@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import math
 from enum import StrEnum
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 AUDIO_ANALYSIS_VERSION = "1.0"
 PUBLIC_WARNING_MESSAGES = {
@@ -22,6 +23,11 @@ PUBLIC_WARNING_MESSAGES = {
     "TEMPO_DETECTION_FAILED": "템포를 안정적으로 추정하지 못했습니다.",
     "TEMPO_CONFIDENCE_LOW": "템포 추정 신뢰도가 낮아 참고용으로만 제공됩니다.",
     "TEMPO_UNSUPPORTED_AUDIO": "현재 오디오 형식은 템포 분석을 지원하지 않습니다.",
+    "HOOK_AUDIO_TOO_SHORT": "곡이 짧아 전체 구간을 후렴 대체 후보로 제공합니다.",
+    "HOOK_SILENT_AUDIO": "무음 오디오에서는 후렴 후보를 추정할 수 없습니다.",
+    "HOOK_DETECTION_FAILED": "후렴 후보를 안정적으로 추정하지 못했습니다.",
+    "HOOK_FALLBACK_MIDDLE": "후렴 후보 신뢰도가 낮아 곡 중앙 구간을 대체 후보로 제공합니다.",
+    "HOOK_UNSUPPORTED_AUDIO": "현재 오디오 형식은 후렴 후보 분석을 지원하지 않습니다.",
 }
 
 
@@ -93,6 +99,63 @@ class TempoAnalysisResult(BaseModel):
         )
 
 
+class HookSelectionStrategy(StrEnum):
+    ENERGY_REPETITION = "energy_repetition"
+    ENERGY_PEAK = "energy_peak"
+    FALLBACK_MIDDLE = "fallback_middle"
+    UNAVAILABLE = "unavailable"
+
+
+class HookCandidate(BaseModel):
+    model_config = ConfigDict(extra="ignore", allow_inf_nan=False)
+
+    start_seconds: float = Field(ge=0)
+    end_seconds: float = Field(gt=0)
+    duration_seconds: float = Field(gt=0)
+    confidence: float = Field(ge=0, le=1)
+    selection_strategy: HookSelectionStrategy
+
+    @model_validator(mode="after")
+    def validate_window(self) -> HookCandidate:
+        if self.end_seconds <= self.start_seconds:
+            raise ValueError("Hook candidate end must follow start")
+        expected_duration = self.end_seconds - self.start_seconds
+        if not math.isclose(self.duration_seconds, expected_duration, abs_tol=0.01):
+            raise ValueError("Hook candidate duration must match its window")
+        return self
+
+
+class HookAnalysisResult(BaseModel):
+    """Internal Hook candidate result; never an exact Chorus assertion."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    hook_analysis_version: str = "1.0"
+    status: AudioAnalysisStatus
+    candidate: HookCandidate | None = None
+    warnings: list[AudioAnalysisWarning] = Field(default_factory=list)
+
+    @classmethod
+    def pending(cls) -> HookAnalysisResult:
+        return cls(status=AudioAnalysisStatus.PENDING)
+
+    @classmethod
+    def failed(
+        cls,
+        warning: AudioAnalysisWarning,
+        *,
+        unsupported: bool = False,
+    ) -> HookAnalysisResult:
+        return cls(
+            status=(
+                AudioAnalysisStatus.UNSUPPORTED
+                if unsupported
+                else AudioAnalysisStatus.FAILED
+            ),
+            warnings=[warning],
+        )
+
+
 class AudioAnalysisResult(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -101,6 +164,7 @@ class AudioAnalysisResult(BaseModel):
     source_file_role: str = "final_mix"
     quality: AudioQualityMetrics | None
     tempo: TempoAnalysisResult | None = None
+    hook: HookAnalysisResult | None = None
     warnings: list[AudioAnalysisWarning]
 
     @classmethod
@@ -109,6 +173,7 @@ class AudioAnalysisResult(BaseModel):
             analysis_status=AudioAnalysisStatus.PENDING,
             quality=None,
             tempo=TempoAnalysisResult.pending(requested_bpm),
+            hook=HookAnalysisResult.pending(),
             warnings=[],
         )
 
@@ -122,6 +187,7 @@ class AudioAnalysisResult(BaseModel):
             analysis_status=AudioAnalysisStatus.FAILED,
             quality=None,
             tempo=TempoAnalysisResult.failed(requested_bpm, warning),
+            hook=HookAnalysisResult.failed(warning),
             warnings=[warning],
         )
 
@@ -135,6 +201,7 @@ class PublicAudioAnalysis(BaseModel):
     analysis_status: AudioAnalysisStatus
     quality: AudioQualityMetrics | None
     tempo: PublicTempoAnalysis | None
+    hook: PublicHookAnalysis | None
     warnings: list[str]
 
 
@@ -152,6 +219,16 @@ class PublicTempoAnalysis(BaseModel):
     absolute_bpm_error: float | None
     half_time_candidate: bool
     double_time_candidate: bool
+
+
+class PublicHookAnalysis(BaseModel):
+    """Strict allowlist for public Hook candidate metadata."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    hook_analysis_version: str
+    status: AudioAnalysisStatus
+    candidate: HookCandidate | None
 
 
 PublicAudioAnalysis.model_rebuild()
@@ -186,6 +263,15 @@ def public_audio_analysis(metadata: object) -> PublicAudioAnalysis | None:
                 double_time_candidate=internal.tempo.double_time_candidate,
             )
             if internal.tempo is not None
+            else None
+        ),
+        hook=(
+            PublicHookAnalysis(
+                hook_analysis_version=internal.hook.hook_analysis_version,
+                status=internal.hook.status,
+                candidate=internal.hook.candidate,
+            )
+            if internal.hook is not None
             else None
         ),
         warnings=[
