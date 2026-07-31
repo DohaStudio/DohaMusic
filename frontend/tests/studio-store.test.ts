@@ -1,0 +1,2 @@
+import { beforeEach,describe,expect,it } from "vitest";import { useStudioStore } from "@/stores/studio-store";
+describe("Studio store",()=>{beforeEach(()=>useStudioStore.getState().reset());it("draft와 단계를 갱신한다",()=>{useStudioStore.getState().patch({prompt:"새벽 R&B"});useStudioStore.getState().setStep("lyrics");expect(useStudioStore.getState()).toMatchObject({prompt:"새벽 R&B",currentStep:"lyrics"})});it("초기 상태로 재설정한다",()=>{useStudioStore.getState().patch({voiceProfileId:"id"});useStudioStore.getState().reset();expect(useStudioStore.getState().voiceProfileId).toBe("")})});

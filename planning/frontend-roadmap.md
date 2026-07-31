@@ -1,15 +1,15 @@
 # Doha Studio Frontend Roadmap
 
-> 문서 상태: [계획]
+> 문서 상태: [진행 중]
 > 최종 수정일: 2026-07-31
 > 관련 Phase: Phase 8 Doha Studio
 > 관련 문서: [Frontend Overview](../docs/03-architecture/frontend-overview.md), [Frontend Architecture](../docs/03-architecture/frontend-architecture.md), [Phase-08 DoD](../docs/DoD/Phase-08.md)
 
 ## 목표
 
-Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. 이 문서는 구현 순서이며 현재 완료 상태를 의미하지 않는다.
+Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F4의 현재 Backend 가능 범위는 MVP로 구현됐고, Backend Required 기능과 F5는 남아 있다.
 
-## F0 — Frontend Contract Verification
+## F0 — Frontend Contract Verification [완료]
 
 ### 목적
 
@@ -59,35 +59,35 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - 활성·비활성 UI 기능 목록과 Backend gap 재확인
 - API 계약과 기술 스택이 미확정이면 F1 구현 착수 금지
 
-## F1 — Foundation
+## F1 — Foundation [완료]
 
 - Next.js App Router, TypeScript, quality gate, token/theme, App shell
 - Button/Input/Card/Modal/Drawer/Toast/Progress primitives
 - 접근성·responsive test baseline
 - 완료 기준: lint·type·build와 token/component 문서 일치
 
-## F2 — Studio Draft
+## F2 — Studio Draft [완료]
 
 - Desktop 3-column, Tablet drawer, Mobile step navigation
 - Music Settings, Lyrics draft/validation, Voice metadata, Review
 - draft 복원과 입력 오류
 - 완료 기준: API 호출 전 사용자 flow와 responsive 상태 검증
 
-## F3 — API Integration
+## F3 — API Integration [완료]
 
 - Health, Lyrics, Voice Profile, Pipeline client
 - 오류 정규화, polling, reconnect, URL 복원
 - 현재 미지원 action의 disabled/empty state
 - 완료 기준: Mock Backend 기준 생성 → status → result metadata E2E
 
-## F4 — Music Experience
+## F4 — Music Experience [부분 완료]
 
 - Vinyl artwork, waveform, transport, result inspector, motion
 - audio content endpoint 승인 후 실제 player/download 연결
 - reduced motion, keyboard, screen reader 검증
 - 완료 기준: endpoint 없는 가짜 재생 0건, 실제 media 계약 E2E
 
-## F5 — Projects·Production Readiness
+## F5 — Projects·Production Readiness [계획]
 
 - 인증·소유권, history/project, upload/download, cancel/retry API 연동
 - observability, browser matrix, performance, security review
@@ -95,4 +95,4 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 ## 우선순위와 보류
 
-F0 문서 검토 중 shell·draft의 추가 설계는 가능하지만 실제 Frontend 프로젝트·컴포넌트 구현은 F0 완료 전 시작하지 않는다. F4의 Player, F5의 Projects는 관련 endpoint 없이 완료 처리하지 않는다. 모든 단계에서 `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.
+F0에서 실제 Pydantic schema·Router·오류·상태를 확인하고 수동 DTO·mapper 계약 테스트와 [ADR-017](../docs/11-decisions/ADR-017-frontend-technology-stack.md)을 승인했다. F1~F3은 구현·자동 검증을 완료했다. F4는 Vinyl·waveform shell, metadata result, reduced motion을 구현했으나 audio content endpoint가 없어 Player와 Download는 disabled다. F5는 인증·소유권·History·Project·upload·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.

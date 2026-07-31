@@ -17,6 +17,26 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Base 미선정·Dataset 미구축·학습 미착수·checkpoint 없음·Adapter 미구현·평가 미실시·운영 미승인 상태를 명시했다.
 - OpenAI API Experimental 비교군, FastAPI OpenAPI 명세, Planned Local Lyrics LLM을 구분하고 Frontend Provider-neutral 원칙을 보강했다.
 
+### Phase 8 — Doha Studio Frontend MVP
+
+#### 추가
+
+- Next.js 16 App Router·TypeScript 기반 `frontend/`와 npm lockfile, Premium Dark responsive Landing·Studio·Lyrics·Voice·Progress·Result·Settings·About·404 화면을 추가했다.
+- Zustand session draft, TanStack Query server state, React Hook Form·Zod form, 공통 API client·안전한 오류 정규화·DTO mapper를 추가했다.
+- Health·Lyrics 생성/검증/수정/삭제·Voice Profile 생성/삭제·Pipeline 생성/조회/files metadata를 실제 FastAPI 계약에 연결했다.
+- 초기 5회 1초·foreground 2초·background 5초 polling과 terminal 중단, URL 복원, network/Job 실패 분리를 구현했다.
+- Vitest·React Testing Library 12건과 Playwright Chromium Desktop·Mobile E2E 4건을 추가했다.
+
+#### 변경
+
+- ADR-017을 npm·Next.js 16·CSS token·Zustand·TanStack Query·React Hook Form·Zod·Lucide·Vitest·Playwright 조합으로 승인했다.
+- Phase 8을 `[진행 중] 53%`로 갱신하고 F0~F3 완료, F4 부분 완료, F5 계획 상태로 구분했다.
+- Voice upload/list/get, audio streaming/download, History·Project, cancel/retry, 인증·소유권·모델 목록·Playlist는 Backend API 전까지 disabled 또는 미구현 상태를 유지한다.
+
+#### 검증
+
+- Lint·Type Check·unit/component test·production build·Desktop/Mobile E2E를 통과했고 FastAPI와 same-origin proxy의 `/health` 응답을 확인했다.
+
 ### Phase 8 — Doha Studio Frontend Design
 
 #### 문서

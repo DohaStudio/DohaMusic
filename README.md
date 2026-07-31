@@ -4,7 +4,7 @@
 
 > Phase 6.6~6.9: 권리 확보 Dataset으로 공개 Instruct Base Model을 QLoRA SFT하고 `LocalLyricsLLMAdapter`로 연결하는 구조는 `[계획] 0%`입니다. Base Model·Dataset·checkpoint는 없고 학습·Adapter·품질 평가는 미착수이며, 승인 전 `template` 기본값과 Pipeline 비연결을 유지합니다.
 
-> Phase 8: Doha Studio는 Premium Dark Music Workspace의 설계·F0 계약 검토 문서가 준비된 `[계획] 0%` 상태입니다. React·Next.js 코드와 UI 컴포넌트는 아직 구현하지 않았으며 현재 Backend에 없는 upload/download·history·cancel/retry·인증 기능은 `Backend Required`로 분리했습니다.
+> Phase 8: Doha Studio Responsive Frontend MVP는 `[진행 중] 53%`입니다. `frontend/`에 Next.js App Router 기반 Landing·Studio·Lyrics·Voice·Progress·Result·Settings·About·404를 구현했고 Health·Lyrics·Voice Profile·Pipeline API를 연결했습니다. upload/download·audio content·history·cancel/retry·인증·소유권은 `Backend Required`로 비활성화했습니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
@@ -32,8 +32,8 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | `StemSeparator`·Mock/Demucs Provider와 비동기 Stem API |
 | [실험 완료] | HTDemucs 4.1.0 보컬/반주 분리, 48kHz Stereo 출력, RTX 3060 Ti Benchmark |
 | [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
-| [계획] | 프롬프트 및 직접 작성 가사 기반 음악 생성 |
-| [계획] | 장르·분위기·BPM·길이·Seed 설정 |
+| [진행 중] | Responsive Studio에서 프롬프트·직접 작성/생성 가사 기반 Pipeline 요청 |
+| [진행 중] | 실제 Pipeline 계약의 장르·길이·Seed 설정; BPM은 Backend Required |
 | [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
 | [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
 | [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
@@ -46,12 +46,12 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [수동 평가 필요] | EVAL-005 가사 주제 적합성·자연스러움·후렴 기억성·창작 활용성 평가 |
 | [계획] | 공개 Instruct Base + 권리 확보 Lyrics Dataset + QLoRA SFT 기반 Local Lyrics LLM |
 | [계획] | MP3 변환 |
-| [계획] | 비동기 작업 상태·진행률·오류·재시도 관리 |
+| [진행 중] | Frontend Pipeline 상태·진행률·오류·새 Job 복구; cancel·기존 Job retry는 Backend Required |
 | [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
 
-음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Mixer 기본값은 AI와 독립된 `DefaultAudioMixer`이며 Mock은 테스트용으로 유지한다. Lyrics 기본값은 외부 통신이 없는 `TemplateLyricsGenerator`이고, 실제 LLM 품질이나 자유 형식 수정 반영을 주장하지 않는다. Phase 4.6에서 Voice Primary와 Fallback은 미선정됐으므로 실제 음색 변환 품질이나 운영 배포 승인을 의미하지 않는다. Mixer와 가사 품질도 각각 EVAL-004·EVAL-005 사용자 평가 전에는 승인하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 인증, Frontend, Redis/Celery는 구현하지 않았다.
+음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Mixer 기본값은 AI와 독립된 `DefaultAudioMixer`이며 Mock은 테스트용으로 유지한다. Lyrics 기본값은 외부 통신이 없는 `TemplateLyricsGenerator`이고, 실제 LLM 품질이나 자유 형식 수정 반영을 주장하지 않는다. Phase 4.6에서 Voice Primary와 Fallback은 미선정됐으므로 실제 음색 변환 품질이나 운영 배포 승인을 의미하지 않는다. Mixer와 가사 품질도 각각 EVAL-004·EVAL-005 사용자 평가 전에는 승인하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 Frontend 인증·소유권과 Redis/Celery는 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
@@ -69,7 +69,7 @@ flowchart LR
 
 ## 예상 기술 스택
 
-- Frontend: Next.js App Router 후보 **[검토 필요]**, 최종 stack은 [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)에서 결정
+- Frontend: Next.js 16 App Router + TypeScript + CSS token + Zustand + TanStack Query **[진행 중]**, 결정은 [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
 - Backend/Orchestrator: FastAPI + PipelineExecutor **[완료]**
 - Persistence: SQLAlchemy 2, Alembic, SQLite **[완료]**
 - AI Worker: Provider-neutral 공유 ThreadPool Worker **[완료]**, 격리형 ACE-Step·Demucs·Seed-VC subprocess **[실험 완료]**
@@ -87,6 +87,7 @@ flowchart LR
 ```text
 DohaMusic/
 ├─ backend/    # FastAPI, DB, Worker, AI interface·adapter, tests
+├─ frontend/   # Next.js Responsive Studio, API client, unit·E2E tests
 ├─ ai_worker/  # 선택적 로컬 AI 실행기와 재현용 benchmark 입력
 ├─ docs/       # 개요, 조사, 요구사항, 설계, 정책, 운영, ADR, Phase DoD
 ├─ planning/   # 단계별 실행 계획과 백로그
@@ -111,6 +112,16 @@ python -m uvicorn backend.main:app --reload
 ```
 
 API 문서는 실행 후 `http://127.0.0.1:8000/docs`, health는 `GET /health`에서 확인한다. 테스트는 `python -m pytest -q`로 실행한다. 자세한 설정은 [로컬 개발 환경](docs/10-operations/local-development.md)을 따른다.
+
+Frontend는 별도 terminal에서 실행한다. `/backend` 요청은 기본적으로 `http://127.0.0.1:8000`에 proxy된다.
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend 검증은 `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run test:e2e` 순서로 실행한다.
 
 ## 개발 로드맵
 
