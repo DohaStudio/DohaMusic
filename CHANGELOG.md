@@ -12,6 +12,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 - Phase 2 사용자 청취 평가 점수와 근거를 EVAL-001에 반영하고, 동일 PCM 산출물의 중복 집계를 제거했으며 미평가 2건을 남긴 채 ACE-Step을 조건부 채택으로 기록했다.
 - README·Master Roadmap·실행 Roadmap·ADR-006·Phase-02 DoD에서 조건부 채택, 기본 Provider `mock`, 운영 Provider 미확정, 사용자 평가 진행 중 상태를 동기화했다.
+- Phase 2 대표 평가를 Korean Dance Pop으로 정하고 Instrumental·Korean Ballad를 보조 비교군으로 유지했으며, Dance Pop 평가 기준·Prompt·Hook 가사·0.6B LM 후속 실험 계획과 Phase 7 이후 LoRA·권리 확보 데이터 방향을 문서화했다.
 
 ### Phase 6.6~6.9 — Local Lyrics LLM
 

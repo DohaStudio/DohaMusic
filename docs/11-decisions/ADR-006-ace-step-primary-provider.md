@@ -15,6 +15,10 @@ ACE-Step Provider를 조건부 채택한다. 현재 평가 범위인 15초 Instr
 
 한국어 가창에는 no LM 설정을 기본값으로 채택하지 않는다. 0.6B LM 설정을 우선 실험 후보로 사용하며, 그 결과를 후속 음색 변환 입력으로 사용할 수 있는지 추가 검증한다. 검증 결과를 운영 Pipeline에 자동 연결하지 않는다.
 
+대표 평가 장르는 **Korean Dance Pop**으로 정한다. 이는 한국 여성 댄스팝을 생성하고 후속 Voice Conversion을 통해 동의받은 사용자의 목소리로 부르게 한다는 DohaMusic 제품 목표를 가장 직접적으로 반영한다. Instrumental과 Korean Ballad는 기존 품질 결과를 보존하고 대표 시나리오와 비교하기 위한 보조 평가 시나리오로 유지한다.
+
+현재 Phase 2의 목적은 ACE-Step Base Model 평가다. Dance 스타일 LoRA는 현재 적용하거나 채택한 구성이 아니며 Phase 7 이후 검토 대상으로 유지한다.
+
 ## 선택 이유
 
 - 두 상주 suite 총 12/12 실행과 0.6B LM 1회가 성공했다.
@@ -48,6 +52,7 @@ API·DB 계약과 실제 Provider 설정은 바뀌지 않는다. 0.6B LM도 Back
 - 한국어 발음·가사·음악성의 합격 기준 합의
 - 후속 음색 변환에 사용할 수 있다는 사용자 판정
 - 장시간·전체 곡 구조·반복 생성 안정성 검증
+- Korean Dance Pop 대표 시나리오의 리듬·구조·Hook·보컬 선명도와 후속 Voice Conversion 입력 적합성 검증
 - 법률·배포 검토 및 운영 실패 기준 확정
 
 근거는 [EXP-002](../../reports/experiments/EXP-002-ace-step-quality-and-stability.md)와 develop 대상 Phase 2.5 PR에서 추적한다.
