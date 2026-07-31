@@ -70,4 +70,7 @@ Next.js rewrite가 `/backend/*`를 server-only `DOHAMUSIC_API_ORIGIN`으로 전�
 
 ## 관련 PR
 
-- Doha Studio Responsive Frontend MVP PR: 생성 후 연결 필요
+- [PR #19](https://github.com/DDORINY/DohaMusic/pull/19) — Doha Studio Responsive Frontend MVP
+- [PR #20](https://github.com/DDORINY/DohaMusic/pull/20) — Frontend 보안 경계와 유지보수 구조
+- [PR #21](https://github.com/DDORINY/DohaMusic/pull/21) — Audio 재생·다운로드
+- PR #22 — Voice Profile upload·list·get·Studio 선택

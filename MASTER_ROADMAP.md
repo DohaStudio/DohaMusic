@@ -78,7 +78,7 @@ Phase 9  Production                  [계획]
 | 6. Lyrics AI | [완료] | `██████████ 100%` | 로컬 Template·Mock Generator·API·검증·Benchmark 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [진행 중] | `███████░░░ 67%` | Responsive MVP·보안 Audio 재생/다운로드 완료, History·인증 등 Backend Required | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [진행 중] | `███████░░░ 73%` | 보안 Voice upload·선택과 Audio 재생/다운로드 완료, History·인증 등 잔여 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## Phase 0. 프로젝트 문서화 — [완료]
@@ -216,7 +216,7 @@ Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화
 - 완료 조건: [Phase-08 DoD](docs/DoD/Phase-08.md), 주요 화면·접근성·빌드·E2E·권한 검증.
 - 산출물: Frontend 애플리케이션, Design System·Component·Responsive·Studio UX 문서, E2E 결과.
 - 관련 문서: [Frontend Overview](docs/03-architecture/frontend-overview.md), [Frontend Architecture](docs/03-architecture/frontend-architecture.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Frontend Roadmap](planning/frontend-roadmap.md), [User Scenarios](docs/00-overview/user-scenarios.md).
-- 관련 ADR·실험: [ADR-017 Frontend Technology Stack](docs/11-decisions/ADR-017-frontend-technology-stack.md)은 `[검토 필요]`; 파일 전달 경계는 [ADR-018](docs/11-decisions/ADR-018-secure-audio-file-access.md)을 따른다.
+- 관련 ADR·실험: [ADR-017 Frontend Technology Stack](docs/11-decisions/ADR-017-frontend-technology-stack.md)은 `[승인]`; 파일 전달은 [ADR-018](docs/11-decisions/ADR-018-secure-audio-file-access.md), Voice upload는 [ADR-019](docs/11-decisions/ADR-019-secure-voice-profile-upload.md)을 따른다.
 - 예상 다음 단계: Phase 9 Production.
 
 ## Phase 9. Production — [계획]

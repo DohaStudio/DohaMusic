@@ -21,6 +21,8 @@
 
 `voice_profile_id`는 존재하고 동의가 확인돼야 한다. 참조 파일은 설정된 Storage의 `voices/references` 아래에 있어야 한다.
 
+일반 사용자는 Voice Profile upload·list API에서 선택한 opaque ID를 전달한다. 참조 음성 경로와 원본 파일은 Pipeline request·response에 포함하지 않는다.
+
 ## 조회
 
 - `GET /api/pipelines/{job_id}`: 상태, 현재 단계, 진행률, 오류, Pipeline metadata

@@ -9,6 +9,8 @@
 
 ## 시스템 통제
 
+현재 로컬 MVP는 Profile에 `consent_confirmed`, 정책 version과 확인 시각을 저장한다. 인증이 없어 동의한 사용자 identity를 신뢰성 있게 증명하지 못하며, 아래 `consent_records`와 철회·감사 흐름은 공개 운영 전 요구사항이다.
+
 - `consent_records`에 주체, 음성 프로필, 정책 버전, 범위, 승인·철회 시각과 증적 참조를 저장한다.
 - 작업 `VALIDATING` 및 `CONVERTING_VOICE` 진입 전에 동의가 활성인지 재검사한다.
 - 생성 트랙에 사용된 음성 프로필과 동의 기록 ID를 provenance로 연결한다.

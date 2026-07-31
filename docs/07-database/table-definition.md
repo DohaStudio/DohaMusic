@@ -68,6 +68,16 @@ Alembic 0006이 수정 이력 필드를 추가한다. 원본은 덮어쓰지 않
 | `name` | varchar(100) | 아니요 | 프로필 이름 |
 | `reference_file_path` | varchar(500) | 아니요 | 참조 파일 경로 메타데이터 |
 | `consent_confirmed` | boolean | 아니요 | 명시적 동의 확인 |
+| `display_filename` | varchar(255) | 예 | 공개 표시용 sanitize 파일명; legacy null |
+| `mime_type` | varchar(100) | 예 | 검증된 upload MIME |
+| `size_bytes` | bigint | 예 | upload byte 크기 |
+| `duration_seconds` | float | 예 | WAV 길이 |
+| `sample_rate` | integer | 예 | WAV sample rate |
+| `channels` | integer | 예 | 1 또는 2 |
+| `status` | varchar(20) | 아니요 | 현재 `READY` |
+| `quality_warnings` | json | 아니요 | 품질 warning code 배열 |
+| `consent_text_version` | varchar(50) | 예 | 확인한 동의문 버전 |
+| `consent_confirmed_at` | datetime | 예 | 동의 확인 시각 |
 | `created_at` | datetime | 아니요 | 생성 시각 |
 | `updated_at` | datetime | 아니요 | 수정 시각 |
 

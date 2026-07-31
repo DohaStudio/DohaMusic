@@ -8,6 +8,7 @@ from backend.services.pipeline_service import PipelineService
 from backend.services.stem_service import StemService
 from backend.services.voice_conversion_service import VoiceConversionService
 from backend.services.voice_profile_service import VoiceProfileService
+from backend.services.voice_upload_service import VoiceUploadService
 
 
 def get_generation_service(request: Request) -> GenerationService:
@@ -24,6 +25,10 @@ def get_pipeline_service(request: Request) -> PipelineService:
 
 def get_voice_profile_service(request: Request) -> VoiceProfileService:
     return request.app.state.voice_profile_service
+
+
+def get_voice_upload_service(request: Request) -> VoiceUploadService:
+    return request.app.state.voice_upload_service
 
 
 def get_stem_service(request: Request) -> StemService:

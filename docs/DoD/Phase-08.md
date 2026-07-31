@@ -1,9 +1,9 @@
 # Phase 8 Definition of Done — Doha Studio
 
 > 상태: [진행 중]
-> 진행률: 10/15, 67%
+> 진행률: 11/15, 73%
 > 최종 수정일: 2026-07-31
-> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-8-doha-studio--진행-중), [Frontend Architecture](../03-architecture/frontend-architecture.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-018](../11-decisions/ADR-018-secure-audio-file-access.md)
+> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-8-doha-studio--진행-중), [Frontend Architecture](../03-architecture/frontend-architecture.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-019](../11-decisions/ADR-019-secure-voice-profile-upload.md)
 
 ## 목표
 
@@ -11,16 +11,16 @@
 
 ## 선행 조건과 현재 경계
 
-Phase 5 Pipeline과 Phase 6 Lyrics API를 사용한다. 완료 Pipeline의 허용된 WAV content·download는 제공한다. upload·Voice Profile list/get·프로젝트 이력·Job cancel·기존 Job retry·인증·소유권은 API가 없어 완료 범위가 아니며 관련 control에는 가짜 데이터를 사용하지 않는다.
+Phase 5 Pipeline과 Phase 6 Lyrics API를 사용한다. 완료 Pipeline WAV와 Voice Profile upload·list·get·delete를 제공한다. 프로젝트 이력·Job cancel·기존 Job retry·인증·소유권은 API가 없어 완료 범위가 아니다.
 
-이번 확장에서 Audio Player와 WAV Download 2개 항목을 완료했다. 진행률은 `10 / 15 × 100 = 66.7%`를 반올림한 67%다. 기존 완료 항목은 취소하지 않는다.
+이번 확장에서 기존 Voice 입력 UI를 실제 Profile 목록·선택으로 완성하고 `Upload 보안·검증` 1개 항목을 새로 완료했다. 진행률은 `11 / 15 × 100 = 73.3%`를 반올림한 73%다.
 
 ## 완료 체크리스트
 
 - [x] Frontend 프로젝트와 공통 UI 구조
 - [x] Prompt·Lyrics 입력
-- [x] Voice Profile 입력·동의 UI
-- [ ] Upload 보안·검증 — `Backend Required`
+- [x] Voice Profile 입력·동의·목록·선택 UI
+- [x] Upload 보안·검증 — WAV 25MB·5~60초·consent·Storage cleanup
 - [x] Job 상태·오류·새 Job 생성 복구 UI
 - [x] Audio Player — 단일 전역 Player와 Range 기반 완료 WAV 재생
 - [ ] Generation History — 목록 API 필요
@@ -37,14 +37,16 @@ Phase 5 Pipeline과 Phase 6 Lyrics API를 사용한다. 완료 Pipeline의 허�
 
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` 통과
 - `npm ci`, `npm audit` 통과, 취약점 0건
-- Vitest 31개 unit·component test 통과
-- Playwright Chromium Desktop·Mobile 8개 E2E에서 Landing → Studio → Lyrics → Voice ID → Review → Pipeline → Result, Voice 개발 입력 기본 비노출, Template revision 비활성, 네트워크 오류·Job URL 복원 통과
-- Backend non-GPU `pytest`: 118 passed, GPU·외부·symlink 권한 실행 7 skipped; Ruff check·format check 통과
+- Vitest 35개 unit·component test 통과
+- Playwright Chromium Desktop·Mobile 8개 E2E에서 WAV upload → Profile 선택 → Studio → Review → Pipeline과 기존 핵심 흐름 통과
+- Backend non-GPU `pytest`: 129 passed, GPU·외부·symlink 권한 실행 7 skipped; Ruff check·format check 통과
+- 신규·기존 DB Alembic upgrade와 legacy nullable metadata를 확인
+- 실제 multipart upload·list·get·Pipeline ID 연결·사용 중 409·정상 파일 삭제와 Next.js proxy list를 확인
 - 실제 Mock Pipeline WAV에서 FastAPI와 Next.js same-origin proxy의 GET/HEAD, `bytes=10-19` 206, 범위 밖 416, attachment header를 확인
 
 ## 완료 조건
 
-나머지 5개 항목 중 upload·history·인증·소유권과 Git 병합 증거를 완료해야 한다. 현재 로컬 단일 사용자 MVP는 공개 Production 서비스나 Native 앱 완료를 의미하지 않는다.
+나머지 4개 항목 중 history·인증·소유권과 Git 병합 증거를 완료해야 한다. 현재 로컬 단일 사용자 MVP는 공개 Production 서비스나 Native 앱 완료를 의미하지 않는다.
 
 ## 산출물
 
@@ -52,4 +54,4 @@ Phase 5 Pipeline과 Phase 6 Lyrics API를 사용한다. 완료 Pipeline의 허�
 
 ## 예상 다음 단계
 
-Voice upload/list/get, history/project, cancel/retry, 인증·소유권 Backend 계약을 확정한 뒤 F5와 Phase 8 전체 완료를 검토한다.
+History/project, cancel/retry, 인증·소유권 Backend 계약을 확정한 뒤 F5와 Phase 8 전체 완료를 검토한다.

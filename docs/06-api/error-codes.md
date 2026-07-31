@@ -41,6 +41,19 @@
 | `FILE_MISSING_FROM_STORAGE` | DB 기록에 대응하는 regular file 없음 |
 | `UNSUPPORTED_AUDIO_FILE` | 허용되지 않은 type·MIME·확장자·WAV header |
 | `INVALID_RANGE` | 지원하지 않거나 만족할 수 없는 byte Range |
+| `VOICE_CONSENT_REQUIRED` | Voice upload 동의 누락 또는 false |
+| `VOICE_FILE_REQUIRED` | multipart 음성 파일 누락 |
+| `VOICE_FILE_EMPTY` | 빈 음성 파일 |
+| `VOICE_FILE_TOO_LARGE` | 25MB 초과 파일 |
+| `VOICE_FILE_TOO_SHORT` | 5초 미만 WAV |
+| `VOICE_FILE_TOO_LONG` | 60초 초과 WAV |
+| `VOICE_FILE_TYPE_UNSUPPORTED` | WAV 확장자·MIME 불일치 |
+| `VOICE_FILE_DECODE_FAILED` | 손상되거나 decode 불가능한 WAV |
+| `VOICE_REFERENCE_INVALID` | sample rate·channel·PCM 계약 위반 |
+| `VOICE_PROFILE_NOT_FOUND` | Voice Profile 없음 |
+| `VOICE_PROFILE_IN_USE` | Pipeline·Voice Job이 참조해 삭제 차단 |
+| `VOICE_STORAGE_WRITE_FAILED` | 안전한 Voice 저장 실패 |
+| `VOICE_STORAGE_DELETE_FAILED` | 관리 Voice 파일 삭제 실패 |
 
 API 오류는 `{ "error": { "code", "message" } }` 형식이다. 비동기 Worker 오류는 해당 `generation_jobs` 또는 `stem_jobs`의 `error_code`와 안전한 사용자 메시지로 기록되고 Job은 `FAILED`가 된다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않는다.
 # External Lyrics 오류

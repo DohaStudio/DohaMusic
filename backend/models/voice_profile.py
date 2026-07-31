@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from backend.db.base import Base
@@ -20,6 +20,20 @@ class VoiceProfile(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     reference_file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     consent_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    display_filename: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    mime_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
+    sample_rate: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    channels: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(20), nullable=False, default="READY")
+    quality_warnings: Mapped[list[str]] = mapped_column(
+        JSON, nullable=False, default=list
+    )
+    consent_text_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    consent_confirmed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(UTC),

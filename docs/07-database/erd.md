@@ -64,6 +64,16 @@ erDiagram
     string name
     string reference_file_path
     boolean consent_confirmed
+    string display_filename
+    string mime_type
+    bigint size_bytes
+    float duration_seconds
+    int sample_rate
+    int channels
+    string status
+    json quality_warnings
+    string consent_text_version
+    datetime consent_confirmed_at
   }
   VOICE_CONVERSION_JOBS {
     string id PK

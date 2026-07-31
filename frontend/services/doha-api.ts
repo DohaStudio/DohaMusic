@@ -38,8 +38,32 @@ export const dohaApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+  uploadVoiceProfile: (data: {
+    file: File;
+    name: string;
+    consentTextVersion: string;
+  }) => {
+    const body = new FormData();
+    body.set("file", data.file);
+    body.set("name", data.name);
+    body.set("consent_confirmed", "true");
+    body.set("consent_text_version", data.consentTextVersion);
+    return apiRequest<VoiceProfileDto>(
+      "/api/voice-profiles/upload",
+      { method: "POST", body },
+      60_000,
+    );
+  },
+  listVoiceProfiles: () =>
+    apiRequest<VoiceProfileDto[]>("/api/voice-profiles"),
+  getVoiceProfile: (id: string) =>
+    apiRequest<VoiceProfileDto>(
+      `/api/voice-profiles/${encodeURIComponent(id)}`,
+    ),
   deleteVoiceProfile: (id: string) =>
-    apiRequest<void>(`/api/voice-profiles/${id}`, { method: "DELETE" }),
+    apiRequest<void>(`/api/voice-profiles/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
   createPipeline: (data: PipelineCreateDto) =>
     apiRequest<PipelineJobDto>("/api/pipelines", {
       method: "POST",

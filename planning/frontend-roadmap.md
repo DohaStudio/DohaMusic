@@ -24,7 +24,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 |---|---|
 | Health | `GET /health` |
 | Lyrics | `POST /api/lyrics`, `GET /api/lyrics/{id}`, `POST /api/lyrics/{id}/revise`, `POST /api/lyrics/validate`, `DELETE /api/lyrics/{id}` |
-| Voice Profile | `POST /api/voice-profiles`, `DELETE /api/voice-profiles/{id}` |
+| Voice Profile | path create·WAV upload·list·get·delete |
 | Generation | `POST /api/generations`, `GET /api/generations/{id}`, `GET /api/generations/{id}/files` |
 | Stem | `POST /api/stems`, `GET /api/stems/{job}`, `GET /api/stems/{job}/files` |
 | Voice Conversion | `POST /api/voice-conversion`, `GET /api/voice-conversion/{job}`, `GET /api/voice-conversion/{job}/files` |
@@ -89,7 +89,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 ## F5 — Projects·Production Readiness [계획]
 
-- Pipeline audio content/download 완료; 인증·소유권, history/project, upload, cancel/retry API 연동 잔여
+- Pipeline audio와 Voice Profile upload/list/get 완료; 인증·소유권, history/project, cancel/retry API 연동 잔여
 - observability, browser matrix, performance, security review
 - 완료 기준: Phase-08 DoD와 사용자 시나리오 승인
 

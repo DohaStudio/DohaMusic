@@ -33,6 +33,17 @@ describe("API client", () => {
     );
     await expect(apiRequest("/test")).resolves.toBeUndefined();
   });
+  it("FormData 요청에는 JSON Content-Type을 설정하지 않는다", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const body = new FormData();
+    body.set("name", "voice");
+    await apiRequest("/upload", { method: "POST", body });
+    const headers = fetchMock.mock.calls[0][1].headers as Headers;
+    expect(headers.has("Content-Type")).toBe(false);
+  });
   it("외부 abort와 timeout을 구분한다", async () => {
     const abortingFetch = vi.fn(
       (_url, init: RequestInit) =>
