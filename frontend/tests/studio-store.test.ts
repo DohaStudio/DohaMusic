@@ -8,6 +8,7 @@ describe("Studio store", () => {
     expect(useStudioStore.getState()).toMatchObject({
       prompt: "새벽 R&B",
       currentStep: "lyrics",
+      kpopPresetId: "kpop_dance",
     });
   });
   it("초기 상태로 재설정한다", () => {

@@ -23,6 +23,21 @@ DEFAULT_STRUCTURE = (
     "final_chorus",
     "outro",
 )
+KPOP_STRUCTURE = (
+    "intro",
+    "verse",
+    "pre_chorus",
+    "chorus",
+    "post_chorus",
+    "verse",
+    "pre_chorus",
+    "chorus",
+    "bridge",
+    "final_chorus",
+)
+KPOP_PRESET_GENRES = frozenset(
+    {"kpop_dance", "kpop_easy_listening", "kpop_performance"}
+)
 MAX_TOPIC_LENGTH = 500
 MAX_KEYWORDS = 10
 MAX_KEYWORD_LENGTH = 50

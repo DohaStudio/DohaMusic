@@ -45,7 +45,10 @@ const pipeline = {
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("doha-studio-settings", JSON.stringify({ state: { reducedMotion: null, onboardingCompleted: true }, version: 0 })));
 });
-async function mockBackend(page: Page) {
+async function mockBackend(
+  page: Page,
+  onPipelineCreate?: (body: Record<string, unknown>) => void,
+) {
   await page.route("**/backend/health", (r) =>
     r.fulfill({ json: { status: "ok" } }),
   );
@@ -70,9 +73,10 @@ async function mockBackend(page: Page) {
   await page.route("**/backend/api/voice-profiles/upload", (route) =>
     route.fulfill({ status: 201, json: voiceProfile }),
   );
-  await page.route("**/backend/api/pipelines", (r) =>
-    r.fulfill({ status: 202, json: pipeline }),
-  );
+  await page.route("**/backend/api/pipelines", (route) => {
+    onPipelineCreate?.(route.request().postDataJSON());
+    return route.fulfill({ status: 202, json: pipeline });
+  });
   await page.route("**/backend/api/pipelines/job-001", (r) =>
     r.fulfill({ json: pipeline }),
   );
@@ -172,6 +176,32 @@ test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async 
     page.locator(".result-hero").getByRole("button", { name: "재생" }),
   ).toBeVisible();
   await expect(page.getByText("C:/internal/final.wav")).toHaveCount(0);
+});
+
+test("K-POP Preset을 기존 Pipeline 요청으로 변환한다", async ({ page }) => {
+  let pipelineRequest: Record<string, unknown> | undefined;
+  await mockBackend(page, (body) => {
+    pipelineRequest = body;
+  });
+  await page.goto("/studio");
+  await page.getByLabel("노래 설명").fill("새벽 도시 R&B");
+  await page.getByRole("button", { name: /K-POP Easy Listening/ }).click();
+  await page.getByRole("button", { name: "가사 준비하기" }).click();
+  await page.getByRole("textbox", { name: "가사" }).fill("[Verse]\n빛나는 거리");
+  await page.getByRole("button", { name: "작성 내용 확인" }).click();
+  await page.getByRole("button", { name: "내 목소리 선택" }).click();
+  await page.getByRole("radio", { name: /Doha Voice/ }).click();
+  await page.getByRole("button", { name: "최종 확인" }).click();
+  await page
+    .getByRole("button", { name: "음악 만들기" })
+    .evaluate((button: HTMLButtonElement) => button.click());
+  await expect.poll(() => pipelineRequest).toBeTruthy();
+
+  expect(pipelineRequest).toMatchObject({ genre: "kpop_easy_listening" });
+  expect(String(pipelineRequest?.prompt)).toContain("User request (highest priority");
+  expect(String(pipelineRequest?.prompt)).toMatch(/새벽 도시 R&B$/);
+  expect(pipelineRequest).not.toHaveProperty("preset_id");
+  expect(pipelineRequest).not.toHaveProperty("generation_options");
 });
 test("Voice WAV를 등록하고 목록에서 선택한다", async ({
   page,

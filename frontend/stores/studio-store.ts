@@ -2,9 +2,11 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { LyricsValidationDto } from "@/types/api";
 import type { StudioStep } from "@/types/domain";
+import type { KPopPresetId } from "@/features/studio/kpop-presets";
 
 interface StudioDraft {
   currentStep: StudioStep;
+  kpopPresetId: KPopPresetId;
   prompt: string;
   genre: string;
   customGenre: string;
@@ -28,8 +30,9 @@ interface StudioActions {
 }
 const initial: StudioDraft = {
   currentStep: "settings",
+  kpopPresetId: "kpop_dance",
   prompt: "",
-  genre: "댄스 팝",
+  genre: "",
   customGenre: "",
   selectedMoods: [],
   durationPreset: "preview",
@@ -53,6 +56,7 @@ export const useStudioStore = create<StudioDraft & StudioActions>()(
       storage: createJSONStorage(() => sessionStorage),
       partialize: (state) => ({
         currentStep: state.currentStep,
+        kpopPresetId: state.kpopPresetId,
         prompt: state.prompt,
         genre: state.genre,
         customGenre: state.customGenre,

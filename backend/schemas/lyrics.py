@@ -5,10 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from backend.lyrics.constants import (
     DEFAULT_STRUCTURE,
+    KPOP_PRESET_GENRES,
+    KPOP_STRUCTURE,
     MAX_INSTRUCTIONS_LENGTH,
     MAX_KEYWORD_LENGTH,
     MAX_KEYWORDS,
@@ -41,6 +43,15 @@ class LyricsCreate(BaseModel):
         default=None, max_length=MAX_INSTRUCTIONS_LENGTH
     )
     allow_template_fallback: bool = False
+
+    @model_validator(mode="after")
+    def use_kpop_structure_when_omitted(self) -> LyricsCreate:
+        if (
+            "structure" not in self.model_fields_set
+            and self.genre in KPOP_PRESET_GENRES
+        ):
+            self.structure = list(KPOP_STRUCTURE)
+        return self
 
     @field_validator("topic", "genre", "mood", "additional_instructions")
     @classmethod
