@@ -60,6 +60,8 @@
 
 `NEXT_PUBLIC_*` 값은 browser bundle에 공개되므로 비밀을 넣지 않는다. `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH`는 정확히 `true`일 때만 form을 노출하며 Backend path 검증이나 인증을 대체하지 않는다. 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 
+Voice upload 제한은 현재 코드 계약으로 25MB·5~60초이며 새 환경 변수는 추가하지 않았다. 운영 요구가 확정되기 전 임의 설정 확장을 만들지 않는다.
+
 ## 벤치마크 전용 변수
 
 다음 변수는 `ai_worker/scripts/run_ace_step_benchmark.py`에서만 읽는다. Backend `Settings`와 `.env.example`의 운영 기본값에는 포함하지 않는다.

@@ -38,7 +38,7 @@
 | 6. Lyrics AI | [완료] | Template·Mock Generator·동기 API·검증·EXP/EVAL/ADR 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [진행 중] | 67%: Responsive MVP·보안 WAV Player/Download 완료, Backend Required 기능 잔여 | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [진행 중] | 73%: Voice upload/list/get·선택과 WAV Player/Download 완료, Backend Required 기능 잔여 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## 현재 우선 작업

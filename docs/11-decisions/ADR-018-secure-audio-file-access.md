@@ -5,7 +5,7 @@
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 8 Doha Studio Audio Player·WAV Download
 > 관련 문서: [Pipeline API](../06-api/pipeline-api.md), [Security Policy](../09-security/security-policy.md), [Frontend Architecture](../03-architecture/frontend-architecture.md)
-> 관련 PR: 작업 완료 후 연결
+> 관련 PR: [PR #21](https://github.com/DDORINY/DohaMusic/pull/21)
 
 ## 배경
 

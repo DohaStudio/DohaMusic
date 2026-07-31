@@ -253,6 +253,50 @@
   background: #222;
   border-radius: 16px;
 }
+
+.profile-card.selected,
+.voice-choice.selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.profile-list,
+.voice-choice-list,
+.profile-actions {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.profile-actions {
+  margin-left: auto;
+}
+
+.voice-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--space-4);
+  color: var(--text-primary);
+  text-align: left;
+  background: var(--surface-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.voice-choice span,
+.warning-copy {
+  color: var(--text-muted);
+}
+
+.warning-copy {
+  display: block;
+}
+
+.success-copy {
+  color: var(--success);
+}
 .profile-card > div:nth-child(2) {
   flex: 1;
 }

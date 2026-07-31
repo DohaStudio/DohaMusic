@@ -29,7 +29,10 @@ export function ReviewStep() {
             store.lyricsText ? `${store.lyricsText.length}자` : "가사 없음"
           }
         />
-        <Review label="Voice Profile" value={store.voiceProfileId} />
+        <Review
+          label="Voice Profile"
+          value={store.voiceProfileName || store.voiceProfileId}
+        />
       </div>
       <div className="notice">
         <strong>생성 전에 확인해 주세요</strong>

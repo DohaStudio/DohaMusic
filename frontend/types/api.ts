@@ -62,7 +62,16 @@ export interface LyricsCreateDto {
 export interface VoiceProfileDto {
   id: string;
   name: string;
+  display_filename: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  duration_seconds: number | null;
+  sample_rate: number | null;
+  channels: number | null;
   consent_confirmed: boolean;
+  consent_text_version: string | null;
+  status: "READY" | "INVALID" | "DELETED";
+  quality_warnings: string[];
   created_at: string;
   updated_at: string;
 }

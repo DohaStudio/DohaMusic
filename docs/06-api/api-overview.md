@@ -15,6 +15,9 @@
 | `GET` | `/api/stems/{job}` | 200 | Stem Job 상태 조회 |
 | `GET` | `/api/stems/{job}/files` | 200 | vocals·instrumental·metadata 조회 |
 | `POST` | `/api/voice-profiles` | 201 | 동의가 확인된 음성 프로필 메타데이터 생성 |
+| `POST` | `/api/voice-profiles/upload` | 201 | 동의된 WAV를 검증·저장하고 Profile 생성 |
+| `GET` | `/api/voice-profiles` | 200 | 공개 Voice Profile 목록 |
+| `GET` | `/api/voice-profiles/{id}` | 200 | 공개 Voice Profile 상세 |
 | `DELETE` | `/api/voice-profiles/{id}` | 204 | 음성 프로필 삭제 |
 | `POST` | `/api/voice-conversion` | 202 | vocals와 동의된 Voice Profile로 변환 Job 생성 |
 | `GET` | `/api/voice-conversion/{job}` | 200 | Voice Conversion Job 조회 |

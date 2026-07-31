@@ -19,6 +19,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### Phase 8 — Doha Studio Frontend MVP
 
+- consent 필수 WAV multipart Voice Profile upload와 list/get API, 25MB·5~60초·16kHz·mono/stereo·16-bit PCM·signature/decode 검증을 추가했다.
+- 업로드를 UUID 기반 안전 경로에 atomic 저장하고 실패 temp cleanup, 사용 중 삭제 차단과 관리 파일 삭제 정책을 구현했다.
+- Voice 페이지와 Studio 단계에 Profile 등록·목록·warning·선택·삭제 UX를 연결하고 개발 경로 입력은 기본 비노출로 유지했다.
+- Voice metadata migration과 ADR-019를 추가하고 Phase 8 Upload DoD 완료에 따라 진행률을 `11/15, 73%`로 갱신했다.
+
 - 완료 Pipeline의 허용된 WAV에 경로 비노출 `GET|HEAD content`·`download` API와 단일 byte Range `206/416` 처리를 추가했다.
 - Job/File 소속·완료 상태·Storage root·symlink·regular file·크기·MIME·확장자·RIFF header 검증 및 `no-store`·`nosniff` 응답 경계를 적용했다.
 - 공개 files DTO의 capability URL을 전역 Player·seek·volume·Result 다운로드에 연결하고 unavailable·loading·오류 상태를 구현했다.

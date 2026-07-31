@@ -38,7 +38,7 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 ## 3. Voice
 
 - 동의된 `voice_profile_id`가 필요하다.
-- 현재 API는 profile list/get/upload가 없으므로 이미 알고 있는 profile ID 또는 현재 session에서 생성한 metadata만 사용할 수 있다.
+- Voice Profile list에서 등록된 Profile을 선택하고, 목록이 비면 `/voice`에서 WAV를 등록한다. 선택 ID는 session draft에 유지한다.
 - 참조 파일 배치는 운영자 작업이며 브라우저 upload UX는 Backend endpoint 전까지 구현 대상으로 표시하지 않는다.
 
 ## 4. Review
@@ -78,6 +78,7 @@ stateDiagram-v2
 - artwork placeholder, 제목, duration, provider/model/seed와 audio quality metadata를 표시한다.
 - `GET /api/pipelines/{job_id}/files`의 metadata를 file inventory로 보여준다.
 - 완료 결과는 capability가 있는 WAV만 Player와 Download를 활성화하고, 사용할 수 없는 파일은 이유를 숨기지 않고 disabled로 표시한다.
+- Voice 단계는 등록 목록에서 Profile을 선택하며, 목록이 비면 `/voice` upload로 안내한다. UUID 직접 입력과 서버 경로 생성은 개발 플래그에서만 보조 수단으로 제공한다.
 - “다시 만들기”는 Review draft를 복사하여 새 Pipeline Job을 생성하며 기존 Job을 변경하지 않는다.
 
 ## 오류·복구

@@ -59,7 +59,7 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 | Landing | Studio 가치 이해·진입 | 정적 가능 |
 | Studio | 곡 draft 구성·Pipeline 시작 | 가능 |
 | Lyrics Lab | 생성·검증·조회·revision | 가능, provider 제약 표시 |
-| Voice | 동의된 profile metadata 생성·삭제 | 부분 가능, upload/list 없음 |
+| Voice | 동의된 WAV upload·Profile list/get/delete·Studio 선택 | 로컬 MVP 가능, 원본 content 비공개 |
 | Generation Progress | Pipeline 상태 추적 | 가능 |
 | Result | 결과 metadata·품질 확인 | 가능, 재생/download는 endpoint 필요 |
 | Settings | 로컬 UI 설정·Backend health | 부분 가능 |
@@ -70,9 +70,9 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 
 | 상태 | 범위 |
 |---|---|
-| `Available` | Health, Lyrics 생성·조회·capability 기반 수정·검증·삭제, Voice Profile 생성·삭제, Generation·Stem·Voice Conversion·Pipeline Job 생성·조회, 오류 backoff Job polling, 공개 files metadata, allowlist Pipeline `result_metadata` |
-| `Partial` | Voice Profile 일반 UI는 UUID 연결만 제공하고 개발 플래그에서만 서버 경로 생성을 허용하며 upload·list·get은 불가. Result는 metadata 표시만 가능하고 browser audio content 재생·download는 불가 |
-| `Backend Required` | 음성 파일 upload, Voice Profile list/get, audio content streaming·download, 생성 이력, 프로젝트 저장·조회, Job cancel·기존 Job retry, 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
+| `Available` | Health, Lyrics, Voice Profile WAV upload·list·get·delete·선택, Pipeline Job, 결과 WAV 재생·download |
+| `Partial` | Voice 원본 content 비공개, 개발 플래그에서만 서버 경로 생성, 인증 없는 로컬 단일 사용자 범위 |
+| `Backend Required` | 생성 이력, 프로젝트 저장·조회, Job cancel·기존 Job retry, 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
 
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.

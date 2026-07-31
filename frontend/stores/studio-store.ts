@@ -14,6 +14,7 @@ interface StudioDraft {
   lyricsText: string;
   lyricsValidation?: LyricsValidationDto;
   voiceProfileId: string;
+  voiceProfileName?: string;
   pipelineJobId?: string;
 }
 interface StudioActions {
@@ -53,6 +54,7 @@ export const useStudioStore = create<StudioDraft & StudioActions>()(
         lyricsText: state.lyricsText,
         lyricsValidation: state.lyricsValidation,
         voiceProfileId: state.voiceProfileId,
+        voiceProfileName: state.voiceProfileName,
         pipelineJobId: state.pipelineJobId,
       }),
     },

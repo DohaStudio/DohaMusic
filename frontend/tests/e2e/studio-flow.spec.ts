@@ -1,5 +1,21 @@
 import { test, expect, type Page } from "@playwright/test";
 const uuid = "11111111-1111-1111-1111-111111111111";
+const voiceProfile = {
+  id: uuid,
+  name: "Doha Voice",
+  display_filename: "voice-reference.wav",
+  mime_type: "audio/wav",
+  size_bytes: 320044,
+  duration_seconds: 10,
+  sample_rate: 16000,
+  channels: 1,
+  consent_confirmed: true,
+  consent_text_version: "v1",
+  status: "READY",
+  quality_warnings: [],
+  created_at: "2026-07-31T00:00:00Z",
+  updated_at: "2026-07-31T00:00:00Z",
+};
 const pipeline = {
   id: "job-001",
   voice_profile_id: uuid,
@@ -38,6 +54,12 @@ async function mockBackend(page: Page) {
         repetition_ratio: 0,
       },
     }),
+  );
+  await page.route("**/backend/api/voice-profiles", (route) =>
+    route.fulfill({ json: [voiceProfile] }),
+  );
+  await page.route("**/backend/api/voice-profiles/upload", (route) =>
+    route.fulfill({ status: 201, json: voiceProfile }),
   );
   await page.route("**/backend/api/pipelines", (r) =>
     r.fulfill({ status: 202, json: pipeline }),
@@ -96,7 +118,7 @@ test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async 
   await page.getByRole("button", { name: "가사 검증" }).click();
   await expect(page.getByText("검증을 통과했습니다.")).toBeVisible();
   await page.getByRole("button", { name: "목소리 선택" }).click();
-  await page.getByLabel("Voice Profile UUID").fill(uuid);
+  await page.getByRole("radio", { name: /Doha Voice/ }).click();
   await page.getByRole("button", { name: "생성 확인" }).click();
   await expect(page.getByText("45초")).toBeVisible();
   await page.getByRole("button", { name: "음악 생성 시작" }).click();
@@ -125,14 +147,21 @@ test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async 
   ).toBeVisible();
   await expect(page.getByText("C:/internal/final.wav")).toHaveCount(0);
 });
-test("미지원 Voice upload는 반응형 화면에서 disabled다", async ({
+test("Voice WAV를 등록하고 목록에서 선택한다", async ({
   page,
 }, testInfo) => {
   await mockBackend(page);
   await page.goto("/voice");
-  await expect(
-    page.getByRole("button", { name: /음성 파일 업로드/ }),
-  ).toBeDisabled();
+  await page.getByLabel("Profile 이름").fill("Doha Voice");
+  await page.getByLabel("참조 음성 WAV").setInputFiles({
+    name: "voice-reference.wav",
+    mimeType: "audio/wav",
+    buffer: Buffer.from("RIFFmock-dataWAVE"),
+  });
+  await page.getByRole("checkbox").check();
+  await page.getByRole("button", { name: "Voice Profile 등록" }).click();
+  await expect(page.getByText("Doha Voice").first()).toBeVisible();
+  await expect(page.getByText(/Studio에서 선택됨/)).toBeVisible();
   await expect(page.getByLabel("서버 참조 파일 경로")).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
     await expect(

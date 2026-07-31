@@ -1,12 +1,15 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Button, ErrorAlert, Field, Input, Unsupported } from "@/components/ui";
+import { Button, ErrorAlert, Field, Input } from "@/components/ui";
 import { ApiError } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import type { VoiceProfileDto } from "@/types/api";
+
+export const MAX_VOICE_FILE_BYTES = 25 * 1024 * 1024;
+const VOICE_PROFILES_KEY = ["voice-profiles"] as const;
 
 export function isDevVoicePathEnabled(
   value = process.env.NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH,
@@ -14,121 +17,96 @@ export function isDevVoicePathEnabled(
   return value === "true";
 }
 
+export function validateVoiceFile(file?: File): string | undefined {
+  if (!file) return "WAV 파일을 선택해 주세요.";
+  if (!file.name.toLowerCase().endsWith(".wav")) return "WAV 파일만 등록할 수 있습니다.";
+  if (file.size === 0) return "빈 파일은 등록할 수 없습니다.";
+  if (file.size > MAX_VOICE_FILE_BYTES) return "파일은 25MB 이하여야 합니다.";
+  return undefined;
+}
+
+export function useVoiceProfiles() {
+  return useQuery({
+    queryKey: VOICE_PROFILES_KEY,
+    queryFn: dohaApi.listVoiceProfiles,
+  });
+}
+
 export function VoiceProfilePanel() {
-  const devPathEnabled = isDevVoicePathEnabled();
+  const queryClient = useQueryClient();
+  const profiles = useVoiceProfiles();
   const [name, setName] = useState("");
-  const [path, setPath] = useState("");
+  const [file, setFile] = useState<File>();
   const [consent, setConsent] = useState(false);
-  const [profile, setProfile] = useState<VoiceProfileDto>();
-  const voiceProfileId = useStudioStore((state) => state.voiceProfileId);
+  const [clientError, setClientError] = useState<string>();
+  const selectedId = useStudioStore((state) => state.voiceProfileId);
   const patch = useStudioStore((state) => state.patch);
-  const create = useMutation({
+
+  const upload = useMutation({
     mutationFn: () =>
-      dohaApi.createVoiceProfile({
+      dohaApi.uploadVoiceProfile({
+        file: file!,
         name,
-        reference_file_path: path,
-        consent_confirmed: true,
+        consentTextVersion: "v1",
       }),
-    onSuccess: (value) => {
-      setProfile(value);
-      patch({ voiceProfileId: value.id });
+    onSuccess: async (profile) => {
+      patch({ voiceProfileId: profile.id, voiceProfileName: profile.name });
+      setName("");
+      setFile(undefined);
+      setConsent(false);
+      await queryClient.invalidateQueries({ queryKey: VOICE_PROFILES_KEY });
     },
   });
   const remove = useMutation({
-    mutationFn: () => dohaApi.deleteVoiceProfile(profile!.id),
-    onSuccess: () => {
-      setProfile(undefined);
-      patch({ voiceProfileId: "" });
+    mutationFn: (id: string) => dohaApi.deleteVoiceProfile(id),
+    onSuccess: async (_, id) => {
+      if (selectedId === id) patch({ voiceProfileId: "", voiceProfileName: undefined });
+      await queryClient.invalidateQueries({ queryKey: VOICE_PROFILES_KEY });
     },
   });
-  const error = create.error || remove.error;
+  const error = upload.error || remove.error || profiles.error;
 
   return (
     <section className="page-stack">
       <header className="page-heading">
         <p className="eyebrow">VOICE PROFILE</p>
         <h1>동의된 목소리만, 안전하게</h1>
-        <p>
-          일반 사용자는 기존 Profile UUID를 연결하며 upload·목록 API는 아직 준비
-          중입니다.
-        </p>
+        <p>WAV를 등록하고 Studio에서 사용할 Voice Profile을 선택하세요.</p>
       </header>
       <div className="two-panel">
-        <article className="surface-card">
-          <h2>Voice 연결</h2>
-          <Field label="기존 Profile UUID" htmlFor="existing-profile">
-            <Input
-              id="existing-profile"
-              value={voiceProfileId}
-              onChange={(event) =>
-                patch({ voiceProfileId: event.target.value })
-              }
-            />
-          </Field>
-          <Unsupported>음성 파일 업로드</Unsupported>
-          <p className="muted">
-            Voice Profile list/get API가 없어 임의 목록을 표시하지 않습니다.
-          </p>
-        </article>
-        <article className="surface-card">
-          <h2>현재 Session Profile</h2>
-          {profile ? (
-            <div className="profile-card">
-              <div className="avatar-wave">∿</div>
-              <div>
-                <strong>{profile.name}</strong>
-                <p>{profile.id}</p>
-                <small>동의 확인됨 · 이 세션에서 생성</small>
-              </div>
-              <Button
-                className="danger"
-                disabled={remove.isPending}
-                onClick={() => remove.mutate()}
-              >
-                삭제
-              </Button>
-            </div>
-          ) : (
-            <div className="empty">
-              <span>◉</span>
-              <p>현재 session에 생성된 Profile이 없습니다.</p>
-            </div>
-          )}
-        </article>
-      </div>
-      {devPathEnabled && (
         <form
-          className="surface-card dev-only"
+          className="surface-card studio-form"
           onSubmit={(event) => {
             event.preventDefault();
-            create.mutate();
+            const validation = validateVoiceFile(file);
+            if (validation) return setClientError(validation);
+            setClientError(undefined);
+            upload.mutate();
           }}
         >
-          <div className="alert alert-error">
-            <strong>개발 전용</strong>
-            <span>
-              Production에서는 활성화하지 마세요. 경로는 Backend Storage의
-              voices/references 아래 파일만 허용됩니다.
-            </span>
-          </div>
-          <Field label="Profile 이름" htmlFor="voice-name">
+          <h2>새 Voice Profile</h2>
+          <Field label="Profile 이름" htmlFor="voice-upload-name">
             <Input
-              id="voice-name"
+              id="voice-upload-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               required
             />
           </Field>
           <Field
-            label="서버 참조 파일 경로"
-            htmlFor="voice-path"
-            hint="예: voices/references/my-voice.wav"
+            label="참조 음성 WAV"
+            htmlFor="voice-upload-file"
+            hint="25MB 이하 · 5~60초 · 16kHz 이상 · mono/stereo 16-bit PCM"
           >
-            <Input
-              id="voice-path"
-              value={path}
-              onChange={(event) => setPath(event.target.value)}
-              required
+            <input
+              id="voice-upload-file"
+              type="file"
+              accept=".wav,audio/wav,audio/x-wav"
+              onChange={(event) => {
+                const next = event.target.files?.[0];
+                setFile(next);
+                setClientError(validateVoiceFile(next));
+              }}
             />
           </Field>
           <label className="check">
@@ -137,22 +115,107 @@ export function VoiceProfilePanel() {
               checked={consent}
               onChange={(event) => setConsent(event.target.checked)}
             />
-            본인 음성 또는 명시적 동의를 받은 음성임을 확인합니다.
+            본인 음성 또는 명시적 동의를 받은 음성만 등록하며, 타인의 음성을 무단으로 사용하지 않습니다.
           </label>
-          {error && (
-            <ErrorAlert
-              message={
-                error instanceof ApiError
-                  ? error.message
-                  : "요청에 실패했습니다."
-              }
-            />
-          )}
-          <Button disabled={!name || !path || !consent || create.isPending}>
-            개발용 Profile 생성
+          <p className="muted">
+            동의 확인은 자동 신원 확인이나 본인 음성 판정을 의미하지 않습니다.
+          </p>
+          {clientError && <ErrorAlert message={clientError} />}
+          {upload.isPending && <p role="status">파일 업로드와 음성 검증을 진행 중입니다…</p>}
+          <Button disabled={!name || !file || !consent || upload.isPending}>
+            {upload.isPending ? "등록 중…" : "Voice Profile 등록"}
           </Button>
         </form>
+        <article className="surface-card">
+          <h2>등록된 Voice Profile</h2>
+          {profiles.isPending ? (
+            <p role="status">목록을 불러오는 중입니다…</p>
+          ) : profiles.data?.length ? (
+            <div className="profile-list">
+              {profiles.data.map((profile) => (
+                <ProfileCard
+                  key={profile.id}
+                  profile={profile}
+                  selected={profile.id === selectedId}
+                  deleting={remove.isPending && remove.variables === profile.id}
+                  onSelect={() =>
+                    patch({ voiceProfileId: profile.id, voiceProfileName: profile.name })
+                  }
+                  onDelete={() => remove.mutate(profile.id)}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="empty">
+              <span>◉</span>
+              <p>등록된 목소리가 없습니다. 새 Voice Profile을 업로드하세요.</p>
+            </div>
+          )}
+        </article>
+      </div>
+      {error && (
+        <ErrorAlert
+          message={error instanceof ApiError ? error.message : "요청에 실패했습니다."}
+        />
       )}
+      {isDevVoicePathEnabled() && <DevelopmentVoiceProfileForm />}
     </section>
+  );
+}
+
+export function ProfileCard({
+  profile,
+  selected,
+  deleting,
+  onSelect,
+  onDelete,
+}: {
+  profile: VoiceProfileDto;
+  selected: boolean;
+  deleting: boolean;
+  onSelect: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <article className={`profile-card${selected ? " selected" : ""}`}>
+      <div className="avatar-wave">∿</div>
+      <div>
+        <strong>{profile.name}</strong>
+        <p>
+          {profile.duration_seconds?.toFixed(1) ?? "—"}초 · {profile.sample_rate ? `${profile.sample_rate / 1000}kHz` : "—"} · {profile.channels ? `${profile.channels}ch` : "—"}
+        </p>
+        <small>{profile.status}{selected ? " · Studio에서 선택됨" : ""}</small>
+        {profile.quality_warnings.map((warning) => (
+          <small className="warning-copy" key={warning}>{warning}</small>
+        ))}
+      </div>
+      <div className="profile-actions">
+        <Button className="secondary" onClick={onSelect} disabled={selected}>선택</Button>
+        <Button className="danger" onClick={onDelete} disabled={deleting}>삭제</Button>
+      </div>
+    </article>
+  );
+}
+
+function DevelopmentVoiceProfileForm() {
+  const [name, setName] = useState("");
+  const [path, setPath] = useState("");
+  const [consent, setConsent] = useState(false);
+  const patch = useStudioStore((state) => state.patch);
+  const create = useMutation({
+    mutationFn: () => dohaApi.createVoiceProfile({ name, reference_file_path: path, consent_confirmed: true }),
+    onSuccess: (profile) => patch({ voiceProfileId: profile.id, voiceProfileName: profile.name }),
+  });
+  return (
+    <details className="surface-card dev-only">
+      <summary>Development: 서버 경로로 Profile 생성</summary>
+      <form className="studio-form" onSubmit={(event) => { event.preventDefault(); create.mutate(); }}>
+        <p className="muted">Production에서는 활성화하지 마세요.</p>
+        <Field label="개발 Profile 이름" htmlFor="dev-voice-name"><Input id="dev-voice-name" value={name} onChange={(event) => setName(event.target.value)} /></Field>
+        <Field label="서버 참조 파일 경로" htmlFor="voice-path"><Input id="voice-path" value={path} onChange={(event) => setPath(event.target.value)} /></Field>
+        <label className="check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} />동의된 음성임을 확인합니다.</label>
+        <Button disabled={!name || !path || !consent || create.isPending}>개발용 Profile 생성</Button>
+      </form>
+    </details>
   );
 }

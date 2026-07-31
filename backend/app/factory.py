@@ -35,6 +35,7 @@ from backend.services.pipeline_service import PipelineService
 from backend.services.stem_service import StemService
 from backend.services.voice_conversion_service import VoiceConversionService
 from backend.services.voice_profile_service import VoiceProfileService
+from backend.services.voice_upload_service import VoiceUploadService
 from backend.storage.service import StorageService
 from backend.workers.dispatcher import ThreadPoolJobDispatcher
 from backend.workers.generation_worker import GenerationWorker
@@ -156,6 +157,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             generator=lyrics_generator,
         )
         app.state.voice_profile_service = VoiceProfileService(
+            session_factory=session_factory,
+            storage=storage,
+        )
+        app.state.voice_upload_service = VoiceUploadService(
             session_factory=session_factory,
             storage=storage,
         )

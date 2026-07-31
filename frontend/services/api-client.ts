@@ -24,10 +24,14 @@ export async function apiRequest<T>(
   const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? "/backend";
 
   try {
+    const headers = new Headers(init.headers);
+    if (!(init.body instanceof FormData) && !headers.has("Content-Type")) {
+      headers.set("Content-Type", "application/json");
+    }
     const response = await fetch(`${baseUrl}${path}`, {
       ...init,
       signal,
-      headers: { "Content-Type": "application/json", ...init.headers },
+      headers,
     });
     if (response.status === 204) return undefined as T;
     if (!response.ok) {

@@ -119,7 +119,7 @@ sequenceDiagram
 | Health 표시 | 가능 | `GET /health` |
 | Lyrics 생성·조회·수정·검증·삭제 | 가능 | 현재 계약 사용 |
 | Pipeline 생성·상태·파일 metadata | 가능 | Studio 핵심 흐름 |
-| 음성 프로필 생성·삭제 | 부분 가능 | 기본 UI는 UUID 연결만 제공; 서버 경로 생성 form은 `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH=true` 개발 환경 전용, list/get/upload 없음 |
+| 음성 프로필 upload·조회·삭제 | 가능 | 기본 UI는 WAV 등록·목록 선택; 서버 경로 생성과 UUID 직접 입력은 개발 플래그 전용 |
 | 오디오 재생·다운로드 | 가능 | 완료 Pipeline의 capability URL만 사용; 내부 경로 금지 |
 | 프로젝트·생성 이력 목록 | 불가 | 목록 API 선행 필요, 빈 shell만 설계 |
 | Job 취소·수동 retry | 불가 | 기능 비활성 및 후속 API 표시 |
@@ -137,7 +137,7 @@ sequenceDiagram
 | Lyrics Lab detail | `GET /api/lyrics/{id}` | stored Lyrics document | editor skeleton | 404와 network 분리 | 없음 |
 | Lyrics revision | `POST /api/lyrics/{id}/revise` | 새 parent/version document | revision action busy | 미지원 Provider·차단·network별 안내 | 없음 |
 | Lyrics delete | `DELETE /api/lyrics/{id}` | `204` | confirm action busy | 자식 revision·404 안내 | 없음 |
-| Voice | `POST /api/voice-profiles`, `DELETE /api/voice-profiles/{id}` | profile metadata 또는 `204` | form/card 단위 busy | 동의·경로·404 오류 후 수정 | 없음; list/get 없음 |
+| Voice | upload·list·get·delete | 공개 Profile metadata 또는 `204` | upload/list 단위 busy | consent·파일·quality·삭제 오류 | 선택 ID를 session draft에 저장 |
 | Studio Review | `POST /api/pipelines` | `202`, `PENDING`, job ID | 중복 제출 차단 | 입력 오류 수정; network 결과 불명확 시 조회 가능한 ID 없으면 자동 재제출 금지 | 생성 후 Progress로 이동 |
 | Generation Progress | `GET /api/pipelines/{jobId}` | status, step, progress, safe error, metadata | 최초 skeleton, 이후 non-blocking refresh | network reconnect; `FAILED`는 새 Job만 가능 | terminal 전 adaptive polling |
 | Result | Pipeline 조회·files·content·download | completed Job, 안전한 audio capability | artwork/metric skeleton | 파일별 불가 상태 표시 | 완료 후 중단 |
