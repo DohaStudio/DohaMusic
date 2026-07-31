@@ -11,6 +11,7 @@ from backend.pipeline.errors import PipelineError, ProviderError, StepTimeoutErr
 from backend.pipeline.steps import PipelineStep
 
 StepStartedCallback = Callable[[PipelineStep], None]
+StepCompletedCallback = Callable[[PipelineStep], None]
 logger = get_logger(__name__)
 
 
@@ -26,11 +27,16 @@ class PipelineExecutor:
         self.step_timeout_seconds = step_timeout_seconds
 
     def execute(
-        self, context: PipelineContext, on_step_started: StepStartedCallback
+        self,
+        context: PipelineContext,
+        on_step_started: StepStartedCallback,
+        on_step_completed: StepCompletedCallback | None = None,
     ) -> PipelineContext:
         for step in self.steps:
             on_step_started(step)
             self._execute_step(step, context)
+            if on_step_completed is not None:
+                on_step_completed(step)
         return context
 
     def _execute_step(self, step: PipelineStep, context: PipelineContext) -> None:

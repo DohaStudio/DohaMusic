@@ -22,6 +22,10 @@ from backend.storage.service import StorageService
 logger = get_logger(__name__)
 
 
+class PipelineCancelled(Exception):
+    """Internal cooperative-cancellation signal."""
+
+
 class PipelineWorker:
     def __init__(
         self,
@@ -44,6 +48,7 @@ class PipelineWorker:
                 return
             context: PipelineContext | None = None
             try:
+                self._ensure_not_cancelled(repository, job)
                 repository.transition(job, JobStatus.VALIDATING, "validating_inputs", 0)
                 profile = repository.get_profile(job.voice_profile_id)
                 if profile is None or not profile.consent_confirmed:
@@ -67,18 +72,28 @@ class PipelineWorker:
                 self.executor.execute(
                     context,
                     lambda step: self._start_step(repository, job, step),
+                    lambda step: self._complete_step(repository, job, step),
                 )
+                self._ensure_not_cancelled(repository, job)
                 metadata = self._metadata(context, started_at, success=True)
                 metadata_path = self._write_metadata(job.id, metadata)
                 context.metadata_file = metadata_path
-                repository.set_metadata(job, metadata)
-                self._persist_files(repository, context)
-                repository.transition(job, JobStatus.COMPLETED, "completed", 100)
+                self._ensure_not_cancelled(repository, job)
+                if not repository.finalize_success(
+                    job, metadata, self._file_entries(context)
+                ):
+                    raise PipelineCancelled
                 logger.info(
                     "pipeline_worker_completed job_id=%s duration_ms=%s",
                     job_id,
                     round((time.perf_counter() - started_at) * 1_000, 2),
                 )
+            except PipelineCancelled:
+                session.rollback()
+                if context is not None:
+                    self._cleanup_partial_outputs(context)
+                repository.mark_cancelled(job)
+                logger.info("pipeline_worker_cancelled job_id=%s", job_id)
             except PipelineError as exc:
                 logger.error(
                     "pipeline_step_failed job_id=%s step=%s code=%s",
@@ -106,10 +121,29 @@ class PipelineWorker:
     def _start_step(
         repository: PipelineRepository, job: Any, step: PipelineStep
     ) -> None:
+        PipelineWorker._ensure_not_cancelled(repository, job)
         repository.transition(
             job, step.status, f"{step.name}_started", step.progress_percent
         )
         logger.info("pipeline_step_started job_id=%s step=%s", job.id, step.name)
+
+    @staticmethod
+    def _complete_step(
+        repository: PipelineRepository, job: Any, step: PipelineStep
+    ) -> None:
+        PipelineWorker._ensure_not_cancelled(repository, job)
+        logger.info(
+            "pipeline_step_boundary_checked job_id=%s step=%s", job.id, step.name
+        )
+
+    @staticmethod
+    def _ensure_not_cancelled(repository: PipelineRepository, job: Any) -> None:
+        repository.session.refresh(job)
+        if job.status in {
+            JobStatus.CANCEL_REQUESTED.value,
+            JobStatus.CANCELLED.value,
+        }:
+            raise PipelineCancelled
 
     def _fail(
         self,
@@ -189,9 +223,7 @@ class PipelineWorker:
         )
         return path
 
-    def _persist_files(
-        self, repository: PipelineRepository, context: PipelineContext
-    ) -> None:
+    def _file_entries(self, context: PipelineContext) -> list[tuple[str, str, str]]:
         entries = (
             ("music", context.music_file, "audio/wav"),
             ("vocals", context.vocals_file, "audio/wav"),
@@ -200,14 +232,11 @@ class PipelineWorker:
             ("final", context.output_file, "audio/wav"),
             ("metadata", context.metadata_file, "application/json"),
         )
-        for file_type, path, mime_type in entries:
-            if path is not None:
-                repository.add_file(
-                    context.job_id,
-                    file_type,
-                    self.storage.relative_path(path),
-                    mime_type,
-                )
+        return [
+            (file_type, self.storage.relative_path(path), mime_type)
+            for file_type, path, mime_type in entries
+            if path is not None
+        ]
 
     @staticmethod
     def _cleanup_partial_outputs(context: PipelineContext) -> None:

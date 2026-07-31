@@ -40,6 +40,24 @@ class PipelineJobRead(BaseModel):
     created_at: datetime
     updated_at: datetime
     completed_at: datetime | None
+    cancel_requested_at: datetime | None
+    cancelled_at: datetime | None
+    retry_of_job_id: str | None
+    can_cancel: bool
+    can_retry: bool
+
+
+class PipelineCancelRead(BaseModel):
+    job_id: str
+    status: str
+    cancel_requested_at: datetime | None
+    cancelled_at: datetime | None
+    message: str
+
+
+class PipelineRetryRead(BaseModel):
+    source_job_id: str
+    job: PipelineJobRead
 
 
 class PipelineFileRead(BaseModel):

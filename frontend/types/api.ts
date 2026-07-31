@@ -6,8 +6,10 @@ export type PipelineStatus =
   | "VOICE_CONVERTING"
   | "MIXING"
   | "EXPORTING"
+  | "CANCEL_REQUESTED"
   | "COMPLETED"
-  | "FAILED";
+  | "FAILED"
+  | "CANCELLED";
 
 export interface LyricsSectionDto {
   section_type: string;
@@ -104,7 +106,20 @@ export interface PipelineJobDto {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  cancel_requested_at: string | null;
+  cancelled_at: string | null;
+  retry_of_job_id: string | null;
+  can_cancel: boolean;
+  can_retry: boolean;
 }
+export interface PipelineCancelDto {
+  job_id: string;
+  status: PipelineStatus;
+  cancel_requested_at: string | null;
+  cancelled_at: string | null;
+  message: string;
+}
+export interface PipelineRetryDto { source_job_id: string; job: PipelineJobDto; }
 export interface HistoryItemDto {
   job_id: string;
   project_id: string | null;
@@ -114,6 +129,9 @@ export interface HistoryItemDto {
   duration: number;
   voice_profile_name: string;
   has_audio: boolean;
+  can_cancel: boolean;
+  can_retry: boolean;
+  retry_of_job_id: string | null;
 }
 export interface HistoryDetailDto extends HistoryItemDto {
   prompt: string;

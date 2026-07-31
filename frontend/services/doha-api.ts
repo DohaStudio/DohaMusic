@@ -6,6 +6,8 @@ import type {
   PipelineCreateDto,
   PipelineFileDto,
   PipelineJobDto,
+  PipelineCancelDto,
+  PipelineRetryDto,
   VoiceProfileDto,
   HistoryDetailDto,
   HistoryItemDto,
@@ -75,6 +77,10 @@ export const dohaApi = {
     }),
   getPipeline: (id: string, signal?: AbortSignal) =>
     apiRequest<PipelineJobDto>(`/api/pipelines/${id}`, { signal }),
+  cancelPipelineJob: (id: string, signal?: AbortSignal) =>
+    apiRequest<PipelineCancelDto>(`/api/pipelines/${encodeURIComponent(id)}/cancel`, { method: "POST", signal }),
+  retryPipelineJob: (id: string, signal?: AbortSignal) =>
+    apiRequest<PipelineRetryDto>(`/api/pipelines/${encodeURIComponent(id)}/retry`, { method: "POST", signal }),
   getPipelineFiles: (id: string) =>
     apiRequest<PipelineFileDto[]>(`/api/pipelines/${id}/files`),
   getHistory: (options: { limit?: number; offset?: number; status?: string; q?: string } = {}) => {

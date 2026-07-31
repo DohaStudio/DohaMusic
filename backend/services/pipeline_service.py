@@ -11,6 +11,7 @@ from typing import Protocol
 from sqlalchemy.orm import Session
 
 from backend.core.exceptions import AppError, ResourceNotFoundError
+from backend.core.job_status import JobStatus
 from backend.core.logging import get_logger
 from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
@@ -86,6 +87,84 @@ class PipelineService:
                 raise ResourceNotFoundError("Pipeline 작업")
             session.expunge(job)
             return job
+
+    def cancel(self, job_id: str) -> PipelineJob:
+        with self.session_factory() as session:
+            repository = PipelineRepository(session)
+            job = repository.get(job_id)
+            if job is None:
+                raise AppError(
+                    "PIPELINE_JOB_NOT_FOUND", "음악 작업을 찾을 수 없습니다.", 404
+                )
+            if job.status in {JobStatus.COMPLETED.value, JobStatus.FAILED.value}:
+                raise AppError(
+                    "PIPELINE_CANCEL_NOT_ALLOWED",
+                    "현재 상태에서는 음악 만들기를 취소할 수 없습니다.",
+                    409,
+                )
+            job = repository.request_cancel(job)
+            session.expunge(job)
+            return job
+
+    def retry(self, job_id: str) -> PipelineJob:
+        with self.session_factory() as session:
+            repository = PipelineRepository(session)
+            source = repository.get(job_id)
+            if source is None:
+                raise AppError(
+                    "PIPELINE_JOB_NOT_FOUND", "음악 작업을 찾을 수 없습니다.", 404
+                )
+            if source.status not in {JobStatus.FAILED.value, JobStatus.CANCELLED.value}:
+                raise AppError(
+                    "PIPELINE_RETRY_NOT_ALLOWED",
+                    "실패하거나 취소된 음악만 다시 만들 수 있습니다.",
+                    409,
+                )
+            existing = repository.retry_for(source.id)
+            if existing is not None:
+                session.expunge(existing)
+                return existing
+            profile = repository.get_profile(source.voice_profile_id)
+            if (
+                profile is None
+                or profile.status != "READY"
+                or not profile.consent_confirmed
+            ):
+                raise AppError(
+                    "RETRY_VOICE_PROFILE_UNAVAILABLE",
+                    "사용한 목소리를 더 이상 사용할 수 없어 다시 만들 수 없습니다.",
+                    409,
+                )
+            snapshot = source.input_snapshot or {
+                "prompt": source.prompt,
+                "lyrics": source.lyrics,
+                "genre": source.genre,
+                "duration_seconds": source.duration_seconds,
+                "seed": source.seed,
+                "voice_profile_id": source.voice_profile_id,
+                "project_id": source.project_id,
+            }
+            if (
+                source.project_id is not None
+                and repository.session.get(Project, source.project_id) is None
+            ):
+                snapshot["project_id"] = None
+            try:
+                request = PipelineCreate.model_validate(snapshot)
+            except ValueError as error:
+                raise AppError(
+                    "PIPELINE_RETRY_INPUT_MISSING",
+                    "기존 음악 설정을 확인할 수 없어 다시 만들 수 없습니다.",
+                    409,
+                ) from error
+            job = repository.create(
+                request,
+                self.pipeline_version,
+                retry_of_job_id=source.id,
+            )
+            session.expunge(job)
+        self.dispatcher.submit(job.id)
+        return job
 
     def list_files(self, job_id: str) -> list[PipelineFile]:
         with self.session_factory() as session:

@@ -32,6 +32,11 @@
 | `LYRICS_OUTPUT_INVALID` | Provider 결과 구조 검증 실패 |
 | `LYRICS_VALIDATION_FAILED` | 직접 가사 검증을 진행할 수 없는 입력 |
 | `PIPELINE_NOT_FOUND` | Pipeline Job 없음 |
+| `PIPELINE_JOB_NOT_FOUND` | Cancel·Retry 대상 Pipeline Job 없음 |
+| `PIPELINE_CANCEL_NOT_ALLOWED` | 완료·실패 상태에서 취소 요청 |
+| `PIPELINE_RETRY_NOT_ALLOWED` | 실패·취소 외 상태에서 Retry 요청 |
+| `PIPELINE_RETRY_INPUT_MISSING` | 원본 입력 스냅샷 검증 실패 |
+| `RETRY_VOICE_PROFILE_UNAVAILABLE` | 원본 Voice Profile 없음·비활성·동의 무효 |
 | `FILE_NOT_FOUND` | 결과 File 없음 |
 | `FILE_JOB_MISMATCH` | File이 요청한 Pipeline에 속하지 않음 |
 | `PIPELINE_NOT_COMPLETED` | 완료 전 결과 파일 접근 요청 |

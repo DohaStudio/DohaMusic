@@ -32,6 +32,9 @@ class HistoryService:
             duration=job.duration_seconds,
             voice_profile_name=voice_name,
             has_audio=bool(has_audio and job.status == "COMPLETED"),
+            can_cancel=job.can_cancel,
+            can_retry=job.can_retry,
+            retry_of_job_id=job.retry_of_job_id,
         )
 
     def list_history(

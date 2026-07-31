@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
-> 관련 기능: Phase 5 Pipeline Orchestrator, Phase 8 Audio Player·WAV Download
+> 관련 기능: Phase 5 Pipeline Orchestrator, Phase 8 Audio Player·WAV Download·Cancel·Retry
 
 ## 생성
 
@@ -41,10 +41,19 @@ Files response는 `id`, `job_id`, `file_type`, `mime_type`, `created_at`, `conte
 
 주요 오류는 `PIPELINE_NOT_FOUND`, `FILE_NOT_FOUND`, `FILE_JOB_MISMATCH`, `PIPELINE_NOT_COMPLETED`, `FILE_CONTENT_UNAVAILABLE`, `FILE_DOWNLOAD_UNAVAILABLE`, `FILE_PATH_INVALID`, `FILE_MISSING_FROM_STORAGE`, `UNSUPPORTED_AUDIO_FILE`, `INVALID_RANGE`다. 이 API는 로컬 단일 사용자 개발 범위이며 공개 운영 전 인증·소유권·인가·rate limit·감사 로그·만료 URL 또는 동등한 보호가 필요하다.
 
-상태는 `PENDING → VALIDATING → GENERATING → STEM_SEPARATING → VOICE_CONVERTING → MIXING → EXPORTING → COMPLETED` 순서다. 어느 단계에서든 `FAILED`로 종료할 수 있다.
+상태는 `PENDING → VALIDATING → GENERATING → STEM_SEPARATING → VOICE_CONVERTING → MIXING → EXPORTING → COMPLETED` 순서다. 어느 단계에서든 `FAILED`로 종료할 수 있고 실행 상태에서는 `CANCEL_REQUESTED → CANCELLED`로 전이한다.
+
+## 취소와 다시 만들기
+
+- `POST /api/pipelines/{job_id}/cancel`: `PENDING`은 즉시 `CANCELLED`, 실행 중은 `CANCEL_REQUESTED`를 반환한다. `CANCEL_REQUESTED`와 `CANCELLED` 재호출은 현재 상태를 반환하며 `COMPLETED`·`FAILED`는 `409 PIPELINE_CANCEL_NOT_ALLOWED`다.
+- `POST /api/pipelines/{job_id}/retry`: `FAILED`·`CANCELLED` 입력 스냅샷으로 새 Job을 만들고 `202`와 `source_job_id`, 새 `job`을 반환한다. 같은 원본의 중복 요청은 기존 재시도 Job을 반환한다.
+
+공개 Job DTO는 `can_cancel`, `can_retry`, `cancel_requested_at`, `cancelled_at`, `retry_of_job_id`를 제공한다. Retry는 동일 prompt·lyrics·genre·duration·seed·voice profile·Project를 재검증하며 Voice Profile이 없거나 비활성 상태면 `409 RETRY_VOICE_PROFILE_UNAVAILABLE`다. PID·명령·내부 경로·Worker 정보는 반환하지 않는다.
+
+취소는 Job 시작 전, 각 단계 시작 전과 완료 후, metadata·파일·최종 결과 저장 전에 확인하는 cooperative 방식이다. 현재 Provider subprocess의 안전한 process ownership handle이 없으므로 실행 중 단일 추론의 즉시 종료는 보장하지 않는다.
 
 응답의 `result_metadata`에는 Pipeline 버전, Provider·모델, seed, 전체·단계 시간, attempt, VRAM 가능한 값, 성공 여부, 실패 단계와 오류가 포함된다. Mock AI 실행의 GPU·VRAM은 추측하지 않고 `null`로 기록한다. Frontend는 이 전체 내부 구조를 그대로 출력하지 않고 duration·execution time, Provider 식별자와 Mixer audio quality의 공개 필드만 allowlist로 표시한다.
 
 Mixer step의 `details.audio_quality`에는 provider·처리 시간, 출력 duration·sample rate·channels·size, 보컬·반주·normalization gain, 목표·실제 headroom, peak·RMS, normalization·limiter·fade, silence, PCM 직전 clipping과 보호 처리 전 over-range가 포함된다. True Peak는 현재 미지원이므로 `true_peak_supported=false`, `true_peak_dbfs=null`이다.
 
-취소·수동 재시도 API와 인증·소유권 검사는 이번 범위에 포함하지 않는다. Generation·Stem·Voice Conversion 개별 API에는 content endpoint를 추가하지 않았으며 첫 제공 범위는 Pipeline 결과다.
+인증·소유권 검사는 포함하지 않는다. Generation·Stem·Voice Conversion 개별 API에는 content endpoint를 추가하지 않았으며 첫 제공 범위는 Pipeline 결과다.

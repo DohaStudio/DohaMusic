@@ -48,3 +48,6 @@ stateDiagram-v2
 허용되지 않은 상태 전이는 Repository에서 거부한다. `COMPLETED`, `FAILED`, `CANCELLED`는 종료 상태다. 현재 Worker는 완료·실패에 `completed_at`을 기록하며 취소 실행 경로는 아직 없다.
 
 독립 Job은 각자 필요한 상태만 사용한다. Pipeline Job은 전체 순서를 사용하고 `progress_percent`를 20·40·60·80·100으로 갱신한다. 자동 재시도는 같은 단계 내부 attempt로 기록하므로 상태를 되돌리지 않는다. 취소 API, 프로세스 재시작 복구와 수동 재실행은 포함하지 않는다.
+## Pipeline Cancel·Retry
+
+`PENDING`은 즉시 `CANCELLED`가 될 수 있다. 실행 단계는 `CANCEL_REQUESTED`를 거쳐 단계 경계에서 `CANCELLED`가 된다. `COMPLETED`·`FAILED`는 취소할 수 없고 terminal 상태를 실행 상태로 되돌리지 않는다. Retry는 `FAILED`·`CANCELLED` 원본과 `retry_of_job_id`로 연결된 새 `PENDING` Job이다.

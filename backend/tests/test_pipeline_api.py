@@ -10,9 +10,12 @@ from sqlalchemy import select
 
 from backend.core.job_status import JobStatus
 from backend.models.pipeline_file import PipelineFile
+from backend.models.pipeline_job import PipelineJob
 from backend.pipeline.context import PipelineContext
 from backend.pipeline.errors import StepTimeoutError, ValidationError
 from backend.pipeline.executor import PipelineExecutor
+from backend.repositories.pipeline_repository import PipelineRepository
+from backend.schemas.pipeline import PipelineCreate
 
 
 def wait_for_pipeline(client: TestClient, job_id: str) -> dict[str, object]:
@@ -21,7 +24,7 @@ def wait_for_pipeline(client: TestClient, job_id: str) -> dict[str, object]:
         response = client.get(f"/api/pipelines/{job_id}")
         assert response.status_code == 200
         job = response.json()
-        if job["status"] in {"COMPLETED", "FAILED"}:
+        if job["status"] in {"COMPLETED", "FAILED", "CANCELLED"}:
             return job
         time.sleep(0.01)
     raise AssertionError("Pipeline did not reach a terminal state")
@@ -237,3 +240,137 @@ def test_pipeline_step_timeout_policy(tmp_path) -> None:
     executor = PipelineExecutor([SlowStep()], max_retries=0, step_timeout_seconds=0.001)
     with pytest.raises(StepTimeoutError):
         executor.execute(context, lambda _step: None)
+
+
+def create_stored_pipeline(client: TestClient, status: JobStatus) -> PipelineJob:
+    profile_id = create_profile(client)
+    request = PipelineCreate(
+        prompt="취소 재시도 테스트",
+        lyrics="[Verse]\n테스트 가사",
+        genre="댄스 팝",
+        duration_seconds=30,
+        seed=77,
+        voice_profile_id=profile_id,
+    )
+    with client.app.state.session_factory() as session:
+        repository = PipelineRepository(session)
+        job = repository.create(request, "test-v1")
+        job.status = status.value
+        job.current_step = "test"
+        session.commit()
+        session.refresh(job)
+        session.expunge(job)
+        return job
+
+
+def test_cancel_pending_is_immediate_and_idempotent(client: TestClient) -> None:
+    job = create_stored_pipeline(client, JobStatus.PENDING)
+    response = client.post(f"/api/pipelines/{job.id}/cancel")
+    assert response.status_code == 200
+    assert response.json()["status"] == "CANCELLED"
+    assert response.json()["cancelled_at"] is not None
+    repeated = client.post(f"/api/pipelines/{job.id}/cancel")
+    assert repeated.status_code == 200
+    assert repeated.json()["status"] == "CANCELLED"
+
+
+@pytest.mark.parametrize("status", [JobStatus.COMPLETED, JobStatus.FAILED])
+def test_cancel_terminal_job_is_rejected(client: TestClient, status: JobStatus) -> None:
+    job = create_stored_pipeline(client, status)
+    response = client.post(f"/api/pipelines/{job.id}/cancel")
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "PIPELINE_CANCEL_NOT_ALLOWED"
+
+
+def test_cancel_running_requests_cooperative_stop(client: TestClient) -> None:
+    job = create_stored_pipeline(client, JobStatus.GENERATING)
+    response = client.post(f"/api/pipelines/{job.id}/cancel")
+    assert response.status_code == 200
+    assert response.json()["status"] == "CANCEL_REQUESTED"
+    assert response.json()["cancel_requested_at"] is not None
+
+
+@pytest.mark.parametrize("source_status", [JobStatus.FAILED, JobStatus.CANCELLED])
+def test_retry_creates_new_job_with_snapshot_and_relation(
+    client: TestClient, source_status: JobStatus
+) -> None:
+    source = create_stored_pipeline(client, source_status)
+    response = client.post(f"/api/pipelines/{source.id}/retry")
+    assert response.status_code == 202
+    payload = response.json()
+    assert payload["source_job_id"] == source.id
+    assert payload["job"]["id"] != source.id
+    assert payload["job"]["retry_of_job_id"] == source.id
+    assert payload["job"]["seed"] == 77
+    assert payload["job"]["project_id"] == source.project_id
+    repeated = client.post(f"/api/pipelines/{source.id}/retry")
+    assert repeated.status_code == 202
+    assert repeated.json()["job"]["id"] == payload["job"]["id"]
+    assert client.get(f"/api/pipelines/{source.id}").json()["status"] == source_status
+
+
+@pytest.mark.parametrize(
+    "status", [JobStatus.PENDING, JobStatus.GENERATING, JobStatus.COMPLETED]
+)
+def test_retry_rejects_non_terminal_source(
+    client: TestClient, status: JobStatus
+) -> None:
+    source = create_stored_pipeline(client, status)
+    response = client.post(f"/api/pipelines/{source.id}/retry")
+    assert response.status_code == 409
+    assert response.json()["error"]["code"] == "PIPELINE_RETRY_NOT_ALLOWED"
+
+
+def test_cancel_retry_missing_job(client: TestClient) -> None:
+    assert client.post("/api/pipelines/missing/cancel").status_code == 404
+    assert client.post("/api/pipelines/missing/retry").status_code == 404
+
+
+class CooperativeCancelStep:
+    name = "cooperative_cancel"
+    status = JobStatus.GENERATING
+    progress_percent = 20
+
+    def __init__(self, session_factory: object) -> None:
+        self.session_factory = session_factory
+
+    def execute(self, context: PipelineContext) -> dict[str, object]:
+        with self.session_factory() as session:
+            job = session.get(PipelineJob, context.job_id)
+            assert job is not None
+            job.status = JobStatus.CANCEL_REQUESTED.value
+            session.commit()
+        return {}
+
+
+def test_worker_detects_cancel_after_step_and_publishes_no_result(
+    client: TestClient,
+) -> None:
+    client.app.state.pipeline_worker.executor.steps = [
+        CooperativeCancelStep(client.app.state.session_factory)
+    ]
+    job = create_pipeline(client, create_profile(client))
+    cancelled = wait_for_pipeline(client, str(job["id"]))
+    assert cancelled["status"] == "CANCELLED"
+    assert cancelled["can_retry"] is True
+    assert client.get(f"/api/pipelines/{job['id']}/files").json() == []
+
+
+def test_result_commit_loses_to_committed_cancel(client: TestClient) -> None:
+    job = create_stored_pipeline(client, JobStatus.GENERATING)
+    client.post(f"/api/pipelines/{job.id}/cancel")
+    with client.app.state.session_factory() as session:
+        repository = PipelineRepository(session)
+        current = repository.get(job.id)
+        assert current is not None
+        assert (
+            repository.finalize_success(
+                current,
+                {"success": True},
+                [("final", "pipeline/final.wav", "audio/wav")],
+            )
+            is False
+        )
+        session.refresh(current)
+        assert current.status == "CANCEL_REQUESTED"
+        assert repository.list_files(job.id) == []

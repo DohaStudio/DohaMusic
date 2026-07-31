@@ -106,11 +106,11 @@ sequenceDiagram
 
 - Lyrics 생성·검증은 동기 요청이다. `POST /api/lyrics`, `POST /api/lyrics/validate`의 loading과 validation 결과를 구분한다.
 - Pipeline은 `202` 이후 정상 응답 초기 5회 1초, foreground 2초, background 최소 5초 간격으로 polling한다. 연속 오류 1~2회는 5초, 3회 이상은 10초이며 성공 시 오류 횟수를 초기화한다.
-- `COMPLETED`, `FAILED`, 404에서 polling을 중단한다. Timeout·network 오류는 Job 실패와 분리하고 같은 Job ID 수동 재조회를 제공하며 자동 재제출하지 않는다.
+- `COMPLETED`, `FAILED`, `CANCELLED`, 404에서 polling을 중단한다. `CANCEL_REQUESTED`는 취소 확정까지 제한적으로 polling한다. Timeout·network 오류는 Job 실패와 분리하고 같은 Job ID 수동 재조회를 제공하며 자동 재제출하지 않는다.
 - API Client는 caller signal과 10초 timeout을 `AbortSignal.any()`로 결합한다. Node 24·현재 TypeScript DOM 계약과 Chromium E2E에서 지원을 확인했으며 외부 취소는 `REQUEST_ABORTED`, timeout은 `REQUEST_TIMEOUT`으로 구분한다.
 - 성공 HTTP의 JSON parsing 실패는 실제 status를 가진 `INVALID_RESPONSE`다. API의 `{ error: { code, message } }`는 Backend code를 보존하고 그 밖의 HTTP·network 오류와 구분한다.
 - Files public DTO와 Voice Profile response에는 내부 물리·상대 Storage 경로가 없다. Result UI는 실제 공개 필드 allowlist만 표시하며 알 수 없는 nested metadata를 숨긴다.
-- Backend에 재시도 API가 없으므로 “재시도”는 동일 draft를 검토 화면으로 복사한 뒤 새 Job을 만드는 사용자 행동으로만 표현한다.
+- 실패·취소 Retry는 서버 입력 Snapshot으로 새 Job을 생성한다. mutation 중에는 버튼을 잠그고 성공한 새 Job ID의 Generation route로 이동한다.
 
 ## 현재 API 제약
 
@@ -122,7 +122,7 @@ sequenceDiagram
 | 음성 프로필 upload·조회·삭제 | 가능 | 기본 UI는 WAV 등록·목록 선택; 서버 경로 생성과 UUID 직접 입력은 개발 플래그 전용 |
 | 오디오 재생·다운로드 | 가능 | 완료 Pipeline의 capability URL만 사용; 내부 경로 금지 |
 | 프로젝트·생성 이력 목록 | 가능 | History 검색·상태·페이지네이션, Project CRUD·상세, Result 재진입 |
-| Job 취소·수동 retry | 불가 | 기능 비활성 및 후속 API 표시 |
+| Job 취소·수동 retry | 가능 | cooperative Cancel과 새 Job Retry |
 | 인증·소유권 | 불가 | 공개 운영 차단 조건 |
 | 모델 목록 | 불가 | `Backend Required`; UI에서 하드코딩된 선택 기능 금지 |
 

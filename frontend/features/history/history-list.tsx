@@ -17,6 +17,8 @@ const tones: Record<string, string> = {
   MIXING: "active",
   COMPLETED: "success",
   FAILED: "error",
+  CANCEL_REQUESTED: "active",
+  CANCELLED: "neutral",
 };
 
 export function HistoryList() {
@@ -34,6 +36,16 @@ export function HistoryList() {
     const files = mapSafeFiles(await dohaApi.getPipelineFiles(jobId));
     const preferred = selectPreferredAudioFile(files);
     if (preferred?.downloadUrl) window.location.assign(preferred.downloadUrl);
+  }
+
+  async function cancelJob(jobId: string) {
+    await dohaApi.cancelPipelineJob(jobId);
+    await store.load();
+  }
+
+  async function retryJob(jobId: string) {
+    const response = await dohaApi.retryPipelineJob(jobId);
+    window.location.assign(`/generation/${response.job.id}`);
   }
 
   return (
@@ -56,7 +68,7 @@ export function HistoryList() {
             <div><h2>{item.title}</h2><p>{new Date(item.created_at).toLocaleString("ko-KR")} · {item.voice_profile_name} · {item.duration}초</p></div>
             <Badge tone={tones[item.status] ?? "neutral"}>{statusLabel(item.status)}</Badge>
             <span>{item.has_audio ? "재생 가능" : "아직 재생할 수 없음"}</span>
-            <div className="actions"><Button disabled={!item.has_audio} onClick={() => void playJob(item.job_id)}>재생</Button><Button className="secondary" disabled={!item.has_audio} onClick={() => void downloadJob(item.job_id)}>다운로드</Button><Link className="button secondary" href={`/result/${item.job_id}`}>자세히 보기</Link></div>
+            <div className="actions">{item.has_audio && <><Button onClick={() => void playJob(item.job_id)}>재생</Button><Button className="secondary" onClick={() => void downloadJob(item.job_id)}>다운로드</Button></>}{item.can_cancel && item.status !== "CANCEL_REQUESTED" && <Button className="danger" onClick={() => void cancelJob(item.job_id)}>취소</Button>}{item.can_retry && <Button onClick={() => void retryJob(item.job_id)}>다시 만들기</Button>}<Link className="button secondary" href={item.status === "COMPLETED" ? `/result/${item.job_id}` : `/generation/${item.job_id}`}>열기</Link></div>
           </article>
         ))}</div>
       )}
@@ -67,6 +79,8 @@ export function HistoryList() {
 function statusLabel(status: string) {
   if (status === "COMPLETED") return "완성";
   if (status === "FAILED") return "완료하지 못함";
+  if (status === "CANCEL_REQUESTED") return "취소 중";
+  if (status === "CANCELLED") return "취소됨";
   if (status === "PENDING" || status === "QUEUED") return "시작 전";
   return "만드는 중";
 }

@@ -61,7 +61,7 @@ Phase 6.6~6.9 Local Lyrics LLM       [계획]
   ↓
 Phase 7  Doha Voice                  [계획]
   ↓
-Phase 8  Doha Studio                 [진행 중]
+Phase 8  Doha Studio                 [완료]
   ↓
 Phase 9  Production                  [계획]
 ```
@@ -78,7 +78,7 @@ Phase 9  Production                  [계획]
 | 6. Lyrics AI | [완료] | `██████████ 100%` | 로컬 Template·Mock Generator·API·검증·Benchmark 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [진행 중] | `█████████░ 93%` | Voice·History·Project·Audio 완료, 인증·소유권 잔여 | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## Phase 0. 프로젝트 문서화 — [완료]
@@ -209,12 +209,12 @@ Phase 9  Production                  [계획]
 
 Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화하는 별도 단계다. 가사 text Dataset, Instruct LLM, LoRA Adapter와 checkpoint·Model Card·저장 정책을 공유하지 않는다.
 
-## Phase 8. Doha Studio — [진행 중]
+## Phase 8. Doha Studio — [완료]
 
 - 목표: 생성·편집·재생·이력·파일 관리를 제공하는 사용자 Studio를 구축한다.
-- 구현 범위·포함 기능: Premium Dark responsive shell, Prompt·Lyrics·Voice·Review, 오류 backoff Pipeline polling, History·Project CRUD와 자동 Default Project, 공개 allowlist 결과 metadata, 완료 Pipeline의 보안 WAV content·download, 전역 Player.
+- 구현 범위·포함 기능: Premium Dark responsive shell, Prompt·Lyrics·Voice·Review, 오류 backoff Pipeline polling, History·Project CRUD와 자동 Default Project, 공개 allowlist 결과 metadata, 완료 Pipeline의 보안 WAV content·download, 전역 Player, cooperative Cancel과 Snapshot 기반 새 Job Retry.
 - 제외 기능: Production 인프라 전환과 공개 운영 승인.
-- 선행 조건: Phase 5 Pipeline API 충족. 인증·소유권은 공개 운영과 전체 Phase 완료의 잔여 조건.
+- 선행 조건: Phase 5 Pipeline API 충족. 인증·소유권은 Phase 9 공개 운영 차단 조건이며 로컬 MVP 완료와 구분한다.
 - 완료 조건: [Phase-08 DoD](docs/DoD/Phase-08.md), 주요 화면·접근성·빌드·E2E·권한 검증.
 - 산출물: Frontend 애플리케이션, Design System·Component·Responsive·Studio UX 문서, E2E 결과.
 - 관련 문서: [Frontend Overview](docs/03-architecture/frontend-overview.md), [Frontend Architecture](docs/03-architecture/frontend-architecture.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Frontend Roadmap](planning/frontend-roadmap.md), [User Scenarios](docs/00-overview/user-scenarios.md).

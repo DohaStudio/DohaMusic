@@ -59,6 +59,14 @@ stateDiagram-v2
   VOICE_CONVERTING --> MIXING
   MIXING --> EXPORTING
   EXPORTING --> COMPLETED
+  PENDING --> CANCELLED
+  VALIDATING --> CANCEL_REQUESTED
+  GENERATING --> CANCEL_REQUESTED
+  STEM_SEPARATING --> CANCEL_REQUESTED
+  VOICE_CONVERTING --> CANCEL_REQUESTED
+  MIXING --> CANCEL_REQUESTED
+  EXPORTING --> CANCEL_REQUESTED
+  CANCEL_REQUESTED --> CANCELLED
   PENDING --> FAILED
   VALIDATING --> FAILED
   GENERATING --> FAILED
@@ -70,7 +78,7 @@ stateDiagram-v2
 
 - 현재 step, 전체 progress, elapsed와 연결 상태를 표시한다.
 - ETA는 Backend가 제공하지 않으므로 추정값을 사실처럼 표시하지 않는다.
-- 취소 API가 없으므로 cancel button을 활성화하지 않는다.
+- 취소 가능 상태에서는 확인 Dialog 뒤 `POST /api/pipelines/{job_id}/cancel`을 호출한다. 실행 중 취소는 현재 단계가 안전하게 정리된 뒤 확정될 수 있음을 안내한다.
 - network polling 실패는 Job 실패가 아니다. reconnect 후 동일 job ID를 조회한다.
 
 ## 6. Result
@@ -79,7 +87,7 @@ stateDiagram-v2
 - `GET /api/pipelines/{job_id}/files`의 metadata를 file inventory로 보여준다.
 - 완료 결과는 capability가 있는 WAV만 Player와 Download를 활성화하고, 사용할 수 없는 파일은 이유를 숨기지 않고 disabled로 표시한다.
 - Voice 단계는 등록 목록에서 Profile을 선택하며, 목록이 비면 `/voice` upload로 안내한다. UUID 직접 입력과 서버 경로 생성은 개발 플래그에서만 보조 수단으로 제공한다.
-- “다시 만들기”는 Review draft를 복사하여 새 Pipeline Job을 생성하며 기존 Job을 변경하지 않는다.
+- 실패·취소된 작업의 “같은 설정으로 다시 만들기”는 서버의 입력 Snapshot을 검증해 새 Pipeline Job을 생성하며 기존 Job을 변경하지 않는다. 성공 Result에는 이 Retry action을 표시하지 않는다.
 
 ## 오류·복구
 

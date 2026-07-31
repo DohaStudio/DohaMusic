@@ -42,4 +42,10 @@ Mixer의 gain·quality·clipping·CPU·RSS·처리 시간은 Pipeline `result_me
 
 공통 오류는 `PipelineError`, `StepError`, `ProviderError`, `StepTimeoutError`, `ValidationError`, `OutputError`로 분리한다. API에는 내부 예외나 경로를 노출하지 않는다.
 
-`CANCELLED` 상태는 상태 계약에 예약했지만 취소 API와 실행 중 강제 중단은 구현하지 않았다.
+## Cancel·Retry
+
+`PENDING` 취소는 즉시 `CANCELLED`로 확정한다. 실행 중 취소는 DB에 `CANCEL_REQUESTED`를 먼저 commit하고 Worker가 Job 시작 전, 각 단계 시작 전·완료 후, 결과 metadata·파일 저장 전에 확인해 `CANCELLED`로 확정한다. 부분 출력은 정리하고 최종 Result는 공개하지 않는다.
+
+Provider subprocess의 process handle을 Job ownership과 함께 추적하지 않으므로 이번 로컬 MVP는 강제 terminate·kill을 수행하지 않는다. 현재 단계가 반환된 뒤 취소된다는 한계를 사용자에게 안내한다.
+
+Retry는 실패·취소 Job의 공개 입력 Snapshot을 `PipelineCreate`로 다시 검증해 새 `PENDING` Job을 만든다. 원본 상태는 변경하지 않고 `retry_of_job_id`로 관계를 기록하며 같은 원본의 중복 요청은 기존 새 Job을 반환한다.

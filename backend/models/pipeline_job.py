@@ -52,8 +52,32 @@ class PipelineJob(Base):
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancel_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True)
+    )
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    retry_of_job_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("pipeline_jobs.id", ondelete="SET NULL"), index=True
+    )
+    input_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
 
     files: Mapped[list[PipelineFile]] = relationship(
         back_populates="job", cascade="all, delete-orphan"
     )
     project: Mapped[Project | None] = relationship(back_populates="jobs")
+
+    @property
+    def can_cancel(self) -> bool:
+        return self.status in {
+            "PENDING",
+            "VALIDATING",
+            "GENERATING",
+            "STEM_SEPARATING",
+            "VOICE_CONVERTING",
+            "MIXING",
+            "EXPORTING",
+        }
+
+    @property
+    def can_retry(self) -> bool:
+        return self.status in {"FAILED", "CANCELLED"}
