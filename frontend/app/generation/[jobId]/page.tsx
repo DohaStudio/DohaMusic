@@ -1,1 +1,14 @@
-import { AppShell } from "@/components/app-shell";import { PipelineProgress } from "@/features/pipeline/pipeline-progress";export default async function Page({params}:{params:Promise<{jobId:string}>}){const {jobId}=await params;return <AppShell><PipelineProgress jobId={jobId}/></AppShell>}
+import { AppShell } from "@/components/app-shell";
+import { PipelineProgress } from "@/features/pipeline/pipeline-progress";
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ jobId: string }>;
+}) {
+  const { jobId } = await params;
+  return (
+    <AppShell>
+      <PipelineProgress jobId={jobId} />
+    </AppShell>
+  );
+}

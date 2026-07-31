@@ -5,6 +5,7 @@
 
 | 변수 | 용도 | 기본값 |
 |---|---|---|
+| `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH` | Frontend의 개발용 Voice 서버 경로 form 노출. 운영 활성화 금지 | `false` |
 | `DOHAMUSIC_MUSIC_GENERATOR` | `mock` 또는 `ace_step` | `mock` |
 | `DOHAMUSIC_MODEL_NAME` | Mock 모델 식별자 | `mock-music-generator` |
 | `DOHAMUSIC_MODEL_VERSION` | Mock 모델 버전 | `foundation-v1` |
@@ -57,7 +58,7 @@
 | `DOHAMUSIC_MIXER_FADE_IN_MS` | 시작 linear fade | `10.0` |
 | `DOHAMUSIC_MIXER_FADE_OUT_MS` | 종료 linear fade | `10.0` |
 
-기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
+`NEXT_PUBLIC_*` 값은 browser bundle에 공개되므로 비밀을 넣지 않는다. `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH`는 정확히 `true`일 때만 form을 노출하며 Backend path 검증이나 인증을 대체하지 않는다. 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 
 ## 벤치마크 전용 변수
 

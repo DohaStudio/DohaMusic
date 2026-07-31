@@ -4,7 +4,7 @@
 
 > Phase 6.6~6.9: 권리 확보 Dataset으로 공개 Instruct Base Model을 QLoRA SFT하고 `LocalLyricsLLMAdapter`로 연결하는 구조는 `[계획] 0%`입니다. Base Model·Dataset·checkpoint는 없고 학습·Adapter·품질 평가는 미착수이며, 승인 전 `template` 기본값과 Pipeline 비연결을 유지합니다.
 
-> Phase 8: Doha Studio Responsive Frontend MVP는 `[진행 중] 53%`입니다. `frontend/`에 Next.js App Router 기반 Landing·Studio·Lyrics·Voice·Progress·Result·Settings·About·404를 구현했고 Health·Lyrics·Voice Profile·Pipeline API를 연결했습니다. upload/download·audio content·history·cancel/retry·인증·소유권은 `Backend Required`로 비활성화했습니다.
+> Phase 8: Doha Studio Responsive Frontend MVP는 `[진행 중] 53%`입니다. `frontend/`에 Next.js App Router 기반 Landing·Studio·Lyrics·Voice·Progress·Result·Settings·About·404를 구현했고 Health·Lyrics·Voice Profile·Pipeline API를 연결했습니다. 공개 파일 DTO와 Voice 응답은 내부 Storage 경로를 반환하지 않으며, Voice 서버 경로 입력은 개발 플래그에서만 노출됩니다. upload/download·audio content·history·cancel/retry·인증·소유권은 `Backend Required`로 비활성화했습니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
@@ -115,13 +115,15 @@ API 문서는 실행 후 `http://127.0.0.1:8000/docs`, health는 `GET /health`�
 
 Frontend는 별도 terminal에서 실행한다. `/backend` 요청은 기본적으로 `http://127.0.0.1:8000`에 proxy된다.
 
+`NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH=true`는 로컬 개발에서 이미 `voices/references` 아래에 준비된 참조 파일로 Profile 생성 계약을 확인할 때만 사용한다. 기본값은 `false`이며 공개·운영 환경에서 활성화하지 않는다. Backend는 허용 root, 실재 파일, 확장자, traversal·absolute path·symlink를 다시 검증한다.
+
 ```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-Frontend 검증은 `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run test:e2e` 순서로 실행한다.
+Frontend 검증은 `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run test:e2e`, `npm audit` 순서로 실행한다.
 
 ## 개발 로드맵
 

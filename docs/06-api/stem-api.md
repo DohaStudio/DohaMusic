@@ -1,6 +1,8 @@
 # Stem 분리 API
 
-> 현재 상태: **Mock 기본 / Demucs 선택적 Provider 구현**
+> 문서 상태: [완료]
+> 최종 수정일: 2026-07-31
+> 관련 기능: Phase 3 Stem Separation
 
 ## `POST /api/stems`
 
@@ -18,6 +20,6 @@
 
 ## `GET /api/stems/{job}/files`
 
-완료 후 `vocals`, `instrumental`, `metadata` 유형의 파일 메타데이터를 반환한다. 실제 다운로드 API는 없다. Demucs 오디오는 48kHz Stereo float32 WAV이며 Mock도 48kHz Stereo WAV 계약을 따른다.
+완료 후 `vocals`, `instrumental`, `metadata` 유형과 `id`, `job_id`, `mime_type`, `created_at`, `content_available`, `download_available` 파일 메타데이터를 반환한다. 내부 `file_path`는 반환하지 않으며 실제 content·download API가 없어 capability 값은 현재 `false`다. Demucs 오디오는 48kHz Stereo float32 WAV이며 Mock도 48kHz Stereo WAV 계약을 따른다.
 
 존재하지 않는 source 또는 Job은 `RESOURCE_NOT_FOUND`, 입력 형식 오류는 `INVALID_INPUT`이다. Worker의 내부 예외·절대 경로는 응답에 노출하지 않는다.

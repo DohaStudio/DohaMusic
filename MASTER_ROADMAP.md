@@ -78,7 +78,7 @@ Phase 9  Production                  [계획]
 | 6. Lyrics AI | [완료] | `██████████ 100%` | 로컬 Template·Mock Generator·API·검증·Benchmark 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [진행 중] | `█████░░░░░ 53%` | Responsive MVP와 현재 API 연결 완료, Audio·History·인증 등 Backend Required | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [진행 중] | `█████░░░░░ 53%` | Responsive MVP·공개 파일 경로 차단·안정적 polling 완료, Audio·History·인증 등 Backend Required | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## Phase 0. 프로젝트 문서화 — [완료]
@@ -210,7 +210,7 @@ Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화
 ## Phase 8. Doha Studio — [진행 중]
 
 - 목표: 생성·편집·재생·이력·파일 관리를 제공하는 사용자 Studio를 구축한다.
-- 구현 범위·포함 기능: Premium Dark responsive shell, Prompt·Lyrics·Voice·Review, Pipeline polling, 결과 metadata, 비활성 Player·Download와 Backend Required 안내.
+- 구현 범위·포함 기능: Premium Dark responsive shell, Prompt·Lyrics·Voice·Review, 오류 backoff Pipeline polling, 공개 allowlist 결과 metadata, 개발 전용 Voice 경로 입력, 비활성 Player·Download와 Backend Required 안내.
 - 제외 기능: Production 인프라 전환과 공개 운영 승인.
 - 선행 조건: Phase 5 Pipeline API 충족. 인증·소유권은 공개 운영과 전체 Phase 완료의 잔여 조건.
 - 완료 조건: [Phase-08 DoD](docs/DoD/Phase-08.md), 주요 화면·접근성·빌드·E2E·권한 검증.

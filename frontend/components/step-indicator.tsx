@@ -1,3 +1,26 @@
 import type { StudioStep } from "@/types/domain";
-const steps: { id: StudioStep; label: string }[] = [{ id: "settings", label: "음악 설정" }, { id: "lyrics", label: "가사" }, { id: "voice", label: "목소리" }, { id: "review", label: "생성 확인" }, { id: "generation", label: "생성 진행" }, { id: "result", label: "결과" }];
-export function StepIndicator({ current }: { current: StudioStep }) { const at = steps.findIndex((step) => step.id === current); return <ol className="step-indicator" aria-label="Studio 진행 단계">{steps.map((step, index) => <li key={step.id} className={index === at ? "current" : index < at ? "done" : ""} aria-current={index === at ? "step" : undefined}><span>{index + 1}</span><b>{step.label}</b></li>)}</ol>; }
+const steps: { id: StudioStep; label: string }[] = [
+  { id: "settings", label: "음악 설정" },
+  { id: "lyrics", label: "가사" },
+  { id: "voice", label: "목소리" },
+  { id: "review", label: "생성 확인" },
+  { id: "generation", label: "생성 진행" },
+  { id: "result", label: "결과" },
+];
+export function StepIndicator({ current }: { current: StudioStep }) {
+  const at = steps.findIndex((step) => step.id === current);
+  return (
+    <ol className="step-indicator" aria-label="Studio 진행 단계">
+      {steps.map((step, index) => (
+        <li
+          key={step.id}
+          className={index === at ? "current" : index < at ? "done" : ""}
+          aria-current={index === at ? "step" : undefined}
+        >
+          <span>{index + 1}</span>
+          <b>{step.label}</b>
+        </li>
+      ))}
+    </ol>
+  );
+}

@@ -82,6 +82,9 @@ class LyricsService:
 
         metadata = {
             **result.metadata,
+            "capabilities": {
+                "revision": callable(getattr(self.generator, "revise", None))
+            },
             "provider": result.provider,
             "model_name": result.model_name,
             "model_version": result.model_version,
@@ -194,6 +197,7 @@ class LyricsService:
         result_hash = _content_hash(validation.normalized_lyrics)
         metadata = {
             **result.metadata,
+            "capabilities": {"revision": True},
             "provider": result.provider,
             "model_name": result.model_name,
             "model_version": result.model_version,

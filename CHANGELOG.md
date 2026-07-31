@@ -19,6 +19,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### Phase 8 — Doha Studio Frontend MVP
 
+- 공개 Generation·Stem·Voice Conversion·Pipeline file DTO와 Voice Profile 응답에서 내부 `file_path`·`reference_file_path`를 제거하고 content·download 가능 여부만 명시하도록 보안 경계를 강화했다.
+- Voice 서버 참조 경로 입력을 기본 비노출 개발 플래그로 제한하고 Backend에서 Storage root·파일 존재·확장자·traversal·절대 경로·symlink를 검증한다.
+- API Client가 `INVALID_RESPONSE`, `REQUEST_TIMEOUT`, `REQUEST_ABORTED`, `NETWORK_ERROR`, HTTP·Backend 오류 코드를 구분하고 caller signal과 timeout signal을 보존하도록 개선했다.
+- Pipeline polling에 연속 오류 5초·10초 backoff, 404·terminal 중단, hidden 최소 5초와 수동 재조회를 적용했다.
+- Lyrics revision UI를 Backend capability로 제어하고, 결과 metadata allowlist·local Settings persist·Studio step 분리·역할별 CSS 구조를 적용했다.
+- 취약 transitive dependency 수정 버전을 lockfile override로 고정해 `npm audit` 0건을 확인했다.
+
 #### 추가
 
 - Next.js 16 App Router·TypeScript 기반 `frontend/`와 npm lockfile, Premium Dark responsive Landing·Studio·Lyrics·Voice·Progress·Result·Settings·About·404 화면을 추가했다.

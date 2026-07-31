@@ -76,7 +76,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 ## F3 — API Integration [완료]
 
 - Health, Lyrics, Voice Profile, Pipeline client
-- 오류 정규화, polling, reconnect, URL 복원
+- Timeout·abort·network·invalid response 오류 정규화, 연속 오류 backoff polling, reconnect, URL 복원
 - 현재 미지원 action의 disabled/empty state
 - 완료 기준: Mock Backend 기준 생성 → status → result metadata E2E
 
@@ -95,4 +95,4 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 ## 우선순위와 보류
 
-F0에서 실제 Pydantic schema·Router·오류·상태를 확인하고 수동 DTO·mapper 계약 테스트와 [ADR-017](../docs/11-decisions/ADR-017-frontend-technology-stack.md)을 승인했다. F1~F3은 구현·자동 검증을 완료했다. F4는 Vinyl·waveform shell, metadata result, reduced motion을 구현했으나 audio content endpoint가 없어 Player와 Download는 disabled다. F5는 인증·소유권·History·Project·upload·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.
+F0에서 실제 Pydantic schema·Router·오류·상태를 확인하고 수동 DTO·mapper 계약 테스트와 [ADR-017](../docs/11-decisions/ADR-017-frontend-technology-stack.md)을 승인했다. F1~F3은 구현·자동 검증을 완료했고 Studio orchestration과 step 책임을 분리했다. F4는 Vinyl·waveform shell, 공개 allowlist metadata result, 사용자·system 우선순위의 reduced motion을 구현했으나 audio content endpoint가 없어 Player와 Download는 disabled다. 공개 files DTO는 내부 Storage 경로를 반환하지 않는다. F5는 인증·소유권·History·Project·upload·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.

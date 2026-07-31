@@ -1,0 +1,236 @@
+@media (max-width: 1100px) {
+  .app-shell {
+    grid-template-columns: 82px minmax(0, 1fr);
+  }
+  .sidebar {
+    padding: 28px 15px;
+  }
+  .sidebar .brand > span:last-child,
+  .sidebar nav span,
+  .sidebar-foot span {
+    display: none;
+  }
+  .sidebar nav a {
+    justify-content: center;
+  }
+  .context-panel {
+    display: none;
+  }
+  .player-shell {
+    grid-column: 2;
+  }
+  .two-panel,
+  .result-layout {
+    grid-template-columns: 1fr;
+  }
+  .lyrics-result {
+    max-height: none;
+  }
+  .hero {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero h1 {
+    font-size: 4.5rem;
+  }
+}
+@media (max-width: 720px) {
+  .landing {
+    padding: 0 20px;
+  }
+  .landing-nav {
+    height: 72px;
+  }
+  .landing-nav > div > a:first-child {
+    display: none;
+  }
+  .hero {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    padding: 56px 0 30px;
+  }
+  .hero-copy {
+    order: 1;
+  }
+  .hero h1 {
+    font-size: 3.3rem;
+  }
+  .turntable {
+    width: 100%;
+    height: 380px;
+    order: 0;
+  }
+  .vinyl {
+    width: 330px;
+  }
+  .feature-strip {
+    grid-template-columns: 1fr;
+  }
+  .feature-strip article {
+    border-right: 0;
+    border-bottom: 1px solid #302e2b;
+  }
+  .landing-footer {
+    height: auto;
+    min-height: 120px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+  }
+  .app-shell {
+    display: block;
+    padding: 68px 0 136px;
+  }
+  .sidebar {
+    display: none;
+  }
+  .mobile-header {
+    height: 68px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    position: fixed;
+    inset: 0 0 auto;
+    background: #151515ef;
+    border-bottom: 1px solid var(--line);
+    z-index: 20;
+  }
+  .main-workspace {
+    padding: 16px;
+  }
+  .player-shell {
+    height: 64px;
+    position: fixed;
+    bottom: 68px;
+    left: 10px;
+    right: 10px;
+    border: 1px solid #37332f;
+    border-radius: 14px;
+    padding: 8px 10px;
+  }
+  .player-shell .mini-art {
+    width: 44px;
+    height: 44px;
+  }
+  .player-shell .wave,
+  .player-shell button {
+    display: none;
+  }
+  .player-shell > div:nth-child(2) {
+    min-width: 0;
+    font-size: 0.75rem;
+  }
+  .mobile-nav {
+    height: 70px;
+    position: fixed;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #171717;
+    border-top: 1px solid var(--line);
+    z-index: 20;
+  }
+  .mobile-nav a {
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 2px;
+    color: var(--muted);
+    font-size: 0.62rem;
+    min-height: 44px;
+  }
+  .mobile-nav a.active {
+    color: var(--red);
+  }
+  .mobile-nav svg {
+    width: 21px;
+  }
+  .workspace-card {
+    padding: 20px 16px;
+    min-height: calc(100vh - 170px);
+  }
+  .step-indicator {
+    margin-bottom: 28px;
+  }
+  .step-indicator li b {
+    display: none;
+  }
+  .step-indicator li span {
+    width: 27px;
+    height: 27px;
+  }
+  .workspace-title {
+    text-align: left;
+  }
+  .workspace-title h1,
+  .page-heading h1 {
+    font-size: 2rem;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .actions {
+    position: sticky;
+    bottom: 132px;
+    background: #181818ee;
+    padding: 10px 0;
+    z-index: 5;
+  }
+  .actions .button {
+    flex: 1;
+  }
+  .two-panel,
+  .result-layout {
+    display: block;
+  }
+  .two-panel > * + *,
+  .result-layout > * + * {
+    margin-top: 16px;
+  }
+  .surface-card {
+    padding: 18px;
+  }
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+  .progress-page {
+    min-height: calc(100vh - 220px);
+  }
+  .progress-page h1 {
+    font-size: 2.3rem;
+  }
+  .vinyl-loader {
+    width: 145px;
+  }
+  .pipeline-stages {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .result-hero {
+    min-height: auto;
+    padding: 24px 16px;
+  }
+  .result-hero .vinyl {
+    width: 270px;
+  }
+  .context-panel {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+html[data-reduce-motion="true"] * {
+  animation: none !important;
+  transition: none !important;
+}

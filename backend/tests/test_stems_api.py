@@ -4,8 +4,10 @@ import time
 import wave
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from backend.ai.errors import StemInferenceError
+from backend.models.stem_file import StemFile
 
 
 def wait_for_generation(client: TestClient, job_id: str) -> dict[str, object]:
@@ -65,12 +67,17 @@ def test_create_get_and_list_mock_stems(client: TestClient) -> None:
         "instrumental",
         "metadata",
     }
+    assert all("file_path" not in item for item in files)
+    with client.app.state.session_factory() as session:
+        records = session.scalars(
+            select(StemFile).where(StemFile.job_id == completed["id"])
+        ).all()
     storage = client.app.state.storage
-    for item in files:
-        path = storage.resolve_relative_path(item["file_path"])
+    for item in records:
+        path = storage.resolve_relative_path(item.file_path)
         assert path.is_file()
         assert path.stat().st_size > 0
-        if item["file_type"] != "metadata":
+        if item.file_type != "metadata":
             with wave.open(str(path), "rb") as audio:
                 assert audio.getframerate() == 48_000
                 assert audio.getnchannels() == 2

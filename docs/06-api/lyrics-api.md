@@ -1,7 +1,7 @@
 # Lyrics API
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 관련 기능: Phase 6 Lyrics AI
 
 ## 가사 생성
@@ -22,7 +22,7 @@
 }
 ```
 
-응답에는 ID, version·parent, title, sections, 정규화된 `full_text`, Provider·모델·버전, status, metadata와 시각이 포함된다. 외부 Provider는 가능한 경우 token·request count·예상 비용을 기록하며 가격 설정이 없으면 `estimated_cost=null`이다.
+응답에는 ID, version·parent, title, sections, 정규화된 `full_text`, Provider·모델·버전, status, metadata와 시각이 포함된다. `metadata.capabilities.revision`은 현재 generator가 의미 기반 수정 method를 제공하는지를 나타낸다. Template·Mock은 `false`, revision adapter는 `true`이며 Frontend는 이 값이 명시적으로 `true`일 때만 수정 UI를 활성화한다. 외부 Provider는 가능한 경우 token·request count·예상 비용을 기록하며 가격 설정이 없으면 `estimated_cost=null`이다.
 
 ## 의미 기반 수정
 

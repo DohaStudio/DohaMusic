@@ -33,7 +33,7 @@ flowchart LR
 | `hooks` | feature 조합, polling lifecycle, media query | 도메인 규칙 은닉 |
 | `types` | API DTO, view model, discriminated union | 서버와 다른 상태값 발명 |
 | `lib` | formatter, validation helper, constants | feature 전용 비즈니스 로직 |
-| `styles` | token, theme, global motion/accessibility 정책 | 페이지별 임의 색상·spacing |
+| `styles` | token, base, layout, component, page, responsive motion/accessibility 정책 | 페이지별 임의 색상·spacing |
 
 ## 구현 기준 폴더 구조
 
@@ -58,7 +58,7 @@ frontend/
 │  ├─ templates/
 │  └─ primitives/
 ├─ features/
-│  ├─ studio/
+│  ├─ studio/             # orchestration, step UI, schema, request mapper
 │  ├─ lyrics/
 │  ├─ voice/
 │  ├─ pipeline/
@@ -69,7 +69,7 @@ frontend/
 ├─ stores/
 ├─ lib/
 ├─ types/
-└─ styles/
+└─ styles/                # tokens, base, pages, layout, components, responsive
 ```
 
 실제 라이브러리와 버전은 승인된 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)과 `frontend/package-lock.json`으로 고정한다. 구현은 이 책임 경계를 따르되 작은 공통 component는 역할별 파일로 묶어 불필요한 디렉터리 깊이를 피한다.
@@ -79,12 +79,12 @@ frontend/
 | State | Source of truth | 주요 값 | 지속 범위 |
 |---|---|---|---|
 | Global | App shell | online, API health, active overlay | session |
-| Studio | client draft | current workspace, settings, lyrics, voice profile ID, review validity | session/local draft 후보 |
+| Studio | client draft | current workspace, settings, lyrics, voice profile ID, review validity | `sessionStorage` allowlist |
 | Lyrics | API + draft | document, validation, revision, provider 표시 | API 결과 + 편집 draft |
 | Pipeline | API | job ID, status, current step, progress, safe error, files metadata | URL로 복원 |
 | Voice | API 제한 + draft | 방금 생성한 profile metadata, consent draft | 현재 API에는 list/get 없음 |
 | Player | client media | queue, current item, position, volume, repeat | session |
-| Settings | client | theme, reduced motion, polling preference | local |
+| Settings | client | 현재는 reduced motion만 구현 | `localStorage` allowlist |
 
 서버 상태는 client store에 복제해 진실처럼 사용하지 않는다. Job URL을 canonical identity로 사용하고 terminal state에서 polling을 중단한다. 새로고침 시 `GET /api/pipelines/{job}`으로 복원한다.
 
@@ -105,9 +105,11 @@ sequenceDiagram
 ```
 
 - Lyrics 생성·검증은 동기 요청이다. `POST /api/lyrics`, `POST /api/lyrics/validate`의 loading과 validation 결과를 구분한다.
-- Pipeline은 `202` 이후 초기 5회 1초, foreground 2초, background 5초 간격으로 polling한다.
-- `COMPLETED`와 `FAILED`에서 polling을 중단한다. 네트워크 오류는 Job 실패와 분리해 “연결 재시도”를 제공한다.
-- API의 `{ error: { code, message } }`를 공통 UI 오류로 정규화하되 내부 경로나 원문 prompt를 노출하지 않는다.
+- Pipeline은 `202` 이후 정상 응답 초기 5회 1초, foreground 2초, background 최소 5초 간격으로 polling한다. 연속 오류 1~2회는 5초, 3회 이상은 10초이며 성공 시 오류 횟수를 초기화한다.
+- `COMPLETED`, `FAILED`, 404에서 polling을 중단한다. Timeout·network 오류는 Job 실패와 분리하고 같은 Job ID 수동 재조회를 제공하며 자동 재제출하지 않는다.
+- API Client는 caller signal과 10초 timeout을 `AbortSignal.any()`로 결합한다. Node 24·현재 TypeScript DOM 계약과 Chromium E2E에서 지원을 확인했으며 외부 취소는 `REQUEST_ABORTED`, timeout은 `REQUEST_TIMEOUT`으로 구분한다.
+- 성공 HTTP의 JSON parsing 실패는 실제 status를 가진 `INVALID_RESPONSE`다. API의 `{ error: { code, message } }`는 Backend code를 보존하고 그 밖의 HTTP·network 오류와 구분한다.
+- Files public DTO와 Voice Profile response에는 내부 물리·상대 Storage 경로가 없다. Result UI는 실제 공개 필드 allowlist만 표시하며 알 수 없는 nested metadata를 숨긴다.
 - Backend에 재시도 API가 없으므로 “재시도”는 동일 draft를 검토 화면으로 복사한 뒤 새 Job을 만드는 사용자 행동으로만 표현한다.
 
 ## 현재 API 제약
@@ -117,7 +119,7 @@ sequenceDiagram
 | Health 표시 | 가능 | `GET /health` |
 | Lyrics 생성·조회·수정·검증·삭제 | 가능 | 현재 계약 사용 |
 | Pipeline 생성·상태·파일 metadata | 가능 | Studio 핵심 흐름 |
-| 음성 프로필 생성·삭제 | 부분 가능 | list/get/upload 없음을 UI에 명시 |
+| 음성 프로필 생성·삭제 | 부분 가능 | 기본 UI는 UUID 연결만 제공; 서버 경로 생성 form은 `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH=true` 개발 환경 전용, list/get/upload 없음 |
 | 오디오 재생·다운로드 | 불가 | 파일 metadata만 존재; content endpoint 선행 필요 |
 | 프로젝트·생성 이력 목록 | 불가 | 목록 API 선행 필요, 빈 shell만 설계 |
 | Job 취소·수동 retry | 불가 | 기능 비활성 및 후속 API 표시 |
@@ -141,7 +143,7 @@ sequenceDiagram
 | Result | `GET /api/pipelines/{jobId}`, `/files` | completed Job, 6개 file metadata 가능 | artwork/metric skeleton | metadata 재조회; content 없는 Player는 disabled | 완료 후 중단 |
 | 독립 Generation·Stem·Voice 화면 후보 | 각 `POST`·Job `GET`·files `GET` | 해당 Job과 file metadata | Pipeline과 동일 | safe error code 기반 새 요청 | terminal 전 polling |
 
-Audio Metadata는 별도 endpoint가 아니라 Pipeline의 `result_metadata`와 files의 metadata record에서 읽는다. Response DTO는 API 문서와 OpenAPI에서 생성·검증하고 UI 전용 view model로 변환한다.
+Audio Metadata는 별도 endpoint가 아니라 Pipeline의 `result_metadata`와 files의 공개 metadata에서 읽는다. UI는 duration·execution time, Provider 식별자와 Mixer의 실제 audio quality 필드만 allowlist로 변환한다. 파일·모델 경로, 명령, 환경, 내부 host, stack trace와 알 수 없는 key는 표시하지 않는다. Response DTO는 API 문서와 OpenAPI에서 검증하고 UI 전용 view model로 변환한다.
 
 OpenAPI는 FastAPI request·response 명세이고 OpenAI API는 Experimental 외부 Lyrics Provider다. Local Lyrics LLM은 공개 Base를 자체 권리 Dataset으로 파인튜닝하는 Planned Backend Provider다. Frontend API client는 이 세 용어를 구분하고 Provider SDK를 포함하지 않는다.
 
@@ -149,7 +151,7 @@ OpenAPI는 FastAPI request·response 명세이고 OpenAI API는 Experimental 외
 
 - 키보드만으로 Navigation, Dialog, Wizard step, Player 제어가 가능해야 한다.
 - 모든 interactive target은 최소 44×44px, focus ring은 accent와 구별되는 밝은 outline을 사용한다.
-- `prefers-reduced-motion`에서 턴테이블 회전·parallax·waveform animation을 정지한다.
+- reduced motion은 사용자 `localStorage` 명시 설정, system `prefers-reduced-motion`, 기본값 순으로 결정하며 턴테이블 회전·parallax·waveform animation을 정지한다.
 - artwork와 waveform은 layout shift를 막는 고정 aspect ratio를 사용한다.
 - 입력 draft에 비밀이나 원본 음성 binary를 임의 저장하지 않는다.
 - Backend 인증 전에는 개인 데이터가 있는 Production 공개 배포를 금지한다.

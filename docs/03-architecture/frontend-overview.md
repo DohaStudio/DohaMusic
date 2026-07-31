@@ -70,12 +70,14 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 
 | 상태 | 범위 |
 |---|---|
-| `Available` | Health, Lyrics 생성·조회·수정·검증·삭제, Voice Profile 생성·삭제, Generation·Stem·Voice Conversion·Pipeline Job 생성·조회, Job 상태 polling, 결과 files metadata, Pipeline `result_metadata` |
-| `Partial` | Voice Profile은 생성·삭제만 가능하고 upload·list·get은 불가. Result는 metadata 표시만 가능하고 browser audio content 재생·download는 불가 |
+| `Available` | Health, Lyrics 생성·조회·capability 기반 수정·검증·삭제, Voice Profile 생성·삭제, Generation·Stem·Voice Conversion·Pipeline Job 생성·조회, 오류 backoff Job polling, 공개 files metadata, allowlist Pipeline `result_metadata` |
+| `Partial` | Voice Profile 일반 UI는 UUID 연결만 제공하고 개발 플래그에서만 서버 경로 생성을 허용하며 upload·list·get은 불가. Result는 metadata 표시만 가능하고 browser audio content 재생·download는 불가 |
 | `Backend Required` | 음성 파일 upload, Voice Profile list/get, audio content streaming·download, 생성 이력, 프로젝트 저장·조회, Job cancel·기존 Job retry, 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
 
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.
+
+Files API의 HTTP response와 Frontend DTO 모두 `file_path`를 포함하지 않는다. Voice Profile response도 `reference_file_path`를 반환하지 않는다. 내부 DB와 Repository만 경로를 보유하며 UI는 `content_available`, `download_available`과 공개 metadata만 사용한다.
 
 ## Lyrics Provider 중립성
 
