@@ -1,7 +1,7 @@
 # Pipeline Orchestrator
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 관련 기능: Phase 5 Mock AI Workflow / Phase 5.1 실제 Audio Mixer
 > 관련 문서: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)
 
@@ -31,6 +31,22 @@ Music·Stem·Voice 단계는 각각 `MusicGenerator`, `StemSeparator`, `VoiceCon
 
 Mixer의 gain·quality·clipping·CPU·RSS·처리 시간은 Pipeline `result_metadata.step_execution[].details.audio_quality`와 최종 `metadata.json`에 기록한다. True Peak는 현재 미지원이므로 지원 여부를 거짓 없이 별도 필드로 표시한다.
 
+## K3 비차단 후처리 계약 [계획]
+
+K3.0은 현행 `ExportStep → finalize_success` 구현을 변경하지 않고 다음 목표 경계를 정의한다.
+
+```text
+ExportStep(final.wav)
+→ Final WAV 성공 경계
+→ Audio Analysis(독립 status, 비차단)
+→ Preview Export(독립 status)
+→ Result metadata 최종화
+```
+
+최종 WAV 생성 성공이 Pipeline 성공 조건이며 분석·Preview 실패만으로 Result 전체를 `FAILED`로 바꾸지 않는다. 분석은 final file role을 기본 source로 사용하고 기존 `result_metadata`의 versioned `audio_analysis` JSON을 K3 MVP 저장 후보로 둔다. Preview는 `pipeline_files`와 secure content/download 경계를 재사용한다. 실제 step·status·dispatcher·DTO는 K3.1~K3.4 구현 PR에서 추가한다.
+
+세부 실패·Cancel·Retry 계약은 [Audio Analysis 실패 정책](audio-analysis-failure-policy.md), 저장 계약은 [결과 계약](audio-analysis-result-contract.md), 결정은 [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)을 따른다.
+
 ## 재시도·timeout·오류
 
 - 기본 재시도: 단계별 1회, 환경 변수로 0~5회 조정
@@ -49,3 +65,5 @@ Mixer의 gain·quality·clipping·CPU·RSS·처리 시간은 Pipeline `result_me
 Provider subprocess의 process handle을 Job ownership과 함께 추적하지 않으므로 이번 로컬 MVP는 강제 terminate·kill을 수행하지 않는다. 현재 단계가 반환된 뒤 취소된다는 한계를 사용자에게 안내한다.
 
 Retry는 실패·취소 Job의 공개 입력 Snapshot을 `PipelineCreate`로 다시 검증해 새 `PENDING` Job을 만든다. 원본 상태는 변경하지 않고 `retry_of_job_id`로 관계를 기록하며 같은 원본의 중복 요청은 기존 새 Job을 반환한다.
+
+K3 Retry는 새 음악·새 WAV·새 분석을 수행하고 기존 분석 결과를 복사하지 않는다. 동일 WAV만 다시 분석하는 Re-analysis는 Retry와 다른 후속 기능이며 K3 MVP API에는 포함하지 않는다. Final WAV 성공 경계 뒤 분석 취소는 분석/Preview만 중단하고 완성곡은 보존하는 목표 계약이다.

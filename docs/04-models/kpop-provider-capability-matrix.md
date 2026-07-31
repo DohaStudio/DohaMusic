@@ -3,7 +3,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
 > 관련 기능: K-POP Generation Capability
-> 관련 문서: [Generation Options](../03-architecture/kpop-generation-options.md), [EVAL-007](../../reports/evaluations/EVAL-007-kpop-dance-generation.md)
+> 관련 문서: [Generation Options](../03-architecture/kpop-generation-options.md), [K3 제품 정의](../02-product/k3-audio-analysis-product-definition.md), [EVAL-007](../../reports/evaluations/EVAL-007-kpop-dance-generation.md), [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)
 
 상태는 `지원`, `부분 지원`, `Prompt 기반`, `미검증`, `미지원`으로 구분한다. Prompt를 받아들인다는 사실을 세부 제어 지원으로 과장하지 않는다.
 
@@ -46,3 +46,20 @@ ACE-Step 0.6B LM은 실행 가능성만 확인됐으며 단일 표본에서 no-L
 ```
 
 K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Capability endpoint는 추가하지 않고 문서와 Frontend typed 상수 계약을 사용한다. `detected_bpm`, Hook timestamp와 Preview 분석은 계속 `NOT_SUPPORTED`이며 Prompt 기반 지시를 실제 수치 제어로 표현하지 않는다.
+
+## K3 분석 Capability 목표
+
+분석은 Provider capability가 아니라 최종 WAV에 적용하는 Provider-neutral 후처리 capability다. K3.0은 계약만 완료했으므로 현재 지원 상태는 바꾸지 않는다.
+
+| Capability | 현재 | K3 목표 | 단계 |
+|---|---|---|---|
+| requested BPM | `PROMPT_COMPILED` | 유지 | K2 |
+| detected BPM | `NOT_SUPPORTED` | 분석 예정 | K3.2 |
+| BPM confidence | `NOT_SUPPORTED` | 분석 예정 | K3.2 |
+| Sample Peak | Mixer metadata 일부 | 최종 WAV 측정 예정 | K3.1 |
+| Integrated LUFS | `NOT_SUPPORTED` | 분석 예정 | K3.1 |
+| True Peak | `NOT_SUPPORTED` | 표준 검증 후 K3.1 또는 후속 | K3.1 조건부 |
+| Hook/Chorus candidate | `NOT_SUPPORTED` | 후보 추정 예정 | K3.3 |
+| 15초 Preview | `NOT_SUPPORTED` | export 예정 | K3.4 |
+
+Frontend capability 상수와 실제 API는 K3 구현 전까지 `not_supported`를 유지한다.

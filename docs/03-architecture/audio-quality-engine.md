@@ -40,6 +40,17 @@ Mixer는 처리 시간, CPU time, process RSS 전후·증감, 출력 크기, 길
 
 현재 True Peak(oversampled inter-sample peak)는 구현하지 않았다. 따라서 `true_peak_supported=false`, `true_peak_dbfs=null`로 기록하며 sample peak를 True Peak로 가장하지 않는다. LUFS·RMS normalization도 아직 지원하지 않는다.
 
+## K3 Audio Analysis와의 경계
+
+Mixer metadata는 처리 직전·직후 신호를 설명하는 현행 단계 metadata이며 K3의 최종 WAV 분석 결과가 아니다. K3.0은 최종 `final.wav`를 별도 후처리 계층에서 다시 읽어 Sample Peak·clipping·Integrated LUFS와 향후 검증된 True Peak를 versioned 결과로 기록하도록 계약만 정의했다.
+
+- 현행 `peak_dbfs`: Mixer가 계산한 Sample Peak
+- K3 `sample_peak_dbfs`: 최종 export WAV에서 측정할 Sample Peak `[계획]`
+- K3 `integrated_lufs`: ITU-R BS.1770/EBU R 128 reference 검증 후 제공 `[계획]`
+- K3 `true_peak_dbtp`: oversampling과 reference 검증 통과 전 미지원 `[계획]`
+
+구체 계약은 [K3 제품 정의](../02-product/k3-audio-analysis-product-definition.md)와 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 따른다. K3.0에서는 Mixer 코드·설정·metadata를 변경하지 않는다.
+
 ## 실패와 제한
 
 - 비어 있거나 NaN·Infinity가 포함된 WAV, 2채널을 초과하는 WAV는 거부한다.

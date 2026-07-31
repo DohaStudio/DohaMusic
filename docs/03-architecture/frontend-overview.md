@@ -83,6 +83,8 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 
 K-POP 3종 Preset과 Prompt Preview에 K2 Structured Options를 연결했다. Frontend는 typed snake_case DTO를 보내고 Backend Compiler가 최종 Prompt 권위가 된다. History·Project·Result에는 공개 allowlist 설정 요약만 표시하며 실제 BPM 검출·Hook timestamp·Audio Analysis는 `Planned`다.
 
+K3.0은 향후 Result 후처리 UX만 정의했다. `분석 중`, `분석 완료`, `일부 분석 실패`, `분석할 수 없음`을 Pipeline 생성 상태와 분리하고, “예상 템포: 약 123 BPM”, “Hook 후보: 00:42~00:57”, “분석 신뢰도: 보통”처럼 추정임을 표시한다. “정확한 BPM”, “확정된 후렴”, “AI가 완벽히 찾음”은 금지한다. K3.1~K3.4 API 구현 전에는 UI·typed DTO·capability를 추가하지 않는다.
+
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.
 
 Files API의 HTTP response와 Frontend DTO 모두 `file_path`를 포함하지 않는다. Voice Profile response도 `reference_file_path`를 반환하지 않는다. 내부 DB와 Repository만 경로를 보유하며 UI는 `content_available`, `download_available`과 공개 metadata만 사용한다.
