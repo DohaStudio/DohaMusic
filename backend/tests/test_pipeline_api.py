@@ -79,6 +79,11 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     assert completed["audio_analysis"]["quality"]["integrated_lufs"] is None
     assert completed["audio_analysis"]["tempo"]["status"] == "FAILED"
     assert completed["audio_analysis"]["tempo"]["detected_bpm"] is None
+    assert completed["audio_analysis"]["hook"]["status"] == "PARTIAL"
+    assert (
+        completed["audio_analysis"]["hook"]["candidate"]["selection_strategy"]
+        == "fallback_middle"
+    )
     assert "source_file_role" not in completed["audio_analysis"]
     metadata = completed["result_metadata"]
     assert metadata["success"] is True
@@ -191,6 +196,11 @@ class FailingAudioAnalyzer:
         raise RuntimeError("private analyzer detail")
 
 
+class FailingHookAnalyzer:
+    def analyze(self, _file_path: object) -> object:
+        raise RuntimeError("private hook analyzer detail")
+
+
 def test_audio_analysis_failure_does_not_fail_pipeline_or_hide_final_file(
     client: TestClient,
 ) -> None:
@@ -201,6 +211,25 @@ def test_audio_analysis_failure_does_not_fail_pipeline_or_hide_final_file(
     assert completed["status"] == "COMPLETED"
     assert completed["audio_analysis"]["analysis_status"] == "FAILED"
     assert "private analyzer detail" not in str(completed["audio_analysis"])
+    files = client.get(f"/api/pipelines/{job['id']}/files").json()
+    assert any(item["file_type"] == "final" for item in files)
+
+
+def test_hook_analysis_failure_is_partial_and_keeps_pipeline_completed(
+    client: TestClient,
+) -> None:
+    client.app.state.pipeline_worker.hook_analyzer = FailingHookAnalyzer()
+    job = create_pipeline(client, create_profile(client))
+    completed = wait_for_pipeline(client, str(job["id"]))
+
+    assert completed["status"] == "COMPLETED"
+    assert completed["audio_analysis"]["analysis_status"] == "PARTIAL"
+    assert completed["audio_analysis"]["hook"] == {
+        "hook_analysis_version": "1.0",
+        "status": "FAILED",
+        "candidate": None,
+    }
+    assert "private hook analyzer detail" not in str(completed["audio_analysis"])
     files = client.get(f"/api/pipelines/{job['id']}/files").json()
     assert any(item["file_type"] == "final" for item in files)
 
@@ -453,6 +482,19 @@ def test_retry_analyzes_new_wav_instead_of_copying_source_tempo(
                     "double_time_candidate": False,
                     "warnings": [],
                 },
+                "hook": {
+                    "hook_analysis_version": "1.0",
+                    "status": "COMPLETED",
+                    "candidate": {
+                        "start_seconds": 40.0,
+                        "end_seconds": 55.0,
+                        "duration_seconds": 15.0,
+                        "confidence": 0.95,
+                        "selection_strategy": "energy_repetition",
+                        "raw_frame_scores": [0.2, 0.95],
+                    },
+                    "warnings": [],
+                },
                 "warnings": [],
             }
         }
@@ -465,12 +507,22 @@ def test_retry_analyzes_new_wav_instead_of_copying_source_tempo(
     assert retried["status"] == "COMPLETED"
     assert retried["audio_analysis"]["tempo"]["detected_bpm"] is None
     assert retried["audio_analysis"]["tempo"]["confidence"] is None
+    assert retried["audio_analysis"]["hook"]["candidate"]["start_seconds"] == 0
+    assert (
+        retried["audio_analysis"]["hook"]["candidate"]["selection_strategy"]
+        == "fallback_middle"
+    )
     assert (
         client.get(f"/api/pipelines/{source.id}").json()["audio_analysis"]["tempo"][
             "detected_bpm"
         ]
         == 99.9
     )
+    source_hook = client.get(f"/api/pipelines/{source.id}").json()["audio_analysis"][
+        "hook"
+    ]
+    assert source_hook["candidate"]["start_seconds"] == 40.0
+    assert "raw_frame_scores" not in source_hook["candidate"]
 
 
 @pytest.mark.parametrize(

@@ -63,7 +63,7 @@ Phase 7  Doha Voice                  [계획]
   ↓
 Phase 8  Doha Studio                 [완료]
   ↓
-K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2 완료 / K3.3~K4 계획]
+K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
 Phase 9  Production                  [계획]
 ```
@@ -81,10 +81,10 @@ Phase 9  Production                  [계획]
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2 완료 / K3.3~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
+| K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
-K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics와 K3.2 Tempo Analysis를 완료했다. Hook·Preview는 K3.3~K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
+K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

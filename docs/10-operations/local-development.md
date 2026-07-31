@@ -17,7 +17,7 @@ python -m backend.scripts.benchmark_lyrics
 python -m uvicorn backend.main:app --reload
 ```
 
-Backend 설치에는 Mixer·K3.1 Quality·K3.2 Tempo 분석용 NumPy·SciPy, BS.1770 Integrated LUFS용 `pyloudnorm>=0.2,<0.3`, resource 측정용 psutil이 포함된다. pyloudnorm 0.2.0 pure Python wheel은 Windows·Python 3.12에서 설치·테스트했으며 Tempo는 새 의존성 없이 기존 NumPy·SciPy를 사용한다. 기본 `DOHAMUSIC_AUDIO_MIXER=default`는 별도 AI·FFmpeg 설치 없이 실제 WAV를 합성한다. DSP 계약은 [Audio Quality Engine](../03-architecture/audio-quality-engine.md), K3 검증은 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 따른다.
+Backend 설치에는 Mixer·K3.1 Quality·K3.2 Tempo·K3.3 Hook 분석용 NumPy·SciPy, BS.1770 Integrated LUFS용 `pyloudnorm>=0.2,<0.3`, resource 측정용 psutil이 포함된다. pyloudnorm 0.2.0 pure Python wheel은 Windows·Python 3.12에서 설치·테스트했으며 Tempo와 Hook은 새 의존성 없이 기존 NumPy·SciPy를 사용한다. 기본 `DOHAMUSIC_AUDIO_MIXER=default`는 별도 AI·FFmpeg 설치 없이 실제 WAV를 합성한다. DSP 계약은 [Audio Quality Engine](../03-architecture/audio-quality-engine.md), K3 검증은 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 따른다.
 
 Lyrics 기본값 `DOHAMUSIC_LYRICS_PROVIDER=template`은 외부 API·Key·모델 설치 없이 한국어·영문 구조 초안을 만든다. 실제 LLM이 아니며 품질 승인을 의미하지 않는다. API 계약은 [Lyrics API](../06-api/lyrics-api.md), 실측은 [EXP-007](../../reports/experiments/EXP-007-lyrics-generation.md)을 따른다.
 

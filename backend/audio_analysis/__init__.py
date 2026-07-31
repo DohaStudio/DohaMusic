@@ -10,12 +10,17 @@ from backend.audio_analysis.contracts import (
     AudioAnalysisStatus,
     AudioAnalysisWarning,
     AudioQualityMetrics,
+    HookAnalysisResult,
+    HookCandidate,
+    HookSelectionStrategy,
     PublicAudioAnalysis,
+    PublicHookAnalysis,
     PublicTempoAnalysis,
     TempoAnalysisResult,
     public_audio_analysis,
     sanitize_result_metadata,
 )
+from backend.audio_analysis.hook import DefaultHookAnalyzer, HookAnalyzer
 from backend.audio_analysis.tempo import DefaultTempoAnalyzer, TempoAnalyzer
 
 __all__ = [
@@ -25,8 +30,14 @@ __all__ = [
     "AudioAnalysisWarning",
     "AudioQualityAnalyzer",
     "AudioQualityMetrics",
+    "HookAnalysisResult",
+    "HookCandidate",
+    "HookSelectionStrategy",
+    "HookAnalyzer",
+    "DefaultHookAnalyzer",
     "DefaultAudioQualityAnalyzer",
     "PublicAudioAnalysis",
+    "PublicHookAnalysis",
     "PublicTempoAnalysis",
     "TempoAnalysisResult",
     "TempoAnalyzer",

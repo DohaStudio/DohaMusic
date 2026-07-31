@@ -130,11 +130,29 @@ export interface TempoAnalysisDto {
   half_time_candidate: boolean;
   double_time_candidate: boolean;
 }
+export type HookSelectionStrategyDto =
+  | "energy_repetition"
+  | "energy_peak"
+  | "fallback_middle"
+  | "unavailable";
+export interface HookCandidateDto {
+  start_seconds: number;
+  end_seconds: number;
+  duration_seconds: number;
+  confidence: number;
+  selection_strategy: HookSelectionStrategyDto;
+}
+export interface HookAnalysisDto {
+  hook_analysis_version: string;
+  status: AudioAnalysisStatusDto;
+  candidate: HookCandidateDto | null;
+}
 export interface AudioAnalysisDto {
   audio_analysis_version: string;
   analysis_status: AudioAnalysisStatusDto;
   quality: AudioQualityMetricsDto | null;
   tempo?: TempoAnalysisDto | null;
+  hook?: HookAnalysisDto | null;
   warnings: string[];
 }
 export interface PipelineJobDto {

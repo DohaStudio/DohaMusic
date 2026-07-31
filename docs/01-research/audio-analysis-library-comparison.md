@@ -1,13 +1,13 @@
 # Audio Analysis 라이브러리 후보 비교
 
-> 문서 상태: [K3.1 pyloudnorm·K3.2 NumPy/SciPy 채택 완료]
+> 문서 상태: [K3.1 pyloudnorm·K3.2 Tempo·K3.3 Hook NumPy/SciPy 채택 완료]
 > 최종 수정일: 2026-08-01
 > 관련 기능: K3 Audio Analysis 기술 후보
 > 관련 문서: [K3 제품 정의](../02-product/k3-audio-analysis-product-definition.md), [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
 ## 조사 원칙과 현재 환경
 
-공식 문서·공식 저장소의 확인 결과와 K3.1·K3.2 선택을 기록한다. WAV decode는 기존 SciPy, peak·clipping은 NumPy, Integrated LUFS는 `pyloudnorm>=0.2,<0.3`을 채택했다. K3.2는 SciPy `fftconvolve`·`find_peaks`와 NumPy onset energy autocorrelation을 사용해 새 의존성을 피했다. librosa 0.11은 공식 beat/tempo 기능과 ISC 라이선스를 확인했지만 SoundFile·audioread 등 추가 decoder/dependency 경계와 별도 confidence 설계가 필요해 MVP에는 추가하지 않았다.
+공식 문서·공식 저장소의 확인 결과와 K3.1·K3.2·K3.3 선택을 기록한다. WAV decode는 기존 SciPy, peak·clipping은 NumPy, Integrated LUFS는 `pyloudnorm>=0.2,<0.3`을 채택했다. K3.2는 SciPy·NumPy onset energy autocorrelation, K3.3은 NumPy RMS envelope·cosine 반복 유사도·energy prominence를 사용해 새 의존성을 피했다. librosa 0.11은 공식 beat/tempo 기능과 ISC 라이선스를 확인했지만 SoundFile·audioread 등 추가 decoder/dependency 경계와 별도 confidence 설계가 필요해 MVP에는 추가하지 않았다.
 
 ## 후보 비교
 
@@ -34,7 +34,7 @@
 | Integrated LUFS | pyloudnorm | EBU test set, FFmpeg ebur128/loudnorm | ITU-R BS.1770/EBU R 128 허용 오차 |
 | True Peak | 미선정 | ITU-R BS.1770-5 호환 meter/FFmpeg 후보 | oversampling filter·dBTP reference 통과 전 미지원 |
 | Tempo | 기존 NumPy·SciPy | librosa·합성 ground truth | half/double, 무박 intro, tempo change, confidence calibration |
-| Hook 후보 | NumPy/SciPy/librosa primitives | 사용자 label | 반복·energy score와 temporal overlap·유용성 |
+| Hook 후보 | 기존 NumPy·SciPy | 사용자 label | K3.3 RMS energy·반복 유사도 채택, temporal overlap·유용성 후속 평가 |
 | Preview export | SoundFile/SciPy 후보 | 현행 RIFF/WAVE 검사 | 정확한 길이, fade, 원본 비변경, secure access |
 
 ## LUFS와 True Peak 표준
@@ -55,3 +55,5 @@
 K3.1에서 pyloudnorm 0.2.0을 설치해 1 kHz -20 dBFS mono 약 -23.05 LUFS, 동일 stereo 약 -20.03 LUFS를 0.1 LU 허용 오차로 확인했다. 30/60초 합성 WAV 성능은 EVAL-008에 기록했다.
 
 K3.2에서 기존 NumPy 1.26.4·SciPy 1.17.1만 사용해 Windows·Python 3.12의 60~160 BPM 합성 fixture, half/double 후보, silence·short·invalid 경계를 통과했다. 실제 음악·tempo change의 confidence 분포는 후속 운영 품질 평가로 유지한다.
+
+K3.3에서 같은 NumPy·SciPy 경계로 0.5초 RMS envelope와 15초 window의 반복 유사도·energy prominence를 계산했다. 반복 구간, 단일 energy peak, steady tone fallback, short·silence·invalid fixture를 통과했으며 실제 곡 label·temporal overlap·confidence calibration은 EVAL-008 후속 운영 평가로 유지한다.

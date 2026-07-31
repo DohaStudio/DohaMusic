@@ -75,6 +75,6 @@
 
 기존 JSON `input_snapshot`에 원본 `prompt`·`generation_options`, `compiled_prompt`, `normalized_generation_options`, `compiler_version`, `compiler_warnings`를 저장한다. 별도 DB 컬럼이나 Migration은 없다. Retry는 원본 Prompt와 옵션을 다시 검증·컴파일해 새 Job을 만들며 구형 Snapshot은 기존 경로로 처리한다.
 
-공개 Job·History·Project·Result metadata는 검증된 `generation_options`와 `kpop_prompt_compiler_version`만 allowlist로 반환한다. 내부 Snapshot 전체, compiled prompt, PID·절대 경로·API Key·Provider secret은 공개하지 않는다. `detected_bpm`은 K2 Generation Options가 아니라 별도 K3.2 `audio_analysis.tempo` 공개 DTO로 제공하며 Hook timestamp는 아직 없다.
+공개 Job·History·Project·Result metadata는 검증된 `generation_options`와 `kpop_prompt_compiler_version`만 allowlist로 반환한다. 내부 Snapshot 전체, compiled prompt, PID·절대 경로·API Key·Provider secret은 공개하지 않는다. `detected_bpm`은 K2 Generation Options가 아니라 별도 K3.2 `audio_analysis.tempo` 공개 DTO로 제공하며 K3.3 후렴 후보도 `audio_analysis.hook` 추정 결과로 분리한다.
 
-K3.0은 `requested_bpm` 같은 Prompt 목표와 최종 WAV 측정·추정을 별도 계약으로 분리했다. K3.1 Quality Metrics와 K3.2 Tempo는 완료됐으며 Hook/Chorus·Preview는 K3.3~K3.4 계획이다. 세부 의미와 신뢰도는 [K3 Audio Analysis 제품 정의](../02-product/k3-audio-analysis-product-definition.md)를 따른다.
+K3.0은 `requested_bpm` 같은 Prompt 목표와 최종 WAV 측정·추정을 별도 계약으로 분리했다. K3.1 Quality Metrics, K3.2 Tempo와 K3.3 Hook Candidate는 완료됐으며 Preview는 K3.4 계획이다. 세부 의미와 신뢰도는 [K3 Audio Analysis 제품 정의](../02-product/k3-audio-analysis-product-definition.md)를 따른다.

@@ -2,14 +2,14 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-01
-> 관련 기능: K3.0 계약·평가, K3.1 Audio Quality Metrics MVP, K3.2 Tempo Analysis MVP
+> 관련 기능: K3.0 계약·평가, K3.1 Audio Quality Metrics MVP, K3.2 Tempo Analysis MVP, K3.3 Hook Candidate MVP
 > 관련 문서: [결과 계약](../03-architecture/audio-analysis-result-contract.md), [실패 정책](../03-architecture/audio-analysis-failure-policy.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
 ## 목적과 제품 경계
 
 K3 Audio Analysis는 생성된 WAV의 기술적 품질과 음악적 특성을 후처리 단계에서 분석해 사용자에게 참고 정보를 제공하는 계층이다. 분석값은 생성 모델의 구조 준수를 보장하지 않으며 오탐·미탐·실패 가능성이 있는 측정 또는 추정 결과다. K3는 K2의 Prompt 목표를 검증할 단서를 제공하지만 Provider를 제어하거나 결과를 교정하지 않는다.
 
-K3.0 계약에 따라 K3.1·K3.2는 완료 Pipeline의 `final.wav`를 Provider-neutral 후처리로 분석한다. DB·Provider·기존 파일 API는 변경하지 않았으며 K3.3~K3.4는 `[계획]`이다.
+K3.0 계약에 따라 K3.1·K3.2·K3.3은 완료 Pipeline의 `final.wav`를 Provider-neutral 후처리로 분석한다. DB·Provider·기존 파일 API는 변경하지 않았으며 K3.4 Preview Export는 `[계획]`이다.
 
 ## 값의 의미
 
@@ -99,20 +99,20 @@ DoD:
 
 차단 조건: ground truth 세트 부재, half/double 오류 미분류, confidence calibration 근거 부재.
 
-### K3.3 Structure·Hook Analysis — [계획]
+### K3.3 Structure·Hook Analysis — [완료]
 
-MVP는 Stage A인 에너지·반복 기반 15초 Hook 후보 1개만 목표로 한다. `first_chorus_time`은 별도 후보이며 확정된 Chorus로 표현하지 않는다.
+MVP는 Stage A의 에너지·반복 기반 15초 후렴 후보 1개만 제공한다. `DefaultHookAnalyzer`는 0.5초 RMS envelope를 15초 window로 집계하고, 비중첩 window의 cosine 유사도와 에너지 prominence를 조합한다. 반복 근거가 충분하면 `energy_repetition`, 단일 고에너지 구간이면 `energy_peak`를 사용한다. confidence가 `0.50` 미만이면 곡 중앙의 deterministic `fallback_middle` 후보를 제공한다. 이는 Chorus 확정이나 `first_chorus_time` 보장이 아니다.
 
-- Stage A: 단일 Hook 후보, 반복·에너지 근거, confidence
+- Stage A: 단일 후렴 후보, 반복·에너지 근거, confidence `[완료]`
 - Stage B: 복수 후보와 calibrated confidence
 - Stage C: Lyrics alignment 또는 vocal-aware 분석
 - Stage D: 사용자 선택·수정
 
 DoD:
 
-- 후보 구간, confidence, analyzer version을 기록한다.
-- 후보가 없으면 정상적인 `not_found` 결과를 제공하고 Pipeline을 실패시키지 않는다.
-- EVAL-008의 사용자 label·temporal overlap·Preview 유용성 평가를 통과한다.
+- 후보 구간, confidence, analyzer version과 selection strategy를 기록한다.
+- 무음·손상·미지원 분석 실패 또는 저신뢰 fallback이 Pipeline과 Result를 실패시키지 않는다.
+- 합성 반복·에너지 피크·후보 없음·짧은 WAV·무음 fixture를 통과했다. EVAL-008의 사용자 label·temporal overlap·Preview 유용성 평가는 후속 운영 검증이다.
 
 차단 조건: “정확한 Hook/Chorus” 표현, ground truth·허용 오차 부재, 저신뢰 후보의 자동 확정.
 
@@ -136,7 +136,7 @@ DoD:
 
 ## 신뢰도와 사용자 표현
 
-confidence는 `0.0`~`1.0`이며 K3.2 UI는 다음 경계를 사용한다. 실제 음악 분포에 따른 재보정 가능성은 남아 있다.
+confidence는 `0.0`~`1.0`이며 K3.2·K3.3 UI는 다음 경계를 사용한다. 실제 음악 분포에 따른 재보정 가능성은 남아 있다.
 
 | 값 | 등급 | 표현 |
 |---:|---|---|

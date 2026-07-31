@@ -111,4 +111,4 @@ K1 `[완료]`에서는 K-POP Preset·Prompt Preview를 Studio에 연결하고 Da
 
 K2 `[완료]`에서 typed Structured Options Store, Preset별 기본값, Custom 값 보존·초기화, client validation, 즉시 Preview, snake_case Pipeline mapping과 History·Project·Result 설정 요약을 연결했다. Backend Compiler와 validation이 최종 권위이며 화면은 BPM·Hook·구조 옵션을 실제 분석·정밀 제어로 표현하지 않는다.
 
-K3.1·K3.2 `[완료]`에서 공개 Audio Analysis를 camelCase view model로 엄격히 파싱한다. Result는 Quality와 예상 Tempo 상세, History는 Tempo 상태만, Project는 예상 Tempo 요약을 표시한다. confidence는 High/Medium/Low/Unavailable 경계를 사용하고 실패·부분 완료·구형 결과 fallback 및 Desktop/Mobile E2E를 유지한다.
+K3.1·K3.2·K3.3 `[완료]`에서 공개 Audio Analysis를 camelCase view model로 엄격히 파싱한다. Result는 Quality·예상 Tempo·후렴 후보 추정 구간 상세, History는 Tempo 상태와 Hook 후보 유무만, Project는 예상 Tempo와 Hook 후보 요약을 표시한다. confidence는 High/Medium/Low/Unavailable 경계를 사용하고 실패·부분 완료·구형 결과 fallback 및 Desktop/Mobile E2E를 유지한다. K3.4 Preview Export는 `[계획]`이다.

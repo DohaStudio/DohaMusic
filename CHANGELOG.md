@@ -21,6 +21,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### K-POP Creation Control Layer
 
+- Provider-neutral `HookAnalyzer`와 NumPy·SciPy 기반 기본 구현을 추가해 final WAV의 에너지와 반복 패턴에서 15초 후렴 후보와 `0.0~1.0` confidence를 추정한다.
+- `result_metadata.audio_analysis.hook`에 version·status·candidate 구간·confidence·`energy_repetition`/`energy_peak`/`fallback_middle` strategy를 저장하고 내부 frame score·경로는 공개 DTO에서 제외한다.
+- 신뢰도 `0.50` 미만은 곡 중앙 fallback으로 처리하며 무음·짧은·손상·미지원 WAV와 분석 예외가 Pipeline 성공 및 final WAV Result를 실패시키지 않도록 했다.
+- Result는 후렴 후보의 추정 구간과 신뢰도를, History 목록은 후보 유무만, Project 상세은 요약 구간을 표시하며 Chorus 확정 표현을 사용하지 않는다.
+- 반복·단일 에너지 피크·후보 없음·짧은 WAV·무음 fixture와 Pipeline·Retry·공개 allowlist·Frontend·Desktop/Mobile 회귀를 검증해 K3.3을 `[완료]`로 갱신했다.
+- Preview Export·Lyrics Alignment·Voice Analysis·ML Hook Detector·DB Migration·Provider 변경은 구현하지 않았으며 K3.4 Preview Export를 다음 계획으로 유지한다.
 - Provider-neutral `TempoAnalyzer`를 추가해 완료 Pipeline의 `final.wav`에서 예상 BPM과 `0.0~1.0` confidence를 추정하고 요청 BPM signed/absolute error와 half/double-time 후보를 기록한다.
 - K3.1의 비차단 완료 경계를 유지한 채 `result_metadata.audio_analysis.tempo`만 확장하고, Retry는 새 Job의 새 WAV를 다시 분석하며 이전 Tempo 결과를 복사하지 않는다.
 - 공개 DTO를 requested/detected BPM·confidence·error·candidate·status·version allowlist로 제한하고 Result 상세 Tempo 카드, History 상태, Project 요약과 구형·partial·failed fallback을 추가했다.

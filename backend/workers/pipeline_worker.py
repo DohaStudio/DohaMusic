@@ -16,6 +16,8 @@ from backend.audio_analysis import (
     AudioAnalysisStatus,
     AudioAnalysisWarning,
     AudioQualityAnalyzer,
+    HookAnalysisResult,
+    HookAnalyzer,
     TempoAnalysisResult,
     TempoAnalyzer,
 )
@@ -44,12 +46,14 @@ class PipelineWorker:
         storage: StorageService,
         audio_quality_analyzer: AudioQualityAnalyzer,
         tempo_analyzer: TempoAnalyzer,
+        hook_analyzer: HookAnalyzer,
     ) -> None:
         self.session_factory = session_factory
         self.executor = executor
         self.storage = storage
         self.audio_quality_analyzer = audio_quality_analyzer
         self.tempo_analyzer = tempo_analyzer
+        self.hook_analyzer = hook_analyzer
 
     def run(self, job_id: str) -> None:
         started_at = time.perf_counter()
@@ -273,13 +277,27 @@ class PipelineWorker:
                     message="템포를 안정적으로 추정하지 못했습니다.",
                 )
                 tempo = TempoAnalysisResult.failed(requested_bpm, tempo_warning)
+            try:
+                hook = self.hook_analyzer.analyze(context.output_file)
+            except Exception:
+                logger.exception("hook_analysis_failed job_id=%s", job.id)
+                hook_warning = AudioAnalysisWarning(
+                    code="HOOK_DETECTION_FAILED",
+                    message="후렴 후보를 안정적으로 추정하지 못했습니다.",
+                )
+                hook = HookAnalysisResult.failed(hook_warning)
             analysis = analysis.model_copy(
                 update={
                     "analysis_status": self._combined_analysis_status(
-                        analysis.analysis_status, tempo.status
+                        analysis.analysis_status, tempo.status, hook.status
                     ),
                     "tempo": tempo,
-                    "warnings": [*analysis.warnings, *tempo.warnings],
+                    "hook": hook,
+                    "warnings": [
+                        *analysis.warnings,
+                        *tempo.warnings,
+                        *hook.warnings,
+                    ],
                 }
             )
 
@@ -338,16 +356,15 @@ class PipelineWorker:
 
     @staticmethod
     def _combined_analysis_status(
-        quality_status: AudioAnalysisStatus, tempo_status: AudioAnalysisStatus
+        quality_status: AudioAnalysisStatus, *component_statuses: AudioAnalysisStatus
     ) -> AudioAnalysisStatus:
         if quality_status in {
             AudioAnalysisStatus.FAILED,
             AudioAnalysisStatus.UNSUPPORTED,
         }:
             return quality_status
-        if (
-            quality_status is AudioAnalysisStatus.COMPLETED
-            and tempo_status is AudioAnalysisStatus.COMPLETED
+        if quality_status is AudioAnalysisStatus.COMPLETED and all(
+            status is AudioAnalysisStatus.COMPLETED for status in component_statuses
         ):
             return AudioAnalysisStatus.COMPLETED
         return AudioAnalysisStatus.PARTIAL

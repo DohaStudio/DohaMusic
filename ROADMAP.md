@@ -39,7 +39,7 @@
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2 완료, K3.3 Hook Candidate 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
+| K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## 현재 우선 작업
@@ -53,7 +53,7 @@
 7. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
 8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5에서 Voice·History·Project·audio content/download·Cancel·Retry를 완료했다. 인증·소유권·분산 Queue는 Phase 9에서 다룬다.
 9. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
-10. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.2 Tempo Analysis까지 완료했다. 다음은 별도 PR의 K3.3 Hook Candidate이며 Preview는 K3.4, LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
+10. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
 
 ## 다음 작업 흐름
 
