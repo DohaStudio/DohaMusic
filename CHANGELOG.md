@@ -8,9 +8,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
-### 문서
+### Phase 2 Listening Evaluation
 
-- Phase 2 사용자 청취 평가 점수와 근거를 EVAL-001에 반영하고, 미평가 2건을 남긴 채 ACE-Step을 조건부 채택으로 기록했다.
+- Phase 2 사용자 청취 평가 점수와 근거를 EVAL-001에 반영하고, 동일 PCM 산출물의 중복 집계를 제거했으며 미평가 2건을 남긴 채 ACE-Step을 조건부 채택으로 기록했다.
+- README·Master Roadmap·실행 Roadmap·ADR-006·Phase-02 DoD에서 조건부 채택, 기본 Provider `mock`, 운영 Provider 미확정, 사용자 평가 진행 중 상태를 동기화했다.
 
 ### Phase 6.6~6.9 — Local Lyrics LLM
 

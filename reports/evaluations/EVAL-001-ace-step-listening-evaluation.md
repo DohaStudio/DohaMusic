@@ -19,14 +19,16 @@
 
 ## 평가 대상
 
-모든 경로는 저장소 루트 기준이며 Git에는 포함되지 않는다. 동일 Seed 반복본은 PCM 샘플이 완전히 같으므로 `K-NOLM-20260729` 한 개를 대표 청취한다.
+모든 경로는 저장소 루트 기준이며 Git에는 포함되지 않는다. EXP-002 기록상 `K-EXP001`과 `K-NOLM-20260729`는 파일 컨테이너 경로만 다르고 PCM 1,920,000 samples가 완전히 동일한 산출물이다. 따라서 `K-EXP001`을 대표 평가로 삼고 `K-NOLM-20260729`는 동일 산출물 참조로만 유지하며 별도 점수 집계에서 제외한다.
+
+현재 8개 ID 중 독립 산출물 5개는 평가를 완료했고, 1개는 그중 하나와 동일한 산출물 참조이며, `B-EXP001`과 `K-NOLM-20260732` 2개는 사용자 평가가 필요하다. 이 때문에 문서 전체 상태는 `[사용자 평가 진행 중]`이다.
 
 | ID | 설정 | 로컬 파일 |
 |---|---|---|
 | `I-EXP001` | Instrumental, 15초, no LM, Seed 20260729 | `backend/storage/experiments/EXP-001/instrumental/4746130a-598b-ff9c-c851-2acf54984c36.wav` |
 | `B-EXP001` | Backend instrumental, 10초, no LM, Seed 20260729 | `backend/storage/experiments/EXP-001/backend-storage/outputs/acb52490-a6e6-455e-9576-d447b3c76321/a0afdd24-0ec3-c936-ab62-951a96699e81.wav` |
 | `K-EXP001` | EXP-001 한국어, 20초, no LM, Seed 20260729 | `backend/storage/experiments/EXP-001/korean-lyrics/6e7428e3-021a-fbff-c880-fb38da09ff36.wav` |
-| `K-NOLM-20260729` | 한국어, 20초, no LM, Seed 20260729 | `backend/storage/experiments/EXP-002/resident-memory/same-seed-01/6e7428e3-021a-fbff-c880-fb38da09ff36.wav` |
+| `K-NOLM-20260729` | `K-EXP001`과 동일 PCM 산출물 참조, 별도 점수 집계 제외 | `backend/storage/experiments/EXP-002/resident-memory/same-seed-01/6e7428e3-021a-fbff-c880-fb38da09ff36.wav` |
 | `K-NOLM-20260730` | 한국어, 20초, no LM, Seed 20260730 | `backend/storage/experiments/EXP-002/resident-memory/different-seed-01/b613a8ce-b5d7-9425-ced7-d9eb227b213f.wav` |
 | `K-NOLM-20260731` | 한국어, 20초, no LM, Seed 20260731 | `backend/storage/experiments/EXP-002/resident-memory/different-seed-02/1caa466a-fab6-4d26-65a5-6ef2048a4511.wav` |
 | `K-NOLM-20260732` | 한국어, 20초, no LM, Seed 20260732 | `backend/storage/experiments/EXP-002/resident-memory/different-seed-03/d3eec0ff-57d8-d526-8ced-0c8cb3cf42f3.wav` |
@@ -41,7 +43,7 @@
 | `I-EXP001` | 4 | 3 | 4 | 해당 없음 | 해당 없음 | 해당 없음 | 3 | [평가 완료] |
 | `B-EXP001` |  |  |  | 해당 없음 | 해당 없음 | 해당 없음 |  | [사용자 평가 필요] |
 | `K-EXP001` | 4 | 3 | 3 | 1 | 1 | 1 | 2 | [평가 완료] |
-| `K-NOLM-20260729` | 4 | 3 | 3 | 1 | 1 | 1 | 2 | [평가 완료] |
+| `K-NOLM-20260729` | — | — | — | — | — | — | — | [동일 산출물 참조] |
 | `K-NOLM-20260730` | 4 | 3 | 3 | 1 | 1 | 1 | 2 | [평가 완료] |
 | `K-NOLM-20260731` | 4 | 3 | 3 | 1 | 1 | 2 | 2 | [평가 완료] |
 | `K-NOLM-20260732` |  |  |  |  |  |  |  | [사용자 평가 필요] |
@@ -76,9 +78,8 @@
 
 ### `K-NOLM-20260729`
 
-- 발음·가사: `K-EXP001`과 동일 Seed의 대표 청취 결과로, 한국어 가창이 사실상 누락됐고 입력 가사를 식별할 수 없다.
-- 음악·보컬: 피아노와 스트링 기반 발라드 분위기는 생성됐으나 가창 생성에는 부적합하다. 반주 결과로는 일부 활용 가능하다.
-- 문제 구간: 한국어 발음·가사 일치·보컬 자연스러움 전반.
+- 판정: EXP-002의 PCM 비교 결과에 따라 `K-EXP001`과 동일 산출물로 확인했다. 독립 사용자 평가나 별도 점수 집계에 포함하지 않는다.
+- 청취 근거: `K-EXP001` 대표 평가를 참조한다.
 
 ### Seed 다양성 비교
 

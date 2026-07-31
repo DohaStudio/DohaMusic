@@ -28,7 +28,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | Mock Worker 기반 비동기 Job 생성·조회·결과 파일 목록 |
 | [완료] | 동의 확인이 필수인 음성 프로필 생성·삭제 API |
 | [완료] | 교체 가능한 `MusicGenerator` 결과 계약과 Provider Factory |
-| [실험 완료] | ACE-Step 1.5 v0.1.8 2B Turbo 로컬 추론·Backend Adapter 연결 |
+| [조건부 채택] | ACE-Step 1.5 v0.1.8 2B Turbo 로컬 추론·Backend Adapter 연결. 기본 Provider는 `mock`, 운영 Provider는 미확정 |
 | [완료] | `StemSeparator`·Mock/Demucs Provider와 비동기 Stem API |
 | [실험 완료] | HTDemucs 4.1.0 보컬/반주 분리, 48kHz Stereo 출력, RTX 3060 Ti Benchmark |
 | [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
@@ -49,9 +49,9 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [진행 중] | Frontend Pipeline 상태·진행률·오류·새 Job 복구; cancel·기존 Job retry는 Backend Required |
 | [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
-| [수동 평가 필요] | 한국어 발음·가사 정렬·음악성·청감 잡음 |
+| [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 
-음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Mixer 기본값은 AI와 독립된 `DefaultAudioMixer`이며 Mock은 테스트용으로 유지한다. Lyrics 기본값은 외부 통신이 없는 `TemplateLyricsGenerator`이고, 실제 LLM 품질이나 자유 형식 수정 반영을 주장하지 않는다. Phase 4.6에서 Voice Primary와 Fallback은 미선정됐으므로 실제 음색 변환 품질이나 운영 배포 승인을 의미하지 않는다. Mixer와 가사 품질도 각각 EVAL-004·EVAL-005 사용자 평가 전에는 승인하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 Frontend 인증·소유권과 Redis/Celery는 구현하지 않았다.
+음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. ACE-Step은 짧은 Instrumental과 0.6B LM의 가능성만 확인한 조건부 채택 상태이며 운영 Provider는 미확정이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Mixer 기본값은 AI와 독립된 `DefaultAudioMixer`이며 Mock은 테스트용으로 유지한다. Lyrics 기본값은 외부 통신이 없는 `TemplateLyricsGenerator`이고, 실제 LLM 품질이나 자유 형식 수정 반영을 주장하지 않는다. Phase 4.6에서 Voice Primary와 Fallback은 미선정됐으므로 실제 음색 변환 품질이나 운영 배포 승인을 의미하지 않는다. Mixer와 가사 품질도 각각 EVAL-004·EVAL-005 사용자 평가 전에는 승인하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 Frontend 인증·소유권과 Redis/Celery는 구현하지 않았다.
 
 ## 전체 AI 생성 흐름
 
