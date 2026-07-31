@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### Phase 6.6~6.9 — Local Lyrics LLM
+
+#### 문서
+
+- 공개 Instruct Base Model과 권리 확보 Lyrics Dataset의 QLoRA SFT, LoRA Adapter·병합 모델 산출물, `LocalLyricsLLMAdapter` 목표 구조를 정의했다.
+- Dataset Policy, Model Card template, ADR-016과 Dataset → Fine-tuning → Provider Integration → Quality Gate Roadmap을 추가했다.
+- Base 미선정·Dataset 미구축·학습 미착수·checkpoint 없음·Adapter 미구현·평가 미실시·운영 미승인 상태를 명시했다.
+- OpenAI API Experimental 비교군, FastAPI OpenAPI 명세, Planned Local Lyrics LLM을 구분하고 Frontend Provider-neutral 원칙을 보강했다.
+
 ### Phase 8 — Doha Studio Frontend Design
 
 #### 문서

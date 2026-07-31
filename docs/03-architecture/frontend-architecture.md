@@ -143,6 +143,8 @@ sequenceDiagram
 
 Audio Metadata는 별도 endpoint가 아니라 Pipeline의 `result_metadata`와 files의 metadata record에서 읽는다. Response DTO는 API 문서와 OpenAPI에서 생성·검증하고 UI 전용 view model로 변환한다.
 
+OpenAPI는 FastAPI request·response 명세이고 OpenAI API는 Experimental 외부 Lyrics Provider다. Local Lyrics LLM은 공개 Base를 자체 권리 Dataset으로 파인튜닝하는 Planned Backend Provider다. Frontend API client는 이 세 용어를 구분하고 Provider SDK를 포함하지 않는다.
+
 ## 접근성·성능·보안
 
 - 키보드만으로 Navigation, Dialog, Wizard step, Player 제어가 가능해야 한다.

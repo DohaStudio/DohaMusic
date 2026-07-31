@@ -8,9 +8,17 @@
 4. 5초를 넘는 운영 호출은 비동기 Job으로 전환하고 인증·소유권·사용량 한도를 설계한다.
 5. 위 게이트 전에는 External Provider를 Stable로 승격하거나 Pipeline에 자동 연결하지 않는다.
 
+## Phase 6.6~6.9 Local Lyrics LLM 후속 확장
+
+1. Phase 6.6에서 권리 확보 text Dataset·manifest·version·split을 승인한다.
+2. Phase 6.7에서 Qwen 계열 1.7B~4B Instruct와 동급 공개 후보의 license·한국어·8GB 실행성을 비교하고 QLoRA SFT를 검증한다.
+3. Phase 6.8에서 결과를 기존 `LyricsGenerator` 계약의 `LocalLyricsLLMAdapter`로 격리한다.
+4. Phase 6.9에서 Validator·한국어 품질·응답 시간·peak VRAM·실패율·사용자 blind 평가를 통과해야 운영 승격을 검토한다.
+5. 모든 게이트 전까지 Base 미선정·Dataset 미구축·학습 미착수·Adapter 미구현 상태이며 기본 Provider는 `template`이다.
+
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-07-31
-> 현재 상태: **Phase 6 로컬 Lyrics AI 기반 완료 / 외부 LLM·운영 Voice Provider 보류**
+> 현재 상태: **Phase 6 Template·Mock 기반 완료 / Local Lyrics LLM 계획 0% / 외부 LLM·운영 Voice Provider 보류**
 > 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
 > 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)
 
@@ -28,6 +36,7 @@
 | 4. Voice Conversion | [검증 필요] | Provider 평가 완료, Primary·Fallback 미선정, 94% 유지 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [완료] | Mock Voice 기반 Orchestrator·실제 Audio Mixer·API·Benchmark 검증 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [완료] | Template·Mock Generator·동기 API·검증·EXP/EVAL/ADR 완료 | [Phase-06](docs/DoD/Phase-06.md) |
+| 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | Frontend 설계·F0 계약 검토 문서 완료, 실제 구현 미착수 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -36,11 +45,12 @@
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
-3. [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에서 실제 곡의 balance·자연스러움·noise·clipping을 사용자가 평가한다.
-4. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
-5. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
-6. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
-7. [Frontend Roadmap](planning/frontend-roadmap.md)의 F0에서 `/openapi.json` 계약표, DTO 기준, 지원 범위와 Backend gap을 확정하고 [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)을 승인한 뒤 Doha Studio 구현에 착수한다.
+3. [Local Lyrics LLM Roadmap](planning/local-lyrics-llm-roadmap.md)에 따라 Phase 6.6 Dataset 권리·manifest를 먼저 확정한다.
+4. [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에서 실제 곡의 balance·자연스러움·noise·clipping을 사용자가 평가한다.
+5. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
+6. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
+7. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
+8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F0에서 `/openapi.json` 계약표, DTO 기준, 지원 범위와 Backend gap을 확정하고 [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)을 승인한 뒤 Doha Studio 구현에 착수한다.
 
 ## 다음 작업 흐름
 
@@ -48,6 +58,8 @@
 Phase 5.1: 실제 Audio Mixer 완료
   ↓
 Phase 6: 로컬 Lyrics AI 기반 완료
+  ↓ 선택적 후속 확장
+Phase 6.6 Dataset → 6.7 QLoRA SFT → 6.8 Adapter → 6.9 Quality Gate
   ↓ 병행
 Voice Primary·Mixer 청감 품질 게이트
   ↓

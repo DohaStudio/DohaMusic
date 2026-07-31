@@ -77,6 +77,10 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.
 
+## Lyrics Provider 중립성
+
+Frontend는 `template`, `openai`, 향후 `local_llm`의 SDK·Tokenizer·LoRA Adapter·GPU·추론 엔진을 직접 호출하거나 알지 않는다. `/api/lyrics`, Lyrics Revision·Validate 계약만 사용하며 Provider 결정은 Backend 설정과 운영 승인 정책을 따른다. 일반 사용자에게 Experimental Provider 선택 UI를 기본 제공하지 않고 Provider·모델은 결과 metadata로만 표시할 수 있다. Base Model이나 LoRA Adapter 교체는 Frontend 요청 계약을 변경하지 않으며, 미승인 Local Lyrics LLM을 “자체 AI 완료”로 표시하지 않는다.
+
 ## 성공 지표
 
 - 첫 Studio 진입 후 사용자가 현재 작업과 다음 행동을 5초 안에 설명할 수 있다.
