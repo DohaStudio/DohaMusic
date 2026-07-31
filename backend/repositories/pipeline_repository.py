@@ -47,6 +47,9 @@ class PipelineRepository:
         )
         return list(self.session.scalars(statement))
 
+    def get_file(self, file_id: str) -> PipelineFile | None:
+        return self.session.get(PipelineFile, file_id)
+
     def transition(
         self,
         job: PipelineJob,

@@ -102,7 +102,7 @@
   bottom: 0;
   z-index: 10;
 }
-.player-shell > div:nth-child(2) {
+.player-copy {
   display: grid;
   min-width: 180px;
 }
@@ -124,18 +124,23 @@
   border-radius: 50%;
   margin-left: auto;
 }
-.wave {
-  height: 42px;
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex: 1;
-  opacity: 0.5;
+.player-shell audio {
+  display: none;
 }
-.wave i {
-  width: 3px;
-  background: var(--red);
-  border-radius: 3px;
+.player-seek {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+.player-seek input,
+.player-volume input {
+  width: 100%;
+  accent-color: var(--red);
+}
+.player-volume {
+  width: 100px;
 }
 .mobile-header,
 .mobile-nav {

@@ -20,7 +20,7 @@ Doha Studio는 CRUD 폼이 아니라 “음악을 만드는 공간”이다. 사
 - 하단 transport: Player, waveform, progress와 현재 Job timeline을 고정한다.
 - 모바일: 한 화면 한 결정 원칙으로 설정 → 가사 → 목소리 → 확인 → 진행 → 결과를 이동한다.
 
-Desktop의 대형 vinyl은 장식만이 아니라 상태 feedback이다. 준비 중에는 정지, 생성 중에는 저속 회전과 subtle pulse, 완료 시에는 안정된 재생 상태를 나타낸다. 실제 오디오 URL이 없는 현재 API에서는 Player를 재생 가능하다고 표시하지 않는다.
+Desktop의 대형 vinyl은 장식만이 아니라 상태 feedback이다. 준비 중에는 정지, 생성 중에는 저속 회전과 subtle pulse, 완료 시에는 검증된 Pipeline WAV를 전역 Player에서 재생한다. Player 상태는 메모리에만 두며 Backend 내부 경로나 media blob을 저장하지 않는다.
 
 ## 정보 구조
 

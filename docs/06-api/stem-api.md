@@ -20,6 +20,6 @@
 
 ## `GET /api/stems/{job}/files`
 
-완료 후 `vocals`, `instrumental`, `metadata` 유형과 `id`, `job_id`, `mime_type`, `created_at`, `content_available`, `download_available` 파일 메타데이터를 반환한다. 내부 `file_path`는 반환하지 않으며 실제 content·download API가 없어 capability 값은 현재 `false`다. Demucs 오디오는 48kHz Stereo float32 WAV이며 Mock도 48kHz Stereo WAV 계약을 따른다.
+완료 후 `vocals`, `instrumental`, `metadata` 유형의 공개 파일 메타데이터를 반환한다. 내부 `file_path`는 반환하지 않으며 이번 content·download 제공 범위는 완료 Pipeline 결과이므로 Stem 개별 capability는 계속 `false`다. Demucs 오디오는 48kHz Stereo float32 WAV이며 Mock도 48kHz Stereo WAV 계약을 따른다.
 
 존재하지 않는 source 또는 Job은 `RESOURCE_NOT_FOUND`, 입력 형식 오류는 `INVALID_INPUT`이다. Worker의 내부 예외·절대 경로는 응답에 노출하지 않는다.

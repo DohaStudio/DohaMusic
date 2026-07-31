@@ -31,6 +31,16 @@
 | `LYRICS_GENERATION_FAILED` | Lyrics Provider 실행 실패 |
 | `LYRICS_OUTPUT_INVALID` | Provider 결과 구조 검증 실패 |
 | `LYRICS_VALIDATION_FAILED` | 직접 가사 검증을 진행할 수 없는 입력 |
+| `PIPELINE_NOT_FOUND` | Pipeline Job 없음 |
+| `FILE_NOT_FOUND` | 결과 File 없음 |
+| `FILE_JOB_MISMATCH` | File이 요청한 Pipeline에 속하지 않음 |
+| `PIPELINE_NOT_COMPLETED` | 완료 전 결과 파일 접근 요청 |
+| `FILE_CONTENT_UNAVAILABLE` | 재생 capability가 없는 파일 |
+| `FILE_DOWNLOAD_UNAVAILABLE` | 다운로드 capability가 없는 파일 |
+| `FILE_PATH_INVALID` | Storage 경계를 벗어나거나 symlink인 경로 |
+| `FILE_MISSING_FROM_STORAGE` | DB 기록에 대응하는 regular file 없음 |
+| `UNSUPPORTED_AUDIO_FILE` | 허용되지 않은 type·MIME·확장자·WAV header |
+| `INVALID_RANGE` | 지원하지 않거나 만족할 수 없는 byte Range |
 
 API 오류는 `{ "error": { "code", "message" } }` 형식이다. 비동기 Worker 오류는 해당 `generation_jobs` 또는 `stem_jobs`의 `error_code`와 안전한 사용자 메시지로 기록되고 Job은 `FAILED`가 된다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않는다.
 # External Lyrics 오류

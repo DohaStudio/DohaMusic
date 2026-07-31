@@ -59,7 +59,7 @@ Landing, Studio, Lyrics Lab, Voice, Generation Progress, Result, Settings, About
 | StudioTimeline | sections, active, validity | section select | invalid section 설명 |
 | GenerationStatus | job view model, connection | reconnect, start-over | Job 실패와 network 실패 분리 |
 | LyricsEditor | draft, validation, mode | change, validate, generate, revise | revision 미지원 Provider 안내 |
-| Player | media source, metadata | play, pause, seek | source endpoint 부재 상태 |
+| Player | capability media URL, 공개 metadata | play, pause, seek, volume | source 없음·loading·오류 상태 |
 | VoiceProfilePicker | available session profiles | select, create, delete | list API 없음 안내 |
 
 ## 접근성 체크

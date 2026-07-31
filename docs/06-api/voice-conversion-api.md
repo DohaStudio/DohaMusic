@@ -23,7 +23,7 @@
 
 ## GET `/api/voice-conversion/{job_id}/files`
 
-완료 후 `converted_voice` WAV와 `metadata` JSON의 `id`, `job_id`, `file_type`, `mime_type`, `created_at`, `content_available`, `download_available`을 반환한다. 저장소 절대·상대 `file_path`는 public response에 포함하지 않으며 content·download capability는 현재 `false`다.
+완료 후 `converted_voice` WAV와 `metadata` JSON의 공개 파일 metadata를 반환한다. 저장소 절대·상대 `file_path`는 public response에 포함하지 않으며 이번 content·download 제공 범위는 완료 Pipeline 결과이므로 Voice Conversion 개별 capability는 계속 `false`다.
 
 ## 오류 코드
 

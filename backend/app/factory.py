@@ -171,6 +171,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             session_factory=session_factory,
             dispatcher=pipeline_dispatcher,
             pipeline_version=resolved_settings.pipeline_version,
+            storage=storage,
         )
         logger.info("application_started")
         try:

@@ -50,3 +50,5 @@ class PipelineFileRead(BaseModel):
     created_at: datetime
     content_available: bool = False
     download_available: bool = False
+    content_url: str | None = None
+    download_url: str | None = None

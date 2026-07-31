@@ -50,3 +50,15 @@ export const dohaApi = {
   getPipelineFiles: (id: string) =>
     apiRequest<PipelineFileDto[]>(`/api/pipelines/${id}/files`),
 };
+
+export function getPipelineFileContentUrl(jobId: string, fileId: string) {
+  return `/backend/api/pipelines/${encodeURIComponent(jobId)}/files/${encodeURIComponent(fileId)}/content`;
+}
+
+export function getPipelineFileDownloadUrl(jobId: string, fileId: string) {
+  return `/backend/api/pipelines/${encodeURIComponent(jobId)}/files/${encodeURIComponent(fileId)}/download`;
+}
+
+export function toBackendPublicUrl(url: string | null): string | undefined {
+  return url?.startsWith("/api/") ? `/backend${url}` : undefined;
+}

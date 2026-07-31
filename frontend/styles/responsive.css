@@ -113,11 +113,10 @@
     width: 44px;
     height: 44px;
   }
-  .player-shell .wave,
-  .player-shell button {
+  .player-shell .player-volume {
     display: none;
   }
-  .player-shell > div:nth-child(2) {
+  .player-copy {
     min-width: 0;
     font-size: 0.75rem;
   }

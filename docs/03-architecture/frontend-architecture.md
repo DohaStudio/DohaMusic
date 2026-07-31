@@ -7,7 +7,7 @@
 
 ## 아키텍처 목표
 
-Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, Player shell과 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Pipeline 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
+Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
 ```mermaid
 flowchart LR
@@ -120,7 +120,7 @@ sequenceDiagram
 | Lyrics 생성·조회·수정·검증·삭제 | 가능 | 현재 계약 사용 |
 | Pipeline 생성·상태·파일 metadata | 가능 | Studio 핵심 흐름 |
 | 음성 프로필 생성·삭제 | 부분 가능 | 기본 UI는 UUID 연결만 제공; 서버 경로 생성 form은 `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH=true` 개발 환경 전용, list/get/upload 없음 |
-| 오디오 재생·다운로드 | 불가 | 파일 metadata만 존재; content endpoint 선행 필요 |
+| 오디오 재생·다운로드 | 가능 | 완료 Pipeline의 capability URL만 사용; 내부 경로 금지 |
 | 프로젝트·생성 이력 목록 | 불가 | 목록 API 선행 필요, 빈 shell만 설계 |
 | Job 취소·수동 retry | 불가 | 기능 비활성 및 후속 API 표시 |
 | 인증·소유권 | 불가 | 공개 운영 차단 조건 |
@@ -140,7 +140,7 @@ sequenceDiagram
 | Voice | `POST /api/voice-profiles`, `DELETE /api/voice-profiles/{id}` | profile metadata 또는 `204` | form/card 단위 busy | 동의·경로·404 오류 후 수정 | 없음; list/get 없음 |
 | Studio Review | `POST /api/pipelines` | `202`, `PENDING`, job ID | 중복 제출 차단 | 입력 오류 수정; network 결과 불명확 시 조회 가능한 ID 없으면 자동 재제출 금지 | 생성 후 Progress로 이동 |
 | Generation Progress | `GET /api/pipelines/{jobId}` | status, step, progress, safe error, metadata | 최초 skeleton, 이후 non-blocking refresh | network reconnect; `FAILED`는 새 Job만 가능 | terminal 전 adaptive polling |
-| Result | `GET /api/pipelines/{jobId}`, `/files` | completed Job, 6개 file metadata 가능 | artwork/metric skeleton | metadata 재조회; content 없는 Player는 disabled | 완료 후 중단 |
+| Result | Pipeline 조회·files·content·download | completed Job, 안전한 audio capability | artwork/metric skeleton | 파일별 불가 상태 표시 | 완료 후 중단 |
 | 독립 Generation·Stem·Voice 화면 후보 | 각 `POST`·Job `GET`·files `GET` | 해당 Job과 file metadata | Pipeline과 동일 | safe error code 기반 새 요청 | terminal 전 polling |
 
 Audio Metadata는 별도 endpoint가 아니라 Pipeline의 `result_metadata`와 files의 공개 metadata에서 읽는다. UI는 duration·execution time, Provider 식별자와 Mixer의 실제 audio quality 필드만 allowlist로 변환한다. 파일·모델 경로, 명령, 환경, 내부 host, stack trace와 알 수 없는 key는 표시하지 않는다. Response DTO는 API 문서와 OpenAPI에서 검증하고 UI 전용 view model로 변환한다.

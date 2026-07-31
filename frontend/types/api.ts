@@ -102,4 +102,6 @@ export interface PipelineFileDto {
   created_at: string;
   content_available: boolean;
   download_available: boolean;
+  content_url: string | null;
+  download_url: string | null;
 }

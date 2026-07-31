@@ -77,7 +77,7 @@ stateDiagram-v2
 
 - artwork placeholder, 제목, duration, provider/model/seed와 audio quality metadata를 표시한다.
 - `GET /api/pipelines/{job_id}/files`의 metadata를 file inventory로 보여준다.
-- 현재 다운로드/content API가 없어 Player와 Download는 disabled 상태 및 선행 조건을 표시한다.
+- 완료 결과는 capability가 있는 WAV만 Player와 Download를 활성화하고, 사용할 수 없는 파일은 이유를 숨기지 않고 disabled로 표시한다.
 - “다시 만들기”는 Review draft를 복사하여 새 Pipeline Job을 생성하며 기존 Job을 변경하지 않는다.
 
 ## 오류·복구
