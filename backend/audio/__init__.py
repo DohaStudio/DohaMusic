@@ -1,7 +1,7 @@
 """Replaceable audio mixing engine."""
 
 from backend.audio.default_mixer import DefaultAudioMixer
-from backend.audio.interfaces import AudioMixInput, AudioMixResult, AudioMixer
+from backend.audio.interfaces import AudioMixer, AudioMixInput, AudioMixResult
 from backend.audio.mock_mixer import MockAudioMixer
 
 __all__ = [

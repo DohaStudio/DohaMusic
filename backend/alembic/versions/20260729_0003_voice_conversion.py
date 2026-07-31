@@ -4,10 +4,10 @@ Revision ID: 20260729_0003
 Revises: 20260729_0002
 """
 
-from typing import Sequence
+from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision: str = "20260729_0003"
 down_revision: str | None = "20260729_0002"
@@ -31,13 +31,27 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(["source_file_id"], ["stem_files.id"], ondelete="RESTRICT"),
-        sa.ForeignKeyConstraint(["voice_profile_id"], ["voice_profiles.id"], ondelete="RESTRICT"),
+        sa.ForeignKeyConstraint(
+            ["source_file_id"], ["stem_files.id"], ondelete="RESTRICT"
+        ),
+        sa.ForeignKeyConstraint(
+            ["voice_profile_id"], ["voice_profiles.id"], ondelete="RESTRICT"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_voice_conversion_jobs_source_file_id", "voice_conversion_jobs", ["source_file_id"])
-    op.create_index("ix_voice_conversion_jobs_voice_profile_id", "voice_conversion_jobs", ["voice_profile_id"])
-    op.create_index("ix_voice_conversion_jobs_status", "voice_conversion_jobs", ["status"])
+    op.create_index(
+        "ix_voice_conversion_jobs_source_file_id",
+        "voice_conversion_jobs",
+        ["source_file_id"],
+    )
+    op.create_index(
+        "ix_voice_conversion_jobs_voice_profile_id",
+        "voice_conversion_jobs",
+        ["voice_profile_id"],
+    )
+    op.create_index(
+        "ix_voice_conversion_jobs_status", "voice_conversion_jobs", ["status"]
+    )
     op.create_table(
         "voice_conversion_files",
         sa.Column("id", sa.String(36), nullable=False),
@@ -46,16 +60,26 @@ def upgrade() -> None:
         sa.Column("file_path", sa.String(500), nullable=False),
         sa.Column("mime_type", sa.String(100), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(["job_id"], ["voice_conversion_jobs.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["job_id"], ["voice_conversion_jobs.id"], ondelete="CASCADE"
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_voice_conversion_files_job_id", "voice_conversion_files", ["job_id"])
+    op.create_index(
+        "ix_voice_conversion_files_job_id", "voice_conversion_files", ["job_id"]
+    )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_voice_conversion_files_job_id", table_name="voice_conversion_files")
+    op.drop_index(
+        "ix_voice_conversion_files_job_id", table_name="voice_conversion_files"
+    )
     op.drop_table("voice_conversion_files")
     op.drop_index("ix_voice_conversion_jobs_status", table_name="voice_conversion_jobs")
-    op.drop_index("ix_voice_conversion_jobs_voice_profile_id", table_name="voice_conversion_jobs")
-    op.drop_index("ix_voice_conversion_jobs_source_file_id", table_name="voice_conversion_jobs")
+    op.drop_index(
+        "ix_voice_conversion_jobs_voice_profile_id", table_name="voice_conversion_jobs"
+    )
+    op.drop_index(
+        "ix_voice_conversion_jobs_source_file_id", table_name="voice_conversion_jobs"
+    )
     op.drop_table("voice_conversion_jobs")

@@ -6,7 +6,6 @@ import json
 
 from backend.lyrics.interfaces import LyricsGenerationRequest, LyricsRevisionRequest
 
-
 SYSTEM_PROMPT = """You create original song lyrics as strict JSON.
 Follow the requested language, genre, mood, keywords, and exact section order.
 Do not copy, continue, or closely imitate lyrics from an existing commercial song,

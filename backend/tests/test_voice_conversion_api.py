@@ -9,7 +9,9 @@ from fastapi.testclient import TestClient
 from backend.ai.errors import VoiceInferenceError
 
 
-def wait_for_terminal(client: TestClient, endpoint: str, job_id: str) -> dict[str, object]:
+def wait_for_terminal(
+    client: TestClient, endpoint: str, job_id: str
+) -> dict[str, object]:
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
         response = client.get(f"{endpoint}/{job_id}")
@@ -23,12 +25,13 @@ def wait_for_terminal(client: TestClient, endpoint: str, job_id: str) -> dict[st
 
 def prepare_inputs(client: TestClient) -> tuple[str, str]:
     generation = client.post(
-        "/api/generations", json={"prompt": "Voice conversion test", "duration_seconds": 10}
+        "/api/generations",
+        json={"prompt": "Voice conversion test", "duration_seconds": 10},
     )
     generated = wait_for_terminal(client, "/api/generations", generation.json()["id"])
-    generated_file_id = client.get(
-        f"/api/generations/{generated['id']}/files"
-    ).json()[0]["id"]
+    generated_file_id = client.get(f"/api/generations/{generated['id']}/files").json()[
+        0
+    ]["id"]
     stem = client.post("/api/stems", json={"source_file_id": generated_file_id})
     stemmed = wait_for_terminal(client, "/api/stems", stem.json()["id"])
     files = client.get(f"/api/stems/{stemmed['id']}/files").json()
@@ -58,7 +61,9 @@ def test_create_get_and_list_mock_voice_conversion(client: TestClient) -> None:
     assert response.status_code == 202
     assert response.json()["status"] == "PENDING"
 
-    completed = wait_for_terminal(client, "/api/voice-conversion", response.json()["id"])
+    completed = wait_for_terminal(
+        client, "/api/voice-conversion", response.json()["id"]
+    )
     assert completed["status"] == "COMPLETED"
     assert completed["provider"] == "mock"
     files = client.get(f"/api/voice-conversion/{completed['id']}/files").json()
@@ -70,7 +75,9 @@ def test_create_get_and_list_mock_voice_conversion(client: TestClient) -> None:
         assert audio.getnchannels() == 2
 
 
-def test_voice_conversion_rejects_missing_or_non_vocal_input(client: TestClient) -> None:
+def test_voice_conversion_rejects_missing_or_non_vocal_input(
+    client: TestClient,
+) -> None:
     missing = "00000000-0000-0000-0000-000000000000"
     response = client.post(
         "/api/voice-conversion",
@@ -84,7 +91,8 @@ def test_voice_conversion_rejects_missing_or_non_vocal_input(client: TestClient)
 
 def test_voice_conversion_validation_error(client: TestClient) -> None:
     response = client.post(
-        "/api/voice-conversion", json={"source_file_id": "short", "voice_profile_id": "short"}
+        "/api/voice-conversion",
+        json={"source_file_id": "short", "voice_profile_id": "short"},
     )
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "INVALID_INPUT"
@@ -110,7 +118,9 @@ def test_voice_worker_failure_updates_job(client: TestClient) -> None:
     assert client.get(f"/api/voice-conversion/{failed['id']}/files").json() == []
 
 
-def test_worker_rejects_reference_outside_reference_directory(client: TestClient) -> None:
+def test_worker_rejects_reference_outside_reference_directory(
+    client: TestClient,
+) -> None:
     source_file_id, _ = prepare_inputs(client)
     profile = client.post(
         "/api/voice-profiles",
@@ -122,7 +132,10 @@ def test_worker_rejects_reference_outside_reference_directory(client: TestClient
     )
     response = client.post(
         "/api/voice-conversion",
-        json={"source_file_id": source_file_id, "voice_profile_id": profile.json()["id"]},
+        json={
+            "source_file_id": source_file_id,
+            "voice_profile_id": profile.json()["id"],
+        },
     )
     failed = wait_for_terminal(client, "/api/voice-conversion", response.json()["id"])
     assert failed["status"] == "FAILED"

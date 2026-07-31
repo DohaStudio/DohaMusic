@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, Text
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class VoiceConversionJob(Base):
@@ -38,12 +38,14 @@ class VoiceConversionJob(Base):
     model_version: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), default=utc_now
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    files: Mapped[list["VoiceConversionFile"]] = relationship(
+    files: Mapped[list[VoiceConversionFile]] = relationship(
         back_populates="job", cascade="all, delete-orphan"
     )

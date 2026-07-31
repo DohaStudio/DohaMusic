@@ -57,17 +57,28 @@ class SubprocessSeedVCRuntime:
         command = [
             str(self.config.runtime_python),
             str(self.config.runner_path),
-            "--project-root", str(self.config.project_root),
-            "--source-path", str(source_path),
-            "--reference-path", str(reference_path),
-            "--output-path", str(output),
-            "--metadata-path", str(metadata),
-            "--checkpoint-path", str(self.config.checkpoint_path),
-            "--config-path", str(self.config.config_path),
-            "--model-name", self.config.model_name,
-            "--model-version", self.config.model_version,
-            "--device", self.config.device,
-            "--diffusion-steps", str(self.config.diffusion_steps),
+            "--project-root",
+            str(self.config.project_root),
+            "--source-path",
+            str(source_path),
+            "--reference-path",
+            str(reference_path),
+            "--output-path",
+            str(output),
+            "--metadata-path",
+            str(metadata),
+            "--checkpoint-path",
+            str(self.config.checkpoint_path),
+            "--config-path",
+            str(self.config.config_path),
+            "--model-name",
+            self.config.model_name,
+            "--model-version",
+            self.config.model_version,
+            "--device",
+            self.config.device,
+            "--diffusion-steps",
+            str(self.config.diffusion_steps),
         ]
         try:
             completed = subprocess.run(
@@ -80,7 +91,9 @@ class SubprocessSeedVCRuntime:
                 env=self._environment(),
             )
         except subprocess.TimeoutExpired as exc:
-            raise VoiceTimeoutError("Voice Conversion 제한 시간을 초과했습니다.") from exc
+            raise VoiceTimeoutError(
+                "Voice Conversion 제한 시간을 초과했습니다."
+            ) from exc
         except OSError as exc:
             raise VoiceDependencyNotInstalledError(
                 "Seed-VC 격리 runtime을 실행할 수 없습니다."

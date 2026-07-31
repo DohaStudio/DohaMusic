@@ -1,6 +1,6 @@
 """Voice conversion persistence operations."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -38,9 +38,11 @@ class VoiceConversionRepository:
         return self.session.get(VoiceConversionJob, job_id)
 
     def list_files(self, job_id: str) -> list[VoiceConversionFile]:
-        statement = select(VoiceConversionFile).where(
-            VoiceConversionFile.job_id == job_id
-        ).order_by(VoiceConversionFile.created_at)
+        statement = (
+            select(VoiceConversionFile)
+            .where(VoiceConversionFile.job_id == job_id)
+            .order_by(VoiceConversionFile.created_at)
+        )
         return list(self.session.scalars(statement))
 
     def transition(
@@ -48,17 +50,21 @@ class VoiceConversionRepository:
     ) -> VoiceConversionJob:
         current = JobStatus(job.status)
         if target not in ALLOWED_TRANSITIONS[current]:
-            raise ValueError(f"Invalid job transition: {current.value} -> {target.value}")
+            raise ValueError(
+                f"Invalid job transition: {current.value} -> {target.value}"
+            )
         job.status = target.value
         job.current_step = current_step
-        job.updated_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(UTC)
         if target == JobStatus.COMPLETED:
             job.completed_at = job.updated_at
         self.session.commit()
         self.session.refresh(job)
         return job
 
-    def set_model(self, job: VoiceConversionJob, provider: str, name: str, version: str) -> None:
+    def set_model(
+        self, job: VoiceConversionJob, provider: str, name: str, version: str
+    ) -> None:
         job.provider = provider
         job.model_name = name
         job.model_version = version
@@ -71,11 +77,13 @@ class VoiceConversionRepository:
         job.current_step = "failed"
         job.error_code = code
         job.error_message = message
-        job.updated_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(UTC)
         job.completed_at = job.updated_at
         self.session.commit()
 
-    def add_file(self, job_id: str, file_type: str, file_path: str, mime_type: str) -> None:
+    def add_file(
+        self, job_id: str, file_type: str, file_path: str, mime_type: str
+    ) -> None:
         self.session.add(
             VoiceConversionFile(
                 job_id=job_id,

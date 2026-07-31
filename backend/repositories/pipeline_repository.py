@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import select
@@ -62,7 +62,7 @@ class PipelineRepository:
         job.status = target.value
         job.current_step = current_step
         job.progress_percent = progress_percent
-        job.updated_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(UTC)
         if target == JobStatus.COMPLETED:
             job.completed_at = job.updated_at
         self.session.commit()
@@ -85,7 +85,7 @@ class PipelineRepository:
         job.error_message = message
         job.failed_step = failed_step
         job.result_metadata = metadata
-        job.updated_at = datetime.now(timezone.utc)
+        job.updated_at = datetime.now(UTC)
         job.completed_at = job.updated_at
         self.session.commit()
 

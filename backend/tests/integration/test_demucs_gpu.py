@@ -70,9 +70,7 @@ def test_demucs_provider_completes_through_backend_api(tmp_path: Path) -> None:
         ).json()
         generation = wait_for_job(client, "/api/generations", generation["id"])
         assert generation["status"] == "COMPLETED"
-        source_file = client.get(
-            f"/api/generations/{generation['id']}/files"
-        ).json()[0]
+        source_file = client.get(f"/api/generations/{generation['id']}/files").json()[0]
         source_path = app.state.storage.resolve_relative_path(source_file["file_path"])
         shutil.copy2(source_audio, source_path)
 

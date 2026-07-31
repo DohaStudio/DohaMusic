@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Integer, String, Text
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class GenerationJob(Base):
@@ -44,7 +44,7 @@ class GenerationJob(Base):
         DateTime(timezone=True), nullable=True
     )
 
-    files: Mapped[list["GeneratedFile"]] = relationship(
+    files: Mapped[list[GeneratedFile]] = relationship(
         back_populates="job",
         cascade="all, delete-orphan",
     )
