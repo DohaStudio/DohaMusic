@@ -166,3 +166,21 @@
   color: #777;
   font-size: 0.75rem;
 }
+
+.collection-page { padding: 34px; display: grid; gap: 24px; }
+.collection-header { display: flex; justify-content: space-between; align-items: end; gap: 20px; }
+.collection-header h1 { font-size: clamp(2.4rem, 5vw, 4.5rem); margin: 4px 0; }
+.collection-header p { color: var(--muted); }
+.collection-filters { display: grid; grid-template-columns: minmax(220px, 1fr) 200px auto; gap: 12px; }
+.history-list { display: grid; gap: 10px; }
+.history-row { display: grid; grid-template-columns: minmax(240px, 1fr) auto auto auto; align-items: center; gap: 18px; padding: 20px; border: 1px solid #302e2b; border-radius: 16px; background: #171716; }
+.history-row h2 { margin: 0 0 5px; font-size: 1rem; }
+.history-row p, .history-row > span { margin: 0; color: var(--muted); font-size: .78rem; }
+.project-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.project-grid small { color: var(--muted); display: block; margin: 16px 0; }
+.collection-editor { display: grid; grid-template-columns: minmax(180px, .6fr) minmax(240px, 1fr) auto; align-items: center; gap: 12px; }
+.history-skeleton { display: grid; gap: 10px; }
+.history-skeleton span { height: 86px; border-radius: 16px; background: linear-gradient(90deg, #171716, #252321, #171716); background-size: 200%; animation: shimmer 1.2s infinite; }
+.empty-state { min-height: 260px; display: grid; place-content: center; justify-items: center; gap: 16px; border: 1px dashed #3a3733; border-radius: 18px; color: var(--muted); }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@media (max-width: 800px) { .collection-page { padding: 20px 14px 100px; } .collection-header { align-items: start; } .collection-filters, .collection-editor, .history-row { grid-template-columns: 1fr; } }

@@ -18,6 +18,7 @@ const voiceProfile = {
 };
 const pipeline = {
   id: "job-001",
+  project_id: "project-001",
   voice_profile_id: uuid,
   status: "COMPLETED",
   current_step: "completed",
@@ -95,7 +96,24 @@ async function mockBackend(page: Page) {
       body: "RIFFmockWAVE",
     }),
   );
+  await page.route("**/backend/api/history**", (route) =>
+    route.fulfill({ json: [{ job_id: "job-001", project_id: "project-001", title: "새벽 도시 R&B", status: "COMPLETED", created_at: pipeline.created_at, duration: 30, voice_profile_name: "Doha Voice", has_audio: true }] }),
+  );
+  await page.route("**/backend/api/projects", (route) =>
+    route.fulfill({ json: [{ id: "project-001", title: "Default Project", description: null, created_at: pipeline.created_at, updated_at: pipeline.updated_at, job_count: 1 }] }),
+  );
 }
+test("History에서 Result와 Player로 다시 이동한다", async ({ page }) => {
+  await page.addInitScript(() => { HTMLMediaElement.prototype.play = async function () { this.dispatchEvent(new Event("play")); }; });
+  await mockBackend(page);
+  await page.goto("/history");
+  await expect(page.getByRole("heading", { name: "새벽 도시 R&B" })).toBeVisible();
+  await page.getByRole("button", { name: "Play" }).click();
+  await expect(page.locator("audio")).toHaveAttribute("src", "/backend/api/pipelines/job-001/files/file-1/content");
+  await page.getByRole("link", { name: "Open" }).click();
+  await expect(page).toHaveURL(/\/result\/job-001/);
+  await expect(page.getByRole("link", { name: "WAV 다운로드" })).toBeVisible();
+});
 test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async ({ page }) => {
   await page.addInitScript(() => {
     HTMLMediaElement.prototype.play = async function () {

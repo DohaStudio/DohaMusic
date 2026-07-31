@@ -10,6 +10,16 @@ erDiagram
   VOICE_CONVERSION_JOBS ||--o{ VOICE_CONVERSION_FILES : creates
   VOICE_PROFILES ||--o{ PIPELINE_JOBS : reference
   PIPELINE_JOBS ||--o{ PIPELINE_FILES : creates
+  PROJECTS o|--o{ PIPELINE_JOBS : contains
+
+  PROJECTS {
+    string id PK
+    string title
+    text description
+    boolean is_default
+    datetime created_at
+    datetime updated_at
+  }
 
   LYRICS_DOCUMENTS {
     string id PK
@@ -100,6 +110,7 @@ erDiagram
   }
   PIPELINE_JOBS {
     string id PK
+    string project_id FK
     string voice_profile_id FK
     string status
     string current_step
@@ -124,7 +135,7 @@ erDiagram
   }
 ```
 
-`lyrics_documents`는 현재 다른 테이블과 FK로 연결하지 않는다. Pipeline 자동 연결 전 `lyrics_id` 소유권과 삭제 동작을 별도 설계한다. `voice_conversion_jobs.source_file_id`는 `stem_files` 중 `file_type=vocals`만 Service에서 허용한다. Voice Conversion과 Pipeline의 `voice_profile_id`는 동의된 profile만 허용한다. 입력 FK는 `RESTRICT`, 출력 파일은 Job 삭제 시 `CASCADE`다. migration revision은 `20260729_0005`다.
+`projects` 삭제는 `pipeline_jobs.project_id`를 `NULL`로 만들고 Job·결과 파일을 보존한다. `lyrics_documents`는 현재 다른 테이블과 FK로 연결하지 않는다. `voice_conversion_jobs.source_file_id`는 `stem_files` 중 `file_type=vocals`만 Service에서 허용한다. Voice Conversion과 Pipeline의 `voice_profile_id`는 동의된 profile만 허용한다. migration revision은 `20260731_0008`이다.
 # Lyrics Revision 관계 (Alembic 0006)
 
 ```mermaid

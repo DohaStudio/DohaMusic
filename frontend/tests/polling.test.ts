@@ -4,6 +4,7 @@ import { ApiError } from "@/services/api-client";
 import type { PipelineJobDto } from "@/types/api";
 const job = (status: PipelineJobDto["status"]): PipelineJobDto => ({
   id: "j",
+  project_id: null,
   voice_profile_id: "v",
   status,
   current_step: "step",

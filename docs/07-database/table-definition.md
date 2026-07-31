@@ -31,6 +31,18 @@
 
 Alembic 0006이 수정 이력 필드를 추가한다. 원본은 덮어쓰지 않으며 자식이 있는 원본 삭제를 거부한다. 외부 호출은 전체 5초 deadline으로 제한한다. 더 긴 외부 LLM 비동기 처리 도입 시 generation job과 상태 모델을 별도로 추가한다.
 
+## `projects`와 History
+
+| 필드 | 타입 | Null | 설명 |
+|---|---|---|---|
+| `id` | varchar(36) | 아니요 | 기본키 |
+| `title` | varchar(200) | 아니요 | Project 표시 이름, 검색 인덱스 |
+| `description` | text | 예 | Project 설명 |
+| `is_default` | boolean | 아니요 | Pipeline 자동 연결 기본 Project |
+| `created_at`, `updated_at` | datetime | 아니요 | UTC 시각 |
+
+Alembic 0008은 `pipeline_jobs.project_id` nullable FK와 인덱스를 추가하고 기존 Job을 `Default Project`에 연결한다. History는 별도 테이블이 아니라 Pipeline Job·Voice Profile·최종 File을 조합한 공개 projection이다. Project 삭제 시 FK를 `NULL`로 해제하고 Job과 Storage 파일은 유지한다.
+
 ## `generation_jobs`
 
 | 필드 | 타입 | Null | 설명 |

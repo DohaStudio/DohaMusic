@@ -1,7 +1,7 @@
 # API 개요
 
 > 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
-> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Pipeline + Lyrics API 구현 완료**
+> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Pipeline + Lyrics + History·Project API 구현 완료**
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
@@ -25,6 +25,13 @@
 | `POST` | `/api/pipelines` | 202 | Mock AI·Default Audio Mixer Pipeline Job 생성 |
 | `GET` | `/api/pipelines/{job}` | 200 | 단계·진행률·metadata 조회 |
 | `GET` | `/api/pipelines/{job}/files` | 200 | Pipeline 결과 파일 metadata 조회 |
+| `GET` | `/api/history` | 200 | 최신순 History 목록·검색·상태·페이지네이션 |
+| `GET` | `/api/history/{job}` | 200 | History 상세 조회 |
+| `GET` | `/api/projects` | 200 | Project 목록과 Job 수 조회 |
+| `POST` | `/api/projects` | 201 | Project 생성 |
+| `GET` | `/api/projects/{id}` | 200 | Project와 포함 Job 조회 |
+| `PATCH` | `/api/projects/{id}` | 200 | Project 제목·설명 변경 |
+| `DELETE` | `/api/projects/{id}` | 204 | Project 연결 해제 삭제, Job·파일 유지 |
 | `POST` | `/api/lyrics` | 201 | Template·Mock 가사 초안 생성·저장 |
 | `GET` | `/api/lyrics/{id}` | 200 | 가사 문서 조회 |
 | `POST` | `/api/lyrics/validate` | 200 | 직접 작성 가사 정규화·검증 |

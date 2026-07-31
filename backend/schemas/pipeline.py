@@ -15,12 +15,14 @@ class PipelineCreate(BaseModel):
     duration_seconds: int = Field(default=30, ge=1, le=600)
     seed: int | None = Field(default=None, ge=0, le=2_147_483_647)
     voice_profile_id: str = Field(min_length=36, max_length=36)
+    project_id: str | None = Field(default=None, min_length=36, max_length=36)
 
 
 class PipelineJobRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: str
+    project_id: str | None
     voice_profile_id: str
     status: str
     current_step: str

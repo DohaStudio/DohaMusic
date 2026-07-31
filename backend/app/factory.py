@@ -30,6 +30,7 @@ from backend.pipeline.steps import (
     VoiceConversionStep,
 )
 from backend.services.generation_service import GenerationService
+from backend.services.history_service import HistoryService
 from backend.services.lyrics_service import LyricsService
 from backend.services.pipeline_service import PipelineService
 from backend.services.stem_service import StemService
@@ -152,6 +153,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             session_factory=session_factory,
             dispatcher=dispatcher,
         )
+        app.state.history_service = HistoryService(session_factory=session_factory)
         app.state.lyrics_service = LyricsService(
             session_factory=session_factory,
             generator=lyrics_generator,

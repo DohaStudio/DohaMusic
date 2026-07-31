@@ -7,7 +7,7 @@
 
 ## 목표
 
-Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F4와 F5의 첫 Backend Required 항목인 Pipeline Audio content/download는 구현됐고 나머지 운영 기능은 남아 있다.
+Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F4와 F5의 Pipeline Audio·Voice Profile·History·Project는 구현됐고 나머지 운영 기능은 남아 있다.
 
 ## F0 — Frontend Contract Verification [완료]
 
@@ -89,10 +89,10 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 ## F5 — Projects·Production Readiness [계획]
 
-- Pipeline audio와 Voice Profile upload/list/get 완료; 인증·소유권, history/project, cancel/retry API 연동 잔여
+- Pipeline audio, Voice Profile upload/list/get, History·Project CRUD 완료; 인증·소유권과 cancel/retry API 연동 잔여
 - observability, browser matrix, performance, security review
 - 완료 기준: Phase-08 DoD와 사용자 시나리오 승인
 
 ## 우선순위와 보류
 
-F0~F4는 구현·자동 검증을 완료했다. 첫 F5 Backend 항목으로 Pipeline Job·File 결합 검증, Storage root·symlink·WAV 검증과 Range를 갖춘 content/download API 및 전역 Player를 연결했다. 공개 files DTO는 내부 Storage 경로를 반환하지 않는다. F5 전체는 인증·소유권·History·Project·upload·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.
+F0~F4는 구현·자동 검증을 완료했다. F5에서 보안 content/download·전역 Player, Voice upload, History·Project CRUD와 Default Project 자동 저장을 연결했다. 공개 DTO는 내부 Storage 경로를 반환하지 않으며 Project 삭제는 Job·결과 파일을 보존한다. F5 전체는 인증·소유권·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.

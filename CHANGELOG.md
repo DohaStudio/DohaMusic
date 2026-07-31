@@ -25,6 +25,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### Phase 8 — Doha Studio Frontend MVP
 
+- History 최신순·검색·상태·페이지네이션·상세 API와 Project CRUD·Default Project 자동 연결을 추가했다.
+- Project 삭제 시 Pipeline Job·결과 파일을 보존하고 연결만 해제하는 migration과 ADR-020을 추가했다.
+- `/history`, `/projects`, `/projects/[id]` 화면, Zustand Store, Result 재진입·Player·Download 연결을 추가하고 Phase 8을 `14/15, 93%`로 갱신했다.
+
 - consent 필수 WAV multipart Voice Profile upload와 list/get API, 25MB·5~60초·16kHz·mono/stereo·16-bit PCM·signature/decode 검증을 추가했다.
 - 업로드를 UUID 기반 안전 경로에 atomic 저장하고 실패 temp cleanup, 사용 중 삭제 차단과 관리 파일 삭제 정책을 구현했다.
 - Voice 페이지와 Studio 단계에 Profile 등록·목록·warning·선택·삭제 UX를 연결하고 개발 경로 입력은 기본 비노출로 유지했다.

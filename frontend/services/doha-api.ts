@@ -7,6 +7,10 @@ import type {
   PipelineFileDto,
   PipelineJobDto,
   VoiceProfileDto,
+  HistoryDetailDto,
+  HistoryItemDto,
+  ProjectDetailDto,
+  ProjectDto,
 } from "@/types/api";
 
 export const dohaApi = {
@@ -73,6 +77,32 @@ export const dohaApi = {
     apiRequest<PipelineJobDto>(`/api/pipelines/${id}`, { signal }),
   getPipelineFiles: (id: string) =>
     apiRequest<PipelineFileDto[]>(`/api/pipelines/${id}/files`),
+  getHistory: (options: { limit?: number; offset?: number; status?: string; q?: string } = {}) => {
+    const params = new URLSearchParams();
+    if (options.limit) params.set("limit", String(options.limit));
+    if (options.offset) params.set("offset", String(options.offset));
+    if (options.status) params.set("status", options.status);
+    if (options.q) params.set("q", options.q);
+    const suffix = params.size ? `?${params}` : "";
+    return apiRequest<HistoryItemDto[]>(`/api/history${suffix}`);
+  },
+  getHistoryDetail: (id: string) =>
+    apiRequest<HistoryDetailDto>(`/api/history/${encodeURIComponent(id)}`),
+  getProjects: () => apiRequest<ProjectDto[]>("/api/projects"),
+  getProject: (id: string) =>
+    apiRequest<ProjectDetailDto>(`/api/projects/${encodeURIComponent(id)}`),
+  createProject: (data: { title: string; description?: string }) =>
+    apiRequest<ProjectDto>("/api/projects", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+  updateProject: (id: string, data: { title?: string; description?: string | null }) =>
+    apiRequest<ProjectDto>(`/api/projects/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  deleteProject: (id: string) =>
+    apiRequest<void>(`/api/projects/${encodeURIComponent(id)}`, { method: "DELETE" }),
 };
 
 export function getPipelineFileContentUrl(jobId: string, fileId: string) {

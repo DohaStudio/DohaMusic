@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 8 Doha Studio
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [History](history-management.md), [Project](project-management.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
@@ -121,7 +121,7 @@ sequenceDiagram
 | Pipeline 생성·상태·파일 metadata | 가능 | Studio 핵심 흐름 |
 | 음성 프로필 upload·조회·삭제 | 가능 | 기본 UI는 WAV 등록·목록 선택; 서버 경로 생성과 UUID 직접 입력은 개발 플래그 전용 |
 | 오디오 재생·다운로드 | 가능 | 완료 Pipeline의 capability URL만 사용; 내부 경로 금지 |
-| 프로젝트·생성 이력 목록 | 불가 | 목록 API 선행 필요, 빈 shell만 설계 |
+| 프로젝트·생성 이력 목록 | 가능 | History 검색·상태·페이지네이션, Project CRUD·상세, Result 재진입 |
 | Job 취소·수동 retry | 불가 | 기능 비활성 및 후속 API 표시 |
 | 인증·소유권 | 불가 | 공개 운영 차단 조건 |
 | 모델 목록 | 불가 | `Backend Required`; UI에서 하드코딩된 선택 기능 금지 |

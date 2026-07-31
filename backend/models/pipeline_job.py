@@ -13,6 +13,7 @@ from backend.db.base import Base
 
 if TYPE_CHECKING:
     from backend.models.pipeline_file import PipelineFile
+    from backend.models.project import Project
 
 
 def utc_now() -> datetime:
@@ -27,6 +28,9 @@ class PipelineJob(Base):
     )
     voice_profile_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("voice_profiles.id", ondelete="RESTRICT"), index=True
+    )
+    project_id: Mapped[str | None] = mapped_column(
+        String(36), ForeignKey("projects.id", ondelete="SET NULL"), index=True
     )
     status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     current_step: Mapped[str] = mapped_column(String(100), nullable=False)
@@ -52,3 +56,4 @@ class PipelineJob(Base):
     files: Mapped[list[PipelineFile]] = relationship(
         back_populates="job", cascade="all, delete-orphan"
     )
+    project: Mapped[Project | None] = relationship(back_populates="jobs")

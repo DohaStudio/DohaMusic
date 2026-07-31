@@ -5,6 +5,8 @@ import {
   BookOpenText,
   CircleUserRound,
   Info,
+  FolderKanban,
+  History,
   Mic2,
   Settings2,
   SlidersHorizontal,
@@ -18,6 +20,8 @@ const nav = [
   { href: "/studio", label: "Studio", icon: SlidersHorizontal },
   { href: "/lyrics", label: "Lyrics Lab", icon: BookOpenText },
   { href: "/voice", label: "Voice", icon: Mic2 },
+  { href: "/history", label: "History", icon: History },
+  { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/settings", label: "Settings", icon: Settings2 },
   { href: "/about", label: "About", icon: Info },
 ];
