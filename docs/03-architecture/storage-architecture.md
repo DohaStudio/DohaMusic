@@ -23,4 +23,4 @@ Voice 출력은 `voices/converted/{job_id}.wav`, 실행 metadata는 `voices/meta
 
 K3.4 Preview는 `pipelines/{job_id}/preview_15s.wav` 후보 경로에 원본과 분리해 저장하고 `pipeline_files`의 opaque ID로 등록한다. 내부 상대·절대 경로는 공개 DTO에 포함하지 않으며 기존 secure content/download의 완료 상태·Storage root·symlink·regular file·크기·MIME·RIFF 검증과 `private, no-store`를 재사용한다.
 
-Project 삭제는 현행처럼 Job 연결만 해제하므로 Preview도 보존한다. 향후 Job/Result 삭제는 Preview·분석 metadata를 같은 cleanup unit으로 제거해야 하며, Retry는 새 Job 경로에 새 Preview를 만들고 기존 파일을 복사하지 않는다. K3.0에서는 디렉터리·파일 저장 로직을 변경하지 않는다. 세부 계약은 [Audio Analysis 결과 계약](audio-analysis-result-contract.md)을 따른다.
+K3.1은 새 디렉터리·파일·테이블 없이 기존 `result_metadata.audio_analysis`와 `metadata.json`을 갱신한다. Project 삭제는 Job·분석 metadata를 보존한다. Preview 저장은 K3.4 계획이며 Retry는 새 Job의 새 final WAV를 분석하고 기존 결과를 복사하지 않는다. 세부 계약은 [Audio Analysis 결과 계약](audio-analysis-result-contract.md)을 따른다.

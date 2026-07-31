@@ -63,5 +63,6 @@ OpenVoice와 CosyVoice의 permissive 라이선스는 공식 Singing VC 지원을
 | NumPy | [공식 License](https://numpy.org/doc/2.0/license.html) | BSD-3-Clause | 배포 고지 inventory에 포함 |
 | SciPy | [공식 GitHub LICENSE](https://github.com/scipy/scipy/blob/main/LICENSE.txt) | BSD-3-Clause | bundled component 고지 포함 여부를 배포 artifact에서 재확인 |
 | psutil | [공식 GitHub](https://github.com/giampaolo/psutil) | BSD-3-Clause | 배포 고지 inventory에 포함 |
+| pyloudnorm 0.2.0 | [공식 GitHub](https://github.com/csteinmetz1/pyloudnorm) | MIT | K3.1 Integrated LUFS, 배포 고지 inventory에 포함 |
 
-세 라이브러리는 모델·가중치 라이선스 문제를 추가하지 않지만, binary wheel과 transitive/bundled component의 고지는 실제 Docker·설치 번들 생성 시 다시 고정한다. 이 확인은 제품 전체의 법률 승인과 동일하지 않다.
+네 라이브러리는 모델·가중치 라이선스 문제를 추가하지 않지만, binary wheel과 transitive/bundled component의 고지는 실제 Docker·설치 번들 생성 시 다시 고정한다. 이 확인은 제품 전체의 법률 승인과 동일하지 않다.

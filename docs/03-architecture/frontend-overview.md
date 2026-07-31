@@ -1,7 +1,7 @@
 # Doha Studio Frontend Overview
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 관련 기능: Phase 8 Doha Studio
 > 디자인 기준: 첨부된 Vinyl Music Dashboard 레퍼런스
 > 관련 문서: [Frontend Architecture](frontend-architecture.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [지원 범위](#frontend-지원-범위), [디자인 레퍼런스 정책](design-reference-policy.md)
@@ -81,9 +81,9 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 | `Backend Required` | 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
 
-K-POP 3종 Preset과 Prompt Preview에 K2 Structured Options를 연결했다. Frontend는 typed snake_case DTO를 보내고 Backend Compiler가 최종 Prompt 권위가 된다. History·Project·Result에는 공개 allowlist 설정 요약만 표시하며 실제 BPM 검출·Hook timestamp·Audio Analysis는 `Planned`다.
+K-POP 3종 Preset과 Prompt Preview에 K2 Structured Options를 연결했다. Frontend는 typed snake_case DTO를 보내고 Backend Compiler가 최종 Prompt 권위가 된다. K3.1은 allowlist `audio_analysis` DTO를 안전한 camelCase view model로 파싱해 Result 전체 지표와 History·Project 간결 상태를 표시한다. 실제 BPM 검출·Hook timestamp·Preview는 `Planned`다.
 
-K3.0은 향후 Result 후처리 UX만 정의했다. `분석 중`, `분석 완료`, `일부 분석 실패`, `분석할 수 없음`을 Pipeline 생성 상태와 분리하고, “예상 템포: 약 123 BPM”, “Hook 후보: 00:42~00:57”, “분석 신뢰도: 보통”처럼 추정임을 표시한다. “정확한 BPM”, “확정된 후렴”, “AI가 완벽히 찾음”은 금지한다. K3.1~K3.4 API 구현 전에는 UI·typed DTO·capability를 추가하지 않는다.
+`분석 중`, `완료`, `일부 완료`, `분석 실패`, `미지원`은 Pipeline 상태와 분리한다. Result는 길이·sample rate·mono/stereo·dBFS·clipping·LUFS와 safe warning을 label·unit로 제공하고, 구형 Result는 분석 정보 없음으로 표시한다. `COMPLETED`이면서 분석이 `PENDING`인 동안만 polling과 `aria-live`를 유지한다. History·Project는 상태·clipping·LUFS만 표시한다. 실제 BPM·Hook/Chorus·Preview와 True Peak UI는 없다.
 
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.
 

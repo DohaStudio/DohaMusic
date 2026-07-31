@@ -10,6 +10,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
+from backend.audio_analysis import AudioAnalysisResult, AudioQualityAnalyzer
 from backend.core.job_status import JobStatus
 from backend.core.logging import get_logger
 from backend.kpop.options import public_generation_metadata
@@ -33,10 +34,12 @@ class PipelineWorker:
         session_factory: Callable[[], Session],
         executor: PipelineExecutor,
         storage: StorageService,
+        audio_quality_analyzer: AudioQualityAnalyzer,
     ) -> None:
         self.session_factory = session_factory
         self.executor = executor
         self.storage = storage
+        self.audio_quality_analyzer = audio_quality_analyzer
 
     def run(self, job_id: str) -> None:
         started_at = time.perf_counter()
@@ -78,6 +81,9 @@ class PipelineWorker:
                 self._ensure_not_cancelled(repository, job)
                 metadata = self._metadata(context, started_at, success=True)
                 metadata.update(self._kpop_metadata(job.input_snapshot))
+                metadata["audio_analysis"] = AudioAnalysisResult.pending().model_dump(
+                    mode="json"
+                )
                 metadata_path = self._write_metadata(job.id, metadata)
                 context.metadata_file = metadata_path
                 self._ensure_not_cancelled(repository, job)
@@ -85,6 +91,7 @@ class PipelineWorker:
                     job, metadata, self._file_entries(context)
                 ):
                     raise PipelineCancelled
+                self._complete_audio_analysis(repository, job, context, metadata)
                 logger.info(
                     "pipeline_worker_completed job_id=%s duration_ms=%s",
                     job_id,
@@ -225,6 +232,56 @@ class PipelineWorker:
             json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         return path
+
+    def _complete_audio_analysis(
+        self,
+        repository: PipelineRepository,
+        job: Any,
+        context: PipelineContext,
+        metadata: dict[str, Any],
+    ) -> None:
+        """Best-effort post-processing after the Pipeline success boundary."""
+
+        if context.output_file is None:
+            analysis = AudioAnalysisResult.failed()
+        else:
+            try:
+                analysis = self.audio_quality_analyzer.analyze(context.output_file)
+            except Exception:
+                logger.exception("audio_analysis_failed job_id=%s", job.id)
+                analysis = AudioAnalysisResult.failed()
+
+        updated_metadata = dict(metadata)
+        updated_metadata["audio_analysis"] = analysis.model_dump(mode="json")
+        try:
+            repository.set_metadata(job, updated_metadata)
+        except Exception:
+            repository.session.rollback()
+            logger.exception("audio_analysis_metadata_save_failed job_id=%s", job.id)
+            updated_metadata = dict(metadata)
+            updated_metadata["audio_analysis"] = (
+                AudioAnalysisResult.failed().model_dump(mode="json")
+            )
+            try:
+                repository.set_metadata(job, updated_metadata)
+            except Exception:
+                repository.session.rollback()
+                logger.exception(
+                    "audio_analysis_failure_metadata_save_failed job_id=%s", job.id
+                )
+                return
+        try:
+            self._write_metadata(job.id, updated_metadata)
+        except OSError:
+            logger.exception(
+                "audio_analysis_file_metadata_save_failed job_id=%s", job.id
+            )
+        logger.info(
+            "audio_analysis_completed job_id=%s status=%s version=%s",
+            job.id,
+            analysis.analysis_status.value,
+            analysis.audio_analysis_version,
+        )
 
     @staticmethod
     def _kpop_metadata(snapshot: object) -> dict[str, object]:

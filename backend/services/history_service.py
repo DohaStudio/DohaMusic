@@ -44,6 +44,7 @@ class HistoryService:
             retry_of_job_id=job.retry_of_job_id,
             generation_options=job.generation_options,
             kpop_prompt_compiler_version=job.kpop_prompt_compiler_version,
+            audio_analysis=job.audio_analysis,
         )
 
     def list_history(

@@ -4,6 +4,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from backend.audio_analysis import PublicAudioAnalysis
 from backend.kpop.options import KPopGenerationOptions
 
 
@@ -21,6 +22,7 @@ class HistoryItemRead(BaseModel):
     retry_of_job_id: str | None
     generation_options: KPopGenerationOptions | None = None
     kpop_prompt_compiler_version: str | None = None
+    audio_analysis: PublicAudioAnalysis | None = None
 
 
 class HistoryDetailRead(HistoryItemRead):

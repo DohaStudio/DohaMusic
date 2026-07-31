@@ -1,7 +1,7 @@
 # K-POP Creation Control Roadmap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 관련 기능: Phase 8 이후 K-POP 제품 고도화 Track
 > 관련 문서: [제품 정의](../docs/02-product/kpop-creation-product-definition.md), [K3 제품 정의](../docs/02-product/k3-audio-analysis-product-definition.md), [ADR-022](../docs/11-decisions/ADR-022-kpop-generation-control-layer.md), [ADR-023](../docs/11-decisions/ADR-023-audio-analysis-and-preview-architecture.md), [EVAL-008](../reports/evaluations/EVAL-008-audio-analysis-validation.md)
 
@@ -54,12 +54,12 @@ DoD: 제품 정의, 결과 계약, 실패 정책, 라이브러리 비교, EVAL-0
 
 차단 조건: Pipeline 성공과 분석 성공의 혼동, Sample Peak/True Peak 혼동, 내부 경로 공개, confidence·fallback·cleanup 미정.
 
-### K3.1 — Audio Quality Metrics MVP [계획]
+### K3.1 — Audio Quality Metrics MVP [완료]
 
-- [ ] duration·sample rate·channels·Sample Peak
-- [ ] clipping 여부·sample count·ratio
-- [ ] Integrated LUFS
-- [ ] True Peak는 표준/reference 검증 통과 시만 포함, 아니면 후속 유지
+- [x] duration·sample rate·channels·Sample Peak
+- [x] clipping 여부·sample count·ratio
+- [x] pyloudnorm BS.1770 기반 Integrated LUFS
+- [x] True Peak는 Sample Peak와 구분해 미지원 유지
 
 DoD: final WAV fixture·invalid·silence·short·mono/stereo·sample rate reference 검증, 실패 비차단, version·공개 allowlist와 성능 기록 완료.
 
@@ -106,4 +106,4 @@ DoD: Dataset manifest·라이선스·동의·분리, RTX 3060 Ti 8GB 실측, Ada
 
 ## 구현 순서
 
-K1 Preset MVP → K2 Structured Options → K3.0 계약·평가 문서까지 완료했다. 다음 구현은 별도 PR의 K3.1 Audio Quality Metrics MVP이며 K3.2 Tempo → K3.3 Hook Candidate → K3.4 Preview → K4 Model Adaptation 순서다. K3.0 문서 완료를 K3 기능 완료로 표시하지 않는다.
+K1 Preset MVP → K2 Structured Options → K3.0 계약·평가 문서 → K3.1 Audio Quality Metrics MVP까지 완료했다. 다음 구현은 별도 PR의 K3.2 Tempo이며 K3.3 Hook Candidate → K3.4 Preview → K4 Model Adaptation 순서다.

@@ -1,7 +1,7 @@
 # K-POP Generation Options 계약
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 관련 기능: K-POP Preset·Generation Options
 > 관련 문서: [제품 정의](../02-product/kpop-creation-product-definition.md), [Prompt Compiler](kpop-prompt-compiler.md), [Capability Matrix](../04-models/kpop-provider-capability-matrix.md)
 
@@ -77,4 +77,4 @@
 
 공개 Job·History·Project·Result metadata는 검증된 `generation_options`와 `kpop_prompt_compiler_version`만 allowlist로 반환한다. 내부 Snapshot 전체, compiled prompt, PID·절대 경로·API Key·Provider secret은 공개하지 않는다. `detected_bpm`, Hook timestamp와 Audio Analysis 필드는 K2 DTO가 받지 않는다.
 
-K3.0은 `requested_bpm` 같은 Prompt 목표와 최종 WAV의 `detected_bpm`·Hook/Chorus 후보를 별도 계약으로 분리했다. 실제 분석·Preview는 K3.1~K3.4 계획이며 세부 의미와 신뢰도는 [K3 Audio Analysis 제품 정의](../02-product/k3-audio-analysis-product-definition.md)를 따른다.
+K3.0은 `requested_bpm` 같은 Prompt 목표와 최종 WAV 측정·추정을 별도 계약으로 분리했다. K3.1 Quality Metrics는 완료됐지만 BPM·Hook/Chorus·Preview는 K3.2~K3.4 계획이며 세부 의미와 신뢰도는 [K3 Audio Analysis 제품 정의](../02-product/k3-audio-analysis-product-definition.md)를 따른다.

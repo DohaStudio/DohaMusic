@@ -8,6 +8,8 @@ import { dohaApi } from "@/services/doha-api";
 import { useHistoryStore } from "@/stores/history-store";
 import { usePlayerStore } from "@/stores/player-store";
 import { GenerationOptionsSummary } from "@/features/kpop/generation-options-summary";
+import { AudioQualitySummary } from "@/features/audio/audio-quality-summary";
+import { parseAudioAnalysis } from "@/lib/audio-analysis";
 
 const tones: Record<string, string> = {
   PENDING: "neutral",
@@ -66,7 +68,7 @@ export function HistoryList() {
       {store.loading ? <div className="history-skeleton" aria-label="만든 음악을 불러오는 중"><span /><span /><span /></div> : store.items.length === 0 ? <div className="empty-state"><h2>아직 만든 음악이 없습니다.</h2><p>스타일과 목소리를 골라 첫 곡을 만들어 보세요.</p><Link className="button" href="/studio">첫 음악 만들기</Link></div> : (
         <div className="history-list">{store.items.map((item) => (
           <article key={item.job_id} className="history-row">
-            <div><h2>{item.title}</h2><p>{new Date(item.created_at).toLocaleString("ko-KR")} · {item.voice_profile_name} · {item.duration}초</p><GenerationOptionsSummary options={item.generation_options} retryOfJobId={item.retry_of_job_id} /></div>
+            <div><h2>{item.title}</h2><p>{new Date(item.created_at).toLocaleString("ko-KR")} · {item.voice_profile_name} · {item.duration}초</p><GenerationOptionsSummary options={item.generation_options} retryOfJobId={item.retry_of_job_id} /><AudioQualitySummary compact analysis={parseAudioAnalysis(item.audio_analysis)} /></div>
             <Badge tone={tones[item.status] ?? "neutral"}>{statusLabel(item.status)}</Badge>
             <span>{item.has_audio ? "재생 가능" : "아직 재생할 수 없음"}</span>
             <div className="actions">{item.has_audio && <><Button onClick={() => void playJob(item.job_id)}>재생</Button><Button className="secondary" onClick={() => void downloadJob(item.job_id)}>다운로드</Button></>}{item.can_cancel && item.status !== "CANCEL_REQUESTED" && <Button className="danger" onClick={() => void cancelJob(item.job_id)}>취소</Button>}{item.can_retry && <Button onClick={() => void retryJob(item.job_id)}>다시 만들기</Button>}<Link className="button secondary" href={item.status === "COMPLETED" ? `/result/${item.job_id}` : `/generation/${item.job_id}`}>열기</Link></div>

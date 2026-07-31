@@ -2,7 +2,7 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
@@ -21,6 +21,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### K-POP Creation Control Layer
 
+- Provider-neutral `AudioQualityAnalyzer`와 SciPy WAV decode·NumPy Sample Peak/clipping·pyloudnorm BS.1770 Integrated LUFS 구현을 추가했다.
+- `final.wav`와 Pipeline Result를 먼저 `COMPLETED`로 확정한 뒤 versioned `result_metadata.audio_analysis`를 비차단 갱신해 분석·저장 실패가 재생·다운로드를 막지 않도록 했다.
+- Pipeline·History·Project 공개 DTO와 Frontend parser를 allowlist로 제한하고 Result 전체 품질 요약, History·Project 간결 상태, 구형·partial·failed fallback을 추가했다.
+- mono/stereo·sine·silence·clipping·short·invalid fixture, LUFS reference, Pipeline 완료 경쟁·실패·Retry·DTO, Frontend·Desktop/Mobile E2E와 30/60초 성능을 검증해 K3.1을 `[완료]`로 갱신했다.
+- DB Migration·Provider 변경 없이 K3.2 Tempo, K3.3 Hook/Chorus Candidate, K3.4 Preview와 True Peak는 구현하지 않았다.
 - K3.0 Audio Analysis의 최종 `final.wav` 분석 source, 비차단 Pipeline 성공 경계, versioned Result metadata JSON, 공개 allowlist와 secure Preview 수명주기를 정의했다.
 - Quality Metrics·Tempo·Hook Candidate·15초 Preview를 K3.1~K3.4로 분리하고 confidence·실패·Cancel·Retry/Re-analysis·fallback·단계별 DoD를 문서화했다.
 - Audio Analysis 라이브러리·ITU-R BS.1770-5·EBU R 128 후보 비교, EVAL-008 검증 계획과 ADR-023을 추가했다. 코드·DTO·DB·의존성은 변경하지 않았고 K3 기능은 `[계획]`으로 유지했다.

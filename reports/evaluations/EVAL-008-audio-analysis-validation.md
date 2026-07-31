@@ -1,14 +1,14 @@
 # EVAL-008: Audio Analysis 검증 계획
 
-> 상태: [계획]
+> 상태: [진행 중 — K3.1 완료, K3.2~K3.4 계획]
 > 작성일: 2026-07-31
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 관련 기능: K3.1~K3.4 Audio Quality·Tempo·Hook·Preview 평가
 > 관련 문서: [K3 제품 정의](../../docs/02-product/k3-audio-analysis-product-definition.md), [라이브러리 비교](../../docs/01-research/audio-analysis-library-comparison.md), [EVAL-007](EVAL-007-kpop-dance-generation.md)
 
 ## 목적과 원칙
 
-K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검증한다. 이번 문서는 평가 설계이며 실측·청취 결과를 기록하지 않는다. 생성 음원과 개인 음성은 Git에 커밋하지 않는다.
+K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검증한다. K3.1 자동 fixture·Pipeline·API·Frontend·성능 결과를 기록했으며 K3.2~K3.4는 평가 설계를 유지한다. 생성 음원과 개인 음성은 Git에 커밋하지 않았다.
 
 ## 공통 기록
 
@@ -82,13 +82,34 @@ Hook ground truth는 본질적으로 주관적이므로 “정확도” 단일 �
 
 60초 Stereo WAV 기준 wall/CPU time, peak RSS, file size와 cancellation latency를 측정한다. “일반 CPU에서 수 초~수십 초”는 provisional 예산이며 실제 장비·동시 Job·긴 곡 결과로 K3.1 구현 PR에서 상한을 확정한다. 측정하지 않은 수치를 완료 근거로 사용하지 않는다.
 
+### K3.1 실측 — 2026-08-01
+
+- 환경: Windows, Python 3.12.5, Intel64 Family 6 Model 151, NumPy 1.26.4, SciPy 1.17.1, pyloudnorm 0.2.0
+- 입력: 자체 합성 1 kHz sine, -20 dBFS, 48 kHz Stereo PCM16
+- 측정: 동일 warm process에서 `perf_counter`, 2 ms RSS sampling; 파일 생성 메모리는 baseline 전에 회수
+
+| 길이 | WAV 크기 | wall time | peak RSS 증가 | status | Integrated LUFS |
+|---:|---:|---:|---:|---|---:|
+| 30초 | 5.49 MiB | 0.1161초 | 73.51 MiB | `COMPLETED` | -20.034610 |
+| 60초 | 10.99 MiB | 0.2173초 | 148.32 MiB | `COMPLETED` | -20.034610 |
+
+단일 로컬 관찰값이며 운영 성능 보장이 아니다. 분석은 Pipeline `COMPLETED` 이후 실행하므로 분석 중 취소가 완료 Job을 되돌리지 않음을 integration test로 확인했다. 별도 분석 cancel API가 없어 cancellation latency는 측정 대상이 아니다.
+
+### K3.1 자동 검증 결과
+
+- 1 kHz -20 dBFS mono reference: 약 -23.05 LUFS, 동일 stereo: 약 -20.03 LUFS, 허용 오차 ±0.1 LU
+- mono/stereo·PCM16/24/32·duration·sample rate·Sample Peak·positive/negative clipping scalar count·ratio 통과
+- silence·0.1초 short는 non-finite 값 없이 `PARTIAL`, empty·invalid·missing은 safe `FAILED`, 3채널은 `UNSUPPORTED`
+- 분석 exception·metadata 1회 저장 실패에서도 Pipeline `COMPLETED`와 final WAV file capability 유지
+- 공개 DTO에서 source role·path·command·stack·raw debug 제거, 구형 Result null 호환 확인
+
 ## 완료 판정
 
-- [ ] K3.1 quality reference와 invalid 경계 통과
+- [x] K3.1 quality reference와 invalid 경계 통과
 - [ ] K3.2 BPM error·half/double·confidence calibration 통과
 - [ ] K3.3 Hook 후보 overlap·사용자 유용성 평가 통과
 - [ ] K3.4 정확한 길이·fade·secure access·cleanup 통과
-- [ ] 성능·취소 예산 기록
-- [ ] 실패·partial·unsupported와 구형 Result 회귀 통과
+- [x] K3.1 성능과 완료 경계 기록
+- [x] K3.1 실패·partial·unsupported와 구형 Result 회귀 통과
 
-현재 결과: `[미실행]`
+현재 결과: `K3.1 [완료]`, `K3.2~K3.4 [미실행·계획]`

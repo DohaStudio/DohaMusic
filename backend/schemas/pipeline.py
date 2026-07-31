@@ -5,11 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
 from backend.kpop.options import KPopGenerationOptions
 from backend.kpop.presets import KPOP_PRESET_REGISTRY
+from backend.audio_analysis import PublicAudioAnalysis, sanitize_result_metadata
 
 
 class PipelineCreate(BaseModel):
@@ -53,6 +54,7 @@ class PipelineJobRead(BaseModel):
     seed: int | None
     pipeline_version: str
     result_metadata: dict[str, Any]
+    audio_analysis: PublicAudioAnalysis | None = None
     failed_step: str | None
     error_code: str | None
     error_message: str | None
@@ -66,6 +68,11 @@ class PipelineJobRead(BaseModel):
     can_retry: bool
     generation_options: KPopGenerationOptions | None = None
     kpop_prompt_compiler_version: str | None = None
+
+    @field_validator("result_metadata", mode="before")
+    @classmethod
+    def allowlist_audio_analysis(cls, value: object) -> dict[str, Any]:
+        return sanitize_result_metadata(value)
 
 
 class PipelineCancelRead(BaseModel):

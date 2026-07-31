@@ -41,6 +41,21 @@ const pipeline = {
   retry_of_job_id: null,
   can_cancel: false,
   can_retry: false,
+  audio_analysis: {
+    audio_analysis_version: "1.0",
+    analysis_status: "COMPLETED",
+    quality: {
+      duration_seconds: 30,
+      sample_rate: 48000,
+      channels: 2,
+      sample_peak_dbfs: -1.2,
+      clipping_detected: false,
+      clipping_sample_count: 0,
+      clipping_ratio: 0,
+      integrated_lufs: -13.8,
+    },
+    warnings: [],
+  },
 };
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("doha-studio-settings", JSON.stringify({ state: { reducedMotion: null, onboardingCompleted: true }, version: 0 })));
@@ -112,10 +127,13 @@ async function mockBackend(
     }),
   );
   await page.route("**/backend/api/history**", (route) =>
-    route.fulfill({ json: [{ job_id: "job-001", project_id: "project-001", title: "새벽 도시 R&B", status: "COMPLETED", created_at: pipeline.created_at, duration: 30, voice_profile_name: "Doha Voice", has_audio: true, can_cancel: false, can_retry: false, retry_of_job_id: null, generation_options: latestGenerationOptions }] }),
+    route.fulfill({ json: [{ job_id: "job-001", project_id: "project-001", title: "새벽 도시 R&B", status: "COMPLETED", created_at: pipeline.created_at, duration: 30, voice_profile_name: "Doha Voice", has_audio: true, can_cancel: false, can_retry: false, retry_of_job_id: null, generation_options: latestGenerationOptions, audio_analysis: pipeline.audio_analysis }] }),
   );
   await page.route("**/backend/api/projects", (route) =>
     route.fulfill({ json: [{ id: "project-001", title: "Default Project", description: null, created_at: pipeline.created_at, updated_at: pipeline.updated_at, job_count: 1 }] }),
+  );
+  await page.route("**/backend/api/projects/project-001", (route) =>
+    route.fulfill({ json: { id: "project-001", title: "Default Project", description: null, created_at: pipeline.created_at, updated_at: pipeline.updated_at, job_count: 1, jobs: [{ job_id: "job-001", project_id: "project-001", title: "새벽 도시 R&B", status: "COMPLETED", created_at: pipeline.created_at, duration: 30, voice_profile_name: "Doha Voice", has_audio: true, can_cancel: false, can_retry: false, retry_of_job_id: null, audio_analysis: pipeline.audio_analysis }] } }),
   );
 }
 test("History에서 Result와 Player로 다시 이동한다", async ({ page }) => {
@@ -128,6 +146,33 @@ test("History에서 Result와 Player로 다시 이동한다", async ({ page }) =
   await page.getByRole("link", { name: "열기" }).click();
   await expect(page).toHaveURL(/\/result\/job-001/);
   await expect(page.getByRole("link", { name: "WAV 다운로드" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "오디오 분석" })).toBeVisible();
+  await expect(page.getByText("-13.8 LUFS")).toBeVisible();
+  await expect(page.getByText("감지되지 않음")).toBeVisible();
+});
+
+test("PARTIAL 분석과 구형 Result fallback을 안전하게 표시한다", async ({ page }) => {
+  await mockBackend(page);
+  await page.route("**/backend/api/pipelines/job-001", (route) =>
+    route.fulfill({ json: { ...pipeline, audio_analysis: { ...pipeline.audio_analysis, analysis_status: "PARTIAL", quality: { ...pipeline.audio_analysis.quality, integrated_lufs: null }, warnings: ["통합 음량을 분석하지 못했습니다."] } } }),
+  );
+  await page.goto("/result/job-001");
+  await expect(page.getByText("일부 항목을 분석하지 못했습니다.")).toBeVisible();
+  await expect(page.getByText("통합 음량을 분석하지 못했습니다.")).toBeVisible();
+
+  await page.route("**/backend/api/pipelines/job-001", (route) =>
+    route.fulfill({ json: { ...pipeline, audio_analysis: null } }),
+  );
+  await page.reload();
+  await expect(page.getByText("이 음원에는 품질 분석 정보가 없습니다.")).toBeVisible();
+});
+
+test("History와 Project에서 분석 상태를 간결하게 표시한다", async ({ page }) => {
+  await mockBackend(page);
+  await page.goto("/history");
+  await expect(page.getByText(/분석 완료 · 클리핑 없음 · -13.8 LUFS/)).toBeVisible();
+  await page.goto("/projects/project-001");
+  await expect(page.getByText(/분석 완료 · 클리핑 없음 · -13.8 LUFS/)).toBeVisible();
 });
 test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async ({ page }) => {
   await page.addInitScript(() => {

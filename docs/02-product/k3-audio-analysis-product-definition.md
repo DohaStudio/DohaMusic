@@ -1,15 +1,15 @@
 # K3 Audio Analysis 제품 정의
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-31
-> 관련 기능: K3.0 Audio Analysis 계약·평가 문서
+> 최종 수정일: 2026-08-01
+> 관련 기능: K3.0 계약·평가, K3.1 Audio Quality Metrics MVP
 > 관련 문서: [결과 계약](../03-architecture/audio-analysis-result-contract.md), [실패 정책](../03-architecture/audio-analysis-failure-policy.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
 ## 목적과 제품 경계
 
 K3 Audio Analysis는 생성된 WAV의 기술적 품질과 음악적 특성을 후처리 단계에서 분석해 사용자에게 참고 정보를 제공하는 계층이다. 분석값은 생성 모델의 구조 준수를 보장하지 않으며 오탐·미탐·실패 가능성이 있는 측정 또는 추정 결과다. K3는 K2의 Prompt 목표를 검증할 단서를 제공하지만 Provider를 제어하거나 결과를 교정하지 않는다.
 
-이번 K3.0은 제품·저장·실패·평가 계약만 완료한다. Audio DSP, API DTO, DB, Frontend와 Provider는 변경하지 않으며 K3.1~K3.4는 모두 `[계획]`이다.
+K3.0 계약에 따라 K3.1은 완료 Pipeline의 `final.wav`를 Provider-neutral 후처리로 분석한다. DB·Provider·기존 파일 API는 변경하지 않았으며 K3.2~K3.4는 `[계획]`이다.
 
 ## 값의 의미
 
@@ -50,24 +50,24 @@ Music Generation
 → Final WAV 성공 경계
 → Audio Analysis (비차단)
 → Preview Export (독립 상태)
-→ Result metadata 최종화
+→ Result metadata 분석 결과 갱신
 ```
 
 최종 WAV 생성 성공이 Pipeline 성공 조건이다. Audio Analysis 또는 Preview 실패만으로 재생 가능한 Result를 `FAILED`로 바꾸지 않는다. Pipeline 상태와 별도로 `analysis_status`, `preview.status`를 기록한다. 이 방식은 분석 완료까지 Result 최종화를 기다리는 방식보다 사용자 결과를 보호하고 rollback이 쉽지만, 부분 완료 UX와 후처리 상태 추적이 필요하다.
 
 ## K3 단계
 
-### K3.1 Audio Quality Metrics — [계획]
+### K3.1 Audio Quality Metrics — [완료]
 
 | 분류 | 지표 |
 |---|---|
 | MVP 필수 | duration, sample rate, channels, sample peak dBFS, clipping 여부·sample count·ratio, Integrated LUFS |
-| 조건부 MVP | True Peak dBTP — ITU-R BS.1770 호환 oversampling 구현과 reference 검증을 통과할 때만 |
+| 미지원 | True Peak dBTP — oversampling·reference 검증을 하지 않았으므로 필드도 제공하지 않음 |
 | 후속 권장 | sample format/bit depth, RMS, Loudness Range, silence ratio, section별 loudness |
 | 실험적 | Momentary·Short-term LUFS의 제품 노출 |
 | 미지원 | mastering 승인, 음질 점수 자동 확정 |
 
-오버샘플링 없는 최대 sample 값은 `sample_peak_dbfs`다. 이를 True Peak라고 부르지 않는다. True Peak 구현이 확정되기 전 `true_peak_dbtp`는 `null`이며 capability는 planned다. K3 MVP Loudness는 Integrated LUFS에 한정하고 Momentary(400 ms), Short-term(3 s), Loudness Range는 후속으로 둔다. 기준은 ITU-R BS.1770-5와 EBU R 128/Tech 3341이다.
+오버샘플링 없는 최대 sample 값은 `sample_peak_dbfs`다. 이를 True Peak라고 부르지 않으며 K3.1 JSON·DTO에는 True Peak 필드를 추가하지 않았다. Integrated LUFS는 pyloudnorm 0.2.x의 BS.1770 구현을 사용하고 Momentary(400 ms), Short-term(3 s), Loudness Range는 후속으로 둔다.
 
 DoD:
 
@@ -147,4 +147,4 @@ confidence는 `0.0`~`1.0`이며 알고리즘 검증 전 다음 경계는 provisi
 
 ## 성능 예산
 
-60초 Stereo WAV의 K3.1~K3.3 분석은 일반 로컬 CPU에서 수 초~수십 초 이내를 provisional 목표로 둔다. peak memory, CPU time, wall time, 입력 길이, sample rate, cancellation 관찰 지점을 기록한다. 실제 benchmark 전 고정 숫자를 승인 기준으로 사용하지 않으며 긴 곡과 동시 Job 예산은 K3.1 구현 PR에서 확정한다.
+2026-08-01 Windows·Python 3.12·48 kHz Stereo PCM16 1 kHz sine 로컬 측정에서 K3.1은 30초 0.1161초·peak RSS 증가 73.51 MiB, 60초 0.2173초·148.32 MiB였다. 단일 warm process 관찰값이며 운영 SLO가 아니다. 긴 곡·동시 Job 예산은 후속 운영 검증에서 확정한다.

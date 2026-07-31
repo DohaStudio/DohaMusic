@@ -1,8 +1,8 @@
 # Pipeline Orchestrator
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-31
-> 관련 기능: Phase 5 Mock AI Workflow / Phase 5.1 실제 Audio Mixer
+> 최종 수정일: 2026-08-01
+> 관련 기능: Phase 5 Pipeline / Phase 5.1 Mixer / K3.1 Audio Quality Metrics
 > 관련 문서: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)
 
 ## 책임과 경계
@@ -33,7 +33,7 @@ Mixer의 gain·quality·clipping·CPU·RSS·처리 시간은 Pipeline `result_me
 
 ## K3 비차단 후처리 계약 [계획]
 
-K3.0은 현행 `ExportStep → finalize_success` 구현을 변경하지 않고 다음 목표 경계를 정의한다.
+K3.1은 다음 경계를 구현했다.
 
 ```text
 ExportStep(final.wav)
@@ -43,7 +43,7 @@ ExportStep(final.wav)
 → Result metadata 최종화
 ```
 
-최종 WAV 생성 성공이 Pipeline 성공 조건이며 분석·Preview 실패만으로 Result 전체를 `FAILED`로 바꾸지 않는다. 분석은 final file role을 기본 source로 사용하고 기존 `result_metadata`의 versioned `audio_analysis` JSON을 K3 MVP 저장 후보로 둔다. Preview는 `pipeline_files`와 secure content/download 경계를 재사용한다. 실제 step·status·dispatcher·DTO는 K3.1~K3.4 구현 PR에서 추가한다.
+최종 WAV·기본 metadata·file row와 Pipeline `COMPLETED`를 먼저 확정하고 `PENDING` 분석 metadata를 둔다. 그 뒤 `DefaultAudioQualityAnalyzer`가 final file role의 WAV를 읽어 `audio_analysis` key만 병합한다. 분석 예외·DB 갱신 오류는 Worker 실패 경계 밖에서 처리하므로 Job과 final WAV capability를 되돌리지 않는다. 새 Pipeline step·DB table·Migration·Provider 의존성은 없다. Preview는 K3.4 계획이다.
 
 세부 실패·Cancel·Retry 계약은 [Audio Analysis 실패 정책](audio-analysis-failure-policy.md), 저장 계약은 [결과 계약](audio-analysis-result-contract.md), 결정은 [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)을 따른다.
 
