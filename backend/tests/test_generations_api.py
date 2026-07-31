@@ -42,7 +42,9 @@ def test_create_get_and_list_mock_generation_files(client: TestClient) -> None:
     files = files_response.json()
     assert len(files) == 1
     assert files[0]["file_type"] == "mock_audio"
-    assert files[0]["file_path"].endswith("generated.wav")
+    assert "file_path" not in files[0]
+    assert files[0]["content_available"] is False
+    assert files[0]["download_available"] is False
 
 
 def test_generation_not_found_returns_stable_error(client: TestClient) -> None:

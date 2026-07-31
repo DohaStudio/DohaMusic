@@ -22,8 +22,8 @@ Desktop·Tablet·Mobile Web을 단일 코드베이스로 제공하면서 FastAPI
 | Framework | Next.js App Router | `16.2.12` |
 | UI runtime | React | `19.2.8` |
 | Language | TypeScript | strict, `5.9.3` |
-| Styling | CSS design token + semantic global CSS | runtime CSS-in-JS·Tailwind 미도입 |
-| Client state | Zustand | Studio draft만 `sessionStorage` persist |
+| Styling | CSS design token + 역할별 semantic CSS | token·base·page·layout·component·responsive 분리, runtime CSS-in-JS·Tailwind 미도입 |
+| Client state | Zustand | Studio draft `sessionStorage`, Settings `localStorage` allowlist persist |
 | Server state | TanStack Query | API cache·mutation·adaptive polling |
 | Form | React Hook Form | Studio settings schema form |
 | Validation | Zod | Client form 제약; Backend Pydantic가 최종 권위 |
@@ -34,15 +34,17 @@ Desktop·Tablet·Mobile Web을 단일 코드베이스로 제공하면서 FastAPI
 | E2E | Playwright | Chromium Desktop·Pixel 7 viewport |
 | Lint·format | ESLint 9 + Next Core Web Vitals | 별도 formatter 의존성 미도입 |
 
-Next.js rewrite가 `/backend/*`를 server-only `DOHAMUSIC_API_ORIGIN`으로 전달한다. 기본 브라우저 Base URL은 `/backend`이므로 Backend CORS 설정을 변경하지 않는다.
+Next.js rewrite가 `/backend/*`를 server-only `DOHAMUSIC_API_ORIGIN`으로 전달한다. 기본 브라우저 Base URL은 `/backend`이므로 Backend CORS 설정을 변경하지 않는다. caller 취소와 timeout signal은 `AbortSignal.any()`로 결합한다. 이 API는 Node.js 공식 문서상 v18.17.0·v20.3.0부터 제공되며 현재 Node 24 type/build와 Playwright Chromium 검증 범위에 포함된다.
 
 ## 선택 이유
 
 - App Router가 route, layout, loading, error, 404 경계를 한 코드베이스에서 제공한다.
 - Zustand는 Studio draft에만 사용하고 TanStack Query를 서버 상태의 진실 원천으로 유지한다.
-- 전역 CSS token은 현재 한 개 theme의 MVP에서 utility framework 의존성을 피하면서 반응형·reduced-motion 정책을 중앙화한다.
+- CSS token은 현재 한 개 theme의 MVP에서 utility framework 의존성을 피하고, 역할별 stylesheet는 큰 단일 파일 없이 반응형·reduced-motion 정책을 유지한다.
 - React Hook Form과 Zod는 사용자 입력을 조기에 검증하지만 실제 request DTO 범위는 Pydantic 계약을 따른다.
-- 수동 DTO는 현재 API 규모에서 생성 pipeline을 추가하지 않고 시작할 수 있으며 mapper 테스트로 내부 `file_path` 노출을 차단한다.
+- 수동 DTO는 현재 API 규모에서 생성 pipeline을 추가하지 않고 시작할 수 있다. 내부 `file_path`는 Backend public response schema에서 제거하고 DTO·mapper 계약 테스트로 회귀를 차단한다.
+- reduced motion은 사용자 명시 설정, system preference, 기본값 순이며 실제 구현 값만 저장한다. Studio·Settings persist는 명시 allowlist를 사용하고 비밀·음성 경로·서버 응답을 저장하지 않는다.
+- npm override는 직접 기능 의존성을 바꾸지 않고 audit에서 확인된 취약 transitive package의 수정 버전만 lockfile에 고정한다.
 - animation 요구는 CSS로 충분하여 Framer Motion을 설치하지 않는다.
 
 ## 대안
@@ -55,7 +57,7 @@ Next.js rewrite가 `/backend/*`를 server-only `DOHAMUSIC_API_ORIGIN`으로 전�
 
 ## 장점과 단점
 
-장점은 API와 client state 경계가 명확하고, Desktop·Mobile E2E 및 production build를 같은 npm 명령으로 재현할 수 있다는 점이다. 단점은 수동 DTO drift 가능성과 global CSS selector 범위, Chromium 외 실제 브라우저 검증이 남는다는 점이다.
+장점은 API와 client state 경계가 명확하고, Desktop·Mobile E2E 및 production build를 같은 npm 명령으로 재현할 수 있다는 점이다. 단점은 수동 DTO drift 가능성과 semantic CSS selector 범위, `AbortSignal.any()`가 없는 오래된 브라우저, Chromium 외 실제 브라우저 검증이 남는다는 점이다.
 
 ## 재검토 조건
 
@@ -63,6 +65,8 @@ Next.js rewrite가 `/backend/*`를 server-only `DOHAMUSIC_API_ORIGIN`으로 전�
 - 두 개 이상의 theme 또는 독립 UI package가 필요해 CSS Modules·Tailwind 비교가 필요할 때
 - 복잡한 timeline·gesture가 승인되어 CSS motion만으로 접근성·유지보수가 어려울 때
 - Storybook, PWA, formatter 또는 다중 browser CI가 Phase 8 완료 게이트가 될 때
+- 지원 브라우저 범위에 `AbortSignal.any()` 미지원 runtime이 포함될 때 signal merge helper로 교체 검토
+- transitive override가 upstream 정식 dependency 범위에 반영되거나 호환성 문제가 발생할 때 제거·갱신
 
 ## 관련 PR
 

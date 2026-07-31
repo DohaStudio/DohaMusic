@@ -157,6 +157,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         app.state.voice_profile_service = VoiceProfileService(
             session_factory=session_factory,
+            storage=storage,
         )
         app.state.stem_service = StemService(
             session_factory=session_factory,

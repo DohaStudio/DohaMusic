@@ -5,8 +5,11 @@ import time
 import wave
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from backend.ai.errors import VoiceInferenceError
+from backend.models.stem_file import StemFile
+from backend.models.voice_conversion_file import VoiceConversionFile
 
 
 def wait_for_terminal(
@@ -39,7 +42,13 @@ def prepare_inputs(client: TestClient) -> tuple[str, str]:
 
     storage = client.app.state.storage
     reference = storage.voice_references_dir / "consented-test.wav"
-    shutil.copyfile(storage.resolve_relative_path(vocals["file_path"]), reference)
+    with client.app.state.session_factory() as session:
+        vocal_record = session.scalar(
+            select(StemFile).where(StemFile.id == vocals["id"])
+        )
+        assert vocal_record is not None
+        source_path = storage.resolve_relative_path(vocal_record.file_path)
+    shutil.copyfile(source_path, reference)
     profile = client.post(
         "/api/voice-profiles",
         json={
@@ -69,7 +78,13 @@ def test_create_get_and_list_mock_voice_conversion(client: TestClient) -> None:
     files = client.get(f"/api/voice-conversion/{completed['id']}/files").json()
     assert {item["file_type"] for item in files} == {"converted_voice", "metadata"}
     output = next(item for item in files if item["file_type"] == "converted_voice")
-    path = client.app.state.storage.resolve_relative_path(output["file_path"])
+    assert "file_path" not in output
+    with client.app.state.session_factory() as session:
+        output_record = session.scalar(
+            select(VoiceConversionFile).where(VoiceConversionFile.id == output["id"])
+        )
+        assert output_record is not None
+        path = client.app.state.storage.resolve_relative_path(output_record.file_path)
     with wave.open(str(path), "rb") as audio:
         assert audio.getframerate() == 48_000
         assert audio.getnchannels() == 2
@@ -118,10 +133,9 @@ def test_voice_worker_failure_updates_job(client: TestClient) -> None:
     assert client.get(f"/api/voice-conversion/{failed['id']}/files").json() == []
 
 
-def test_worker_rejects_reference_outside_reference_directory(
+def test_api_rejects_reference_outside_reference_directory(
     client: TestClient,
 ) -> None:
-    source_file_id, _ = prepare_inputs(client)
     profile = client.post(
         "/api/voice-profiles",
         json={
@@ -130,12 +144,5 @@ def test_worker_rejects_reference_outside_reference_directory(
             "consent_confirmed": True,
         },
     )
-    response = client.post(
-        "/api/voice-conversion",
-        json={
-            "source_file_id": source_file_id,
-            "voice_profile_id": profile.json()["id"],
-        },
-    )
-    failed = wait_for_terminal(client, "/api/voice-conversion", response.json()["id"])
-    assert failed["status"] == "FAILED"
+    assert profile.status_code == 422
+    assert profile.json()["error"]["code"] == "INVALID_VOICE_REFERENCE_PATH"

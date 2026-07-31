@@ -17,7 +17,6 @@ class VoiceProfileRead(BaseModel):
 
     id: str
     name: str
-    reference_file_path: str
     consent_confirmed: bool
     created_at: datetime
     updated_at: datetime

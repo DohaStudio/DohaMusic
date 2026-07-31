@@ -34,6 +34,7 @@ class VoiceConversionFileRead(BaseModel):
     id: str
     job_id: str
     file_type: str
-    file_path: str
     mime_type: str
     created_at: datetime
+    content_available: bool = False
+    download_available: bool = False

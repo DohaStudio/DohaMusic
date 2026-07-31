@@ -52,8 +52,9 @@ async function mockBackend(page: Page) {
           id: "file-1",
           job_id: "job-001",
           file_type: "final",
-          file_path: "C:/internal/final.wav",
           mime_type: "audio/wav",
+          content_available: false,
+          download_available: false,
           created_at: "2026-07-31T00:00:01Z",
         },
       ],
@@ -93,6 +94,7 @@ test("미지원 Voice upload는 반응형 화면에서 disabled다", async ({
   await expect(
     page.getByRole("button", { name: /음성 파일 업로드/ }),
   ).toBeDisabled();
+  await expect(page.getByLabel("서버 참조 파일 경로")).toHaveCount(0);
   if (testInfo.project.name === "mobile") {
     await expect(
       page.getByRole("navigation", { name: "모바일 메뉴" }),
@@ -102,4 +104,62 @@ test("미지원 Voice upload는 반응형 화면에서 disabled다", async ({
       page.getByRole("navigation", { name: "주요 메뉴" }),
     ).toBeVisible();
   }
+});
+
+test("Template 가사는 의미 기반 revision을 활성화하지 않는다", async ({
+  page,
+}) => {
+  await mockBackend(page);
+  await page.route("**/backend/api/lyrics", (route) =>
+    route.fulfill({
+      status: 201,
+      json: {
+        id: "lyrics-1",
+        parent_id: null,
+        version: 1,
+        revision_instruction: null,
+        source_hash: null,
+        result_hash: null,
+        title: "Template 가사",
+        language: "ko",
+        topic: "밤",
+        genre: "R&B",
+        mood: "따뜻한",
+        keywords: [],
+        structure: ["verse", "chorus"],
+        sections: [],
+        full_text: "[Verse]\n빛나는 거리",
+        provider: "template",
+        model_name: "template",
+        model_version: null,
+        status: "GENERATED",
+        metadata: { capabilities: { revision: false } },
+        created_at: "2026-07-31T00:00:00Z",
+        updated_at: "2026-07-31T00:00:00Z",
+      },
+    }),
+  );
+
+  await page.goto("/lyrics");
+  await page.getByLabel("주제").fill("밤");
+  await page.getByRole("button", { name: "가사 생성" }).click();
+
+  await expect(page.getByText("의미 기반 수정 미지원")).toBeVisible();
+  await expect(page.getByLabel("수정 지시")).toHaveCount(0);
+});
+
+test("네트워크 오류에서도 Job ID를 보존하고 수동 재조회를 제공한다", async ({
+  page,
+}) => {
+  await page.route("**/backend/api/pipelines/network-job", (route) =>
+    route.abort("failed"),
+  );
+
+  await page.goto("/generation/network-job");
+
+  await expect(page.getByText("Backend 연결이 불안정합니다")).toBeVisible();
+  await expect(page.getByText(/Job은 취소되지 않았습니다/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "수동 재조회" })).toBeVisible();
+  await page.reload();
+  await expect(page).toHaveURL(/\/generation\/network-job/);
 });

@@ -1,0 +1,143 @@
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 218px minmax(0, 1fr) 320px;
+  grid-template-rows: minmax(calc(100vh - 92px), auto) 92px;
+  background: #111;
+}
+.sidebar {
+  grid-row: 1/3;
+  padding: 30px 22px 20px;
+  border-right: 1px solid #2b2927;
+  background: linear-gradient(180deg, #171717, #111);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+.sidebar nav {
+  display: grid;
+  gap: 7px;
+  margin-top: 50px;
+}
+.sidebar nav a {
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+.sidebar nav a.active {
+  background: #282321;
+  color: white;
+  border-left: 3px solid var(--red);
+}
+.sidebar-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+}
+.sidebar-foot span {
+  display: grid;
+}
+.sidebar-foot small {
+  color: var(--muted);
+}
+.main-workspace {
+  padding: 30px;
+  min-width: 0;
+  background: radial-gradient(circle at 50% 0, #211f1c 0, transparent 34%);
+}
+.context-panel {
+  padding: 26px 24px;
+  border-left: 1px solid #2b2927;
+  background: linear-gradient(145deg, #ead7bd, #cbb598);
+  color: #171513;
+}
+.context-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+.context-copy,
+.studio-context {
+  margin-top: 80px;
+}
+.context-copy h2,
+.studio-context h2 {
+  font-size: 2rem;
+  line-height: 1.15;
+}
+.context-copy > p:not(.eyebrow),
+.studio-context > p:not(.eyebrow) {
+  color: #5f554b;
+}
+.studio-context .vinyl {
+  margin: 0 auto 30px;
+}
+.studio-context dl > div {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #a99782;
+  font-size: 0.78rem;
+}
+.player-shell {
+  grid-column: 2/4;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 28px;
+  background: #171717;
+  border-top: 1px solid #302e2b;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+.player-shell > div:nth-child(2) {
+  display: grid;
+  min-width: 180px;
+}
+.player-shell small {
+  color: var(--muted);
+}
+.mini-art {
+  width: 54px;
+  height: 54px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--beige), var(--red));
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+.player-shell button {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-left: auto;
+}
+.wave {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex: 1;
+  opacity: 0.5;
+}
+.wave i {
+  width: 3px;
+  background: var(--red);
+  border-radius: 3px;
+}
+.mobile-header,
+.mobile-nav {
+  display: none;
+}

@@ -6,8 +6,10 @@ import wave
 
 import pytest
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
 from backend.core.job_status import JobStatus
+from backend.models.pipeline_file import PipelineFile
 from backend.pipeline.context import PipelineContext
 from backend.pipeline.errors import StepTimeoutError, ValidationError
 from backend.pipeline.executor import PipelineExecutor
@@ -97,7 +99,15 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
         "metadata",
     }
     final = next(item for item in files if item["file_type"] == "final")
-    final_path = client.app.state.storage.resolve_relative_path(final["file_path"])
+    assert all("file_path" not in item for item in files)
+    with client.app.state.session_factory() as session:
+        final_record = session.scalar(
+            select(PipelineFile).where(PipelineFile.id == final["id"])
+        )
+        assert final_record is not None
+        final_path = client.app.state.storage.resolve_relative_path(
+            final_record.file_path
+        )
     with wave.open(str(final_path), "rb") as audio:
         assert audio.getframerate() == 48_000
         assert audio.getnchannels() == 2

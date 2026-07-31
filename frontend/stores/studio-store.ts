@@ -21,7 +21,15 @@ interface StudioActions {
   setStep: (step: StudioStep) => void;
   reset: () => void;
 }
-const initial: StudioDraft = { currentStep: "settings", prompt: "", genre: "R&B", durationSeconds: 30, lyricsMode: "generate", lyricsText: "", voiceProfileId: "" };
+const initial: StudioDraft = {
+  currentStep: "settings",
+  prompt: "",
+  genre: "R&B",
+  durationSeconds: 30,
+  lyricsMode: "generate",
+  lyricsText: "",
+  voiceProfileId: "",
+};
 
 export const useStudioStore = create<StudioDraft & StudioActions>()(
   persist(

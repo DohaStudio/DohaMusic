@@ -13,6 +13,8 @@
 
 Phase 5 Pipeline과 Phase 6 Lyrics API를 사용한다. upload/download·audio content·Voice Profile list/get·프로젝트 이력·Job cancel·기존 Job retry·인증·소유권은 API가 없어 완료 범위가 아니다. 관련 control은 disabled이며 가짜 데이터는 사용하지 않는다.
 
+이번 hardening은 공개 파일 경로 차단, Voice 참조 경로 검증, API 오류·polling 안정화와 구조 정리다. 새로운 사용자 핵심 기능이나 아래 미완료 DoD를 완료하지 않으므로 진행률은 `8 / 15 × 100 = 53%`로 유지한다.
+
 ## 완료 체크리스트
 
 - [x] Frontend 프로젝트와 공통 UI 구조
@@ -34,7 +36,10 @@ Phase 5 Pipeline과 Phase 6 Lyrics API를 사용한다. upload/download·audio c
 ## 검증 증거
 
 - `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build` 통과
-- Playwright Chromium Desktop·Mobile에서 Landing → Studio → Lyrics → Voice ID → Review → Pipeline → Result 흐름과 미지원 action disabled 상태 통과
+- `npm ci`, `npm audit` 통과, 취약점 0건
+- Vitest 27개 unit·component test 통과
+- Playwright Chromium Desktop·Mobile 8개 E2E에서 Landing → Studio → Lyrics → Voice ID → Review → Pipeline → Result, Voice 개발 입력 기본 비노출, Template revision 비활성, 네트워크 오류·Job URL 복원 통과
+- Backend non-GPU `pytest`: 107 passed, GPU·외부 실행 6 skipped; Ruff check·format check 통과
 - FastAPI `GET /health`와 Next.js `/backend/health` proxy 응답 `ok` 확인
 
 ## 완료 조건

@@ -1,2 +1,36 @@
 import { AppShell } from "@/components/app-shell";
-export default function AboutPage(){return <AppShell><section className="page-stack narrow"><header className="page-heading"><p className="eyebrow">ABOUT DOHA MUSIC</p><h1>사람의 의도를 중심에 둔 AI 음악 도구</h1><p>DohaMusic은 특정 모델에 종속되지 않는 개인 음악 생성 AI 프로젝트입니다.</p></header><article className="surface-card prose"><h2>어떻게 동작하나요?</h2><p>Frontend는 DohaMusic FastAPI만 호출합니다. Backend의 Orchestrator가 Music, Stem, Voice, Mixer 모듈을 순서대로 관리하며 각 Provider는 Adapter 경계 뒤에 격리됩니다.</p><h2>안전 원칙</h2><p>본인 음성 또는 명시적 동의를 받은 음성만 사용합니다. 개인 음성 binary, API key, 내부 Storage 경로는 브라우저 상태에 보관하거나 화면에 노출하지 않습니다.</p><h2>현재 한계</h2><p>오디오 streaming·download, Voice upload·목록, History, Project, 인증·소유권은 Backend API가 준비된 뒤 연결합니다.</p></article></section></AppShell>}
+export default function AboutPage() {
+  return (
+    <AppShell>
+      <section className="page-stack narrow">
+        <header className="page-heading">
+          <p className="eyebrow">ABOUT DOHA MUSIC</p>
+          <h1>사람의 의도를 중심에 둔 AI 음악 도구</h1>
+          <p>
+            DohaMusic은 특정 모델에 종속되지 않는 개인 음악 생성 AI
+            프로젝트입니다.
+          </p>
+        </header>
+        <article className="surface-card prose">
+          <h2>어떻게 동작하나요?</h2>
+          <p>
+            Frontend는 DohaMusic FastAPI만 호출합니다. Backend의 Orchestrator가
+            Music, Stem, Voice, Mixer 모듈을 순서대로 관리하며 각 Provider는
+            Adapter 경계 뒤에 격리됩니다.
+          </p>
+          <h2>안전 원칙</h2>
+          <p>
+            본인 음성 또는 명시적 동의를 받은 음성만 사용합니다. 개인 음성
+            binary, API key, 내부 Storage 경로는 브라우저 상태에 보관하거나
+            화면에 노출하지 않습니다.
+          </p>
+          <h2>현재 한계</h2>
+          <p>
+            오디오 streaming·download, Voice upload·목록, History, Project,
+            인증·소유권은 Backend API가 준비된 뒤 연결합니다.
+          </p>
+        </article>
+      </section>
+    </AppShell>
+  );
+}
