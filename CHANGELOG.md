@@ -8,6 +8,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서
+
+- Phase 2 사용자 청취 평가 점수와 근거를 EVAL-001에 반영하고, 미평가 2건을 남긴 채 ACE-Step을 조건부 채택으로 기록했다.
+
 ### Phase 6.6~6.9 — Local Lyrics LLM
 
 #### 문서

@@ -1,8 +1,8 @@
 # ADR-006: ACE-Step 1차 음악 생성 Provider 채택
 
-> 상태: **보류됨**
+> 상태: **조건부 채택**
 > 작성일: 2026-07-29
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 관련 작업: Phase 2.5 품질·반복 추론 평가
 
 ## 배경과 문제
@@ -11,14 +11,19 @@ ACE-Step 1.5는 RTX 3060 Ti 8GB에서 Backend Adapter와 반복 추론에 성공
 
 ## 결정
 
-ACE-Step을 선택적 `ace_step` Provider로 유지하되 기본 Provider 채택은 보류한다. 기본값은 `DOHAMUSIC_MUSIC_GENERATOR=mock`으로 유지한다.
+ACE-Step Provider를 조건부 채택한다. Instrumental 생성 경로는 사용 가능하다고 판단하지만, 운영 기본 Provider 또는 제품 기본값으로 확정하지 않는다. 애플리케이션 전역 기본값은 `DOHAMUSIC_MUSIC_GENERATOR=mock`으로 유지한다.
+
+한국어 가창에는 no LM 설정을 기본값으로 채택하지 않는다. 0.6B LM 설정을 우선 실험 후보로 사용하며, 그 결과를 후속 음색 변환 입력으로 사용할 수 있는지 추가 검증한다. 검증 결과를 운영 Pipeline에 자동 연결하지 않는다.
 
 ## 선택 이유
 
 - 두 상주 suite 총 12/12 실행과 0.6B LM 1회가 성공했다.
 - 같은 Seed는 고정 환경에서 PCM 수준 재현됐고 다른 Seed는 서로 다른 파형이었다.
 - 모든 WAV가 48kHz stereo·20초·비무음·비클리핑 기계 검증을 통과했다.
-- 사용자 청취 평가가 없어 한국어 발음·가사·음악 품질을 승인할 근거가 없다.
+- 일부 사용자 청취 평가에서 Instrumental 활용 가능성과 0.6B LM의 한국어 가사 전달력 개선을 확인했다.
+- no LM 한국어 결과는 가사가 누락되거나 모음 중심 발성에 머물러 기본 설정으로 부적합했다.
+- `B-EXP001`과 `K-NOLM-20260732`는 아직 사용자 평가가 필요하다.
+- 20초 단일 0.6B LM 표본만 평가했으므로 장시간 생성, 전체 곡 구조, 한국어 발음 안정성, 반복 생성 안정성은 검증되지 않았다.
 - 기술적 1차 라이선스 확인과 제품 법률 승인은 구분해야 한다.
 
 ## 대안
@@ -29,9 +34,9 @@ ACE-Step을 선택적 `ace_step` Provider로 유지하되 기본 Provider 채택
 
 ## 장단점과 영향
 
-Mock 기본값은 모델이 없는 개발 환경과 테스트를 안정적으로 유지한다. 사용자는 환경 변수를 명시해야 실제 ACE-Step을 실행한다. 반면 실제 제품 경로의 기본 동작 확정은 늦어진다.
+Mock 기본값은 모델이 없는 개발 환경과 테스트를 안정적으로 유지한다. 사용자는 환경 변수를 명시해야 실제 ACE-Step을 실행한다. 조건부 채택으로 Instrumental과 0.6B LM 실험은 이어갈 수 있지만, 실제 제품 경로의 기본 동작 확정은 늦어진다.
 
-API·DB 계약은 바뀌지 않는다. 0.6B LM도 Backend 기본 설정에 추가하지 않는다.
+API·DB 계약과 실제 Provider 설정은 바뀌지 않는다. 0.6B LM도 Backend 기본 설정에 추가하지 않는다.
 
 ## 마이그레이션
 
@@ -39,9 +44,10 @@ API·DB 계약은 바뀌지 않는다. 0.6B LM도 Backend 기본 설정에 추�
 
 ## 재검토 조건
 
-- [EVAL-001](../../reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)의 필수 항목 완료
+- [EVAL-001](../../reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)의 `B-EXP001`과 `K-NOLM-20260732`를 포함한 필수 항목 완료
 - 한국어 발음·가사·음악성의 합격 기준 합의
 - 후속 음색 변환에 사용할 수 있다는 사용자 판정
+- 장시간·전체 곡 구조·반복 생성 안정성 검증
 - 법률·배포 검토 및 운영 실패 기준 확정
 
 근거는 [EXP-002](../../reports/experiments/EXP-002-ace-step-quality-and-stability.md)와 develop 대상 Phase 2.5 PR에서 추적한다.

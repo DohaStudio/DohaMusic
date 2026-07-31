@@ -2,7 +2,7 @@
 
 > 상태: [진행 중]
 > 진행률: 14/15, 93%
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-2-music-generation--진행-중), [Music Generation Adapter](../04-models/music-generation-adapter.md)
 
 ## 목표
@@ -39,9 +39,11 @@ Phase 1 Backend Foundation과 RTX 3060 Ti 8GB 실행 환경이 필요하다.
 - [x] `develop` 병합과 `main` 무변경 확인
 - [ ] EVAL-001 사용자 청취 평가 후 기본 Provider 채택 여부 확정
 
+  중간 결론: 일부 사용자 청취 평가를 완료했다. no LM 한국어 가창은 부적합하고 0.6B LM은 한국어 가창 실험 후보이며, ACE-Step은 조건부 채택 상태다. 현재 기본 Provider는 `mock`을 유지한다. `B-EXP001`과 `K-NOLM-20260732` 평가 후 Phase 2 종료 여부를 최종 판단한다.
+
 ## 완료 조건
 
-기술 구현뿐 아니라 EVAL-001의 한국어 발음·가사 정렬·음악성·잡음 판정과 ADR-006 상태 갱신이 필요하다. 현재 기본 Provider는 `mock`이다.
+기술 구현뿐 아니라 EVAL-001의 남은 두 사용자 평가와 한국어 발음·가사 정렬·음악성·잡음 최종 판정이 필요하다. 현재 ACE-Step은 조건부 채택이며 기본 Provider는 `mock`이다.
 
 ## 산출물
 
