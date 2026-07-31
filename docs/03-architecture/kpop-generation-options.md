@@ -1,15 +1,15 @@
 # K-POP Generation Options 계약
 
-> 문서 상태: [계획]
+> 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
 > 관련 기능: K-POP Preset·Generation Options
 > 관련 문서: [제품 정의](../02-product/kpop-creation-product-definition.md), [Prompt Compiler](kpop-prompt-compiler.md), [Capability Matrix](../04-models/kpop-provider-capability-matrix.md)
 
 ## 현재 계약과 확장 경계
 
-현재 `PipelineCreate`는 `prompt`, `lyrics`, `genre`, `duration_seconds`, `seed`, `voice_profile_id`, `project_id`만 검증하며 `input_snapshot`은 이 DTO를 그대로 저장한다. K1 Frontend는 Preset을 컴파일한 `prompt`와 `genre`만 이 계약으로 전송한다. `generation_options`는 아직 API·DB·Frontend에 구현되지 않았다.
+현재 `PipelineCreate`는 기존 필드에 optional `generation_options`를 추가해 하위 호환을 유지한다. 중첩 `KPopGenerationOptions`, `LanguageRatio`, `HookOptions`는 알 수 없는 필드를 거부하고 Backend가 최종 검증·컴파일 권위가 된다.
 
-향후 확장은 기존 필드를 유지하고 optional `generation_options`를 추가한다. 기존 요청은 동일하게 동작해야 하며 알 수 없는 옵션을 조용히 무시하지 않는다. 구현 전에는 해당 필드를 받지 않고, 구현 후에는 명시적 validation error 또는 capability 비활성화로 처리한다.
+`generation_options`가 없으면 기존 요청과 동일하게 동작한다. 값이 있으면 `preset_id`의 canonical genre와 기존 `genre`가 일치해야 하며 불일치는 `PRESET_GENRE_MISMATCH`로 거부한다. Preset이 genre를 조용히 덮어쓰지 않는다.
 
 ```json
 {
@@ -62,13 +62,10 @@
 | `hook.phrase` | 아니오 | 없음 | trim 후 1~40자 | PROMPT_COMPILED | Lyrics·Music Hook 지시 | 예 | 예 |
 | `hook.style` | 아니오 | `title_repeat` | 초기 `title_repeat`, `chant` | PROMPT_COMPILED | Hook 문장 | 예 | 예 |
 | `hook.repeat_count` | 아니오 | 2 | 정수 1~6 | PROMPT_COMPILED | 반복 목표 | 예 | 예 |
-| `hook.target_seconds` | 아니오 | 없음 | 3~15초, 목표값일 뿐 길이 보장 안 함 | METADATA_ONLY | Preview 설계 목표 | 예 | 예 |
-| `hook.language` | 아니오 | `mixed` | `ko`, `en`, `mixed` | PROMPT_COMPILED | Lyrics 지시 | 예 | 예 |
-| `hook.section` | 아니오 | `chorus` | `chorus`, `post_chorus` | PROMPT_COMPILED | 구조 지시 | 예 | 예 |
 | `include_post_chorus` | 아니오 | Preset값 | boolean | PROMPT_COMPILED | 구조 문장 | 예 | 예 |
-| `include_dance_break` | 아니오 | false | boolean | `NOT_SUPPORTED`에서 시작 | Capability 지원 후에만 | 예 | 예 |
+| `include_dance_break` | 아니오 | Preset값 | boolean | PROMPT_COMPILED | 구조 문장 | 예 | 예 |
 | `vocal_energy` | 아니오 | Preset값 | `low`, `medium`, `high` | PROMPT_COMPILED | 보컬 에너지 문장 | 예 | 예 |
-| `concept` | 아니오 | Preset값 | allowlist 또는 trim 후 1~40자 | PROMPT_COMPILED | Mood·Concept 문장 | 예 | 예 |
+| `concept` | 아니오 | Preset값 | trim 후 최대 40자, 제어문자 금지, 빈 문자열은 `null` | PROMPT_COMPILED | Mood·Concept 문장 | 예 | 예 |
 
 `language_ratio`는 Lyrics Prompt의 목표 비율이며 정확한 문자·음절 비율을 보장하지 않는다. 생성 후 검증은 후속 단계다.
 
@@ -76,4 +73,6 @@
 
 충돌 시 `사용자 명시 Prompt > 사용자 Custom 옵션 > Preset 기본값 > 시스템 기본값` 순서다. 충돌을 삭제하지 않고 최종 Prompt Preview와 compile warning에 남긴다.
 
-Snapshot에는 원본 `generation_options`, 정규화된 옵션, `compiler_version`, 최종 Provider-neutral Prompt, warning을 저장한다. 내부 PID·절대 경로·비밀 옵션·Provider secret은 Public DTO나 Snapshot에 넣지 않는다.
+기존 JSON `input_snapshot`에 원본 `prompt`·`generation_options`, `compiled_prompt`, `normalized_generation_options`, `compiler_version`, `compiler_warnings`를 저장한다. 별도 DB 컬럼이나 Migration은 없다. Retry는 원본 Prompt와 옵션을 다시 검증·컴파일해 새 Job을 만들며 구형 Snapshot은 기존 경로로 처리한다.
+
+공개 Job·History·Project·Result metadata는 검증된 `generation_options`와 `kpop_prompt_compiler_version`만 allowlist로 반환한다. 내부 Snapshot 전체, compiled prompt, PID·절대 경로·API Key·Provider secret은 공개하지 않는다. `detected_bpm`, Hook timestamp와 Audio Analysis 필드는 K2 DTO가 받지 않는다.

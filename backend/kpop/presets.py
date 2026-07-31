@@ -16,6 +16,12 @@ class PresetDefinition:
     default_prompt: str
     default_mood: str
     default_energy: str
+    default_requested_bpm: int
+    default_language_ratio: tuple[int, int]
+    default_include_post_chorus: bool
+    default_include_dance_break: bool
+    default_vocal_energy: str
+    default_concept: str
 
 
 _PRESET_DEFINITIONS = (
@@ -31,6 +37,12 @@ _PRESET_DEFINITIONS = (
         ),
         default_mood="bright, confident",
         default_energy="high",
+        default_requested_bpm=124,
+        default_language_ratio=(70, 30),
+        default_include_post_chorus=True,
+        default_include_dance_break=False,
+        default_vocal_energy="medium",
+        default_concept="confident_bright",
     ),
     PresetDefinition(
         id="kpop_easy_listening",
@@ -44,6 +56,12 @@ _PRESET_DEFINITIONS = (
         ),
         default_mood="warm, fresh",
         default_energy="medium",
+        default_requested_bpm=104,
+        default_language_ratio=(80, 20),
+        default_include_post_chorus=True,
+        default_include_dance_break=False,
+        default_vocal_energy="low",
+        default_concept="warm_fresh",
     ),
     PresetDefinition(
         id="kpop_performance",
@@ -57,6 +75,12 @@ _PRESET_DEFINITIONS = (
         ),
         default_mood="bold, intense",
         default_energy="high",
+        default_requested_bpm=142,
+        default_language_ratio=(60, 40),
+        default_include_post_chorus=True,
+        default_include_dance_break=True,
+        default_vocal_energy="high",
+        default_concept="bold_performance",
     ),
 )
 

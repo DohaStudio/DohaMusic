@@ -60,6 +60,7 @@ export interface LyricsCreateDto {
   target_duration_seconds?: number;
   additional_instructions?: string;
   allow_template_fallback: boolean;
+  generation_options?: KPopGenerationOptionsDto;
 }
 export interface VoiceProfileDto {
   id: string;
@@ -85,6 +86,21 @@ export interface PipelineCreateDto {
   seed?: number;
   voice_profile_id: string;
   project_id?: string;
+  generation_options?: KPopGenerationOptionsDto;
+}
+export interface KPopGenerationOptionsDto {
+  preset_id: "kpop_dance" | "kpop_easy_listening" | "kpop_performance";
+  requested_bpm?: number;
+  language_ratio?: { ko: number; en: number };
+  hook?: {
+    phrase: string;
+    style: "title_repeat" | "chant";
+    repeat_count: number;
+  };
+  include_post_chorus?: boolean;
+  include_dance_break?: boolean;
+  vocal_energy?: "low" | "medium" | "high";
+  concept?: string;
 }
 export interface PipelineJobDto {
   id: string;
@@ -111,6 +127,8 @@ export interface PipelineJobDto {
   retry_of_job_id: string | null;
   can_cancel: boolean;
   can_retry: boolean;
+  generation_options?: KPopGenerationOptionsDto | null;
+  kpop_prompt_compiler_version?: string | null;
 }
 export interface PipelineCancelDto {
   job_id: string;
@@ -132,6 +150,8 @@ export interface HistoryItemDto {
   can_cancel: boolean;
   can_retry: boolean;
   retry_of_job_id: string | null;
+  generation_options?: KPopGenerationOptionsDto | null;
+  kpop_prompt_compiler_version?: string | null;
 }
 export interface HistoryDetailDto extends HistoryItemDto {
   prompt: string;

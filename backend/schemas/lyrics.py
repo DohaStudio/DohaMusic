@@ -23,6 +23,7 @@ from backend.lyrics.constants import (
     SUPPORTED_SECTION_TYPES,
 )
 from backend.lyrics.validator import normalize_plain_text, normalize_section_type
+from backend.kpop.options import KPopGenerationOptions
 
 
 class LyricsCreate(BaseModel):
@@ -43,6 +44,7 @@ class LyricsCreate(BaseModel):
         default=None, max_length=MAX_INSTRUCTIONS_LENGTH
     )
     allow_template_fallback: bool = False
+    generation_options: KPopGenerationOptions | None = None
 
     @model_validator(mode="after")
     def use_kpop_structure_when_omitted(self) -> LyricsCreate:
@@ -51,6 +53,17 @@ class LyricsCreate(BaseModel):
             and self.genre in KPOP_PRESET_GENRES
         ):
             self.structure = list(KPOP_STRUCTURE)
+        return self
+
+    @model_validator(mode="after")
+    def validate_generation_options_genre(self) -> LyricsCreate:
+        if self.generation_options is None:
+            return self
+        if self.genre is not None and self.genre != self.generation_options.preset_id:
+            raise ValueError("genre must match generation_options.preset_id")
+        self.genre = self.generation_options.preset_id
+        if self.generation_options.include_post_chorus is False:
+            self.structure = [item for item in self.structure if item != "post_chorus"]
         return self
 
     @field_validator("topic", "genre", "mood", "additional_instructions")

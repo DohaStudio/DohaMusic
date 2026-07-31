@@ -36,11 +36,13 @@ ACE-Step 0.6B LM은 실행 가능성만 확인됐으며 단일 표본에서 no-L
     "language_ratio": "prompt_compiled",
     "hook_phrase": "prompt_compiled",
     "post_chorus": "prompt_compiled",
-    "dance_break": "not_supported",
+    "dance_break": "prompt_compiled",
+    "vocal_energy": "prompt_compiled",
+    "concept": "prompt_compiled",
     "detected_bpm": "not_supported",
     "hook_preview": "not_supported"
   }
 }
 ```
 
-K1에서 Preset은 `PROMPT_COMPILED` 방식으로 구현했지만 이 JSON 형태의 Capability API는 아직 구현하지 않았다. Frontend는 Preset 3종과 Prompt Preview만 제공하고 실제 BPM·Hook·분석 제어를 활성화하지 않는다.
+K2에서 위 Structured Options는 `PROMPT_COMPILED`로 구현했다. 별도 Capability endpoint는 추가하지 않고 문서와 Frontend typed 상수 계약을 사용한다. `detected_bpm`, Hook timestamp와 Preview 분석은 계속 `NOT_SUPPORTED`이며 Prompt 기반 지시를 실제 수치 제어로 표현하지 않는다.

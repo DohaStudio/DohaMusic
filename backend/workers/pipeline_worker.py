@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from backend.core.job_status import JobStatus
 from backend.core.logging import get_logger
+from backend.kpop.options import public_generation_metadata
 from backend.pipeline.context import PipelineContext
 from backend.pipeline.errors import PipelineError
 from backend.pipeline.executor import PipelineExecutor
@@ -76,6 +77,7 @@ class PipelineWorker:
                 )
                 self._ensure_not_cancelled(repository, job)
                 metadata = self._metadata(context, started_at, success=True)
+                metadata.update(self._kpop_metadata(job.input_snapshot))
                 metadata_path = self._write_metadata(job.id, metadata)
                 context.metadata_file = metadata_path
                 self._ensure_not_cancelled(repository, job)
@@ -170,6 +172,7 @@ class PipelineWorker:
             for item in metadata["errors"]
         ):
             metadata["errors"].append(final_error)
+        metadata.update(self._kpop_metadata(job.input_snapshot))
         metadata_path = self._write_metadata(job.id, metadata)
         repository.add_file(
             job.id,
@@ -222,6 +225,16 @@ class PipelineWorker:
             json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8"
         )
         return path
+
+    @staticmethod
+    def _kpop_metadata(snapshot: object) -> dict[str, object]:
+        options, version = public_generation_metadata(snapshot)
+        if options is None:
+            return {}
+        return {
+            "generation_options": options,
+            "kpop_prompt_compiler_version": version,
+        }
 
     def _file_entries(self, context: PipelineContext) -> list[tuple[str, str, str]]:
         entries = (

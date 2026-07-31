@@ -4,6 +4,8 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from backend.kpop.options import KPopGenerationOptions
+
 
 class HistoryItemRead(BaseModel):
     job_id: str
@@ -17,6 +19,8 @@ class HistoryItemRead(BaseModel):
     can_cancel: bool
     can_retry: bool
     retry_of_job_id: str | None
+    generation_options: KPopGenerationOptions | None = None
+    kpop_prompt_compiler_version: str | None = None
 
 
 class HistoryDetailRead(HistoryItemRead):

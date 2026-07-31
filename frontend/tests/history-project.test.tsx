@@ -34,4 +34,14 @@ describe("History and Projects", () => {
     fireEvent.click(screen.getByRole("button", { name: "프로젝트 만들기" }));
     await waitFor(() => expect(dohaApi.createProject).toHaveBeenCalledWith({ title: "Album", description: undefined }));
   });
+
+  it("History에 K-POP 설정 요약을 안전하게 표시한다", async () => {
+    vi.mocked(dohaApi.getHistory).mockResolvedValue([{
+      job_id: "job", project_id: "project", title: "Dance", status: "COMPLETED", created_at: "2026-07-31", duration: 30, voice_profile_name: "Voice", has_audio: false, can_cancel: false, can_retry: false, retry_of_job_id: "source",
+      generation_options: { preset_id: "kpop_dance", requested_bpm: 124, hook: { phrase: "Play My Heart", style: "title_repeat", repeat_count: 3 }, vocal_energy: "medium", concept: "confident_bright" },
+    }]);
+    render(<HistoryList />);
+    expect(await screen.findByText(/K-POP Dance · 124 BPM 목표 · Hook: Play My Heart/)).toBeInTheDocument();
+    expect(screen.getByText(/다시 만든 작업/)).toBeInTheDocument();
+  });
 });

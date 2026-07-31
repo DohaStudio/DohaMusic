@@ -6,6 +6,15 @@
 | 코드 | 의미 |
 |---|---|
 | `INVALID_INPUT` | API 요청 형식 또는 범위 오류 |
+| `INVALID_KPOP_PRESET` | 지원하지 않는 K-POP Preset |
+| `INVALID_REQUESTED_BPM` | 70~180 범위를 벗어난 목표 BPM |
+| `INVALID_LANGUAGE_RATIO` | 한국어·영어 비율 범위 또는 합계 오류 |
+| `INVALID_HOOK_OPTIONS` | Hook 문구·방식·반복 횟수 오류 |
+| `INVALID_VOCAL_ENERGY` | 허용되지 않은 보컬 에너지 |
+| `INVALID_CONCEPT` | Concept 길이·제어문자 오류 |
+| `INVALID_GENERATION_OPTIONS` | 알 수 없는 Structured Option 등 K-POP 설정 오류 |
+| `PRESET_GENRE_MISMATCH` | Preset canonical genre와 요청 genre 불일치 |
+| `INVALID_KPOP_PROMPT` | 모방 방지 또는 컴파일 길이 제한 위반 |
 | `RESOURCE_NOT_FOUND` | Job 또는 음성 프로필 없음 |
 | `INTERNAL_ERROR` | 처리되지 않은 API 내부 예외 |
 | `MOCK_GENERATION_FAILED` | Mock 생성 실패 |

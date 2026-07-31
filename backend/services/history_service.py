@@ -23,10 +23,17 @@ class HistoryService:
     @staticmethod
     def _item(row: tuple[object, str, bool]) -> HistoryItemRead:
         job, voice_name, has_audio = row
+        original_prompt = (
+            job.input_snapshot.get("original_prompt")
+            if isinstance(job.input_snapshot, dict)
+            else None
+        )
         return HistoryItemRead(
             job_id=job.id,
             project_id=job.project_id,
-            title=job.prompt[:200],
+            title=(original_prompt if isinstance(original_prompt, str) else job.prompt)[
+                :200
+            ],
             status=job.status,
             created_at=job.created_at,
             duration=job.duration_seconds,
@@ -35,6 +42,8 @@ class HistoryService:
             can_cancel=job.can_cancel,
             can_retry=job.can_retry,
             retry_of_job_id=job.retry_of_job_id,
+            generation_options=job.generation_options,
+            kpop_prompt_compiler_version=job.kpop_prompt_compiler_version,
         )
 
     def list_history(
@@ -55,7 +64,11 @@ class HistoryService:
             job = row[0]
             return HistoryDetailRead(
                 **item.model_dump(),
-                prompt=job.prompt,
+                prompt=(
+                    job.input_snapshot.get("original_prompt", job.prompt)
+                    if isinstance(job.input_snapshot, dict)
+                    else job.prompt
+                ),
                 genre=job.genre,
                 completed_at=job.completed_at,
             )

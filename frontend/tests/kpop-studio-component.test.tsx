@@ -23,4 +23,17 @@ describe("K-POP Studio Preset", () => {
       "kpop_easy_listening",
     );
   });
+
+  it("고급 설정을 키보드로 열고 옵션을 수정·초기화한다", async () => {
+    const user = userEvent.setup();
+    render(<MusicSettingsStep />);
+    await user.click(screen.getByText("K-POP 고급 설정"));
+    const bpm = screen.getByLabelText("목표 BPM");
+    await user.clear(bpm);
+    await user.type(bpm, "130");
+    expect(useStudioStore.getState().generationOptions.requestedBpm).toBe(130);
+    expect(screen.getByRole("button", { name: "Post-Chorus" })).toHaveAttribute("aria-pressed", "true");
+    await user.click(screen.getByRole("button", { name: "현재 스타일 기본값으로 초기화" }));
+    expect(useStudioStore.getState().generationOptions.requestedBpm).toBe(124);
+  });
 });

@@ -10,6 +10,7 @@ from sqlalchemy import JSON, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.base import Base
+from backend.kpop.options import public_generation_metadata
 
 if TYPE_CHECKING:
     from backend.models.pipeline_file import PipelineFile
@@ -81,3 +82,11 @@ class PipelineJob(Base):
     @property
     def can_retry(self) -> bool:
         return self.status in {"FAILED", "CANCELLED"}
+
+    @property
+    def generation_options(self) -> dict[str, object] | None:
+        return public_generation_metadata(self.input_snapshot)[0]
+
+    @property
+    def kpop_prompt_compiler_version(self) -> str | None:
+        return public_generation_metadata(self.input_snapshot)[1]

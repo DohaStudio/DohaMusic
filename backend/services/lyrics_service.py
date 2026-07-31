@@ -61,6 +61,35 @@ class LyricsService:
             target_duration_seconds=request.target_duration_seconds,
             additional_instructions=request.additional_instructions,
             allow_template_fallback=request.allow_template_fallback,
+            language_ratio=(
+                (
+                    request.generation_options.language_ratio.ko,
+                    request.generation_options.language_ratio.en,
+                )
+                if request.generation_options
+                and request.generation_options.language_ratio
+                else None
+            ),
+            hook_phrase=(
+                request.generation_options.hook.phrase
+                if request.generation_options and request.generation_options.hook
+                else None
+            ),
+            hook_style=(
+                request.generation_options.hook.style
+                if request.generation_options and request.generation_options.hook
+                else None
+            ),
+            hook_repeat_count=(
+                request.generation_options.hook.repeat_count
+                if request.generation_options and request.generation_options.hook
+                else None
+            ),
+            include_post_chorus=(
+                request.generation_options.include_post_chorus
+                if request.generation_options
+                else None
+            ),
         )
         try:
             result = self.generator.generate(generation_request)
@@ -99,6 +128,11 @@ class LyricsService:
             ],
             "target_duration_seconds": request.target_duration_seconds,
             "additional_instructions_provided": bool(request.additional_instructions),
+            "generation_options": (
+                request.generation_options.model_dump(mode="json")
+                if request.generation_options
+                else None
+            ),
             "generation_time_seconds": result.generation_time_seconds,
             "validation_time_seconds": validation_time,
             "character_count": validation.character_count,

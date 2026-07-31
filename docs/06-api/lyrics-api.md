@@ -8,6 +8,8 @@
 
 `POST /api/lyrics`는 동기적으로 Template, Mock 또는 명시 선택된 Experimental OpenAI 초안을 생성·검증·저장하고 `201 Created`를 반환한다. 기본값은 Template다.
 
+K-POP 장르에서는 optional `generation_options`의 언어 비율 목표, Hook 문구·방식·반복과 Post-Chorus 포함 여부를 Template 지시에 반영한다. 정확한 토큰 비율이나 오디오 Hook 위치는 보장하지 않으며 unknown option은 거부한다.
+
 ```json
 {
   "topic": "끝난 사랑을 기억하는 밤",

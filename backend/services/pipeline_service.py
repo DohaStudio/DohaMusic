@@ -13,6 +13,10 @@ from sqlalchemy.orm import Session
 from backend.core.exceptions import AppError, ResourceNotFoundError
 from backend.core.job_status import JobStatus
 from backend.core.logging import get_logger
+from backend.kpop.prompt_compiler import (
+    KPopPromptCompiler,
+    KPopPromptValidationError,
+)
 from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
 from backend.models.project import Project
@@ -60,9 +64,10 @@ class PipelineService:
 
     def create(self, request: PipelineCreate) -> PipelineJob:
         logger.info("pipeline_request_started")
+        persisted_request, input_snapshot = self._prepare_request(request)
         with self.session_factory() as session:
             repository = PipelineRepository(session)
-            profile = repository.get_profile(request.voice_profile_id)
+            profile = repository.get_profile(persisted_request.voice_profile_id)
             if profile is None:
                 raise ResourceNotFoundError("음성 프로필")
             if not profile.consent_confirmed:
@@ -70,11 +75,16 @@ class PipelineService:
                     "VOICE_CONSENT_REQUIRED", "음성 사용 동의가 필요합니다.", 400
                 )
             if (
-                request.project_id is not None
-                and repository.session.get(Project, request.project_id) is None
+                persisted_request.project_id is not None
+                and repository.session.get(Project, persisted_request.project_id)
+                is None
             ):
                 raise ResourceNotFoundError("Project")
-            job = repository.create(request, self.pipeline_version)
+            job = repository.create(
+                persisted_request,
+                self.pipeline_version,
+                input_snapshot=input_snapshot,
+            )
             logger.info("pipeline_job_created job_id=%s", job.id)
             session.expunge(job)
         self.dispatcher.submit(job.id)
@@ -135,36 +145,87 @@ class PipelineService:
                     "사용한 목소리를 더 이상 사용할 수 없어 다시 만들 수 없습니다.",
                     409,
                 )
-            snapshot = source.input_snapshot or {
-                "prompt": source.prompt,
-                "lyrics": source.lyrics,
-                "genre": source.genre,
-                "duration_seconds": source.duration_seconds,
-                "seed": source.seed,
-                "voice_profile_id": source.voice_profile_id,
-                "project_id": source.project_id,
+            snapshot = dict(
+                source.input_snapshot
+                or {
+                    "prompt": source.prompt,
+                    "lyrics": source.lyrics,
+                    "genre": source.genre,
+                    "duration_seconds": source.duration_seconds,
+                    "seed": source.seed,
+                    "voice_profile_id": source.voice_profile_id,
+                    "project_id": source.project_id,
+                }
+            )
+            request_values = {
+                key: snapshot[key]
+                for key in PipelineCreate.model_fields
+                if key in snapshot
             }
             if (
                 source.project_id is not None
                 and repository.session.get(Project, source.project_id) is None
             ):
-                snapshot["project_id"] = None
+                request_values["project_id"] = None
             try:
-                request = PipelineCreate.model_validate(snapshot)
+                request = PipelineCreate.model_validate(request_values)
             except ValueError as error:
                 raise AppError(
                     "PIPELINE_RETRY_INPUT_MISSING",
                     "기존 음악 설정을 확인할 수 없어 다시 만들 수 없습니다.",
                     409,
                 ) from error
+            persisted_request, input_snapshot = self._prepare_request(request)
             job = repository.create(
-                request,
+                persisted_request,
                 self.pipeline_version,
                 retry_of_job_id=source.id,
+                input_snapshot=input_snapshot,
             )
             session.expunge(job)
         self.dispatcher.submit(job.id)
         return job
+
+    @staticmethod
+    def _prepare_request(
+        request: PipelineCreate,
+    ) -> tuple[PipelineCreate, dict[str, object]]:
+        if request.generation_options is None:
+            return request, request.model_dump(mode="json")
+        try:
+            result = KPopPromptCompiler().compile(
+                request.generation_options.preset_id,
+                request.prompt,
+                options=request.generation_options,
+            )
+        except KPopPromptValidationError as error:
+            raise AppError(
+                "INVALID_KPOP_PROMPT",
+                "K-POP Prompt 설정을 확인해 주세요.",
+                422,
+            ) from error
+        if result.normalized_options is None:
+            raise RuntimeError("K-POP options were not normalized")
+        snapshot = request.model_dump(mode="json")
+        snapshot.update(
+            {
+                "original_prompt": request.prompt,
+                "compiled_prompt": result.prompt,
+                "normalized_generation_options": result.normalized_options.model_dump(
+                    mode="json"
+                ),
+                "compiler_version": result.compiler_version,
+                "compiler_warnings": list(result.warnings),
+            }
+        )
+        persisted_request = request.model_copy(
+            update={
+                "prompt": result.prompt,
+                "genre": result.genre,
+                "generation_options": result.normalized_options,
+            }
+        )
+        return persisted_request, snapshot
 
     def list_files(self, job_id: str) -> list[PipelineFile]:
         with self.session_factory() as session:

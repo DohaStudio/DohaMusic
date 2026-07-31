@@ -15,9 +15,21 @@
   "genre": "ballad",
   "duration_seconds": 30,
   "seed": 20260729,
-  "voice_profile_id": "UUID"
+  "voice_profile_id": "UUID",
+  "generation_options": {
+    "preset_id": "kpop_dance",
+    "requested_bpm": 124,
+    "language_ratio": { "ko": 70, "en": 30 },
+    "hook": { "phrase": "Play My Heart", "style": "title_repeat", "repeat_count": 3 },
+    "include_post_chorus": true,
+    "include_dance_break": false,
+    "vocal_energy": "medium",
+    "concept": "confident_bright"
+  }
 }
 ```
+
+`generation_options`는 optional이며 없으면 기존 요청과 동일하게 동작한다. 모든 중첩 DTO는 unknown field를 거부한다. `requested_bpm`은 70~180 정수, 언어 비율 합은 100, Hook은 1~40자·1~6회, 에너지는 `low|medium|high`, Concept은 제어문자 없는 최대 40자다. `preset_id`와 `genre` 불일치는 `422 PRESET_GENRE_MISMATCH`다.
 
 `voice_profile_id`는 존재하고 동의가 확인돼야 한다. 참조 파일은 설정된 Storage의 `voices/references` 아래에 있어야 한다.
 
@@ -48,11 +60,11 @@ Files response는 `id`, `job_id`, `file_type`, `mime_type`, `created_at`, `conte
 - `POST /api/pipelines/{job_id}/cancel`: `PENDING`은 즉시 `CANCELLED`, 실행 중은 `CANCEL_REQUESTED`를 반환한다. `CANCEL_REQUESTED`와 `CANCELLED` 재호출은 현재 상태를 반환하며 `COMPLETED`·`FAILED`는 `409 PIPELINE_CANCEL_NOT_ALLOWED`다.
 - `POST /api/pipelines/{job_id}/retry`: `FAILED`·`CANCELLED` 입력 스냅샷으로 새 Job을 만들고 `202`와 `source_job_id`, 새 `job`을 반환한다. 같은 원본의 중복 요청은 기존 재시도 Job을 반환한다.
 
-공개 Job DTO는 `can_cancel`, `can_retry`, `cancel_requested_at`, `cancelled_at`, `retry_of_job_id`를 제공한다. Retry는 동일 prompt·lyrics·genre·duration·seed·voice profile·Project를 재검증하며 Voice Profile이 없거나 비활성 상태면 `409 RETRY_VOICE_PROFILE_UNAVAILABLE`다. PID·명령·내부 경로·Worker 정보는 반환하지 않는다.
+공개 Job DTO는 `can_cancel`, `can_retry`, `cancel_requested_at`, `cancelled_at`, `retry_of_job_id`, allowlist `generation_options`, `kpop_prompt_compiler_version`을 제공한다. Retry는 원본 prompt·options·lyrics·genre·duration·seed·voice profile·Project를 재검증하고 Backend Compiler로 새 compiled prompt를 만든다. 구형 Snapshot에는 기존 경로를 사용하며 Voice Profile이 없거나 비활성 상태면 `409 RETRY_VOICE_PROFILE_UNAVAILABLE`다. PID·명령·내부 경로·Worker 정보와 Snapshot 전체는 반환하지 않는다.
 
 취소는 Job 시작 전, 각 단계 시작 전과 완료 후, metadata·파일·최종 결과 저장 전에 확인하는 cooperative 방식이다. 현재 Provider subprocess의 안전한 process ownership handle이 없으므로 실행 중 단일 추론의 즉시 종료는 보장하지 않는다.
 
-응답의 `result_metadata`에는 Pipeline 버전, Provider·모델, seed, 전체·단계 시간, attempt, VRAM 가능한 값, 성공 여부, 실패 단계와 오류가 포함된다. Mock AI 실행의 GPU·VRAM은 추측하지 않고 `null`로 기록한다. Frontend는 이 전체 내부 구조를 그대로 출력하지 않고 duration·execution time, Provider 식별자와 Mixer audio quality의 공개 필드만 allowlist로 표시한다.
+응답의 `result_metadata`에는 Pipeline 버전, Provider·모델, seed, 전체·단계 시간, attempt, VRAM 가능한 값, 성공 여부, 실패 단계와 오류, allowlist K-POP Options와 compiler version이 포함된다. Mock AI 실행의 GPU·VRAM은 추측하지 않고 `null`로 기록한다. Frontend는 이 전체 내부 구조를 그대로 출력하지 않고 승인된 공개 필드만 표시한다.
 
 Mixer step의 `details.audio_quality`에는 provider·처리 시간, 출력 duration·sample rate·channels·size, 보컬·반주·normalization gain, 목표·실제 headroom, peak·RMS, normalization·limiter·fade, silence, PCM 직전 clipping과 보호 처리 전 over-range가 포함된다. True Peak는 현재 미지원이므로 `true_peak_supported=false`, `true_peak_dbfs=null`이다.
 

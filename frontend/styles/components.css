@@ -536,10 +536,11 @@
 .kpop-preset-grid button, .preset-grid button { display: grid; gap: .45rem; min-height: 7.5rem; padding: 1rem; text-align: left; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 1rem; }
 .kpop-preset-grid button span, .preset-grid button span { color: var(--muted); font-size: .8rem; }
 .kpop-preset-grid button.selected, .kpop-preset-grid button[aria-pressed="true"], .preset-grid button.selected { border-color: var(--red); background: color-mix(in srgb, var(--red) 16%, var(--surface)); }
+.generation-options-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 1rem 0; }
 .prompt-preview { display: grid; gap: .55rem; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: #141414; }
 .prompt-preview pre { max-height: 14rem; margin: 0; padding: .8rem; overflow: auto; white-space: pre-wrap; color: var(--text); background: #0d0d0d; border-radius: .65rem; font: .78rem/1.55 ui-monospace, monospace; }
 .prompt-preview small { color: var(--muted); }
-@media (max-width: 700px) { .kpop-preset-grid, .preset-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .kpop-preset-grid, .preset-grid, .generation-options-grid { grid-template-columns: 1fr; } }
 .advanced-settings, .dev-only { border: 1px solid var(--line); border-radius: 1rem; padding: 1rem; }
 .advanced-settings summary, .dev-only summary { cursor: pointer; font-weight: 700; }
 .modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 1rem; background: rgba(0, 0, 0, .72); }

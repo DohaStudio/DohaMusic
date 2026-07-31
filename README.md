@@ -6,12 +6,12 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> K-POP Creation Control Track: K0 문서·계약과 K1 Preset MVP는 `[완료]`입니다. Dance·Easy Listening·Performance Preset을 Provider-neutral Prompt로 컴파일해 기존 Pipeline 요청에 연결하며, API DTO·DB·Provider 기본값은 변경하지 않습니다.
+> K-POP Creation Control Track: K0·K1·K2는 `[완료]`입니다. optional Structured Generation Options를 Backend validation·Prompt Compiler·JSON Input Snapshot·Retry와 Studio·History·Project에 연결했으며 DB Migration과 Provider 기본값은 변경하지 않았습니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1 완료**
+> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2 완료**
 > 최종 수정일: 2026-07-31
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -35,7 +35,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [실험 완료] | HTDemucs 4.1.0 보컬/반주 분리, 48kHz Stereo 출력, RTX 3060 Ti Benchmark |
 | [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
 | [진행 중] | Responsive Studio에서 프롬프트·직접 작성/생성 가사 기반 Pipeline 요청 |
-| [진행 중] | 실제 Pipeline 계약의 장르·길이·Seed 설정; BPM은 Backend Required |
+| [완료] | Pipeline 장르·길이·Seed와 K-POP 목표 BPM Prompt 설정; 실제 BPM 분석은 K3 계획 |
 | [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
 | [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
 | [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
@@ -50,6 +50,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [계획] | MP3 변환 |
 | [완료] | Frontend Pipeline 상태·진행률·오류·cooperative Cancel·새 Job Retry |
 | [완료] | Pipeline 기반 생성 History·Project 관리와 Result 재진입·재생·다운로드 |
+| [완료] | K-POP Structured Generation Options 검증·Prompt 컴파일·Snapshot·Retry·공개 설정 요약 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 
