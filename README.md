@@ -1,6 +1,6 @@
 # DohaMusic
 
-> Phase 6.5: OpenAI Responses API Lyrics Adapter가 `Experimental`로 추가되었고 기본 Provider는 계속 `template`입니다. 외부 API Key가 없어 실제 한국어 품질·지연·token·비용은 `[검증 필요]`, EVAL-006은 `[사용자 평가 필요]`입니다.
+> Phase 6.5: OpenAI Responses API Lyrics Adapter가 `Experimental`로 추가되었고 기본 Provider는 계속 `template`입니다. 외부 실측은 `[사용자 승인 필요] [API Key 필요] [유료 실측 미수행]`이며, 실제 유료 API 호출 없음·발생 비용 0원·API Key 사용 없음 상태입니다.
 
 > Phase 6.6~6.9: 권리 확보 Dataset으로 공개 Instruct Base Model을 QLoRA SFT하고 `LocalLyricsLLMAdapter`로 연결하는 구조는 `[계획] 0%`입니다. Base Model·Dataset·checkpoint는 없고 학습·Adapter·품질 평가는 미착수이며, 승인 전 `template` 기본값과 Pipeline 비연결을 유지합니다.
 

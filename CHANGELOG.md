@@ -8,6 +8,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### Phase 6.5 비용 발생 방지
+
+- 유료 외부 Lyrics 테스트에 사용자 승인·실행 opt-in·API Key의 3중 조건을 적용했다.
+- 실제 실측 상태를 `[사용자 승인 필요] [API Key 필요] [유료 실측 미수행]`으로 통일했다.
+- 실제 유료 API 호출 없음, 발생 비용 0원, API Key 사용 없음과 미측정 항목을 운영·실험·Roadmap 문서에 명시했다.
+
 ### K-POP Creation Control Layer
 
 - Phase 8 이후 별도 K0~K4 제품 고도화 Track과 K-POP Dance·Easy Listening·Performance Preset 계약을 정의했다.
