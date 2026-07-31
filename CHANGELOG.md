@@ -8,6 +8,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### Frontend 기준선 복구
+
+- Python packaging용 `lib/` ignore 규칙에 누락됐던 Frontend shared mapper와 Result metadata allowlist 모듈을 기존 import·테스트·공개 DTO 계약에 맞춰 복구했다.
+- 공개 Audio URL만 same-origin Backend 경로로 변환하고 내부 경로·알 수 없는 metadata를 차단해 Frontend typecheck·build·test 기준선을 회복했다.
+
 ### Phase 6.5 비용 발생 방지
 
 - 유료 외부 Lyrics 테스트에 사용자 승인·실행 opt-in·API Key의 3중 조건을 적용했다.
