@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 
 from backend.kpop.presets import KPOP_PRESET_REGISTRY, PresetRegistry
+from backend.kpop.options import KPopGenerationOptions
 
 COMPILER_VERSION = "kpop-prompt-v1"
 MAX_COMPILED_PROMPT_LENGTH = 1_500
@@ -31,6 +32,7 @@ class PromptCompilationResult:
     genre: str
     compiler_version: str
     warnings: tuple[str, ...] = ()
+    normalized_options: KPopGenerationOptions | None = None
 
 
 class KPopPromptCompiler:
@@ -45,6 +47,7 @@ class KPopPromptCompiler:
         user_prompt: str,
         *,
         custom_prompt: str | None = None,
+        options: KPopGenerationOptions | None = None,
     ) -> PromptCompilationResult:
         preset = self.registry.get(preset_id)
         explicit = self._normalize(user_prompt)
@@ -58,6 +61,12 @@ class KPopPromptCompiler:
             preset.default_prompt,
             f"Preset mood: {preset.default_mood}. Preset energy: {preset.default_energy}.",
         ]
+        normalized_options = None
+        if options is not None:
+            if options.preset_id != preset.id:
+                raise KPopPromptValidationError("Preset and options must match")
+            normalized_options = options.with_preset_defaults(preset)
+            sections.extend(self._option_sections(normalized_options))
         if custom:
             sections.extend(["Additional user direction:", custom])
         if explicit:
@@ -77,7 +86,49 @@ class KPopPromptCompiler:
             preset_id=preset.id,
             genre=preset.genre,
             compiler_version=COMPILER_VERSION,
+            normalized_options=normalized_options,
         )
+
+    @staticmethod
+    def _option_sections(options: KPopGenerationOptions) -> list[str]:
+        sections = ["Structured user options (override preset defaults):"]
+        if options.requested_bpm is not None:
+            sections.append(
+                f"Target tempo around {options.requested_bpm} BPM; treat this as a prompt goal, not an exact guarantee."
+            )
+        if options.language_ratio is not None:
+            sections.append(
+                "Lyrics language target: "
+                f"{options.language_ratio.ko}% Korean and {options.language_ratio.en}% English; "
+                "do not claim an exact final ratio."
+            )
+        if options.hook is not None:
+            style = (
+                "a repeated title hook"
+                if options.hook.style == "title_repeat"
+                else "a chant-style hook"
+            )
+            sections.extend(
+                [
+                    f'Include {style}: "{options.hook.phrase}".',
+                    f"Repeat the hook approximately {options.hook.repeat_count} times.",
+                ]
+            )
+        sections.append(
+            "Include a post-chorus."
+            if options.include_post_chorus
+            else "Do not include a post-chorus."
+        )
+        sections.append(
+            "Include a dance-break contrast."
+            if options.include_dance_break
+            else "Do not include a dance break."
+        )
+        if options.vocal_energy is not None:
+            sections.append(f"Use {options.vocal_energy} vocal energy.")
+        if options.concept:
+            sections.append(f"Concept: {options.concept}.")
+        return sections
 
     @staticmethod
     def _normalize(value: str) -> str:

@@ -49,6 +49,7 @@ async function mockBackend(
   page: Page,
   onPipelineCreate?: (body: Record<string, unknown>) => void,
 ) {
+  let latestGenerationOptions: Record<string, unknown> | null = null;
   await page.route("**/backend/health", (r) =>
     r.fulfill({ json: { status: "ok" } }),
   );
@@ -74,7 +75,9 @@ async function mockBackend(
     route.fulfill({ status: 201, json: voiceProfile }),
   );
   await page.route("**/backend/api/pipelines", (route) => {
-    onPipelineCreate?.(route.request().postDataJSON());
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    latestGenerationOptions = body.generation_options as Record<string, unknown> | null;
+    onPipelineCreate?.(body);
     return route.fulfill({ status: 202, json: pipeline });
   });
   await page.route("**/backend/api/pipelines/job-001", (r) =>
@@ -109,7 +112,7 @@ async function mockBackend(
     }),
   );
   await page.route("**/backend/api/history**", (route) =>
-    route.fulfill({ json: [{ job_id: "job-001", project_id: "project-001", title: "새벽 도시 R&B", status: "COMPLETED", created_at: pipeline.created_at, duration: 30, voice_profile_name: "Doha Voice", has_audio: true }] }),
+    route.fulfill({ json: [{ job_id: "job-001", project_id: "project-001", title: "새벽 도시 R&B", status: "COMPLETED", created_at: pipeline.created_at, duration: 30, voice_profile_name: "Doha Voice", has_audio: true, can_cancel: false, can_retry: false, retry_of_job_id: null, generation_options: latestGenerationOptions }] }),
   );
   await page.route("**/backend/api/projects", (route) =>
     route.fulfill({ json: [{ id: "project-001", title: "Default Project", description: null, created_at: pipeline.created_at, updated_at: pipeline.updated_at, job_count: 1 }] }),
@@ -178,7 +181,7 @@ test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async 
   await expect(page.getByText("C:/internal/final.wav")).toHaveCount(0);
 });
 
-test("K-POP Preset을 기존 Pipeline 요청으로 변환한다", async ({ page }) => {
+test("K-POP Structured Options를 Pipeline과 History에 보존한다", async ({ page }) => {
   let pipelineRequest: Record<string, unknown> | undefined;
   await mockBackend(page, (body) => {
     pipelineRequest = body;
@@ -186,22 +189,45 @@ test("K-POP Preset을 기존 Pipeline 요청으로 변환한다", async ({ page 
   await page.goto("/studio");
   await page.getByLabel("노래 설명").fill("새벽 도시 R&B");
   await page.getByRole("button", { name: /K-POP Easy Listening/ }).click();
+  await page.getByText("K-POP 고급 설정").click();
+  await page.getByLabel("목표 BPM").fill("112");
+  await page.getByLabel("한국어 비율 (%)").fill("65");
+  await page.getByLabel("영어 비율 (%)").fill("35");
+  await page.getByLabel("곡 분위기·콘셉트").fill("midnight_warm");
+  await page.getByLabel("후렴 Hook").fill("Moonlight Heart");
+  await page.getByLabel("Hook 방식").selectOption("chant");
+  await page.getByLabel("Hook 반복 횟수").fill("4");
+  await page.getByRole("button", { name: "Dance Break" }).click();
   await page.getByRole("button", { name: "가사 준비하기" }).click();
   await page.getByRole("textbox", { name: "가사" }).fill("[Verse]\n빛나는 거리");
   await page.getByRole("button", { name: "작성 내용 확인" }).click();
   await page.getByRole("button", { name: "내 목소리 선택" }).click();
   await page.getByRole("radio", { name: /Doha Voice/ }).click();
   await page.getByRole("button", { name: "최종 확인" }).click();
+  await expect(page.getByText("112 BPM (Prompt 목표)")).toBeVisible();
+  await expect(page.getByText("Moonlight Heart")).toBeVisible();
   await page
     .getByRole("button", { name: "음악 만들기" })
     .evaluate((button: HTMLButtonElement) => button.click());
   await expect.poll(() => pipelineRequest).toBeTruthy();
 
-  expect(pipelineRequest).toMatchObject({ genre: "kpop_easy_listening" });
-  expect(String(pipelineRequest?.prompt)).toContain("User request (highest priority");
-  expect(String(pipelineRequest?.prompt)).toMatch(/새벽 도시 R&B$/);
+  expect(pipelineRequest).toMatchObject({
+    prompt: "새벽 도시 R&B",
+    genre: "kpop_easy_listening",
+    generation_options: {
+      preset_id: "kpop_easy_listening",
+      requested_bpm: 112,
+      language_ratio: { ko: 65, en: 35 },
+      hook: { phrase: "Moonlight Heart", style: "chant", repeat_count: 4 },
+      include_post_chorus: true,
+      include_dance_break: true,
+      vocal_energy: "low",
+      concept: "midnight_warm",
+    },
+  });
   expect(pipelineRequest).not.toHaveProperty("preset_id");
-  expect(pipelineRequest).not.toHaveProperty("generation_options");
+  await page.goto("/history");
+  await expect(page.getByText(/K-POP Easy Listening · 112 BPM 목표 · Hook: Moonlight Heart/)).toBeVisible();
 });
 test("Voice WAV를 등록하고 목록에서 선택한다", async ({
   page,

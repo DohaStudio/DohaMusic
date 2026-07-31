@@ -29,6 +29,7 @@ class PipelineRepository:
         pipeline_version: str,
         *,
         retry_of_job_id: str | None = None,
+        input_snapshot: dict[str, Any] | None = None,
     ) -> PipelineJob:
         project_id = request.project_id
         if project_id is None:
@@ -36,7 +37,7 @@ class PipelineRepository:
                 HistoryRepository(self.session).get_or_create_default_project().id
             )
         job = PipelineJob(
-            **request.model_dump(exclude={"project_id"}),
+            **request.model_dump(exclude={"project_id", "generation_options"}),
             project_id=project_id,
             status=JobStatus.PENDING.value,
             current_step="queued",
@@ -44,7 +45,7 @@ class PipelineRepository:
             pipeline_version=pipeline_version,
             result_metadata={},
             retry_of_job_id=retry_of_job_id,
-            input_snapshot=request.model_dump(mode="json"),
+            input_snapshot=input_snapshot or request.model_dump(mode="json"),
         )
         self.session.add(job)
         self.session.commit()

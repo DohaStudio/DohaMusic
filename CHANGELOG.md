@@ -21,6 +21,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### K-POP Creation Control Layer
 
+- optional `generation_options`에 Preset·목표 BPM·언어 비율·Hook·Post-Chorus·Dance Break·보컬 에너지·Concept strict DTO와 사용자 친화 validation 오류를 추가했다.
+- Backend 최종 `KPopPromptCompiler` 결과와 원본·정규화 옵션·compiler version을 기존 JSON Input Snapshot에 저장하고 Retry·History·Project·Result 공개 allowlist에 연결했다.
+- Studio에 Preset별 기본 Structured Options, 고급 설정·초기화·즉시 Prompt Preview·Review·Desktop/Mobile History 요약을 추가했다.
+- K-POP Lyrics Template이 언어 비율 목표, Hook 문구·방식·반복과 Post-Chorus 포함 여부를 Prompt 목표로 반영하도록 확장했다.
+- K2를 `[완료]`로 갱신했으며 DB Migration·Provider 변경 없이 기존 Pipeline 요청과 구형 Snapshot Retry 호환성을 유지했다.
+- 실제 BPM 검출·Hook timestamp·15초 Preview·Audio Analysis·LUFS·True Peak·LoRA·Dataset·Voice 학습은 구현하지 않았다.
 - Dance·Easy Listening·Performance Preset Registry와 Provider-neutral `KPopPromptCompiler`를 추가하고 사용자 Prompt를 최우선으로 유지했다.
 - Studio에서 기본 Dance Preset, Preset 설명과 Prompt Preview를 제공하고 컴파일 결과를 기존 Pipeline DTO의 `prompt`·`genre`로만 전송하도록 연결했다.
 - K-POP Lyrics Template에 Intro·Verse·Pre-Chorus·Chorus·Post-Chorus·Bridge·Final Chorus 구조와 저작권·아티스트 모방 방지 규칙을 반영했다.

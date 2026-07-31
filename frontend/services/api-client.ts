@@ -22,6 +22,13 @@ const userMessages: Record<string, string> = {
   PIPELINE_CANCEL_NOT_ALLOWED: "이미 완료되었거나 실패한 음악은 취소할 수 없습니다.",
   PIPELINE_RETRY_NOT_ALLOWED: "실패하거나 취소된 음악만 다시 만들 수 있습니다.",
   RETRY_VOICE_PROFILE_UNAVAILABLE: "사용한 목소리를 더 이상 사용할 수 없어 다시 만들 수 없습니다.",
+  INVALID_KPOP_PRESET: "지원하지 않는 K-POP 스타일입니다.",
+  INVALID_REQUESTED_BPM: "목표 BPM은 70에서 180 사이의 정수로 입력해 주세요.",
+  INVALID_LANGUAGE_RATIO: "한국어와 영어 비율의 합은 100이어야 합니다.",
+  INVALID_HOOK_OPTIONS: "후렴 Hook 설정을 확인해 주세요.",
+  INVALID_VOCAL_ENERGY: "보컬 에너지 설정을 확인해 주세요.",
+  INVALID_CONCEPT: "곡 콘셉트는 40자 이내로 입력해 주세요.",
+  PRESET_GENRE_MISMATCH: "K-POP 스타일과 장르가 일치하지 않습니다.",
 };
 
 export function userErrorMessage(error: unknown): string {

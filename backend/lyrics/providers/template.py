@@ -23,6 +23,9 @@ class TemplateLyricsGenerator:
         sections = tuple(
             LyricsSection(section_type, self._lines(request, section_type, index))
             for index, section_type in enumerate(request.structure, start=1)
+            if not (
+                section_type == "post_chorus" and request.include_post_chorus is False
+            )
         )
         title = self._title(request)
         return LyricsGenerationResult(
@@ -41,6 +44,11 @@ class TemplateLyricsGenerator:
                 "lyrics_template": (
                     "kpop_v1" if request.genre in KPOP_PRESET_GENRES else "default_v1"
                 ),
+                "language_ratio_target": request.language_ratio,
+                "hook_phrase": request.hook_phrase,
+                "hook_style": request.hook_style,
+                "hook_repeat_count": request.hook_repeat_count,
+                "post_chorus_requested": request.include_post_chorus,
             },
         )
 
@@ -69,22 +77,33 @@ class TemplateLyricsGenerator:
         if request.language == "ko":
             if request.genre in KPOP_PRESET_GENRES:
                 return self._korean_kpop_lines(
-                    section_type, topic, keyword, mood, genre
+                    section_type,
+                    topic,
+                    request.hook_phrase or keyword,
+                    mood,
+                    genre,
+                    request.hook_repeat_count,
                 )
             return self._korean_lines(section_type, topic, keyword, mood, genre)
         return self._english_lines(section_type, topic, keyword, mood, genre)
 
     @staticmethod
     def _korean_kpop_lines(
-        section_type: str, topic: str, keyword: str, mood: str, genre: str
+        section_type: str,
+        topic: str,
+        keyword: str,
+        mood: str,
+        genre: str,
+        hook_repeat_count: int | None,
     ) -> tuple[str, ...]:
         if section_type == "intro":
             return (f"{mood} 빛이 번지는 순간",)
         if section_type == "pre_chorus":
             return (f"조금 더 높이 {keyword}을 따라가", f"다가올 {topic}을 향해")
         if section_type in {"chorus", "final_chorus"}:
+            repeated_hook = ", ".join([keyword] * min(hook_repeat_count or 2, 4))
             return (
-                f"{keyword}, {keyword}, 우리만의 {topic}",
+                f"{repeated_hook}, 우리만의 {topic}",
                 f"{keyword}을 다시 불러",
                 f"이 {genre} 속에 마음을 펼쳐",
             )

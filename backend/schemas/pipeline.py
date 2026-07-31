@@ -5,7 +5,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic_core import PydanticCustomError
+
+from backend.kpop.options import KPopGenerationOptions
+from backend.kpop.presets import KPOP_PRESET_REGISTRY
 
 
 class PipelineCreate(BaseModel):
@@ -16,6 +20,21 @@ class PipelineCreate(BaseModel):
     seed: int | None = Field(default=None, ge=0, le=2_147_483_647)
     voice_profile_id: str = Field(min_length=36, max_length=36)
     project_id: str | None = Field(default=None, min_length=36, max_length=36)
+    generation_options: KPopGenerationOptions | None = None
+
+    @model_validator(mode="after")
+    def validate_preset_genre(self) -> PipelineCreate:
+        if self.generation_options is None or self.genre is None:
+            return self
+        canonical_genre = KPOP_PRESET_REGISTRY.get(
+            self.generation_options.preset_id
+        ).genre
+        if self.genre != canonical_genre:
+            raise PydanticCustomError(
+                "preset_genre_mismatch",
+                "genre must match generation_options.preset_id",
+            )
+        return self
 
 
 class PipelineJobRead(BaseModel):
@@ -45,6 +64,8 @@ class PipelineJobRead(BaseModel):
     retry_of_job_id: str | None
     can_cancel: bool
     can_retry: bool
+    generation_options: KPopGenerationOptions | None = None
+    kpop_prompt_compiler_version: str | None = None
 
 
 class PipelineCancelRead(BaseModel):

@@ -7,7 +7,7 @@
 
 ## 목적과 경계
 
-`KPopPromptCompiler`는 Preset, 사용자 Custom 값과 Prompt를 검증된 Provider-neutral Prompt로 변환한다. K1은 API DTO를 바꾸지 않기 위해 동일한 `kpop-prompt-v1` 계약을 Backend 기준 구현과 Frontend 요청 변환에 적용한다. Provider Adapter는 Preset을 알지 못하며 컴파일된 `prompt`와 기존 `genre`만 받는다. 구조화된 `KPopGenerationOptions` 연결은 K2 대상이다.
+`KPopPromptCompiler`는 Preset, 구조화 Options, 사용자 Custom 값과 Prompt를 검증된 Provider-neutral Prompt로 변환한다. K2부터 Backend Compiler가 최종 권위이며 Frontend는 동일 deterministic 문장 순서로 Preview를 제공한다. Provider Adapter는 Preset을 알지 못하고 컴파일된 `prompt`와 canonical `genre`만 받는다.
 
 ```text
 Frontend 선택값
@@ -28,7 +28,7 @@ Frontend 선택값
 7. 중복 문장·상충 표현을 정리하고 길이 제한 적용
 8. 최종 Prompt Preview와 compiler version 표시
 
-Prompt 최대 길이는 1,500자로 제한하고 잘라내기보다 validation error를 반환한다. Provider별 전용 문구는 추가하지 않는다. K1은 warning·compiler version의 DB 저장을 하지 않으며 Preview에서 `kpop-prompt-v1`을 표시한다.
+Prompt 최대 길이는 1,500자로 제한하고 잘라내기보다 validation error를 반환한다. Provider별 전용 문구는 추가하지 않는다. compiler version `kpop-prompt-v1`과 warning은 기존 JSON Input Snapshot에 저장하며 별도 DB 컬럼은 만들지 않는다.
 
 ## 충돌 처리
 

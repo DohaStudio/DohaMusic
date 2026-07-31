@@ -11,11 +11,19 @@ from backend.kpop.prompt_compiler import (
     KPopPromptValidationError,
     PromptCompilationResult,
 )
+from backend.kpop.options import (
+    HookOptions,
+    KPopGenerationOptions,
+    LanguageRatio,
+)
 
 __all__ = [
     "DEFAULT_KPOP_PRESET_ID",
     "KPOP_PRESET_REGISTRY",
     "KPopPromptCompiler",
+    "KPopGenerationOptions",
+    "LanguageRatio",
+    "HookOptions",
     "KPopPromptValidationError",
     "PresetDefinition",
     "PresetRegistry",

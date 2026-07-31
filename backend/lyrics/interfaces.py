@@ -17,6 +17,11 @@ class LyricsGenerationRequest:
     target_duration_seconds: int | None
     additional_instructions: str | None
     allow_template_fallback: bool = False
+    language_ratio: tuple[int, int] | None = None
+    hook_phrase: str | None = None
+    hook_style: str | None = None
+    hook_repeat_count: int | None = None
+    include_post_chorus: bool | None = None
 
 
 @dataclass(frozen=True, slots=True)

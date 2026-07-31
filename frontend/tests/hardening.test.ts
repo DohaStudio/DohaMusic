@@ -49,6 +49,29 @@ describe("hardening helpers", () => {
     expect(publicMetadataRows(null)).toEqual([]);
     expect(publicMetadataRows({ file_path: "secret", unknown: 1 })).toEqual([]);
   });
+  it("K-POP 공개 설정만 Result metadata에 표시한다", () => {
+    const rows = publicMetadataRows({
+      generation_options: {
+        preset_id: "kpop_dance",
+        requested_bpm: 124,
+        language_ratio: { ko: 70, en: 30 },
+        hook: { phrase: "Play My Heart" },
+        vocal_energy: "medium",
+        concept: "confident_bright",
+        provider_secret: "hidden",
+      },
+      kpop_prompt_compiler_version: "kpop-prompt-v1",
+      compiled_prompt: "internal",
+    });
+    expect(rows).toEqual(expect.arrayContaining([
+      { label: "K-POP 스타일", value: "K-POP Dance" },
+      { label: "목표 BPM", value: "124 BPM (Prompt 목표)" },
+      { label: "후렴 Hook", value: "Play My Heart" },
+      { label: "K-POP Compiler", value: "kpop-prompt-v1" },
+    ]));
+    expect(JSON.stringify(rows)).not.toContain("hidden");
+    expect(JSON.stringify(rows)).not.toContain("internal");
+  });
   it("Mixer 공개 품질값만 노출하고 내부 필드는 제외한다", () => {
     const rows = publicMetadataRows({
       step_execution: [

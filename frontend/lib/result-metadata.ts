@@ -19,7 +19,32 @@ export function publicMetadataRows(metadata: unknown): PublicMetadataRow[] {
   pushSeconds(rows, "전체 처리 시간", metadata.execution_time_seconds);
   pushProviders(rows, metadata.providers);
   pushAudioQuality(rows, metadata.step_execution);
+  pushGenerationOptions(rows, metadata.generation_options);
+  if (typeof metadata.kpop_prompt_compiler_version === "string") {
+    rows.push({ label: "K-POP Compiler", value: metadata.kpop_prompt_compiler_version });
+  }
   return rows;
+}
+
+function pushGenerationOptions(rows: PublicMetadataRow[], value: unknown): void {
+  if (!isRecord(value)) return;
+  const presetLabels: Readonly<Record<string, string>> = {
+    kpop_dance: "K-POP Dance",
+    kpop_easy_listening: "K-POP Easy Listening",
+    kpop_performance: "K-POP Performance",
+  };
+  if (typeof value.preset_id === "string" && presetLabels[value.preset_id]) {
+    rows.push({ label: "K-POP 스타일", value: presetLabels[value.preset_id] });
+  }
+  pushNumber(rows, "목표 BPM", value.requested_bpm, " BPM (Prompt 목표)");
+  if (isRecord(value.language_ratio) && typeof value.language_ratio.ko === "number" && typeof value.language_ratio.en === "number") {
+    rows.push({ label: "가사 언어 목표", value: `한국어 ${value.language_ratio.ko}% · 영어 ${value.language_ratio.en}%` });
+  }
+  if (isRecord(value.hook) && typeof value.hook.phrase === "string") {
+    rows.push({ label: "후렴 Hook", value: value.hook.phrase });
+  }
+  if (typeof value.vocal_energy === "string") rows.push({ label: "보컬 에너지", value: value.vocal_energy });
+  if (typeof value.concept === "string") rows.push({ label: "콘셉트", value: value.concept });
 }
 
 function pushProviders(rows: PublicMetadataRow[], value: unknown): void {

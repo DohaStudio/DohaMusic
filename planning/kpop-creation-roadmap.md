@@ -25,18 +25,19 @@
 - [x] 기존 Pipeline 요청으로 컴파일된 Prompt 전송
 - [x] 기존 요청 회귀·Desktop·Mobile 검증
 
-현재 구현은 `prompt`, `lyrics`, `genre`, `duration_seconds`, `seed`의 기존 API 계약만 사용한다. `generation_options` 저장, BPM·Hook Timestamp·Audio Analysis와 Provider 전용 제어는 K1에 포함하지 않는다.
+K1 당시에는 `prompt`, `lyrics`, `genre`, `duration_seconds`, `seed`의 기존 API 계약만 사용했다. Structured Options는 K2에서 optional 확장했으며 BPM·Hook Timestamp·Audio Analysis와 Provider 전용 제어는 K1에 포함하지 않았다.
 
 DoD: 기존 API 호환, 특정 아티스트 모방 차단, Prompt Preview·compiler version·테스트·문서 완료. 미지원 세부 옵션은 활성화하지 않는다.
 
-## K2 — Structured Options [계획]
+## K2 — Structured Options [완료]
 
-- [ ] optional `generation_options` DTO·검증·Snapshot
-- [ ] requested BPM·language ratio·Hook·Post-Chorus·vocal energy
-- [ ] Capability API와 capability 기반 UI
-- [ ] 원본·정규화 옵션·warning 추적
+- [x] optional `generation_options` strict DTO·검증·JSON Snapshot
+- [x] requested BPM·language ratio·Hook·Post-Chorus·Dance Break·vocal energy·Concept
+- [x] 문서·Frontend typed capability 상태와 Prompt 기반 UI — 별도 endpoint는 추가하지 않음
+- [x] 원본·정규화 옵션·compiled prompt·warning·compiler version 추적
+- [x] Retry 복원과 History·Project·Result 공개 allowlist
 
-DoD: silent ignore 없음, Public DTO 내부 정보 비노출, legacy 요청 동일 동작, migration·API·Frontend·E2E 검증 완료.
+DoD: silent ignore 없음, Public DTO 내부 정보 비노출, legacy 요청 동일 동작, Migration 없음, Backend·Frontend·Desktop/Mobile E2E 검증 완료.
 
 ## K3 — Analysis [계획]
 
@@ -57,4 +58,4 @@ DoD: Dataset manifest·라이선스·동의·분리, RTX 3060 Ti 8GB 실측, Ada
 
 ## 구현 순서
 
-K1 Preset MVP → K2 Structured Options → K3 Analysis → K4 Model Adaptation 순서다. 각 단계는 별도 PR로 구현하며 K0 문서 완료를 기능 완료로 표시하지 않는다.
+K1 Preset MVP → K2 Structured Options까지 완료했으며 다음은 K3 Analysis → K4 Model Adaptation 순서다. 각 단계는 별도 PR로 구현하며 K0 문서 완료를 기능 완료로 표시하지 않는다.

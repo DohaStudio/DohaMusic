@@ -22,12 +22,12 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 
 ## 1. Music Settings
 
-- 현재 활성 필드는 `prompt`, `genre`, `duration_seconds`, `seed`다.
+- 현재 활성 필드는 `prompt`, `genre`, `duration_seconds`, `seed`와 optional `generation_options`다.
 - `lyrics`와 `voice_profile_id`는 Lyrics·Voice 후속 단계에서 결합해 Review의 Pipeline 요청을 구성한다.
 - instrumental 생성 옵션은 현재 Pipeline API에 없으므로 `planned/disabled` 상태다. Backend 계약이 추가되기 전까지 실제 요청에 포함하지 않으며 UI에 노출하더라도 “준비 중” 또는 비활성 기능으로만 표현한다.
-- BPM·고급 모델 선택도 Backend 계약 전까지 `planned/disabled`다.
+- 목표 BPM은 K2 Prompt 지시로 활성화했지만 실제 BPM 검출·정밀 제어와 고급 모델 선택은 `planned/disabled`다.
 - 입력 validity와 권장 범위를 inline으로 안내한다.
-- K1에서는 K-POP Dance·Easy Listening·Performance Preset과 Mood·Concept·optional Hook phrase를 기본 흐름으로 검토한다. Requested BPM·Language Ratio·Hook Style·Post-Chorus·Dance Break·Vocal Energy는 capability가 구현된 뒤에만 고급 설정으로 활성화한다.
+- K2에서는 K-POP Dance·Easy Listening·Performance Preset과 Concept·Requested BPM·Language Ratio·Hook Style·Post-Chorus·Dance Break·Vocal Energy를 접힌 고급 설정에서 제공한다. 값은 Prompt 목표이며 실제 오디오 수치나 Section 위치를 보장하지 않는다.
 - Preset과 사용자 Prompt가 충돌하면 사용자 입력을 우선하고 Review의 최종 Prompt Preview와 warning에서 확인하게 한다.
 
 ## 2. Lyrics
@@ -46,7 +46,7 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 ## 4. Review
 
 - prompt, genre, duration, seed, lyrics summary, voice profile ID와 미해결 warning을 한 화면에서 확인한다.
-- K-POP 제어 계층 구현 후에는 Preset, 적용된 Options, compile warning과 compiler version을 함께 확인하되 Provider 내부 옵션은 노출하지 않는다.
+- Review에서는 Preset, 적용된 Options와 Prompt 기반이라는 한계를 확인하되 Provider 내부 옵션은 노출하지 않는다. 최종 compiler version은 생성 응답·Result metadata에서 확인한다.
 - “생성 시작”은 단 하나의 primary action이다.
 - 시작 전 API 제한과 Mock/선택 Provider 상태를 숨기지 않는다.
 
@@ -90,7 +90,7 @@ stateDiagram-v2
 - `GET /api/pipelines/{job_id}/files`의 metadata를 file inventory로 보여준다.
 - 완료 결과는 capability가 있는 WAV만 Player와 Download를 활성화하고, 사용할 수 없는 파일은 이유를 숨기지 않고 disabled로 표시한다.
 - Voice 단계는 등록 목록에서 Profile을 선택하며, 목록이 비면 `/voice` upload로 안내한다. UUID 직접 입력과 서버 경로 생성은 개발 플래그에서만 보조 수단으로 제공한다.
-- 실패·취소된 작업의 “같은 설정으로 다시 만들기”는 서버의 입력 Snapshot을 검증해 새 Pipeline Job을 생성하며 기존 Job을 변경하지 않는다. 성공 Result에는 이 Retry action을 표시하지 않는다.
+- 실패·취소된 작업의 “같은 설정으로 다시 만들기”는 서버의 원본 Prompt·Structured Options·Seed·Voice·Project Snapshot을 검증해 새 Pipeline Job을 생성하며 기존 Job을 변경하지 않는다. 성공 Result에는 이 Retry action을 표시하지 않는다.
 
 ## 오류·복구
 

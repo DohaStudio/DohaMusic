@@ -20,12 +20,13 @@ DohaMusic은 사용자가 프롬프트·가사·K-POP 스타일을 설정하면 
 - Provider-neutral `MusicGenerator`와 Lyrics·Stem·Voice·Mixer 경계
 - Dance·Easy Listening·Performance Preset 선택과 Provider-neutral Prompt Preview
 - Preset 결과를 기존 Pipeline `prompt`·`genre` 요청으로 변환하는 K1 연결
+- Preset·목표 BPM·언어 비율·Hook·구조·보컬 에너지·Concept의 K2 Prompt 기반 설정과 Snapshot·Retry·History 요약
 
 기본 Music Provider는 `mock`, ACE-Step은 조건부 채택이며 운영 Provider는 미확정이다. Lyrics 기본 Provider는 `template`이다.
 
 ## 계획 범위와 비범위
 
-K-POP 제어 계층은 K0에서 계약을 정의했고 K1에서 3종 Preset·Prompt Compiler·Lyrics Template을 기존 Pipeline에 연결한다. 다음 항목은 아직 제공 기능이 아니다.
+K-POP 제어 계층은 K0 계약, K1 Preset MVP와 K2 Structured Generation Options까지 완료했다. 다음 항목은 아직 제공 기능이 아니다.
 
 - 긴 곡과 세밀한 BPM 제어, 실제 BPM 분석
 - Hook timestamp·15초 Preview, LUFS·True Peak 측정
