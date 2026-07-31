@@ -15,7 +15,7 @@
 | Google Gemini | JSON Schema 구조화 출력 | 무료·유료 tier별 동적 표 | 무료 tier는 제품 개선 사용, paid tier는 기본 미사용; logging 설정별 보존 | `[실측 필요]` | 비선정, 추후 비교 |
 | Anthropic Claude | 공식 Structured Outputs | 모델별 동적 표 | API 기본 30일 이내 삭제, 계약형 ZDR | `[실측 필요]` | 비선정, 추후 비교 |
 | Alibaba Qwen | JSON mode; strict Schema와 동일 보장은 아님 | 모델·지역별 동적 표 | FAQ는 학습 미사용을 명시하나 지역·보존·계약 상세 검토 필요 | `[실측 필요]` | 비선정, 정책 검토 필요 |
-| Qwen 로컬 | 로컬 파서 구현 필요 | API token 비용 없음, GPU 운영비 별도 | 로컬 통제 가능 | RTX 3060 Ti 8GB 적합성 `[실측 필요]` | 이번 범위 제외 |
+| Local Lyrics LLM 후보(Qwen 계열 1.7B~4B Instruct 포함) | 공통 Adapter·Validator 필요 | API token 비용 없음, 학습·GPU 운영비 별도 | 로컬 통제 가능, Dataset 권리 필요 | Base 미선정·RTX 3060 Ti 8GB 적합성 `[검증 필요]` | Phase 6.6~6.9 Planned |
 
 ## 공식 출처
 
@@ -27,5 +27,7 @@
 ## 선정 결론
 
 OpenAI를 선택한 이유는 검증용 1개 Adapter에 필요한 strict JSON Schema와 명시적 refusal, 공개된 저비용 모델 snapshot, `store=false`와 데이터 통제 문서, 성숙한 HTTP/Python 적용 경계를 한 번에 검증할 수 있기 때문이다. 이는 품질 우승이나 운영 채택을 뜻하지 않는다. OpenAI의 확인 점수도 품질 20·수정 15·속도 10을 비워 둔 불완전 점수이며 EVAL-006과 실제 비용·지연 실측 전에는 Provider 간 최종 순위를 확정하지 않는다.
+
+OpenAI API는 Experimental 외부 Lyrics Provider이며 FastAPI 계약 명세인 OpenAPI와 다르다. Local Lyrics LLM은 OpenAI 모델을 Base로 사용한다는 의미가 아니라, 별도 검토한 공개 Instruct Base Model을 권리 확보 Dataset으로 파인튜닝하는 Planned 구조다.
 
 상업 SaaS·Docker·온프레미스·결과물 이용 조건은 각 서비스 약관과 지역·계약에 따라 달라질 수 있어 `[법률 검토 필요]`다. API를 쓴다는 사실만으로 생성물의 독창성이나 제3자 권리 비침해가 보장되지 않는다.
