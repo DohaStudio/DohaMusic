@@ -37,4 +37,4 @@
 
 `GET /api/generations/{id}/files`
 
-완료 후 `id`, `job_id`, `file_type`, `mime_type`, `created_at`, `content_available`, `download_available`을 가진 배열을 반환한다. 내부 DB의 `file_path`는 public HTTP response에 포함하지 않는다. Mock 결과는 `mock_audio`, ACE-Step 결과는 `generated_audio`다. 파일 식별 metadata만 제공하며 content·download API는 제공하지 않아 두 capability 값은 현재 `false`다.
+완료 후 공개 파일 식별 metadata를 반환하고 내부 DB의 `file_path`는 public HTTP response에 포함하지 않는다. Mock 결과는 `mock_audio`, ACE-Step 결과는 `generated_audio`다. 이번 content·download 제공 범위는 완료 Pipeline 결과이며 Generation 개별 파일 capability는 계속 `false`다.

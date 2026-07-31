@@ -70,7 +70,7 @@
 ## Music Components
 
 - Waveform: 실제 샘플 기반과 decorative를 구분한다. 실제 audio data가 없으면 “preview unavailable”을 표시한다.
-- Player: artwork, title, transport, scrubber, volume, time, queue. content endpoint 전에는 disabled transport shell이다.
+- Player: 검증된 Pipeline WAV의 단일 전역 source, play/pause, scrubber, volume, time과 안전한 오류 상태를 제공한다.
 - Artwork: 1:1 기본, 16px 이상 radius, dominant-color ambient glow는 대비를 침해하지 않는다.
 - Vinyl: 1:1, groove texture, center label. 회전은 재생/생성 상태와 reduced motion에 연결한다.
 - Icon: 20/24px 표준, stroke 스타일 통일, icon-only button에는 accessible name을 제공한다.

@@ -12,6 +12,7 @@ import {
 import type { ReactNode } from "react";
 import { Brand } from "./brand";
 import { ApiStatus } from "./api-status";
+import { GlobalPlayer } from "@/features/player/global-player";
 
 const nav = [
   { href: "/studio", label: "Studio", icon: SlidersHorizontal },
@@ -66,7 +67,7 @@ export function AppShell({
         </div>
         {context ?? <ContextDefault />}
       </aside>
-      <PlayerShell />
+      <GlobalPlayer />
       <nav className="mobile-nav" aria-label="모바일 메뉴">
         {nav.slice(0, 4).map(({ href, label, icon: Icon }) => (
           <Link
@@ -95,24 +96,5 @@ function ContextDefault() {
         FastAPI의 Provider Adapter 경계를 통과합니다.
       </p>
     </div>
-  );
-}
-function PlayerShell() {
-  return (
-    <footer className="player-shell">
-      <div className="mini-art">D</div>
-      <div>
-        <strong>미리듣기 준비 전</strong>
-        <small>Audio content API가 필요합니다</small>
-      </div>
-      <div className="wave" aria-hidden="true">
-        {Array.from({ length: 22 }, (_, i) => (
-          <i key={i} style={{ height: `${10 + ((i * 7) % 24)}px` }} />
-        ))}
-      </div>
-      <button disabled aria-label="재생, Backend API 준비 필요">
-        ▶
-      </button>
-    </footer>
   );
 }

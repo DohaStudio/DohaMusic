@@ -7,7 +7,7 @@
 
 ## 목표
 
-Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F4의 현재 Backend 가능 범위는 MVP로 구현됐고, Backend Required 기능과 F5는 남아 있다.
+Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F4와 F5의 첫 Backend Required 항목인 Pipeline Audio content/download는 구현됐고 나머지 운영 기능은 남아 있다.
 
 ## F0 — Frontend Contract Verification [완료]
 
@@ -80,19 +80,19 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - 현재 미지원 action의 disabled/empty state
 - 완료 기준: Mock Backend 기준 생성 → status → result metadata E2E
 
-## F4 — Music Experience [부분 완료]
+## F4 — Music Experience [완료]
 
 - Vinyl artwork, waveform, transport, result inspector, motion
-- audio content endpoint 승인 후 실제 player/download 연결
+- Pipeline capability URL 기반 전역 player/download 연결
 - reduced motion, keyboard, screen reader 검증
 - 완료 기준: endpoint 없는 가짜 재생 0건, 실제 media 계약 E2E
 
 ## F5 — Projects·Production Readiness [계획]
 
-- 인증·소유권, history/project, upload/download, cancel/retry API 연동
+- Pipeline audio content/download 완료; 인증·소유권, history/project, upload, cancel/retry API 연동 잔여
 - observability, browser matrix, performance, security review
 - 완료 기준: Phase-08 DoD와 사용자 시나리오 승인
 
 ## 우선순위와 보류
 
-F0에서 실제 Pydantic schema·Router·오류·상태를 확인하고 수동 DTO·mapper 계약 테스트와 [ADR-017](../docs/11-decisions/ADR-017-frontend-technology-stack.md)을 승인했다. F1~F3은 구현·자동 검증을 완료했고 Studio orchestration과 step 책임을 분리했다. F4는 Vinyl·waveform shell, 공개 allowlist metadata result, 사용자·system 우선순위의 reduced motion을 구현했으나 audio content endpoint가 없어 Player와 Download는 disabled다. 공개 files DTO는 내부 Storage 경로를 반환하지 않는다. F5는 인증·소유권·History·Project·upload·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.
+F0~F4는 구현·자동 검증을 완료했다. 첫 F5 Backend 항목으로 Pipeline Job·File 결합 검증, Storage root·symlink·WAV 검증과 Range를 갖춘 content/download API 및 전역 Player를 연결했다. 공개 files DTO는 내부 Storage 경로를 반환하지 않는다. F5 전체는 인증·소유권·History·Project·upload·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.

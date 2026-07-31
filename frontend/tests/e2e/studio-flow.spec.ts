@@ -53,15 +53,36 @@ async function mockBackend(page: Page) {
           job_id: "job-001",
           file_type: "final",
           mime_type: "audio/wav",
-          content_available: false,
-          download_available: false,
+          content_available: true,
+          download_available: true,
+          content_url: "/api/pipelines/job-001/files/file-1/content",
+          download_url: "/api/pipelines/job-001/files/file-1/download",
           created_at: "2026-07-31T00:00:01Z",
         },
       ],
     }),
   );
+  await page.route("**/backend/api/pipelines/job-001/files/file-1/content", (r) =>
+    r.fulfill({ status: 200, contentType: "audio/wav", body: "RIFFmockWAVE" }),
+  );
+  await page.route("**/backend/api/pipelines/job-001/files/file-1/download", (r) =>
+    r.fulfill({
+      status: 200,
+      contentType: "audio/wav",
+      headers: { "Content-Disposition": 'attachment; filename="doha-job-final.wav"' },
+      body: "RIFFmockWAVE",
+    }),
+  );
 }
 test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async ({ page }) => {
+  await page.addInitScript(() => {
+    HTMLMediaElement.prototype.play = async function () {
+      this.dispatchEvent(new Event("play"));
+    };
+    HTMLMediaElement.prototype.pause = function () {
+      this.dispatchEvent(new Event("pause"));
+    };
+  });
   await mockBackend(page);
   await page.goto("/");
   await expect(
@@ -83,7 +104,25 @@ test("Landing에서 결과 metadata까지 핵심 흐름을 완료한다", async 
   await expect(
     page.getByRole("heading", { name: "결과 Metadata" }),
   ).toBeVisible();
-  await expect(page.getByRole("button", { name: /다운로드/ })).toBeDisabled();
+  await expect(
+    page.getByRole("link", { name: "WAV 다운로드" }),
+  ).toHaveAttribute(
+    "href",
+    "/backend/api/pipelines/job-001/files/file-1/download",
+  );
+  await expect(page.locator("audio")).toHaveAttribute(
+    "src",
+    "/backend/api/pipelines/job-001/files/file-1/content",
+  );
+  await page.getByRole("button", { name: "Player에서 재생" }).click();
+  const resultPause = page.locator(".result-hero").getByRole("button", {
+    name: "일시정지",
+  });
+  await expect(resultPause).toBeVisible();
+  await resultPause.click();
+  await expect(
+    page.getByRole("button", { name: "Player에서 재생" }),
+  ).toBeVisible();
   await expect(page.getByText("C:/internal/final.wav")).toHaveCount(0);
 });
 test("미지원 Voice upload는 반응형 화면에서 disabled다", async ({

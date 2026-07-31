@@ -13,6 +13,10 @@ export interface SafePipelineFile {
   fileType: string;
   mimeType: string;
   createdAt: string;
+  contentAvailable: boolean;
+  downloadAvailable: boolean;
+  contentUrl?: string;
+  downloadUrl?: string;
 }
 export interface LyricsView {
   id: string;

@@ -2,7 +2,8 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
+from fastapi.responses import FileResponse
 
 from backend.api.dependencies import get_pipeline_service
 from backend.schemas.pipeline import PipelineCreate, PipelineFileRead, PipelineJobRead
@@ -31,3 +32,59 @@ def list_pipeline_files(
     return [
         PipelineFileRead.model_validate(item) for item in service.list_files(job_id)
     ]
+
+
+@router.api_route(
+    "/{job_id}/files/{file_id}/content",
+    methods=["GET", "HEAD"],
+    response_class=FileResponse,
+)
+def get_pipeline_file_content(
+    job_id: str,
+    file_id: str,
+    request: Request,
+    service: ServiceDependency,
+) -> FileResponse:
+    access = service.access_audio_file(
+        job_id,
+        file_id,
+        download=False,
+        range_header=request.headers.get("range"),
+    )
+    return FileResponse(
+        access.path,
+        media_type=access.mime_type,
+        headers={
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
+
+
+@router.api_route(
+    "/{job_id}/files/{file_id}/download",
+    methods=["GET", "HEAD"],
+    response_class=FileResponse,
+)
+def download_pipeline_file(
+    job_id: str,
+    file_id: str,
+    request: Request,
+    service: ServiceDependency,
+) -> FileResponse:
+    access = service.access_audio_file(
+        job_id,
+        file_id,
+        download=True,
+        range_header=request.headers.get("range"),
+    )
+    return FileResponse(
+        access.path,
+        media_type=access.mime_type,
+        filename=access.filename,
+        content_disposition_type="attachment",
+        headers={
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+        },
+    )

@@ -414,6 +414,24 @@
   background: #222;
   border-radius: 12px;
 }
+.file-list li.selected {
+  border-color: var(--red);
+}
+.file-list li > button {
+  width: 100%;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 16px;
+  text-align: left;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+.file-list li > button small {
+  grid-column: 1 / -1;
+}
 .file-list small {
   grid-column: 1/3;
   color: var(--muted);

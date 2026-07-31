@@ -2,16 +2,24 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Vinyl } from "@/components/brand";
-import { Badge, ErrorAlert, Unsupported } from "@/components/ui";
+import { Badge, Button, ErrorAlert } from "@/components/ui";
 import { usePipeline } from "@/hooks/use-pipeline";
-import { mapSafeFiles } from "@/lib/mappers";
+import { mapSafeFiles, selectPreferredAudioFile } from "@/lib/mappers";
 import { publicMetadataRows } from "@/lib/result-metadata";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
+import { usePlayerStore } from "@/stores/player-store";
 
 export function ResultPanel({ jobId }: { jobId: string }) {
   const setStep = useStudioStore((state) => state.setStep);
+  const playerFile = usePlayerStore((state) => state.currentFile);
+  const shouldPlay = usePlayerStore((state) => state.shouldPlay);
+  const selectPlayerFile = usePlayerStore((state) => state.select);
+  const play = usePlayerStore((state) => state.play);
+  const pause = usePlayerStore((state) => state.pause);
+  const [selectedId, setSelectedId] = useState("");
   const jobQuery = usePipeline(jobId);
   const filesQuery = useQuery({
     queryKey: ["pipeline-files", jobId],
@@ -19,6 +27,15 @@ export function ResultPanel({ jobId }: { jobId: string }) {
     enabled: jobQuery.data?.status === "COMPLETED",
   });
   const job = jobQuery.data;
+  const files = mapSafeFiles(filesQuery.data ?? []);
+  const preferred = selectPreferredAudioFile(files);
+  const selected = files.find((file) => file.id === selectedId) ?? preferred;
+
+  useEffect(() => {
+    if (!selectedId && preferred && playerFile?.id !== preferred.id) {
+      selectPlayerFile(preferred);
+    }
+  }, [playerFile?.id, preferred, selectPlayerFile, selectedId]);
   if (jobQuery.error)
     return <ErrorAlert message="결과 Job을 조회할 수 없습니다." />;
   if (!job)
@@ -38,7 +55,6 @@ export function ResultPanel({ jobId }: { jobId: string }) {
       </div>
     );
 
-  const files = mapSafeFiles(filesQuery.data ?? []);
   const metadata = publicMetadataRows(job.result_metadata);
   return (
     <section className="result-layout">
@@ -50,8 +66,27 @@ export function ResultPanel({ jobId }: { jobId: string }) {
           {job.genre ?? "장르 미지정"} · {job.duration_seconds}초
         </p>
         <div className="actions">
-          <Unsupported>재생</Unsupported>
-          <Unsupported>다운로드</Unsupported>
+          <Button
+            disabled={!selected?.contentAvailable || !selected.contentUrl}
+            onClick={() => {
+              if (!selected) return;
+              if (playerFile?.id === selected.id && shouldPlay) pause();
+              else play(selected);
+            }}
+          >
+            {playerFile?.id === selected?.id && shouldPlay
+              ? "일시정지"
+              : "Player에서 재생"}
+          </Button>
+          {selected?.downloadAvailable && selected.downloadUrl ? (
+            <a className="button secondary" href={selected.downloadUrl}>
+              WAV 다운로드
+            </a>
+          ) : (
+            <button className="button secondary" disabled>
+              다운로드 불가
+            </button>
+          )}
         </div>
       </div>
       <div className="surface-card">
@@ -75,15 +110,32 @@ export function ResultPanel({ jobId }: { jobId: string }) {
           ))}
         </dl>
         <h3>생성 파일 Metadata</h3>
+        {filesQuery.error && (
+          <ErrorAlert message="생성 파일 목록을 조회할 수 없습니다." />
+        )}
         {files.length ? (
           <ul className="file-list">
             {files.map((file) => (
-              <li key={file.id}>
-                <span>{file.fileType}</span>
-                <strong>{file.mimeType}</strong>
-                <small>
-                  {new Date(file.createdAt).toLocaleString("ko-KR")}
-                </small>
+              <li
+                key={file.id}
+                className={selected?.id === file.id ? "selected" : ""}
+              >
+                <button
+                  type="button"
+                  disabled={!file.contentAvailable}
+                  aria-label={`${file.fileType} 재생 파일 선택`}
+                  onClick={() => {
+                    setSelectedId(file.id);
+                    selectPlayerFile(file);
+                  }}
+                >
+                  <span>{file.fileType}</span>
+                  <strong>{file.mimeType}</strong>
+                  <small>
+                    {file.contentAvailable ? "재생 가능" : "재생 불가"} ·{" "}
+                    {new Date(file.createdAt).toLocaleString("ko-KR")}
+                  </small>
+                </button>
               </li>
             ))}
           </ul>

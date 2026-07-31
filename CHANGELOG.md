@@ -19,6 +19,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### Phase 8 — Doha Studio Frontend MVP
 
+- 완료 Pipeline의 허용된 WAV에 경로 비노출 `GET|HEAD content`·`download` API와 단일 byte Range `206/416` 처리를 추가했다.
+- Job/File 소속·완료 상태·Storage root·symlink·regular file·크기·MIME·확장자·RIFF header 검증 및 `no-store`·`nosniff` 응답 경계를 적용했다.
+- 공개 files DTO의 capability URL을 전역 Player·seek·volume·Result 다운로드에 연결하고 unavailable·loading·오류 상태를 구현했다.
+- Phase 8 Audio Player와 WAV Download DoD를 완료해 진행률을 `10/15, 67%`로 갱신하고 ADR-018에 로컬 단일 사용자 경계와 운영 승격 조건을 기록했다.
+
 - 공개 Generation·Stem·Voice Conversion·Pipeline file DTO와 Voice Profile 응답에서 내부 `file_path`·`reference_file_path`를 제거하고 content·download 가능 여부만 명시하도록 보안 경계를 강화했다.
 - Voice 서버 참조 경로 입력을 기본 비노출 개발 플래그로 제한하고 Backend에서 Storage root·파일 존재·확장자·traversal·절대 경로·symlink를 검증한다.
 - API Client가 `INVALID_RESPONSE`, `REQUEST_TIMEOUT`, `REQUEST_ABORTED`, `NETWORK_ERROR`, HTTP·Backend 오류 코드를 구분하고 caller signal과 timeout signal을 보존하도록 개선했다.
@@ -38,7 +43,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 - ADR-017을 npm·Next.js 16·CSS token·Zustand·TanStack Query·React Hook Form·Zod·Lucide·Vitest·Playwright 조합으로 승인했다.
 - Phase 8을 `[진행 중] 53%`로 갱신하고 F0~F3 완료, F4 부분 완료, F5 계획 상태로 구분했다.
-- Voice upload/list/get, audio streaming/download, History·Project, cancel/retry, 인증·소유권·모델 목록·Playlist는 Backend API 전까지 disabled 또는 미구현 상태를 유지한다.
+- Voice upload/list/get, History·Project, cancel/retry, 인증·소유권·모델 목록·Playlist는 Backend API 전까지 disabled 또는 미구현 상태를 유지한다.
 
 #### 검증
 
