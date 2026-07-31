@@ -29,7 +29,7 @@
 | 5. Pipeline Integration | [완료] | Mock Voice 기반 Orchestrator·실제 Audio Mixer·API·Benchmark 검증 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [완료] | Template·Mock Generator·동기 API·검증·EXP/EVAL/ADR 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [계획] | Premium Studio UX·Architecture 문서 완료, Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [계획] | Frontend 설계·F0 계약 검토 문서 완료, 실제 구현 미착수 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## 현재 우선 작업
@@ -40,7 +40,7 @@
 4. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
 5. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
 6. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
-7. [Frontend Roadmap](planning/frontend-roadmap.md)의 F0에서 upload/download·history·cancel/retry·인증·소유권 API gap을 확정한 뒤 Doha Studio 구현에 착수한다.
+7. [Frontend Roadmap](planning/frontend-roadmap.md)의 F0에서 `/openapi.json` 계약표, DTO 기준, 지원 범위와 Backend gap을 확정하고 [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)을 승인한 뒤 Doha Studio 구현에 착수한다.
 
 ## 다음 작업 흐름
 

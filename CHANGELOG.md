@@ -16,6 +16,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Desktop 3-column workspace, Tablet drawer, Mobile bottom navigation·step flow와 Player·Waveform·motion·접근성 기준을 정의했다.
 - 현재 FastAPI endpoint별 page·request·response·loading·error·retry·polling 흐름과 upload/download·history·cancel/retry·인증 등 미구현 API gap을 구분했다.
 - Phase 8 상태는 Frontend 코드 미구현에 따라 `[계획] 0%`로 유지하고 구현 순서를 Frontend Roadmap으로 정리했다.
+- Pipeline 요청에 없는 `instrumental`을 Music Settings 활성 필드에서 제거하고 `planned/disabled`로 정정했다.
+- F0 OpenAPI 계약 검토 대상·필드·응답·오류·DTO·완료 기준과 `Available`·`Partial`·`Backend Required`·`Planned` 지원 범위를 정의했다.
+- Responsive Web과 Native/PWA 범위를 분리하고 디자인 레퍼런스 사용 정책과 `[검토 필요]` ADR-017 기술 스택 비교 초안을 추가했다.
 
 ### Phase 6.5 — External Lyrics LLM Provider
 

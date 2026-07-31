@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 8 Doha Studio
 > 디자인 기준: 첨부된 Vinyl Music Dashboard 레퍼런스
-> 관련 문서: [Frontend Architecture](frontend-architecture.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md)
+> 관련 문서: [Frontend Architecture](frontend-architecture.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [지원 범위](#frontend-지원-범위), [디자인 레퍼런스 정책](design-reference-policy.md)
 
 ## 제품 경험
 
@@ -65,6 +65,17 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 | Settings | 로컬 UI 설정·Backend health | 부분 가능 |
 | About | 프로젝트·권리·AI 사용 고지 | 정적 가능 |
 | 404 | 안전한 복귀 | 정적 가능 |
+
+## Frontend 지원 범위
+
+| 상태 | 범위 |
+|---|---|
+| `Available` | Health, Lyrics 생성·조회·수정·검증·삭제, Voice Profile 생성·삭제, Generation·Stem·Voice Conversion·Pipeline Job 생성·조회, Job 상태 polling, 결과 files metadata, Pipeline `result_metadata` |
+| `Partial` | Voice Profile은 생성·삭제만 가능하고 upload·list·get은 불가. Result는 metadata 표시만 가능하고 browser audio content 재생·download는 불가 |
+| `Backend Required` | 음성 파일 upload, Voice Profile list/get, audio content streaming·download, 생성 이력, 프로젝트 저장·조회, Job cancel·기존 Job retry, 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
+| `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
+
+이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.
 
 ## 성공 지표
 

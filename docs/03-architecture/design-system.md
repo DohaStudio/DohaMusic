@@ -2,7 +2,9 @@
 
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
-> 관련 문서: [Frontend Overview](frontend-overview.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [디자인 레퍼런스 정책](design-reference-policy.md)
+
+첨부 Vinyl Music Dashboard는 방향 참고 자료이며 원본 UI·브랜드·artwork를 복제하거나 서비스 자산으로 사용하지 않는다. 모든 token과 component는 DohaMusic 고유 체계로 재해석하며 세부 기준은 [디자인 레퍼런스 정책](design-reference-policy.md)을 따른다.
 
 ## Color System
 

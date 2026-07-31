@@ -3,7 +3,16 @@
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
 > 원칙: Mobile First, content priority before breakpoint
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Navigation Guide](navigation-guide.md), [Design System](design-system.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [Navigation Guide](navigation-guide.md), [Design System](design-system.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+
+## Web와 Native App 경계
+
+- 1차 구현 대상은 하나의 Next.js 코드베이스로 Desktop·Tablet·Mobile Web을 지원하는 Responsive Web App이다.
+- Mobile UI는 bottom navigation·bottom sheet·full-screen player로 앱처럼 보일 수 있지만 Native App 구현이나 App Store 배포 완료를 의미하지 않는다.
+- Mobile Bottom Navigation은 웹 viewport에 적용하는 navigation pattern이다.
+- iOS·Android Native App은 별도 Phase 또는 WebView/Capacitor 등 wrapper 전략의 검토 대상인 `Planned` 범위다.
+- PWA와 offline 지원 여부는 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md) 또는 별도 ADR에서 결정한다.
+- App Store·Google Play packaging, native media session, background audio와 push notification은 현재 Phase 8 완료 범위로 표현하지 않는다.
 
 ## 기준 구간
 
