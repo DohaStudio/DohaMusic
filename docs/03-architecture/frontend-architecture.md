@@ -1,13 +1,13 @@
 # Frontend 아키텍처
 
-> 문서 상태: [계획]
+> 문서 상태: [진행 중]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 8 Doha Studio
 > 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
-Next.js App Router를 기준으로 화면, 기능, 서버 상태, 플레이어 상태와 디자인 토큰을 분리한다. 이 문서는 구현 방향이며 현재 Frontend가 존재한다는 의미가 아니다. Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
+Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, Player shell과 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Pipeline 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
 ```mermaid
 flowchart LR
@@ -35,7 +35,7 @@ flowchart LR
 | `lib` | formatter, validation helper, constants | feature 전용 비즈니스 로직 |
 | `styles` | token, theme, global motion/accessibility 정책 | 페이지별 임의 색상·spacing |
 
-## 제안 폴더 구조
+## 구현 기준 폴더 구조
 
 ```text
 frontend/
@@ -72,7 +72,7 @@ frontend/
 └─ styles/
 ```
 
-실제 파일 확장자와 라이브러리는 `[검토 필요]` 상태의 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)에서 확정한다. F0 완료 전 구현 브랜치에서 임의로 package를 추가하지 않는다. 이 구조는 책임 경계이지 지금 파일을 생성하라는 지시가 아니다.
+실제 라이브러리와 버전은 승인된 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)과 `frontend/package-lock.json`으로 고정한다. 구현은 이 책임 경계를 따르되 작은 공통 component는 역할별 파일로 묶어 불필요한 디렉터리 깊이를 피한다.
 
 ## 상태 모델
 
@@ -105,7 +105,7 @@ sequenceDiagram
 ```
 
 - Lyrics 생성·검증은 동기 요청이다. `POST /api/lyrics`, `POST /api/lyrics/validate`의 loading과 validation 결과를 구분한다.
-- Generation·Stem·Voice Conversion·Pipeline은 `202` 이후 polling한다. 기본 제안은 foreground 1초 → 5회 후 2초 → background 5초이며 실제 부하 검증 후 확정한다.
+- Pipeline은 `202` 이후 초기 5회 1초, foreground 2초, background 5초 간격으로 polling한다.
 - `COMPLETED`와 `FAILED`에서 polling을 중단한다. 네트워크 오류는 Job 실패와 분리해 “연결 재시도”를 제공한다.
 - API의 `{ error: { code, message } }`를 공통 UI 오류로 정규화하되 내부 경로나 원문 prompt를 노출하지 않는다.
 - Backend에 재시도 API가 없으므로 “재시도”는 동일 draft를 검토 화면으로 복사한 뒤 새 Job을 만드는 사용자 행동으로만 표현한다.
