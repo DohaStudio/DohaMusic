@@ -45,4 +45,30 @@ describe("hardening helpers", () => {
     expect(value).not.toContain("secret");
     expect(value).not.toContain("command");
   });
+  it("null과 알 수 없는 metadata에는 빈 목록을 반환한다", () => {
+    expect(publicMetadataRows(null)).toEqual([]);
+    expect(publicMetadataRows({ file_path: "secret", unknown: 1 })).toEqual([]);
+  });
+  it("Mixer 공개 품질값만 노출하고 내부 필드는 제외한다", () => {
+    const rows = publicMetadataRows({
+      step_execution: [
+        {
+          step: "mixer",
+          status: "COMPLETED",
+          audio_quality: {
+            sample_rate: 48000,
+            channels: 2,
+            peak_dbfs: -1.2,
+            model_path: "C:/private/model",
+            clipping: { detected: false, internal_buffer: "secret" },
+          },
+        },
+      ],
+    });
+    const value = JSON.stringify(rows);
+    expect(value).toContain("48000");
+    expect(value).toContain("Clipping");
+    expect(value).not.toContain("private");
+    expect(value).not.toContain("internal_buffer");
+  });
 });

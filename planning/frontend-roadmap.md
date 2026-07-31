@@ -105,4 +105,6 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 F0~F5는 로컬 단일 사용자 범위에서 구현·자동 검증을 완료했다. F5에서 보안 content/download·전역 Player, Voice upload, History·Project CRUD, cooperative Cancel과 새 Job Retry를 연결했다. 공개 DTO는 내부 Storage 경로를 반환하지 않으며 Project 삭제와 Cancel은 Job 기록을 보존한다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.
 
+Frontend shared mapper와 Result metadata allowlist는 루트 `lib/` ignore 규칙으로 누락됐던 파일을 기존 계약에 맞춰 복구했다. 이 복구는 Phase 8 기능·상태를 바꾸지 않고 typecheck·build·Vitest·Playwright 기준선과 후속 K1 검증 차단을 해소한다.
+
 K-POP Preset·Prompt Preview·Generation Options UI는 완료된 F0~F5 범위가 아니라 [K-POP Creation Roadmap](kpop-creation-roadmap.md)의 K1·K2 후속 구현이다. Backend capability 전에는 BPM·언어 비율·Hook·Dance Break를 작동하는 제어로 노출하지 않는다.
