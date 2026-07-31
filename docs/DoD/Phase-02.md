@@ -37,7 +37,7 @@ Phase 1 Backend Foundation과 RTX 3060 Ti 8GB 실행 환경이 필요하다.
 - [x] ADR-005·ADR-006 검토·작성
 - [x] 한국어 커밋·Push·PR
 - [x] `develop` 병합과 `main` 무변경 확인
-- [ ] EVAL-001 사용자 청취 평가 후 기본 Provider 채택 여부 확정
+- [ ] EVAL-001 남은 사용자 평가 후 운영·제품 기본 Provider 승인 여부 최종 확정
 
   중간 결론: 일부 사용자 청취 평가를 완료했다. no LM 한국어 가창은 부적합하고 0.6B LM은 한국어 가창 실험 후보이며, ACE-Step은 조건부 채택 상태다. 현재 기본 Provider는 `mock`을 유지한다. `B-EXP001`과 `K-NOLM-20260732` 평가 후 Phase 2 종료 여부를 최종 판단한다.
 
@@ -57,4 +57,4 @@ ACE-Step Adapter·runner·benchmark 입력·GPU 통합 테스트·EXP-001·EVAL-
 
 ## 예상 다음 단계
 
-EVAL-001 사용자 입력을 반영해 Phase 2 종료 여부와 ACE-Step Provider 상태를 결정한다.
+EVAL-001의 남은 사용자 입력을 반영해 Phase 2 종료 여부와 ACE-Step의 운영·제품 기본 Provider 승인 여부를 결정한다. 현재 조건부 채택 상태와 애플리케이션 기본값 `mock`은 이 최종 승인과 구분한다.

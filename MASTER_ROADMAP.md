@@ -70,8 +70,8 @@ Phase 9  Production                  [계획]
 |---|---|---:|---|---|
 | 0. 프로젝트 문서화 | [완료] | `██████████ 100%` | 초기 문서·정책·ADR 체계 구축 | 이 문서의 Phase 0 기준 |
 | 1. Backend Foundation | [완료] | `██████████ 100%` | FastAPI·SQLite·Alembic·Mock Job 검증 | [Phase-01](docs/DoD/Phase-01.md) |
-| 2. Music Generation | [진행 중] | `█████████░ 93%` | ACE-Step 기술 연결 완료, 사용자 품질 승인 대기 | [Phase-02](docs/DoD/Phase-02.md) |
-| 2.5 Quality Benchmark | [진행 중] | `█████████░ 93%` | 재현성·반복·VRAM·ADR 완료, EVAL-001 대기 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
+| 2. Music Generation | [진행 중] | `█████████░ 93%` | ACE-Step 조건부 채택, 기본 `mock`, 운영 Provider 미확정·사용자 평가 진행 중 | [Phase-02](docs/DoD/Phase-02.md) |
+| 2.5 Quality Benchmark | [진행 중] | `█████████░ 93%` | 재현성·반복·VRAM·ADR 완료, EVAL-001 사용자 평가 진행 중 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | `██████████ 100%` | HTDemucs Adapter·API·Benchmark·평가표 구축 | [Phase-03](docs/DoD/Phase-03.md) |
 | 4. Voice Conversion | [검증 필요] | `█████████░ 94%` | 6개 Provider 평가 완료, Primary 미선정 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [완료] | `██████████ 100%` | Mock Voice 기반 Orchestrator·API·실패 정책 검증 | [Phase-05](docs/DoD/Phase-05.md) |
@@ -109,14 +109,14 @@ Phase 9  Production                  [계획]
 
 - 목표: 교체 가능한 음악 생성 Adapter와 로컬 생성 경로를 검증한다.
 - 구현 범위·포함 기능: ACE-Step 공식 조사·격리 runtime·`MusicGenerator` Adapter·Provider Factory·Backend E2E·WAV·성능 metadata.
-- 제외 기능: ACE-Step 기본 Provider 확정, 사용자 품질 승인, Lyrics AI, 음색 변환.
+- 제외 기능: ACE-Step 운영·제품 기본 Provider 확정, 사용자 품질 최종 승인, Lyrics AI, 음색 변환.
 - 선행 조건: Phase 1 Backend와 RTX 3060 Ti 8GB 환경.
-- 완료 조건: [Phase-02 DoD](docs/DoD/Phase-02.md)와 EVAL-001 사용자 판정 후 Provider 채택 여부 결정.
+- 완료 조건: [Phase-02 DoD](docs/DoD/Phase-02.md)와 EVAL-001의 남은 사용자 평가 후 운영·제품 기본 Provider 승인 여부 결정.
 - 산출물: ACE-Step Adapter·runner·GPU 통합 테스트·EXP-001.
 - 관련 문서: [Music Generation Adapter](docs/04-models/music-generation-adapter.md), [Model Comparison](docs/01-research/model-comparison.md).
 - 관련 ADR: [ADR-005](docs/11-decisions/ADR-005-ai-worker-dependency-isolation.md), [ADR-006](docs/11-decisions/ADR-006-ace-step-primary-provider.md).
 - 관련 실험: [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md).
-- 예상 다음 단계: EVAL-001 작성과 Phase 2 Provider 판정.
+- 예상 다음 단계: EVAL-001의 남은 2개 산출물 평가와 Phase 2 운영·제품 기본 Provider 판정.
 
 ## Phase 2.5. Quality Benchmark — [진행 중]
 
@@ -129,7 +129,7 @@ Phase 9  Production                  [계획]
 - 관련 문서: [평가 전략](docs/08-evaluation/evaluation-strategy.md), [Benchmark](docs/08-evaluation/benchmark-scenarios.md).
 - 관련 ADR: [ADR-006](docs/11-decisions/ADR-006-ace-step-primary-provider.md), [ADR-007](docs/11-decisions/ADR-007-ace-step-runtime-lifecycle.md).
 - 관련 실험: [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md).
-- 예상 다음 단계: 사용자 청취 판정 반영 후 Phase 2·2.5 종료 여부 결정.
+- 예상 다음 단계: 남은 사용자 청취 판정 반영 후 Phase 2·2.5 종료 여부 결정. ACE-Step은 현재 조건부 채택이며 기본 Provider는 `mock`이다.
 
 ## Phase 3. Stem Separation — [완료]
 
