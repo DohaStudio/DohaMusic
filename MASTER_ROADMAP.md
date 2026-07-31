@@ -10,10 +10,21 @@
 | External Provider 품질 승인 | [사용자 평가 필요] | EVAL-006 미작성 |
 | Stable 승격·Pipeline 연결 | [보류] | 품질·비용·지연·데이터·법률·인증 게이트 미통과 |
 
-Phase 번호는 변경하지 않는다. 기본 Provider는 `template`이며 Phase 6 자체의 완료 상태와 External Provider의 Experimental 상태를 분리한다.
+Phase 6의 완료 상태는 변경하지 않는다. 기본 Provider는 `template`이며 Phase 6 자체의 완료 상태와 External Provider의 Experimental 상태를 분리한다.
+
+## Phase 6.6~6.9 Local Lyrics LLM 상태
+
+| Phase | 상태 | 사실 기준 |
+|---|---|---|
+| 6.6 Local Lyrics LLM Dataset | [계획] | Dataset schema·권리 기준만 문서화, 데이터 미수집 |
+| 6.7 Local Lyrics LLM Fine-tuning | [계획] | Qwen 계열 1.7B~4B Instruct·QLoRA SFT 후보만 결정, 학습 미실행 |
+| 6.8 Local Lyrics Provider Integration | [계획] | `local_llm` Adapter 경계만 계획, 코드 미구현 |
+| 6.9 Local Lyrics Quality Gate | [계획] | 평가 항목만 정의, 측정·승격 미실행 |
+
+이 네 Phase는 완료된 Phase 6의 후속 확장이다. 기본 Provider는 검증 전까지 `template`이며 OpenAI Adapter는 `Experimental`을 유지한다. 세부 범위와 완료 기준은 [Local Lyrics LLM 계획](planning/phase-6-local-lyrics-llm-plan.md)과 [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md)을 따른다.
 
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.
 > 관련 문서: [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md), [작업 지침](AGENTS.md), [ADR](docs/11-decisions/README.md), [변경 이력](CHANGELOG.md)
 
@@ -46,6 +57,14 @@ Phase 5  Pipeline Integration        [완료]
   ↓
 Phase 6  Lyrics AI                   [완료]
   ↓
+Phase 6.6 Local Lyrics LLM Dataset   [계획]
+  ↓
+Phase 6.7 Local Lyrics LLM Fine-tuning [계획]
+  ↓
+Phase 6.8 Local Lyrics Provider Integration [계획]
+  ↓
+Phase 6.9 Local Lyrics Quality Gate  [계획]
+  ↓
 Phase 7  Doha Voice                  [계획]
   ↓
 Phase 8  Doha Studio                 [계획]
@@ -63,6 +82,10 @@ Phase 9  Production                  [계획]
 | 4. Voice Conversion | [검증 필요] | `█████████░ 94%` | 6개 Provider 평가 완료, Primary 미선정 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [완료] | `██████████ 100%` | Mock Voice 기반 Orchestrator·API·실패 정책 검증 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [완료] | `██████████ 100%` | 로컬 Template·Mock Generator·API·검증·Benchmark 완료 | [Phase-06](docs/DoD/Phase-06.md) |
+| 6.6 Local Lyrics LLM Dataset | [계획] | `░░░░░░░░░░ 0%` | 권리 추적 Dataset 미구축 | [계획](planning/phase-6-local-lyrics-llm-plan.md#phase-66--local-lyrics-llm-dataset) |
+| 6.7 Local Lyrics LLM Fine-tuning | [계획] | `░░░░░░░░░░ 0%` | QLoRA SFT 미실행 | [계획](planning/phase-6-local-lyrics-llm-plan.md#phase-67--local-lyrics-llm-fine-tuning) |
+| 6.8 Local Lyrics Provider Integration | [계획] | `░░░░░░░░░░ 0%` | `local_llm` Adapter 미구현 | [계획](planning/phase-6-local-lyrics-llm-plan.md#phase-68--local-lyrics-provider-integration) |
+| 6.9 Local Lyrics Quality Gate | [계획] | `░░░░░░░░░░ 0%` | 품질·성능·안정성 미측정 | [계획](planning/phase-6-local-lyrics-llm-plan.md#phase-69--local-lyrics-quality-gate) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | `░░░░░░░░░░ 0%` | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -168,6 +191,18 @@ Phase 9  Production                  [계획]
 - 관련 ADR·실험: [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md).
 - 예상 다음 단계: Phase 7 Doha Voice 또는 Phase 8 Studio 선행 설계 검토.
 
+## Phase 6.6~6.9. Local Lyrics LLM 확장 — [계획]
+
+- 목표: 권리 추적 가능한 한국어 중심 Dataset으로 공개 사전학습 Instruct LLM을 QLoRA SFT하고, 기존 `LyricsGenerator` 경계에서 검증 가능한 `local_llm` Provider 후보를 만든다.
+- 구현 범위·포함 기능: Dataset 계보·분할, Qwen 계열 1.7B~4B Instruct 후보 검토, QLoRA SFT 실험, 공통 결과 계약·`LyricsValidator` 연결, Template·OpenAI Experimental·Local LLM 비교와 운영 승격 판정.
+- 제외 기능: 기반 LLM 구조 신규 설계, Full Fine-tuning 기본 채택, 상업 가사 무단 수집, 검증 전 기본 Provider 변경·Pipeline 자동 연결.
+- 선행 조건: Phase 6 완료, 데이터·베이스 모델 라이선스 승인, RTX 3060 Ti 8GB 실행 계획, 재현 가능한 평가 Dataset 확정.
+- 완료 조건: Phase 6.6~6.9 각각의 완료 기준과 권리·품질·VRAM·지연·안정성 증거를 충족하고 운영 Provider 승격 여부를 별도 승인한다.
+- 산출물: Dataset Card·manifest, 학습 설정·실험 보고서·Model Card, `local_llm` Adapter와 회귀 검증, 품질 게이트 보고서.
+- 관련 문서: [Local Lyrics LLM 계획](planning/phase-6-local-lyrics-llm-plan.md), [Lyrics AI](docs/03-architecture/lyrics-ai.md), [모델 선정 정책](docs/04-models/model-selection-policy.md).
+- 관련 ADR: [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md).
+- 예상 다음 단계: Phase 6.6 Dataset 권리·schema 승인. 네 Phase는 병행 완료로 간주하지 않고 순차 게이트로 진행한다.
+
 ## Phase 7. Doha Voice — [계획]
 
 - 목표: 동의·삭제 가능한 본인 가창 Dataset으로 개인화 음성 품질을 검증한다.
@@ -210,6 +245,8 @@ Phase 9  Production                  [계획]
 Phase 5.1 실제 Audio Mixer 기술 기반 완료
   ↓
 Phase 6 로컬 Lyrics AI 기반 완료
+  ↓ 선택적 후속 확장
+Phase 6.6 Dataset → 6.7 QLoRA SFT → 6.8 Adapter → 6.9 Quality Gate
   ↓ 병행 게이트
 Voice Primary·Mixer 사용자 품질 검증
   ↓

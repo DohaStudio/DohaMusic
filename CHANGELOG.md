@@ -2,11 +2,19 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### Phase 6.6~6.9 — Local Lyrics LLM
+
+#### 문서
+
+- 권리 추적 가능한 Dataset, Qwen 계열 1.7B~4B Instruct 후보의 QLoRA SFT, `local_llm` Adapter와 품질 게이트를 후속 확장 Phase로 계획했다.
+- ADR-016에 사전학습 Instruct 모델 활용, 기존 `LyricsGenerator` 경계 유지, 검증 전 `template` 기본값과 운영 Pipeline 자동 연결 금지를 기록했다.
+- JSON Schema·Validator·한국어 품질·수정 반영·Template/OpenAI/Local 비교·응답 시간·VRAM·추론 안정성 평가 기준을 문서화했다.
 
 ### Phase 6.5 — External Lyrics LLM Provider
 

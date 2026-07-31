@@ -8,9 +8,17 @@
 4. 5초를 넘는 운영 호출은 비동기 Job으로 전환하고 인증·소유권·사용량 한도를 설계한다.
 5. 위 게이트 전에는 External Provider를 Stable로 승격하거나 Pipeline에 자동 연결하지 않는다.
 
+## Phase 6.6~6.9 Local Lyrics LLM 후속 계획
+
+1. Phase 6.6에서 직접 작성하거나 사용 권한을 확보한 가사 중심 Dataset과 권리 manifest를 확정한다.
+2. Phase 6.7에서 Qwen 계열 1.7B~4B Instruct 후보를 대상으로 RTX 3060 Ti 8GB에 맞춘 QLoRA SFT만 우선 검증한다.
+3. Phase 6.8에서 검증 산출물을 기존 `LyricsGenerator` 공통 결과 계약과 `LyricsValidator` 아래 `local_llm` Adapter로 격리한다.
+4. Phase 6.9에서 Template·OpenAI Experimental·Local LLM의 품질·응답 시간·VRAM·안정성을 비교한다.
+5. 모든 게이트 전까지 기본 Provider는 `template`이며 `local_llm`을 운영 Pipeline에 자동 연결하지 않는다.
+
 > 문서 상태: [운영 중]
-> 최종 수정일: 2026-07-29
-> 현재 상태: **Phase 6 로컬 Lyrics AI 기반 완료 / 외부 LLM·운영 Voice Provider 보류**
+> 최종 수정일: 2026-07-31
+> 현재 상태: **Phase 6 로컬 Lyrics AI 기반 완료 / Phase 6.6~6.9 로컬 LLM 확장 계획 / 외부 LLM·운영 Voice Provider 보류**
 > 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
 > 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)
 
@@ -28,6 +36,10 @@
 | 4. Voice Conversion | [검증 필요] | Provider 평가 완료, Primary·Fallback 미선정, 94% 유지 | [Phase-04](docs/DoD/Phase-04.md) |
 | 5. Pipeline Integration | [완료] | Mock Voice 기반 Orchestrator·실제 Audio Mixer·API·Benchmark 검증 | [Phase-05](docs/DoD/Phase-05.md) |
 | 6. Lyrics AI | [완료] | Template·Mock Generator·동기 API·검증·EXP/EVAL/ADR 완료 | [Phase-06](docs/DoD/Phase-06.md) |
+| 6.6 Local Lyrics LLM Dataset | [계획] | 권리 추적 Dataset 미구축 | [세부 계획](planning/phase-6-local-lyrics-llm-plan.md#phase-66--local-lyrics-llm-dataset) |
+| 6.7 Local Lyrics LLM Fine-tuning | [계획] | QLoRA SFT 미실행 | [세부 계획](planning/phase-6-local-lyrics-llm-plan.md#phase-67--local-lyrics-llm-fine-tuning) |
+| 6.8 Local Lyrics Provider Integration | [계획] | `local_llm` Adapter 미구현 | [세부 계획](planning/phase-6-local-lyrics-llm-plan.md#phase-68--local-lyrics-provider-integration) |
+| 6.9 Local Lyrics Quality Gate | [계획] | 비교 평가·승격 판정 미실행 | [세부 계획](planning/phase-6-local-lyrics-llm-plan.md#phase-69--local-lyrics-quality-gate) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [계획] | Frontend 미구현 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -35,7 +47,7 @@
 ## 현재 우선 작업
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
-2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
+2. [Local Lyrics LLM 계획](planning/phase-6-local-lyrics-llm-plan.md)에 따라 Phase 6.6 Dataset의 출처·라이선스·권리 상태와 split 기준을 먼저 승인한다.
 3. [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에서 실제 곡의 balance·자연스러움·noise·clipping을 사용자가 평가한다.
 4. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
 5. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
@@ -47,6 +59,14 @@
 Phase 5.1: 실제 Audio Mixer 완료
   ↓
 Phase 6: 로컬 Lyrics AI 기반 완료
+  ↓ 선택적 후속 확장
+Phase 6.6 Dataset
+  ↓
+Phase 6.7 QLoRA SFT
+  ↓
+Phase 6.8 local_llm Adapter
+  ↓
+Phase 6.9 품질 게이트
   ↓ 병행
 Voice Primary·Mixer 청감 품질 게이트
   ↓

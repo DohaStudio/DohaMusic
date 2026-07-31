@@ -1,9 +1,9 @@
 # Lyrics AI 아키텍처
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 관련 기능: Phase 6 Lyrics AI
-> 관련 문서: [Lyrics API](../06-api/lyrics-api.md), [ADR-014](../11-decisions/ADR-014-lyrics-generator-architecture.md)
+> 관련 문서: [Lyrics API](../06-api/lyrics-api.md), [ADR-014](../11-decisions/ADR-014-lyrics-generator-architecture.md), [ADR-016](../11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [Local LLM 계획](../../planning/phase-6-local-lyrics-llm-plan.md)
 
 ## 구조
 
@@ -12,7 +12,9 @@ Lyrics API
   → LyricsService
   → LyricsGenerator Interface
       ├─ TemplateLyricsGenerator (기본)
-      └─ MockLyricsGenerator
+      ├─ MockLyricsGenerator
+      ├─ OpenAILyricsGenerator (Experimental)
+      └─ LocalLyricsGenerator (`local_llm`, 계획)
   → Lyrics Validator
   → LyricsRepository
   → lyrics_documents
@@ -47,3 +49,21 @@ Phase 6 API는 Pipeline을 호출하지 않으며 Pipeline도 LyricsService를 �
 `openai` Experimental Adapter는 기존 `LyricsGenerator` 계약 아래 `adapter → prompts → client → mapper`로 격리된다. Responses API strict JSON Schema 결과도 공통 Validator를 다시 통과해야 저장된다. Service·Router는 Provider SDK 형식을 알지 않는다. 기본 Provider는 `template`다.
 
 의미 기반 수정은 `RevisionCapableLyricsGenerator`의 선택 기능이다. 원본을 보존하고 parent/version과 전후 hash를 가진 새 문서를 만든다. 외부 Prompt에는 허용된 가사 필드만 넣고 내부 ID·파일·음성 데이터를 제외한다. 실패 fallback은 요청별 명시 허용 때만 Template로 전환한다.
+
+## Phase 6.6~6.9 Local Lyrics LLM 경계
+
+`local_llm`은 향후 추가할 Provider 식별자이며 현재 구현된 Provider가 아니다. 공개 사전학습 Instruct LLM을 QLoRA SFT한 결과만 Adapter 후보로 연결하고 Service·Router·Repository·기존 API 계약은 모델 런타임을 알지 않는다. Full Fine-tuning은 RTX 3060 Ti 8GB의 기본 전략으로 사용하지 않는다.
+
+입력은 `topic`, `genre`, `mood`, `keywords`, `language`, `structure`, `duration`, `additional_instructions`를 사용한다. Adapter 출력은 기존 `LyricsGenerationResult`로 변환하고 저장 전에 공통 JSON Schema와 `LyricsValidator`를 통과해야 한다. 모델 고유 token·prompt·tensor 형식은 Adapter 밖으로 노출하지 않는다.
+
+```text
+LyricsGenerationInput
+  → Local Lyrics Prompt Mapper
+  → QLoRA SFT Instruct Model Runtime
+  → Structured Output Mapper
+  → LyricsGenerationResult
+  → LyricsValidator
+  → LyricsService
+```
+
+검증 전 기본 Provider는 `template`이다. `local_llm`은 명시적 opt-in 실험 경로에서만 평가하고 운영 Pipeline 자동 연결, 암묵적 fallback, Stable·Primary 표기를 금지한다. Dataset·모델·Adapter·품질 게이트는 각각 Phase 6.6~6.9에서 순차 승인한다.

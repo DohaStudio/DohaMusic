@@ -2,11 +2,13 @@
 
 > Phase 6.5: OpenAI Responses API Lyrics Adapter가 `Experimental`로 추가되었고 기본 Provider는 계속 `template`입니다. 외부 API Key가 없어 실제 한국어 품질·지연·token·비용은 `[검증 필요]`, EVAL-006은 `[사용자 평가 필요]`입니다.
 
+> Phase 6.6~6.9: 로컬 Lyrics LLM의 Dataset → QLoRA SFT → `local_llm` Adapter → Quality Gate는 `[계획]`입니다. 우선 검토 후보는 Qwen 계열 1.7B~4B Instruct이며 모델·데이터 권리·RTX 3060 Ti 8GB 실측과 품질 검증 전에는 기본 Provider 또는 운영 Pipeline으로 승격하지 않습니다.
+
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 6 Lyrics AI 로컬 Template·Mock 기반 완료 — 외부 LLM 도입 보류**
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다.
@@ -40,6 +42,8 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | `LyricsGenerator`·Template/Mock Provider와 동기식 가사 생성·조회·검증·삭제 API |
 | [완료] | 한국어·영어 구조화 가사, 섹션 파싱, 입력 정제, 길이·반복·구조 검증과 metadata 저장 |
 | [수동 평가 필요] | EVAL-005 가사 주제 적합성·자연스러움·후렴 기억성·창작 활용성 평가 |
+| [계획] | 권리 추적 가능한 한국어 Lyrics Dataset 구축과 QLoRA SFT |
+| [계획] | 기존 `LyricsGenerator` 계약을 유지하는 `local_llm` Provider Adapter 및 품질 게이트 |
 | [계획] | MP3 변환 |
 | [계획] | 비동기 작업 상태·진행률·오류·재시도 관리 |
 | [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
@@ -72,7 +76,7 @@ flowchart LR
 - Task Queue: 프로세스 내부 단일 ThreadPool **[완료]**, 외부 Queue **[계획]**
 - Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
 - Audio DSP: NumPy·SciPy 기반 Default Mixer **[완료]**, True Peak·LUFS **[계획]**
-- Lyrics: 로컬 Template·Mock Provider **[완료]**, 외부 LLM Provider **[검토 필요]**
+- Lyrics: 로컬 Template·Mock Provider **[완료]**, OpenAI Provider **[Experimental]**, QLoRA 기반 로컬 LLM·`local_llm` Provider **[계획]**
 - AI 모델: 어댑터를 통한 교체 가능한 공개 사전학습 모델
 
 모델명은 후보일 뿐이며, 라이선스와 로컬 벤치마크를 통과하기 전에는 채택하지 않는다. 자세한 기준은 [모델 비교](docs/01-research/model-comparison.md)와 [모델 선정 정책](docs/04-models/model-selection-policy.md)을 따른다.
@@ -124,7 +128,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 안전과 권리: [음성 동의 정책](docs/09-security/voice-consent-policy.md), [생성 콘텐츠 정책](docs/09-security/generated-content-policy.md)
 - 의사결정: [ADR 목록](docs/11-decisions/README.md)
 - Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Audio Quality Engine](docs/03-architecture/audio-quality-engine.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)
-- Lyrics AI: [Architecture](docs/03-architecture/lyrics-ai.md), [API](docs/06-api/lyrics-api.md), [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)
+- Lyrics AI: [Architecture](docs/03-architecture/lyrics-ai.md), [Local LLM 계획](planning/phase-6-local-lyrics-llm-plan.md), [API](docs/06-api/lyrics-api.md), [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)
 
 ## 안전 및 음성 사용 정책
 
