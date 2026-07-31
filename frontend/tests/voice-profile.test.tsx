@@ -73,20 +73,20 @@ describe("Voice Profile 사용자 흐름", () => {
 
   it("기본 모드에서 upload를 제공하고 개발 경로는 숨긴다", async () => {
     renderWithQuery(<VoiceProfilePanel />);
-    expect(screen.getByLabelText("참조 음성 WAV")).toHaveAttribute("accept", expect.stringContaining(".wav"));
+    expect(screen.getByLabelText("목소리 파일")).toHaveAttribute("accept", expect.stringContaining(".wav"));
     expect(screen.queryByLabelText("서버 참조 파일 경로")).not.toBeInTheDocument();
-    expect(await screen.findByText(/등록된 목소리가 없습니다/)).toBeInTheDocument();
+    expect(await screen.findByText(/아직 등록한 목소리가 없습니다/)).toBeInTheDocument();
   });
 
   it("동의와 client 파일 검증 후 multipart upload하고 선택한다", async () => {
     renderWithQuery(<VoiceProfilePanel />);
     const user = userEvent.setup();
     const file = new File(["wave"], "voice.wav", { type: "audio/wav" });
-    await user.type(screen.getByLabelText("Profile 이름"), "내 목소리");
-    await user.upload(screen.getByLabelText("참조 음성 WAV"), file);
-    expect(screen.getByRole("button", { name: "Voice Profile 등록" })).toBeDisabled();
+    await user.type(screen.getByLabelText("목소리 이름"), "내 목소리");
+    await user.upload(screen.getByLabelText("목소리 파일"), file);
+    expect(screen.getByRole("button", { name: "내 목소리 등록" })).toBeDisabled();
     await user.click(screen.getByRole("checkbox"));
-    await user.click(screen.getByRole("button", { name: "Voice Profile 등록" }));
+    await user.click(screen.getByRole("button", { name: "내 목소리 등록" }));
     await waitFor(() => expect(mocks.upload).toHaveBeenCalled());
     expect(useStudioStore.getState().voiceProfileId).toBe(profile.id);
   });
@@ -115,7 +115,7 @@ describe("Voice Profile 사용자 흐름", () => {
     mocks.list.mockResolvedValue([profile]);
     renderWithQuery(<VoiceStep />);
     const user = userEvent.setup();
-    const next = screen.getByRole("button", { name: "생성 확인" });
+    const next = screen.getByRole("button", { name: "최종 확인" });
     expect(next).toBeDisabled();
     await user.click(await screen.findByRole("radio", { name: /내 목소리/ }));
     expect(next).toBeEnabled();

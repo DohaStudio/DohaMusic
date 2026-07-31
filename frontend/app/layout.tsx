@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-body" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-display" });
 export const metadata: Metadata = {
   title: { default: "Doha Music Studio", template: "%s · Doha Music" },
-  description: "Provider-neutral AI music creation studio",
+  description: "내 이야기와 목소리로 음악을 만드는 개인 창작 공간",
 };
 export default function RootLayout({
   children,

@@ -3,7 +3,7 @@ import { mapPipelineStatus, mapSafeFiles } from "@/lib/mappers";
 describe("DTO mappers", () => {
   it("Pipeline 상태를 한국어 view로 매핑한다", () => {
     expect(mapPipelineStatus("VOICE_CONVERTING")).toMatchObject({
-      label: "음색 변환",
+      label: "내 목소리를 적용하고 있습니다",
       tone: "active",
     });
     expect(mapPipelineStatus("FAILED").tone).toBe("error");

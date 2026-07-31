@@ -12,7 +12,8 @@ import {
   Textarea,
 } from "@/components/ui";
 import { mapLyrics } from "@/lib/mappers";
-import { ApiError } from "@/services/api-client";
+import { isDeveloperInfoEnabled } from "@/lib/developer-info";
+import { userErrorMessage } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import type { LyricsDocumentDto, LyricsValidationDto } from "@/types/api";
@@ -31,7 +32,7 @@ export function LyricsLab() {
   const router = useRouter();
   const patch = useStudioStore((state) => state.patch);
   const [topic, setTopic] = useState("");
-  const [genre, setGenre] = useState("R&B");
+  const [genre, setGenre] = useState("댄스 팝");
   const [mood, setMood] = useState("따뜻한");
   const [text, setText] = useState("");
   const [doc, setDoc] = useState<LyricsDocumentDto>();
@@ -80,12 +81,9 @@ export function LyricsLab() {
   return (
     <section className="page-stack">
       <header className="page-heading">
-        <p className="eyebrow">LYRICS LAB</p>
-        <h1>말이 노래가 되는 곳</h1>
-        <p>
-          Backend가 제공하는 Provider capability에 맞춰 안전한 작업만
-          활성화합니다.
-        </p>
+        <p className="eyebrow">가사 만들기</p>
+        <h1>가사를 어떻게 준비할까요?</h1>
+        <p>주제와 분위기를 알려주면 초안을 만들고, 직접 고쳐 음악에 사용할 수 있습니다.</p>
       </header>
       <div className="two-panel">
         <form
@@ -95,7 +93,7 @@ export function LyricsLab() {
             create.mutate();
           }}
         >
-          <h2>AI 가사 생성</h2>
+          <h2>AI가 만들어주기</h2>
           <Field label="주제" htmlFor="topic">
             <Input
               id="topic"
@@ -121,10 +119,10 @@ export function LyricsLab() {
             </Field>
           </div>
           <Button disabled={create.isPending || !topic}>
-            {create.isPending ? "생성 중…" : "가사 생성"}
+            {create.isPending ? "만드는 중…" : "가사 만들어보기"}
           </Button>
           <hr />
-          <h2>직접 작성·검증</h2>
+          <h2>직접 쓰기</h2>
           <Field label="가사 전문" htmlFor="lyrics-text">
             <Textarea
               id="lyrics-text"
@@ -139,13 +137,13 @@ export function LyricsLab() {
             disabled={!text || validate.isPending}
             onClick={() => validate.mutate()}
           >
-            Validator로 확인
+            작성 내용 확인
           </Button>
         </form>
         <article className="surface-card lyrics-result">
           <div className="result-head">
             <h2>{view?.title ?? "가사 결과"}</h2>
-            {view && (
+            {view && isDeveloperInfoEnabled() && (
               <div>
                 <Badge tone="success">{view.providerLabel}</Badge>
                 <Badge>{view.modelLabel}</Badge>
@@ -155,9 +153,7 @@ export function LyricsLab() {
           {error && (
             <ErrorAlert
               message={
-                error instanceof ApiError
-                  ? error.message
-                  : "요청에 실패했습니다."
+                userErrorMessage(error)
               }
             />
           )}
@@ -201,11 +197,8 @@ export function LyricsLab() {
                 </>
               ) : (
                 <div className="notice">
-                  <strong>의미 기반 수정 미지원</strong>
-                  <p>
-                    현재 Provider는 revision을 지원하지 않습니다. 가사 전문을
-                    직접 편집하거나 새 가사를 생성하세요.
-                  </p>
+                  <strong>AI에게 다시 고쳐달라고 요청하는 기능은 준비 중입니다.</strong>
+                  <p>지금은 왼쪽의 가사를 직접 편집하거나 새 가사를 만들어 주세요.</p>
                 </div>
               )}
               <div className="actions">
@@ -226,7 +219,7 @@ export function LyricsLab() {
                     router.push("/studio");
                   }}
                 >
-                  Studio에서 사용
+                  이 가사 사용하기
                 </Button>
               </div>
             </>

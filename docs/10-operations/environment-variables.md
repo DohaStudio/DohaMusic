@@ -6,6 +6,7 @@
 | 변수 | 용도 | 기본값 |
 |---|---|---|
 | `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH` | Frontend의 개발용 Voice 서버 경로 form 노출. 운영 활성화 금지 | `false` |
+| `NEXT_PUBLIC_ENABLE_DEVELOPER_INFO` | 설정과 Studio의 접힌 개발자 정보 노출. 일반 사용자 화면에서는 비활성화 | `false` |
 | `DOHAMUSIC_MUSIC_GENERATOR` | `mock` 또는 `ace_step` | `mock` |
 | `DOHAMUSIC_MODEL_NAME` | Mock 모델 식별자 | `mock-music-generator` |
 | `DOHAMUSIC_MODEL_VERSION` | Mock 모델 버전 | `foundation-v1` |

@@ -78,7 +78,7 @@ export function Progress({ value, label }: { value: number; label: string }) {
 }
 export function Unsupported({ children }: { children: ReactNode }) {
   return (
-    <button className="button secondary" disabled title="Backend API 준비 필요">
+    <button className="button secondary" disabled title="아직 사용할 수 없는 기능입니다">
       {children} · 준비 필요
     </button>
   );

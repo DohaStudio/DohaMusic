@@ -20,7 +20,7 @@ describe("History and Projects", () => {
   it("shows history empty state and applies title search", async () => {
     vi.mocked(dohaApi.getHistory).mockResolvedValue([]);
     render(<HistoryList />);
-    expect(await screen.findByText("생성한 음악이 없습니다.")).toBeInTheDocument();
+    expect(await screen.findByText("아직 만든 음악이 없습니다.")).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText("제목 검색"), { target: { value: "dance" } });
     fireEvent.click(screen.getByRole("button", { name: "검색" }));
     await waitFor(() => expect(dohaApi.getHistory).toHaveBeenLastCalledWith(expect.objectContaining({ q: "dance" })));
@@ -30,8 +30,8 @@ describe("History and Projects", () => {
     vi.mocked(dohaApi.getProjects).mockResolvedValue([]);
     vi.mocked(dohaApi.createProject).mockResolvedValue({ id: "p", title: "Album", description: null, created_at: "2026-07-31", updated_at: "2026-07-31", job_count: 0 });
     render(<ProjectList />);
-    fireEvent.change(screen.getByLabelText("새 Project 이름"), { target: { value: "Album" } });
-    fireEvent.click(screen.getByRole("button", { name: "Project 만들기" }));
+    fireEvent.change(screen.getByLabelText("새 프로젝트 이름"), { target: { value: "Album" } });
+    fireEvent.click(screen.getByRole("button", { name: "프로젝트 만들기" }));
     await waitFor(() => expect(dohaApi.createProject).toHaveBeenCalledWith({ title: "Album", description: undefined }));
   });
 });

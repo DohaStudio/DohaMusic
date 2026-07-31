@@ -39,24 +39,24 @@ export function HistoryList() {
   return (
     <section className="collection-page">
       <header className="collection-header">
-        <div><p className="eyebrow">YOUR MUSIC</p><h1>History</h1><p>생성 Job은 Pipeline 요청과 함께 자동 저장됩니다.</p></div>
-        <Link className="button secondary" href="/projects">Projects</Link>
+        <div><p className="eyebrow">만든 음악</p><h1>최근에 만든 음악</h1><p>완성된 곡과 지금 만들고 있는 곡을 한곳에서 확인합니다.</p></div>
+        <Link className="button secondary" href="/projects">프로젝트로 정리하기</Link>
       </header>
       <form className="collection-filters" onSubmit={(event) => { event.preventDefault(); void store.load(); }}>
         <Input aria-label="제목 검색" placeholder="제목 검색" value={store.query} onChange={(event) => store.setQuery(event.target.value)} />
         <select aria-label="상태 필터" className="input" value={store.status} onChange={(event) => store.setStatus(event.target.value)}>
-          <option value="">모든 상태</option><option value="PENDING">Queued</option><option value="GENERATING">Running</option><option value="COMPLETED">Completed</option><option value="FAILED">Failed</option>
+          <option value="">모든 상태</option><option value="PENDING">시작 전</option><option value="GENERATING">만드는 중</option><option value="COMPLETED">완성</option><option value="FAILED">완료하지 못함</option>
         </select>
         <Button type="submit">검색</Button>
       </form>
       {store.error && <ErrorAlert message={store.error} />}
-      {store.loading ? <div className="history-skeleton" aria-label="History 로딩 중"><span /><span /><span /></div> : store.items.length === 0 ? <div className="empty-state"><h2>생성한 음악이 없습니다.</h2><Link className="button" href="/studio">첫 음악 만들기</Link></div> : (
+      {store.loading ? <div className="history-skeleton" aria-label="만든 음악을 불러오는 중"><span /><span /><span /></div> : store.items.length === 0 ? <div className="empty-state"><h2>아직 만든 음악이 없습니다.</h2><p>스타일과 목소리를 골라 첫 곡을 만들어 보세요.</p><Link className="button" href="/studio">첫 음악 만들기</Link></div> : (
         <div className="history-list">{store.items.map((item) => (
           <article key={item.job_id} className="history-row">
             <div><h2>{item.title}</h2><p>{new Date(item.created_at).toLocaleString("ko-KR")} · {item.voice_profile_name} · {item.duration}초</p></div>
             <Badge tone={tones[item.status] ?? "neutral"}>{statusLabel(item.status)}</Badge>
-            <span>{item.has_audio ? "Audio ready" : "Audio 없음"}</span>
-            <div className="actions"><Button disabled={!item.has_audio} onClick={() => void playJob(item.job_id)}>Play</Button><Button className="secondary" disabled={!item.has_audio} onClick={() => void downloadJob(item.job_id)}>Download</Button><Link className="button secondary" href={`/result/${item.job_id}`}>Open</Link></div>
+            <span>{item.has_audio ? "재생 가능" : "아직 재생할 수 없음"}</span>
+            <div className="actions"><Button disabled={!item.has_audio} onClick={() => void playJob(item.job_id)}>재생</Button><Button className="secondary" disabled={!item.has_audio} onClick={() => void downloadJob(item.job_id)}>다운로드</Button><Link className="button secondary" href={`/result/${item.job_id}`}>자세히 보기</Link></div>
           </article>
         ))}</div>
       )}
@@ -65,8 +65,8 @@ export function HistoryList() {
 }
 
 function statusLabel(status: string) {
-  if (status === "COMPLETED") return "Completed";
-  if (status === "FAILED") return "Failed";
-  if (status === "PENDING" || status === "QUEUED") return "Queued";
-  return "Running";
+  if (status === "COMPLETED") return "완성";
+  if (status === "FAILED") return "완료하지 못함";
+  if (status === "PENDING" || status === "QUEUED") return "시작 전";
+  return "만드는 중";
 }

@@ -7,28 +7,27 @@ export default function Home() {
       <nav className="landing-nav">
         <Brand />
         <div>
-          <Link href="/about">프로젝트</Link>
+          <Link href="/about">서비스 소개</Link>
           <Link className="button small" href="/studio">
-            Studio 열기
+            음악 만들기
           </Link>
         </div>
       </nav>
       <section className="hero">
         <div className="hero-copy">
-          <p className="eyebrow">LOCAL-FIRST · PROVIDER-NEUTRAL</p>
+          <p className="eyebrow">나만의 음악 만들기</p>
           <h1>
             당신의 이야기가
             <br />
             <em>음악이 되는 순간.</em>
           </h1>
           <p>
-            가사에서 목소리, 완성곡까지. 교체 가능한 AI 모듈을 하나의 추적
-            가능한 Studio 흐름으로 연결합니다.
+            원하는 분위기와 가사를 고르고, 내 목소리로 부르는 한 곡을 완성해 보세요.
           </p>
           <Link className="button hero-button" href="/studio">
             첫 곡 만들기 <ArrowRight />
           </Link>
-          <small>현재 Template Lyrics와 Mock 기반 Pipeline을 지원합니다.</small>
+          <small>처음이라도 단계별 안내를 따라 쉽게 시작할 수 있습니다.</small>
         </div>
         <div className="turntable">
           <div className="tonearm" />
@@ -43,23 +42,23 @@ export default function Home() {
       <section className="feature-strip">
         <Feature
           icon={<AudioWaveform />}
-          title="하나의 생성 흐름"
-          text="설정부터 결과 metadata까지 URL로 복원"
+          title="쉬운 단계별 안내"
+          text="스타일 선택부터 완성까지 한 화면에서"
         />
         <Feature
           icon={<Blocks />}
-          title="Provider-neutral"
-          text="Frontend와 AI Provider의 책임을 분리"
+          title="나만의 가사"
+          text="AI와 함께 만들거나 직접 작성"
         />
         <Feature
           icon={<ShieldCheck />}
-          title="Consent first"
-          text="동의된 목소리만 Profile로 연결"
+          title="안전한 목소리 사용"
+          text="본인 또는 허락받은 목소리만 사용"
         />
       </section>
       <footer className="landing-footer">
         <Brand />
-        <span>Responsive Web MVP · Native app 아님</span>
+        <span>웹에서 만나는 개인 음악 창작 공간</span>
         <span>© 2026 DohaMusic</span>
       </footer>
     </main>

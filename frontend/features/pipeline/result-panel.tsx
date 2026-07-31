@@ -37,7 +37,7 @@ export function ResultPanel({ jobId }: { jobId: string }) {
     }
   }, [playerFile?.id, preferred, selectPlayerFile, selectedId]);
   if (jobQuery.error)
-    return <ErrorAlert message="결과 Job을 조회할 수 없습니다." />;
+    return <ErrorAlert message="완성된 음악을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요." />;
   if (!job)
     return (
       <div className="progress-page">
@@ -76,7 +76,7 @@ export function ResultPanel({ jobId }: { jobId: string }) {
           >
             {playerFile?.id === selected?.id && shouldPlay
               ? "일시정지"
-              : "Player에서 재생"}
+              : "재생"}
           </Button>
           {selected?.downloadAvailable && selected.downloadUrl ? (
             <a className="button secondary" href={selected.downloadUrl}>
@@ -91,12 +91,10 @@ export function ResultPanel({ jobId }: { jobId: string }) {
       </div>
       <div className="surface-card">
         <div className="result-head">
-          <h2>결과 Metadata</h2>
-          <Badge tone="success">COMPLETED</Badge>
+          <h2>완성 정보</h2>
+          <Badge tone="success">완성</Badge>
         </div>
         <dl className="metadata-list">
-          <Meta label="Pipeline" value={job.pipeline_version} />
-          <Meta label="Seed" value={job.seed?.toString() ?? "자동"} />
           <Meta
             label="완료 시각"
             value={
@@ -109,7 +107,7 @@ export function ResultPanel({ jobId }: { jobId: string }) {
             <Meta key={item.label} label={item.label} value={item.value} />
           ))}
         </dl>
-        <h3>생성 파일 Metadata</h3>
+        <h3>재생할 파일</h3>
         {filesQuery.error && (
           <ErrorAlert message="생성 파일 목록을 조회할 수 없습니다." />
         )}
@@ -140,17 +138,14 @@ export function ResultPanel({ jobId }: { jobId: string }) {
             ))}
           </ul>
         ) : (
-          <p className="muted">파일 metadata가 없습니다.</p>
+          <p className="muted">재생할 파일이 아직 없습니다.</p>
         )}
-        <p className="notice">
-          Backend public DTO와 화면 모두 내부 Storage 경로를 포함하지 않습니다.
-        </p>
         <Link
           className="button secondary"
           href="/studio"
           onClick={() => setStep("review")}
         >
-          같은 설정으로 새 Job 만들기
+          같은 설정으로 새 음악 만들기
         </Link>
       </div>
     </section>

@@ -17,13 +17,13 @@ import { ApiStatus } from "./api-status";
 import { GlobalPlayer } from "@/features/player/global-player";
 
 const nav = [
-  { href: "/studio", label: "Studio", icon: SlidersHorizontal },
-  { href: "/lyrics", label: "Lyrics Lab", icon: BookOpenText },
-  { href: "/voice", label: "Voice", icon: Mic2 },
-  { href: "/history", label: "History", icon: History },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/settings", label: "Settings", icon: Settings2 },
-  { href: "/about", label: "About", icon: Info },
+  { href: "/studio", label: "음악 만들기", icon: SlidersHorizontal },
+  { href: "/lyrics", label: "가사 만들기", icon: BookOpenText },
+  { href: "/voice", label: "내 목소리", icon: Mic2 },
+  { href: "/history", label: "만든 음악", icon: History },
+  { href: "/projects", label: "프로젝트", icon: FolderKanban },
+  { href: "/settings", label: "설정", icon: Settings2 },
+  { href: "/about", label: "서비스 소개", icon: Info },
 ];
 export function AppShell({
   children,
@@ -66,7 +66,7 @@ export function AppShell({
       </main>
       <aside className="context-panel">
         <div className="context-head">
-          <span>Studio Context</span>
+          <span>도움말</span>
           <ApiStatus />
         </div>
         {context ?? <ContextDefault />}
@@ -90,15 +90,9 @@ export function AppShell({
 function ContextDefault() {
   return (
     <div className="context-copy">
-      <p className="eyebrow">LOCAL FIRST</p>
-      <h2>
-        당신의 아이디어를
-        <br />한 곡의 흐름으로
-      </h2>
-      <p>
-        Frontend는 모델을 직접 호출하지 않습니다. 모든 생성은 DohaMusic
-        FastAPI의 Provider Adapter 경계를 통과합니다.
-      </p>
+      <p className="eyebrow">DOHA MUSIC</p>
+      <h2>처음이어도 괜찮아요</h2>
+      <p>음악 스타일과 가사, 내 목소리를 차례로 선택하면 완성까지 안내해 드립니다.</p>
     </div>
   );
 }

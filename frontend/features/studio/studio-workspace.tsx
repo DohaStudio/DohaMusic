@@ -15,7 +15,7 @@ export function StudioWorkspace() {
     <section className="workspace-card">
       <StepIndicator current={step} />
       <div className="workspace-title">
-        <p className="eyebrow">NEW PROJECT</p>
+        <p className="eyebrow">음악 만들기</p>
         <h1>{copy.title}</h1>
         <span>{copy.subtitle}</span>
       </div>

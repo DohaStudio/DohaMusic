@@ -9,6 +9,14 @@
 
 Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F4와 F5의 Pipeline Audio·Voice Profile·History·Project는 구현됐고 나머지 운영 기능은 남아 있다.
 
+## 사용자 중심 UX 기준
+
+- 기본 탐색과 단계명은 한국어 창작 용어를 사용하고 내부 기술명은 기본 화면에서 숨긴다.
+- 첫 방문 안내, 단계별 도움말, loading·empty·error·disabled 이유를 제공한다.
+- Dance Pop 추천 장르와 분위기 최대 3개, 30초·60초 길이 선택을 제공한다.
+- 긴 곡·BPM 등 미지원 기능은 가짜 요청을 보내지 않고 `준비 중` 사유를 표시한다.
+- 이 UX 개편은 기존 API 계약과 Phase 8 `14/15, 93%` 진행률을 변경하지 않는다.
+
 ## F0 — Frontend Contract Verification [완료]
 
 ### 목적

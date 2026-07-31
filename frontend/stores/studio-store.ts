@@ -7,6 +7,10 @@ interface StudioDraft {
   currentStep: StudioStep;
   prompt: string;
   genre: string;
+  customGenre: string;
+  selectedMoods: string[];
+  durationPreset: "preview" | "verse" | "custom";
+  advancedSettingsOpen: boolean;
   durationSeconds: number;
   seed?: number;
   lyricsMode: "generate" | "write";
@@ -25,7 +29,11 @@ interface StudioActions {
 const initial: StudioDraft = {
   currentStep: "settings",
   prompt: "",
-  genre: "R&B",
+  genre: "댄스 팝",
+  customGenre: "",
+  selectedMoods: [],
+  durationPreset: "preview",
+  advancedSettingsOpen: false,
   durationSeconds: 30,
   lyricsMode: "generate",
   lyricsText: "",
@@ -47,6 +55,10 @@ export const useStudioStore = create<StudioDraft & StudioActions>()(
         currentStep: state.currentStep,
         prompt: state.prompt,
         genre: state.genre,
+        customGenre: state.customGenre,
+        selectedMoods: state.selectedMoods,
+        durationPreset: state.durationPreset,
+        advancedSettingsOpen: state.advancedSettingsOpen,
         durationSeconds: state.durationSeconds,
         seed: state.seed,
         lyricsMode: state.lyricsMode,

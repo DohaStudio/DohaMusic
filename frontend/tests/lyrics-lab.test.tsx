@@ -54,7 +54,7 @@ describe("Lyrics Lab 오류와 capability", () => {
     renderLab();
 
     await user.type(screen.getByLabelText("주제"), "밤");
-    await user.click(screen.getByRole("button", { name: "가사 생성" }));
+    await user.click(screen.getByRole("button", { name: "가사 만들어보기" }));
     await screen.findByText("Template 가사");
     await user.click(screen.getByRole("button", { name: "삭제" }));
 

@@ -119,6 +119,8 @@ Frontend는 별도 terminal에서 실행한다. `/backend` 요청은 기본적�
 
 `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH=true`는 로컬 개발에서 이미 `voices/references` 아래에 준비된 참조 파일로 Profile 생성 계약을 확인할 때만 사용한다. 기본값은 `false`이며 공개·운영 환경에서 활성화하지 않는다. Backend는 허용 root, 실재 파일, 확장자, traversal·absolute path·symlink를 다시 검증한다.
 
+`NEXT_PUBLIC_ENABLE_DEVELOPER_INFO=true`는 로컬 개발에서 API 연결과 생성 방식 정보를 확인할 때만 사용한다. 기본값은 `false`이며 일반 사용자 화면에서는 내부 기술 용어를 숨긴다.
+
 ```powershell
 cd frontend
 npm install
