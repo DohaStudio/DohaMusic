@@ -4,7 +4,7 @@
 
 > Phase 6.6~6.9: 권리 확보 Dataset으로 공개 Instruct Base Model을 QLoRA SFT하고 `LocalLyricsLLMAdapter`로 연결하는 구조는 `[계획] 0%`입니다. Base Model·Dataset·checkpoint는 없고 학습·Adapter·품질 평가는 미착수이며, 승인 전 `template` 기본값과 Pipeline 비연결을 유지합니다.
 
-> Phase 8: Doha Studio Responsive Frontend MVP는 `[진행 중] 73%`입니다. WAV Voice Profile upload·list·get·delete와 Studio 선택, 전역 WAV Player를 실제 API에 연결했습니다. 참조 음성 원본과 내부 경로는 공개하지 않습니다. history·cancel/retry·인증·소유권은 여전히 `Backend Required`입니다.
+> Phase 8: Doha Studio Responsive Frontend MVP는 `[진행 중] 93%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download를 실제 API에 연결했습니다. Project 삭제 시 Job·결과 파일은 보존합니다. 내부 경로는 공개하지 않으며 cancel/retry·인증·소유권은 여전히 `Backend Required`입니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
 
@@ -47,7 +47,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [계획] | 공개 Instruct Base + 권리 확보 Lyrics Dataset + QLoRA SFT 기반 Local Lyrics LLM |
 | [계획] | MP3 변환 |
 | [진행 중] | Frontend Pipeline 상태·진행률·오류·새 Job 복구; cancel·기존 Job retry는 Backend Required |
-| [계획] | 생성 이력과 사용 모델·버전·설정 기록 |
+| [완료] | Pipeline 기반 생성 History·Project 관리와 Result 재진입·재생·다운로드 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 

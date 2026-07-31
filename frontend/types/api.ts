@@ -82,9 +82,11 @@ export interface PipelineCreateDto {
   duration_seconds: number;
   seed?: number;
   voice_profile_id: string;
+  project_id?: string;
 }
 export interface PipelineJobDto {
   id: string;
+  project_id: string | null;
   voice_profile_id: string;
   status: PipelineStatus;
   current_step: string;
@@ -102,6 +104,32 @@ export interface PipelineJobDto {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+}
+export interface HistoryItemDto {
+  job_id: string;
+  project_id: string | null;
+  title: string;
+  status: PipelineStatus;
+  created_at: string;
+  duration: number;
+  voice_profile_name: string;
+  has_audio: boolean;
+}
+export interface HistoryDetailDto extends HistoryItemDto {
+  prompt: string;
+  genre: string | null;
+  completed_at: string | null;
+}
+export interface ProjectDto {
+  id: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  job_count: number;
+}
+export interface ProjectDetailDto extends ProjectDto {
+  jobs: HistoryItemDto[];
 }
 export interface PipelineFileDto {
   id: string;

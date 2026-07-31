@@ -14,6 +14,7 @@ from backend.core.exceptions import AppError, ResourceNotFoundError
 from backend.core.logging import get_logger
 from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
+from backend.models.project import Project
 from backend.repositories.pipeline_repository import PipelineRepository
 from backend.schemas.pipeline import PipelineCreate
 from backend.storage.service import StorageService
@@ -67,6 +68,11 @@ class PipelineService:
                 raise AppError(
                     "VOICE_CONSENT_REQUIRED", "음성 사용 동의가 필요합니다.", 400
                 )
+            if (
+                request.project_id is not None
+                and repository.session.get(Project, request.project_id) is None
+            ):
+                raise ResourceNotFoundError("Project")
             job = repository.create(request, self.pipeline_version)
             logger.info("pipeline_job_created job_id=%s", job.id)
             session.expunge(job)

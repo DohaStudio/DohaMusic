@@ -38,7 +38,7 @@
 | 6. Lyrics AI | [완료] | Template·Mock Generator·동기 API·검증·EXP/EVAL/ADR 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [진행 중] | 73%: Voice upload/list/get·선택과 WAV Player/Download 완료, Backend Required 기능 잔여 | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [진행 중] | 93%: Voice·History·Project·WAV Player/Download 완료, 인증·소유권 잔여 | [Phase-08](docs/DoD/Phase-08.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
 ## 현재 우선 작업
@@ -50,7 +50,7 @@
 5. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
 6. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
 7. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
-8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5에서 완료된 audio content·download 다음으로 Voice upload/list/get, History·Project, cancel/retry, 인증·소유권 Backend 계약을 확정한다.
+8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5에서 완료된 Voice·History·Project·audio content/download 다음으로 cancel/retry와 인증·소유권 Backend 계약을 확정한다.
 9. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 
 ## 다음 작업 흐름

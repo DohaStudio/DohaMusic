@@ -23,6 +23,7 @@
 | [ADR-017](ADR-017-frontend-technology-stack.md) | Phase 8 Frontend framework·style·state·form·test stack | 승인 |
 | [ADR-018](ADR-018-secure-audio-file-access.md) | Pipeline 결과 WAV의 경로 비노출 streaming·download 경계 | 승인 |
 | [ADR-019](ADR-019-secure-voice-profile-upload.md) | 동의된 WAV upload·검증·저장·삭제 경계 | 승인 |
+| [ADR-020](ADR-020-project-history-retention.md) | History projection·Default Project·Project 삭제 시 Job/파일 보존 | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 # Phase 6.5
@@ -37,4 +38,5 @@
 
 - [ADR-017 — Frontend Technology Stack](ADR-017-frontend-technology-stack.md): 구현·검증된 Frontend library·toolchain과 상태 경계를 승인한다.
 - [ADR-018 — Secure Audio File Access](ADR-018-secure-audio-file-access.md): Pipeline 결과 WAV를 내부 경로 없이 검증·stream하고 로컬 단일 사용자와 공개 운영 경계를 분리한다.
+- [ADR-020 — Project History Retention](ADR-020-project-history-retention.md): Project 삭제 시 연결만 해제하고 Job과 결과 파일을 보존한다.
 - [ADR-019 — Secure Voice Profile Upload](ADR-019-secure-voice-profile-upload.md): 동의된 WAV를 안전하게 저장하고 공개 metadata·삭제 정책과 원본 비공개 경계를 결정한다.

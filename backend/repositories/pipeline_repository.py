@@ -12,6 +12,7 @@ from backend.core.job_status import ALLOWED_TRANSITIONS, JobStatus
 from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
 from backend.models.voice_profile import VoiceProfile
+from backend.repositories.history_repository import HistoryRepository
 from backend.schemas.pipeline import PipelineCreate
 
 
@@ -23,8 +24,14 @@ class PipelineRepository:
         return self.session.get(VoiceProfile, profile_id)
 
     def create(self, request: PipelineCreate, pipeline_version: str) -> PipelineJob:
+        project_id = request.project_id
+        if project_id is None:
+            project_id = (
+                HistoryRepository(self.session).get_or_create_default_project().id
+            )
         job = PipelineJob(
-            **request.model_dump(),
+            **request.model_dump(exclude={"project_id"}),
+            project_id=project_id,
             status=JobStatus.PENDING.value,
             current_step="queued",
             progress_percent=0,
