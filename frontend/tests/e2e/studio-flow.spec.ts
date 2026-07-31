@@ -36,6 +36,11 @@ const pipeline = {
   created_at: "2026-07-31T00:00:00Z",
   updated_at: "2026-07-31T00:00:01Z",
   completed_at: "2026-07-31T00:00:01Z",
+  cancel_requested_at: null,
+  cancelled_at: null,
+  retry_of_job_id: null,
+  can_cancel: false,
+  can_retry: false,
 };
 test.beforeEach(async ({ page }) => {
   await page.addInitScript(() => localStorage.setItem("doha-studio-settings", JSON.stringify({ state: { reducedMotion: null, onboardingCompleted: true }, version: 0 })));
@@ -113,7 +118,7 @@ test("History에서 Result와 Player로 다시 이동한다", async ({ page }) =
   await expect(page.getByRole("heading", { name: "새벽 도시 R&B" })).toBeVisible();
   await page.locator(".history-row").getByRole("button", { name: "재생" }).click();
   await expect(page.locator("audio")).toHaveAttribute("src", "/backend/api/pipelines/job-001/files/file-1/content");
-  await page.getByRole("link", { name: "자세히 보기" }).click();
+  await page.getByRole("link", { name: "열기" }).click();
   await expect(page).toHaveURL(/\/result\/job-001/);
   await expect(page.getByRole("link", { name: "WAV 다운로드" })).toBeVisible();
 });
@@ -251,4 +256,31 @@ test("네트워크 오류에서도 Job ID를 보존하고 수동 재조회를 �
   await expect(page.getByRole("button", { name: "다시 확인" })).toBeVisible();
   await page.reload();
   await expect(page).toHaveURL(/\/generation\/network-job/);
+});
+
+test("진행 중인 음악을 확인 후 취소하고 취소 완료를 표시한다", async ({ page }) => {
+  await mockBackend(page);
+  let cancelled = false;
+  const running = { ...pipeline, id: "cancel-job", status: "GENERATING", current_step: "music_started", progress_percent: 20, completed_at: null, can_cancel: true };
+  await page.route("**/backend/api/pipelines/cancel-job", (route) => route.fulfill({ json: cancelled ? { ...running, status: "CANCELLED", current_step: "cancelled", can_cancel: false, can_retry: true, cancelled_at: "2026-07-31T00:01:00Z" } : running }));
+  await page.route("**/backend/api/pipelines/cancel-job/cancel", (route) => { cancelled = true; route.fulfill({ json: { job_id: "cancel-job", status: "CANCEL_REQUESTED", cancel_requested_at: "2026-07-31T00:00:30Z", cancelled_at: null, message: "음악 만들기 취소를 요청했습니다." } }); });
+  await page.goto("/generation/cancel-job");
+  await page.getByRole("button", { name: "음악 만들기 취소" }).click();
+  await expect(page.getByRole("dialog", { name: "음악 만들기를 취소할까요?" })).toBeVisible();
+  await page.getByRole("button", { name: "취소하기" }).click();
+  await expect(page.getByRole("heading", { name: "음악 만들기가 취소되었습니다" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "같은 설정으로 다시 만들기" })).toBeVisible();
+});
+
+test("실패한 음악을 새 Job으로 다시 만들고 생성 화면으로 이동한다", async ({ page }) => {
+  await mockBackend(page);
+  const failed = { ...pipeline, id: "failed-job", status: "FAILED", current_step: "failed", progress_percent: 20, completed_at: "2026-07-31T00:01:00Z", error_message: "음악을 완성하지 못했습니다.", can_retry: true };
+  const retried = { ...pipeline, id: "retry-job", status: "PENDING", current_step: "queued", progress_percent: 0, completed_at: null, retry_of_job_id: "failed-job", can_cancel: true };
+  await page.route("**/backend/api/pipelines/failed-job", (route) => route.fulfill({ json: failed }));
+  await page.route("**/backend/api/pipelines/failed-job/retry", (route) => route.fulfill({ status: 202, json: { source_job_id: "failed-job", job: retried } }));
+  await page.route("**/backend/api/pipelines/retry-job", (route) => route.fulfill({ json: retried }));
+  await page.goto("/generation/failed-job");
+  await page.getByRole("button", { name: "같은 설정으로 다시 만들기" }).click();
+  await expect(page).toHaveURL(/\/generation\/retry-job/);
+  await expect(page.getByRole("heading", { name: "곧 시작합니다" })).toBeVisible();
 });

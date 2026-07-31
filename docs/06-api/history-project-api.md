@@ -19,4 +19,6 @@
 
 Pipeline 생성 요청의 선택 필드 `project_id`가 없으면 `Default Project`를 자동 연결한다. 삭제된 Project의 Job은 `project_id: null`로 History에 남는다.
 
-History 공개 필드는 `job_id`, `project_id`, `title`, `status`, `created_at`, `duration`, `voice_profile_name`, `has_audio`다. 내부 Storage·절대 경로·filesystem·temp·Provider 설정은 반환하지 않는다. `has_audio`는 완료 Job에 최종 파일 row가 있을 때만 `true`다.
+History 공개 필드는 `job_id`, `project_id`, `title`, `status`, `created_at`, `duration`, `voice_profile_name`, `has_audio`, `can_cancel`, `can_retry`, `retry_of_job_id`다. 내부 Storage·절대 경로·filesystem·temp·Provider 설정은 반환하지 않는다. `has_audio`는 완료 Job에 최종 파일 row가 있을 때만 `true`다.
+
+취소된 Job은 History와 Project에서 삭제하지 않는다. Retry Job은 원본 Project를 유지하고 최신순 History에 별도 Job으로 표시한다. 원본 Project가 없으면 기존 Default Project 정책을 적용한다.

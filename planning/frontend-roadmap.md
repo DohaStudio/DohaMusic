@@ -15,7 +15,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - 첫 방문 안내, 단계별 도움말, loading·empty·error·disabled 이유를 제공한다.
 - Dance Pop 추천 장르와 분위기 최대 3개, 30초·60초 길이 선택을 제공한다.
 - 긴 곡·BPM 등 미지원 기능은 가짜 요청을 보내지 않고 `준비 중` 사유를 표시한다.
-- 이 UX 개편은 기존 API 계약과 Phase 8 `14/15, 93%` 진행률을 변경하지 않는다.
+- 사용자 중심 UX 이후 Cancel·Retry API와 화면을 연결해 Phase 8 `15/15, 100%`를 완료했다.
 
 ## F0 — Frontend Contract Verification [완료]
 
@@ -95,12 +95,12 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - reduced motion, keyboard, screen reader 검증
 - 완료 기준: endpoint 없는 가짜 재생 0건, 실제 media 계약 E2E
 
-## F5 — Projects·Production Readiness [계획]
+## F5 — Projects·Local MVP Completion [완료]
 
-- Pipeline audio, Voice Profile upload/list/get, History·Project CRUD 완료; 인증·소유권과 cancel/retry API 연동 잔여
+- Pipeline audio, Voice Profile upload/list/get, History·Project CRUD, Cancel·Retry API 연동 완료
 - observability, browser matrix, performance, security review
 - 완료 기준: Phase-08 DoD와 사용자 시나리오 승인
 
 ## 우선순위와 보류
 
-F0~F4는 구현·자동 검증을 완료했다. F5에서 보안 content/download·전역 Player, Voice upload, History·Project CRUD와 Default Project 자동 저장을 연결했다. 공개 DTO는 내부 Storage 경로를 반환하지 않으며 Project 삭제는 Job·결과 파일을 보존한다. F5 전체는 인증·소유권·cancel/retry API 전까지 계획 상태를 유지한다. `main` 배포와 Production 공개는 Phase 9 승인 전까지 보류한다.
+F0~F5는 로컬 단일 사용자 범위에서 구현·자동 검증을 완료했다. F5에서 보안 content/download·전역 Player, Voice upload, History·Project CRUD, cooperative Cancel과 새 Job Retry를 연결했다. 공개 DTO는 내부 Storage 경로를 반환하지 않으며 Project 삭제와 Cancel은 Job 기록을 보존한다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.

@@ -74,9 +74,9 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 
 | 상태 | 범위 |
 |---|---|
-| `Available` | Health, Lyrics, Voice Profile WAV upload·list·get·delete·선택, Pipeline Job, 결과 WAV 재생·download |
+| `Available` | Health, Lyrics, Voice Profile WAV upload·list·get·delete·선택, Pipeline Job·Cancel·Retry, History·Project, 결과 WAV 재생·download |
 | `Partial` | Voice 원본 content 비공개, 개발 플래그에서만 서버 경로 생성, 인증 없는 로컬 단일 사용자 범위 |
-| `Backend Required` | 생성 이력, 프로젝트 저장·조회, Job cancel·기존 Job retry, 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
+| `Backend Required` | 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
 
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.

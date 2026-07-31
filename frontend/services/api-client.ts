@@ -19,6 +19,9 @@ const userMessages: Record<string, string> = {
   VOICE_FILE_TYPE_UNSUPPORTED: "현재 WAV 파일만 지원합니다.",
   VOICE_PROFILE_IN_USE: "이 목소리는 생성 중인 음악에서 사용 중이라 삭제할 수 없습니다.",
   HTTP_ERROR: "요청을 처리하지 못했습니다. 입력 내용을 확인해 주세요.",
+  PIPELINE_CANCEL_NOT_ALLOWED: "이미 완료되었거나 실패한 음악은 취소할 수 없습니다.",
+  PIPELINE_RETRY_NOT_ALLOWED: "실패하거나 취소된 음악만 다시 만들 수 있습니다.",
+  RETRY_VOICE_PROFILE_UNAVAILABLE: "사용한 목소리를 더 이상 사용할 수 없어 다시 만들 수 없습니다.",
 };
 
 export function userErrorMessage(error: unknown): string {

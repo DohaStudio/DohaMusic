@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.orm import Session
 
 from backend.core.job_status import ALLOWED_TRANSITIONS, JobStatus
@@ -23,7 +23,13 @@ class PipelineRepository:
     def get_profile(self, profile_id: str) -> VoiceProfile | None:
         return self.session.get(VoiceProfile, profile_id)
 
-    def create(self, request: PipelineCreate, pipeline_version: str) -> PipelineJob:
+    def create(
+        self,
+        request: PipelineCreate,
+        pipeline_version: str,
+        *,
+        retry_of_job_id: str | None = None,
+    ) -> PipelineJob:
         project_id = request.project_id
         if project_id is None:
             project_id = (
@@ -37,11 +43,50 @@ class PipelineRepository:
             progress_percent=0,
             pipeline_version=pipeline_version,
             result_metadata={},
+            retry_of_job_id=retry_of_job_id,
+            input_snapshot=request.model_dump(mode="json"),
         )
         self.session.add(job)
         self.session.commit()
         self.session.refresh(job)
         return job
+
+    def retry_for(self, source_job_id: str) -> PipelineJob | None:
+        return self.session.scalar(
+            select(PipelineJob)
+            .where(PipelineJob.retry_of_job_id == source_job_id)
+            .order_by(PipelineJob.created_at.desc())
+        )
+
+    def request_cancel(self, job: PipelineJob) -> PipelineJob:
+        now = datetime.now(UTC)
+        if job.status == JobStatus.PENDING.value:
+            job.status = JobStatus.CANCELLED.value
+            job.current_step = "cancelled"
+            job.cancel_requested_at = now
+            job.cancelled_at = now
+            job.completed_at = now
+        elif job.status not in {
+            JobStatus.CANCEL_REQUESTED.value,
+            JobStatus.CANCELLED.value,
+        }:
+            job.status = JobStatus.CANCEL_REQUESTED.value
+            job.current_step = "cancel_requested"
+            job.cancel_requested_at = now
+        self.session.commit()
+        self.session.refresh(job)
+        return job
+
+    def mark_cancelled(self, job: PipelineJob) -> None:
+        now = datetime.now(UTC)
+        job.status = JobStatus.CANCELLED.value
+        job.current_step = "cancelled"
+        job.cancel_requested_at = job.cancel_requested_at or now
+        job.cancelled_at = now
+        job.completed_at = now
+        job.progress_percent = min(job.progress_percent, 99)
+        job.updated_at = now
+        self.session.commit()
 
     def get(self, job_id: str) -> PipelineJob | None:
         return self.session.get(PipelineJob, job_id)
@@ -80,6 +125,53 @@ class PipelineRepository:
     def set_metadata(self, job: PipelineJob, metadata: dict[str, Any]) -> None:
         job.result_metadata = metadata
         self.session.commit()
+
+    def finalize_success(
+        self,
+        job: PipelineJob,
+        metadata: dict[str, Any],
+        files: list[tuple[str, str, str]],
+    ) -> bool:
+        now = datetime.now(UTC)
+        result = self.session.execute(
+            update(PipelineJob)
+            .where(
+                PipelineJob.id == job.id,
+                PipelineJob.status.not_in(
+                    [
+                        JobStatus.CANCEL_REQUESTED.value,
+                        JobStatus.CANCELLED.value,
+                        JobStatus.COMPLETED.value,
+                        JobStatus.FAILED.value,
+                    ]
+                ),
+            )
+            .values(
+                status=JobStatus.COMPLETED.value,
+                current_step="completed",
+                progress_percent=100,
+                result_metadata=metadata,
+                updated_at=now,
+                completed_at=now,
+            )
+        )
+        if result.rowcount != 1:
+            self.session.rollback()
+            return False
+        self.session.add_all(
+            [
+                PipelineFile(
+                    job_id=job.id,
+                    file_type=file_type,
+                    file_path=file_path,
+                    mime_type=mime_type,
+                )
+                for file_type, file_path, mime_type in files
+            ]
+        )
+        self.session.commit()
+        self.session.refresh(job)
+        return True
 
     def mark_failed(
         self,

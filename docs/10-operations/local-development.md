@@ -52,3 +52,16 @@ Demucs 4.1.0은 Backend와 별도 Python 3.11 환경에 설치한다. 검증 환
 `backend/.env.example`의 `DOHAMUSIC_VOICE_SEED_VC_*` 절대 경로를 설정하고 `DOHAMUSIC_VOICE_PROVIDER=seed_vc`를 선택한다. Backend runner는 offline 모드로 실행되어 모델을 자동 다운로드하지 않는다. 실제 GPU 테스트는 `DOHAMUSIC_RUN_SEED_VC_GPU_TEST=1`과 테스트 source/reference 경로를 명시한 경우에만 실행한다. 본인 또는 명시적으로 동의받은 reference만 `voices/references` 아래에 두며 모델·개인 음성·출력은 Git에 포함하지 않는다. 자세한 결과는 [EXP-004](../../reports/experiments/EXP-004-seed-vc.md)를 따른다.
 
 `seed_vc`는 현재 `Experimental`이므로 로컬 기술 검증에만 명시적으로 선택한다. Phase 5 Pipeline은 기본 `MockVoiceConverter`만 사용해 Workflow 경계를 검증했으며 실제 사용자 트래픽·공개 Preview에는 연결하지 않는다. 저장 전·resample 후·PCM16 export 후 peak를 검증하기 전에는 clipping 경고를 무시하지 않는다.
+## Pipeline Cancel·Retry 확인
+
+동의된 Voice Profile로 Pipeline을 만든 뒤 실제 Job ID를 사용한다.
+
+```powershell
+curl.exe -X POST http://127.0.0.1:8000/api/pipelines/{jobId}/cancel
+curl.exe http://127.0.0.1:8000/api/pipelines/{jobId}
+curl.exe -X POST http://127.0.0.1:8000/api/pipelines/{cancelledOrFailedJobId}/retry
+curl.exe http://127.0.0.1:8000/api/history
+curl.exe -X POST http://localhost:3000/backend/api/pipelines/{jobId}/cancel
+```
+
+실행 중 Provider 호출의 즉시 종료를 기대하지 않는다. `CANCEL_REQUESTED` 후 현재 단계가 반환되면 `CANCELLED`가 된다. Retry 응답의 새 Job ID로 상태를 조회한다.

@@ -14,7 +14,7 @@ interface PollingState {
 }
 
 export function getPollingInterval(state: PollingState): number | false {
-  if (state.job?.status === "COMPLETED" || state.job?.status === "FAILED") {
+  if (["COMPLETED", "FAILED", "CANCELLED"].includes(state.job?.status ?? "")) {
     return false;
   }
   if (state.error instanceof ApiError && state.error.status === 404)

@@ -22,6 +22,11 @@ const job = (status: PipelineJobDto["status"]): PipelineJobDto => ({
   created_at: "",
   updated_at: "",
   completed_at: null,
+  cancel_requested_at: null,
+  cancelled_at: null,
+  retry_of_job_id: null,
+  can_cancel: !["COMPLETED", "FAILED", "CANCELLED"].includes(status),
+  can_retry: ["FAILED", "CANCELLED"].includes(status),
 });
 const state = (overrides = {}) => ({
   job: job("GENERATING"),
@@ -48,6 +53,8 @@ describe("adaptive polling", () => {
     ).toBe(2000));
   it("terminal과 404에서 중단한다", () => {
     expect(getPollingInterval(state({ job: job("COMPLETED") }))).toBe(false);
+    expect(getPollingInterval(state({ job: job("CANCELLED") }))).toBe(false);
+    expect(getPollingInterval(state({ job: job("CANCEL_REQUESTED") }))).toBe(1000);
     expect(getPollingInterval(state({ job: job("FAILED") }))).toBe(false);
     expect(
       getPollingInterval(

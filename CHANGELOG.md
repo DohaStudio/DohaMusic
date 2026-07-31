@@ -25,6 +25,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### Phase 8 — Doha Studio Frontend MVP
 
+- `POST /api/pipelines/{job_id}/cancel`과 `retry`를 추가하고 `CANCEL_REQUESTED` 단계 경계 cooperative 취소, 입력 Snapshot·원본 self FK 기반 새 Job Retry를 구현했다.
+- 취소·재시도 상태와 가능 action을 Pipeline·History·Project 공개 DTO와 일반 사용자용 Generation·History UX에 연결했다.
+- Alembic 0009, Backend·Frontend·Desktop/Mobile E2E와 ADR-021을 추가하고 로컬 단일 사용자 Phase 8을 `15/15, 100%`로 완료했다.
+
 - 기술 중심의 화면 문구를 일반 사용자 중심의 한국어 창작 흐름으로 개편하고 장르·분위기·길이 선택, 단계별 도움말, 첫 방문 안내와 비활성 사유를 추가했다.
 - `NEXT_PUBLIC_ENABLE_DEVELOPER_INFO` 플래그로 내부 연결·생성 방식 정보를 기본 화면에서 분리하고, 사용자 친화적 오류·로딩·빈 상태와 키보드 포커스 동작을 보강했다.
 - 기존 API 계약과 Backend 동작, Phase 8 `14/15, 93%` 진행률은 변경하지 않았다.

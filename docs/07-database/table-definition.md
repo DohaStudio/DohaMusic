@@ -43,6 +43,8 @@ Alembic 0006이 수정 이력 필드를 추가한다. 원본은 덮어쓰지 않
 
 Alembic 0008은 `pipeline_jobs.project_id` nullable FK와 인덱스를 추가하고 기존 Job을 `Default Project`에 연결한다. History는 별도 테이블이 아니라 Pipeline Job·Voice Profile·최종 File을 조합한 공개 projection이다. Project 삭제 시 FK를 `NULL`로 해제하고 Job과 Storage 파일은 유지한다.
 
+Alembic 0009는 `cancel_requested_at`, `cancelled_at`, `retry_of_job_id` self FK와 `input_snapshot`을 추가한다. Cancel은 Job 기록을 삭제하지 않고 Retry는 원본을 변경하지 않는 새 Job으로 저장한다. Snapshot에는 공개 생성 입력만 두고 process·경로·비밀 설정은 저장하지 않는다.
+
 ## `generation_jobs`
 
 | 필드 | 타입 | Null | 설명 |

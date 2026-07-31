@@ -14,6 +14,9 @@ class HistoryItemRead(BaseModel):
     duration: int
     voice_profile_name: str
     has_audio: bool
+    can_cancel: bool
+    can_retry: bool
+    retry_of_job_id: str | None
 
 
 class HistoryDetailRead(HistoryItemRead):

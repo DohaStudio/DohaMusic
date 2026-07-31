@@ -6,7 +6,13 @@ from fastapi import APIRouter, Depends, Request, status
 from fastapi.responses import FileResponse
 
 from backend.api.dependencies import get_pipeline_service
-from backend.schemas.pipeline import PipelineCreate, PipelineFileRead, PipelineJobRead
+from backend.schemas.pipeline import (
+    PipelineCancelRead,
+    PipelineCreate,
+    PipelineFileRead,
+    PipelineJobRead,
+    PipelineRetryRead,
+)
 from backend.services.pipeline_service import PipelineService
 
 router = APIRouter(prefix="/pipelines", tags=["pipelines"])
@@ -23,6 +29,35 @@ def create_pipeline(
 @router.get("/{job_id}", response_model=PipelineJobRead)
 def get_pipeline(job_id: str, service: ServiceDependency) -> PipelineJobRead:
     return PipelineJobRead.model_validate(service.get(job_id))
+
+
+@router.post("/{job_id}/cancel", response_model=PipelineCancelRead)
+def cancel_pipeline(job_id: str, service: ServiceDependency) -> PipelineCancelRead:
+    job = service.cancel(job_id)
+    return PipelineCancelRead(
+        job_id=job.id,
+        status=job.status,
+        cancel_requested_at=job.cancel_requested_at,
+        cancelled_at=job.cancelled_at,
+        message=(
+            "음악 만들기가 취소되었습니다."
+            if job.status == "CANCELLED"
+            else "음악 만들기 취소를 요청했습니다."
+        ),
+    )
+
+
+@router.post(
+    "/{job_id}/retry",
+    response_model=PipelineRetryRead,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def retry_pipeline(job_id: str, service: ServiceDependency) -> PipelineRetryRead:
+    job = service.retry(job_id)
+    return PipelineRetryRead(
+        source_job_id=job_id,
+        job=PipelineJobRead.model_validate(job),
+    )
 
 
 @router.get("/{job_id}/files", response_model=list[PipelineFileRead])
