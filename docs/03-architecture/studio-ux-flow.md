@@ -27,6 +27,8 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 - instrumental 생성 옵션은 현재 Pipeline API에 없으므로 `planned/disabled` 상태다. Backend 계약이 추가되기 전까지 실제 요청에 포함하지 않으며 UI에 노출하더라도 “준비 중” 또는 비활성 기능으로만 표현한다.
 - BPM·고급 모델 선택도 Backend 계약 전까지 `planned/disabled`다.
 - 입력 validity와 권장 범위를 inline으로 안내한다.
+- K1에서는 K-POP Dance·Easy Listening·Performance Preset과 Mood·Concept·optional Hook phrase를 기본 흐름으로 검토한다. Requested BPM·Language Ratio·Hook Style·Post-Chorus·Dance Break·Vocal Energy는 capability가 구현된 뒤에만 고급 설정으로 활성화한다.
+- Preset과 사용자 Prompt가 충돌하면 사용자 입력을 우선하고 Review의 최종 Prompt Preview와 warning에서 확인하게 한다.
 
 ## 2. Lyrics
 
@@ -44,6 +46,7 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 ## 4. Review
 
 - prompt, genre, duration, seed, lyrics summary, voice profile ID와 미해결 warning을 한 화면에서 확인한다.
+- K-POP 제어 계층 구현 후에는 Preset, 적용된 Options, compile warning과 compiler version을 함께 확인하되 Provider 내부 옵션은 노출하지 않는다.
 - “생성 시작”은 단 하나의 primary action이다.
 - 시작 전 API 제한과 Mock/선택 Provider 상태를 숨기지 않는다.
 

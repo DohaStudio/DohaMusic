@@ -63,6 +63,8 @@ Phase 7  Doha Voice                  [계획]
   ↓
 Phase 8  Doha Studio                 [완료]
   ↓
+K0~K4   K-POP Creation Control      [K0 완료 / K1~K4 계획]
+  ↓ 병행
 Phase 9  Production                  [계획]
 ```
 
@@ -79,7 +81,10 @@ Phase 9  Production                  [계획]
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
+| K0~K4. K-POP Creation Control | [진행 중] | `K0 완료` | 제품·계약 문서 완료, 기능은 K1 이후 미구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
+
+K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0 문서·계약은 완료했지만 Preset·Compiler·Options·분석·모델 적응 기능은 구현되지 않았다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

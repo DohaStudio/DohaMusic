@@ -162,3 +162,7 @@ Local 후보의 계약·한국어 창작 품질·성능·안정성을 비교하�
 ### 보류 조건
 
 필수 평가 누락, 품질·자원 기준 미달, 권리·보안 미승인, rollback 불가.
+
+## K-POP Creation Track과의 경계
+
+K-POP Lyrics Template·Hook·언어 비율은 초기에는 Prompt Compiler 계약이며 Local Lyrics LLM 학습 완료를 전제로 하지 않는다. Local Lyrics LLM Dataset은 Music Style LoRA와 개인 Voice Dataset과 분리하고, K-POP 제어 계층이 생겨도 Phase 6.6~6.9의 권리·품질 Gate를 생략하지 않는다.
