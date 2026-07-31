@@ -107,7 +107,7 @@ Phase 9  Production                  [계획]
 
 ## Phase 2. Music Generation — [진행 중]
 
-- 목표: 교체 가능한 음악 생성 Adapter와 로컬 생성 경로를 검증한다.
+- 목표: 교체 가능한 음악 생성 Adapter와 로컬 생성 경로를 검증하고, 한국 여성 댄스팝 생성 후 Voice Conversion으로 사용자 자신의 목소리를 적용하는 제품 목표에 맞춰 대표 품질 시나리오를 확립한다.
 - 구현 범위·포함 기능: ACE-Step 공식 조사·격리 runtime·`MusicGenerator` Adapter·Provider Factory·Backend E2E·WAV·성능 metadata.
 - 제외 기능: ACE-Step 운영·제품 기본 Provider 확정, 사용자 품질 최종 승인, Lyrics AI, 음색 변환.
 - 선행 조건: Phase 1 Backend와 RTX 3060 Ti 8GB 환경.
@@ -117,6 +117,8 @@ Phase 9  Production                  [계획]
 - 관련 ADR: [ADR-005](docs/11-decisions/ADR-005-ai-worker-dependency-isolation.md), [ADR-006](docs/11-decisions/ADR-006-ace-step-primary-provider.md).
 - 관련 실험: [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md).
 - 예상 다음 단계: EVAL-001의 남은 2개 산출물 평가와 Phase 2 운영·제품 기본 Provider 판정.
+
+평가 시나리오는 Instrumental·Korean Ballad를 보조 비교군으로 유지하고 Korean Dance Pop을 대표 시나리오로 사용한다. 현재 Phase 2는 Base Model 평가가 목적이며 Dance 스타일 LoRA와 권리 확보 Style Fine-tuning 데이터는 Phase 7 이후 별도 검토한다.
 
 ## Phase 2.5. Quality Benchmark — [진행 중]
 

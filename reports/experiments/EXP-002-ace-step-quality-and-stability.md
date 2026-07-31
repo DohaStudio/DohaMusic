@@ -141,3 +141,14 @@ backend/storage/experiments/EXP-002/lm-0.6b/
 2. WAV 파일 hash는 PCM이 같아도 달랐다. 재현성 판정은 컨테이너와 sample hash를 분리해야 한다.
 3. 0.6B LM은 동작하지만 단일 표본이며 느리다. EVAL-001 청취 결과 없이는 이점이 없다.
 4. 사용자가 EVAL-001을 작성한 뒤 ADR-006과 모델 선정 상태를 재검토한다.
+
+## 14. Dance Pop Evaluation Plan
+
+DohaMusic 제품 대표 시나리오는 Korean Dance Pop으로 전환한다. EXP-002의 Korean Ballad 결과와 수치는 기존 실험 사실로 보존하며 Instrumental·Ballad는 보조 비교군으로 사용한다.
+
+- 0.6B LM을 한국어 가창 우선 후보로 사용한다.
+- 동일 Prompt·Lyrics·모델 설정에서 120~128 BPM, 60~90초, Seed 3개 이상을 비교한다.
+- 리듬감, Kick, Bass, Dance Groove, Energy, Verse·Pre-Chorus·Chorus 구조, Hook 기억성, 보컬 선명도, 한국어 발음, 춤 가능성을 평가한다.
+- 후속 Voice Conversion 입력에 필요한 보컬 분리 가능성·선명도·안정성을 함께 판정한다.
+- 현재 Phase 2는 Base Model 평가 범위이며 Dance 스타일 LoRA는 적용하지 않는다. LoRA와 권리 확보 Style Dataset은 Phase 7 이후 검토한다.
+- 계획 단계이므로 새 결과·점수·성능·Provider 승인을 주장하지 않는다.

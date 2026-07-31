@@ -7,11 +7,13 @@
 
 ## 목표
 
-공식 음악 생성 모델을 조사하고 `MusicGenerator` 계약을 유지한 실제 로컬 Provider와 Backend 경로를 검증한다.
+공식 음악 생성 모델을 조사하고 `MusicGenerator` 계약을 유지한 실제 로컬 Provider와 Backend 경로를 검증한다. 품질 평가는 한국 여성 댄스팝 생성 후 Voice Conversion으로 사용자의 목소리를 적용하는 제품 목표를 기준으로 하며 Korean Dance Pop을 대표 시나리오로 삼는다.
 
 ## 구현 범위와 포함 기능
 
 ACE-Step 공식 문서·라이선스 조사, 격리 runtime, Adapter·Provider Factory, 단독 추론, Backend Job 연결, WAV·성능 metadata, GPU 통합 테스트와 실험 보고서를 포함한다.
+
+평가 범위는 Instrumental·Korean Ballad 보조 시나리오와 Korean Dance Pop 대표 시나리오를 포함한다. 현재 Phase 2는 Base Model 평가이며 Dance 스타일 LoRA는 Phase 7 이후 검토한다.
 
 ## 제외 기능
 

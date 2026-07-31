@@ -94,6 +94,8 @@ $env:DOHAMUSIC_AI_ACE_STEP_DIT_CPU_OFFLOAD='true'
 
 입력은 `ai_worker/benchmarks`의 고정 JSON에 있다. 실제 오디오·runtime log·metadata는 `backend/storage/experiments/EXP-001`에 로컬 보관하며 커밋하지 않는다.
 
+이 절의 Instrumental과 Korean Ballad는 2026-07-29에 실제 실행한 기존 실험이며 결과를 변경하지 않는다. 제품 방향에 따른 후속 대표 시나리오는 Korean Dance Pop이고, 기존 두 시나리오는 품질 비교를 위한 보조 기준으로 유지한다. 후속 계획은 [EVAL-001](../evaluations/EVAL-001-ace-step-listening-evaluation.md)의 `Dance Pop Evaluation Plan`을 따른다.
+
 Instrumental prompt는 `calm lo-fi instrumental, soft piano, warm bass, slow tempo, no vocals, suitable for a late-night coding session`이고 가사는 없다. 한국어 prompt는 `감성적인 한국어 팝 발라드, 잔잔한 피아노와 스트링, 여성 솔로 보컬, 따뜻하지만 쓸쓸한 분위기`이며 입력 가사는 다음과 같다.
 
 ```text
@@ -183,6 +185,8 @@ Provider Factory의 기본값은 `mock`이다. `ace_step`을 선택해도 Backen
 - ACE-Step 제품 기본 Provider 채택: **보류**
 
 다음 작업은 커밋된 오디오가 아닌 로컬 EXP-001 출력의 블라인드 청취표 작성, 같은 시나리오 3회 이상 반복, 0.6B LM의 품질·자원 비교, 상주 runtime과 작업별 subprocess의 처리량 비교다. 이 결과 전에는 Phase 2 전체와 ACE-Step 도입을 완료 처리하지 않는다.
+
+Korean Dance Pop 후속 실험도 Base Model과 0.6B LM 비교를 우선하며 Dance 스타일 LoRA는 Phase 7 이후 검토한다. 이 문서에는 새 Dance Pop 실행 결과가 없으며 기존 결과를 해당 장르의 품질 근거로 확대하지 않는다.
 
 ## 12. 자동 검증
 

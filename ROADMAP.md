@@ -51,6 +51,7 @@
 6. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
 7. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
 8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5에서 완료된 audio content·download 다음으로 Voice upload/list/get, History·Project, cancel/retry, 인증·소유권 Backend 계약을 확정한다.
+9. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 
 ## 다음 작업 흐름
 

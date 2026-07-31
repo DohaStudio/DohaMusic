@@ -99,3 +99,84 @@
 ## 평가 완료 조건
 
 모든 대상의 적용 가능한 항목에 점수와 근거가 있고, no LM/0.6B LM 선호 및 후속 음색 변환 활용 가능성 의견이 기록되면 사용자 평가를 완료로 바꾼다.
+
+## 향후 대표 평가 시나리오
+
+기존 점수표는 당시 실행한 Instrumental과 Korean Ballad 결과의 근거로 유지한다. 이후 비교는 다음 세 축으로 구성하며 **Korean Dance Pop을 제품 대표 시나리오**로 사용한다.
+
+1. Instrumental — 짧은 반주 생성과 기본 음질을 확인하는 보조 시나리오
+2. Korean Ballad — 기존 한국어 가창 결과와 비교하기 위한 보조 시나리오
+3. Korean Dance Pop (Primary) — 한국 여성 댄스팝 생성과 후속 Voice Conversion 입력 적합성을 판단하는 대표 시나리오
+
+## Korean Dance Pop 평가 기준
+
+기존 음질·음악 구조·프롬프트 반영·한국어 발음·가사 일치·보컬 자연스러움·활용 가능성 기준은 유지하고 다음 항목을 대표 시나리오에 추가한다.
+
+| 평가 항목 | 확인 기준 |
+|---|---|
+| 리듬감 | 일정한 박과 싱코페이션이 곡 전체에서 자연스럽게 유지되는가 |
+| Kick | 전자 Kick의 타격감이 분명하고 Bass·보컬을 과도하게 가리지 않는가 |
+| Bass | 저역이 깊고 안정적이며 Kick과 함께 Dance Groove를 형성하는가 |
+| Dance Groove | 몸을 움직일 수 있는 반복적 추진력과 박자 흐름이 있는가 |
+| Energy | Verse에서 Chorus로 갈수록 에너지가 설득력 있게 상승하는가 |
+| Verse | 가사 전달과 리듬을 확보하면서 다음 섹션을 준비하는가 |
+| Pre-Chorus | 긴장과 상승감을 만들고 Chorus 진입을 명확히 예고하는가 |
+| Chorus | Verse와 구분되는 크기·밀도·멜로디로 핵심 절정을 형성하는가 |
+| Hook | 짧고 반복 가능하며 한 번 청취한 뒤 기억할 수 있는 핵심 구절인가 |
+| 보컬 선명도 | 여성 Lead Vocal이 반주에 묻히지 않고 음절과 멜로디를 식별할 수 있는가 |
+| 한국어 발음 | 자음·모음·받침과 음절 길이가 자연스럽고 주요 단어를 알아들을 수 있는가 |
+| 춤 가능성 | 120~128 BPM 범위에서 박자·Groove·Energy가 실제 Dance 동작을 지지하는가 |
+
+## Korean Dance Pop 대표 Prompt 예시
+
+다음 Prompt는 향후 실험 입력 예시이며 아직 실행 결과가 아니다.
+
+```text
+Energetic modern Korean dance-pop.
+Female lead vocal.
+124 BPM.
+Punchy electronic kick.
+Deep bass.
+Bright synths.
+Commercial K-pop production.
+Clear Korean pronunciation.
+Verse → Pre-Chorus → Chorus.
+Catchy explosive chorus.
+Danceable groove.
+Radio-ready mix.
+```
+
+## Hook 중심 Lyrics 예시
+
+다음 가사는 구조·발음·Hook 평가를 위한 짧은 자체 작성 예시다.
+
+```text
+[Verse]
+네온빛이 번진 이 거리 위로
+한 걸음 더 가까이 뛰어
+
+[Pre-Chorus]
+심장이 더 빠르게 울려
+지금 이 순간을 깨워
+
+[Chorus]
+Turn it up, turn it up
+우리의 밤을 밝혀
+Turn it up, turn it up
+멈추지 마 더 높이
+```
+
+## Dance Pop Evaluation Plan
+
+- 모델 구성: Base Model과 0.6B LM을 우선 평가하며 no LM은 한국어 가창 대표 설정으로 사용하지 않는다.
+- Tempo: 120~128 BPM, 기준 Prompt는 124 BPM으로 고정한다.
+- 생성 길이: Verse → Pre-Chorus → Chorus 판정이 가능한 60~90초를 목표로 한다.
+- Seed: 같은 Prompt·Lyrics·모델 설정에서 3개 이상 Seed를 비교한다.
+- 평가: 기존 공통 항목과 Korean Dance Pop 추가 항목을 함께 기록하고, 후속 Voice Conversion 입력으로 보컬이 충분히 선명하고 안정적인지 확인한다.
+- 상태: 계획이며 모델 실행, 새 점수 작성, 운영 Provider 승인을 의미하지 않는다.
+
+## LoRA와 향후 데이터 방향
+
+현재 Phase 2에서는 ACE-Step Base Model 평가가 목적이다. Dance 스타일 LoRA는 현재 적용 대상이 아니며 Phase 7 이후 검토 대상으로 유지한다.
+
+향후 Style Fine-tuning을 검토할 때는 Korean Dance Pop, Synth Pop, Electro Pop, House 기반 Pop을 우선 후보로 둔다. 직접 제작했거나 학습·파생 모델·상업 이용 권리를 확인한 데이터만 사용하며, 상업 음원을 무단 수집하거나 학습하지 않는다.
