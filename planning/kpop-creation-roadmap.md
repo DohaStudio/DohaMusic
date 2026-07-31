@@ -17,13 +17,15 @@
 
 차단 조건: 계약 간 필드·상태 불일치, 현재 기능과 계획 기능의 혼동, 권리 정책 누락.
 
-## K1 — Preset MVP [계획]
+## K1 — Preset MVP [완료]
 
-- [ ] Preset 3종과 `KPopPromptCompiler` 구현
-- [ ] K-POP Lyrics Template 연결
-- [ ] Frontend Preset·Mood·Concept·30/60초·Hook phrase UI
-- [ ] 기존 Pipeline 요청으로 컴파일된 Prompt 전송
-- [ ] 기존 요청 회귀·Desktop·Mobile 검증
+- [x] Preset 3종과 `KPopPromptCompiler` 구현
+- [x] K-POP Lyrics Template 연결
+- [x] Frontend Preset·Mood·30/60초·Prompt Preview UI — Concept·Hook phrase는 K2 이후 범위
+- [x] 기존 Pipeline 요청으로 컴파일된 Prompt 전송
+- [x] 기존 요청 회귀·Desktop·Mobile 검증
+
+현재 구현은 `prompt`, `lyrics`, `genre`, `duration_seconds`, `seed`의 기존 API 계약만 사용한다. `generation_options` 저장, BPM·Hook Timestamp·Audio Analysis와 Provider 전용 제어는 K1에 포함하지 않는다.
 
 DoD: 기존 API 호환, 특정 아티스트 모방 차단, Prompt Preview·compiler version·테스트·문서 완료. 미지원 세부 옵션은 활성화하지 않는다.
 

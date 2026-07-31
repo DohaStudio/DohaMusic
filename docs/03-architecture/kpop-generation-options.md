@@ -7,7 +7,7 @@
 
 ## 현재 계약과 확장 경계
 
-현재 `PipelineCreate`는 `prompt`, `lyrics`, `genre`, `duration_seconds`, `seed`, `voice_profile_id`, `project_id`만 검증하며 `input_snapshot`은 이 DTO를 그대로 저장한다. `generation_options`는 아직 API·DB·Frontend에 구현되지 않았다.
+현재 `PipelineCreate`는 `prompt`, `lyrics`, `genre`, `duration_seconds`, `seed`, `voice_profile_id`, `project_id`만 검증하며 `input_snapshot`은 이 DTO를 그대로 저장한다. K1 Frontend는 Preset을 컴파일한 `prompt`와 `genre`만 이 계약으로 전송한다. `generation_options`는 아직 API·DB·Frontend에 구현되지 않았다.
 
 향후 확장은 기존 필드를 유지하고 optional `generation_options`를 추가한다. 기존 요청은 동일하게 동작해야 하며 알 수 없는 옵션을 조용히 무시하지 않는다. 구현 전에는 해당 필드를 받지 않고, 구현 후에는 명시적 validation error 또는 capability 비활성화로 처리한다.
 
@@ -46,9 +46,9 @@
 
 | ID | 표시 이름 | 목표 경험 | 기본 장르·분위기 | BPM 목표 | 에너지 | 보컬·Hook | Post-Chorus / Dance Break | 현재 상태 |
 |---|---|---|---|---:|---|---|---|---|
-| `kpop_dance` | K-POP Dance | 밝고 춤추기 쉬운 상업 Pop | dance pop, bright·confident | 120~128 | medium~high | 선명한 여성 보컬, 짧은 제목 반복 | 권장 / 선택 | [계획], Prompt Compiler |
-| `kpop_easy_listening` | K-POP Easy Listening | 편안하고 반복 청취 가능한 Pop | soft pop, warm·fresh | 100~120 | low~medium | 자연스러운 여성 보컬, 부드러운 Hook | 선택 / 미지원 | [계획], Prompt Compiler |
-| `kpop_performance` | K-POP Performance | 무대 대비와 강한 퍼포먼스 | performance pop, bold·intense | 120~140 | high | chant Hook, 강한 Chorus | 선택 / 선택 | [계획], Prompt Compiler |
+| `kpop_dance` | K-POP Dance | 밝고 춤추기 쉬운 상업 Pop | dance pop, bright·confident | 120~128 | medium~high | 선명한 여성 보컬, 짧은 제목 반복 | 권장 / 선택 | [완료], Prompt Compiler |
+| `kpop_easy_listening` | K-POP Easy Listening | 편안하고 반복 청취 가능한 Pop | soft pop, warm·fresh | 100~120 | low~medium | 자연스러운 여성 보컬, 부드러운 Hook | 선택 / 미지원 | [완료], Prompt Compiler |
+| `kpop_performance` | K-POP Performance | 무대 대비와 강한 퍼포먼스 | performance pop, bold·intense | 120~140 | high | chant Hook, 강한 Chorus | 선택 / 선택 | [완료], Prompt Compiler |
 
 향후 후보는 K-POP R&B, K-POP Pop Rock, Custom이다. Provider에 Preset을 직접 전달하지 않고 Compiler가 반영한다.
 

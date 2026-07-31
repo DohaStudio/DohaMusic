@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import time
 
+from backend.lyrics.constants import KPOP_PRESET_GENRES
 from backend.lyrics.interfaces import (
     LyricsGenerationRequest,
     LyricsGenerationResult,
@@ -37,6 +38,9 @@ class TemplateLyricsGenerator:
                 "external_api": False,
                 "additional_instructions_supported": False,
                 "quality_status": "template_draft",
+                "lyrics_template": (
+                    "kpop_v1" if request.genre in KPOP_PRESET_GENRES else "default_v1"
+                ),
             },
         )
 
@@ -63,8 +67,32 @@ class TemplateLyricsGenerator:
         ]
         genre = (request.genre or ("노래" if request.language == "ko" else "song"))[:30]
         if request.language == "ko":
+            if request.genre in KPOP_PRESET_GENRES:
+                return self._korean_kpop_lines(
+                    section_type, topic, keyword, mood, genre
+                )
             return self._korean_lines(section_type, topic, keyword, mood, genre)
         return self._english_lines(section_type, topic, keyword, mood, genre)
+
+    @staticmethod
+    def _korean_kpop_lines(
+        section_type: str, topic: str, keyword: str, mood: str, genre: str
+    ) -> tuple[str, ...]:
+        if section_type == "intro":
+            return (f"{mood} 빛이 번지는 순간",)
+        if section_type == "pre_chorus":
+            return (f"조금 더 높이 {keyword}을 따라가", f"다가올 {topic}을 향해")
+        if section_type in {"chorus", "final_chorus"}:
+            return (
+                f"{keyword}, {keyword}, 우리만의 {topic}",
+                f"{keyword}을 다시 불러",
+                f"이 {genre} 속에 마음을 펼쳐",
+            )
+        if section_type == "post_chorus":
+            return (f"{keyword}, 다시 {keyword}", f"Oh, {keyword}")
+        if section_type == "bridge":
+            return ("잠시 멈춘 빛 너머로", f"새로운 마음으로 {topic}을 바라봐")
+        return (f"{mood} 하루 끝에 {keyword}이 피어나", f"오늘의 {topic}을 천천히 말해")
 
     @staticmethod
     def _korean_lines(

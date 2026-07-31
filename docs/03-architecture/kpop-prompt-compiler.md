@@ -1,13 +1,13 @@
 # KPopPromptCompiler 설계
 
-> 문서 상태: [계획]
+> 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Provider-neutral K-POP Prompt 컴파일
 > 관련 문서: [Generation Options](kpop-generation-options.md), [Music Adapter](../04-models/music-generation-adapter.md), [ADR-022](../11-decisions/ADR-022-kpop-generation-control-layer.md)
 
 ## 목적과 경계
 
-`KPopPromptCompiler`는 Frontend 선택값과 `KPopGenerationOptions`를 검증된 Provider-neutral Prompt로 변환한다. Frontend나 Provider Adapter가 독자적으로 Prompt를 조립하지 않는다. 현재 구현은 없으며 K1의 대상이다.
+`KPopPromptCompiler`는 Preset, 사용자 Custom 값과 Prompt를 검증된 Provider-neutral Prompt로 변환한다. K1은 API DTO를 바꾸지 않기 위해 동일한 `kpop-prompt-v1` 계약을 Backend 기준 구현과 Frontend 요청 변환에 적용한다. Provider Adapter는 Preset을 알지 못하며 컴파일된 `prompt`와 기존 `genre`만 받는다. 구조화된 `KPopGenerationOptions` 연결은 K2 대상이다.
 
 ```text
 Frontend 선택값
@@ -20,15 +20,15 @@ Frontend 선택값
 ## 컴파일 순서
 
 1. Preset 기본값 적용
-2. Mood·Concept·Genre 정규화
+2. Mood·Genre 정규화
 3. 사용자 Custom 옵션 적용
 4. 사용자 명시 Prompt를 최우선으로 병합
-5. BPM·Hook·구조·보컬 에너지 문장 생성
+5. Preset 기본 Prompt와 사용자 입력을 명시적 구획으로 구성
 6. 금지 요구와 특정 아티스트 모방 지시 차단
 7. 중복 문장·상충 표현을 정리하고 길이 제한 적용
-8. 최종 Prompt Preview, warning, compiler version 저장
+8. 최종 Prompt Preview와 compiler version 표시
 
-Prompt 최대 길이는 구현 시 현재 Provider 제한을 확인해 확정한다. 초안 정책은 1,500자로 제한하고 잘라내기보다 validation error를 우선한다. Provider별 전용 문구는 Adapter 내부의 검증된 최소 변환으로만 허용한다.
+Prompt 최대 길이는 1,500자로 제한하고 잘라내기보다 validation error를 반환한다. Provider별 전용 문구는 추가하지 않는다. K1은 warning·compiler version의 DB 저장을 하지 않으며 Preview에서 `kpop-prompt-v1`을 표시한다.
 
 ## 충돌 처리
 

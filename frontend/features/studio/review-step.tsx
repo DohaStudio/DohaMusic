@@ -6,15 +6,18 @@ import { userErrorMessage } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import { toPipelineCreate } from "./studio-submit";
+import { getKPopPreset } from "./kpop-presets";
 
 export function ReviewStep() {
   const router = useRouter();
   const store = useStudioStore();
+  const preset = getKPopPreset(store.kpopPresetId);
   const create = useMutation({ mutationFn: () => dohaApi.createPipeline(toPipelineCreate(store)), onSuccess: (job) => { store.patch({ pipelineJobId: job.id, currentStep: "generation" }); router.push(`/generation/${job.id}`); } });
   return <div className="studio-form">
     <div className="review-grid">
       <Review label="노래 설명" value={store.prompt} />
-      <Review label="장르" value={store.genre || "선택하지 않음"} />
+      <Review label="K-POP 스타일" value={preset.displayName} />
+      <Review label="추가 장르 방향" value={store.genre || "선택하지 않음"} />
       <Review label="분위기" value={store.selectedMoods.join(", ") || "선택하지 않음"} />
       <Review label="길이" value={`${store.durationSeconds}초`} />
       <Review label="가사" value={store.lyricsText ? `${store.lyricsText.length}자` : "AI가 준비"} />

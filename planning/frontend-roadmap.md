@@ -107,4 +107,4 @@ F0~F5는 로컬 단일 사용자 범위에서 구현·자동 검증을 완료했
 
 Frontend shared mapper와 Result metadata allowlist는 루트 `lib/` ignore 규칙으로 누락됐던 파일을 기존 계약에 맞춰 복구했다. 이 복구는 Phase 8 기능·상태를 바꾸지 않고 typecheck·build·Vitest·Playwright 기준선과 후속 K1 검증 차단을 해소한다.
 
-K-POP Preset·Prompt Preview·Generation Options UI는 완료된 F0~F5 범위가 아니라 [K-POP Creation Roadmap](kpop-creation-roadmap.md)의 K1·K2 후속 구현이다. Backend capability 전에는 BPM·언어 비율·Hook·Dance Break를 작동하는 제어로 노출하지 않는다.
+K-POP Preset·Prompt Preview는 [K-POP Creation Roadmap](kpop-creation-roadmap.md)의 K1 `[완료]` 범위로 Studio에 연결했다. Dance·Easy Listening·Performance 선택은 Provider-neutral Prompt와 기존 `genre`로 컴파일되며 API DTO는 유지한다. Generation Options UI는 K2 후속 구현이고, Backend capability 전에는 BPM·언어 비율·Hook·Dance Break를 작동하는 제어로 노출하지 않는다.

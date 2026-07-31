@@ -1,6 +1,6 @@
 # K-POP Provider Capability Matrix
 
-> 문서 상태: [계획]
+> 문서 상태: [완료]
 > 최종 수정일: 2026-07-31
 > 관련 기능: K-POP Generation Capability
 > 관련 문서: [Generation Options](../03-architecture/kpop-generation-options.md), [EVAL-007](../../reports/evaluations/EVAL-007-kpop-dance-generation.md)
@@ -31,7 +31,7 @@ ACE-Step 0.6B LM은 실행 가능성만 확인됐으며 단일 표본에서 no-L
 ```json
 {
   "kpop_generation": {
-    "presets": true,
+    "presets": "prompt_compiled",
     "requested_bpm": "prompt_compiled",
     "language_ratio": "prompt_compiled",
     "hook_phrase": "prompt_compiled",
@@ -43,4 +43,4 @@ ACE-Step 0.6B LM은 실행 가능성만 확인됐으며 단일 표본에서 no-L
 }
 ```
 
-이는 설계 계약이며 이번 작업에서 API를 구현하지 않는다. Frontend는 향후 capability 응답이 구현되기 전까지 미지원 옵션을 활성화하지 않는다.
+K1에서 Preset은 `PROMPT_COMPILED` 방식으로 구현했지만 이 JSON 형태의 Capability API는 아직 구현하지 않았다. Frontend는 Preset 3종과 Prompt Preview만 제공하고 실제 BPM·Hook·분석 제어를 활성화하지 않는다.

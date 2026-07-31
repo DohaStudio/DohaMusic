@@ -14,7 +14,7 @@ Doha Studio는 CRUD 폼이 아니라 “음악을 만드는 공간”이다. 사
 
 음악 만들기의 기본 순서는 `음악 스타일 → 가사 → 내 목소리 → 최종 확인 → 음악 만드는 중 → 완성`이다. 장르 카드, 최대 3개 분위기, 30초·60초 길이 선택을 우선 제공하고 긴 곡과 세부 BPM은 실제 지원 전까지 비활성 상태와 이유를 함께 표시한다.
 
-K-POP K1의 기본 UX는 Preset → Mood·Concept → 30초·60초 → optional Hook phrase → 가사 → Voice → Review 순서다. Requested BPM, Language Ratio, Hook Style, Post-Chorus, Dance Break, Vocal Energy, Seed는 고급 설정 후보이며 Backend capability가 구현되기 전에는 활성화하지 않는다. 세부 계약은 [Generation Options](kpop-generation-options.md)를 따른다.
+K-POP K1의 현재 UX는 Preset → Mood → Prompt Preview → 30초·60초 → 가사 → Voice → Review 순서다. Dance·Easy Listening·Performance 중 Dance를 기본 선택하고, 사용자 Prompt를 Preset보다 높은 우선순위로 결합해 기존 Pipeline DTO로 전송한다. Concept·optional Hook phrase와 Requested BPM, Language Ratio, Hook Style, Post-Chorus, Dance Break, Vocal Energy, Seed는 후속 후보이며 Backend capability가 구현되기 전에는 활성화하지 않는다. 세부 계약은 [Generation Options](kpop-generation-options.md)를 따른다.
 
 핵심 인상은 `Luxury · Premium · Dark · Minimal · Vinyl · Modern Dashboard · Glass · Soft Shadow · Rounded Card`다. Apple Music의 정제된 motion과 Spotify의 익숙한 탐색성을 참고하되 브랜드·UI를 복제하지 않고 DohaMusic의 제작 Workflow에 맞춘다.
 
@@ -81,7 +81,7 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 | `Backend Required` | 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
 
-K-POP Preset·Prompt Preview·구조화 Options·Capability API는 현재 `Planned`다. Frontend가 지원 상태를 하드코딩하지 않고 향후 capability 응답을 사용하도록 설계하되, 이번 문서 작업에서는 API나 UI를 구현하지 않는다.
+K-POP 3종 Preset과 Prompt Preview는 K1 `[완료]` 범위로 Studio에 구현했다. 선택값은 Frontend의 버전이 고정된 Provider-neutral Compiler를 거쳐 기존 `prompt`·`genre`로 변환되며 `preset_id`나 `generation_options`를 전송하지 않는다. 구조화 Options와 Capability API는 `Planned`이고 실제 BPM 제어처럼 표시하지 않는다.
 
 이 네 상태명을 관련 Frontend 문서와 UI specification에서 동일하게 사용한다. `Backend Required` 기능은 disabled 또는 “준비 중”으로만 표현하고 request를 보내지 않는다.
 
