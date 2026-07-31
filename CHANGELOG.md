@@ -8,6 +8,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### K-POP Creation Control Layer
+
+- Phase 8 이후 별도 K0~K4 제품 고도화 Track과 K-POP Dance·Easy Listening·Performance Preset 계약을 정의했다.
+- Generation Options, `KPopPromptCompiler`, Lyrics Template, Provider Capability Matrix와 capability 기반 Frontend UX 경계를 문서화했다.
+- EVAL-007 평가 계획, 권리 중심 Style Dataset 정책, ADR-022를 추가하고 현재 API·DB·Provider·Frontend에는 구현되지 않았음을 명시했다.
+
 ### Phase 2 Listening Evaluation
 
 - Phase 2 사용자 청취 평가 점수와 근거를 EVAL-001에 반영하고, 동일 PCM 산출물의 중복 집계를 제거했으며 미평가 2건을 남긴 채 ACE-Step을 조건부 채택으로 기록했다.

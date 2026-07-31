@@ -60,3 +60,5 @@ ACE-Step Adapter·runner·benchmark 입력·GPU 통합 테스트·EXP-001·EVAL-
 ## 예상 다음 단계
 
 EVAL-001의 남은 사용자 입력을 반영해 Phase 2 종료 여부와 ACE-Step의 운영·제품 기본 Provider 승인 여부를 결정한다. 현재 조건부 채택 상태와 애플리케이션 기본값 `mock`은 이 최종 승인과 구분한다.
+
+Korean Dance Pop은 대표 평가 시나리오이며 K-POP Preset·Prompt Compiler 구현은 별도 [K-POP Creation Roadmap](../../planning/kpop-creation-roadmap.md)의 K1 이후 범위다. K0 문서 작업은 Phase 2 진행률이나 조건부 채택 상태를 변경하지 않는다.

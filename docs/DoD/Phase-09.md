@@ -2,7 +2,7 @@
 
 > 상태: [계획]
 > 진행률: 0/18, 0%
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-07-31
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-9-production--계획), [Deployment Guide](../10-operations/deployment-guide.md)
 
 ## 목표
@@ -20,6 +20,8 @@ PostgreSQL, 외부 Queue 후보, Redis·Celery 검증, Docker, HTTPS, Monitoring
 ## 선행 조건
 
 Studio MVP, 부하·비용·SLO·보안 요구사항과 명시적 릴리스 승인이 필요하다.
+
+K-POP Creation Control Track은 제품 제어 고도화이며 인증·권한·감사·분산 Queue 등 이 Phase의 Production 차단 조건을 대체하지 않는다.
 
 ## 완료 체크리스트
 

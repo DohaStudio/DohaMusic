@@ -10,7 +10,7 @@
 | [ADR-003](ADR-003-async-job-processing.md) | 비동기 작업 처리 | 승인 |
 | [ADR-004](ADR-004-personal-voice-data-policy.md) | 개인 음성 데이터 정책 | 승인 제안 |
 | [ADR-005](ADR-005-ai-worker-dependency-isolation.md) | AI Worker 의존성 격리 | 승인 |
-| [ADR-006](ADR-006-ace-step-primary-provider.md) | ACE-Step 1차 Provider 채택 | 보류됨 |
+| [ADR-006](ADR-006-ace-step-primary-provider.md) | ACE-Step 1차 Provider 채택 | 조건부 채택 |
 | [ADR-007](ADR-007-ace-step-runtime-lifecycle.md) | ACE-Step 작업별 격리 subprocess 유지 | 채택됨 |
 | [ADR-008](ADR-008-stem-separation-provider.md) | HTDemucs Stem Provider와 출력 계약 | 채택됨 |
 | [ADR-009](ADR-009-seed-vc-voice-provider.md) | Seed-VC 격리형 Voice Provider와 참조 음성 경계 | 검증용 채택, 운영 보류 |
@@ -25,6 +25,7 @@
 | [ADR-019](ADR-019-secure-voice-profile-upload.md) | 동의된 WAV upload·검증·저장·삭제 경계 | 승인 |
 | [ADR-020](ADR-020-project-history-retention.md) | History projection·Default Project·Project 삭제 시 Job/파일 보존 | 승인 |
 | [ADR-021](ADR-021-pipeline-job-cancel-retry.md) | cooperative Cancel·새 Job Retry·입력 Snapshot·원본 관계 | 승인 |
+| [ADR-022](ADR-022-kpop-generation-control-layer.md) | K-POP Preset·Generation Options·Prompt Compiler·Capability 경계 | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 # Phase 6.5
@@ -42,3 +43,7 @@
 - [ADR-020 — Project History Retention](ADR-020-project-history-retention.md): Project 삭제 시 연결만 해제하고 Job과 결과 파일을 보존한다.
 - [ADR-019 — Secure Voice Profile Upload](ADR-019-secure-voice-profile-upload.md): 동의된 WAV를 안전하게 저장하고 공개 metadata·삭제 정책과 원본 비공개 경계를 결정한다.
 - [ADR-021 — Pipeline Job Cancel·Retry](ADR-021-pipeline-job-cancel-retry.md): 단계 경계 cooperative 취소와 입력 Snapshot 기반 새 Job Retry를 결정한다.
+
+# K-POP Creation Control
+
+- [ADR-022 — K-POP Generation Control Layer](ADR-022-kpop-generation-control-layer.md): Provider-neutral Preset·Options·Compiler·Capability·Snapshot·평가·권리 경계를 결정한다.

@@ -70,3 +70,5 @@ Phase 7 Doha Voice와 Phase 8 Studio 우선순위를 재검토한다.
 - 실제 외부 네 시나리오·한국어 품질·지연·token·비용: `[차단/사용자 평가 필요]` (API Key 없음)
 - 기본 Provider: `template` 유지
 - Stable 승격 및 Pipeline 연결: 미승인
+
+K-POP Lyrics Template과 언어 비율·Hook 계약은 [KPopPromptCompiler 설계](../03-architecture/kpop-prompt-compiler.md)에 정의하지만 현재 `LyricsGenerator` 구현과 `template` 기본 Provider는 변경하지 않는다. Local Lyrics LLM은 별도 Phase 6.6~6.9 Track이다.
