@@ -83,7 +83,7 @@ Phase 9  Production                  [계획]
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| F6. Guided Voice Enrollment | [계획] | 독립 체크리스트 | 요구사항과 ADR·API·DB 설계 제안 완료, Runtime·migration·Wizard 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획) |
+| F6. Guided Voice Enrollment | [계획] | 독립 체크리스트 | 영속 모델·상태 전이·migration·legacy backfill 완료, API·Storage·정규화·cleanup·Wizard 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -232,9 +232,9 @@ Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화
 ### F6. Guided Voice Enrollment — [계획]
 
 - 목표: 사용자가 안내에 따라 본인 참조 음성을 녹음하거나 기존 WAV를 제출하고 기본 문제를 확인한 뒤 Voice Profile을 등록하게 한다.
-- 현재 사실: 단일 25MB 이하, 5~60초, PCM16 WAV upload·Profile 즉시 생성만 구현돼 있다.
+- 현재 사실: 단일 25MB 이하, 5~60초, PCM16 WAV upload·Profile 즉시 생성과 Enrollment·Sample 영속 기반·legacy backfill이 구현돼 있다. 신규 Enrollment endpoint와 파일 처리는 아직 없다.
 - 선행 조건: [ADR-024](docs/11-decisions/ADR-024-browser-voice-recording-server-normalization.md), [ADR-025](docs/11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](docs/11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)의 `[제안]`을 Windows·CI decoder와 Provider 품질 근거로 승인하고 [API](docs/06-api/voice-enrollment-api.md)·[데이터 모델](docs/07-database/voice-enrollment-data-model.md)을 구현 계약으로 확정한다.
-- Backend gap: WebM/Ogg, 다중 sample, 사전 validation, Enrollment 상태, cancel·resume·idempotency, 동의 철회·파생 삭제.
+- Backend gap: WebM/Ogg, 다중 sample API, 사전 validation, cancel·resume·idempotency, 만료·cleanup 실행, 동의 철회·파생 삭제.
 - 보안 조건: 음성 binary Web Storage·Analytics 저장/전송 금지. 공개 운영 인증·소유권·감사·rate limit은 Phase 9 선행이다.
 - 산출물: [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md), [ADR-024~026](docs/11-decisions/README.md#f6-guided-voice-enrollment), [API](docs/06-api/voice-enrollment-api.md)·[데이터 모델](docs/07-database/voice-enrollment-data-model.md), 후속 Wizard·녹음·품질 UI와 test.
 - 완료 판정: [Frontend Roadmap F6](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획)의 독립 체크리스트. Phase 8 `15/15, 100%`의 분모·상태를 변경하지 않는다.

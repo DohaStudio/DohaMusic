@@ -107,7 +107,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 단일 WAV form인 `/voice`를 사용자가 안내에 따라 본인 참조 음성을 준비하는 Wizard로 개선한다. F6는 Phase 8의 후속 Studio UX이며 기존 Phase 8 `15/15, 100%`를 변경하지 않는다. 장시간 Dataset 수집·전사·split·preprocessing·LoRA·Fine Tuning은 Phase 7 범위로 분리한다.
 
-현재 Backend는 단일 25MB 이하, 5~60초, PCM16 WAV upload와 Profile 즉시 생성을 지원한다. MediaRecorder WebM/Ogg, 다중 sample, 사전 validation, Enrollment 임시 상태, upload 취소·resume와 동의 철회는 지원하지 않는다. 세부 사실과 대안은 [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md)을 따른다.
+현재 Backend는 단일 25MB 이하, 5~60초, PCM16 WAV upload와 Profile 즉시 생성을 지원한다. Enrollment·Sample ORM·Repository·상태 전이·migration과 legacy Profile backfill도 구현됐다. MediaRecorder WebM/Ogg, 다중 sample API, 사전 validation, 만료·cleanup 실행, upload 취소·resume와 동의 철회는 지원하지 않는다. 세부 사실과 대안은 [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md)을 따른다.
 
 ### 구현 선행 결정
 
@@ -121,7 +121,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 - [x] Voice Enrollment 요구사항 확정 — 문서 설계 기준선만 완료, 기능은 미구현
 - [x] 녹음 MIME과 WAV 정규화 설계 제안 — 구현 전 decoder·Provider 검증 필요
-- [x] 단일 reference와 다중 sample 데이터 모델 설계 제안 — migration 미구현
+- [x] 단일 reference와 다중 sample 영속 모델 — migration·legacy backfill·Repository 검증 완료
 - [x] 임시 Enrollment·API·만료·cleanup 설계 제안 — Backend 미구현
 - [ ] 안내 문장과 녹음 정책 검증
 - [ ] 브라우저 녹음 UI
@@ -131,7 +131,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - [ ] 오류·재시도·취소·cleanup
 - [ ] 접근성·반응형
 - [ ] Frontend unit·component·E2E
-- [ ] Backend 검증 test
+- [ ] Backend 전체 검증 test — 영속 모델·migration·기존 Voice 회귀는 완료, API·Storage·cleanup test 미구현
 - [ ] 보안·동의·API·DB 문서
 - [ ] CHANGELOG
 - [ ] 한국어 커밋·Push·`develop` PR·병합 검증

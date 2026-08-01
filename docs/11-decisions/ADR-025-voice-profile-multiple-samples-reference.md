@@ -7,6 +7,8 @@
 > 관련 문서: [데이터 모델](../07-database/voice-enrollment-data-model.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [ADR-019](ADR-019-secure-voice-profile-upload.md), [ADR-024](ADR-024-browser-voice-recording-server-normalization.md)
 > 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
 
+> 구현 메모: Alembic `20260801_0010`에서 Profile 1:N Sample, nullable unique 대표 reference FK, `LEGACY_REFERENCE` backfill과 Repository 무결성 검사를 먼저 구현했다. 다중 Sample API·Storage promotion·Provider 품질 기준은 아직 제안 상태다.
+
 ## Context
 
 현재 `voice_profiles.reference_file_path`는 `NOT NULL`이고 Pipeline과 Voice Conversion은 Profile 하나에서 reference 파일 하나를 읽는다. Guided Enrollment는 기본·밝은·차분한 말하기, 음역과 짧은 무반주 노래처럼 역할이 다른 녹음을 개별 검증·교체할 필요가 있다. 녹음을 즉시 병합하면 sample별 품질·lineage·삭제 책임을 잃고, 현재 Provider에는 다중 reference 계약이 없다.

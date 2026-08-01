@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-01
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [현재 음성 프로필 API](audio-api.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md), [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)
-> 구현 상태: 이 문서는 구현 전 계약 초안이다. 아래 `/api/voice-enrollments` path는 현재 OpenAPI에 없다.
+> 구현 상태: 영속 모델·Repository·migration만 구현했다. 아래 `/api/voice-enrollments` path는 현재 OpenAPI에 없으며 request/response·idempotency 계약은 구현 전 초안이다.
 
 ## 1. 현재 API와 제안 API의 경계
 

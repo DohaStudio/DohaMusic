@@ -77,8 +77,7 @@ class VoiceProfileService:
             try:
                 if managed_file is not None:
                     managed_file.replace(tombstone)
-                session.delete(profile)
-                session.flush()
+                repository.delete(profile, commit=False)
                 if tombstone is not None:
                     tombstone.unlink()
                     tombstone.parent.rmdir()

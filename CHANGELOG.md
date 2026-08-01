@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Guided Voice Enrollment 영속 기반
+
+- `VoiceEnrollment`·`VoiceSample` ORM, lifecycle 상태 전이와 최소 Repository CRUD·만료·cleanup 조회를 추가했다.
+- `VoiceProfile.active_reference_sample_id`와 Profile 1:N Sample 관계를 추가하고, 대표 Sample의 소유 Profile·`PROMOTED` 상태를 Repository에서 검증한다.
+- Alembic `20260801_0010`에서 기존 Profile을 파일 접근 없이 결정적 `LEGACY_REFERENCE` Sample로 backfill하고, 신규 Enrollment·비레거시 Sample이 있으면 데이터 유실성 downgrade를 차단한다.
+- 기존 단일 Voice Profile 생성도 호환 Sample과 대표 reference를 함께 기록하며 기존 Voice API·Pipeline·Voice Conversion 공개 계약을 유지한다.
+
 ### 문서 — Guided Voice Enrollment
 
 - 브라우저 WAV·WebM/Ogg를 Backend에서 PCM16 48kHz mono WAV로 정규화하는 경계, Profile 1:N Sample과 명시적 대표 reference, 임시 Enrollment의 24시간 sliding/7일 absolute 만료·idempotency·cleanup을 ADR-024~026 `[제안]`으로 기록했다.
