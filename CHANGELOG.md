@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 변경 — Guided Voice Enrollment UI
+
+- 정상 안내를 INFO 카드로 분리하고 실제 오류에만 경고 UI를 사용하도록 Voice Enrollment Wizard의 메시지 위계를 정리했다.
+- 녹음 상태·입력 수준·안내 문장, Sample 품질·재생·대표 선택·삭제 카드, 우측 Summary와 완료 화면을 Doha Studio 시각 체계에 맞게 개선했다.
+- 로딩·빈 상태·단계 표시와 키보드·스크린 리더 정보를 보강하고 Desktop Chrome, 820px Tablet, Pixel 7 Playwright 회귀 범위를 구성했다.
+- Backend·API·DB·migration과 F6 `[진행 중]` 상태는 변경하지 않았다.
+
 ### 테스트 — Guided Voice Enrollment Validation
 
 - 제품·API·DB·migration을 변경하지 않고 신규 사용자 PASS 등록, 합성 MediaRecorder preview/upload, 3개 품질 WARNING, 실패·timeout·FFmpeg 미설치, upload/submit 멱등, 만료·cancel·cleanup UX를 다루는 Validation E2E를 추가했다.

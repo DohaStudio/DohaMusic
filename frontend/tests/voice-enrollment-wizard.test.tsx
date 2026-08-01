@@ -39,6 +39,29 @@ const draft = {
   absolute_expires_at: "2026-08-08T00:00:00Z",
 };
 
+const readySample = {
+  id: "22222222-2222-4222-8222-222222222222",
+  enrollment_id: draft.id,
+  source_type: "FILE_UPLOAD" as const,
+  prompt_id: null,
+  category: "BASIC_SPEECH",
+  status: "READY" as const,
+  original_content_type: "audio/wav",
+  original_size_bytes: 120_000,
+  normalized_content_type: "audio/wav",
+  normalized_size_bytes: 280_000,
+  duration_seconds: 7,
+  sample_rate: 48_000,
+  channels: 1,
+  bit_depth: 16,
+  quality: { status: "PASS" as const, warnings: [], version: "basic-v1", peak: .2, rms: .1, silence_ratio: 0, clipping_ratio: 0 },
+  failure_code: null,
+  submit_eligible: true,
+  cleanup_status: "NOT_REQUESTED",
+  created_at: "2026-08-02T00:00:00Z",
+  validated_at: "2026-08-02T00:00:01Z",
+};
+
 function renderWizard() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
   return render(<QueryClientProvider client={client}><VoiceEnrollmentWizard /></QueryClientProvider>);
@@ -57,6 +80,9 @@ describe("Guided Voice Enrollment Wizard", () => {
     expect(await screen.findByText("권리와 개인정보")).toBeInTheDocument();
     expect(screen.getByText(/최종 변환 품질을 보장하지 않습니다/)).toBeInTheDocument();
     expect(screen.getByText(/WAV 파일 업로드/)).toBeInTheDocument();
+    expect(screen.getByRole("note", { name: "녹음 형식 안내" })).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByText("1 / 8")).toBeInTheDocument();
   });
 
   it("필수 동의 전에는 다음 단계 진행을 차단한다", async () => {
@@ -82,6 +108,9 @@ describe("Guided Voice Enrollment Wizard", () => {
       name: "내 목소리", consent_confirmed: true, consent_policy_version: "v1",
     }), expect.any(String)));
     expect(await screen.findByText("기존 파일 추가")).toBeInTheDocument();
+    expect(screen.getByText("4 / 8")).toBeInTheDocument();
+    expect(screen.getByText("아직 등록된 Sample이 없습니다.")).toBeInTheDocument();
+    expect(screen.getByRole("complementary", { name: "현재 음성 등록 요약" })).toHaveTextContent("0 / 10");
     expect(sessionStorage.getItem("doha.voice-enrollment.v1")).toContain(draft.id);
   });
 
@@ -90,5 +119,25 @@ describe("Guided Voice Enrollment Wizard", () => {
     renderWizard();
     await waitFor(() => expect(mocks.get).toHaveBeenCalledWith(draft.id, expect.any(AbortSignal)));
     expect(await screen.findByText("기존 파일 추가")).toBeInTheDocument();
+  });
+
+  it("등록한 Sample을 품질·길이·대표 선택이 있는 카드와 Summary로 표시한다", async () => {
+    const ready = {
+      ...draft,
+      status: "READY_TO_SUBMIT" as const,
+      sample_count: 1,
+      samples: [readySample],
+      can_submit: true,
+      validation_summary: { ready: 1, warning: 0, failed: 0 },
+    };
+    mocks.get.mockResolvedValue(ready);
+    sessionStorage.setItem("doha.voice-enrollment.v1", JSON.stringify({ enrollmentId: draft.id, step: "samples" }));
+    renderWizard();
+    expect(await screen.findByRole("article", { name: "Sample 1, 품질 PASS" })).toBeInTheDocument();
+    expect(screen.getByText("7.0초")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /대표로 선택/ })).toHaveAttribute("aria-pressed", "false");
+    const summary = screen.getByRole("complementary", { name: "현재 음성 등록 요약" });
+    expect(summary).toHaveTextContent("1 / 10");
+    expect(summary).toHaveTextContent("PASS1");
   });
 });

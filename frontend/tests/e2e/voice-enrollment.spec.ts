@@ -92,6 +92,10 @@ test("WAV Sample 등록부터 대표 선택·Profile 생성까지 완료한다",
     name: "synthetic.wav", mimeType: "audio/wav", buffer: Buffer.from("RIFFsyntheticWAVE"),
   });
   await expect(page.getByText("1/10 Sample")).toBeVisible();
+  await expect(page.getByText("4 / 8")).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "현재 음성 등록 요약" })).toContainText("1 / 10");
+  await expect(page.getByRole("article", { name: "synthetic.wav, 품질 PASS" })).toBeVisible();
+  if (process.env.VOICE_UI_SCREENSHOT) await page.screenshot({ path: testInfo.outputPath("samples.png"), fullPage: true });
   await page.getByRole("button", { name: "품질 결과 확인" }).click();
   await expect(page.getByText("기본 검사를 통과했습니다.")).toBeVisible();
   await page.getByRole("button", { name: "대표 Sample 선택" }).click();
@@ -101,6 +105,8 @@ test("WAV Sample 등록부터 대표 선택·Profile 생성까지 완료한다",
   await expect(page.getByRole("heading", { name: "목소리 등록이 완료되었습니다" })).toBeVisible();
   await expect(page.getByText("Guided Voice").last()).toBeVisible();
   await expect(page.getByText(/음악 만들기에 선택됨/)).toBeVisible();
+  await expect(page.getByText("대표 Sample")).toBeVisible();
+  if (process.env.VOICE_UI_SCREENSHOT) await page.screenshot({ path: testInfo.outputPath("complete.png"), fullPage: true });
   expect(await page.evaluate(() => sessionStorage.getItem("doha.voice-enrollment.v1"))).toBeNull();
   await expect(page.locator("body")).not.toContainText("Idempotency-Key");
   await expect(page.locator("body")).not.toContainText("storage_original_key");

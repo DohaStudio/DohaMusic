@@ -66,9 +66,30 @@ export function ErrorAlert({
     </div>
   );
 }
+export function InfoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <aside className="alert alert-info" role="note" aria-label={title}>
+      <strong>{title}</strong>
+      <div>{children}</div>
+    </aside>
+  );
+}
 export function Progress({ value, label }: { value: number; label: string }) {
   return (
-    <div className="progress-wrap" aria-label={label}>
+    <div
+      className="progress-wrap"
+      role="progressbar"
+      aria-label={label}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.max(0, Math.min(100, value))}
+    >
       <div className="progress-track">
         <span style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
       </div>

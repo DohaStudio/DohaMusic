@@ -232,7 +232,9 @@
 
 @media (max-width: 900px) {
   .sample-workspace { grid-template-columns: 1fr; }
-  .file-drop { min-height: 12rem; }
+  .enrollment-summary { position: static; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .enrollment-summary .progress-wrap, .enrollment-summary .summary-quality, .enrollment-summary .file-drop { grid-column: 1 / -1; }
+  .file-drop { min-height: 10rem; }
 }
 
 @media (max-width: 700px) {
@@ -243,18 +245,24 @@
   .guide-grid, .review-grid, .method-options { grid-template-columns: 1fr; }
   .guide-grid .full, .review-grid .full { grid-column: auto; }
   .prompt-card { grid-template-columns: 1fr; }
-  .sample-workspace { padding-bottom: 9rem; }
+  .sample-workspace { padding-bottom: 2rem; }
+  .sample-card-grid { grid-template-columns: 1fr; }
+  .enrollment-summary { grid-template-columns: 1fr; }
+  .enrollment-summary .progress-wrap, .enrollment-summary .summary-quality, .enrollment-summary .file-drop { grid-column: auto; }
+  .recorder-status { align-items: flex-start; flex-direction: column; }
+  .voice-audio-player { grid-template-columns: 2.3rem minmax(3rem, 1fr) auto; }
+  .audio-volume { display: none; }
   .enrollment-step input,
   .enrollment-step button,
   .enrollment-step label,
   .enrollment-step .file-drop,
   .enrollment-step .sample-card { scroll-margin-block: 90px 230px; }
-  .sample-card { align-items: stretch; flex-direction: column; }
-  .sample-card .button { align-self: flex-end; }
+  .voice-sample-actions { flex-direction: column; }
+  .voice-sample-actions .button, .sample-reference-radio { width: 100%; }
   .quality-card > div span:last-child { width: 100%; margin-left: 0; }
   .enrollment-actions { position: static; margin: 0 -1rem -1rem; }
   .enrollment-actions .button { flex: 1; min-width: 8rem; }
-  .enrollment-complete > div { width: 100%; flex-direction: column; }
+  .complete-actions { width: 100%; flex-direction: column; }
 }
 html[data-reduce-motion="true"] * {
   animation: none !important;

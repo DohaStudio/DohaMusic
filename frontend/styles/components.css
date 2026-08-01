@@ -132,6 +132,27 @@
   border-color: #6d312e;
   background: #321a18;
 }
+.alert-info {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: .35rem 1rem;
+  border-color: #4c493f;
+  background: linear-gradient(135deg, #26231f, #1e1d1b);
+}
+.alert-info::before {
+  content: "i";
+  grid-row: 1 / 3;
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid #766d5e;
+  border-radius: 50%;
+  color: var(--beige);
+  font: 800 .85rem/1 var(--font-body);
+}
+.alert-info p { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.55; }
+.alert-info p strong { color: var(--text); }
 .review-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -564,6 +585,9 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .enrollment-wizard { display: grid; gap: 1.25rem; overflow: hidden; }
 .enrollment-wizard-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .enrollment-wizard-header h2, .enrollment-wizard-header p { margin: 0; }
+.enrollment-step-progress { display: flex; align-items: baseline; gap: .75rem; margin-bottom: -.5rem; }
+.enrollment-step-progress span { color: var(--beige); font-size: .78rem; font-weight: 850; letter-spacing: .08em; }
+.enrollment-step-progress strong { font-size: 1.05rem; }
 .enrollment-stepper { display: grid; grid-template-columns: repeat(8, minmax(4.5rem, 1fr)); gap: .25rem; margin: 0; padding: 0; list-style: none; overflow-x: auto; }
 .enrollment-stepper li { display: grid; justify-items: center; align-content: start; gap: .35rem; min-width: 4.5rem; color: var(--muted); font-size: .7rem; text-align: center; }
 .enrollment-stepper li span { width: 1.9rem; height: 1.9rem; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: #222; }
@@ -582,20 +606,36 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .method-options label.selected { border-color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
 .method-options input { grid-row: 1 / 3; }
 .method-options span { color: var(--muted); font-size: .82rem; }
-.sample-workspace { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(15rem, .5fr); gap: 1rem; }
+.sample-workspace { display: grid; grid-template-columns: minmax(0, 1fr) minmax(17rem, .34fr); gap: 1rem; align-items: start; }
+.sample-main-column { min-width: 0; display: grid; gap: 1rem; }
 .recorder-panel, .file-drop { display: grid; align-content: start; gap: 1rem; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: #191919; }
-.file-drop { place-items: center; align-content: center; min-height: 18rem; text-align: center; border-style: dashed; }
+.file-drop { place-items: center; align-content: center; min-height: 12rem; text-align: center; border-style: dashed; }
 .file-drop.preferred { border-color: var(--beige); }
 .file-drop p { margin: 0; color: var(--muted); }
-.prompt-card { display: grid; grid-template-columns: 1fr minmax(10rem, .35fr); gap: 1rem; align-items: start; padding: 1rem; border-radius: .85rem; background: #24211f; }
-.prompt-card p { margin-bottom: 0; }
-.recorder-status { display: flex; justify-content: space-between; align-items: center; font-variant-numeric: tabular-nums; }
-.recorder-status time { font: 800 1.6rem/1 ui-monospace, monospace; }
-.audio-level { position: relative; height: 1.6rem; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; background: #0e0e0e; }
-.audio-level > span { display: block; height: 100%; background: linear-gradient(90deg, #457c59 0 65%, var(--amber) 65% 85%, var(--red) 85%); transition: width .08s linear; }
-.audio-level small { position: absolute; inset: 0; display: grid; place-items: center; color: white; font-weight: 800; text-shadow: 0 1px 3px #000; }
+.file-drop > svg { width: 1.8rem; height: 1.8rem; color: var(--beige); }
+.prompt-card { display: grid; grid-template-columns: 1fr minmax(10rem, .35fr); gap: 1rem; align-items: start; padding: 1.15rem; border: 1px solid #3e3932; border-radius: .95rem; background: linear-gradient(135deg, #2a2621, #201e1b); }
+.prompt-card > div { display: grid; justify-items: start; gap: .55rem; }
+.prompt-kicker { color: var(--beige); font-size: .72rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.prompt-card p { max-width: 36rem; margin: .2rem 0 0; color: var(--text); font: 750 clamp(1.15rem, 2.2vw, 1.55rem)/1.55 var(--font-display); word-break: keep-all; }
+.recorder-status { min-height: 5.5rem; display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1rem 1.1rem; border: 1px solid var(--line); border-radius: .9rem; background: #121212; font-variant-numeric: tabular-nums; }
+.recorder-status > div { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: .15rem .55rem; }
+.recorder-status svg { width: .75rem; color: var(--muted); }
+.recorder-status strong { font-size: 1.05rem; }
+.recorder-status span { grid-column: 2; color: var(--muted); font-size: .76rem; }
+.recorder-status.status-recording svg { color: var(--red); filter: drop-shadow(0 0 .45rem color-mix(in srgb, var(--red) 65%, transparent)); }
+.recorder-status time { font: 850 clamp(1.65rem, 3vw, 2.2rem)/1 ui-monospace, monospace; }
+.recorder-status time small { color: var(--muted); font-size: .85rem; }
+.input-level-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; color: var(--muted); font-size: .82rem; }
+.audio-level { position: relative; height: .55rem; overflow: hidden; border-radius: 999px; background: #0e0e0e; }
+.audio-level > span { display: block; height: 100%; border-radius: inherit; background: var(--amber); transition: width .08s linear; }
+.audio-level.level-success > span { background: var(--green); }
+.audio-level.level-danger > span { background: var(--red); }
 .recorder-controls, .enrollment-actions, .enrollment-retry { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.recorder-controls .button { min-height: 2.75rem; transform: none; }
+.recorder-controls .button:hover:not(:disabled) { transform: none; }
 .recorder-panel audio { width: 100%; }
+.recorder-preview { display: grid; gap: .55rem; padding: .85rem; border: 1px solid var(--line); border-radius: .8rem; background: #111; }
+.recorder-preview strong { font-size: .82rem; }
 .enrollment-actions { position: sticky; bottom: 0; justify-content: flex-end; padding: .8rem; background: color-mix(in srgb, var(--surface) 94%, transparent); border-top: 1px solid var(--line); z-index: 4; }
 .enrollment-actions .secondary { margin-right: auto; }
 .quality-list, .sample-list { display: grid; gap: .75rem; }
@@ -608,15 +648,71 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .quality-fail { border-left-color: var(--red); }
 .badge-warning { color: #ffd48a; border-color: #74592b; background: #382a13; }
 .badge-danger { color: #ffa19b; border-color: #743b37; background: #351a19; }
-.sample-card { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: 1rem; border: 1px solid var(--line); border-radius: .9rem; background: #1b1b1b; }
-.sample-card label { display: flex; align-items: center; gap: .8rem; cursor: pointer; }
-.sample-card label > span { display: grid; gap: .25rem; }
-.sample-card small { color: var(--muted); }
+.sample-collection { display: grid; gap: .85rem; }
+.sample-collection-heading { display: flex; justify-content: space-between; align-items: end; gap: 1rem; }
+.sample-collection-heading h4, .sample-collection-heading span { margin: 0; }
+.sample-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+.voice-sample-card { min-width: 0; display: grid; align-content: start; gap: .8rem; padding: 1rem; border: 1px solid var(--line); border-top-width: 3px; border-radius: .95rem; background: #1b1b1b; }
+.voice-sample-card.selected { border-color: color-mix(in srgb, var(--green) 65%, var(--line)); background: color-mix(in srgb, var(--green) 7%, #1b1b1b); }
+.voice-sample-card-heading, .voice-sample-card-heading > div { display: flex; justify-content: space-between; align-items: center; gap: .7rem; }
+.voice-sample-card-heading > div { min-width: 0; display: grid; justify-items: start; gap: .2rem; }
+.voice-sample-card-heading strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.sample-source { color: var(--muted); font-size: .68rem; font-weight: 750; }
+.voice-sample-meta { display: flex; flex-wrap: wrap; gap: .45rem; color: var(--muted); font-size: .75rem; }
+.voice-sample-meta span + span::before { content: "·"; margin-right: .45rem; }
+.voice-sample-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.voice-sample-actions .button { min-height: 40px; flex: 1; padding: 0 .75rem; font-size: .78rem; }
+.selected-reference { color: #9be5b9; border-color: #35694b !important; }
+.sample-reference-radio { min-height: 40px; flex: 1; display: flex; align-items: center; gap: .55rem; padding: 0 .8rem; border: 1px solid #45413d; border-radius: .75rem; cursor: pointer; font-size: .78rem; font-weight: 750; }
+.sample-preview-unavailable { min-height: 3.25rem; display: flex; align-items: center; gap: .55rem; margin: 0; padding: .65rem; border-radius: .7rem; background: #141414; color: var(--muted); font-size: .72rem; line-height: 1.4; }
+.sample-preview-unavailable svg { width: 1.1rem; flex: 0 0 auto; }
+.sample-empty { min-height: 12rem; display: grid; place-items: center; place-content: center; gap: .45rem; padding: 1.5rem; border: 1px dashed #46413b; border-radius: 1rem; text-align: center; background: #171717; }
+.sample-empty svg { width: 2rem; height: 2rem; color: var(--beige); }
+.sample-empty p { margin: 0; color: var(--muted); font-size: .84rem; }
+.enrollment-summary { position: sticky; top: 1rem; display: grid; gap: 1rem; padding: 1rem; border: 1px solid #413c35; border-radius: 1rem; background: linear-gradient(155deg, #24211e, #171717); }
+.summary-heading, .summary-reference, .summary-next { display: grid; gap: .3rem; }
+.summary-heading > span, .summary-reference > span, .summary-next > span { color: var(--muted); font-size: .72rem; font-weight: 800; }
+.summary-heading strong { font-size: 1.55rem; }
+.summary-heading small { color: var(--muted); font-size: .72rem; }
+.summary-quality { display: grid; gap: .45rem; margin: 0; padding: .85rem 0; border-block: 1px solid var(--line); }
+.summary-quality div { display: flex; justify-content: space-between; align-items: center; }
+.summary-quality dt { display: flex; align-items: center; gap: .45rem; color: var(--muted); font-size: .75rem; font-weight: 750; }
+.summary-quality dd { margin: 0; font-weight: 850; }
+.quality-dot { width: .5rem; height: .5rem; border-radius: 50%; background: var(--muted); }
+.quality-dot.pass { background: var(--green); }
+.quality-dot.warning { background: var(--amber); }
+.quality-dot.fail { background: var(--red); }
+.summary-reference strong, .summary-next strong { line-height: 1.35; }
+.summary-next { padding: .85rem; border-radius: .75rem; background: #111; }
+.enrollment-summary .file-drop { margin-top: .15rem; }
+.voice-audio-player { display: grid; grid-template-columns: 2.3rem minmax(4rem, 1fr) auto auto; align-items: center; gap: .55rem; min-width: 0; padding: .55rem; border: 1px solid var(--line); border-radius: .75rem; background: #111; }
+.voice-audio-player audio { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.audio-play-button { width: 2.3rem; height: 2.3rem; display: grid; place-items: center; padding: 0; border: 0; border-radius: 50%; background: var(--beige); color: #171513; cursor: pointer; }
+.audio-play-button svg { width: 1rem; }
+.audio-position, .audio-volume { display: flex; min-width: 0; }
+.audio-position input { width: 100%; accent-color: var(--red); }
+.audio-volume { align-items: center; gap: .25rem; }
+.audio-volume svg { width: .95rem; color: var(--muted); }
+.audio-volume input { width: 3.2rem; accent-color: var(--beige); }
+.voice-audio-player time { color: var(--muted); font: 700 .68rem/1 ui-monospace, monospace; white-space: nowrap; }
 .enrollment-retry { justify-content: space-between; padding: .8rem 1rem; border: 1px solid var(--amber); border-radius: .8rem; }
 .enrollment-retry p { margin: 0; }
-.enrollment-complete { min-height: 20rem; display: grid; place-items: center; place-content: center; gap: .8rem; text-align: center; }
+.enrollment-complete { min-height: 22rem; display: grid; place-items: center; place-content: center; gap: 1rem; text-align: center; }
 .enrollment-complete > span { width: 4rem; height: 4rem; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: #102019; font-size: 2rem; font-weight: 900; }
 .enrollment-complete h3, .enrollment-complete p { margin: 0; }
-.enrollment-complete > div { display: flex; gap: .7rem; margin-top: 1rem; }
+.complete-copy { display: grid; gap: .4rem; }
+.complete-copy > span { color: var(--green); font-size: .75rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.complete-reference { width: min(32rem, 100%); display: grid; gap: .75rem; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: #191919; text-align: left; }
+.complete-reference > div { display: grid; gap: .2rem; }
+.complete-reference span, .complete-reference small { color: var(--muted); font-size: .75rem; }
+.complete-actions { display: flex; gap: .7rem; margin-top: .5rem; }
+.enrollment-operation { display: grid; grid-template-columns: 4rem 1fr; align-items: center; gap: 1rem; padding: .85rem 1rem; border: 1px solid var(--line); border-radius: .85rem; background: #171717; }
+.enrollment-operation > div { display: grid; gap: .4rem; }
+.enrollment-operation strong { font-size: .85rem; }
+.skeleton-line, .skeleton-heading, .skeleton-stepper { display: block; border-radius: .65rem; background: linear-gradient(90deg, #242424 25%, #34312e 50%, #242424 75%); background-size: 200% 100%; animation: enrollment-skeleton 1.35s linear infinite; }
+.skeleton-line { width: 4rem; height: 2.6rem; }
+.skeleton-heading { width: min(22rem, 70%); height: 3rem; }
+.skeleton-stepper { width: 100%; height: 2.8rem; }
+@keyframes enrollment-skeleton { to { background-position: -200% 0; } }
 .legacy-voice-upload summary { cursor: pointer; font-weight: 800; }
 .legacy-voice-upload[open] summary { margin-bottom: 1.25rem; }
