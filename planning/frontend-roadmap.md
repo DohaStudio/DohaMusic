@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-01
 > 관련 Phase: Phase 8 Doha Studio, Phase 8 후속 F6 Guided Voice Enrollment
-> 관련 문서: [Frontend Overview](../docs/03-architecture/frontend-overview.md), [Frontend Architecture](../docs/03-architecture/frontend-architecture.md), [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md), [Phase-08 DoD](../docs/DoD/Phase-08.md)
+> 관련 문서: [Frontend Overview](../docs/03-architecture/frontend-overview.md), [Frontend Architecture](../docs/03-architecture/frontend-architecture.md), [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API](../docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](../docs/07-database/voice-enrollment-data-model.md), [Phase-08 DoD](../docs/DoD/Phase-08.md)
 
 ## 목표
 
@@ -111,18 +111,18 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 ### 구현 선행 결정
 
-- `[ADR 필요]` MediaRecorder MIME을 WAV로 정규화하는 위치와 decoder·resource limit
-- `[ADR 필요]` 단일 reference와 다중 sample 데이터 모델
-- `[ADR 필요]` client/API/Worker 품질 검사 경계
-- `[ADR 필요]` 임시 upload·취소·만료·orphan cleanup
+- `[제안]` [ADR-024](../docs/11-decisions/ADR-024-browser-voice-recording-server-normalization.md): Backend decode·PCM16 48kHz mono WAV 정규화, decoder·resource limit과 품질 검사 경계
+- `[제안]` [ADR-025](../docs/11-decisions/ADR-025-voice-profile-multiple-samples-reference.md): Profile 1:N Sample, 사용자가 확정한 대표 reference와 legacy backfill
+- `[제안]` [ADR-026](../docs/11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md): 별도 임시 Storage, 24시간 sliding/7일 absolute 만료, idempotency·cleanup retry
 - `[Backend 확장 필요]` sample별 metadata·품질, 사전 validation, 전체 duration과 Profile 설명
 - `[Phase 9 선행]` 공개 운영 인증·소유권·동의 철회·감사·rate limit
 
 ### 완료 체크리스트
 
 - [x] Voice Enrollment 요구사항 확정 — 문서 설계 기준선만 완료, 기능은 미구현
-- [ ] 녹음 MIME과 WAV 정규화 결정
-- [ ] 단일 파일과 다중 sample 데이터 모델 결정
+- [x] 녹음 MIME과 WAV 정규화 설계 제안 — 구현 전 decoder·Provider 검증 필요
+- [x] 단일 reference와 다중 sample 데이터 모델 설계 제안 — migration 미구현
+- [x] 임시 Enrollment·API·만료·cleanup 설계 제안 — Backend 미구현
 - [ ] 안내 문장과 녹음 정책 검증
 - [ ] 브라우저 녹음 UI
 - [ ] 기존 파일 upload Wizard 연결

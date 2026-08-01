@@ -17,7 +17,9 @@ backend/storage/
 
 루트는 `AUDIO_STORAGE_ROOT`로 설정한다. DB에는 루트 기준 상대 경로만 저장하며 `StorageService`는 path traversal과 루트 밖 접근을 거부한다. Voice Worker는 참조 경로에 더 엄격한 `voices/references` 경계를 적용한다.
 
-Voice 출력은 `voices/converted/{job_id}.wav`, 실행 metadata는 `voices/metadata/{job_id}.json`이다. 사용자용 단일 WAV upload는 검증 전 `voices/references/.uploads/{uuid}.tmp`, 성공 후 `voices/references/{profile_uuid}/reference.wav`를 사용하며 실패 시 temp·final orphan을 정리한다. legacy 운영자 배치 참조 파일도 개발 호환으로 유지한다. 참조 음성·변환 음성·모델·cache·실험 파일은 Git에서 제외한다. 원본 참조 음성 content/download는 제공하지 않고 완료 Pipeline의 허용된 WAV만 Service 검증 후 `FileResponse`로 전달하며 Storage 디렉터리 자체는 정적으로 공개하지 않는다. F6 다중 sample·임시 Enrollment·원본 보존은 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)의 `[ADR 필요]` 항목이다.
+Voice 출력은 `voices/converted/{job_id}.wav`, 실행 metadata는 `voices/metadata/{job_id}.json`이다. 사용자용 단일 WAV upload는 검증 전 `voices/references/.uploads/{uuid}.tmp`, 성공 후 `voices/references/{profile_uuid}/reference.wav`를 사용하며 실패 시 temp·final orphan을 정리한다. legacy 운영자 배치 참조 파일도 개발 호환으로 유지한다. 참조 음성·변환 음성·모델·cache·실험 파일은 Git에서 제외한다. 원본 참조 음성 content/download는 제공하지 않고 완료 Pipeline의 허용된 WAV만 Service 검증 후 `FileResponse`로 전달하며 Storage 디렉터리 자체는 정적으로 공개하지 않는다.
+
+F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)에 따라 `voices/enrollments/{enrollment_id}/samples/{sample_id}`의 별도 임시 root와 `voices/references/{profile_id}/samples/{sample_id}/reference.wav` 승격 구조를 `[제안]`한다. 원본은 Enrollment 동안만 임시 보존하고 완료·sample 삭제·취소·만료 시 cleanup하며 실패는 retry 상태로 추적한다. 이 경로는 아직 `StorageService`에 구현되지 않았고 공개 DTO에 포함하지 않는다.
 
 ## K3 Preview 저장 목표 [계획]
 

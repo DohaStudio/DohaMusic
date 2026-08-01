@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-01
 > 관련 기능: 사용자 안내형 Voice Enrollment Wizard, Voice Profile 등록
 > 관련 Phase: Phase 8 후속 F6, Phase 7 개인화 Dataset과 경계 분리, Phase 9 공개 운영 선행 조건
-> 관련 문서: [Frontend Roadmap](../../planning/frontend-roadmap.md), [Frontend Architecture](../03-architecture/frontend-architecture.md), [음성 프로필 API](../06-api/audio-api.md), [음성 동의 정책](../09-security/voice-consent-policy.md), [ADR-019](../11-decisions/ADR-019-secure-voice-profile-upload.md), [Phase 7 DoD](../DoD/Phase-07.md), [Phase 8 DoD](../DoD/Phase-08.md)
+> 관련 문서: [Frontend Roadmap](../../planning/frontend-roadmap.md), [Frontend Architecture](../03-architecture/frontend-architecture.md), [현재 음성 프로필 API](../06-api/audio-api.md), [Voice Enrollment API 제안](../06-api/voice-enrollment-api.md), [데이터 모델 제안](../07-database/voice-enrollment-data-model.md), [음성 동의 정책](../09-security/voice-consent-policy.md), [ADR-024~026](../11-decisions/README.md#f6-guided-voice-enrollment), [Phase 7 DoD](../DoD/Phase-07.md), [Phase 8 DoD](../DoD/Phase-08.md)
 > 구현 상태: 요구사항만 작성됨. 브라우저 녹음, 다중 sample, Enrollment 상태와 확장 품질 검사는 미구현이다.
 
 ## 1. 목적과 범위
@@ -119,11 +119,11 @@ Backend가 실제로 생성하는 Profile status는 `READY`다. Frontend DTO의 
 |---|---|---|---|---|
 | 1. 시작 안내 | 참조 음성의 용도, 현재 단일 WAV 계약, 비목표, 예상 단계 확인 | 필수 입력 없음; “시작” 명시 선택 | 제목에 focus, step 수 텍스트 제공 | API 없음; Frontend 가능 |
 | 2. 동의 확인 | 본인·권리 보유, 처리 목적, 보관·철회·삭제, 로컬 MVP 한계 확인 | 권리 확인과 정책 동의 필수; 선택 marketing 동의를 섞지 않음 | checkbox와 설명 연결, 미체크 시 다음 차단 | 현재 upload consent 가능; 철회·증적은 `[Backend 확장 필요] [Phase 9 선행]` |
-| 3. 등록 방법 선택 | 브라우저 녹음과 기존 WAV 업로드의 형식·privacy 차이 비교 | `record` 또는 `upload` 하나 필수 | 비지원 브라우저는 upload fallback으로 focus 이동 | API 없음; 녹음 결과 수용 계약은 `[ADR 필요]` |
+| 3. 등록 방법 선택 | 브라우저 녹음과 기존 WAV 업로드의 형식·privacy 차이 비교 | `record` 또는 `upload` 하나 필수 | 비지원 브라우저는 upload fallback으로 focus 이동 | [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md) Backend 정규화 `[제안]`, API 미구현 |
 | 4. 녹음 또는 업로드 | 안내 문장, 환경 가이드, 시간·레벨, 파일 목록과 미리 듣기 | 현재 MVP는 WAV 하나; 다중 sample은 제안 모델 확정 후 | 권한·decode·형식 오류, 삭제·다시 녹음, 이탈 경고, 상태 `aria-live` | 단일 WAV는 현재 upload 전 client 준비 가능; 다중·WebM/Ogg는 `[Backend 확장 필요]` |
 | 5. 품질 확인 | 파일 metadata, 차단 오류와 non-blocking warning, 기술값과 사용자 문구 분리 | 차단 오류 0건; warning은 확인 후 진행 허용 후보 | 오류에 해당 sample focus, 재녹음·교체 제공 | 현재 서버 검사는 upload와 Profile 생성이 결합됨; 사전 validation은 `[Backend 확장 필요]` |
 | 6. 프로필 정보 입력 | 이름, `[제안]` 설명, 등록 후 사용 위치 확인 | 현재 이름 1~100자 필수; 설명은 현재 schema에 없음 | 입력 오류 summary와 field 연결 | 이름은 현재 가능; 설명은 `[Backend 확장 필요]` |
-| 7. 등록 처리 | upload·검증·저장 진행, 중복 제출 차단, 취소 가능 여부 표시 | 명시적 제출 전 서버 전송 금지 | network 결과 불명확, timeout, 재시도 안내; 자동 재제출 금지 | 현재 단일 요청은 가능하나 progress·cancel·idempotency 없음 `[Backend 확장 필요]` |
+| 7. 등록 처리 | sample별 명시 upload·검증 후 Profile 제출, 중복 제출 차단, 취소 가능 여부 표시 | 동의 안내와 사용자의 sample upload 행동 전 서버 전송 금지; 최종 submit 전 Profile 생성 금지 | network 결과 불명확, timeout, 재시도 안내; 자동 재제출 금지 | [제안 API](../06-api/voice-enrollment-api.md)는 임시 upload와 idempotency를 분리하며 현재 미구현 |
 | 8. 완료 | 공개 metadata와 warning, Studio에서 선택·이동 | 성공 Profile ID 수신 | 완료 제목 focus, warning 재안내, 실패 시 제출 단계 복귀 | 현재 `201 VoiceProfileRead`와 Studio 선택 가능 |
 
 ### Wizard 공통 규칙
@@ -183,7 +183,7 @@ locale
 | 단일 파일 최대 | 60초, 서버 강제 | 60초 상한 유지 여부 `[모델 선정 후 확정]` |
 | 전체 권장 길이 | 계약 없음 | `[검증 필요]`; 사용자 파일과 모델 평가 근거 후 결정 |
 | 전체 최소 길이 | 계약 없음 | `[검증 필요]` |
-| 최대 파일 개수 | 1개 | `[ADR 필요] [Backend 확장 필요]` |
+| 최대 파일 개수 | 1개 | API 자원 상한 `[제안]` 10개; 필수·권장 개수는 Provider 평가 후 확정 `[Backend 확장 필요]` |
 | 파일별 역할 | 단일 reference | 말하기 표현·음역·짧은 무반주 가창 metadata 후보 `[제안]` |
 | 말하기:노래 비율 | 계약 없음 | `[모델 선정 후 확정]`; Voice Conversion Provider별 비교 필요 |
 | Phase 7 Dataset | 해당 없음 | 장시간 수집·전사·split·lineage는 별도 Phase 7이며 Enrollment 계약에 포함하지 않음 |
@@ -204,7 +204,7 @@ locale
 - 음성 binary를 `localStorage`·`sessionStorage`에 저장하지 않는다.
 - Safari·모바일·비지원 환경에서는 현재 계약의 WAV 파일 업로드로 fallback한다.
 - 장치 없음, 일시적인 권한 거부, 브라우저 설정의 영구 차단을 다른 안내로 구분한다.
-- 녹음은 명시적 제출 전 서버로 전송하지 않고 Analytics·외부 서비스에도 전송하지 않는다.
+- 녹음은 사용자가 권리·임시 보관 안내를 확인하고 sample upload를 명시하기 전에는 서버로 전송하지 않는다. upload 뒤에도 final submit 전에는 Profile을 생성하지 않으며 Analytics·외부 서비스에는 전송하지 않는다.
 
 ### MediaRecorder MIME과 WAV 계약 차이
 
@@ -212,12 +212,12 @@ MediaRecorder는 브라우저에 따라 `audio/webm`, `audio/ogg` 등을 생성�
 
 | 선택지 | 장점 | 단점·위험 | 상태 |
 |---|---|---|---|
-| Frontend에서 WAV 변환 | 현재 upload API 재사용 가능 | 큰 PCM memory·CPU, 브라우저별 decode, 변환 일관성과 품질 검증 필요 | `[ADR 필요]` |
-| Backend가 WebM/Ogg 수용 후 WAV 정규화 | 서버에서 decoder·limit·metadata를 통제 | FFmpeg 등 의존성, 공격면, 임시 원본·cleanup·timeout 증가 | `[ADR 필요] [Backend 확장 필요]` |
+| Frontend에서 WAV 변환 | 현재 upload API 재사용 가능 | 큰 PCM memory·CPU, 브라우저별 decode, 변환 일관성과 품질 검증 필요 | ADR-024에서 기본안 제외 |
+| Backend가 WebM/Ogg 수용 후 WAV 정규화 | 서버에서 decoder·limit·metadata를 통제 | FFmpeg 등 의존성, 공격면, 임시 원본·cleanup·timeout 증가 | ADR-024 선택 `[제안] [Backend 확장 필요]` |
 | 브라우저별 MIME 제한 | 구현 범위가 작음 | Safari·모바일 호환성과 사용자 도달률 저하 | `[제안]` |
 | 정규화 계약 전 녹음 비활성 | 안전하게 기존 WAV upload 유지 | Guided recording 가치 지연 | 현재 fallback |
 
-결정 전에는 브라우저 녹음 UI를 활성 기능으로 표시하지 않는다. 결정 주체, decoder, 최대 decoded size, sample rate·channel 정규화, 원본 보존, 실패 cleanup을 후속 ADR에서 확정한다.
+[ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md)는 Backend가 WAV/WebM/Ogg를 PCM16 48kHz mono WAV로 정규화하고 Frontend 값은 보조 정보로만 쓰는 방향을 `[제안]`했다. FFmpeg의 Windows·CI 배포와 Provider 청감 검증 전에는 브라우저 녹음을 구현 완료 기능으로 표시하지 않는다.
 
 ## 8. 파일 업로드와 데이터 모델
 
@@ -251,7 +251,7 @@ MediaRecorder는 브라우저에 따라 `audio/webm`, `audio/ogg` 등을 생성�
 | 여러 녹음을 하나의 WAV로 병합 | 기존 Provider 입력 단순화 | Frontend/Backend 병합 위치, gap·level·format 정규화와 원본 보존 결정 필요 |
 | 대표 reference와 보조 sample 분리 | 현재 변환 입력과 향후 평가 자료 분리 | 대표 선정 규칙과 보조 sample 보존 목적·삭제 범위 필요 |
 
-현재 `voice_profiles.reference_file_path NOT NULL` 단일 구조와 다중 sample 요구는 직접 충돌한다. `[ADR 필요]`로 두며 DB·API 변경 전에는 다중 sample을 현재 지원 기능으로 표현하지 않는다.
+현재 `voice_profiles.reference_file_path NOT NULL` 단일 구조와 다중 sample 요구는 직접 충돌한다. [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md)는 Profile 1:N Sample과 사용자가 확정한 active reference 하나, legacy 호환 path를 `[제안]`했다. DB·API 변경 전에는 다중 sample을 현재 지원 기능으로 표현하지 않는다.
 
 ## 9. 품질 검사
 
@@ -334,7 +334,7 @@ stateDiagram-v2
 - 동의하지 않으면 녹음·파일 제출 단계로 진행할 수 없다.
 - 본인 음성 또는 권리 보유 음성만 허용하며 타인 사칭과 무단 복제를 금지한다.
 - 정책 version, 확인 시각, 처리 목적, 보관 범위와 철회 방법을 제출 전에 표시한다.
-- 명시적 제출 전에는 음성을 서버로 전송하지 않는다.
+- 권리·임시 보관 안내 확인과 명시적 sample upload 행동 전에는 음성을 서버로 전송하지 않으며, final submit 전에는 Profile을 생성하지 않는다.
 - 음성 binary를 `localStorage`·`sessionStorage`에 저장하지 않는다.
 - Analytics·광고·외부 서비스로 음성을 전송하지 않고 자동 재업로드하지 않는다.
 - 원본 파일명, 내부 경로, 임시 경로, 음성 내용과 embedding을 일반 로그에서 최소화한다.
@@ -348,7 +348,7 @@ stateDiagram-v2
 | 기능 | 현재 Endpoint로 가능 | 계약 변경 필요 | 신규 Endpoint 필요 | 비고 |
 |---|---:|---:|---:|---|
 | 단일 WAV 등록 | 예 | 아니요 | 아니요 | 현재 upload가 Profile까지 즉시 생성 |
-| 브라우저 녹음 upload | 조건부 | 예 | 미정 | Frontend가 계약 WAV로 안전하게 변환한 경우만 기존 API 가능 `[ADR 필요]` |
+| 브라우저 녹음 upload | 아니요 | 예 | F6 Backend | ADR-024 Backend 정규화와 신규 Enrollment API가 구현된 뒤 가능 `[제안]` |
 | 여러 sample 등록 | 아니요 | 예 | 미정 | DB·Storage·대표 reference 결정 필요 |
 | sample별 품질 결과 | 아니요 | 예 | 미정 | 현재 Profile warning만 반환 |
 | 전체 duration | 아니요 | 예 | 미정 | 다중 sample 집계 모델 필요 |
@@ -483,16 +483,16 @@ types
 
 ## 17. ADR·Backend 선행 결정
 
-ADR-019는 현재 단일 WAV upload·atomic 저장·삭제 경계를 승인했다. 다음은 그 결정의 재검토 조건 또는 후속 ADR 대상이며 이번 문서에서 승인하지 않는다.
+ADR-019는 현재 단일 WAV upload·atomic 저장·삭제 경계를 승인했다. 후속 ADR은 아래 방향을 구체화했지만 모두 `[제안]`이며 Runtime 구현·검증 승인을 뜻하지 않는다.
 
 | 결정 질문 | 선택지 | 차단 범위 | 상태 |
 |---|---|---|---|
-| MediaRecorder MIME을 어디서 WAV로 정규화할 것인가 | Frontend / Backend / 지원 브라우저 제한 / 녹음 보류 | 브라우저 녹음 | `[ADR 필요]` |
-| 단일 reference와 다중 sample을 어떻게 연결할 것인가 | 단일 유지 / sample table / 병합 / 대표+보조 | 다중 sample·품질·lineage | `[ADR 필요]` |
-| 품질 검사를 어디서 실행할 것인가 | client preview / API / 비동기 Worker | 사전 검사·상태·latency | `[ADR 필요]` |
-| 임시 upload와 cleanup을 어떻게 관리할 것인가 | 단일 request / Enrollment session / object lifecycle | cancel·resume·orphan | `[ADR 필요]` |
-| 원본 sample을 보존할 것인가 | 즉시 정규화 후 삭제 / 보존 / 사용자 선택 | 삭제·감사·저장비용 | `[ADR 필요]` |
-| F6 sample을 Phase 7 Dataset에 재사용할 것인가 | 분리 / 별도 opt-in 복제 | 동의 목적·lineage·학습 | 기본은 분리, 재사용은 `[ADR 필요] [Phase 9 선행]` |
+| MediaRecorder MIME을 어디서 WAV로 정규화할 것인가 | Frontend / Backend / 지원 브라우저 제한 / 녹음 보류 | 브라우저 녹음 | Backend 정규화 `[제안]`, [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md) |
+| 단일 reference와 다중 sample을 어떻게 연결할 것인가 | 단일 유지 / sample table / 병합 / 대표+보조 | 다중 sample·품질·lineage | Profile 1:N + active reference `[제안]`, [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md) |
+| 품질 검사를 어디서 실행할 것인가 | client preview / API / 비동기 Worker | 사전 검사·상태·latency | Client 보조·Backend 최종·고급 Worker 보류 `[제안]`, [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md) |
+| 임시 upload와 cleanup을 어떻게 관리할 것인가 | 단일 request / Enrollment session / object lifecycle | cancel·resume·orphan | 별도 Enrollment root·24h sliding/7d absolute·retry `[제안]`, [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md) |
+| 원본 sample을 보존할 것인가 | 즉시 정규화 후 삭제 / 보존 / 사용자 선택 | 삭제·감사·저장비용 | Enrollment 동안만 임시 보존, 완료·취소·만료 시 삭제 `[제안]`, ADR-024·026 |
+| F6 sample을 Phase 7 Dataset에 재사용할 것인가 | 분리 / 별도 opt-in 복제 | 동의 목적·lineage·학습 | 자동 재사용 금지, 별도 opt-in은 `[Phase 9 선행]` |
 
 ## 18. 완료 판정
 
