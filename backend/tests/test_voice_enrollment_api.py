@@ -2,10 +2,13 @@ from __future__ import annotations
 
 import io
 import json
+import os
+import shutil
 import uuid
 import wave
 from array import array
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 from fastapi import FastAPI
@@ -14,6 +17,14 @@ from fastapi.testclient import TestClient
 from backend.models.voice_enrollment import VoiceEnrollment
 from backend.models.voice_profile import VoiceProfile
 from backend.repositories.idempotency_repository import IdempotencyRepository
+
+
+def _system_ffmpeg() -> str | None:
+    configured = os.getenv("DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE", "ffmpeg")
+    candidate = Path(configured)
+    if candidate.is_absolute():
+        return str(candidate) if candidate.is_file() else None
+    return shutil.which(configured)
 
 
 def _wav_bytes(*, duration: float = 6.0, value: int = 5000) -> bytes:
@@ -230,7 +241,10 @@ def test_warning_requires_acknowledgement(client: TestClient) -> None:
 
 
 def test_delete_cancel_expiration_and_ffmpeg_unavailable(
-    client: TestClient, app: FastAPI
+    client: TestClient,
+    app: FastAPI,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     enrollment_id = _create(client).json()["id"]
     sample = _upload(client, enrollment_id).json()
@@ -264,6 +278,13 @@ def test_delete_cancel_expiration_and_ffmpeg_unavailable(
     absolute_expired = client.post(f"/api/voice-enrollments/{absolute_id}/cancel")
     assert absolute_expired.status_code == 410
 
+    missing_ffmpeg = tmp_path / "missing FFmpeg" / "ffmpeg.exe"
+    assert not missing_ffmpeg.exists()
+    monkeypatch.setattr(
+        app.state.voice_enrollment_service.normalizer,
+        "ffmpeg_executable",
+        str(missing_ffmpeg),
+    )
     webm_id = _create(client).json()["id"]
     webm = client.post(
         f"/api/voice-enrollments/{webm_id}/samples",
@@ -280,6 +301,42 @@ def test_delete_cancel_expiration_and_ffmpeg_unavailable(
     assert webm.status_code == 503
     assert webm.json()["error"]["code"] == "VOICE_NORMALIZER_UNAVAILABLE"
     assert client.get("/health").status_code == 200
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(
+    _system_ffmpeg() is None,
+    reason="system FFmpeg is required for the installed decoder API path",
+)
+def test_installed_ffmpeg_malformed_webm_returns_decode_failure(
+    client: TestClient,
+    app: FastAPI,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    executable = _system_ffmpeg()
+    assert executable is not None
+    monkeypatch.setattr(
+        app.state.voice_enrollment_service.normalizer,
+        "ffmpeg_executable",
+        executable,
+    )
+    enrollment_id = _create(client).json()["id"]
+
+    response = client.post(
+        f"/api/voice-enrollments/{enrollment_id}/samples",
+        headers={"Idempotency-Key": str(uuid.uuid4())},
+        data={"source_type": "BROWSER_RECORDING", "category": "BASIC_SPEECH"},
+        files={
+            "file": (
+                "voice.webm",
+                b"\x1aE\xdf\xa3truncatedA_OPUS",
+                "audio/webm;codecs=opus",
+            )
+        },
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VOICE_SAMPLE_DECODE_FAILED"
 
 
 def test_upload_limit_conflict_and_submit_rollback(
