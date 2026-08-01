@@ -10,6 +10,9 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 — Guided Voice Enrollment
 
+- 브라우저 WAV·WebM/Ogg를 Backend에서 PCM16 48kHz mono WAV로 정규화하는 경계, Profile 1:N Sample과 명시적 대표 reference, 임시 Enrollment의 24시간 sliding/7일 absolute 만료·idempotency·cleanup을 ADR-024~026 `[제안]`으로 기록했다.
+- 현재 단일 WAV API와 구분되는 `/api/voice-enrollments` endpoint·상태·안전한 오류·테스트 계약 및 현재 schema와 구분되는 VoiceEnrollment·VoiceSample ERD·backfill·transaction 설계를 추가했다.
+- F6의 Backend 구현 순서와 Storage·동의 경계를 구체화했으며 Runtime 코드·migration·UI는 추가하지 않고 F6 `[계획]`, Phase 8 `15/15, 100%`, Phase 7 Dataset 분리를 유지했다.
 - 현재 단일 WAV Voice Profile 계약을 기준으로 사용자 안내형 Voice Enrollment Wizard, 녹음 문장, 길이·업로드·품질·상태·오류·접근성·테스트 요구사항을 문서화했다.
 - MediaRecorder WebM/Ogg와 WAV-only Backend 차이, 단일 reference와 다중 sample 모델, 사전 validation·임시 upload·cleanup·동의 철회를 ADR·Backend 선행 항목으로 분리했다.
 - Frontend Roadmap에 F6 Guided Voice Enrollment `[계획]` Track을 추가하고 Phase 8 기존 `15/15, 100%`와 Phase 7 개인화 Dataset·학습 경계를 유지했다.

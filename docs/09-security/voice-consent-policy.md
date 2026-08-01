@@ -3,13 +3,13 @@
 > 문서 상태: [계획] [필수 정책]
 > 최종 수정일: 2026-08-01
 > 관련 기능: Voice Profile, F6 Guided Voice Enrollment, Pipeline provenance
-> 관련 문서: [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [ADR-004](../11-decisions/ADR-004-personal-voice-data-policy.md), [ADR-019](../11-decisions/ADR-019-secure-voice-profile-upload.md), [모델 오용 방지](model-abuse-prevention.md)
+> 관련 문서: [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API 제안](../06-api/voice-enrollment-api.md), [ADR-004](../11-decisions/ADR-004-personal-voice-data-policy.md), [ADR-019](../11-decisions/ADR-019-secure-voice-profile-upload.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md), [모델 오용 방지](model-abuse-prevention.md)
 
 ## 허용 조건
 
 본인 음성 또는 음성 권리자가 특정 사용자·목적·기간에 명시적으로 동의한 음성만 등록할 수 있다. 사용자는 업로드 시 권리 보유를 확인하고 정책 버전, 범위, 시각, 철회 방법에 동의해야 한다.
 
-Voice Enrollment는 동의 확인 전 녹음·파일 제출 단계로 진행할 수 없게 한다. 권리 확인, Voice Conversion 처리 목적, 원본·파생 파일의 보관 범위, 철회·삭제 방법과 인증 없는 로컬 MVP의 한계를 제출 전에 표시한다. 선택적인 제품 알림·분석 동의를 필수 음성 처리 동의와 묶지 않는다.
+Voice Enrollment는 권리·처리·임시 보관 안내를 확인하기 전 sample을 서버에 upload할 수 없게 한다. 사용자의 명시적 sample upload 행동 뒤에만 임시 전송하며, 최종 동의를 다시 확인한 submit 전에는 Voice Profile을 생성하지 않는다. 권리 확인, Voice Conversion 처리 목적, 원본·파생 파일의 보관 범위, 철회·삭제 방법과 인증 없는 로컬 MVP의 한계를 표시한다. 선택적인 제품 알림·분석 동의를 필수 음성 처리 동의와 묶지 않는다.
 
 ## 시스템 통제
 
@@ -27,13 +27,13 @@ Voice Enrollment는 동의 확인 전 녹음·파일 제출 단계로 진행할 
 ## Voice Enrollment 브라우저 처리 요구사항 [계획]
 
 - 마이크 권한은 사용자의 녹음 시작 행동 뒤 요청하며 페이지 진입만으로 요청하지 않는다.
-- 사용자가 명시적으로 제출하기 전에는 녹음 Blob과 선택 파일을 서버로 전송하지 않는다.
+- 권리·처리·임시 보관 안내 확인과 사용자의 명시적 sample upload 행동 전에는 녹음 Blob과 선택 파일을 서버로 전송하지 않는다. sample upload 뒤에도 최종 submit 전에는 Voice Profile을 생성하지 않는다.
 - 녹음·업로드 binary를 `localStorage` 또는 `sessionStorage`에 저장하지 않는다.
 - 녹음 교체·삭제·페이지 종료 시 media track을 중지하고 Object URL을 정리한다.
 - Analytics, 광고 SDK, 오류 수집 서비스와 그 밖의 외부 서비스로 원본·변환 음성을 전송하지 않는다.
-- 자동 재업로드와 network 실패 후 자동 재제출을 금지한다. 결과가 불명확하면 Profile 목록 재조회와 사용자의 명시 재시도를 제공한다.
+- 자동 재업로드와 network 실패 후 자동 재제출을 금지한다. 결과가 불명확하면 Enrollment·Sample 상태와 Profile 목록을 재조회하고 사용자의 명시 재시도를 제공한다.
 - 로그에는 원본 파일명·내부 Storage path·임시 path·음성 내용·embedding을 남기지 않는다. 필요한 경우 opaque ID, 안전한 오류 코드, byte·duration 같은 최소 metadata와 correlation ID만 기록한다.
-- sample별 안내 문장·전사·품질 metadata를 저장하려면 목적·보존 기간·삭제 범위와 접근 주체를 먼저 정의한다.
+- sample별 안내 문장·품질 metadata는 Voice reference 검증 목적으로만 최소 저장하고 Enrollment 24시간 sliding/7일 absolute 만료와 Profile 삭제 범위를 적용한다. 전사·embedding·고급 화자 분석은 목적·보존·접근 주체를 별도로 승인하기 전 저장하지 않는다.
 - 브라우저 preview는 메모리 Blob만 사용한다. 서버 원본 preview endpoint는 현재 없으며 인증·소유권·감사 없이는 추가하지 않는다.
 
 ## 목적 분리

@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 1 음성 동의, Phase 8 Voice 등록
-> 관련 문서: [보안 정책](../09-security/security-policy.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [ADR-019](../11-decisions/ADR-019-secure-voice-profile-upload.md)
+> 관련 문서: [보안 정책](../09-security/security-policy.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API 제안](voice-enrollment-api.md), [ADR-019](../11-decisions/ADR-019-secure-voice-profile-upload.md)
 
 ## 사용자용 Upload
 
@@ -31,4 +31,4 @@ Public DTO는 `id`, `name`, display filename, MIME, byte size, duration, sample 
 
 ## Guided Enrollment 영향 [계획]
 
-현재 API는 한 요청에서 단일 WAV를 검증하고 `READY` Profile까지 즉시 생성한다. 브라우저 MediaRecorder의 WebM/Ogg, 다중 sample, sample별 품질 결과, 전체 duration, Profile 설명, 사전 validation, 임시 Enrollment 상태, upload cancel·resume·idempotency와 동의 철회 API는 없다. 신규 path·field를 이 문서에서 확정하지 않으며 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)의 ADR·Backend 선행 결정을 따른다.
+현재 API는 한 요청에서 단일 WAV를 검증하고 `READY` Profile까지 즉시 생성한다. 브라우저 MediaRecorder의 WebM/Ogg, 다중 sample, sample별 품질 결과, 전체 duration, Profile 설명, 사전 validation, 임시 Enrollment 상태, upload cancel·resume·idempotency와 동의 철회 API는 없다. 신규 `/api/voice-enrollments` path와 DTO는 [별도 제안 문서](voice-enrollment-api.md)에 두며 현재 API·OpenAPI 지원으로 표현하지 않는다. 기존 단일 WAV path는 전환 fallback으로 유지한다.

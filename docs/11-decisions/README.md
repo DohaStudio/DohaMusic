@@ -27,6 +27,9 @@
 | [ADR-021](ADR-021-pipeline-job-cancel-retry.md) | cooperative Cancel·새 Job Retry·입력 Snapshot·원본 관계 | 승인 |
 | [ADR-022](ADR-022-kpop-generation-control-layer.md) | K-POP Preset·Generation Options·Prompt Compiler·Capability 경계 | 승인 |
 | [ADR-023](ADR-023-audio-analysis-and-preview-architecture.md) | 최종 WAV 비차단 Audio Analysis·Preview·저장·실패 경계 | 승인 |
+| [ADR-024](ADR-024-browser-voice-recording-server-normalization.md) | 브라우저 WAV·WebM/Ogg를 Backend에서 PCM16 WAV로 정규화하는 경계 | 제안 |
+| [ADR-025](ADR-025-voice-profile-multiple-samples-reference.md) | Voice Profile 1:N Sample과 명시적 대표 Reference | 제안 |
+| [ADR-026](ADR-026-voice-enrollment-lifecycle-cleanup.md) | Enrollment 임시 업로드·만료·idempotency·cleanup 수명주기 | 제안 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 # Phase 6.5
@@ -49,3 +52,9 @@
 
 - [ADR-022 — K-POP Generation Control Layer](ADR-022-kpop-generation-control-layer.md): Provider-neutral Preset·Options·Compiler·Capability·Snapshot·평가·권리 경계를 결정한다.
 - [ADR-023 — Audio Analysis와 Preview 아키텍처](ADR-023-audio-analysis-and-preview-architecture.md): 최종 WAV 기반 비차단 분석, versioned metadata, confidence, Preview와 secure access 경계를 결정한다.
+
+# F6 Guided Voice Enrollment
+
+- [ADR-024 — 브라우저 음성 녹음 포맷과 서버 정규화 경계](ADR-024-browser-voice-recording-server-normalization.md): Frontend 녹음과 Backend decode·PCM16 WAV 정규화의 책임, 입력·자원·cleanup 제한을 제안한다.
+- [ADR-025 — Voice Profile 다중 Sample과 대표 Reference 모델](ADR-025-voice-profile-multiple-samples-reference.md): Sample을 개별 보존하면서 현재 Pipeline에는 사용자가 확정한 대표 reference 하나를 전달하는 모델을 제안한다.
+- [ADR-026 — Voice Enrollment 임시 업로드와 정리 수명주기](ADR-026-voice-enrollment-lifecycle-cleanup.md): 명시적 Profile 제출 전 임시 aggregate, 만료·중복 제출·파일 승격·삭제 재시도를 제안한다.

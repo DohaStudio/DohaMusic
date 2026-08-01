@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-01
 > 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment [계획]
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [History](history-management.md), [Project](project-management.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [History](history-management.md), [Project](project-management.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
@@ -180,7 +180,8 @@ types
 - `services`에는 실제 OpenAPI 계약이 확정된 endpoint만 추가한다. Enrollment 후보 상태와 제안 오류 코드를 Backend enum처럼 만들지 않는다.
 - microphone stream, recording Blob과 Object URL은 메모리 lifecycle로 관리하고 `localStorage`·`sessionStorage`에 저장하지 않는다.
 - 현재 `sessionStorage`에는 Studio 선택용 opaque Profile ID·이름만 유지한다. Enrollment draft 복원을 추가할 경우 음성 binary와 내부 path를 제외한다.
-- MediaRecorder의 WebM/Ogg와 현재 WAV-only Backend 차이는 `[ADR 필요]`이며 결정 전 녹음을 활성 기능으로 노출하지 않는다.
+- [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md)는 MediaRecorder WAV/WebM/Ogg를 Backend가 PCM16 48kHz mono WAV로 정규화하는 경계를 `[제안]`했다. Frontend는 feature detection·녹음·preview·기본 크기만 담당하며 실제 decoder·Provider 검증과 Enrollment API 구현 전에는 녹음을 활성 기능으로 노출하지 않는다.
+- sample upload 뒤 받은 server-generated Enrollment·Sample ID와 공개 metadata만 복원 후보로 두고, final submit 전 Profile 생성 완료로 표시하지 않는다. audio binary·내부 path는 Web Storage에 넣지 않는다.
 - 접근성·상태·오류·테스트 기준은 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)을 따른다.
 
 ## 접근성·성능·보안
