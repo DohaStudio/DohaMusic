@@ -229,6 +229,33 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@media (max-width: 900px) {
+  .sample-workspace { grid-template-columns: 1fr; }
+  .file-drop { min-height: 12rem; }
+}
+
+@media (max-width: 700px) {
+  .enrollment-wizard { padding: 1rem; }
+  .enrollment-wizard-header { align-items: flex-start; }
+  .enrollment-wizard-header .button { min-height: 44px; padding: 0 .75rem; }
+  .enrollment-step { min-height: auto; padding: 1rem; }
+  .guide-grid, .review-grid, .method-options { grid-template-columns: 1fr; }
+  .guide-grid .full, .review-grid .full { grid-column: auto; }
+  .prompt-card { grid-template-columns: 1fr; }
+  .sample-workspace { padding-bottom: 9rem; }
+  .enrollment-step input,
+  .enrollment-step button,
+  .enrollment-step label,
+  .enrollment-step .file-drop,
+  .enrollment-step .sample-card { scroll-margin-block: 90px 230px; }
+  .sample-card { align-items: stretch; flex-direction: column; }
+  .sample-card .button { align-self: flex-end; }
+  .quality-card > div span:last-child { width: 100%; margin-left: 0; }
+  .enrollment-actions { position: static; margin: 0 -1rem -1rem; }
+  .enrollment-actions .button { flex: 1; min-width: 8rem; }
+  .enrollment-complete > div { width: 100%; flex-direction: column; }
+}
 html[data-reduce-motion="true"] * {
   animation: none !important;
   transition: none !important;

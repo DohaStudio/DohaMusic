@@ -8,6 +8,20 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Guided Voice Enrollment Frontend
+
+- `/voice`에 안내·동의·방법 선택·녹음/업로드·품질 확인·대표 Sample 선택·검토·완료의 8단계 Guided Wizard를 추가했다.
+- `MediaRecorder` MIME feature detection, 마이크 권한·일시정지·재개·60초 자동 종료, Web Audio 입력 수준, 메모리 preview와 stream·Object URL 정리를 구현했다.
+- Enrollment create·조회, Sample upload·조회·삭제, submit·cancel API client와 DTO allowlist mapper, UUID 기반 create/upload/submit 멱등성 재시도를 추가했다.
+- `sessionStorage`에는 Enrollment ID와 단계만 보존해 새로고침을 복원하고, 만료·not found·cleanup 실패·FFmpeg 미설치 오류에 대한 사용자 복구 흐름을 추가했다.
+- 합성 WAV API mock을 사용한 Desktop·Mobile Playwright E2E와 MIME·DTO·품질·오류·session·Wizard unit/component test를 추가했다.
+
+### 변경 — Guided Voice Enrollment Frontend 호환성
+
+- 기존 단일 WAV Profile 등록은 `/voice`의 `빠른 WAV 등록` fallback으로 유지하고, 신규 Profile 생성 후 기존 목록과 Studio 선택 상태를 즉시 갱신한다.
+- 모바일 action이 Sample 선택을 가리지 않도록 Wizard action을 콘텐츠 흐름에 배치하고 44px 이상 기존 공통 control을 재사용했다.
+- F6는 Frontend 구현 완료를 반영하되 실제 WebM/Ogg FFmpeg 통합, 주기적 expiration·cleanup scheduler와 Phase 9 인증·소유권이 남아 `[진행 중]`으로 유지한다.
+
 ### 추가 — Guided Voice Enrollment Backend
 
 - `VoiceEnrollment`·`VoiceSample` ORM, lifecycle 상태 전이와 최소 Repository CRUD·만료·cleanup 조회를 추가했다.

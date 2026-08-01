@@ -14,6 +14,15 @@ import type {
   ProjectDetailDto,
   ProjectDto,
 } from "@/types/api";
+import type {
+  VoiceEnrollmentCreateRequest,
+  VoiceEnrollmentSubmitRequest,
+  VoiceSampleSourceType,
+} from "@/features/voice/voice-enrollment-types";
+import {
+  mapVoiceEnrollmentDto,
+  mapVoiceSampleDto,
+} from "@/features/voice/voice-enrollment-utils";
 
 export const dohaApi = {
   health: () => apiRequest<{ status: string }>("/health"),
@@ -70,6 +79,69 @@ export const dohaApi = {
     apiRequest<void>(`/api/voice-profiles/${encodeURIComponent(id)}`, {
       method: "DELETE",
     }),
+  createVoiceEnrollment: (data: VoiceEnrollmentCreateRequest, idempotencyKey: string) =>
+    apiRequest<unknown>("/api/voice-enrollments", {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify(data),
+    }).then(mapVoiceEnrollmentDto),
+  getVoiceEnrollment: (id: string, signal?: AbortSignal) =>
+    apiRequest<unknown>(`/api/voice-enrollments/${encodeURIComponent(id)}`, { signal })
+      .then(mapVoiceEnrollmentDto),
+  uploadVoiceEnrollmentSample: (data: {
+    enrollmentId: string;
+    file: File | Blob;
+    sourceType: VoiceSampleSourceType;
+    category: string;
+    promptId?: string;
+    idempotencyKey: string;
+    signal?: AbortSignal;
+  }) => {
+    const body = new FormData();
+    body.set("file", data.file, data.file instanceof File ? data.file.name : `recording.${data.file.type.includes("ogg") ? "ogg" : data.file.type.includes("wav") ? "wav" : "webm"}`);
+    body.set("source_type", data.sourceType);
+    body.set("category", data.category);
+    if (data.promptId) body.set("prompt_id", data.promptId);
+    return apiRequest<unknown>(
+      `/api/voice-enrollments/${encodeURIComponent(data.enrollmentId)}/samples`,
+      {
+        method: "POST",
+        headers: { "Idempotency-Key": data.idempotencyKey },
+        body,
+        signal: data.signal,
+      },
+      90_000,
+    ).then(mapVoiceSampleDto);
+  },
+  getVoiceEnrollmentSample: (enrollmentId: string, sampleId: string, signal?: AbortSignal) =>
+    apiRequest<unknown>(
+      `/api/voice-enrollments/${encodeURIComponent(enrollmentId)}/samples/${encodeURIComponent(sampleId)}`,
+      { signal },
+    ).then(mapVoiceSampleDto),
+  deleteVoiceEnrollmentSample: (enrollmentId: string, sampleId: string) =>
+    apiRequest<unknown>(
+      `/api/voice-enrollments/${encodeURIComponent(enrollmentId)}/samples/${encodeURIComponent(sampleId)}`,
+      { method: "DELETE" },
+    ).then(mapVoiceSampleDto),
+  submitVoiceEnrollment: (
+    enrollmentId: string,
+    data: VoiceEnrollmentSubmitRequest,
+    idempotencyKey: string,
+  ) => apiRequest<unknown>(
+    `/api/voice-enrollments/${encodeURIComponent(enrollmentId)}/submit`,
+    {
+      method: "POST",
+      headers: { "Idempotency-Key": idempotencyKey },
+      body: JSON.stringify(data),
+    },
+    90_000,
+  ).then(mapVoiceEnrollmentDto),
+  cancelVoiceEnrollment: (enrollmentId: string) =>
+    apiRequest<unknown>(
+      `/api/voice-enrollments/${encodeURIComponent(enrollmentId)}/cancel`,
+      { method: "POST" },
+      30_000,
+    ).then(mapVoiceEnrollmentDto),
   createPipeline: (data: PipelineCreateDto) =>
     apiRequest<PipelineJobDto>("/api/pipelines", {
       method: "POST",

@@ -107,7 +107,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 단일 WAV form인 `/voice`를 사용자가 안내에 따라 본인 참조 음성을 준비하는 Wizard로 개선한다. F6는 Phase 8의 후속 Studio UX이며 기존 Phase 8 `15/15, 100%`를 변경하지 않는다. 장시간 Dataset 수집·전사·split·preprocessing·LoRA·Fine Tuning은 Phase 7 범위로 분리한다.
 
-Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Ogg 입력, 최대 10개 sample, PCM16 48kHz mono 정규화, 기본 품질 검사, Profile 승격, 멱등성과 lazy expiration을 지원한다. WebM/Ogg는 optional FFmpeg가 없으면 안전한 unavailable 오류를 반환한다. MediaRecorder UI, upload resume, 주기적 cleanup scanner와 동의 철회는 지원하지 않는다.
+Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Ogg 입력, 최대 10개 sample, PCM16 48kHz mono 정규화, 기본 품질 검사, Profile 승격, 멱등성과 lazy expiration을 지원한다. Frontend는 8단계 Wizard, MediaRecorder·입력 수준·preview, 다중 파일 업로드, 품질·대표 선택, session 복원·취소·만료와 Studio 선택을 연결했다. WebM/Ogg는 optional FFmpeg가 없으면 안전한 unavailable 오류를 반환하며 upload resume, 주기적 cleanup scanner와 동의 철회는 지원하지 않는다.
 
 ### 구현 선행 결정
 
@@ -123,17 +123,17 @@ Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Og
 - [x] 녹음 MIME과 WAV 정규화 Backend 구현 — 실제 FFmpeg 통합·고정 build 검증은 후속
 - [x] 단일 reference와 다중 sample 영속 모델 — migration·legacy backfill·Repository 검증 완료
 - [x] 임시 Enrollment·API·lazy 만료·즉시 cleanup primitive 구현 — scheduler는 미구현
-- [ ] 안내 문장과 녹음 정책 검증
-- [ ] 브라우저 녹음 UI
-- [ ] 기존 파일 upload Wizard 연결
-- [ ] 기본 품질 검사와 사용자 메시지
-- [ ] Voice Profile 등록·Studio 선택 연결
-- [ ] 오류·재시도·취소·cleanup
-- [ ] 접근성·반응형
-- [ ] Frontend unit·component·E2E
+- [x] 안내 문장과 녹음 정책 검증 — 자체 문장·5~60초·WAV fallback과 품질 한계 표시
+- [x] 브라우저 녹음 UI — feature detection·권한·시작/일시정지/재개/종료·입력 수준·preview·cleanup
+- [x] 기존 파일 upload Wizard 연결 — WAV 우선, WebM/Ogg 안전 오류, 최대 10개와 파일별 재시도
+- [x] 기본 품질 검사와 사용자 메시지 — PASS/WARNING/FAIL, warning 명시 확인, 내부 오류 비노출
+- [x] Voice Profile 등록·Studio 선택 연결 — 대표 Sample submit 후 목록 invalidate·신규 Profile 선택
+- [x] 오류·재시도·취소·cleanup — 동일 key 재시도, session 복원, 만료·not found·cleanup 상태 UX
+- [x] 접근성·반응형 — 단계 focus·aria-current/live/meter/radio, Desktop·Pixel 7 E2E
+- [x] Frontend unit·component·E2E — Vitest 95개와 전체 Playwright 24개 통과
 - [x] Backend API·Audio·Storage·migration·기존 Voice 회귀 자동 test
-- [ ] 보안·동의·API·DB 문서
-- [ ] CHANGELOG
+- [x] 보안·동의·API·DB 문서 — Frontend 구현 사실과 미구현 경계를 갱신
+- [x] CHANGELOG
 - [ ] 한국어 커밋·Push·`develop` PR·병합 검증
 
 ### 예상 산출물과 완료 기준

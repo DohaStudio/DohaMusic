@@ -7,7 +7,7 @@
 > 관련 문서: [데이터 모델](../07-database/voice-enrollment-data-model.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [ADR-019](ADR-019-secure-voice-profile-upload.md), [ADR-024](ADR-024-browser-voice-recording-server-normalization.md)
 > 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
 
-> 구현 메모: Alembic `20260801_0010`의 Profile 1:N Sample·대표 reference·legacy backfill에 이어 다중 Sample API, 최대 10개 Service 상한, 명시적 대표 Sample submit과 최종 Storage promotion을 구현했다. Provider별 권장 sample 구성과 품질 적합성은 여전히 `[검증 필요]`다.
+> 구현 메모: Alembic `20260801_0010`의 Profile 1:N Sample·대표 reference·legacy backfill에 이어 다중 Sample API, 최대 10개 Service 상한, Frontend radio 대표 선택, 명시적 submit·최종 Storage promotion과 신규 Profile의 Studio 선택 연결을 구현했다. Provider별 권장 sample 구성과 품질 적합성은 여전히 `[검증 필요]`다.
 
 ## Context
 

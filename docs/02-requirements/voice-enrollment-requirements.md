@@ -1,11 +1,11 @@
 # Voice Enrollment 요구사항
 
-> 문서 상태: [계획] [요구사항]
+> 문서 상태: [진행 중] [요구사항]
 > 최종 수정일: 2026-08-01
 > 관련 기능: 사용자 안내형 Voice Enrollment Wizard, Voice Profile 등록
 > 관련 Phase: Phase 8 후속 F6, Phase 7 개인화 Dataset과 경계 분리, Phase 9 공개 운영 선행 조건
 > 관련 문서: [Frontend Roadmap](../../planning/frontend-roadmap.md), [Frontend Architecture](../03-architecture/frontend-architecture.md), [현재 음성 프로필 API](../06-api/audio-api.md), [Voice Enrollment API 제안](../06-api/voice-enrollment-api.md), [데이터 모델 제안](../07-database/voice-enrollment-data-model.md), [음성 동의 정책](../09-security/voice-consent-policy.md), [ADR-024~026](../11-decisions/README.md#f6-guided-voice-enrollment), [Phase 7 DoD](../DoD/Phase-07.md), [Phase 8 DoD](../DoD/Phase-08.md)
-> 구현 상태: Backend Enrollment 7개 API, 최대 10개 sample, WAV/WebM/Ogg 정규화, 기본 품질 검사, Storage 승격·cleanup, 멱등성과 lazy expiration까지 구현했다. 브라우저 녹음·Wizard, 주기적 scanner, 인증·소유권과 AI 품질 검사는 미구현이다.
+> 구현 상태: Backend Enrollment 7개 API, 최대 10개 sample, WAV/WebM/Ogg 정규화, 기본 품질 검사, Storage 승격·cleanup, 멱등성과 lazy expiration 및 Frontend Wizard·MediaRecorder·품질·대표 선택·복원을 구현했다. 실제 FFmpeg WebM/Ogg 통합, 주기적 scanner, 인증·소유권과 AI 품질 검사는 미구현이다.
 
 ## 1. 목적과 범위
 
@@ -381,8 +381,8 @@ features/voice
 - quality result mapping, profile form, submit flow
 
 services
-- 현재 Voice Profile API
-- 후속 upload·validation API는 Backend 계약 확정 후 추가
+- 기존 Voice Profile API
+- Enrollment 7개 endpoint와 명시적 DTO mapper
 
 hooks
 - microphone permission, MediaRecorder lifecycle, page-leave protection
@@ -394,7 +394,7 @@ types
 - 실제 API DTO, UI view model, UI workflow state union 분리
 ```
 
-컴포넌트 후보는 `VoiceEnrollmentPage`, `VoiceEnrollmentStepper`, `VoiceConsentStep`, `VoiceMethodSelector`, `VoicePromptCard`, `VoiceRecorder`, `AudioLevelMeter`, `VoiceFileUploader`, `VoiceSampleList`, `VoiceDurationSummary`, `VoiceQualityResult`, `VoiceProfileForm`, `VoiceEnrollmentComplete`다. 이는 파일명·API 계약 확정이 아닌 설계 후보다. 현재 작은 `voice-profile.tsx`를 확장할 때 책임과 테스트 경계에 따라 분리한다.
+현재 `voice-enrollment-wizard.tsx`가 단계와 API mutation을 조합하고 `use-voice-recorder.ts`가 마이크·MediaRecorder·입력 수준·메모리 cleanup을 담당한다. `voice-enrollment-types.ts`와 `voice-enrollment-utils.ts`는 서버 DTO·UI 상태, allowlist mapper, 품질·오류·session 변환을 분리한다. 기존 `voice-profile.tsx`는 빠른 WAV fallback과 Profile 목록 책임을 유지한다.
 
 ## 14. 접근성
 
@@ -496,7 +496,7 @@ ADR-019는 현재 단일 WAV upload·atomic 저장·삭제 경계를 승인했�
 
 ## 18. 완료 판정
 
-F6는 [Frontend Roadmap](../../planning/frontend-roadmap.md)의 별도 후속 Track으로 관리한다. 이 요구사항 문서 작성은 F6 구현 완료가 아니며 Phase 8의 기존 `15/15, 100%` 분모와 상태를 변경하지 않는다.
+F6는 [Frontend Roadmap](../../planning/frontend-roadmap.md)의 별도 후속 Track으로 관리한다. Backend와 Frontend 구현은 완료했지만 실제 FFmpeg·scheduler·수동 녹음 평가가 남아 F6 전체는 `[진행 중]`이며 Phase 8의 기존 `15/15, 100%` 분모와 상태를 변경하지 않는다.
 
 구현 완료에는 최소한 다음이 필요하다.
 

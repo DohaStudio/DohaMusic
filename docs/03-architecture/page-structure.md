@@ -27,10 +27,10 @@
 
 ## Voice
 
-- 목적: 명시적 동의가 있는 Voice Profile 등록·목록·선택·삭제. F6에서는 안내형 Enrollment Wizard로 개선할 계획이다.
-- 현재 구성: 이름·단일 WAV·동의 upload form, Profile list·선택·삭제, 개발 플래그의 path create.
-- 현재 API: upload·list·get·delete는 로컬 MVP에서 `Available`; 원본 content/preview와 인증·소유권은 제공하지 않는다.
-- F6 `[계획]`: 시작 안내 → 동의 → 방법 선택 → 녹음/업로드 → 품질 확인 → Profile 정보 → 등록 → 완료. MediaRecorder MIME, 다중 sample과 임시 상태는 Backend·ADR 선행 조건이다.
+- 목적: 명시적 동의가 있는 Voice Profile의 안내형 등록·목록·선택·삭제.
+- 현재 구성: 안내 → 동의 → 방법 → 녹음/업로드 → 품질 → 대표 Sample → Profile 확인 → 완료 Wizard, Profile list·선택·삭제, 기존 빠른 WAV fallback과 개발 플래그의 path create.
+- 현재 API: Enrollment 7개 endpoint와 기존 Profile upload·list·get·delete가 로컬 MVP에서 `Available`; 서버 음성 preview content와 인증·소유권은 제공하지 않는다.
+- F6 Frontend `[완료]`: MediaRecorder feature detection, 권한·일시정지·재개·60초 자동 종료, 입력 수준·메모리 preview, 최대 10개 upload, session 복원·취소·만료·멱등 재시도와 Studio 선택을 구현했다. 실제 WebM/Ogg는 FFmpeg 없는 현재 환경에서 미검증이다.
 - 세부 요구사항: [Voice Enrollment](../02-requirements/voice-enrollment-requirements.md).
 
 ## Generation Progress

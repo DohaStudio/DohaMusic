@@ -560,3 +560,63 @@
 .onboarding-dialog { width: min(32rem, 100%); border: 1px solid var(--line); border-radius: 1.5rem; padding: 2rem; background: var(--surface); color: var(--text); box-shadow: 0 1.5rem 5rem rgba(0,0,0,.45); }
 .onboarding-dialog ol { display: grid; gap: .8rem; padding-left: 1.4rem; }
 button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid var(--red); outline-offset: 3px; }
+
+.enrollment-wizard { display: grid; gap: 1.25rem; overflow: hidden; }
+.enrollment-wizard-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.enrollment-wizard-header h2, .enrollment-wizard-header p { margin: 0; }
+.enrollment-stepper { display: grid; grid-template-columns: repeat(8, minmax(4.5rem, 1fr)); gap: .25rem; margin: 0; padding: 0; list-style: none; overflow-x: auto; }
+.enrollment-stepper li { display: grid; justify-items: center; align-content: start; gap: .35rem; min-width: 4.5rem; color: var(--muted); font-size: .7rem; text-align: center; }
+.enrollment-stepper li span { width: 1.9rem; height: 1.9rem; display: grid; place-items: center; border: 1px solid var(--line); border-radius: 50%; background: #222; }
+.enrollment-stepper li.current { color: var(--text); font-weight: 800; }
+.enrollment-stepper li.current span { border-color: var(--red); background: var(--red); color: white; }
+.enrollment-step { min-height: 20rem; padding: 1.25rem; border: 1px solid var(--line); border-radius: 1rem; background: #141414; }
+.enrollment-step > h3 { margin: 0 0 1.25rem; font-size: 1.35rem; }
+.guide-grid, .review-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; }
+.guide-grid article, .review-grid article { display: grid; gap: .35rem; padding: 1rem; border: 1px solid var(--line); border-radius: .85rem; background: #1c1c1c; }
+.guide-grid p, .review-grid span { margin: 0; color: var(--muted); font-size: .86rem; }
+.guide-grid .full, .review-grid .full { grid-column: 1 / -1; }
+.consent-list { display: grid; gap: 1rem; max-width: 50rem; }
+.method-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .75rem; margin: 0; padding: 0; border: 0; }
+.method-options legend { margin-bottom: .7rem; font-weight: 800; }
+.method-options label { min-height: 7rem; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr; gap: .35rem .7rem; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; cursor: pointer; }
+.method-options label.selected { border-color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+.method-options input { grid-row: 1 / 3; }
+.method-options span { color: var(--muted); font-size: .82rem; }
+.sample-workspace { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(15rem, .5fr); gap: 1rem; }
+.recorder-panel, .file-drop { display: grid; align-content: start; gap: 1rem; padding: 1rem; border: 1px solid var(--line); border-radius: 1rem; background: #191919; }
+.file-drop { place-items: center; align-content: center; min-height: 18rem; text-align: center; border-style: dashed; }
+.file-drop.preferred { border-color: var(--beige); }
+.file-drop p { margin: 0; color: var(--muted); }
+.prompt-card { display: grid; grid-template-columns: 1fr minmax(10rem, .35fr); gap: 1rem; align-items: start; padding: 1rem; border-radius: .85rem; background: #24211f; }
+.prompt-card p { margin-bottom: 0; }
+.recorder-status { display: flex; justify-content: space-between; align-items: center; font-variant-numeric: tabular-nums; }
+.recorder-status time { font: 800 1.6rem/1 ui-monospace, monospace; }
+.audio-level { position: relative; height: 1.6rem; overflow: hidden; border: 1px solid var(--line); border-radius: 999px; background: #0e0e0e; }
+.audio-level > span { display: block; height: 100%; background: linear-gradient(90deg, #457c59 0 65%, var(--amber) 65% 85%, var(--red) 85%); transition: width .08s linear; }
+.audio-level small { position: absolute; inset: 0; display: grid; place-items: center; color: white; font-weight: 800; text-shadow: 0 1px 3px #000; }
+.recorder-controls, .enrollment-actions, .enrollment-retry { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.recorder-panel audio { width: 100%; }
+.enrollment-actions { position: sticky; bottom: 0; justify-content: flex-end; padding: .8rem; background: color-mix(in srgb, var(--surface) 94%, transparent); border-top: 1px solid var(--line); z-index: 4; }
+.enrollment-actions .secondary { margin-right: auto; }
+.quality-list, .sample-list { display: grid; gap: .75rem; }
+.quality-card { display: grid; gap: .6rem; padding: 1rem; border: 1px solid var(--line); border-left-width: 4px; border-radius: .9rem; background: #1b1b1b; }
+.quality-card > div { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem; }
+.quality-card > div span:last-child { margin-left: auto; color: var(--muted); font-size: .8rem; }
+.quality-card p { margin: 0; }
+.quality-pass { border-left-color: var(--green); }
+.quality-warning { border-left-color: var(--amber); }
+.quality-fail { border-left-color: var(--red); }
+.badge-warning { color: #ffd48a; border-color: #74592b; background: #382a13; }
+.badge-danger { color: #ffa19b; border-color: #743b37; background: #351a19; }
+.sample-card { display: flex; align-items: center; justify-content: space-between; gap: .8rem; padding: 1rem; border: 1px solid var(--line); border-radius: .9rem; background: #1b1b1b; }
+.sample-card label { display: flex; align-items: center; gap: .8rem; cursor: pointer; }
+.sample-card label > span { display: grid; gap: .25rem; }
+.sample-card small { color: var(--muted); }
+.enrollment-retry { justify-content: space-between; padding: .8rem 1rem; border: 1px solid var(--amber); border-radius: .8rem; }
+.enrollment-retry p { margin: 0; }
+.enrollment-complete { min-height: 20rem; display: grid; place-items: center; place-content: center; gap: .8rem; text-align: center; }
+.enrollment-complete > span { width: 4rem; height: 4rem; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: #102019; font-size: 2rem; font-weight: 900; }
+.enrollment-complete h3, .enrollment-complete p { margin: 0; }
+.enrollment-complete > div { display: flex; gap: .7rem; margin-top: 1rem; }
+.legacy-voice-upload summary { cursor: pointer; font-weight: 800; }
+.legacy-voice-upload[open] summary { margin-bottom: 1.25rem; }

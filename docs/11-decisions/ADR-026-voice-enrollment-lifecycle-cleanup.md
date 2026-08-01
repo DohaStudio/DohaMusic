@@ -7,7 +7,7 @@
 > 관련 문서: [Voice Enrollment API](../06-api/voice-enrollment-api.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [Storage Architecture](../03-architecture/storage-architecture.md), [음성 동의 정책](../09-security/voice-consent-policy.md)
 > 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
 
-> 구현 메모: `0010` lifecycle 기반과 `0011` hashed idempotency 저장소, 별도 임시 Storage, 24시간 sliding/7일 absolute lazy 만료, submit promotion과 즉시 cleanup primitive를 구현했다. 주기적 expiration scanner·cleanup retry scheduler와 crash 복구 worker가 없어 상태는 `[제안]`으로 유지한다.
+> 구현 메모: `0010` lifecycle 기반과 `0011` hashed idempotency 저장소, 별도 임시 Storage, 24시간 sliding/7일 absolute lazy 만료, submit promotion과 즉시 cleanup primitive를 구현했다. Frontend는 Enrollment ID·단계 allowlist 복원, 동일 key 명시 재시도, cancel·expired·not found와 partial cleanup UX를 구현했다. 주기적 expiration scanner·cleanup retry scheduler와 crash 복구 worker가 없어 상태는 `[제안]`으로 유지한다.
 
 ## Context
 

@@ -82,7 +82,7 @@ describe("Voice Profile 사용자 흐름", () => {
     renderWithQuery(<VoiceProfilePanel />);
     const user = userEvent.setup();
     const file = new File(["wave"], "voice.wav", { type: "audio/wav" });
-    await user.type(screen.getByLabelText("목소리 이름"), "내 목소리");
+    await user.type(screen.getByLabelText("빠른 등록 이름"), "내 목소리");
     await user.upload(screen.getByLabelText("목소리 파일"), file);
     expect(screen.getByRole("button", { name: "내 목소리 등록" })).toBeDisabled();
     await user.click(screen.getByRole("checkbox"));
