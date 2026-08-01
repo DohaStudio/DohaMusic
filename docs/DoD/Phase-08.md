@@ -2,8 +2,8 @@
 
 > 상태: [완료]
 > 진행률: 15/15, 100%
-> 최종 수정일: 2026-07-31
-> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-8-doha-studio--진행-중), [Frontend Architecture](../03-architecture/frontend-architecture.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-020](../11-decisions/ADR-020-project-history-retention.md)
+> 최종 수정일: 2026-08-01
+> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-8-doha-studio--완료), [Frontend Architecture](../03-architecture/frontend-architecture.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [ADR-020](../11-decisions/ADR-020-project-history-retention.md)
 
 ## 목표
 
@@ -54,4 +54,4 @@ Phase 8은 로컬 단일 사용자 Responsive Web MVP 범위에서 완료됐다.
 
 ## 예상 다음 단계
 
-Phase 9에서 인증·소유권·분산 Queue와 운영 취소 일관성을 설계·검증한다.
+Phase 8 완료 범위를 소급 변경하지 않는 [F6 Guided Voice Enrollment](../../planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획)을 후속 개선 Track으로 진행할 수 있다. F6는 브라우저 녹음·다중 sample·품질 안내를 다루지만 현재 미구현이며, 이 문서의 15개 완료 항목과 100% 진행률에 포함하지 않는다. 공개 운영의 인증·소유권·분산 Queue와 운영 취소 일관성은 Phase 9에서 설계·검증한다.

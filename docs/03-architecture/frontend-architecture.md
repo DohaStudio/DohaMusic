@@ -1,9 +1,9 @@
 # Frontend 아키텍처
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-07-31
-> 관련 기능: Phase 8 Doha Studio
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [History](history-management.md), [Project](project-management.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+> 최종 수정일: 2026-08-01
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment [계획]
+> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [History](history-management.md), [Project](project-management.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
@@ -43,7 +43,7 @@ frontend/
 │  ├─ (marketing)/page
 │  ├─ (studio)/studio/page
 │  ├─ (studio)/lyrics/page
-│  ├─ (studio)/voice/page
+│  ├─ voice/page
 │  ├─ (studio)/generation/[jobId]/page
 │  ├─ (studio)/result/[jobId]/page
 │  ├─ settings/page
@@ -82,7 +82,7 @@ frontend/
 | Studio | client draft | current workspace, settings, lyrics, voice profile ID, review validity | `sessionStorage` allowlist |
 | Lyrics | API + draft | document, validation, revision, provider 표시 | API 결과 + 편집 draft |
 | Pipeline | API | job ID, status, current step, progress, safe error, files metadata | URL로 복원 |
-| Voice | API 제한 + draft | 방금 생성한 profile metadata, consent draft | 현재 API에는 list/get 없음 |
+| Voice | API + draft | upload·list·get·delete Profile metadata, 선택 ID·이름, consent draft | API 결과 + `sessionStorage` 선택 allowlist; 음성 binary 저장 금지 |
 | Player | client media | queue, current item, position, volume, repeat | session |
 | Settings | client | 현재는 reduced motion만 구현 | `localStorage` allowlist |
 
@@ -146,6 +146,42 @@ sequenceDiagram
 Audio Metadata는 별도 endpoint가 아니라 Pipeline의 `result_metadata`와 files의 공개 metadata에서 읽는다. UI는 duration·execution time, Provider 식별자와 Mixer의 실제 audio quality 필드만 allowlist로 변환한다. 파일·모델 경로, 명령, 환경, 내부 host, stack trace와 알 수 없는 key는 표시하지 않는다. Response DTO는 API 문서와 OpenAPI에서 검증하고 UI 전용 view model로 변환한다.
 
 OpenAPI는 FastAPI request·response 명세이고 OpenAI API는 Experimental 외부 Lyrics Provider다. Local Lyrics LLM은 공개 Base를 자체 권리 Dataset으로 파인튜닝하는 Planned Backend Provider다. Frontend API client는 이 세 용어를 구분하고 Provider SDK를 포함하지 않는다.
+
+## F6 Voice Enrollment 책임 경계 [계획]
+
+F6는 현재 `app/voice/page.tsx`와 `features/voice/voice-profile.tsx`를 기반으로 하되, 브라우저 녹음·다중 sample·사전 품질 검사 계약이 확정된 뒤 책임별로 확장한다. 아래 이름은 구현 확정 파일명이 아니라 설계 후보다.
+
+```text
+app/voice
+- route entry, loading, error boundary
+
+features/voice
+- enrollment orchestration, recording lifecycle, file selection
+- quality result mapping, profile form, submit flow
+
+services
+- 현재 Voice Profile API
+- 후속 upload·validation API는 Backend 계약 확정 후 추가
+
+hooks
+- microphone permission, MediaRecorder lifecycle, page-leave protection
+
+lib
+- duration formatting, client-safe audio metadata, feature detection
+
+types
+- 실제 API DTO, UI view model, UI workflow state union 분리
+```
+
+컴포넌트 후보는 `VoiceEnrollmentPage`, `VoiceEnrollmentStepper`, `VoiceConsentStep`, `VoiceMethodSelector`, `VoicePromptCard`, `VoiceRecorder`, `AudioLevelMeter`, `VoiceFileUploader`, `VoiceSampleList`, `VoiceDurationSummary`, `VoiceQualityResult`, `VoiceProfileForm`, `VoiceEnrollmentComplete`다.
+
+- `app`은 route·loading·error boundary만 담당하고 MediaRecorder·upload orchestration을 갖지 않는다.
+- `features/voice`는 녹음·파일·validation·제출 흐름을 조합하되 API DTO를 UI 상태로 직접 사용하지 않는다.
+- `services`에는 실제 OpenAPI 계약이 확정된 endpoint만 추가한다. Enrollment 후보 상태와 제안 오류 코드를 Backend enum처럼 만들지 않는다.
+- microphone stream, recording Blob과 Object URL은 메모리 lifecycle로 관리하고 `localStorage`·`sessionStorage`에 저장하지 않는다.
+- 현재 `sessionStorage`에는 Studio 선택용 opaque Profile ID·이름만 유지한다. Enrollment draft 복원을 추가할 경우 음성 binary와 내부 path를 제외한다.
+- MediaRecorder의 WebM/Ogg와 현재 WAV-only Backend 차이는 `[ADR 필요]`이며 결정 전 녹음을 활성 기능으로 노출하지 않는다.
+- 접근성·상태·오류·테스트 기준은 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)을 따른다.
 
 ## 접근성·성능·보안
 

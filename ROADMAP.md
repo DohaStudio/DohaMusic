@@ -39,6 +39,7 @@
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
+| F6. Guided Voice Enrollment | [계획] | 요구사항 문서화; 녹음 MIME·다중 sample·Backend 계약·보안 결정 후 구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -51,9 +52,21 @@
 5. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
 6. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
 7. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
-8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5에서 Voice·History·Project·audio content/download·Cancel·Retry를 완료했다. 인증·소유권·분산 Queue는 Phase 9에서 다룬다.
+8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5에서 Voice·History·Project·audio content/download·Cancel·Retry를 완료했다. F6 Guided Voice Enrollment는 `[계획]`이며 기존 Phase 8 완료 상태와 분리한다.
 9. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 10. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
+
+## F6 Guided Voice Enrollment 실행 순서 [계획]
+
+1. [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md)을 기준으로 MediaRecorder MIME·WAV 정규화 위치를 ADR에서 결정한다.
+2. Voice Profile 단일 reference 유지, 다중 sample 연결, 병합, 대표·보조 분리 중 데이터 모델을 결정한다.
+3. Backend upload·사전 validation·임시 상태·cleanup·idempotency와 공개 DTO 계약을 설계한다.
+4. 안내 문장·녹음·기존 WAV upload·품질 확인·Profile 등록 Wizard를 구현한다.
+5. 기본 검사와 사용자 메시지를 검증하고 후속 DSP·AI 검사는 모델 선정 뒤 분리한다.
+6. Frontend unit·component·E2E와 Backend validation·cleanup test를 통과한다.
+7. 개인 음성을 Git에 남기지 않는 사용자 동의 로컬 수동 녹음 평가를 수행한다.
+
+F6는 기존 Voice Conversion용 참조 음성 UX다. Phase 7의 장시간 Dataset·전사·split·preprocessing·LoRA·Fine Tuning과 자동 결합하지 않는다. 공개 운영의 인증·소유권·동의 철회·감사는 Phase 9 선행 조건이다.
 
 ## 다음 작업 흐름
 
