@@ -19,37 +19,44 @@ class VoiceProfileRepository:
         self.session = session
 
     def create(
-        self, request: VoiceProfileCreate | None = None, **values: object
+        self,
+        request: VoiceProfileCreate | None = None,
+        *,
+        create_compatibility_sample: bool = True,
+        commit: bool = True,
+        **values: object,
     ) -> VoiceProfile:
         profile = VoiceProfile(**(request.model_dump() if request else values))
         self.session.add(profile)
         self.session.flush()
-        sample = VoiceSample(
-            voice_profile_id=profile.id,
-            source_type=(
-                VoiceSampleSourceType.FILE_UPLOAD.value
-                if profile.display_filename
-                else VoiceSampleSourceType.LEGACY_REFERENCE.value
-            ),
-            category="legacy",
-            status=(
-                VoiceSampleStatus.PROMOTED.value
-                if profile.status == "READY"
-                else VoiceSampleStatus.FAILED.value
-            ),
-            normalized_content_type=profile.mime_type,
-            normalized_size_bytes=profile.size_bytes,
-            normalized_storage_path=profile.reference_file_path,
-            duration_seconds=profile.duration_seconds,
-            sample_rate=profile.sample_rate,
-            channels=profile.channels,
-            quality_warnings=profile.quality_warnings,
-        )
-        self.session.add(sample)
-        self.session.flush()
-        if sample.status == VoiceSampleStatus.PROMOTED.value:
-            profile.active_reference_sample_id = sample.id
-        self.session.commit()
+        if create_compatibility_sample:
+            sample = VoiceSample(
+                voice_profile_id=profile.id,
+                source_type=(
+                    VoiceSampleSourceType.FILE_UPLOAD.value
+                    if profile.display_filename
+                    else VoiceSampleSourceType.LEGACY_REFERENCE.value
+                ),
+                category="legacy",
+                status=(
+                    VoiceSampleStatus.PROMOTED.value
+                    if profile.status == "READY"
+                    else VoiceSampleStatus.FAILED.value
+                ),
+                normalized_content_type=profile.mime_type,
+                normalized_size_bytes=profile.size_bytes,
+                normalized_storage_path=profile.reference_file_path,
+                duration_seconds=profile.duration_seconds,
+                sample_rate=profile.sample_rate,
+                channels=profile.channels,
+                quality_warnings=profile.quality_warnings,
+            )
+            self.session.add(sample)
+            self.session.flush()
+            if sample.status == VoiceSampleStatus.PROMOTED.value:
+                profile.active_reference_sample_id = sample.id
+        if commit:
+            self.session.commit()
         self.session.refresh(profile)
         return profile
 
@@ -79,6 +86,8 @@ class VoiceProfileRepository:
         return pipeline is not None or conversion is not None
 
     def delete(self, profile: VoiceProfile, *, commit: bool = True) -> None:
+        if profile.source_enrollment is not None:
+            profile.source_enrollment.voice_profile_id = None
         profile.active_reference_sample_id = None
         self.session.flush()
         for sample in list(profile.samples):
@@ -91,13 +100,19 @@ class VoiceProfileRepository:
             self.session.flush()
 
     def set_active_reference(
-        self, profile: VoiceProfile, sample: VoiceSample
+        self,
+        profile: VoiceProfile,
+        sample: VoiceSample,
+        *,
+        commit: bool = True,
     ) -> VoiceProfile:
         if sample.voice_profile_id != profile.id:
             raise ValueError("Active reference sample must belong to the voice profile")
         if sample.status != VoiceSampleStatus.PROMOTED.value:
             raise ValueError("Active reference sample must be promoted")
         profile.active_reference_sample_id = sample.id
-        self.session.commit()
+        self.session.flush()
+        if commit:
+            self.session.commit()
         self.session.refresh(profile)
         return profile

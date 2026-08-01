@@ -13,6 +13,7 @@ class StorageService:
         self.outputs_dir = self.root / "outputs"
         self.voices_dir = self.root / "voices"
         self.voice_references_dir = self.voices_dir / "references"
+        self.voice_enrollments_dir = self.voices_dir / "enrollments"
         self.voice_converted_dir = self.voices_dir / "converted"
         self.voice_metadata_dir = self.voices_dir / "metadata"
         self.samples_dir = self.root / "samples"
@@ -29,6 +30,7 @@ class StorageService:
             self.outputs_dir,
             self.voices_dir,
             self.voice_references_dir,
+            self.voice_enrollments_dir,
             self.voice_converted_dir,
             self.voice_metadata_dir,
             self.samples_dir,

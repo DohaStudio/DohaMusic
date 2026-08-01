@@ -8,12 +8,23 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
-### 추가 — Guided Voice Enrollment 영속 기반
+### 추가 — Guided Voice Enrollment Backend
 
 - `VoiceEnrollment`·`VoiceSample` ORM, lifecycle 상태 전이와 최소 Repository CRUD·만료·cleanup 조회를 추가했다.
 - `VoiceProfile.active_reference_sample_id`와 Profile 1:N Sample 관계를 추가하고, 대표 Sample의 소유 Profile·`PROMOTED` 상태를 Repository에서 검증한다.
 - Alembic `20260801_0010`에서 기존 Profile을 파일 접근 없이 결정적 `LEGACY_REFERENCE` Sample로 backfill하고, 신규 Enrollment·비레거시 Sample이 있으면 데이터 유실성 downgrade를 차단한다.
 - 기존 단일 Voice Profile 생성도 호환 Sample과 대표 reference를 함께 기록하며 기존 Voice API·Pipeline·Voice Conversion 공개 계약을 유지한다.
+- Enrollment 생성·조회·Sample 업로드·조회·삭제·제출·취소 7개 API와 안전한 공개 DTO·오류 계약을 추가했다.
+- WAV를 Python으로, WebM/Ogg Opus를 optional FFmpeg로 decode해 PCM16 48kHz mono WAV로 정규화하고 duration·metadata·peak·RMS·silence·clipping을 검증한다.
+- UUID 기반 임시 Enrollment Storage, Profile Sample reference 승격과 원본·취소·삭제·lazy 만료 cleanup primitive를 추가했다.
+- create·upload·submit에 hashed `Idempotency-Key`와 request fingerprint를 적용하고 Alembic `20260801_0011`에 `idempotency_records`와 versioned sample 품질 metrics를 추가했다.
+- 신규 Enrollment API·normalizer·validator·Storage·migration과 기존 Voice Profile 호환 회귀 test를 추가했다.
+
+### 변경 — Guided Voice Enrollment 호환성
+
+- Enrollment submit으로 만든 대표 reference를 기존 `VoiceProfile.reference_file_path`에 연결해 기존 Pipeline·Voice Conversion이 새 Profile을 그대로 사용하도록 했다.
+- 기존 단일 `/api/voice-profiles/upload` 경로는 유지하고 Profile 삭제가 Enrollment의 여러 retained reference도 정리하도록 확장했다.
+- F6 상태를 Backend 구현 완료·Frontend와 scheduler 미구현인 `[진행 중]`으로 갱신하고 Phase 8 `15/15, 100%`는 유지했다.
 
 ### 문서 — Guided Voice Enrollment
 

@@ -21,6 +21,12 @@ Backend 설치에는 Mixer·K3.1 Quality·K3.2 Tempo·K3.3 Hook 분석용 NumPy�
 
 Lyrics 기본값 `DOHAMUSIC_LYRICS_PROVIDER=template`은 외부 API·Key·모델 설치 없이 한국어·영문 구조 초안을 만든다. 실제 LLM이 아니며 품질 승인을 의미하지 않는다. API 계약은 [Lyrics API](../06-api/lyrics-api.md), 실측은 [EXP-007](../../reports/experiments/EXP-007-lyrics-generation.md)을 따른다.
 
+## Guided Voice Enrollment와 FFmpeg
+
+PCM16 WAV 입력은 Python `wave`와 SciPy로 48kHz mono PCM16 WAV에 정규화하므로 FFmpeg 없이 동작한다. WebM/Ogg Opus 입력만 system FFmpeg가 필요하다. `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE`에 executable 이름 또는 절대 경로를 지정하며 미설치 상태에서도 Backend는 정상 시작하고 해당 요청만 `VOICE_NORMALIZER_UNAVAILABLE`로 실패한다. subprocess는 shell 없이 argument 배열·30초 기본 timeout·stdout/stderr 폐기·부분 output cleanup을 사용한다.
+
+저장소는 FFmpeg binary를 배포하지 않는다. 운영자는 설치한 build의 `ffmpeg -version`과 `ffmpeg -L`로 codec·LGPL/GPL 구성과 재배포 조건을 직접 확인해야 한다. 현재 Windows 개발 환경에서는 FFmpeg가 없어 실제 WebM/Ogg integration은 실행하지 않았고 fake subprocess·미설치 자동 test만 검증했다.
+
 ## 선택적 ACE-Step 런타임
 
 공식 [v0.1.8 설치 문서](https://github.com/ace-step/ACE-Step-1.5/blob/v0.1.8/docs/en/INSTALL.md)는 Python 3.11~3.12와 `uv sync`를 안내한다. 공식 저장소를 별도 디렉터리에 v0.1.8로 checkout하고 그 저장소의 lockfile로 환경을 만든다. 모델은 공식 CLI로 사용자가 명시적으로 내려받는다. DohaMusic 실행기와 테스트는 다운로드를 시작하지 않는다.

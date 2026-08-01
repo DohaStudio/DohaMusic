@@ -1,7 +1,7 @@
 # API 개요
 
 > 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
-> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Pipeline + Lyrics + History·Project API 구현 완료**
+> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Guided Voice Enrollment + Pipeline + Lyrics + History·Project API 구현 완료**
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
@@ -20,6 +20,12 @@
 | `GET` | `/api/voice-profiles/{id}` | 200 | 공개 Voice Profile 상세 |
 | `DELETE` | `/api/voice-profiles/{id}` | 204 | 음성 프로필 삭제 |
 | `POST` | `/api/voice-conversion` | 202 | vocals와 동의된 Voice Profile로 변환 Job 생성 |
+| `POST` | `/api/voice-enrollments` | 201 | Guided Voice Enrollment draft 생성 |
+| `GET` | `/api/voice-enrollments/{id}` | 200 | Enrollment·Sample·cleanup 요약 조회와 lazy 만료 |
+| `POST` | `/api/voice-enrollments/{id}/samples` | 201 | WAV/WebM/Ogg upload·정규화·기본 품질 검사 |
+| `GET/DELETE` | `/api/voice-enrollments/{id}/samples/{sample_id}` | 200 | Sample 조회·cleanup 삭제 |
+| `POST` | `/api/voice-enrollments/{id}/submit` | 201 | 대표 Sample을 Voice Profile로 승격 |
+| `POST` | `/api/voice-enrollments/{id}/cancel` | 200 | 미완료 Enrollment 취소·cleanup |
 | `GET` | `/api/voice-conversion/{job}` | 200 | Voice Conversion Job 조회 |
 | `GET` | `/api/voice-conversion/{job}/files` | 200 | converted_voice·metadata 조회 |
 | `POST` | `/api/pipelines` | 202 | Mock AI·Default Audio Mixer Pipeline Job 생성 |
@@ -37,7 +43,7 @@
 | `POST` | `/api/lyrics/validate` | 200 | 직접 작성 가사 정규화·검증 |
 | `DELETE` | `/api/lyrics/{id}` | 204 | 가사 문서 삭제 |
 
-생성, Stem, Voice, Pipeline 요청은 비동기이며 `202 Accepted`와 `PENDING` Job을 반환한다. Lyrics는 빠른 로컬 Provider를 사용하는 동기 `201` API다. Pipeline 계약은 [Pipeline API](pipeline-api.md), 가사 계약은 [Lyrics API](lyrics-api.md)를 따른다. 오류는 다음 형식을 사용한다.
+생성, Stem, Voice, Pipeline 요청은 비동기이며 `202 Accepted`와 `PENDING` Job을 반환한다. Lyrics와 Guided Voice Enrollment 정규화·제출은 로컬 동기 계약이며 `201`/`200`을 반환한다. Enrollment의 CPU·subprocess 처리는 threadpool을 사용하지만 별도 durable Job은 만들지 않는다. 오류는 다음 형식을 사용한다.
 
 ```json
 {
@@ -48,4 +54,4 @@
 }
 ```
 
-Pipeline 결과 WAV의 content/download, Voice Profile 단일 WAV upload와 Pipeline 취소·새 Job 재시도는 제공한다. 인증·사용자 소유권, 모델 목록, Voice 원본 content와 개별 생성 모듈 download API는 후속 단계 범위다. Guided Enrollment의 다중 sample·사전 validation·임시 상태는 [제안 API](voice-enrollment-api.md)에 설계했지만 현재 OpenAPI와 Runtime에는 없다.
+Pipeline 결과 WAV의 content/download, 기존 Voice Profile 단일 WAV upload, Guided Enrollment 다중 sample·사전 validation·임시 상태와 Pipeline 취소·새 Job 재시도를 제공한다. 인증·사용자 소유권, 주기적 cleanup scanner, Voice 원본 content와 개별 생성 모듈 download API는 후속 단계 범위다.

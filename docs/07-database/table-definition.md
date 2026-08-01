@@ -109,7 +109,7 @@ Alembic 0009는 `cancel_requested_at`, `cancelled_at`, `retry_of_job_id` self FK
 | `cleanup_status`, `cleanup_requested_at`, `cleanup_completed_at`, `cleanup_failure_code` | 혼합 | cleanup 상태와 evidence |
 | `created_at`, `updated_at` | 아니요 | UTC 시각 |
 
-`status, expires_at`와 `cleanup_status`를 인덱싱한다. 실제 만료·cleanup worker는 아직 구현하지 않았다.
+`status, expires_at`와 `cleanup_status`를 인덱싱한다. API 진입 시 lazy 만료와 즉시 cleanup은 구현했으며 주기적 worker는 아직 구현하지 않았다.
 
 ## `voice_samples`
 
@@ -120,11 +120,21 @@ Alembic 0009는 `cancel_requested_at`, `cancelled_at`, `retry_of_job_id` self FK
 | `prompt_id` | 예 | 안내 prompt 식별자 |
 | `original_*`, `normalized_*` | 예 | 내부 content type·byte·Storage 경로 |
 | `duration_seconds`, `sample_rate`, `channels`, `bit_depth` | 예 | 검증된 audio metadata |
-| `quality_status`, `quality_warnings`, `failure_code` | 혼합 | 품질·실패 결과 |
+| `quality_status`, `quality_warnings`, `quality_metrics`, `failure_code` | 혼합 | 품질 상태·경고와 versioned peak·RMS·silence·clipping 결과 |
 | `validated_at`, `promoted_at`, `expires_at`, `deleted_at`, `delete_failure_code` | 예 | lifecycle·cleanup evidence |
 | `created_at`, `updated_at` | 아니요 | UTC 시각 |
 
 `(enrollment_id, status)`, `(voice_profile_id, status)`, `(status, expires_at)`를 인덱싱한다. 내부 Storage 경로는 레거시 공유 가능성 때문에 unique가 아니다.
+
+## `idempotency_records`
+
+| 필드 | Null | 설명 |
+|---|---|---|
+| `id`, `scope`, `key_hash`, `request_fingerprint`, `status` | 아니요 | endpoint·Enrollment scope, raw key의 SHA-256, canonical payload fingerprint와 처리 상태 |
+| `resource_type`, `resource_id`, `response_status` | 예 | 완료 결과 재생용 resource와 HTTP status |
+| `expires_at`, `created_at`, `updated_at` | 아니요 | 24시간 보존과 UTC 시각 |
+
+`(scope, key_hash)`는 unique이며 `expires_at`을 인덱싱한다. raw `Idempotency-Key`와 upload binary는 저장하지 않는다.
 
 ## `stem_jobs`
 

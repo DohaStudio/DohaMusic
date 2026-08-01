@@ -1,13 +1,13 @@
 # ADR-025: Voice Profile 다중 Sample과 대표 Reference 모델
 
-> 상태: [제안]
+> 상태: [승인]
 > 작성일: 2026-08-01
 > 최종 수정일: 2026-08-01
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [데이터 모델](../07-database/voice-enrollment-data-model.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [ADR-019](ADR-019-secure-voice-profile-upload.md), [ADR-024](ADR-024-browser-voice-recording-server-normalization.md)
 > 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
 
-> 구현 메모: Alembic `20260801_0010`에서 Profile 1:N Sample, nullable unique 대표 reference FK, `LEGACY_REFERENCE` backfill과 Repository 무결성 검사를 먼저 구현했다. 다중 Sample API·Storage promotion·Provider 품질 기준은 아직 제안 상태다.
+> 구현 메모: Alembic `20260801_0010`의 Profile 1:N Sample·대표 reference·legacy backfill에 이어 다중 Sample API, 최대 10개 Service 상한, 명시적 대표 Sample submit과 최종 Storage promotion을 구현했다. Provider별 권장 sample 구성과 품질 적합성은 여전히 `[검증 필요]`다.
 
 ## Context
 

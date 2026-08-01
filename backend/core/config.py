@@ -83,6 +83,16 @@ class Settings(BaseModel):
     seed_vc_device: str = "cuda"
     seed_vc_diffusion_steps: int = Field(default=30, ge=1, le=100)
     seed_vc_timeout_seconds: int = Field(default=1800, ge=10, le=7_200)
+    voice_ffmpeg_executable: str = "ffmpeg"
+    voice_normalization_timeout_seconds: int = Field(default=30, ge=1, le=300)
+    voice_enrollment_max_file_bytes: int = Field(
+        default=25 * 1024 * 1024, ge=1024, le=100 * 1024 * 1024
+    )
+    voice_enrollment_max_samples: int = Field(default=10, ge=1, le=50)
+    voice_enrollment_min_duration_seconds: float = Field(default=5.0, ge=0.1, le=60.0)
+    voice_enrollment_max_duration_seconds: float = Field(default=60.0, ge=1.0, le=600.0)
+    voice_enrollment_sliding_expiry_hours: int = Field(default=24, ge=1, le=168)
+    voice_enrollment_absolute_expiry_days: int = Field(default=7, ge=1, le=30)
     log_level: str = "INFO"
 
     @field_validator("log_level")
@@ -175,6 +185,14 @@ class Settings(BaseModel):
             "DOHAMUSIC_VOICE_SEED_VC_DEVICE": "seed_vc_device",
             "DOHAMUSIC_VOICE_SEED_VC_DIFFUSION_STEPS": "seed_vc_diffusion_steps",
             "DOHAMUSIC_VOICE_SEED_VC_TIMEOUT_SECONDS": "seed_vc_timeout_seconds",
+            "DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE": "voice_ffmpeg_executable",
+            "DOHAMUSIC_VOICE_NORMALIZATION_TIMEOUT_SECONDS": "voice_normalization_timeout_seconds",
+            "DOHAMUSIC_VOICE_ENROLLMENT_MAX_FILE_BYTES": "voice_enrollment_max_file_bytes",
+            "DOHAMUSIC_VOICE_ENROLLMENT_MAX_SAMPLES": "voice_enrollment_max_samples",
+            "DOHAMUSIC_VOICE_ENROLLMENT_MIN_DURATION_SECONDS": "voice_enrollment_min_duration_seconds",
+            "DOHAMUSIC_VOICE_ENROLLMENT_MAX_DURATION_SECONDS": "voice_enrollment_max_duration_seconds",
+            "DOHAMUSIC_VOICE_ENROLLMENT_SLIDING_EXPIRY_HOURS": "voice_enrollment_sliding_expiry_hours",
+            "DOHAMUSIC_VOICE_ENROLLMENT_ABSOLUTE_EXPIRY_DAYS": "voice_enrollment_absolute_expiry_days",
             "LOG_LEVEL": "log_level",
         }
         for environment_name, field_name in mapping.items():

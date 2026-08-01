@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from backend.core.voice_enrollment_status import (
@@ -19,10 +19,12 @@ class VoiceSampleRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def create(self, **values: object) -> VoiceSample:
+    def create(self, *, commit: bool = True, **values: object) -> VoiceSample:
         sample = VoiceSample(**values)
         self.session.add(sample)
-        self.session.commit()
+        self.session.flush()
+        if commit:
+            self.session.commit()
         self.session.refresh(sample)
         return sample
 
@@ -45,7 +47,24 @@ class VoiceSampleRepository:
         )
         return list(self.session.scalars(statement))
 
-    def transition(self, sample: VoiceSample, target: VoiceSampleStatus) -> VoiceSample:
+    def count_active_by_enrollment(self, enrollment_id: str) -> int:
+        return int(
+            self.session.scalar(
+                select(func.count(VoiceSample.id)).where(
+                    VoiceSample.enrollment_id == enrollment_id,
+                    VoiceSample.status != VoiceSampleStatus.DELETED.value,
+                )
+            )
+            or 0
+        )
+
+    def transition(
+        self,
+        sample: VoiceSample,
+        target: VoiceSampleStatus,
+        *,
+        commit: bool = True,
+    ) -> VoiceSample:
         current = VoiceSampleStatus(sample.status)
         validate_sample_transition(current, target)
         now = datetime.now(UTC)
@@ -56,17 +75,25 @@ class VoiceSampleRepository:
             sample.promoted_at = now
         elif target == VoiceSampleStatus.DELETED:
             sample.deleted_at = now
-        self.session.commit()
+        self.session.flush()
+        if commit:
+            self.session.commit()
         self.session.refresh(sample)
         return sample
 
-    def promote(self, sample: VoiceSample, profile: VoiceProfile) -> VoiceSample:
+    def promote(
+        self,
+        sample: VoiceSample,
+        profile: VoiceProfile,
+        *,
+        commit: bool = True,
+    ) -> VoiceSample:
         if sample.enrollment_id is None:
             raise ValueError("Only enrollment samples can be promoted")
         if sample.status != VoiceSampleStatus.READY.value:
             raise ValueError("Only ready samples can be promoted")
         sample.voice_profile_id = profile.id
-        return self.transition(sample, VoiceSampleStatus.PROMOTED)
+        return self.transition(sample, VoiceSampleStatus.PROMOTED, commit=commit)
 
     def list_cleanup_pending(self, *, limit: int = 100) -> list[VoiceSample]:
         statement = (

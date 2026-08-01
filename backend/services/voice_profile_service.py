@@ -72,20 +72,26 @@ class VoiceProfileService:
                     "음악 작업에서 사용 중인 음성 프로필은 삭제할 수 없습니다.",
                     409,
                 )
-            managed_file = self._managed_upload_path(profile)
-            tombstone = managed_file.with_suffix(".deleting") if managed_file else None
+            managed_files = self._managed_upload_paths(profile)
+            tombstones = [path.with_suffix(".deleting") for path in managed_files]
             try:
-                if managed_file is not None:
+                for managed_file, tombstone in zip(
+                    managed_files, tombstones, strict=True
+                ):
                     managed_file.replace(tombstone)
                 repository.delete(profile, commit=False)
-                if tombstone is not None:
+                for tombstone in tombstones:
                     tombstone.unlink()
-                    tombstone.parent.rmdir()
+                    self._remove_empty_voice_reference_parents(tombstone.parent)
                 session.commit()
             except OSError:
                 session.rollback()
-                if tombstone is not None and tombstone.exists():
-                    tombstone.replace(managed_file)
+                for managed_file, tombstone in zip(
+                    managed_files, tombstones, strict=True
+                ):
+                    if tombstone.exists():
+                        managed_file.parent.mkdir(parents=True, exist_ok=True)
+                        tombstone.replace(managed_file)
                 raise AppError(
                     "VOICE_STORAGE_DELETE_FAILED",
                     "음성 파일을 안전하게 삭제하지 못했습니다.",
@@ -109,12 +115,44 @@ class VoiceProfileService:
             session.expunge(profile)
             return profile
 
-    def _managed_upload_path(self, profile: VoiceProfile) -> Path | None:
+    def _managed_upload_paths(self, profile: VoiceProfile) -> list[Path]:
+        paths = [
+            path
+            for sample in profile.samples
+            if (
+                path := self._managed_reference_path(
+                    sample.normalized_storage_path,
+                    expected=(
+                        Path("voices/references")
+                        / profile.id
+                        / "samples"
+                        / sample.id
+                        / "reference.wav"
+                    ),
+                )
+            )
+            is not None
+        ]
+        legacy_path = self._legacy_managed_upload_path(profile)
+        if legacy_path is not None and legacy_path not in paths:
+            paths.append(legacy_path)
+        return paths
+
+    def _legacy_managed_upload_path(self, profile: VoiceProfile) -> Path | None:
         expected = Path("voices/references") / profile.id / "reference.wav"
         if Path(profile.reference_file_path) != expected:
             return None
+        return self._managed_reference_path(
+            profile.reference_file_path, expected=expected
+        )
+
+    def _managed_reference_path(
+        self, value: str | None, *, expected: Path
+    ) -> Path | None:
+        if value is None or Path(value) != expected:
+            return None
         try:
-            path = self.storage.resolve_voice_reference(profile.reference_file_path)
+            path = self.storage.resolve_voice_reference(value)
         except ValueError:
             raise AppError(
                 "VOICE_STORAGE_DELETE_FAILED",
@@ -124,3 +162,13 @@ class VoiceProfileService:
         return (
             path if path.exists() and path.is_file() and not path.is_symlink() else None
         )
+
+    def _remove_empty_voice_reference_parents(self, path: Path) -> None:
+        root = self.storage.voice_references_dir.resolve()
+        current = path
+        while current != root and current.is_relative_to(root):
+            try:
+                current.rmdir()
+            except OSError:
+                break
+            current = current.parent

@@ -63,7 +63,7 @@ Phase 7  Doha Voice                  [계획]
   ↓
 Phase 8  Doha Studio                 [완료]
   ↓ 후속 개선
-F6       Guided Voice Enrollment     [계획]
+F6       Guided Voice Enrollment     [진행 중]
   ↓
 K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
@@ -83,7 +83,7 @@ Phase 9  Production                  [계획]
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| F6. Guided Voice Enrollment | [계획] | 독립 체크리스트 | 영속 모델·상태 전이·migration·legacy backfill 완료, API·Storage·정규화·cleanup·Wizard 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획) |
+| F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | Backend API·Storage·정규화·기본 품질·멱등성·lazy expiration 완료, scheduler·Wizard·인증 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -229,15 +229,15 @@ Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화
 - 관련 ADR·실험: [ADR-017 Frontend Technology Stack](docs/11-decisions/ADR-017-frontend-technology-stack.md)은 `[승인]`; 파일 전달은 [ADR-018](docs/11-decisions/ADR-018-secure-audio-file-access.md), Voice upload는 [ADR-019](docs/11-decisions/ADR-019-secure-voice-profile-upload.md), History 보존은 [ADR-020](docs/11-decisions/ADR-020-project-history-retention.md)을 따른다.
 - 예상 다음 단계: Phase 9 Production 또는 기존 완료 범위를 바꾸지 않는 F6 Guided Voice Enrollment 후속 개선.
 
-### F6. Guided Voice Enrollment — [계획]
+### F6. Guided Voice Enrollment — [진행 중]
 
 - 목표: 사용자가 안내에 따라 본인 참조 음성을 녹음하거나 기존 WAV를 제출하고 기본 문제를 확인한 뒤 Voice Profile을 등록하게 한다.
-- 현재 사실: 단일 25MB 이하, 5~60초, PCM16 WAV upload·Profile 즉시 생성과 Enrollment·Sample 영속 기반·legacy backfill이 구현돼 있다. 신규 Enrollment endpoint와 파일 처리는 아직 없다.
+- 현재 사실: 기존 단일 WAV upload를 유지하면서 신규 Enrollment 7개 endpoint, 최대 10개 sample, PCM16 48kHz mono 정규화, 임시·최종 Storage, 기본 peak·RMS·silence·clipping, 멱등성, 24시간 sliding/7일 absolute lazy expiration을 구현했다. WebM/Ogg는 FFmpeg 설치 시 처리하며 현재 개발 환경의 실제 FFmpeg 통합은 미검증이다.
 - 선행 조건: [ADR-024](docs/11-decisions/ADR-024-browser-voice-recording-server-normalization.md), [ADR-025](docs/11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](docs/11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)의 `[제안]`을 Windows·CI decoder와 Provider 품질 근거로 승인하고 [API](docs/06-api/voice-enrollment-api.md)·[데이터 모델](docs/07-database/voice-enrollment-data-model.md)을 구현 계약으로 확정한다.
 - Backend gap: WebM/Ogg, 다중 sample API, 사전 validation, cancel·resume·idempotency, 만료·cleanup 실행, 동의 철회·파생 삭제.
 - 보안 조건: 음성 binary Web Storage·Analytics 저장/전송 금지. 공개 운영 인증·소유권·감사·rate limit은 Phase 9 선행이다.
 - 산출물: [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md), [ADR-024~026](docs/11-decisions/README.md#f6-guided-voice-enrollment), [API](docs/06-api/voice-enrollment-api.md)·[데이터 모델](docs/07-database/voice-enrollment-data-model.md), 후속 Wizard·녹음·품질 UI와 test.
-- 완료 판정: [Frontend Roadmap F6](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획)의 독립 체크리스트. Phase 8 `15/15, 100%`의 분모·상태를 변경하지 않는다.
+- 완료 판정: [Frontend Roadmap F6](planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중)의 독립 체크리스트. Phase 8 `15/15, 100%`의 분모·상태를 변경하지 않는다.
 - Phase 7 경계: F6 sample을 학습 Dataset에 자동 재사용하지 않는다. 재사용은 별도 opt-in·lineage·삭제 ADR이 필요하다.
 
 ## Phase 9. Production — [계획]
