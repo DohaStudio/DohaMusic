@@ -1,7 +1,7 @@
 # 환경 변수
 
 > 문서 목적: 서비스와 선택적 AI 실행 설정의 책임을 정의한다.
-> 현재 상태: **Mock·선택적 AI·Lyrics Provider·Pipeline 변수 구현**
+> 현재 상태: **Mock·선택적 AI·Lyrics Provider·Pipeline·Voice Enrollment 운영 변수 구현**
 
 | 변수 | 용도 | 기본값 |
 |---|---|---|
@@ -54,6 +54,12 @@
 | `DOHAMUSIC_VOICE_ENROLLMENT_MAX_DURATION_SECONDS` | 정규화 후 최대 길이 | `60` |
 | `DOHAMUSIC_VOICE_ENROLLMENT_SLIDING_EXPIRY_HOURS` | 성공 mutation 기준 inactivity TTL | `24` |
 | `DOHAMUSIC_VOICE_ENROLLMENT_ABSOLUTE_EXPIRY_DAYS` | 생성 기준 절대 TTL | `7` |
+| `DOHAMUSIC_VOICE_CLEANUP_INTERVAL_SECONDS` | cleanup pending 및 delete retry 스캔 주기 | `300` |
+| `DOHAMUSIC_VOICE_EXPIRATION_SCAN_INTERVAL_SECONDS` | Enrollment 만료 스캔 주기 | `300` |
+| `DOHAMUSIC_VOICE_ORPHAN_SCAN_INTERVAL_SECONDS` | DB·Storage orphan 대조 주기 | `3600` |
+| `DOHAMUSIC_VOICE_DELETE_RETRY_LIMIT` | process 수명 내 cleanup 최대 시도 횟수 | `3` |
+| `DOHAMUSIC_VOICE_DELETE_RETRY_DELAY_SECONDS` | 실패 후 다음 cleanup 시도까지 최소 지연 | `60` |
+| `DOHAMUSIC_VOICE_ORPHAN_GRACE_SECONDS` | 확정 가능한 orphan 파일 자동 삭제 전 유예 | `86400` |
 | `DOHAMUSIC_PIPELINE_VERSION` | Pipeline metadata 계약 버전 | `1` |
 | `DOHAMUSIC_PIPELINE_MAX_RETRIES` | 단계별 추가 시도 횟수 | `1` |
 | `DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS` | Orchestrator 단계 제한 | `900` |
@@ -70,6 +76,8 @@
 `NEXT_PUBLIC_*` 값은 browser bundle에 공개되므로 비밀을 넣지 않는다. `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH`는 정확히 `true`일 때만 form을 노출하며 Backend path 검증이나 인증을 대체하지 않는다. 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 
 기존 `/api/voice-profiles/upload` 제한은 25MB·5~60초 고정 계약이다. 신규 Enrollment는 위 설정을 사용하며 기본값을 동일하게 유지한다. FFmpeg binary는 저장소가 배포·다운로드하지 않는다. `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE`은 PATH에서 찾을 이름 또는 `ffmpeg.exe`의 절대 경로만 사용하며, 변경 후 Backend를 재시작한다. WebM/Ogg 요청의 최초 사용 시 `-version` 검증이 실패하면 `VOICE_NORMALIZER_UNAVAILABLE`을 반환하고 WAV 요청은 영향을 받지 않는다.
+
+Voice Enrollment scheduler는 Backend process마다 하나씩 실행하는 로컬 단일 instance 계약이다. 재시도 횟수와 metric은 process-local이며 재시작 시 초기화되지만, DB의 `DELETE_FAILED`·cleanup 실패 상태를 시작 복구가 다시 읽어 cleanup을 재개한다. 다중 Backend instance의 lease·분산 lock·영속 metric은 Phase 9 범위다.
 
 ## 벤치마크 전용 변수
 

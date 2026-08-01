@@ -6,7 +6,7 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> F6 Guided Voice Enrollment는 `[진행 중]`입니다. Profile 1:N Sample·대표 reference, Enrollment 7개 API·정규화·품질·멱등성·lazy expiration과 `/voice` 8단계 Wizard·MediaRecorder·파일 업로드·대표 선택·복원·Studio 연결을 구현했습니다. Windows FFmpeg 8.1.2와 Ubuntu·Windows CI에서 WebM/Ogg 정규화 경로를 검증하며, FFmpeg가 없으면 해당 입력만 안전하게 거부하고 기존 빠른 WAV 등록은 유지합니다. 주기적 cleanup scheduler·인증·실기기 브라우저 평가는 미구현이고 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
+> F6 Guided Voice Enrollment는 `[진행 중]`입니다. Profile 1:N Sample·대표 reference, Enrollment 7개 API·정규화·품질·멱등성과 `/voice` 8단계 Wizard를 구현했습니다. Backend 시작 복구와 주기적 만료·cleanup·재시도·orphan scan도 DB 기준으로 동작합니다. Windows FFmpeg 8.1.2와 Ubuntu·Windows CI에서 WebM/Ogg 정규화 경로를 검증하며, FFmpeg가 없으면 해당 입력만 안전하게 거부합니다. 인증·소유권과 실제 사용자 마이크 평가는 남아 있고 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
 
 > K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1·K3.2·K3.3은 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Quality Metrics, 예상 Tempo와 에너지·반복 기반 후렴 후보를 분석하며 K3.4 Preview는 `[계획]`입니다.
 
@@ -14,7 +14,7 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료**
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다.
@@ -54,6 +54,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | Pipeline 기반 생성 History·Project 관리와 Result 재진입·재생·다운로드 |
 | [완료] | 사용자 안내형 Voice Enrollment Wizard와 브라우저 MediaRecorder·WAV fallback |
 | [완료] | Guided Voice Enrollment 영속 모델·7개 API·다중 sample·정규화·기본 품질 검사·Profile 승격 |
+| [완료] | Guided Voice Enrollment 주기 만료·cleanup 재시도·orphan scan·시작 시 crash recovery |
 | [완료] | K-POP Structured Generation Options 검증·Prompt 컴파일·Snapshot·Retry·공개 설정 요약 |
 | [완료] | K3.0 Audio Analysis 제품·결과·실패·평가·라이브러리·ADR 계약 문서 |
 | [완료] | K3.1 final WAV duration·sample rate·channels·Sample Peak·clipping·Integrated LUFS 분석과 Result·History·Project UI |

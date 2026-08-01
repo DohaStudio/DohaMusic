@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, datetime
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from backend.core.voice_enrollment_status import (
@@ -95,14 +95,37 @@ class VoiceSampleRepository:
         sample.voice_profile_id = profile.id
         return self.transition(sample, VoiceSampleStatus.PROMOTED, commit=commit)
 
-    def list_cleanup_pending(self, *, limit: int = 100) -> list[VoiceSample]:
+    def list_cleanup_pending(
+        self,
+        *,
+        retry_before: datetime | None = None,
+        limit: int = 100,
+    ) -> list[VoiceSample]:
+        retry_cutoff = retry_before or datetime.max.replace(tzinfo=UTC)
+        statement = (
+            select(VoiceSample)
+            .where(
+                or_(
+                    VoiceSample.status == VoiceSampleStatus.DELETE_PENDING.value,
+                    and_(
+                        VoiceSample.status == VoiceSampleStatus.DELETE_FAILED.value,
+                        VoiceSample.updated_at <= retry_cutoff,
+                    ),
+                )
+            )
+            .order_by(VoiceSample.updated_at)
+            .limit(limit)
+        )
+        return list(self.session.scalars(statement))
+
+    def list_interrupted(self, *, limit: int = 100) -> list[VoiceSample]:
         statement = (
             select(VoiceSample)
             .where(
                 VoiceSample.status.in_(
                     [
-                        VoiceSampleStatus.DELETE_PENDING.value,
-                        VoiceSampleStatus.DELETE_FAILED.value,
+                        VoiceSampleStatus.UPLOADED.value,
+                        VoiceSampleStatus.VALIDATING.value,
                     ]
                 )
             )
@@ -110,3 +133,6 @@ class VoiceSampleRepository:
             .limit(limit)
         )
         return list(self.session.scalars(statement))
+
+    def list_all_managed(self) -> list[VoiceSample]:
+        return list(self.session.scalars(select(VoiceSample)))

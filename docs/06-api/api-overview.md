@@ -54,4 +54,4 @@
 }
 ```
 
-Pipeline 결과 WAV의 content/download, 기존 Voice Profile 단일 WAV upload, Guided Enrollment 다중 sample·사전 validation·임시 상태와 Pipeline 취소·새 Job 재시도를 제공한다. 인증·사용자 소유권, 주기적 cleanup scanner, Voice 원본 content와 개별 생성 모듈 download API는 후속 단계 범위다.
+Pipeline 결과 WAV의 content/download, 기존 Voice Profile 단일 WAV upload, Guided Enrollment 다중 sample·사전 validation·임시 상태와 Pipeline 취소·새 Job 재시도를 제공한다. Guided Enrollment의 주기 만료·cleanup·crash recovery는 공개 endpoint 없이 Backend lifecycle에서 동작한다. 인증·사용자 소유권, Voice 원본 content와 개별 생성 모듈 download API는 후속 단계 범위다.

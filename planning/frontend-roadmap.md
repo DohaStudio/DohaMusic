@@ -1,7 +1,7 @@
 # Doha Studio Frontend Roadmap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 > 관련 Phase: Phase 8 Doha Studio, Phase 8 후속 F6 Guided Voice Enrollment
 > 관련 문서: [Frontend Overview](../docs/03-architecture/frontend-overview.md), [Frontend Architecture](../docs/03-architecture/frontend-architecture.md), [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API](../docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](../docs/07-database/voice-enrollment-data-model.md), [Phase-08 DoD](../docs/DoD/Phase-08.md)
 
@@ -107,13 +107,13 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 단일 WAV form인 `/voice`를 사용자가 안내에 따라 본인 참조 음성을 준비하는 Wizard로 개선한다. F6는 Phase 8의 후속 Studio UX이며 기존 Phase 8 `15/15, 100%`를 변경하지 않는다. 장시간 Dataset 수집·전사·split·preprocessing·LoRA·Fine Tuning은 Phase 7 범위로 분리한다.
 
-Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Ogg 입력, 최대 10개 sample, PCM16 48kHz mono 정규화, 기본 품질 검사, Profile 승격, 멱등성과 lazy expiration을 지원한다. Frontend는 8단계 Wizard, MediaRecorder·입력 수준·preview, 다중 파일 업로드, 품질·대표 선택, session 복원·취소·만료와 Studio 선택을 연결했다. WebM/Ogg는 Windows FFmpeg 8.1.2와 Ubuntu·Windows CI에서 실제 변환 경로를 검증하며, optional FFmpeg가 없으면 안전한 unavailable 오류를 반환한다. upload resume, 주기적 cleanup scanner와 동의 철회는 지원하지 않는다.
+Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Ogg 입력, 최대 10개 sample, PCM16 48kHz mono 정규화, 기본 품질 검사, Profile 승격, 멱등성과 24시간 sliding/7일 absolute 만료를 지원한다. Frontend는 8단계 Wizard를 연결했다. WebM/Ogg는 Windows FFmpeg 8.1.2와 Ubuntu·Windows CI에서 실제 변환 경로를 검증한다. Backend process-local scheduler는 시작 복구, 만료, cleanup retry와 DB 기준 orphan scan을 수행한다. upload resume와 동의 철회는 지원하지 않는다.
 
 ### 구현 선행 결정
 
 - `[제안]` [ADR-024](../docs/11-decisions/ADR-024-browser-voice-recording-server-normalization.md): Backend decode·PCM16 48kHz mono WAV 정규화, decoder·resource limit과 품질 검사 경계
 - `[제안]` [ADR-025](../docs/11-decisions/ADR-025-voice-profile-multiple-samples-reference.md): Profile 1:N Sample, 사용자가 확정한 대표 reference와 legacy backfill
-- `[제안]` [ADR-026](../docs/11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md): 별도 임시 Storage, 24시간 sliding/7일 absolute 만료, idempotency·cleanup retry
+- `[승인]` [ADR-026](../docs/11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md): 별도 임시 Storage, 24시간 sliding/7일 absolute 만료, idempotency·cleanup retry·crash recovery
 - `[Backend 확장 필요]` sample별 metadata·품질, 사전 validation, 전체 duration과 Profile 설명
 - `[Phase 9 선행]` 공개 운영 인증·소유권·동의 철회·감사·rate limit
 
@@ -122,7 +122,7 @@ Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Og
 - [x] Voice Enrollment 요구사항 확정 — Backend 계약과 Frontend Wizard 구현 완료
 - [x] 녹음 MIME과 WAV 정규화 Backend 구현 — Windows FFmpeg 8.1.2와 Ubuntu·Windows CI 실제 WebM/Ogg 변환 검증
 - [x] 단일 reference와 다중 sample 영속 모델 — migration·legacy backfill·Repository 검증 완료
-- [x] 임시 Enrollment·API·lazy 만료·즉시 cleanup primitive 구현 — scheduler는 미구현
+- [x] 임시 Enrollment·API·주기 만료·cleanup retry·orphan scan·시작 시 crash recovery 구현
 - [x] 안내 문장과 녹음 정책 검증 — 자체 문장·5~60초·WAV fallback과 품질 한계 표시
 - [x] 브라우저 녹음 UI — feature detection·권한·시작/일시정지/재개/종료·입력 수준·preview·cleanup
 - [x] 기존 파일 upload Wizard 연결 — WAV 우선, WebM/Ogg 안전 오류, 최대 10개와 파일별 재시도
@@ -144,7 +144,7 @@ Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Og
 
 ## 우선순위와 보류
 
-F0~F5는 로컬 단일 사용자 범위에서 완료됐다. F6 Backend·Frontend와 FFmpeg 통합 검증은 완료했지만 주기적 cleanup·인증·실기기 MIME/수동 녹음 평가는 남아 있어 `[진행 중]`이다. 공개 DTO는 내부 Storage 경로를 반환하지 않는다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.
+F0~F5는 로컬 단일 사용자 범위에서 완료됐다. F6 Backend·Frontend, FFmpeg 통합 검증과 cleanup scheduler/crash recovery는 완료했지만 인증·소유권·실기기 MIME/수동 녹음 평가와 운영 환경 장기 모니터링이 남아 있어 `[진행 중]`이다. 공개 DTO는 내부 Storage 경로를 반환하지 않는다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.
 
 Frontend shared mapper와 Result metadata allowlist는 루트 `lib/` ignore 규칙으로 누락됐던 파일을 기존 계약에 맞춰 복구했다. 이 복구는 Phase 8 기능·상태를 바꾸지 않고 typecheck·build·Vitest·Playwright 기준선과 후속 K1 검증 차단을 해소한다.
 

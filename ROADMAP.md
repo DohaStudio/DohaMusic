@@ -39,7 +39,7 @@
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| F6. Guided Voice Enrollment | [진행 중] | Backend·Frontend와 Windows/CI FFmpeg 정규화 검증 완료; scheduler·인증·실기기 평가는 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중) |
+| F6. Guided Voice Enrollment | [진행 중] | Backend·Frontend·FFmpeg·cleanup scheduler/crash recovery 완료; 인증·실기기 평가는 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -52,7 +52,7 @@
 5. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
 6. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
 7. Production 전 Pipeline 취소·복구·idempotency와 외부 Queue 요구사항을 정의한다.
-8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5와 F6 Frontend Wizard·MediaRecorder·품질·대표 선택·복원 및 Windows/CI FFmpeg 통합 검증을 완료했다. F6 전체는 scheduler·인증·실기기 평가가 남아 `[진행 중]`이며 기존 Phase 8 완료 상태와 분리한다.
+8. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5와 F6 Frontend Wizard·MediaRecorder·품질·대표 선택·복원, Windows/CI FFmpeg와 cleanup scheduler/crash recovery를 완료했다. F6 전체는 인증·실기기 평가가 남아 `[진행 중]`이며 기존 Phase 8 완료 상태와 분리한다.
 9. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 10. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
 
@@ -61,7 +61,7 @@
 1. [부분 완료] Backend PCM16 WAV 정규화와 FFmpeg optional Provider·미설치 오류 처리를 구현하고 Windows FFmpeg 8.1.2 및 Ubuntu·Windows CI 통합 검증을 추가했다. FFmpeg build 라이선스의 운영 배포 검토는 남아 있다.
 2. [완료] [데이터 모델](docs/07-database/voice-enrollment-data-model.md)에 따라 `VoiceEnrollment`·`VoiceSample` additive migration과 기존 단일 Profile backfill을 구현했다.
 3. [완료] 별도 Enrollment Storage·정규화 service와 [Enrollment API](docs/06-api/voice-enrollment-api.md)를 구현했다.
-4. [부분 완료] sample 기본 품질 검사, 24시간 sliding/7일 absolute lazy 만료, idempotency와 즉시 cleanup primitive를 구현했다. 주기적 scanner·retry scheduler는 미구현이다.
+4. [완료] sample 기본 품질 검사, 24시간 sliding/7일 absolute 만료, idempotency, 즉시 cleanup primitive, 주기 scanner·retry와 시작 시 crash recovery를 구현했다.
 5. [완료] 안내 문장·MediaRecorder·기존 WAV fallback·품질 확인·대표 Sample·Profile 등록 Wizard를 구현했다.
 6. [완료] Frontend unit·component·Desktop/Mobile E2E와 실제 Backend 합성 WAV create/upload/submit 연결을 통과했다.
 7. 개인 음성을 Git에 남기지 않는 사용자 동의 로컬 수동 녹음 평가를 수행한다.

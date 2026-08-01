@@ -1,10 +1,10 @@
 # Voice Enrollment 데이터 모델
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [현재 ERD](erd.md), [현재 테이블 정의](table-definition.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)
-> 구현 상태: Alembic `20260801_0010` 영속 모델에 이어 `20260801_0011`이 sample `quality_metrics`와 hashed `idempotency_records`를 추가한다. Enrollment API·Storage·정규화·기본 품질·lazy 만료·즉시 cleanup primitive를 구현했고 scanner·scheduler는 미구현이다.
+> 구현 상태: 기존 Alembic `20260801_0010`·`0011` schema를 변경하지 않고 Enrollment API·Storage·정규화·만료·cleanup scheduler와 crash recovery를 구현했다. retry 횟수와 metric은 process-local이고 기존 lifecycle 상태·실패 코드·갱신 시각이 재시작 복구의 영속 근거다.
 
 ## 1. 구현 범위
 

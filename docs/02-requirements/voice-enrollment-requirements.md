@@ -1,11 +1,11 @@
 # Voice Enrollment 요구사항
 
 > 문서 상태: [진행 중] [요구사항]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 > 관련 기능: 사용자 안내형 Voice Enrollment Wizard, Voice Profile 등록
 > 관련 Phase: Phase 8 후속 F6, Phase 7 개인화 Dataset과 경계 분리, Phase 9 공개 운영 선행 조건
 > 관련 문서: [Frontend Roadmap](../../planning/frontend-roadmap.md), [Frontend Architecture](../03-architecture/frontend-architecture.md), [현재 음성 프로필 API](../06-api/audio-api.md), [Voice Enrollment API 제안](../06-api/voice-enrollment-api.md), [데이터 모델 제안](../07-database/voice-enrollment-data-model.md), [음성 동의 정책](../09-security/voice-consent-policy.md), [ADR-024~026](../11-decisions/README.md#f6-guided-voice-enrollment), [Phase 7 DoD](../DoD/Phase-07.md), [Phase 8 DoD](../DoD/Phase-08.md)
-> 구현 상태: Backend Enrollment 7개 API, 최대 10개 sample, WAV/WebM/Ogg 정규화, 기본 품질 검사, Storage 승격·cleanup, 멱등성과 lazy expiration 및 Frontend Wizard·MediaRecorder·품질·대표 선택·복원을 구현했다. Windows와 CI의 실제 FFmpeg WebM/Ogg 통합을 검증했으며 주기적 scanner, 인증·소유권과 AI 품질 검사는 미구현이다.
+> 구현 상태: Backend Enrollment 7개 API, 정규화, Storage 승격, 멱등성, 주기 만료·cleanup retry·orphan scan·crash recovery 및 Frontend Wizard를 구현했다. Windows와 CI의 FFmpeg 통합을 검증했으며 인증·소유권, 실제 사용자 마이크와 AI 품질 검사는 미구현이다.
 
 ## 1. 목적과 범위
 
@@ -490,7 +490,7 @@ ADR-019는 현재 단일 WAV upload·atomic 저장·삭제 경계를 승인했�
 | MediaRecorder MIME을 어디서 WAV로 정규화할 것인가 | Frontend / Backend / 지원 브라우저 제한 / 녹음 보류 | 브라우저 녹음 | Backend 정규화 `[제안]`, [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md) |
 | 단일 reference와 다중 sample을 어떻게 연결할 것인가 | 단일 유지 / sample table / 병합 / 대표+보조 | 다중 sample·품질·lineage | Profile 1:N + active reference `[제안]`, [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md) |
 | 품질 검사를 어디서 실행할 것인가 | client preview / API / 비동기 Worker | 사전 검사·상태·latency | Client 보조·Backend 최종·고급 Worker 보류 `[제안]`, [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md) |
-| 임시 upload와 cleanup을 어떻게 관리할 것인가 | 단일 request / Enrollment session / object lifecycle | cancel·resume·orphan | 별도 Enrollment root·24h sliding/7d absolute·retry `[제안]`, [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md) |
+| 임시 upload와 cleanup을 어떻게 관리할 것인가 | 단일 request / Enrollment session / object lifecycle | cancel·resume·orphan | 별도 Enrollment root·24h sliding/7d absolute·retry `[승인]`, [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md) |
 | 원본 sample을 보존할 것인가 | 즉시 정규화 후 삭제 / 보존 / 사용자 선택 | 삭제·감사·저장비용 | Enrollment 동안만 임시 보존, 완료·취소·만료 시 삭제 `[제안]`, ADR-024·026 |
 | F6 sample을 Phase 7 Dataset에 재사용할 것인가 | 분리 / 별도 opt-in 복제 | 동의 목적·lineage·학습 | 자동 재사용 금지, 별도 opt-in은 `[Phase 9 선행]` |
 

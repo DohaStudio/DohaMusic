@@ -44,6 +44,11 @@ from backend.services.voice_enrollment_service import VoiceEnrollmentService
 from backend.services.voice_profile_service import VoiceProfileService
 from backend.services.voice_upload_service import VoiceUploadService
 from backend.storage.service import StorageService
+from backend.voice_enrollment.maintenance import (
+    VoiceEnrollmentMaintenanceService,
+    VoiceMaintenanceMetrics,
+)
+from backend.voice_enrollment.scheduler import VoiceEnrollmentScheduler
 from backend.workers.dispatcher import ThreadPoolJobDispatcher
 from backend.workers.generation_worker import GenerationWorker
 from backend.workers.pipeline_worker import PipelineWorker
@@ -176,6 +181,24 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             storage=storage,
             settings=resolved_settings,
         )
+        voice_maintenance_metrics = VoiceMaintenanceMetrics()
+        voice_maintenance_service = VoiceEnrollmentMaintenanceService(
+            session_factory=session_factory,
+            storage=storage,
+            settings=resolved_settings,
+            metrics=voice_maintenance_metrics,
+        )
+        voice_maintenance_scheduler = VoiceEnrollmentScheduler(
+            maintenance=voice_maintenance_service,
+            expiration_interval_seconds=(
+                resolved_settings.voice_expiration_scan_interval_seconds
+            ),
+            cleanup_interval_seconds=resolved_settings.voice_cleanup_interval_seconds,
+            orphan_interval_seconds=resolved_settings.voice_orphan_scan_interval_seconds,
+        )
+        app.state.voice_maintenance_metrics = voice_maintenance_metrics
+        app.state.voice_enrollment_maintenance_service = voice_maintenance_service
+        app.state.voice_enrollment_scheduler = voice_maintenance_scheduler
         app.state.voice_upload_service = VoiceUploadService(
             session_factory=session_factory,
             storage=storage,
@@ -194,10 +217,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             pipeline_version=resolved_settings.pipeline_version,
             storage=storage,
         )
+        await voice_maintenance_scheduler.start()
         logger.info("application_started")
         try:
             yield
         finally:
+            await voice_maintenance_scheduler.stop()
             shared_executor.shutdown(wait=True, cancel_futures=False)
             session_factory.kw["bind"].dispose()
             logger.info("application_stopped")
