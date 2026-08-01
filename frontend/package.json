@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:e2e:voice-validation": "playwright test --config playwright.validation.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "5.2.2",

@@ -39,7 +39,7 @@
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| F6. Guided Voice Enrollment | [진행 중] | Backend·Frontend·FFmpeg·cleanup scheduler/crash recovery 완료; 인증·실기기 평가는 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중) |
+| F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -64,7 +64,8 @@
 4. [완료] sample 기본 품질 검사, 24시간 sliding/7일 absolute 만료, idempotency, 즉시 cleanup primitive, 주기 scanner·retry와 시작 시 crash recovery를 구현했다.
 5. [완료] 안내 문장·MediaRecorder·기존 WAV fallback·품질 확인·대표 Sample·Profile 등록 Wizard를 구현했다.
 6. [완료] Frontend unit·component·Desktop/Mobile E2E와 실제 Backend 합성 WAV create/upload/submit 연결을 통과했다.
-7. 개인 음성을 Git에 남기지 않는 사용자 동의 로컬 수동 녹음 평가를 수행한다.
+7. [완료] 실제 Chrome·Edge 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션에서 upload·submit·경고·실패·멱등·만료·cancel과 합성 MediaRecorder Validation을 수행했다.
+8. 개인 음성을 Git에 남기지 않는 사용자 동의 실제 마이크·Android/iOS/Safari·Bluetooth 수동 평가를 수행한다.
 
 F6는 기존 Voice Conversion용 참조 음성 UX다. Phase 7의 장시간 Dataset·전사·split·preprocessing·LoRA·Fine Tuning과 자동 결합하지 않는다. 공개 운영의 인증·소유권·동의 철회·감사는 Phase 9 선행 조건이다.
 

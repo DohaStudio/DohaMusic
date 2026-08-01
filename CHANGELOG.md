@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 테스트 — Guided Voice Enrollment Validation
+
+- 제품·API·DB·migration을 변경하지 않고 신규 사용자 PASS 등록, 합성 MediaRecorder preview/upload, 3개 품질 WARNING, 실패·timeout·FFmpeg 미설치, upload/submit 멱등, 만료·cancel·cleanup UX를 다루는 Validation E2E를 추가했다.
+- 설치된 Chrome·Edge, Playwright Firefox와 Pixel 7·iPhone 14 에뮬레이션을 분리한 browser matrix와 실제 `MediaRecorder.isTypeSupported()`·Blob MIME probe를 추가했다.
+- 실제 기기·실제 microphone 검증과 자동화 결과를 구분한 Validation Report, 운영 전 점검과 Phase 9 선행 항목을 분리한 수동 체크리스트를 추가했다.
+- 자동 Validation은 완료했지만 실제 Android/iOS/Safari·Bluetooth microphone, 인증·소유권과 장기 운영 monitoring이 남아 F6는 `[진행 중]`을 유지한다.
+
 ### 추가 — Guided Voice Enrollment 운영 안정성
 
 - FastAPI lifecycle에 AI Worker와 분리된 process-local scheduler를 등록해 시작 시 crash recovery를 1회 수행하고 만료·cleanup·orphan scan을 설정 주기로 실행한다.

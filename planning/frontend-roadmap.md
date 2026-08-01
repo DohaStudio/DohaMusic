@@ -131,10 +131,14 @@ Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Og
 - [x] 오류·재시도·취소·cleanup — 동일 key 재시도, session 복원, 만료·not found·cleanup 상태 UX
 - [x] 접근성·반응형 — 단계 focus·aria-current/live/meter/radio, Desktop·Pixel 7 E2E
 - [x] Frontend unit·component·E2E — Vitest 95개와 전체 Playwright 24개 통과
+- [x] Validation E2E — Chrome·Edge 설치 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 PASS·WARNING·FAIL·멱등·만료·cancel과 MIME probe
 - [x] Backend API·Audio·Storage·migration·기존 Voice 회귀 자동 test
 - [x] 보안·동의·API·DB 문서 — Frontend 구현 사실과 미구현 경계를 갱신
+- [x] 운영·수동 검증 체크리스트와 Validation Report
 - [x] CHANGELOG
-- [ ] 한국어 커밋·Push·`develop` PR·병합 검증
+- [x] Backend·Frontend·scheduler 구현 PR의 한국어 커밋·Push·`develop` 병합 검증
+- [ ] Validation PR 한국어 커밋·Push·`develop` PR·병합 검증
+- [ ] 실제 사용자 마이크·실제 Android/iOS/Safari·Bluetooth 수동 평가
 
 ### 예상 산출물과 완료 기준
 
@@ -144,7 +148,7 @@ Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Og
 
 ## 우선순위와 보류
 
-F0~F5는 로컬 단일 사용자 범위에서 완료됐다. F6 Backend·Frontend, FFmpeg 통합 검증과 cleanup scheduler/crash recovery는 완료했지만 인증·소유권·실기기 MIME/수동 녹음 평가와 운영 환경 장기 모니터링이 남아 있어 `[진행 중]`이다. 공개 DTO는 내부 Storage 경로를 반환하지 않는다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.
+F0~F5는 로컬 단일 사용자 범위에서 완료됐다. F6 Backend·Frontend, FFmpeg 통합, cleanup scheduler/crash recovery와 Desktop·mobile emulation 자동 Validation은 완료했지만 인증·소유권·실제 기기 MIME/수동 녹음 평가와 운영 환경 장기 모니터링이 남아 있어 `[진행 중]`이다. 상세 근거는 [Validation Report](../reports/validation/VALIDATION-VOICE-ENROLLMENT.md)를 따른다. 공개 DTO는 내부 Storage 경로를 반환하지 않는다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.
 
 Frontend shared mapper와 Result metadata allowlist는 루트 `lib/` ignore 규칙으로 누락됐던 파일을 기존 계약에 맞춰 복구했다. 이 복구는 Phase 8 기능·상태를 바꾸지 않고 typecheck·build·Vitest·Playwright 기준선과 후속 K1 검증 차단을 해소한다.
 

@@ -83,7 +83,7 @@ Phase 9  Production                  [계획]
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | Backend·Frontend·FFmpeg·cleanup scheduler/crash recovery 완료, 인증·실기기 평가는 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중) |
+| F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -236,7 +236,7 @@ Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화
 - 선행 조건: [ADR-024](docs/11-decisions/ADR-024-browser-voice-recording-server-normalization.md)·[ADR-025](docs/11-decisions/ADR-025-voice-profile-multiple-samples-reference.md)의 Provider 품질 근거를 보완하고, 구현된 [ADR-026](docs/11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)과 [API](docs/06-api/voice-enrollment-api.md)·[데이터 모델](docs/07-database/voice-enrollment-data-model.md) 계약을 유지한다.
 - 남은 gap: chunk resume, 동의 철회·파생 삭제, FFmpeg build 라이선스 운영 검토, 실제 사용자 수동 녹음·브라우저 MIME 평가, 장기 운영 모니터링.
 - 보안 조건: 음성 binary Web Storage·Analytics 저장/전송 금지. 공개 운영 인증·소유권·감사·rate limit은 Phase 9 선행이다.
-- 산출물: [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md), [ADR-024~026](docs/11-decisions/README.md#f6-guided-voice-enrollment), [API](docs/06-api/voice-enrollment-api.md)·[데이터 모델](docs/07-database/voice-enrollment-data-model.md), `/voice` Wizard·녹음·품질·대표 선택 UI와 Frontend unit·component·E2E.
+- 산출물: [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md), [ADR-024~026](docs/11-decisions/README.md#f6-guided-voice-enrollment), [API](docs/06-api/voice-enrollment-api.md)·[데이터 모델](docs/07-database/voice-enrollment-data-model.md), `/voice` Wizard·녹음·품질·대표 선택 UI, Frontend unit·component·E2E와 [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md).
 - 완료 판정: [Frontend Roadmap F6](planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중)의 독립 체크리스트. Phase 8 `15/15, 100%`의 분모·상태를 변경하지 않는다.
 - Phase 7 경계: F6 sample을 학습 Dataset에 자동 재사용하지 않는다. 재사용은 별도 opt-in·lineage·삭제 ADR이 필요하다.
 
