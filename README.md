@@ -6,7 +6,7 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> F6 Guided Voice Enrollment는 `[진행 중]`입니다. Profile 1:N Sample·대표 reference, Enrollment 7개 API·정규화·품질·멱등성과 `/voice` 8단계 Wizard를 구현했습니다. Backend 시작 복구와 주기적 만료·cleanup·재시도·orphan scan도 DB 기준으로 동작합니다. Windows FFmpeg 8.1.2와 Ubuntu·Windows CI에서 WebM/Ogg 정규화 경로를 검증하며, FFmpeg가 없으면 해당 입력만 안전하게 거부합니다. 인증·소유권과 실제 사용자 마이크 평가는 남아 있고 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
+> F6 Guided Voice Enrollment는 `[진행 중]`입니다. 구현과 Windows FFmpeg 8.1.2·Ubuntu/Windows CI에 더해 실제 Chrome·Edge 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 자동 Validation을 수행했습니다. 실제 사용자 마이크·실제 Android/iOS/Safari와 인증·소유권은 남아 있습니다. 결과는 [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md)와 [운영·수동 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)를 따르며 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
 
 > K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1·K3.2·K3.3은 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Quality Metrics, 예상 Tempo와 에너지·반복 기반 후렴 후보를 분석하며 K3.4 Preview는 `[계획]`입니다.
 
@@ -157,6 +157,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md)
 - Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md), [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
 - API와 데이터: [API 개요](docs/06-api/api-overview.md), [ERD](docs/07-database/erd.md), [Voice Enrollment API](docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](docs/07-database/voice-enrollment-data-model.md)
+- Voice Enrollment 검증과 운영: [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md), [운영·수동 검증 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)
 - 안전과 권리: [음성 동의 정책](docs/09-security/voice-consent-policy.md), [생성 콘텐츠 정책](docs/09-security/generated-content-policy.md)
 - 의사결정: [ADR 목록](docs/11-decisions/README.md)
 - Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Audio Quality Engine](docs/03-architecture/audio-quality-engine.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)

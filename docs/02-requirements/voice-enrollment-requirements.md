@@ -496,7 +496,7 @@ ADR-019는 현재 단일 WAV upload·atomic 저장·삭제 경계를 승인했�
 
 ## 18. 완료 판정
 
-F6는 [Frontend Roadmap](../../planning/frontend-roadmap.md)의 별도 후속 Track으로 관리한다. Backend·Frontend와 Windows/CI FFmpeg 통합 검증은 완료했지만 scheduler·인증·수동 녹음/실기기 MIME 평가가 남아 F6 전체는 `[진행 중]`이며 Phase 8의 기존 `15/15, 100%` 분모와 상태를 변경하지 않는다.
+F6는 [Frontend Roadmap](../../planning/frontend-roadmap.md)의 별도 후속 Track으로 관리한다. Backend·Frontend·scheduler와 Windows/CI FFmpeg 통합, Desktop 설치 채널·Playwright browser/mobile emulation 자동 Validation은 완료했다. 실제 사용자 마이크·실제 Android/iOS/Safari MIME과 인증은 남아 F6 전체는 `[진행 중]`이며 Phase 8의 기존 `15/15, 100%` 분모와 상태를 변경하지 않는다. 검증 근거와 한계는 [Validation Report](../../reports/validation/VALIDATION-VOICE-ENROLLMENT.md)에 기록한다.
 
 구현 완료에는 최소한 다음이 필요하다.
 
