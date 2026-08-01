@@ -55,6 +55,6 @@
 
 # F6 Guided Voice Enrollment
 
-- [ADR-024 — 브라우저 음성 녹음 포맷과 서버 정규화 경계](ADR-024-browser-voice-recording-server-normalization.md): Python WAV와 optional FFmpeg 경계는 구현했으며 실제 FFmpeg build 검증 전까지 제안을 유지한다.
+- [ADR-024 — 브라우저 음성 녹음 포맷과 서버 정규화 경계](ADR-024-browser-voice-recording-server-normalization.md): Python WAV와 optional FFmpeg 경계를 구현하고 Windows/CI 변환을 검증했으며 운영 build 라이선스·자원 상한·실기기 평가 전까지 제안을 유지한다.
 - [ADR-025 — Voice Profile 다중 Sample과 대표 Reference 모델](ADR-025-voice-profile-multiple-samples-reference.md): Sample 개별 보존과 사용자가 확정한 대표 reference 하나를 Pipeline에 전달하는 구현을 승인했다.
 - [ADR-026 — Voice Enrollment 임시 업로드와 정리 수명주기](ADR-026-voice-enrollment-lifecycle-cleanup.md): 임시 aggregate·lazy 만료·멱등성·승격·즉시 cleanup은 구현했고 scheduler·crash recovery는 제안으로 남긴다.

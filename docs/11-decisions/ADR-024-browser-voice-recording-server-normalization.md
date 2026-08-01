@@ -11,9 +11,9 @@
 
 현재 `POST /api/voice-profiles/upload`은 `.wav`, `audio/wav` 또는 `audio/x-wav`, 25MiB 이하, 5~60초, 16-bit PCM, 16kHz 이상, mono/stereo만 받는다. 브라우저 `MediaRecorder`는 환경에 따라 WebM/Opus 또는 Ogg/Opus를 생성하므로 녹음 Blob을 현재 API에 직접 보낼 수 없다.
 
-교체 가능한 normalizer interface와 Python WAV 변환, shell 없는 optional FFmpeg WebM/Ogg decoder, timeout·출력 재검증·부분 cleanup·미설치 오류를 구현했다. 2026-08-01 Windows 개발 환경에는 FFmpeg가 없어 fake subprocess와 unavailable 경로만 자동 검증했다. 실제 WebM/Ogg decode와 고정 build license·재현성 근거가 부족하므로 상태는 `[제안]`으로 유지한다.
+교체 가능한 normalizer interface와 Python WAV 변환, shell 없는 optional FFmpeg WebM/Ogg decoder, timeout·출력 재검증·부분 cleanup·미설치 오류를 구현했다. 2026-08-01 Windows 11의 Winget `Gyan.FFmpeg` 8.1.2 full build에서 합성 WebM/Ogg Opus를 실제 decode했고 CI에는 Ubuntu 전체 Backend와 Windows 집중 통합 검증을 추가했다. 다만 운영 배포 build의 라이선스 검토, 자원 상한의 악성 fixture 검증, Voice Provider 청감 평가와 실기기 MIME matrix가 남아 상태는 `[제안]`으로 유지한다.
 
-> Frontend 구현 메모: `/voice`는 `audio/wav`, `audio/webm;codecs=opus`, `audio/webm`, `audio/ogg;codecs=opus`, `audio/ogg` 순서로 `MediaRecorder.isTypeSupported()`를 확인하고 권한·녹음·일시정지·재개·60초 종료·입력 수준·preview를 제공한다. WebM/Ogg normalization 실패는 WAV fallback으로 안내한다. 자동 E2E는 합성 WAV를 사용했으며 실제 장치별 MIME과 WebM/Ogg는 미검증이므로 ADR 상태는 `[제안]`을 유지한다.
+> Frontend 구현 메모: `/voice`는 `audio/wav`, `audio/webm;codecs=opus`, `audio/webm`, `audio/ogg;codecs=opus`, `audio/ogg` 순서로 `MediaRecorder.isTypeSupported()`를 확인하고 권한·녹음·일시정지·재개·60초 종료·입력 수준·preview를 제공한다. WebM/Ogg normalization 실패는 WAV fallback으로 안내한다. 자동 E2E는 합성 WAV를 사용하고 Backend integration은 FFmpeg가 생성한 합성 WebM/Ogg를 사용했다. 실제 마이크·장치별 MIME 평가는 아직 미검증이다.
 
 ## Decision
 
@@ -28,7 +28,7 @@ Frontend는 녹음, 미리 듣기, MIME feature detection, 대략적인 시간�
 | 선언 불일치 | 확장자, 정규화한 MIME과 signature/container probe 중 하나라도 불일치하면 `415 VOICE_SAMPLE_UNSUPPORTED_MEDIA_TYPE` |
 | 원본 크기 | sample당 25MiB. `Content-Length`는 조기 거절 보조값이고 실제 streaming byte 집계가 최종 권위 |
 | decode 길이 | 5초 이상 60초 이하. container metadata는 조기 판정에만 쓰고 실제 decoded frame 수로 다시 판정 |
-| decode timeout | 로컬 MVP 기본 30초, 설정 가능. 초과 시 subprocess를 종료하고 `VOICE_SAMPLE_DECODE_FAILED` |
+| decode timeout | 로컬 MVP 기본 30초, 설정 가능. 초과 시 subprocess를 종료하고 `VOICE_SAMPLE_DECODE_TIMEOUT` |
 | 출력 | little-endian signed PCM16 WAV, 48,000Hz, mono, `audio/wav` |
 | 출력 상한 | 60초 PCM16 mono에 header 여유를 더한 6MiB. 초과 출력은 폐기 |
 
@@ -43,9 +43,9 @@ Frontend는 녹음, 미리 듣기, MIME feature detection, 대략적인 시간�
 
 ### 실행 격리와 cleanup
 
-- 구현 후보는 고정된 FFmpeg CLI이며 shell 없이 argument 배열로 별도 subprocess를 실행한다. executable path와 timeout은 설정으로 주입하고 사용자 입력을 command option으로 해석하지 않는다.
+- system FFmpeg CLI를 shell 없이 고정 argument 배열로 별도 subprocess에서 실행한다. executable path와 timeout은 설정으로 주입하고, `-version` 결과와 파일 존재를 최초 WebM/Ogg 요청에서 확인한 뒤 process 수명 동안 성공 경로를 재사용한다. 사용자 파일 경로는 server-generated 경로이며 command option으로 조합하지 않는다.
 - sample별 private temporary directory를 만들고 원본과 정규화 후보를 server-generated 이름으로 저장한다. 원본 파일명은 표시용으로만 정제하며 path·로그에 쓰지 않는다.
-- protocol·stream 수를 허용 범위로 제한하고 stdout/stderr를 bounded capture한다. timeout, 비정상 종료, decode 오류, 출력 상한 초과 시 원본·부분 출력 삭제를 시도한다.
+- 첫 audio stream만 `-map 0:a:0`으로 선택하고 video를 제외하며, stdin과 stdout/stderr는 닫거나 폐기한다. 출력 포맷은 임시 확장자와 무관하게 `wav`로 명시한다. timeout, 비정상 종료, decode 오류, 출력 상한 초과 시 부분 출력과 최종 출력 후보를 삭제한다. protocol allowlist와 process-level memory limit은 아직 구현하지 않았으므로 악성 입력 운영 승인 조건으로 남긴다.
 - 삭제 실패는 성공으로 숨기지 않고 sample cleanup 상태에 남겨 재시도한다. 상세 정책은 [ADR-026](ADR-026-voice-enrollment-lifecycle-cleanup.md)을 따른다.
 - 원본은 Enrollment가 진행되는 동안 재검증·오류 진단을 위해 임시 보존한다. Profile 생성 성공, sample 삭제, 취소 또는 만료 시 삭제하며 최종 Profile에는 정규화본만 승격한다.
 
@@ -85,8 +85,8 @@ Web Audio API·AudioWorklet·client PCM encoder는 현재 API를 재사용할 �
 
 ## 승인 전 검증과 재검토 조건
 
-- Windows 개발·CI에서 고정 FFmpeg build의 WebM/Ogg Opus decode, license와 배포 재현성 검증
-- 25MiB·60초, 손상·truncated·다중 stream·비정상 metadata fixture의 timeout·메모리·cleanup 검증
+- [부분 완료] Windows FFmpeg 8.1.2와 Ubuntu·Windows CI에서 WebM/Ogg Opus decode 경로를 검증했다. 운영 배포 build 고정, license와 배포 재현성은 `[운영 배포 전 라이선스 검토 필요]`이다.
+- [부분 완료] 합성 정상 WebM/Ogg, truncated 입력, mock timeout·비정상 종료·부분 출력 cleanup을 검증했다. 25MiB·60초, 다중 stream·비정상 metadata·process memory 상한 fixture는 남아 있다.
 - 48kHz mono PCM16이 채택 Voice Provider 입력에서 기존 reference보다 품질을 악화시키지 않는 청감 평가
 - Safari·Firefox·Chromium Desktop/Mobile의 실제 MIME matrix 확인
 - object storage, 외부 Queue 또는 별도 media service 도입

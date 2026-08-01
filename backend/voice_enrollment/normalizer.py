@@ -40,6 +40,7 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
         self.ffmpeg_executable = ffmpeg_executable
         self.timeout_seconds = timeout_seconds
         self.max_output_bytes = max_output_bytes
+        self._verified_ffmpeg_executable: str | None = None
 
     def normalize(
         self, source_path: Path, output_path: Path, container: VoiceContainer
@@ -136,6 +137,8 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
             "48000",
             "-c:a",
             "pcm_s16le",
+            "-f",
+            "wav",
             str(output_path),
         ]
         try:
@@ -157,15 +160,39 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
             raise VoiceAudioProcessingError("VOICE_SAMPLE_DECODE_FAILED")
 
     def _resolve_executable(self) -> str:
+        if self._verified_ffmpeg_executable is not None:
+            return self._verified_ffmpeg_executable
         configured = Path(self.ffmpeg_executable)
         if configured.is_absolute():
             if not configured.is_file():
                 raise VoiceAudioProcessingError("VOICE_NORMALIZER_UNAVAILABLE")
-            return str(configured)
-        resolved = shutil.which(self.ffmpeg_executable)
-        if resolved is None:
+            resolved = str(configured)
+        else:
+            resolved = shutil.which(self.ffmpeg_executable)
+        if resolved is None or not Path(resolved).is_file():
             raise VoiceAudioProcessingError("VOICE_NORMALIZER_UNAVAILABLE")
+        self._verify_executable(resolved)
+        self._verified_ffmpeg_executable = resolved
         return resolved
+
+    def _verify_executable(self, executable: str) -> None:
+        try:
+            completed = subprocess.run(
+                [executable, "-version"],
+                stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                check=False,
+                timeout=min(self.timeout_seconds, 5),
+                shell=False,
+                env=self._minimal_environment(),
+                text=True,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            raise VoiceAudioProcessingError("VOICE_NORMALIZER_UNAVAILABLE") from None
+        first_line = completed.stdout.splitlines()[0] if completed.stdout else ""
+        if completed.returncode != 0 or not first_line.startswith("ffmpeg version "):
+            raise VoiceAudioProcessingError("VOICE_NORMALIZER_UNAVAILABLE")
 
     @staticmethod
     def _minimal_environment() -> dict[str, str]:

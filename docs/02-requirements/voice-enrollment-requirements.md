@@ -5,7 +5,7 @@
 > 관련 기능: 사용자 안내형 Voice Enrollment Wizard, Voice Profile 등록
 > 관련 Phase: Phase 8 후속 F6, Phase 7 개인화 Dataset과 경계 분리, Phase 9 공개 운영 선행 조건
 > 관련 문서: [Frontend Roadmap](../../planning/frontend-roadmap.md), [Frontend Architecture](../03-architecture/frontend-architecture.md), [현재 음성 프로필 API](../06-api/audio-api.md), [Voice Enrollment API 제안](../06-api/voice-enrollment-api.md), [데이터 모델 제안](../07-database/voice-enrollment-data-model.md), [음성 동의 정책](../09-security/voice-consent-policy.md), [ADR-024~026](../11-decisions/README.md#f6-guided-voice-enrollment), [Phase 7 DoD](../DoD/Phase-07.md), [Phase 8 DoD](../DoD/Phase-08.md)
-> 구현 상태: Backend Enrollment 7개 API, 최대 10개 sample, WAV/WebM/Ogg 정규화, 기본 품질 검사, Storage 승격·cleanup, 멱등성과 lazy expiration 및 Frontend Wizard·MediaRecorder·품질·대표 선택·복원을 구현했다. 실제 FFmpeg WebM/Ogg 통합, 주기적 scanner, 인증·소유권과 AI 품질 검사는 미구현이다.
+> 구현 상태: Backend Enrollment 7개 API, 최대 10개 sample, WAV/WebM/Ogg 정규화, 기본 품질 검사, Storage 승격·cleanup, 멱등성과 lazy expiration 및 Frontend Wizard·MediaRecorder·품질·대표 선택·복원을 구현했다. Windows와 CI의 실제 FFmpeg WebM/Ogg 통합을 검증했으며 주기적 scanner, 인증·소유권과 AI 품질 검사는 미구현이다.
 
 ## 1. 목적과 범위
 
@@ -496,7 +496,7 @@ ADR-019는 현재 단일 WAV upload·atomic 저장·삭제 경계를 승인했�
 
 ## 18. 완료 판정
 
-F6는 [Frontend Roadmap](../../planning/frontend-roadmap.md)의 별도 후속 Track으로 관리한다. Backend와 Frontend 구현은 완료했지만 실제 FFmpeg·scheduler·수동 녹음 평가가 남아 F6 전체는 `[진행 중]`이며 Phase 8의 기존 `15/15, 100%` 분모와 상태를 변경하지 않는다.
+F6는 [Frontend Roadmap](../../planning/frontend-roadmap.md)의 별도 후속 Track으로 관리한다. Backend·Frontend와 Windows/CI FFmpeg 통합 검증은 완료했지만 scheduler·인증·수동 녹음/실기기 MIME 평가가 남아 F6 전체는 `[진행 중]`이며 Phase 8의 기존 `15/15, 100%` 분모와 상태를 변경하지 않는다.
 
 구현 완료에는 최소한 다음이 필요하다.
 

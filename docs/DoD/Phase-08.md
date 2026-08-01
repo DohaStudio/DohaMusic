@@ -54,4 +54,4 @@ Phase 8은 로컬 단일 사용자 Responsive Web MVP 범위에서 완료됐다.
 
 ## 예상 다음 단계
 
-Phase 8 완료 범위를 소급 변경하지 않는 [F6 Guided Voice Enrollment](../../planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중)을 후속 개선 Track으로 진행한다. F6 Backend API·정규화·Storage·기본 품질 검사와 Frontend Wizard·MediaRecorder·품질·대표 선택·복원은 구현됐지만 실제 FFmpeg WebM/Ogg 통합과 주기적 cleanup은 미구현이며, 이 문서의 15개 완료 항목과 100% 진행률에 포함하지 않는다. 공개 운영의 인증·소유권·분산 Queue와 운영 취소 일관성은 Phase 9에서 설계·검증한다.
+Phase 8 완료 범위를 소급 변경하지 않는 [F6 Guided Voice Enrollment](../../planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중)을 후속 개선 Track으로 진행한다. F6 Backend API·정규화·Storage·기본 품질 검사, Frontend Wizard·MediaRecorder·품질·대표 선택·복원과 Windows/CI FFmpeg WebM/Ogg 통합 검증은 완료했지만 주기적 cleanup·인증·실기기 평가는 미구현이며, 이 문서의 15개 완료 항목과 100% 진행률에 포함하지 않는다. 공개 운영의 인증·소유권·분산 Queue와 운영 취소 일관성은 Phase 9에서 설계·검증한다.
