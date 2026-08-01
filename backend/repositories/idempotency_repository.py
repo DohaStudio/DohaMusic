@@ -80,6 +80,19 @@ class IdempotencyRepository:
     def release(self, record: IdempotencyRecord) -> None:
         self.session.delete(record)
 
+    def release_in_progress_for_scope_prefix(self, prefix: str) -> int:
+        records = list(
+            self.session.scalars(
+                select(IdempotencyRecord).where(
+                    IdempotencyRecord.status == "IN_PROGRESS",
+                    IdempotencyRecord.scope.startswith(prefix),
+                )
+            )
+        )
+        for record in records:
+            self.session.delete(record)
+        return len(records)
+
 
 def _as_utc(value: datetime) -> datetime:
     return value.replace(tzinfo=UTC) if value.tzinfo is None else value.astimezone(UTC)

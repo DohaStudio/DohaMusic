@@ -1,13 +1,13 @@
 # ADR-026: Voice Enrollment 임시 업로드와 정리 수명주기
 
-> 상태: [제안]
+> 상태: [승인]
 > 작성일: 2026-08-01
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [Voice Enrollment API](../06-api/voice-enrollment-api.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [Storage Architecture](../03-architecture/storage-architecture.md), [음성 동의 정책](../09-security/voice-consent-policy.md)
-> 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
+> 관련 PR: `feat/voice-enrollment-cleanup`의 `develop` 대상 PR
 
-> 구현 메모: `0010` lifecycle 기반과 `0011` hashed idempotency 저장소, 별도 임시 Storage, 24시간 sliding/7일 absolute lazy 만료, submit promotion과 즉시 cleanup primitive를 구현했다. Frontend는 Enrollment ID·단계 allowlist 복원, 동일 key 명시 재시도, cancel·expired·not found와 partial cleanup UX를 구현했다. 주기적 expiration scanner·cleanup retry scheduler와 crash 복구 worker가 없어 상태는 `[제안]`으로 유지한다.
+> 구현 메모: `0010` lifecycle 기반과 `0011` hashed idempotency 저장소를 그대로 사용한다. 별도 임시 Storage, 마지막 성공 mutation 기준 24시간 sliding/생성 기준 7일 absolute 만료, submit promotion과 즉시 cleanup primitive에 더해 process-local scheduler, 시작 시 crash recovery, cleanup retry와 DB 기준 orphan scan을 구현했다. Frontend·공개 API·migration은 변경하지 않았다. 다중 instance lease와 영속 metric은 Phase 9 재검토 조건이다.
 
 ## Context
 
@@ -59,7 +59,7 @@ DB와 filesystem은 하나의 원자 transaction이 아니므로 staged promotio
 
 로컬 MVP는 Backend 내부 cleanup service가 시작 시와 주기적으로 만료·`DELETE_PENDING`·orphan을 scan한다. 정상 요청의 sample 삭제·cancel도 같은 idempotent cleanup service를 호출한다. DB가 source of truth이며 Storage만 존재하는 항목은 server-generated path와 grace period를 확인한 뒤 orphan 후보로 격리한다.
 
-삭제는 bounded exponential backoff로 재시도하고 시도 횟수·마지막 안전한 오류 코드·시각을 기록한다. retry exhaustion은 `DELETE_FAILED`와 운영 경고로 남긴다. raw OS 오류, 내부 path와 원본 파일명은 공개 DTO·일반 로그에 넣지 않는다. Phase 9에서는 내구성 Queue·object storage lifecycle·audit로 교체하되 DB 상태와 중복 방지 계약을 유지한다.
+삭제는 설정된 최소 지연과 process-local bounded attempt limit로 재시도하고 DB의 실패 코드·갱신 시각을 영속 증거로 남긴다. migration을 추가하지 않는 이번 구현에서는 시도 횟수 자체는 process-local이므로 재시작 시 초기화되고, 기존 `DELETE_FAILED`를 시작 복구가 다시 시도한다. retry exhaustion은 `DELETE_FAILED`와 운영 경고로 남긴다. raw OS 오류, 내부 path와 원본 파일명은 공개 DTO·일반 로그에 넣지 않는다. Phase 9에서는 내구성 Queue·영속 retry count·object storage lifecycle·audit로 교체하되 DB 상태와 중복 방지 계약을 유지한다.
 
 ### Cleanup matrix
 
@@ -85,7 +85,7 @@ DB와 filesystem은 하나의 원자 transaction이 아니므로 staged promotio
 
 ## Consequences
 
-새로고침·부분 실패·중복 submit을 복원하고 민감 음성의 임시·최종 경계를 명확히 할 수 있다. 대신 만료 scanner, idempotency record, 상태 전이, filesystem/DB 보상과 삭제 재시도가 필요하다. 내부 ThreadPool은 crash recovery가 없으므로 구현 전 cleanup service의 시작 복구와 동시성 test가 필수다.
+새로고침·부분 실패·중복 submit을 복원하고 민감 음성의 임시·최종 경계를 명확히 할 수 있다. 만료 scanner, idempotency record, 상태 전이, filesystem/DB 보상과 삭제 재시도를 운영해야 한다. 구현된 scheduler는 AI ThreadPool과 분리되고 non-blocking run lock으로 scanner 중복을 막으며, 시작 복구와 동시성·재시작 test를 통과해야 한다.
 
 ## Rollback·Migration
 

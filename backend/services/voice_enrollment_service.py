@@ -512,6 +512,7 @@ class VoiceEnrollmentService:
                 enrollment.consent_confirmed_at = datetime.now(UTC)
                 enrollment.status = VoiceEnrollmentStatus.COMPLETED.value
                 enrollment.completed_at = datetime.now(UTC)
+                self._touch(enrollment)
                 record = session.get(IdempotencyRecord, claim_id)
                 if record is None:
                     raise RuntimeError("Submit idempotency record disappeared")
@@ -546,6 +547,7 @@ class VoiceEnrollmentService:
                 VoiceEnrollmentRepository(session).transition(
                     enrollment, VoiceEnrollmentStatus.CANCELLED, commit=False
                 )
+                self._touch(enrollment)
             enrollment.cleanup_status = VoiceCleanupStatus.PENDING.value
             enrollment.cleanup_requested_at = datetime.now(UTC)
             session.commit()

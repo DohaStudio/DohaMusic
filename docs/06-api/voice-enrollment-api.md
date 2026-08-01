@@ -1,10 +1,10 @@
 # Guided Voice Enrollment API
 
 > 문서 상태: [진행 중] Backend·Frontend 구현 완료, 운영 후속 미구현
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [현재 음성 프로필 API](audio-api.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md), [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)
-> 구현 상태: `/api/voice-enrollments` 7개 endpoint, 동기 정규화·검증, 임시 Storage·Profile 승격, lazy expiration과 create·upload·submit idempotency 및 Frontend Wizard 연결을 구현했다. Windows와 CI에서 실제 FFmpeg WebM/Ogg 정규화를 검증한다. 주기적 scanner·cleanup scheduler, durable Queue와 인증·소유권은 미구현이다.
+> 구현 상태: `/api/voice-enrollments` 7개 endpoint, 동기 정규화·검증, 임시 Storage·Profile 승격, create·upload·submit idempotency와 Frontend Wizard를 구현했다. 공개 계약 변경 없이 Backend lifecycle에서 주기 만료·cleanup retry·orphan scan·crash recovery를 수행한다. durable Queue와 인증·소유권은 미구현이다.
 
 ## 1. 기존 API와 Enrollment API의 경계
 

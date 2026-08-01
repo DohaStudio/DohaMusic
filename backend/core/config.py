@@ -93,6 +93,12 @@ class Settings(BaseModel):
     voice_enrollment_max_duration_seconds: float = Field(default=60.0, ge=1.0, le=600.0)
     voice_enrollment_sliding_expiry_hours: int = Field(default=24, ge=1, le=168)
     voice_enrollment_absolute_expiry_days: int = Field(default=7, ge=1, le=30)
+    voice_cleanup_interval_seconds: int = Field(default=300, ge=1, le=86_400)
+    voice_expiration_scan_interval_seconds: int = Field(default=300, ge=1, le=86_400)
+    voice_orphan_scan_interval_seconds: int = Field(default=3600, ge=1, le=86_400)
+    voice_delete_retry_limit: int = Field(default=3, ge=1, le=20)
+    voice_delete_retry_delay_seconds: int = Field(default=60, ge=0, le=86_400)
+    voice_orphan_grace_seconds: int = Field(default=86_400, ge=0, le=604_800)
     log_level: str = "INFO"
 
     @field_validator("log_level")
@@ -193,6 +199,12 @@ class Settings(BaseModel):
             "DOHAMUSIC_VOICE_ENROLLMENT_MAX_DURATION_SECONDS": "voice_enrollment_max_duration_seconds",
             "DOHAMUSIC_VOICE_ENROLLMENT_SLIDING_EXPIRY_HOURS": "voice_enrollment_sliding_expiry_hours",
             "DOHAMUSIC_VOICE_ENROLLMENT_ABSOLUTE_EXPIRY_DAYS": "voice_enrollment_absolute_expiry_days",
+            "DOHAMUSIC_VOICE_CLEANUP_INTERVAL_SECONDS": "voice_cleanup_interval_seconds",
+            "DOHAMUSIC_VOICE_EXPIRATION_SCAN_INTERVAL_SECONDS": "voice_expiration_scan_interval_seconds",
+            "DOHAMUSIC_VOICE_ORPHAN_SCAN_INTERVAL_SECONDS": "voice_orphan_scan_interval_seconds",
+            "DOHAMUSIC_VOICE_DELETE_RETRY_LIMIT": "voice_delete_retry_limit",
+            "DOHAMUSIC_VOICE_DELETE_RETRY_DELAY_SECONDS": "voice_delete_retry_delay_seconds",
+            "DOHAMUSIC_VOICE_ORPHAN_GRACE_SECONDS": "voice_orphan_grace_seconds",
             "LOG_LEVEL": "log_level",
         }
         for environment_name, field_name in mapping.items():

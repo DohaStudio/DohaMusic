@@ -51,6 +51,21 @@ python -m pytest -q backend/tests/test_voice_enrollment_audio.py -m integration
 
 저장소는 FFmpeg binary를 배포하지 않으며 설치된 system dependency만 호출한다. Gyan full build의 실제 `ffmpeg -version`에는 `--enable-gpl`, `--enable-version3`, `--enable-libopus`가 포함되므로 운영 배포 이미지와 재배포 방식은 `ffmpeg -version`·`ffmpeg -L` 및 해당 build 고지 조건을 별도로 확인해야 한다. `[운영 배포 전 라이선스 검토 필요]`
 
+## Guided Voice Enrollment cleanup scheduler
+
+Backend는 FastAPI lifecycle에서 AI Worker pool과 분리된 process-local scheduler를 시작한다. 시작 시 `DELETE_PENDING`·`DELETE_FAILED`, cleanup `RUNNING`, 중단된 `VALIDATING`·`SUBMITTING`을 한 번 복구한 뒤 expiration, cleanup/retry, orphan scan을 각 설정 주기로 직렬 실행한다. 현재 공개 enum에는 별도 `PROCESSING`·`NORMALIZING`이 없으므로 해당 불완전 작업은 Sample `VALIDATING`과 cleanup `RUNNING`으로 복구한다. 종료 시 진행 중인 scan을 마친 뒤 scheduler를 중단하고 공용 AI executor와 DB engine을 종료한다.
+
+기본 주기는 expiration·cleanup 300초, orphan 3600초다. cleanup 실패는 60초 이상 지난 뒤 process 수명 내 최대 3회 시도한다. DB가 source of truth이며 소유 row가 없거나 Storage가 누락된 상태를 탐지한다. 자동 삭제는 UUID 기반 server-generated 디렉터리와 알려진 파일명으로 확정되고 기본 24시간 grace가 지난 파일 또는 명확한 부분 출력에만 적용한다. 판단할 수 없는 파일과 symlink는 삭제하지 않고 경로를 포함하지 않은 warning을 남긴다.
+
+운영 로그는 `voice_maintenance_*` event와 건수만 기록한다. `app.state.voice_maintenance_metrics.snapshot()`은 cleanup 성공·실패, retry, 만료, orphan, 복구 건수의 process-local snapshot을 제공하며 외부 metric endpoint나 API 계약을 추가하지 않는다. 재시작하면 metric과 횟수 한도는 초기화되지만 DB 실패 상태를 다시 읽어 복구를 재개한다. 로컬 단일 instance 계약이므로 여러 Backend process를 운영하려면 Phase 9에서 분산 lease와 영속 metric을 먼저 도입해야 한다.
+
+집중 검증은 다음과 같다.
+
+```powershell
+python -m pytest -q backend/tests/test_voice_enrollment_maintenance.py
+python -m ruff check backend/voice_enrollment backend/tests/test_voice_enrollment_maintenance.py
+```
+
 ## 선택적 ACE-Step 런타임
 
 공식 [v0.1.8 설치 문서](https://github.com/ace-step/ACE-Step-1.5/blob/v0.1.8/docs/en/INSTALL.md)는 Python 3.11~3.12와 `uv sync`를 안내한다. 공식 저장소를 별도 디렉터리에 v0.1.8로 checkout하고 그 저장소의 lockfile로 환경을 만든다. 모델은 공식 CLI로 사용자가 명시적으로 내려받는다. DohaMusic 실행기와 테스트는 다운로드를 시작하지 않는다.

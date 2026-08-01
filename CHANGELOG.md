@@ -2,11 +2,21 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Guided Voice Enrollment 운영 안정성
+
+- FastAPI lifecycle에 AI Worker와 분리된 process-local scheduler를 등록해 시작 시 crash recovery를 1회 수행하고 만료·cleanup·orphan scan을 설정 주기로 실행한다.
+- 마지막 성공 mutation 기준 24시간 sliding 및 생성 기준 7일 absolute 만료를 DB query로 처리하고, 조회 요청은 만료 시간을 연장하지 않도록 유지한다.
+- `DELETE_PENDING`·`DELETE_FAILED`·중단된 `VALIDATING`·`SUBMITTING`·cleanup `RUNNING` 상태를 멱등 복구하고 부분 정규화 파일·누락 파일·중복 삭제를 안전하게 처리한다.
+- DB를 source of truth로 Enrollment/Profile/Sample 소유권과 Storage 파일을 대조하며, server-generated 경로로 확정 가능한 orphan만 grace period 이후 자동 삭제하고 나머지는 경로 없이 경고한다.
+- cleanup 성공·실패, retry, 만료, orphan, 복구 건수의 process-local metric snapshot과 민감 경로를 포함하지 않는 운영 로그를 추가했다.
+- scheduler·만료·retry query·부분 삭제·재시작·중단 submit/normalize/cleanup·orphan·Storage 멱등 삭제 자동 test를 추가했다.
+- Frontend·공개 API·migration은 변경하지 않았으며 F6는 인증·소유권과 실제 사용자 마이크 평가가 남아 `[진행 중]`을 유지한다.
 
 ### 수정 — Guided Voice Enrollment FFmpeg 정규화
 
