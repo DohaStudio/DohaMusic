@@ -2,10 +2,10 @@
 
 > 상태: [제안]
 > 작성일: 2026-08-01
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-02
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Storage Architecture](../03-architecture/storage-architecture.md), [ADR-019](ADR-019-secure-voice-profile-upload.md)
-> 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
+> 관련 PR: [#42](https://github.com/DDORINY/DohaMusic/pull/42)
 
 ## Context
 
