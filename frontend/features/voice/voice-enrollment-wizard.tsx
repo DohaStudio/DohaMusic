@@ -1,9 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AudioLines, Circle, Mic, Upload } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Badge, Button, ErrorAlert, Field, Input, Textarea } from "@/components/ui";
+import { Badge, Button, ErrorAlert, Field, InfoCard, Input, Textarea } from "@/components/ui";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import type { VoiceEnrollmentSampleDto, VoiceEnrollmentStep } from "./voice-enrollment-types";
@@ -24,6 +25,12 @@ import {
   writeEnrollmentSession,
 } from "./voice-enrollment-utils";
 import { useVoiceRecorder } from "./use-voice-recorder";
+import {
+  EnrollmentOperationProgress,
+  EnrollmentSummary,
+  VoiceAudioPlayer,
+  VoiceSampleCard,
+} from "./voice-enrollment-ui";
 
 const STEPS: Array<{ id: VoiceEnrollmentStep; label: string }> = [
   { id: "guide", label: "안내" },
@@ -42,6 +49,12 @@ const PROMPTS = [
   { id: "ko_speech_calm_01", category: "CALM_SPEECH", title: "차분한 말하기", text: "천천히 숨을 고르고 편안한 목소리로 이야기를 이어가겠습니다." },
   { id: "ko_song_original_01", category: "ACAPELLA_SINGING", title: "무반주 노래", text: "라라라, 오늘의 빛을 따라. 천천히 새로운 노래를 불러." },
 ] as const;
+
+function sampleDisplayLabel(sample: VoiceEnrollmentSampleDto, index: number, displayNames: Record<string, string>) {
+  return displayNames[sample.id]
+    ?? PROMPTS.find((prompt) => prompt.id === sample.prompt_id)?.title
+    ?? `Sample ${index + 1}`;
+}
 
 function previousStep(step: VoiceEnrollmentStep): VoiceEnrollmentStep {
   return STEPS[Math.max(0, STEPS.findIndex((item) => item.id === step) - 1)].id;
@@ -182,10 +195,8 @@ export function VoiceEnrollmentWizard() {
       uploadKeysRef.current.delete(input.localId);
       setLastFailedUpload(undefined);
       if (input.displayName) setDisplayNames((current) => ({ ...current, [sample.id]: input.displayName! }));
-      if (input.previewUrl) {
-        const retainedPreviewUrl = URL.createObjectURL(input.file);
-        setPreviewUrls((current) => ({ ...current, [sample.id]: retainedPreviewUrl }));
-      }
+      const retainedPreviewUrl = URL.createObjectURL(input.file);
+      setPreviewUrls((current) => ({ ...current, [sample.id]: retainedPreviewUrl }));
       recorder.reset();
       await queryClient.invalidateQueries({ queryKey: ["voice-enrollment", enrollmentId] });
     },
@@ -250,6 +261,21 @@ export function VoiceEnrollmentWizard() {
   const warningUnacknowledged = samples.some((sample) => sample.quality.status === "WARNING" && !acknowledged.has(sample.id));
   const selectedReference = samples.find((sample) => sample.id === referenceId);
   const canSubmit = Boolean(enrollment.data?.can_submit && selectedReference?.submit_eligible && !warningUnacknowledged);
+  const completedReference = selectedReference
+    ?? samples.find((sample) => sample.status === "PROMOTED")
+    ?? samples.find((sample) => sample.submit_eligible);
+  const currentStepIndex = STEPS.findIndex((item) => item.id === step);
+  const operation = create.isPending
+    ? { label: "등록 공간을 준비하고 있습니다…", value: 25 }
+    : upload.isPending
+      ? { label: "음성을 업로드하고 품질을 분석하고 있습니다…", value: 65 }
+      : remove.isPending
+        ? { label: "Sample을 안전하게 삭제하고 있습니다…", value: 70 }
+        : submit.isPending
+          ? { label: "Voice Profile을 만들고 있습니다…", value: 85 }
+          : cancelEnrollment.isPending
+            ? { label: "등록을 취소하고 임시 파일을 정리하고 있습니다…", value: 70 }
+            : undefined;
 
   const changeStep = (target: VoiceEnrollmentStep) => {
     setClientError(undefined);
@@ -264,7 +290,7 @@ export function VoiceEnrollmentWizard() {
   };
 
   if (restoring || (enrollmentId && enrollment.isPending)) {
-    return <section className="surface-card enrollment-wizard" aria-busy="true"><p role="status">진행 중인 음성 등록을 확인하고 있습니다…</p></section>;
+    return <section className="surface-card enrollment-wizard enrollment-loading" aria-busy="true"><div className="skeleton-heading" aria-hidden="true" /><div className="skeleton-stepper" aria-hidden="true" /><EnrollmentOperationProgress label="진행 중인 음성 등록을 확인하고 있습니다…" value={35} /></section>;
   }
 
   return (
@@ -275,16 +301,21 @@ export function VoiceEnrollmentWizard() {
           if (window.confirm("등록을 취소하면 아직 제출하지 않은 음성 Sample이 삭제됩니다.")) cancelEnrollment.mutate();
         }}>등록 취소</Button>}
       </div>
+      <div className="enrollment-step-progress" aria-live="polite">
+        <span>{currentStepIndex + 1} / {STEPS.length}</span>
+        <strong>{STEPS[currentStepIndex]?.label}</strong>
+      </div>
       <ol className="enrollment-stepper" aria-label="음성 등록 단계">
         {STEPS.map((item, index) => <li key={item.id} aria-current={item.id === step ? "step" : undefined} className={item.id === step ? "current" : ""}><span>{index + 1}</span>{item.label}</li>)}
       </ol>
-      {errorMessage && <ErrorAlert title="음성 등록을 계속할 수 없습니다" message={errorMessage} />}
-      <div className="enrollment-step">
+      {errorMessage ? <ErrorAlert title="음성 등록을 계속할 수 없습니다" message={errorMessage} /> : <InfoCard title="녹음 형식 안내"><p>브라우저 녹음은 서버 환경에 따라 지원되지 않을 수 있습니다. <strong>WAV 파일 업로드는 언제든 사용할 수 있으며</strong>, FFmpeg가 없는 환경에서만 WebM·Ogg 처리가 제한됩니다.</p></InfoCard>}
+      {operation && <EnrollmentOperationProgress label={operation.label} value={operation.value} />}
+      <div className="enrollment-step" aria-busy={Boolean(operation)}>
         <h3 ref={headingRef} tabIndex={-1}>{STEPS.find((item) => item.id === step)?.label}</h3>
         {step === "guide" && <GuideStep />}
         {step === "consent" && <ConsentStep values={consents} onChange={setConsents} />}
         {step === "method" && <MethodStep name={name} description={description} method={method} onName={setName} onDescription={setDescription} onMethod={setMethod} />}
-        {step === "samples" && enrollmentId && <SamplesStep recorder={recorder} samples={samples} method={method} promptIndex={promptIndex} onPromptIndex={setPromptIndex} uploading={upload.isPending} onUpload={(input) => upload.mutate(input)} onFiles={async (files) => {
+        {step === "samples" && enrollmentId && <SamplesStep recorder={recorder} samples={samples} method={method} promptIndex={promptIndex} onPromptIndex={setPromptIndex} uploading={upload.isPending} displayNames={displayNames} previewUrls={previewUrls} selectedId={referenceId} deletingId={remove.isPending ? remove.variables : undefined} onSelect={setReferenceId} onDelete={(sampleId) => remove.mutate(sampleId)} onUpload={(input) => upload.mutate(input)} onFiles={async (files) => {
           setClientError(undefined);
           let count = samples.length;
           for (const file of files) {
@@ -299,7 +330,7 @@ export function VoiceEnrollmentWizard() {
         {step === "quality" && <QualityStep samples={samples} acknowledged={acknowledged} onAcknowledge={(sampleId, checked) => setAcknowledged((current) => { const next = new Set(current); if (checked) next.add(sampleId); else next.delete(sampleId); return next; })} />}
         {step === "reference" && <ReferenceStep samples={samples} selectedId={referenceId} displayNames={displayNames} previewUrls={previewUrls} onSelect={setReferenceId} deletingId={remove.isPending ? remove.variables : undefined} onDelete={(sampleId) => remove.mutate(sampleId)} />}
         {step === "review" && enrollment.data && <ReviewStep name={enrollment.data.name} description={enrollment.data.description} samples={samples} selected={selectedReference} />}
-        {step === "complete" && <CompleteStep profileId={enrollment.data?.voice_profile_id} onNew={startNew} />}
+        {step === "complete" && <CompleteStep name={enrollment.data?.name ?? name} sample={completedReference} sampleLabel={completedReference ? sampleDisplayLabel(completedReference, samples.indexOf(completedReference), displayNames) : undefined} previewUrl={completedReference ? previewUrls[completedReference.id] : undefined} onNew={startNew} />}
       </div>
       {lastFailedUpload && !upload.isPending && <div className="enrollment-retry"><p>같은 요청 키로 마지막 업로드를 다시 시도할 수 있습니다.</p><Button type="button" className="secondary" onClick={() => upload.mutate(lastFailedUpload)}>업로드 재시도</Button></div>}
       {step !== "complete" && <div className="enrollment-actions">
@@ -323,7 +354,6 @@ interface UploadInput {
   category: string;
   promptId?: string;
   displayName?: string;
-  previewUrl?: string;
 }
 
 function GuideStep() {
@@ -332,7 +362,7 @@ function GuideStep() {
     <article><strong>좋은 Sample</strong><p>조용한 장소에서 배경음악·반주·에코 없이 녹음하세요. WAV 파일을 우선 권장합니다.</p></article>
     <article><strong>등록 기준</strong><p>Sample당 5~60초, 최대 10개입니다. 완료 전 음성은 임시로 처리되며 취소·만료 시 삭제됩니다.</p></article>
     <article><strong>검사의 한계</strong><p>기본 파일·음향 검사는 Voice Provider 적합성이나 최종 변환 품질을 보장하지 않습니다.</p></article>
-    <p className="muted full">브라우저가 WebM 또는 Ogg로 녹음하면 서버 환경에 따라 처리하지 못할 수 있습니다. 이 경우 WAV 파일 업로드를 이용해 주세요.</p>
+    <p className="muted full">브라우저가 WebM 또는 Ogg로 녹음하면 서버 환경에 따라 처리하지 못할 수 있습니다. 이 경우 권장 WAV 형식으로 다시 시도해 주세요.</p>
   </div>;
 }
 
@@ -350,15 +380,39 @@ function MethodStep({ name, description, method, onName, onDescription, onMethod
   return <div className="studio-form"><Field label="목소리 이름" htmlFor="enrollment-name" hint="최종 제출 전에는 서버에서 이름을 수정할 수 없으므로 확인해 주세요."><Input id="enrollment-name" maxLength={100} required value={name} onChange={(event) => onName(event.target.value)} /></Field><Field label="설명 (선택)" htmlFor="enrollment-description"><Textarea id="enrollment-description" maxLength={500} value={description} onChange={(event) => onDescription(event.target.value)} /></Field><fieldset className="method-options"><legend>먼저 사용할 방법</legend><label className={method === "record" ? "selected" : ""}><input type="radio" name="voice-method" checked={method === "record"} onChange={() => onMethod("record")} /><strong>마이크로 직접 녹음</strong><span>안내 문장을 따라 5~60초 녹음합니다.</span></label><label className={method === "upload" ? "selected" : ""}><input type="radio" name="voice-method" checked={method === "upload"} onChange={() => onMethod("upload")} /><strong>기존 음성 파일 업로드</strong><span>WAV를 권장하며 WebM·Ogg도 선택할 수 있습니다.</span></label></fieldset><p className="muted">다음 단계에서 두 방식을 자유롭게 섞어 최대 10개 Sample을 추가할 수 있습니다.</p></div>;
 }
 
-function SamplesStep({ recorder, samples, method, promptIndex, onPromptIndex, uploading, onUpload, onFiles }: { recorder: ReturnType<typeof useVoiceRecorder>; samples: VoiceEnrollmentSampleDto[]; method: "record" | "upload"; promptIndex: number; onPromptIndex: (index: number) => void; uploading: boolean; onUpload: (input: UploadInput) => void; onFiles: (files: File[]) => void }) {
+function SamplesStep({ recorder, samples, method, promptIndex, onPromptIndex, uploading, displayNames, previewUrls, selectedId, deletingId, onSelect, onDelete, onUpload, onFiles }: { recorder: ReturnType<typeof useVoiceRecorder>; samples: VoiceEnrollmentSampleDto[]; method: "record" | "upload"; promptIndex: number; onPromptIndex: (index: number) => void; uploading: boolean; displayNames: Record<string, string>; previewUrls: Record<string, string>; selectedId?: string; deletingId?: string; onSelect: (id: string) => void; onDelete: (id: string) => void; onUpload: (input: UploadInput) => void; onFiles: (files: File[]) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const prompt = PROMPTS[promptIndex];
   const durationError = recorder.recording ? validateRecordingDuration(recorder.recording.durationSeconds) : undefined;
+  const levelTone = recorder.level < 0.08 ? "warning" : recorder.level < 0.65 ? "success" : "danger";
+  const levelText = recorder.level < 0.08 ? "작음" : recorder.level < 0.65 ? "적정" : "너무 큼";
+  const selectedSample = samples.find((sample) => sample.id === selectedId);
   const uploadRecording = () => {
     if (!recorder.recording || durationError) return;
-    onUpload({ localId: `recording:${Date.now()}`, file: recorder.recording.blob, sourceType: "BROWSER_RECORDING", category: prompt.category, promptId: prompt.id, displayName: `${prompt.title} 녹음`, previewUrl: recorder.recording.previewUrl });
+    onUpload({ localId: `recording:${Date.now()}`, file: recorder.recording.blob, sourceType: "BROWSER_RECORDING", category: prompt.category, promptId: prompt.id, displayName: `${prompt.title} 녹음` });
   };
-  return <div className="sample-workspace"><div className="recorder-panel"><div className="prompt-card"><div><Badge tone="neutral">{prompt.title}</Badge><p>{prompt.text}</p></div><select aria-label="안내 문장 선택" value={promptIndex} onChange={(event) => onPromptIndex(Number(event.target.value))}>{PROMPTS.map((item, index) => <option value={index} key={item.id}>{item.title}</option>)}</select></div><div className="recorder-status" aria-live="polite"><strong>{recorder.status === "RECORDING" ? "녹음 중" : recorder.status === "PAUSED" ? "일시정지" : recorder.status === "PREVIEW" ? "미리 듣기" : recorder.status === "READY" ? "마이크 준비됨" : "마이크를 준비해 주세요"}</strong><time>{formatDuration(recorder.elapsedSeconds)}</time></div><div className="audio-level" role="meter" aria-label={`마이크 입력 수준 ${recorder.levelLabel}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(recorder.level * 100)}><span style={{ width: `${Math.round(recorder.level * 100)}%` }} /><small>입력 수준: {recorder.levelLabel}</small></div>{recorder.error && <ErrorAlert title="마이크를 사용할 수 없습니다" message={recorder.error} />}<div className="recorder-controls">{["IDLE", "FAILED"].includes(recorder.status) && <Button type="button" className="secondary" onClick={recorder.requestPermission}>마이크 권한 요청</Button>}{recorder.status === "READY" && <Button type="button" onClick={recorder.start}>녹음 시작</Button>}{recorder.status === "RECORDING" && <><Button type="button" className="secondary" onClick={recorder.pause}>일시정지</Button><Button type="button" onClick={recorder.stop}>녹음 종료</Button></>}{recorder.status === "PAUSED" && <><Button type="button" className="secondary" onClick={recorder.resume}>녹음 재개</Button><Button type="button" onClick={recorder.stop}>녹음 종료</Button></>}{recorder.status === "PREVIEW" && <><Button type="button" className="secondary" onClick={recorder.reset}>다시 녹음</Button><Button type="button" disabled={Boolean(durationError) || uploading} onClick={uploadRecording}>{uploading ? "업로드 중…" : "이 녹음 업로드"}</Button></>}</div>{recorder.recording && <audio controls src={recorder.recording.previewUrl}>녹음 미리 듣기를 지원하지 않는 브라우저입니다.</audio>}{durationError && <p className="field-error" role="alert">{durationError}</p>}<p className="muted">60초가 되면 자동으로 녹음을 종료합니다. WebM·Ogg 결과는 서버 환경에 따라 실패할 수 있습니다.</p></div><div className={`file-drop${method === "upload" ? " preferred" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); void onFiles(Array.from(event.dataTransfer.files)); }}><strong>기존 파일 추가</strong><p>WAV 권장 · WebM/Ogg 선택 가능 · 각 25MB 이하</p><input ref={inputRef} hidden type="file" multiple accept=".wav,.webm,.ogg,audio/wav,audio/webm,audio/ogg" onChange={(event) => void onFiles(Array.from(event.target.files ?? []))} /><Button type="button" className="secondary" disabled={uploading || samples.length >= MAX_VOICE_SAMPLES} onClick={() => inputRef.current?.click()}>파일 선택</Button><small>{samples.length}/{MAX_VOICE_SAMPLES} Sample</small></div></div>;
+  const statusText = recorder.status === "RECORDING" ? "녹음 중" : recorder.status === "PAUSED" ? "일시정지" : recorder.status === "PREVIEW" ? "미리 듣기" : recorder.status === "READY" ? "마이크 준비됨" : "마이크를 준비해 주세요";
+  return <div className="sample-workspace">
+    <div className="sample-main-column">
+      <div className="recorder-panel">
+        <div className="prompt-card"><div><span className="prompt-kicker">읽어주세요</span><Badge tone="neutral">{prompt.title}</Badge><p>{prompt.text}</p></div><select aria-label="안내 문장 선택" value={promptIndex} onChange={(event) => onPromptIndex(Number(event.target.value))}>{PROMPTS.map((item, index) => <option value={index} key={item.id}>{item.title}</option>)}</select></div>
+        <div className={`recorder-status status-${recorder.status.toLowerCase()}`} aria-live="polite"><div><Circle aria-hidden="true" fill="currentColor" /><strong>{statusText}</strong><span>60초가 되면 자동으로 종료됩니다</span></div><time>{formatDuration(recorder.elapsedSeconds)} <small>/ 01:00</small></time></div>
+        <div className="input-level-row"><span>마이크 입력 수준</span><Badge tone={levelTone}>{levelText}</Badge></div>
+        <div className={`audio-level level-${levelTone}`} role="meter" aria-label={`마이크 입력 수준 ${levelText}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(recorder.level * 100)}><span style={{ width: `${Math.round(recorder.level * 100)}%` }} /></div>
+        {recorder.error && <ErrorAlert title="마이크를 사용할 수 없습니다" message={recorder.error} />}
+        <div className="recorder-controls">{["IDLE", "FAILED"].includes(recorder.status) && <Button type="button" className="secondary" onClick={recorder.requestPermission}><Mic aria-hidden="true" /> 마이크 권한 요청</Button>}{recorder.status === "READY" && <Button type="button" onClick={recorder.start}><Circle aria-hidden="true" fill="currentColor" /> 녹음 시작</Button>}{recorder.status === "RECORDING" && <><Button type="button" className="secondary" onClick={recorder.pause}>일시정지</Button><Button type="button" onClick={recorder.stop}>녹음 종료</Button></>}{recorder.status === "PAUSED" && <><Button type="button" className="secondary" onClick={recorder.resume}>녹음 재개</Button><Button type="button" onClick={recorder.stop}>녹음 종료</Button></>}{recorder.status === "PREVIEW" && <><Button type="button" className="secondary" onClick={recorder.reset}>다시 녹음</Button><Button type="button" disabled={Boolean(durationError) || uploading} onClick={uploadRecording}>{uploading ? "업로드 중…" : "이 녹음 업로드"}</Button></>}</div>
+        {recorder.recording && <div className="recorder-preview"><strong>방금 녹음한 Sample</strong><audio controls src={recorder.recording.previewUrl}>녹음 미리 듣기를 지원하지 않는 브라우저입니다.</audio></div>}
+        {durationError && <p className="field-error" role="alert">{durationError}</p>}
+      </div>
+      <section className="sample-collection" aria-labelledby="sample-collection-heading">
+        <div className="sample-collection-heading"><div><span className="eyebrow">My Samples</span><h4 id="sample-collection-heading">등록한 Sample</h4></div><Badge tone="neutral">{samples.length}개</Badge></div>
+        {samples.length === 0 ? <div className="sample-empty"><AudioLines aria-hidden="true" /><strong>아직 등록된 Sample이 없습니다.</strong><p>녹음하거나 파일을 추가해 주세요.</p></div> : <div className="sample-card-grid">{samples.map((sample, index) => <VoiceSampleCard key={sample.id} sample={sample} label={sampleDisplayLabel(sample, index, displayNames)} previewUrl={previewUrls[sample.id]} selected={sample.id === selectedId} deleting={sample.id === deletingId} onSelect={() => onSelect(sample.id)} onDelete={() => { if (window.confirm("이 Sample을 삭제할까요?")) onDelete(sample.id); }} />)}</div>}
+      </section>
+    </div>
+    <EnrollmentSummary samples={samples} selectedLabel={selectedSample ? sampleDisplayLabel(selectedSample, samples.indexOf(selectedSample), displayNames) : undefined} nextStep={samples.length ? "품질 결과 확인" : "Sample 추가"}>
+      <div className={`file-drop${method === "upload" ? " preferred" : ""}`} onDragOver={(event) => event.preventDefault()} onDrop={(event) => { event.preventDefault(); void onFiles(Array.from(event.dataTransfer.files)); }}><Upload aria-hidden="true" /><strong>기존 파일 추가</strong><p>WAV 권장 · WebM/Ogg 선택 가능<br />각 25MB 이하</p><input ref={inputRef} hidden type="file" multiple accept=".wav,.webm,.ogg,audio/wav,audio/webm,audio/ogg" onChange={(event) => void onFiles(Array.from(event.target.files ?? []))} /><Button type="button" className="secondary" disabled={uploading || samples.length >= MAX_VOICE_SAMPLES} onClick={() => inputRef.current?.click()}>파일 선택</Button><small className="sr-only">{samples.length}/{MAX_VOICE_SAMPLES} Sample</small></div>
+    </EnrollmentSummary>
+  </div>;
 }
 
 function QualityStep({ samples, acknowledged, onAcknowledge }: { samples: VoiceEnrollmentSampleDto[]; acknowledged: Set<string>; onAcknowledge: (sampleId: string, checked: boolean) => void }) {
@@ -366,13 +420,13 @@ function QualityStep({ samples, acknowledged, onAcknowledge }: { samples: VoiceE
 }
 
 function ReferenceStep({ samples, selectedId, displayNames, previewUrls, onSelect, deletingId, onDelete }: { samples: VoiceEnrollmentSampleDto[]; selectedId?: string; displayNames: Record<string, string>; previewUrls: Record<string, string>; onSelect: (id: string) => void; deletingId?: string; onDelete: (id: string) => void }) {
-  return <div><p>대표 Sample은 현재 Voice Conversion과 음악 생성 Pipeline에 사용됩니다.</p><div className="sample-list" role="radiogroup" aria-label="대표 Sample 선택">{samples.map((sample, index) => <article className="sample-card" key={sample.id}><label><input type="radio" name="reference-sample" checked={selectedId === sample.id} disabled={!sample.submit_eligible || deletingId === sample.id} onChange={() => onSelect(sample.id)} /><span><strong>{displayNames[sample.id] ?? `Sample ${index + 1}`}</strong><small>{sample.source_type === "BROWSER_RECORDING" ? "브라우저 녹음" : "파일 업로드"} · {sample.duration_seconds?.toFixed(1) ?? "—"}초 · {sample.quality.status}</small>{previewUrls[sample.id] && <audio controls src={previewUrls[sample.id]}>Sample 미리 듣기를 지원하지 않는 브라우저입니다.</audio>}</span></label><Button type="button" className="danger" disabled={deletingId === sample.id || sample.status === "PROMOTED"} aria-label={`${displayNames[sample.id] ?? `Sample ${index + 1}`} 삭제`} onClick={() => { if (window.confirm("이 Sample을 삭제할까요?")) onDelete(sample.id); }}>{deletingId === sample.id ? "삭제 중…" : "삭제"}</Button></article>)}</div></div>;
+  return <div><p>대표 Sample은 현재 Voice Conversion과 음악 생성 Pipeline에 사용됩니다.</p><div className="sample-card-grid" role="radiogroup" aria-label="대표 Sample 선택">{samples.map((sample, index) => <VoiceSampleCard key={sample.id} sample={sample} label={sampleDisplayLabel(sample, index, displayNames)} previewUrl={previewUrls[sample.id]} selected={selectedId === sample.id} selectionMode="radio" deleting={deletingId === sample.id} onSelect={() => onSelect(sample.id)} onDelete={() => { if (window.confirm("이 Sample을 삭제할까요?")) onDelete(sample.id); }} />)}</div></div>;
 }
 
 function ReviewStep({ name, description, samples, selected }: { name: string; description: string | null; samples: VoiceEnrollmentSampleDto[]; selected?: VoiceEnrollmentSampleDto }) {
   return <div className="review-grid"><article><span>목소리 이름</span><strong>{name}</strong></article><article><span>설명</span><strong>{description || "설명 없음"}</strong></article><article><span>포함 Sample</span><strong>{samples.filter((sample) => sample.submit_eligible).length}개</strong></article><article><span>대표 Sample</span><strong>{selected ? `${selected.duration_seconds?.toFixed(1) ?? "—"}초 · ${selected.quality.status}` : "선택 필요"}</strong></article><p className="muted full">이름이나 설명을 바꾸려면 현재 등록을 취소하고 새로 시작해야 합니다. 제출하면 대표 Sample의 정규화 reference로 Voice Profile이 생성됩니다.</p></div>;
 }
 
-function CompleteStep({ profileId, onNew }: { profileId?: string | null; onNew: () => void }) {
-  return <div className="enrollment-complete"><span aria-hidden="true">✓</span><h3>목소리 등록이 완료되었습니다</h3><p>새 Voice Profile을 음악 만들기에 선택했습니다.</p>{profileId && <small>Profile ID: {profileId}</small>}<div><Link className="button" href="/studio">Studio에서 사용하기</Link><Button type="button" className="secondary" onClick={onNew}>새 목소리 등록</Button></div></div>;
+function CompleteStep({ name, sample, sampleLabel, previewUrl, onNew }: { name: string; sample?: VoiceEnrollmentSampleDto; sampleLabel?: string; previewUrl?: string; onNew: () => void }) {
+  return <div className="enrollment-complete"><span aria-hidden="true">✓</span><div className="complete-copy"><span>Voice Profile</span><h3>목소리 등록이 완료되었습니다</h3><p><strong>{name}</strong> Profile을 만들고 음악 만들기에 선택했습니다.</p></div>{sample && <article className="complete-reference"><div><span>대표 Sample</span><strong>{sampleLabel ?? "대표 Sample"}</strong><small>{sample.duration_seconds?.toFixed(1) ?? "—"}초 · {sample.quality.status}</small></div>{previewUrl && <VoiceAudioPlayer src={previewUrl} label={sampleLabel ?? "대표 Sample"} />}</article>}<div className="complete-actions"><Link className="button" href="/studio">Studio에서 사용하기</Link><Button type="button" className="secondary" onClick={onNew}>새 목소리 등록</Button></div></div>;
 }

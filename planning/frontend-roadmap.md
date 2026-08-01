@@ -130,7 +130,8 @@ Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Og
 - [x] Voice Profile 등록·Studio 선택 연결 — 대표 Sample submit 후 목록 invalidate·신규 Profile 선택
 - [x] 오류·재시도·취소·cleanup — 동일 key 재시도, session 복원, 만료·not found·cleanup 상태 UX
 - [x] 접근성·반응형 — 단계 focus·aria-current/live/meter/radio, Desktop·Pixel 7 E2E
-- [x] Frontend unit·component·E2E — Vitest 95개와 전체 Playwright 24개 통과
+- [x] Wizard UI polish — 정상 INFO/오류 분리, 녹음·입력 수준, Sample 카드·Summary·custom player·완료 CTA, Desktop·Tablet·Pixel 7 반응형 검증
+- [x] Frontend unit·component·E2E — Vitest 96개와 Desktop·Tablet·Pixel 7 전체 Playwright 36개 통과
 - [x] Validation E2E — Chrome·Edge 설치 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 PASS·WARNING·FAIL·멱등·만료·cancel과 MIME probe
 - [x] Backend API·Audio·Storage·migration·기존 Voice 회귀 자동 test
 - [x] 보안·동의·API·DB 문서 — Frontend 구현 사실과 미구현 경계를 갱신

@@ -31,6 +31,7 @@
 - 현재 구성: 안내 → 동의 → 방법 → 녹음/업로드 → 품질 → 대표 Sample → Profile 확인 → 완료 Wizard, Profile list·선택·삭제, 기존 빠른 WAV fallback과 개발 플래그의 path create.
 - 현재 API: Enrollment 7개 endpoint와 기존 Profile upload·list·get·delete가 로컬 MVP에서 `Available`; 서버 음성 preview content와 인증·소유권은 제공하지 않는다.
 - F6 Frontend `[완료]`: MediaRecorder feature detection, 권한·일시정지·재개·60초 자동 종료, 입력 수준·메모리 preview, 최대 10개 upload, session 복원·취소·만료·멱등 재시도와 Studio 선택을 구현했다. 합성 WebM/Ogg의 Backend FFmpeg 정규화는 Windows/CI에서 검증했고 실제 마이크·기기별 MIME 평가는 남아 있다.
+- Voice Enrollment UI: 정상 안내와 오류를 분리하고 녹음 상태·입력 수준·안내 문장, Sample별 품질·재생·대표 선택·삭제, 우측 Summary, 완료 CTA를 Desktop·Tablet·Mobile 반응형으로 제공한다.
 - 세부 요구사항: [Voice Enrollment](../02-requirements/voice-enrollment-requirements.md).
 
 ## Generation Progress
