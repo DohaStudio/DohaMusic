@@ -9,7 +9,7 @@
 
 본인 음성 또는 음성 권리자가 특정 사용자·목적·기간에 명시적으로 동의한 음성만 등록할 수 있다. 사용자는 업로드 시 권리 보유를 확인하고 정책 버전, 범위, 시각, 철회 방법에 동의해야 한다.
 
-Voice Enrollment는 권리·처리·임시 보관 안내를 확인하기 전 sample을 서버에 upload할 수 없게 한다. 사용자의 명시적 sample upload 행동 뒤에만 임시 전송하며, 최종 동의를 다시 확인한 submit 전에는 Voice Profile을 생성하지 않는다. 권리 확인, Voice Conversion 처리 목적, 원본·파생 파일의 보관 범위, 철회·삭제 방법과 인증 없는 로컬 MVP의 한계를 표시한다. 선택적인 제품 알림·분석 동의를 필수 음성 처리 동의와 묶지 않는다.
+Voice Enrollment create는 권리·처리·임시 보관 동의 `v1`을 필수로 snapshot하고, 사용자의 명시적 upload 행동 뒤에만 임시 전송한다. submit에서 같은 동의를 다시 확인하기 전에는 Voice Profile을 생성하지 않는다. 원본은 Enrollment 임시 root에만 보존하고 submit·삭제·취소·lazy 만료 때 제거하며 최종 Profile에는 정규화 reference만 남긴다. 공개 DTO·오류에는 내부 경로·원본 filename·decoder command·stderr를 포함하지 않는다. 인증 없는 로컬 MVP의 한계와 철회 전용 API 미구현을 명시한다.
 
 ## 시스템 통제
 
@@ -22,7 +22,7 @@ Voice Enrollment는 권리·처리·임시 보관 안내를 확인하기 전 sam
 - 사용자에게 원본 샘플과 정책상 대상이 되는 전처리·캐시·파생 음성 삭제 기능을 제공한다.
 - 삭제 작업은 저장소 객체와 DB 상태를 추적하며 실패 시 재시도한다.
 
-현재 `DELETE /api/voice-profiles/{id}`는 Pipeline 또는 Voice Conversion Job이 참조한 Profile을 `VOICE_PROFILE_IN_USE`로 차단하고, 미사용 관리 upload 원본만 Profile과 함께 물리 삭제한다. 동의 철회 전용 API, 철회 상태, 대기 작업 중단과 파생 파일·cache·개인화 모델 artifact 삭제는 구현되지 않았다. 이 차이를 사용자에게 “철회 완료”로 표시하지 않는다.
+현재 `DELETE /api/voice-profiles/{id}`는 Pipeline 또는 Voice Conversion Job이 참조한 Profile을 `VOICE_PROFILE_IN_USE`로 차단하고, 미사용 legacy upload와 Enrollment가 승격한 retained reference들을 Profile과 함께 물리 삭제한다. 동의 철회 전용 API, 철회 상태, 대기 작업 중단과 파생 파일·cache·개인화 모델 artifact 삭제는 구현되지 않았다. 이 차이를 사용자에게 “철회 완료”로 표시하지 않는다.
 
 ## Voice Enrollment 브라우저 처리 요구사항 [계획]
 

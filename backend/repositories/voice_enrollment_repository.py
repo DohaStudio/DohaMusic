@@ -19,10 +19,12 @@ class VoiceEnrollmentRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def create(self, **values: object) -> VoiceEnrollment:
+    def create(self, *, commit: bool = True, **values: object) -> VoiceEnrollment:
         enrollment = VoiceEnrollment(**values)
         self.session.add(enrollment)
-        self.session.commit()
+        self.session.flush()
+        if commit:
+            self.session.commit()
         self.session.refresh(enrollment)
         return enrollment
 
@@ -30,7 +32,11 @@ class VoiceEnrollmentRepository:
         return self.session.get(VoiceEnrollment, enrollment_id)
 
     def transition(
-        self, enrollment: VoiceEnrollment, target: VoiceEnrollmentStatus
+        self,
+        enrollment: VoiceEnrollment,
+        target: VoiceEnrollmentStatus,
+        *,
+        commit: bool = True,
     ) -> VoiceEnrollment:
         current = VoiceEnrollmentStatus(enrollment.status)
         validate_enrollment_transition(current, target)
@@ -43,7 +49,9 @@ class VoiceEnrollmentRepository:
             enrollment.completed_at = now
         elif target == VoiceEnrollmentStatus.CANCELLED:
             enrollment.cancelled_at = now
-        self.session.commit()
+        self.session.flush()
+        if commit:
+            self.session.commit()
         self.session.refresh(enrollment)
         return enrollment
 

@@ -7,7 +7,7 @@
 > 관련 문서: [Voice Enrollment API](../06-api/voice-enrollment-api.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [Storage Architecture](../03-architecture/storage-architecture.md), [음성 동의 정책](../09-security/voice-consent-policy.md)
 > 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
 
-> 구현 메모: Alembic `20260801_0010`에서 Enrollment·Sample lifecycle 및 만료·cleanup 상태 필드와 조회 인덱스를 먼저 구현했다. 24시간 sliding/7일 absolute 계산, idempotency 저장소, Storage와 cleanup worker는 아직 제안 상태다.
+> 구현 메모: `0010` lifecycle 기반과 `0011` hashed idempotency 저장소, 별도 임시 Storage, 24시간 sliding/7일 absolute lazy 만료, submit promotion과 즉시 cleanup primitive를 구현했다. 주기적 expiration scanner·cleanup retry scheduler와 crash 복구 worker가 없어 상태는 `[제안]`으로 유지한다.
 
 ## Context
 
@@ -21,7 +21,7 @@
 
 - 사용자가 안내와 등록 방법을 확인하고 “등록 시작”을 명시적으로 누를 때 `POST /api/voice-enrollments`로 server-generated ID를 만든다. 페이지 진입만으로 만들지 않고 첫 upload에서 암시적으로 만들지 않는다.
 - 서버는 Profile 이름·설명 draft, consent policy version과 마지막 활동 시각을 저장할 수 있다. `consent_confirmed_at`은 최종 `submit`에서 권리·목적·보존 범위를 다시 확인한 시각만 기록한다.
-- sample upload는 원본 보관과 비동기 정규화·검증 작업 생성까지만 담당한다. 5초를 넘을 수 있으므로 `202`를 반환하고 조회 API로 결과를 확인한다.
+- 현재 로컬 MVP의 sample upload는 원본을 보관하고 threadpool에서 정규화·검증을 동기 완료해 `201`을 반환한다. 별도 durable Job·polling은 만들지 않았으며 운영 latency와 crash 복구 요구가 커지면 다시 검토한다.
 - submit은 Enrollment와 eligible Sample을 잠그고 상태·동의·warning 확인·active reference를 재검증한 뒤 Profile 생성을 예약한다. 최종 Profile은 이 시점 전에는 만들지 않는다.
 
 ### 서버 상태와 UI 상태

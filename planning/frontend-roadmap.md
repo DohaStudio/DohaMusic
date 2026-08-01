@@ -101,13 +101,13 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - observability, browser matrix, performance, security review
 - 완료 기준: Phase-08 DoD와 사용자 시나리오 승인
 
-## F6 — Guided Voice Enrollment [계획]
+## F6 — Guided Voice Enrollment [진행 중]
 
 ### 목적과 경계
 
 단일 WAV form인 `/voice`를 사용자가 안내에 따라 본인 참조 음성을 준비하는 Wizard로 개선한다. F6는 Phase 8의 후속 Studio UX이며 기존 Phase 8 `15/15, 100%`를 변경하지 않는다. 장시간 Dataset 수집·전사·split·preprocessing·LoRA·Fine Tuning은 Phase 7 범위로 분리한다.
 
-현재 Backend는 단일 25MB 이하, 5~60초, PCM16 WAV upload와 Profile 즉시 생성을 지원한다. Enrollment·Sample ORM·Repository·상태 전이·migration과 legacy Profile backfill도 구현됐다. MediaRecorder WebM/Ogg, 다중 sample API, 사전 validation, 만료·cleanup 실행, upload 취소·resume와 동의 철회는 지원하지 않는다. 세부 사실과 대안은 [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md)을 따른다.
+Backend는 기존 단일 WAV API와 함께 Enrollment 7개 endpoint, WAV/WebM/Ogg 입력, 최대 10개 sample, PCM16 48kHz mono 정규화, 기본 품질 검사, Profile 승격, 멱등성과 lazy expiration을 지원한다. WebM/Ogg는 optional FFmpeg가 없으면 안전한 unavailable 오류를 반환한다. MediaRecorder UI, upload resume, 주기적 cleanup scanner와 동의 철회는 지원하지 않는다.
 
 ### 구현 선행 결정
 
@@ -119,10 +119,10 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 ### 완료 체크리스트
 
-- [x] Voice Enrollment 요구사항 확정 — 문서 설계 기준선만 완료, 기능은 미구현
-- [x] 녹음 MIME과 WAV 정규화 설계 제안 — 구현 전 decoder·Provider 검증 필요
+- [x] Voice Enrollment 요구사항 확정 — Backend 계약 구현, Frontend 기능은 미구현
+- [x] 녹음 MIME과 WAV 정규화 Backend 구현 — 실제 FFmpeg 통합·고정 build 검증은 후속
 - [x] 단일 reference와 다중 sample 영속 모델 — migration·legacy backfill·Repository 검증 완료
-- [x] 임시 Enrollment·API·만료·cleanup 설계 제안 — Backend 미구현
+- [x] 임시 Enrollment·API·lazy 만료·즉시 cleanup primitive 구현 — scheduler는 미구현
 - [ ] 안내 문장과 녹음 정책 검증
 - [ ] 브라우저 녹음 UI
 - [ ] 기존 파일 upload Wizard 연결
@@ -131,7 +131,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 - [ ] 오류·재시도·취소·cleanup
 - [ ] 접근성·반응형
 - [ ] Frontend unit·component·E2E
-- [ ] Backend 전체 검증 test — 영속 모델·migration·기존 Voice 회귀는 완료, API·Storage·cleanup test 미구현
+- [x] Backend API·Audio·Storage·migration·기존 Voice 회귀 자동 test
 - [ ] 보안·동의·API·DB 문서
 - [ ] CHANGELOG
 - [ ] 한국어 커밋·Push·`develop` PR·병합 검증
@@ -144,7 +144,7 @@ Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한�
 
 ## 우선순위와 보류
 
-F0~F5는 로컬 단일 사용자 범위에서 구현·자동 검증을 완료했다. F5에서 보안 content/download·전역 Player, Voice upload, History·Project CRUD, cooperative Cancel과 새 Job Retry를 연결했다. F6는 `[계획]`이며 단일 WAV 계약을 유지한 상태에서 선행 ADR·Backend 설계를 먼저 수행한다. 공개 DTO는 내부 Storage 경로를 반환하지 않으며 Project 삭제와 Cancel은 Job 기록을 보존한다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.
+F0~F5는 로컬 단일 사용자 범위에서 완료됐다. F6 Backend는 구현됐지만 Frontend Wizard·MediaRecorder와 주기적 cleanup은 남아 있어 `[진행 중]`이다. 공개 DTO는 내부 Storage 경로를 반환하지 않는다. `main` 배포와 Production 공개는 인증·소유권·감사 로그·분산 Queue를 다루는 Phase 9 승인 전까지 보류한다.
 
 Frontend shared mapper와 Result metadata allowlist는 루트 `lib/` ignore 규칙으로 누락됐던 파일을 기존 계약에 맞춰 복구했다. 이 복구는 Phase 8 기능·상태를 바꾸지 않고 typecheck·build·Vitest·Playwright 기준선과 후속 K1 검증 차단을 해소한다.
 

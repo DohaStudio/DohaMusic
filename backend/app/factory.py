@@ -40,6 +40,7 @@ from backend.services.lyrics_service import LyricsService
 from backend.services.pipeline_service import PipelineService
 from backend.services.stem_service import StemService
 from backend.services.voice_conversion_service import VoiceConversionService
+from backend.services.voice_enrollment_service import VoiceEnrollmentService
 from backend.services.voice_profile_service import VoiceProfileService
 from backend.services.voice_upload_service import VoiceUploadService
 from backend.storage.service import StorageService
@@ -169,6 +170,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.voice_profile_service = VoiceProfileService(
             session_factory=session_factory,
             storage=storage,
+        )
+        app.state.voice_enrollment_service = VoiceEnrollmentService(
+            session_factory=session_factory,
+            storage=storage,
+            settings=resolved_settings,
         )
         app.state.voice_upload_service = VoiceUploadService(
             session_factory=session_factory,

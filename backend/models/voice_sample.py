@@ -84,6 +84,9 @@ class VoiceSample(Base):
     quality_warnings: Mapped[list[str]] = mapped_column(
         JSON, nullable=False, default=list
     )
+    quality_metrics: Mapped[dict[str, float | str]] = mapped_column(
+        JSON, nullable=False, default=dict
+    )
     failure_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     validated_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

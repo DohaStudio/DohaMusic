@@ -22,7 +22,9 @@ def test_empty_database_upgrade_downgrade_and_reupgrade(tmp_path) -> None:
     command.upgrade(config, "head")
 
     inspector = inspect(create_engine(f"sqlite:///{database_path.as_posix()}"))
-    assert {"voice_enrollments", "voice_samples"}.issubset(inspector.get_table_names())
+    assert {"voice_enrollments", "voice_samples", "idempotency_records"}.issubset(
+        inspector.get_table_names()
+    )
     assert "active_reference_sample_id" in {
         column["name"] for column in inspector.get_columns("voice_profiles")
     }
@@ -35,6 +37,16 @@ def test_empty_database_upgrade_downgrade_and_reupgrade(tmp_path) -> None:
         "ix_voice_samples_voice_profile_id_status",
         "ix_voice_samples_status_expires_at",
     }.issubset({index["name"] for index in inspector.get_indexes("voice_samples")})
+    assert "quality_metrics" in {
+        column["name"] for column in inspector.get_columns("voice_samples")
+    }
+    command.downgrade(config, "20260801_0010")
+    downgraded = inspect(create_engine(f"sqlite:///{database_path.as_posix()}"))
+    assert "idempotency_records" not in downgraded.get_table_names()
+    assert "quality_metrics" not in {
+        column["name"] for column in downgraded.get_columns("voice_samples")
+    }
+    command.upgrade(config, "head")
     command.downgrade(config, "20260731_0009")
     assert (
         "voice_samples"

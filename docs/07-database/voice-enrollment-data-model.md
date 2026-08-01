@@ -4,11 +4,11 @@
 > 최종 수정일: 2026-08-01
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [현재 ERD](erd.md), [현재 테이블 정의](table-definition.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)
-> 구현 상태: Alembic `20260801_0010`과 ORM·Repository·상태 전이·기존 Profile backfill까지 구현했다. Enrollment API, Storage, 정규화, 품질 분석, 만료·cleanup 실행기는 아직 미구현이다.
+> 구현 상태: Alembic `20260801_0010` 영속 모델에 이어 `20260801_0011`이 sample `quality_metrics`와 hashed `idempotency_records`를 추가한다. Enrollment API·Storage·정규화·기본 품질·lazy 만료·즉시 cleanup primitive를 구현했고 scanner·scheduler는 미구현이다.
 
 ## 1. 구현 범위
 
-이번 단계는 F6의 영속 계층만 추가한다. 기존 `/api/voice-profiles` 공개 계약과 `voice_profiles.reference_file_path`를 유지하면서 다음을 구현했다.
+F6 Backend는 기존 `/api/voice-profiles` 공개 계약과 `voice_profiles.reference_file_path`를 유지하면서 다음을 구현했다.
 
 - `voice_enrollments`: 제출 전 등록 세션, 동의, 만료, 실패와 cleanup 상태
 - `voice_samples`: Enrollment·Profile에 연결되는 개별 sample metadata와 lifecycle
@@ -16,7 +16,7 @@
 - 기존 Profile당 `LEGACY_REFERENCE` Sample backfill
 - 상태 전이 검증과 최소 Repository CRUD·조회
 
-WebM/Ogg·FFmpeg, multipart Enrollment endpoint, 파일 promotion, 품질 분석 확장, cleanup worker, Frontend Wizard는 이 migration에 포함하지 않는다.
+`0011` migration은 파일에 접근하지 않는다. WebM/Ogg decode·파일 promotion·cleanup은 Runtime Service 책임이며 Frontend Wizard와 cleanup scheduler는 포함하지 않는다.
 
 ## 2. 관계
 
@@ -102,6 +102,8 @@ Enrollment당 최대 10개, prompt/category 중복, 동의·품질·만료 eligi
 
 Alembic `20260801_0010`은 파일을 열거나 이동·삭제하지 않고 DB metadata만 변환한다.
 
+Alembic `20260801_0011`도 파일에 접근하지 않는다. `0010`으로 downgrade하면 replay cache인 `idempotency_records`와 재계산 가능한 `quality_metrics`를 제거하므로 진행 중 요청의 재생 정보와 상세 metrics가 소실된다. Profile·Enrollment·Sample row와 음성 파일은 유지된다.
+
 1. 기존 Profile ID로 결정적 UUID5 Sample ID를 만든다.
 2. `source_type=LEGACY_REFERENCE`, `category=legacy`로 기록한다.
 3. Profile이 `READY`면 Sample을 `PROMOTED`로 만들고 대표 FK를 연결한다. 그 외 상태는 `FAILED`로 기록하고 대표 FK를 비운다.
@@ -114,4 +116,4 @@ Alembic `20260801_0010`은 파일을 열거나 이동·삭제하지 않고 DB me
 
 Enrollment row가 없고 모든 Sample이 `LEGACY_REFERENCE`일 때만 `20260731_0009`로 구조적 downgrade할 수 있다. 신규 Enrollment 또는 비레거시 Sample이 있으면 데이터 유실을 막기 위해 downgrade를 명시적으로 차단한다.
 
-후속 PR은 API request/response와 idempotency 저장소, 파일 정규화·promotion, 24시간 sliding/7일 absolute 만료 계산, cleanup retry, Profile 설명과 provenance 확장을 실제 근거에 맞춰 구현해야 한다. F6 Sample은 별도 학습 opt-in·lineage·삭제 계약 없이 Phase 7 Dataset에 편입하지 않는다.
+Runtime은 별도 `idempotency_records`에 raw key가 아닌 SHA-256 hash와 request fingerprint·resource 결과·24시간 만료를 기록한다. 24시간 sliding/7일 absolute lazy 만료와 즉시 cleanup은 구현했지만 주기적 scan·retry는 후속이다. F6 Sample은 별도 학습 opt-in·lineage·삭제 계약 없이 Phase 7 Dataset에 편입하지 않는다.

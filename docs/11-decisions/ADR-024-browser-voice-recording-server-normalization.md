@@ -11,7 +11,7 @@
 
 현재 `POST /api/voice-profiles/upload`은 `.wav`, `audio/wav` 또는 `audio/x-wav`, 25MiB 이하, 5~60초, 16-bit PCM, 16kHz 이상, mono/stereo만 받는다. 브라우저 `MediaRecorder`는 환경에 따라 WebM/Opus 또는 Ogg/Opus를 생성하므로 녹음 Blob을 현재 API에 직접 보낼 수 없다.
 
-저장소에는 Python `wave` 기반 WAV 검사와 AI Provider용 격리 subprocess 패턴이 있지만 FFmpeg 의존성·설정·배포 검증은 없다. 2026-08-01 Windows 개발 환경의 `PATH`에서도 FFmpeg를 확인하지 못했다. 따라서 경계와 계약은 결정하되 decoder 채택은 구현 PR의 Windows·CI 검증 전까지 `[제안]`으로 둔다.
+교체 가능한 normalizer interface와 Python WAV 변환, shell 없는 optional FFmpeg WebM/Ogg decoder, timeout·출력 재검증·부분 cleanup·미설치 오류를 구현했다. 2026-08-01 Windows 개발 환경에는 FFmpeg가 없어 fake subprocess와 unavailable 경로만 자동 검증했다. 실제 WebM/Ogg decode와 고정 build license·재현성 근거가 부족하므로 상태는 `[제안]`으로 유지한다.
 
 ## Decision
 

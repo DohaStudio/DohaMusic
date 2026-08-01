@@ -49,7 +49,7 @@ DoD는 각 Phase를 완료로 선언하기 위한 검증 가능한 체크리스�
 
 Phase 0은 코드 개발 이전 문서 기반 확립 단계이며 [Master Roadmap의 Phase 0](../../MASTER_ROADMAP.md#phase-0-프로젝트-문서화--완료)에서 완료 근거를 관리한다.
 
-Phase 8 후속 [F6 Guided Voice Enrollment](../../planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획)은 별도 개선 Track이다. 기존 Phase 8의 `15/15, 100%` 분모와 완료 상태를 변경하지 않으며 F6 체크리스트는 Frontend Roadmap에서 독립적으로 관리한다. Phase 7 개인화 Dataset·학습 DoD와도 분리한다.
+Phase 8 후속 [F6 Guided Voice Enrollment](../../planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중)은 별도 개선 Track이다. 기존 Phase 8의 `15/15, 100%` 분모와 완료 상태를 변경하지 않으며 F6 체크리스트는 Frontend Roadmap에서 독립적으로 관리한다. Phase 7 개인화 Dataset·학습 DoD와도 분리한다.
 
 ## 완료 선언 규칙
 

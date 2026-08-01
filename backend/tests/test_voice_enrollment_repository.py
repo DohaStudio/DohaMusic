@@ -118,6 +118,8 @@ def test_sample_promotion_and_active_reference_invariants(client) -> None:
             samples.transition(sample, VoiceSampleStatus.READY)
 
 
-def test_enrollment_routes_are_not_exposed_yet(client) -> None:
+def test_enrollment_routes_are_exposed(client) -> None:
     paths = client.get("/openapi.json").json()["paths"]
-    assert not any(path.startswith("/api/voice-enrollments") for path in paths)
+    assert "/api/voice-enrollments" in paths
+    assert "/api/voice-enrollments/{enrollment_id}/samples" in paths
+    assert "/api/voice-enrollments/{enrollment_id}/submit" in paths

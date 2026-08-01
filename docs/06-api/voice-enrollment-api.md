@@ -1,14 +1,14 @@
-# Guided Voice Enrollment API 설계
+# Guided Voice Enrollment API
 
-> 문서 상태: [제안] [Backend 확장 필요]
+> 문서 상태: [진행 중] Backend 구현 완료, Frontend 미구현
 > 최종 수정일: 2026-08-01
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [현재 음성 프로필 API](audio-api.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md), [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)
-> 구현 상태: 영속 모델·Repository·migration만 구현했다. 아래 `/api/voice-enrollments` path는 현재 OpenAPI에 없으며 request/response·idempotency 계약은 구현 전 초안이다.
+> 구현 상태: `/api/voice-enrollments` 7개 endpoint, 동기 정규화·검증, 임시 Storage·Profile 승격, lazy expiration과 create·upload·submit idempotency를 구현했다. 주기적 scanner·cleanup scheduler, durable Queue, Frontend Wizard와 인증·소유권은 미구현이다.
 
-## 1. 현재 API와 제안 API의 경계
+## 1. 기존 API와 Enrollment API의 경계
 
-2026-08-01 실행 중인 `/openapi.json`에는 다음 Voice Profile API만 있다.
+기존 Voice Profile API는 그대로 유지한다.
 
 ```text
 POST   /api/voice-profiles/upload
@@ -18,7 +18,7 @@ GET    /api/voice-profiles/{profile_id}
 DELETE /api/voice-profiles/{profile_id}
 ```
 
-현재 upload는 단일 PCM16 WAV를 검증하고 즉시 `READY` Profile을 만든다. 기존 path와 DTO는 F6 전환 기간에 호환 경로로 유지한다. 아래 제안 API는 WebM/Ogg 정규화, 다중 sample, 제출 전 draft, 비동기 검증과 cleanup을 위한 별도 aggregate다. 명시적 submit 전에는 `VoiceProfile`을 만들지 않는다.
+기존 upload는 단일 PCM16 WAV를 검증하고 즉시 `READY` Profile을 만든다. 신규 Enrollment API는 WAV/WebM/Ogg 정규화, 최대 10개 sample, 제출 전 draft와 cleanup을 위한 별도 aggregate다. 명시적 submit 전에는 `VoiceProfile`을 만들지 않는다.
 
 기본 prefix와 오류 envelope는 기존 `/api`와 `{"error":{"code","message"}}`를 유지한다. 공개 DTO와 일반 로그에 원본 binary, 내부 Storage key·root·path, command, stack trace와 raw decoder stderr를 포함하지 않는다.
 
@@ -31,29 +31,29 @@ DELETE /api/voice-profiles/{profile_id}
 | upload | `multipart/form-data`; binary를 JSON·Web Storage에 넣지 않음 |
 | idempotency | create·sample upload·submit에 `Idempotency-Key` 필수. 128자 이하 opaque 값, endpoint+Enrollment scope |
 | fingerprint | method, canonical path, 안전한 request field와 upload SHA-256. 원본 filename·binary는 기록하지 않음 |
-| async | 정규화·검증과 submit promotion은 `202 Accepted`; `GET` polling으로 terminal 상태 확인 |
-| caching | 개인 음성 metadata 응답은 `Cache-Control: private, no-store` 후보. 공개 운영 전 인증과 함께 검증 |
+| 처리 | 로컬 MVP는 정규화·검증·promotion을 threadpool에서 동기 완료하고 upload·submit은 `201`, 삭제·취소는 `200`을 반환한다. 별도 Job은 만들지 않는다. |
+| caching | 개인 음성 metadata 응답은 `Cache-Control: private, no-store` |
 | ownership | 모든 child 접근은 parent Enrollment ownership을 다시 확인. 현재는 local single-user 제한을 응답 문서에 명시 |
 | 만료 | 성공 mutation 후 24시간 sliding, 생성 후 절대 7일. GET/polling은 연장하지 않음 |
 | 한도 | sample당 25MiB·5~60초, Enrollment당 최대 10개. sample 구성의 품질 적합성은 `[검증 필요]` |
 
 `WARNING` Sample은 사용자가 warning code를 submit의 `acknowledged_warning_codes`로 확인한 경우에만 대표 reference 또는 보조 Sample로 제출할 수 있다. `FAIL`은 제출을 차단한다. `PASS`·`WARNING`은 Voice Provider 적합성이나 최종 품질 보장이 아니다.
 
-## 3. 제안 endpoint 요약
+## 3. 구현 endpoint 요약
 
 | Method | Path | 성공 | 책임 | 현재 구현 |
 |---|---|---:|---|---|
-| `POST` | `/api/voice-enrollments` | 201 | Enrollment와 draft 생성 | 미구현, F6 Backend |
-| `GET` | `/api/voice-enrollments/{enrollment_id}` | 200 | aggregate, Sample 요약, 만료·cleanup·Profile 연결 조회 | 미구현, F6 Backend |
-| `POST` | `/api/voice-enrollments/{enrollment_id}/samples` | 202 | 원본 streaming upload와 정규화·검증 예약 | 미구현, F6 Backend |
-| `GET` | `/api/voice-enrollments/{enrollment_id}/samples/{sample_id}` | 200 | Sample metadata·validation·cleanup 조회 | 미구현, F6 Backend |
-| `DELETE` | `/api/voice-enrollments/{enrollment_id}/samples/{sample_id}` | 202 | Sample 삭제와 cleanup 예약 | 미구현, F6 Backend |
-| `POST` | `/api/voice-enrollments/{enrollment_id}/submit` | 202 | 동의·Sample·대표 reference 재검증과 Profile 생성 예약 | 미구현, F6 Backend |
-| `POST` | `/api/voice-enrollments/{enrollment_id}/cancel` | 202 | 미완료 Enrollment 취소와 전체 cleanup 예약 | 미구현, F6 Backend |
+| `POST` | `/api/voice-enrollments` | 201 | 동의 snapshot과 Enrollment draft 생성 | 구현 |
+| `GET` | `/api/voice-enrollments/{enrollment_id}` | 200 | aggregate, Sample 요약, lazy 만료·cleanup·Profile 연결 조회 | 구현 |
+| `POST` | `/api/voice-enrollments/{enrollment_id}/samples` | 201 | 원본 streaming upload, 정규화·검증 완료 | 구현 |
+| `GET` | `/api/voice-enrollments/{enrollment_id}/samples/{sample_id}` | 200 | Sample metadata·validation·cleanup 조회 | 구현 |
+| `DELETE` | `/api/voice-enrollments/{enrollment_id}/samples/{sample_id}` | 200 | Sample 삭제와 즉시 cleanup | 구현 |
+| `POST` | `/api/voice-enrollments/{enrollment_id}/submit` | 201 | 동의·Sample·대표 reference 재검증과 Profile 생성·승격 | 구현 |
+| `POST` | `/api/voice-enrollments/{enrollment_id}/cancel` | 200 | 미완료 Enrollment 취소와 전체 cleanup | 구현 |
 
 별도 validation endpoint를 만들지 않는다. upload가 validation을 예약하고 Sample GET이 결과를 반환한다. 별도 cleanup endpoint도 만들지 않고 Enrollment·Sample GET의 `cleanup_status`로 확인한다.
 
-## 4. 공개 DTO 초안
+## 4. 공개 DTO
 
 ### `VoiceEnrollmentRead`
 
@@ -61,7 +61,9 @@ DELETE /api/voice-profiles/{profile_id}
 {
   "id": "opaque-uuid",
   "status": "READY_TO_SUBMIT",
-  "profile_draft": {"name": "내 목소리", "description": null},
+  "name": "내 목소리",
+  "description": null,
+  "consent_confirmed": true,
   "consent_policy_version": "v1",
   "sample_count": 2,
   "samples": [
@@ -71,14 +73,14 @@ DELETE /api/voice-profiles/{profile_id}
       "prompt_id": "ko_speech_neutral_01",
       "category": "BASIC_SPEECH",
       "status": "READY",
-      "quality_status": "WARNING",
-      "quality_warnings": ["LOW_VOLUME"],
+      "quality": {"status": "WARNING", "warnings": ["LOW_VOLUME"], "version": "basic-v1", "peak": 0.2, "rms": 0.01, "silence_ratio": 0.1, "clipping_ratio": 0.0},
       "duration_seconds": 7.2,
       "sample_rate": 48000,
       "channels": 1,
       "bit_depth": 16,
       "normalized_content_type": "audio/wav",
-      "cleanup_status": "NOT_REQUESTED"
+      "cleanup_status": "NOT_REQUESTED",
+      "submit_eligible": true
     }
   ],
   "expires_at": "2026-08-02T03:00:00Z",
@@ -105,14 +107,16 @@ Content-Type: application/json
 
 ```json
 {
-  "profile_draft": {"name": "내 목소리", "description": null},
+  "name": "내 목소리",
+  "description": null,
+  "consent_confirmed": true,
   "consent_policy_version": "v1"
 }
 ```
 
 - `201`: 새 Enrollment 또는 동일 key·fingerprint의 기존 Enrollment.
 - validation: 이름 1~100자, 설명 후보 최대 500자, 현재 제공 중인 정책 version만 허용.
-- lifecycle: 없음 → `DRAFT`. 동의 확인 시각은 저장하지 않는다.
+- lifecycle: 없음 → `DRAFT`. 동의 version·확인 시각을 snapshot으로 저장하고 submit에서 다시 확인한다.
 - cleanup: binary가 없으므로 row 만료만 예약한다.
 - 권한: 로컬 단일 사용자; Phase 9에서 authenticated owner를 강제한다.
 
@@ -126,7 +130,7 @@ Content-Type: application/json
 - idempotency: 안전한 GET 자체가 idempotent이며 TTL을 연장하지 않는다.
 - lifecycle/cleanup: 조회는 상태를 바꾸거나 cleanup을 재시작하지 않는다.
 
-### 5.3 Sample upload·검증 예약
+### 5.3 Sample upload·검증
 
 `POST /api/voice-enrollments/{enrollment_id}/samples`
 
@@ -142,7 +146,7 @@ Content-Type: multipart/form-data
 | `prompt_id` | 아니요 | 서버가 제공한 prompt ID 또는 null |
 | `category` | 예 | allowlist category |
 
-- `202`: `UPLOADED` 또는 `VALIDATING` Sample과 polling URL 반환.
+- `201`: 정규화·기본 품질 검사가 끝난 `READY` Sample 반환. 긴 처리는 Starlette threadpool로 넘기지만 HTTP 요청은 완료를 기다린다.
 - streaming 중 client disconnect는 부분 파일 cleanup을 예약한다. 성공 response 전 연결이 끊기면 같은 key·동일 binary로 재조회 겸 재시도한다.
 - signature·MIME·container, decode duration, normalized PCM16/48kHz/mono와 품질 결과는 Backend가 최종 판정한다.
 - lifecycle: `DRAFT`/`READY_TO_SUBMIT` → 검증 동안 aggregate 재평가 → eligible Sample이 있으면 `READY_TO_SUBMIT`; 실패 Sample만 있으면 `DRAFT`.
@@ -153,14 +157,14 @@ Content-Type: multipart/form-data
 `GET /api/voice-enrollments/{enrollment_id}/samples/{sample_id}`
 
 - `200`: lifecycle, 정규화 metadata, `PASS|WARNING|FAIL`, warning/error code, cleanup status.
-- validation이 terminal이 아니면 `Retry-After` 후보를 제공한다.
+- 현재 동기 계약에서는 정상 응답이 terminal 상태다.
 - 원본·정규화 음성 content/preview URL은 제공하지 않는다. 브라우저 preview는 제출 전 메모리 Blob을 사용한다.
 
 ### 5.5 Sample 삭제
 
 `DELETE /api/voice-enrollments/{enrollment_id}/samples/{sample_id}`
 
-- `202`: `DELETE_PENDING`; 이미 삭제 예약된 같은 Sample 호출도 같은 결과.
+- `200`: 파일 cleanup이 끝난 안전한 공개 상태. 실패하면 `VOICE_CLEANUP_FAILED`와 내부 `DELETE_FAILED`를 보존한다.
 - `409 VOICE_SAMPLE_IN_USE`: submit이 잠갔거나 완료 Profile의 active/retained Sample인 경우.
 - lifecycle: Sample cleanup 완료 후 aggregate를 `DRAFT` 또는 `READY_TO_SUBMIT`로 재평가한다.
 - 물리 삭제 실패는 `DELETE_FAILED`로 조회되고 204 성공처럼 숨기지 않는다.
@@ -176,7 +180,6 @@ Content-Type: application/json
 
 ```json
 {
-  "profile": {"name": "내 목소리", "description": null},
   "active_reference_sample_id": "opaque-sample-uuid",
   "included_sample_ids": ["opaque-sample-uuid", "opaque-second-uuid"],
   "acknowledged_warning_codes": [
@@ -187,7 +190,7 @@ Content-Type: application/json
 }
 ```
 
-- `202`: `SUBMITTING`과 polling URL. 완료 시 Enrollment GET의 `status=COMPLETED`, `voice_profile_id`로 연결한다.
+- `201`: Profile과 reference 승격이 완료된 `COMPLETED` Enrollment를 반환한다.
 - 모든 included Sample은 `READY`이고 `PASS` 또는 확인된 `WARNING`이어야 한다. active Sample은 included 목록에 있어야 한다.
 - `consent_confirmed=true`와 현재 policy version을 최종 시각으로 저장한다.
 - 같은 key·fingerprint 또는 이미 동일하게 완료된 Enrollment는 같은 Profile을 반환한다. 다른 payload의 재submit은 409다.
@@ -197,7 +200,7 @@ Content-Type: application/json
 
 `POST /api/voice-enrollments/{enrollment_id}/cancel`
 
-- request body 없음. `202`와 `CANCELLED`/`DELETE_PENDING` 반환.
+- request body 없음. `200`과 `CANCELLED`, 별도 `cleanup_status`를 반환한다.
 - `DRAFT`, `READY_TO_SUBMIT`에서 허용하고 진행 중 validation은 cooperative cancel 후 cleanup한다.
 - `SUBMITTING`은 commit 경계 전이면 취소를 시도하고, 이미 `COMPLETED`면 `VOICE_ENROLLMENT_ALREADY_SUBMITTED`다. Profile 동의 철회로 바꾸지 않는다.
 - 같은 cancel 반복은 idempotent다. cleanup 실패는 조회 가능 상태로 남긴다.
@@ -247,12 +250,10 @@ stateDiagram-v2
 | `VOICE_SAMPLE_IN_USE` | 409 | 등록 처리 중이거나 사용 중인 샘플은 삭제할 수 없습니다. | 상태 후 | polling·Profile 안내 | state·reference relation | DB lock detail |
 | `VOICE_CONSENT_REQUIRED` | 422 | 음성 처리와 보관 범위에 동의해 주세요. | 동의 후 | consent step focus | policy version | 동의 UI 원문 외 개인정보 |
 | `VOICE_PROFILE_CREATION_FAILED` | 500 | 목소리 프로필을 만들지 못했습니다. 상태를 확인해 주세요. | 상태 조회 후 | 자동 재제출 금지, GET | transaction stage·compensation | SQL·path·stack |
-| `VOICE_CLEANUP_PENDING` | 202 | 파일 삭제를 진행 중입니다. | 조회 가능 | polling | cleanup attempt·next retry | path·raw OS error |
+| `VOICE_CLEANUP_FAILED` | 500 | 음성 파일을 안전하게 삭제하지 못했습니다. | 후속 retry 구현 전 수동 확인 | 상태 조회 | cleanup stage·safe OS category | path·raw OS error |
 | `IDEMPOTENCY_CONFLICT` | 409 | 같은 요청 키가 다른 내용에 사용되었습니다. 새 요청으로 다시 시도해 주세요. | 새 key | 사용자 확인 후 새 key | key hash·fingerprint mismatch | raw key·request binary |
-| `VOICE_ENROLLMENT_LIMIT_EXCEEDED` | 422 | 한 번에 등록할 수 있는 음성 샘플 수를 초과했습니다. | 삭제 후 | 최대 10개 안내 | count·limit | filenames |
+| `VOICE_SAMPLE_LIMIT_EXCEEDED` | 422 | 한 번에 등록할 수 있는 음성 샘플 수를 초과했습니다. | 삭제 후 | 최대 10개 안내 | count·limit | filenames |
 | `VOICE_WARNING_ACKNOWLEDGEMENT_REQUIRED` | 422 | 품질 경고를 확인한 뒤 제출해 주세요. | 확인 후 | warning에 focus | sample ID·warning code | audio metrics 원본 |
-| `VOICE_AUTHENTICATION_REQUIRED` | 401 | 로그인 후 이용해 주세요. | 인증 후 | 로그인 | auth failure category | token·credential |
-| `VOICE_ACCESS_DENIED` | 404 | 음성 등록 작업을 찾을 수 없습니다. | 아니요 | 목록으로 이동 | authenticated owner mismatch | 타 owner 존재 여부 |
 
 ## 8. 현재 API 호환과 deprecation
 

@@ -46,6 +46,14 @@
 | `DOHAMUSIC_VOICE_SEED_VC_DEVICE` | 실행 장치 | `cuda` |
 | `DOHAMUSIC_VOICE_SEED_VC_DIFFUSION_STEPS` | 확산 step | `30` |
 | `DOHAMUSIC_VOICE_SEED_VC_TIMEOUT_SECONDS` | subprocess 제한 | `1800` |
+| `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE` | Enrollment WebM/Ogg용 system FFmpeg executable 이름 또는 절대 경로 | `ffmpeg` |
+| `DOHAMUSIC_VOICE_NORMALIZATION_TIMEOUT_SECONDS` | Enrollment decoder subprocess 제한 | `30` |
+| `DOHAMUSIC_VOICE_ENROLLMENT_MAX_FILE_BYTES` | sample별 streaming upload 상한 | `26214400` |
+| `DOHAMUSIC_VOICE_ENROLLMENT_MAX_SAMPLES` | Enrollment당 retained sample 상한 | `10` |
+| `DOHAMUSIC_VOICE_ENROLLMENT_MIN_DURATION_SECONDS` | 정규화 후 최소 길이 | `5` |
+| `DOHAMUSIC_VOICE_ENROLLMENT_MAX_DURATION_SECONDS` | 정규화 후 최대 길이 | `60` |
+| `DOHAMUSIC_VOICE_ENROLLMENT_SLIDING_EXPIRY_HOURS` | 성공 mutation 기준 inactivity TTL | `24` |
+| `DOHAMUSIC_VOICE_ENROLLMENT_ABSOLUTE_EXPIRY_DAYS` | 생성 기준 절대 TTL | `7` |
 | `DOHAMUSIC_PIPELINE_VERSION` | Pipeline metadata 계약 버전 | `1` |
 | `DOHAMUSIC_PIPELINE_MAX_RETRIES` | 단계별 추가 시도 횟수 | `1` |
 | `DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS` | Orchestrator 단계 제한 | `900` |
@@ -61,7 +69,7 @@
 
 `NEXT_PUBLIC_*` 값은 browser bundle에 공개되므로 비밀을 넣지 않는다. `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH`는 정확히 `true`일 때만 form을 노출하며 Backend path 검증이나 인증을 대체하지 않는다. 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 
-Voice upload 제한은 현재 코드 계약으로 25MB·5~60초이며 새 환경 변수는 추가하지 않았다. 운영 요구가 확정되기 전 임의 설정 확장을 만들지 않는다.
+기존 `/api/voice-profiles/upload` 제한은 25MB·5~60초 고정 계약이다. 신규 Enrollment는 위 설정을 사용하며 기본값을 동일하게 유지한다. FFmpeg binary는 저장소가 배포·다운로드하지 않는다.
 
 ## 벤치마크 전용 변수
 

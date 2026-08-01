@@ -5,13 +5,13 @@
 > 관련 기능: 사용자 안내형 Voice Enrollment Wizard, Voice Profile 등록
 > 관련 Phase: Phase 8 후속 F6, Phase 7 개인화 Dataset과 경계 분리, Phase 9 공개 운영 선행 조건
 > 관련 문서: [Frontend Roadmap](../../planning/frontend-roadmap.md), [Frontend Architecture](../03-architecture/frontend-architecture.md), [현재 음성 프로필 API](../06-api/audio-api.md), [Voice Enrollment API 제안](../06-api/voice-enrollment-api.md), [데이터 모델 제안](../07-database/voice-enrollment-data-model.md), [음성 동의 정책](../09-security/voice-consent-policy.md), [ADR-024~026](../11-decisions/README.md#f6-guided-voice-enrollment), [Phase 7 DoD](../DoD/Phase-07.md), [Phase 8 DoD](../DoD/Phase-08.md)
-> 구현 상태: 요구사항만 작성됨. 브라우저 녹음, 다중 sample, Enrollment 상태와 확장 품질 검사는 미구현이다.
+> 구현 상태: Backend Enrollment 7개 API, 최대 10개 sample, WAV/WebM/Ogg 정규화, 기본 품질 검사, Storage 승격·cleanup, 멱등성과 lazy expiration까지 구현했다. 브라우저 녹음·Wizard, 주기적 scanner, 인증·소유권과 AI 품질 검사는 미구현이다.
 
 ## 1. 목적과 범위
 
 Voice Enrollment는 사용자가 음성 Dataset 지식 없이도 본인 Voice Conversion용 참조 음성을 준비하고, 제출 전에 기본적인 파일·음질 문제를 발견하며, 동의와 처리 범위를 이해하도록 돕는 Studio UX다. `/voice`의 우선 범위는 기존 단일 Voice Profile 등록 흐름을 안내형 Wizard로 개선하는 것이다.
 
-현재 구현으로 가능한 단일 WAV 등록과 후속 Backend 설계가 필요한 브라우저 녹음·다중 sample·임시 Enrollment를 구분한다. 문서의 `[제안]`, `[검증 필요]`, `[Backend 확장 필요]`, `[ADR 필요]`, `[Phase 9 선행]`은 구현 또는 승인 완료를 뜻하지 않는다.
+기존 단일 WAV 즉시 등록과 신규 다중 Sample Enrollment Backend, 후속 브라우저 녹음 UI를 구분한다. 문서의 `[제안]`, `[검증 필요]`, `[ADR 필요]`, `[Phase 9 선행]`은 구현 또는 승인 완료를 뜻하지 않는다.
 
 ### 목표
 
@@ -119,11 +119,11 @@ Backend가 실제로 생성하는 Profile status는 `READY`다. Frontend DTO의 
 |---|---|---|---|---|
 | 1. 시작 안내 | 참조 음성의 용도, 현재 단일 WAV 계약, 비목표, 예상 단계 확인 | 필수 입력 없음; “시작” 명시 선택 | 제목에 focus, step 수 텍스트 제공 | API 없음; Frontend 가능 |
 | 2. 동의 확인 | 본인·권리 보유, 처리 목적, 보관·철회·삭제, 로컬 MVP 한계 확인 | 권리 확인과 정책 동의 필수; 선택 marketing 동의를 섞지 않음 | checkbox와 설명 연결, 미체크 시 다음 차단 | 현재 upload consent 가능; 철회·증적은 `[Backend 확장 필요] [Phase 9 선행]` |
-| 3. 등록 방법 선택 | 브라우저 녹음과 기존 WAV 업로드의 형식·privacy 차이 비교 | `record` 또는 `upload` 하나 필수 | 비지원 브라우저는 upload fallback으로 focus 이동 | [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md) Backend 정규화 `[제안]`, API 미구현 |
+| 3. 등록 방법 선택 | 브라우저 녹음과 기존 WAV 업로드의 형식·privacy 차이 비교 | `record` 또는 `upload` 하나 필수 | 비지원 브라우저는 upload fallback으로 focus 이동 | Backend 정규화 API 구현, MediaRecorder UI 미구현 |
 | 4. 녹음 또는 업로드 | 안내 문장, 환경 가이드, 시간·레벨, 파일 목록과 미리 듣기 | 현재 MVP는 WAV 하나; 다중 sample은 제안 모델 확정 후 | 권한·decode·형식 오류, 삭제·다시 녹음, 이탈 경고, 상태 `aria-live` | 단일 WAV는 현재 upload 전 client 준비 가능; 다중·WebM/Ogg는 `[Backend 확장 필요]` |
 | 5. 품질 확인 | 파일 metadata, 차단 오류와 non-blocking warning, 기술값과 사용자 문구 분리 | 차단 오류 0건; warning은 확인 후 진행 허용 후보 | 오류에 해당 sample focus, 재녹음·교체 제공 | 현재 서버 검사는 upload와 Profile 생성이 결합됨; 사전 validation은 `[Backend 확장 필요]` |
 | 6. 프로필 정보 입력 | 이름, `[제안]` 설명, 등록 후 사용 위치 확인 | 현재 이름 1~100자 필수; 설명은 현재 schema에 없음 | 입력 오류 summary와 field 연결 | 이름은 현재 가능; 설명은 `[Backend 확장 필요]` |
-| 7. 등록 처리 | sample별 명시 upload·검증 후 Profile 제출, 중복 제출 차단, 취소 가능 여부 표시 | 동의 안내와 사용자의 sample upload 행동 전 서버 전송 금지; 최종 submit 전 Profile 생성 금지 | network 결과 불명확, timeout, 재시도 안내; 자동 재제출 금지 | [제안 API](../06-api/voice-enrollment-api.md)는 임시 upload와 idempotency를 분리하며 현재 미구현 |
+| 7. 등록 처리 | sample별 명시 upload·검증 후 Profile 제출, 중복 제출 차단, 취소 가능 여부 표시 | 동의 안내와 사용자의 sample upload 행동 전 서버 전송 금지; 최종 submit 전 Profile 생성 금지 | network 결과 불명확, timeout, 재시도 안내; 자동 재제출 금지 | [Enrollment API](../06-api/voice-enrollment-api.md)의 임시 upload와 idempotency 구현, UI 미구현 |
 | 8. 완료 | 공개 metadata와 warning, Studio에서 선택·이동 | 성공 Profile ID 수신 | 완료 제목 focus, warning 재안내, 실패 시 제출 단계 복귀 | 현재 `201 VoiceProfileRead`와 Studio 선택 가능 |
 
 ### Wizard 공통 규칙
@@ -208,7 +208,7 @@ locale
 
 ### MediaRecorder MIME과 WAV 계약 차이
 
-MediaRecorder는 브라우저에 따라 `audio/webm`, `audio/ogg` 등을 생성할 수 있지만 현재 Backend는 WAV MIME과 RIFF/WAVE만 허용한다. 녹음 Blob을 그대로 현재 upload endpoint로 보내는 구현은 계약 위반이다.
+MediaRecorder는 브라우저에 따라 `audio/webm`, `audio/ogg` 등을 생성한다. 신규 Enrollment upload는 MIME·확장자·signature가 일치하는 WAV/WebM/Ogg를 허용하고 서버가 PCM16 48kHz mono WAV로 정규화한다. 기존 `/api/voice-profiles/upload`는 계속 WAV 전용이다.
 
 | 선택지 | 장점 | 단점·위험 | 상태 |
 |---|---|---|---|

@@ -19,7 +19,7 @@ backend/storage/
 
 Voice 출력은 `voices/converted/{job_id}.wav`, 실행 metadata는 `voices/metadata/{job_id}.json`이다. 사용자용 단일 WAV upload는 검증 전 `voices/references/.uploads/{uuid}.tmp`, 성공 후 `voices/references/{profile_uuid}/reference.wav`를 사용하며 실패 시 temp·final orphan을 정리한다. legacy 운영자 배치 참조 파일도 개발 호환으로 유지한다. 참조 음성·변환 음성·모델·cache·실험 파일은 Git에서 제외한다. 원본 참조 음성 content/download는 제공하지 않고 완료 Pipeline의 허용된 WAV만 Service 검증 후 `FileResponse`로 전달하며 Storage 디렉터리 자체는 정적으로 공개하지 않는다.
 
-F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)에 따라 `voices/enrollments/{enrollment_id}/samples/{sample_id}`의 별도 임시 root와 `voices/references/{profile_id}/samples/{sample_id}/reference.wav` 승격 구조를 `[제안]`한다. 원본은 Enrollment 동안만 임시 보존하고 완료·sample 삭제·취소·만료 시 cleanup하며 실패는 retry 상태로 추적한다. 이 경로는 아직 `StorageService`에 구현되지 않았고 공개 DTO에 포함하지 않는다.
+F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)에 따라 `voices/enrollments/{enrollment_id}/samples/{sample_id}/original.{wav|webm|ogg}`와 `normalized.wav` 임시 root, `voices/references/{profile_id}/samples/{sample_id}/reference.wav` 승격 구조를 구현했다. UUID 생성 경로, root·traversal·symlink 검사, 임시 suffix와 rename, overwrite 방지와 반복 cleanup을 적용한다. 원본은 submit·sample 삭제·취소·lazy 만료 때 제거하고 실패는 `DELETE_FAILED`/cleanup failure로 추적하며 공개 DTO에는 내부 경로를 포함하지 않는다. 주기적 orphan scanner와 retry scheduler는 미구현이다.
 
 ## K3 Preview 저장 목표 [계획]
 

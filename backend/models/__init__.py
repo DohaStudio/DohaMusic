@@ -2,6 +2,7 @@
 
 from backend.models.generated_file import GeneratedFile
 from backend.models.generation_job import GenerationJob
+from backend.models.idempotency_record import IdempotencyRecord
 from backend.models.lyrics_document import LyricsDocument
 from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
@@ -17,6 +18,7 @@ from backend.models.voice_sample import VoiceSample
 __all__ = [
     "GeneratedFile",
     "GenerationJob",
+    "IdempotencyRecord",
     "LyricsDocument",
     "PipelineFile",
     "PipelineJob",
