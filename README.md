@@ -6,6 +6,8 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
+> F6 Guided Voice Enrollment는 `[계획]`입니다. 현재 단일 WAV 등록을 사용자 안내형 녹음·업로드 Wizard로 개선하는 후속 Track이며 Phase 8 완료 상태와 Phase 7 개인화 Dataset 학습을 변경하지 않습니다.
+
 > K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1·K3.2·K3.3은 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Quality Metrics, 예상 Tempo와 에너지·반복 기반 후렴 후보를 분석하며 K3.4 Preview는 `[계획]`입니다.
 
 External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
@@ -50,6 +52,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [계획] | MP3 변환 |
 | [완료] | Frontend Pipeline 상태·진행률·오류·cooperative Cancel·새 Job Retry |
 | [완료] | Pipeline 기반 생성 History·Project 관리와 Result 재진입·재생·다운로드 |
+| [계획] | 사용자 안내형 Voice Enrollment Wizard, 브라우저 녹음·다중 sample·기본 품질 확인 |
 | [완료] | K-POP Structured Generation Options 검증·Prompt 컴파일·Snapshot·Retry·공개 설정 요약 |
 | [완료] | K3.0 Audio Analysis 제품·결과·실패·평가·라이브러리·ADR 계약 문서 |
 | [완료] | K3.1 final WAV duration·sample rate·channels·Sample Peak·clipping·Integrated LUFS 분석과 Result·History·Project UI |
@@ -148,7 +151,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 저장소 작업 규칙: [Codex 작업 지침](AGENTS.md)
 - 전체 일정과 완료 기준: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md)
 - 목표와 범위: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md)
-- 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md)
+- 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md), [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md)
 - 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md)
 - Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md), [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
 - API와 데이터: [API 개요](docs/06-api/api-overview.md), [ERD](docs/07-database/erd.md)

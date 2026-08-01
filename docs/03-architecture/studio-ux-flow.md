@@ -41,7 +41,8 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 
 - 동의된 `voice_profile_id`가 필요하다.
 - Voice Profile list에서 등록된 Profile을 선택하고, 목록이 비면 `/voice`에서 WAV를 등록한다. 선택 ID는 session draft에 유지한다.
-- 참조 파일 배치는 운영자 작업이며 브라우저 upload UX는 Backend endpoint 전까지 구현 대상으로 표시하지 않는다.
+- `/voice`의 사용자용 multipart upload는 단일 25MB 이하, 5~60초 PCM16 WAV를 Profile로 즉시 생성한다. 운영자 배치 path create는 개발 플래그 전용이다.
+- 브라우저 직접 녹음, 다중 sample, 제출 전 server validation과 Enrollment 임시 상태는 F6 `[계획]`이며 현재 지원 기능으로 표시하지 않는다. 세부 경계는 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)을 따른다.
 
 ## 4. Review
 

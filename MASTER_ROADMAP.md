@@ -62,6 +62,8 @@ Phase 6.6~6.9 Local Lyrics LLM       [계획]
 Phase 7  Doha Voice                  [계획]
   ↓
 Phase 8  Doha Studio                 [완료]
+  ↓ 후속 개선
+F6       Guided Voice Enrollment     [계획]
   ↓
 K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
@@ -81,6 +83,7 @@ Phase 9  Production                  [계획]
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
+| F6. Guided Voice Enrollment | [계획] | 독립 체크리스트 | 요구사항 문서화, 브라우저 녹음·다중 sample·Backend 확장 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -212,7 +215,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 - 관련 ADR·실험: 개인 음성 학습 ADR·실험 필요, 아직 없음.
 - 예상 다음 단계: Phase 8 Doha Studio.
 
-Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화하는 별도 단계다. 가사 text Dataset, Instruct LLM, LoRA Adapter와 checkpoint·Model Card·저장 정책을 공유하지 않는다.
+Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화하는 별도 단계다. 가사 text Dataset, Instruct LLM, LoRA Adapter와 checkpoint·Model Card·저장 정책을 공유하지 않는다. F6 Voice Enrollment는 기존 Voice Conversion용 참조 음성 등록 UX이며 장시간 Dataset·학습 동의·split·artifact를 포함하지 않는다.
 
 ## Phase 8. Doha Studio — [완료]
 
@@ -224,7 +227,18 @@ Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화
 - 산출물: Frontend 애플리케이션, Design System·Component·Responsive·Studio UX 문서, E2E 결과.
 - 관련 문서: [Frontend Overview](docs/03-architecture/frontend-overview.md), [Frontend Architecture](docs/03-architecture/frontend-architecture.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Frontend Roadmap](planning/frontend-roadmap.md), [User Scenarios](docs/00-overview/user-scenarios.md).
 - 관련 ADR·실험: [ADR-017 Frontend Technology Stack](docs/11-decisions/ADR-017-frontend-technology-stack.md)은 `[승인]`; 파일 전달은 [ADR-018](docs/11-decisions/ADR-018-secure-audio-file-access.md), Voice upload는 [ADR-019](docs/11-decisions/ADR-019-secure-voice-profile-upload.md), History 보존은 [ADR-020](docs/11-decisions/ADR-020-project-history-retention.md)을 따른다.
-- 예상 다음 단계: Phase 9 Production.
+- 예상 다음 단계: Phase 9 Production 또는 기존 완료 범위를 바꾸지 않는 F6 Guided Voice Enrollment 후속 개선.
+
+### F6. Guided Voice Enrollment — [계획]
+
+- 목표: 사용자가 안내에 따라 본인 참조 음성을 녹음하거나 기존 WAV를 제출하고 기본 문제를 확인한 뒤 Voice Profile을 등록하게 한다.
+- 현재 사실: 단일 25MB 이하, 5~60초, PCM16 WAV upload·Profile 즉시 생성만 구현돼 있다.
+- 선행 조건: MediaRecorder MIME·WAV 정규화 ADR, 단일 reference·다중 sample 모델, 품질 검사 위치, 임시 upload·cleanup과 원본 보존 결정.
+- Backend gap: WebM/Ogg, 다중 sample, 사전 validation, Enrollment 상태, cancel·resume·idempotency, 동의 철회·파생 삭제.
+- 보안 조건: 음성 binary Web Storage·Analytics 저장/전송 금지. 공개 운영 인증·소유권·감사·rate limit은 Phase 9 선행이다.
+- 산출물: [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md), 후속 ADR·API/DB 계약, Wizard·녹음·품질 UI와 test.
+- 완료 판정: [Frontend Roadmap F6](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획)의 독립 체크리스트. Phase 8 `15/15, 100%`의 분모·상태를 변경하지 않는다.
+- Phase 7 경계: F6 sample을 학습 Dataset에 자동 재사용하지 않는다. 재사용은 별도 opt-in·lineage·삭제 ADR이 필요하다.
 
 ## Phase 9. Production — [계획]
 

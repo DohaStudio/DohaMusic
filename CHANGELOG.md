@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Guided Voice Enrollment
+
+- 현재 단일 WAV Voice Profile 계약을 기준으로 사용자 안내형 Voice Enrollment Wizard, 녹음 문장, 길이·업로드·품질·상태·오류·접근성·테스트 요구사항을 문서화했다.
+- MediaRecorder WebM/Ogg와 WAV-only Backend 차이, 단일 reference와 다중 sample 모델, 사전 validation·임시 upload·cleanup·동의 철회를 ADR·Backend 선행 항목으로 분리했다.
+- Frontend Roadmap에 F6 Guided Voice Enrollment `[계획]` Track을 추가하고 Phase 8 기존 `15/15, 100%`와 Phase 7 개인화 Dataset·학습 경계를 유지했다.
+- 음성 동의 정책에 명시적 제출 전 서버 미전송, Web Storage·Analytics 음성 저장/전송 금지, 철회·삭제와 공개 운영 선행 조건을 보완했다.
+
 ### Frontend 기준선 복구
 
 - Python packaging용 `lib/` ignore 규칙에 누락됐던 Frontend shared mapper와 Result metadata allowlist 모듈을 기존 import·테스트·공개 DTO 계약에 맞춰 복구했다.

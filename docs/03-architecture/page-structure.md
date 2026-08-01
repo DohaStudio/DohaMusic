@@ -1,7 +1,7 @@
 # Page Structure
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-01
 > 관련 문서: [Frontend Overview](frontend-overview.md), [Studio UX Flow](studio-ux-flow.md), [Navigation Guide](navigation-guide.md)
 
 페이지 기능 상태는 [Frontend 지원 범위](frontend-overview.md#frontend-지원-범위)의 `Available`, `Partial`, `Backend Required`, `Planned`를 사용한다.
@@ -27,9 +27,11 @@
 
 ## Voice
 
-- 목적: 명시적 동의가 있는 profile metadata 관리.
-- 구성: consent notice, create metadata form, current-session cards, delete confirmation.
-- API: `POST`, `DELETE /api/voice-profiles`는 `Partial`; list/get/upload는 `Backend Required`임을 empty state에 명시.
+- 목적: 명시적 동의가 있는 Voice Profile 등록·목록·선택·삭제. F6에서는 안내형 Enrollment Wizard로 개선할 계획이다.
+- 현재 구성: 이름·단일 WAV·동의 upload form, Profile list·선택·삭제, 개발 플래그의 path create.
+- 현재 API: upload·list·get·delete는 로컬 MVP에서 `Available`; 원본 content/preview와 인증·소유권은 제공하지 않는다.
+- F6 `[계획]`: 시작 안내 → 동의 → 방법 선택 → 녹음/업로드 → 품질 확인 → Profile 정보 → 등록 → 완료. MediaRecorder MIME, 다중 sample과 임시 상태는 Backend·ADR 선행 조건이다.
+- 세부 요구사항: [Voice Enrollment](../02-requirements/voice-enrollment-requirements.md).
 
 ## Generation Progress
 
