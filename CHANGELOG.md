@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Guided Voice Enrollment FFmpeg 정규화
+
+- FFmpeg 임시 출력 파일의 확장자가 `.normalizing`이어도 PCM16 WAV가 생성되도록 출력 포맷을 명시해 실제 WebM/Ogg 정규화 실패를 수정했다.
+- WebM/Ogg 최초 처리 시 FFmpeg 실행 파일의 존재와 `ffmpeg -version` 응답을 확인하고 검증된 경로를 process 수명 동안 재사용하도록 탐지를 강화했다.
+- 합성 Opus WebM/Ogg의 PCM16 48kHz mono 실변환과 Unicode·공백 경로, truncated 입력, 미설치·timeout·비정상 종료·부분 출력 cleanup을 검증하는 자동 test를 추가했다.
+- Ubuntu 전체 Backend와 Windows FFmpeg 집중 통합 test를 수행하는 GitHub Actions workflow를 추가하고 Windows Winget 설치·PATH/절대 경로·재시작·codec 확인·라이선스 검토 절차를 문서화했다.
+- F6는 cleanup scheduler·인증·실기기 MIME/수동 녹음 평가가 남아 `[진행 중]`으로 유지하고 Phase 8 `15/15, 100%`는 변경하지 않았다.
+
 ### 추가 — Guided Voice Enrollment Frontend
 
 - `/voice`에 안내·동의·방법 선택·녹음/업로드·품질 확인·대표 Sample 선택·검토·완료의 8단계 Guided Wizard를 추가했다.

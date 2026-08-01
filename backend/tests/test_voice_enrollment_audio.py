@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import io
+import math
+import os
 import shutil
 import subprocess
 import uuid
@@ -31,6 +33,31 @@ def _wav_bytes(
     return output.getvalue()
 
 
+def _sine_wav_bytes(*, duration: float = 1.0, rate: int = 48_000) -> bytes:
+    output = io.BytesIO()
+    samples = array(
+        "h",
+        (
+            int(6_000 * math.sin(2 * math.pi * 220 * index / rate))
+            for index in range(int(duration * rate))
+        ),
+    )
+    with wave.open(output, "wb") as target:
+        target.setnchannels(1)
+        target.setsampwidth(2)
+        target.setframerate(rate)
+        target.writeframes(samples.tobytes())
+    return output.getvalue()
+
+
+def _system_ffmpeg() -> str | None:
+    configured = os.getenv("DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE", "ffmpeg")
+    candidate = Path(configured)
+    if candidate.is_absolute():
+        return str(candidate) if candidate.is_file() else None
+    return shutil.which(configured)
+
+
 def test_wav_normalizer_outputs_pcm16_48khz_mono(tmp_path: Path) -> None:
     source = tmp_path / "source with spaces.wav"
     output = tmp_path / "output.wav"
@@ -51,7 +78,7 @@ def test_wav_normalizer_outputs_pcm16_48khz_mono(tmp_path: Path) -> None:
 
 @pytest.mark.integration
 @pytest.mark.skipif(
-    shutil.which("ffmpeg") is None,
+    _system_ffmpeg() is None,
     reason="system FFmpeg is not installed; fake and unavailable paths remain tested",
 )
 @pytest.mark.parametrize(
@@ -61,12 +88,14 @@ def test_wav_normalizer_outputs_pcm16_48khz_mono(tmp_path: Path) -> None:
 def test_system_ffmpeg_opus_normalization(
     tmp_path: Path, extension: str, container: VoiceContainer
 ) -> None:
-    executable = shutil.which("ffmpeg")
+    executable = _system_ffmpeg()
     assert executable is not None
-    wav_source = tmp_path / "synthetic.wav"
-    encoded = tmp_path / f"synthetic.{extension}"
-    output = tmp_path / f"normalized-{extension}.wav"
-    wav_source.write_bytes(_wav_bytes(duration=1, rate=48_000, channels=1))
+    working = tmp_path / "합성 오디오 with spaces"
+    working.mkdir()
+    wav_source = working / "synthetic source.wav"
+    encoded = working / f"synthetic input.{extension}"
+    output = working / f"normalized output-{extension}.wav"
+    wav_source.write_bytes(_sine_wav_bytes())
     subprocess.run(
         [
             executable,
@@ -99,6 +128,45 @@ def test_system_ffmpeg_opus_normalization(
     assert validated.sample_rate == 48_000
     assert validated.channels == 1
     assert validated.bit_depth == 16
+    assert validated.duration_seconds == pytest.approx(1, abs=0.05)
+    assert validated.metrics.peak > 0
+    assert output.stat().st_size > 44
+
+
+@pytest.mark.integration
+@pytest.mark.skipif(
+    _system_ffmpeg() is None,
+    reason="system FFmpeg is not installed; fake and unavailable paths remain tested",
+)
+@pytest.mark.parametrize(
+    ("extension", "container", "payload"),
+    [
+        ("webm", VoiceContainer.WEBM, b"\x1aE\xdf\xa3truncatedA_OPUS"),
+        ("ogg", VoiceContainer.OGG, b"OggStruncatedOpusHead"),
+    ],
+)
+def test_system_ffmpeg_rejects_truncated_opus_and_cleans_partial_output(
+    tmp_path: Path,
+    extension: str,
+    container: VoiceContainer,
+    payload: bytes,
+) -> None:
+    executable = _system_ffmpeg()
+    assert executable is not None
+    source = tmp_path / f"truncated input.{extension}"
+    output = tmp_path / "normalized output.wav"
+    source.write_bytes(payload)
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable=executable,
+        timeout_seconds=10,
+        max_output_bytes=200_000,
+    )
+
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DECODE_FAILED"):
+        normalizer.normalize(source, output, container)
+
+    assert not output.exists()
+    assert not output.with_suffix(".normalizing").exists()
 
 
 @pytest.mark.parametrize(
@@ -148,13 +216,23 @@ def test_ffmpeg_missing_timeout_nonzero_and_argument_list(
     with pytest.raises(VoiceAudioProcessingError, match="VOICE_NORMALIZER_UNAVAILABLE"):
         normalizer.normalize(source, output, VoiceContainer.WEBM)
 
-    monkeypatch.setattr(
-        "backend.voice_enrollment.normalizer.shutil.which", lambda _: "ffmpeg.exe"
+    executable = tmp_path / "FFmpeg Tools" / "ffmpeg.exe"
+    executable.parent.mkdir()
+    executable.write_bytes(b"fake executable")
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable=str(executable), timeout_seconds=1, max_output_bytes=200_000
     )
 
-    def timeout(command: list[str], **kwargs: object) -> None:
+    def timeout(
+        command: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
         assert isinstance(command, list)
         assert kwargs["shell"] is False
+        if command[1:] == ["-version"]:
+            return subprocess.CompletedProcess(
+                command, 0, stdout="ffmpeg version test-build\n"
+            )
+        assert command[0] == str(executable)
         assert str(source) in command
         raise subprocess.TimeoutExpired(command, 1)
 
@@ -162,23 +240,66 @@ def test_ffmpeg_missing_timeout_nonzero_and_argument_list(
     with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DECODE_TIMEOUT"):
         normalizer.normalize(source, output, VoiceContainer.WEBM)
 
-    monkeypatch.setattr(
-        "backend.voice_enrollment.normalizer.subprocess.run",
-        lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 1),
-    )
+    def nonzero(
+        command: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        if command[1:] == ["-version"]:
+            return subprocess.CompletedProcess(
+                command, 0, stdout="ffmpeg version test-build\n"
+            )
+        output.with_suffix(".normalizing").write_bytes(b"partial")
+        return subprocess.CompletedProcess(command, 1)
+
+    monkeypatch.setattr("backend.voice_enrollment.normalizer.subprocess.run", nonzero)
     with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DECODE_FAILED"):
         normalizer.normalize(source, output, VoiceContainer.WEBM)
     assert not output.exists()
     assert not output.with_suffix(".normalizing").exists()
 
-    monkeypatch.setattr(
-        "backend.voice_enrollment.normalizer.subprocess.run",
-        lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 0),
-    )
+    def no_output(
+        command: list[str], **kwargs: object
+    ) -> subprocess.CompletedProcess[str]:
+        if command[1:] == ["-version"]:
+            return subprocess.CompletedProcess(
+                command, 0, stdout="ffmpeg version test-build\n"
+            )
+        return subprocess.CompletedProcess(command, 0)
+
+    monkeypatch.setattr("backend.voice_enrollment.normalizer.subprocess.run", no_output)
     with pytest.raises(
         VoiceAudioProcessingError, match="VOICE_SAMPLE_NORMALIZATION_FAILED"
     ):
         normalizer.normalize(source, output, VoiceContainer.OGG)
+
+
+def test_ffmpeg_rejects_invalid_absolute_path_and_version(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "sample.webm"
+    output = tmp_path / "output.wav"
+    source.write_bytes(b"\x1aE\xdf\xa3xxA_OPUS")
+    directory = tmp_path / "not-an-executable"
+    directory.mkdir()
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable=str(directory), timeout_seconds=1, max_output_bytes=200_000
+    )
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_NORMALIZER_UNAVAILABLE"):
+        normalizer.normalize(source, output, VoiceContainer.WEBM)
+
+    invalid = tmp_path / "invalid ffmpeg.exe"
+    invalid.write_text("not ffmpeg", encoding="utf-8")
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable=str(invalid), timeout_seconds=1, max_output_bytes=200_000
+    )
+    monkeypatch.setattr(
+        "backend.voice_enrollment.normalizer.subprocess.run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            args[0], 0, stdout="different tool\n"
+        ),
+    )
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_NORMALIZER_UNAVAILABLE"):
+        normalizer.normalize(source, output, VoiceContainer.WEBM)
+    assert not output.exists()
 
 
 def test_validator_pass_warnings_and_failures(tmp_path: Path) -> None:

@@ -6,7 +6,7 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> F6 Guided Voice Enrollment는 `[진행 중]`입니다. Profile 1:N Sample·대표 reference, Enrollment 7개 API·정규화·품질·멱등성·lazy expiration과 `/voice` 8단계 Wizard·MediaRecorder·파일 업로드·대표 선택·복원·Studio 연결을 구현했습니다. FFmpeg가 없으면 WebM/Ogg만 안전하게 거부하며 기존 빠른 WAV 등록은 유지됩니다. 실제 FFmpeg 통합·주기적 cleanup scheduler·인증은 미구현이고 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
+> F6 Guided Voice Enrollment는 `[진행 중]`입니다. Profile 1:N Sample·대표 reference, Enrollment 7개 API·정규화·품질·멱등성·lazy expiration과 `/voice` 8단계 Wizard·MediaRecorder·파일 업로드·대표 선택·복원·Studio 연결을 구현했습니다. Windows FFmpeg 8.1.2와 Ubuntu·Windows CI에서 WebM/Ogg 정규화 경로를 검증하며, FFmpeg가 없으면 해당 입력만 안전하게 거부하고 기존 빠른 WAV 등록은 유지합니다. 주기적 cleanup scheduler·인증·실기기 브라우저 평가는 미구현이고 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
 
 > K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1·K3.2·K3.3은 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Quality Metrics, 예상 Tempo와 에너지·반복 기반 후렴 후보를 분석하며 K3.4 Preview는 `[계획]`입니다.
 

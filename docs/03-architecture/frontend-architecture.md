@@ -181,7 +181,7 @@ types
 - `services`에는 실제 OpenAPI의 7개 Enrollment endpoint만 추가했다. 서버 상태는 Backend enum과 일치하며 `RECORDING`, `PAUSED`, `PREVIEW`는 UI 전용이다.
 - microphone stream, recording Blob과 Object URL은 메모리 lifecycle로 관리하고 `localStorage`·`sessionStorage`에 저장하지 않는다.
 - `sessionStorage`에는 Studio 선택용 opaque Profile ID·이름과 Enrollment ID·현재 단계 allowlist만 유지한다. 음성 binary, idempotency raw key와 내부 path는 저장하지 않는다.
-- [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md)에 따라 `audio/wav → audio/webm;codecs=opus → audio/webm → audio/ogg;codecs=opus → audio/ogg`를 feature detection하고 Backend PCM16 48kHz mono 정규화에 전달한다. 현재 FFmpeg 미설치 환경에서는 WebM/Ogg 오류를 WAV fallback으로 안내한다.
+- [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md)에 따라 `audio/wav → audio/webm;codecs=opus → audio/webm → audio/ogg;codecs=opus → audio/ogg`를 feature detection하고 Backend PCM16 48kHz mono 정규화에 전달한다. Windows/CI에서 FFmpeg WebM/Ogg 경로를 검증했으며 FFmpeg 미탐지 환경에서는 해당 오류를 WAV fallback으로 안내한다.
 - sample upload 뒤 받은 server-generated Enrollment·Sample ID와 공개 metadata만 복원 후보로 두고, final submit 전 Profile 생성 완료로 표시하지 않는다. audio binary·내부 path는 Web Storage에 넣지 않는다.
 - 접근성·상태·오류·테스트 기준은 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)을 따른다.
 

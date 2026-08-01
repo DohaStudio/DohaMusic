@@ -69,7 +69,7 @@
 
 `NEXT_PUBLIC_*` 값은 browser bundle에 공개되므로 비밀을 넣지 않는다. `NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH`는 정확히 `true`일 때만 form을 노출하며 Backend path 검증이나 인증을 대체하지 않는다. 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리한다. 애플리케이션은 `.env`를 자동 로드하지 않는다. 빈 ACE-Step·Demucs 경로는 Mock 사용에 영향을 주지 않으며, 실제 Provider Job이 실행될 때 명시적 설정 오류가 된다. 경로·prompt·lyrics·비밀 값은 로그에 출력하지 않는다.
 
-기존 `/api/voice-profiles/upload` 제한은 25MB·5~60초 고정 계약이다. 신규 Enrollment는 위 설정을 사용하며 기본값을 동일하게 유지한다. FFmpeg binary는 저장소가 배포·다운로드하지 않는다.
+기존 `/api/voice-profiles/upload` 제한은 25MB·5~60초 고정 계약이다. 신규 Enrollment는 위 설정을 사용하며 기본값을 동일하게 유지한다. FFmpeg binary는 저장소가 배포·다운로드하지 않는다. `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE`은 PATH에서 찾을 이름 또는 `ffmpeg.exe`의 절대 경로만 사용하며, 변경 후 Backend를 재시작한다. WebM/Ogg 요청의 최초 사용 시 `-version` 검증이 실패하면 `VOICE_NORMALIZER_UNAVAILABLE`을 반환하고 WAV 요청은 영향을 받지 않는다.
 
 ## 벤치마크 전용 변수
 

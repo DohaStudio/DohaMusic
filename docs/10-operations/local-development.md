@@ -25,7 +25,31 @@ Lyrics 기본값 `DOHAMUSIC_LYRICS_PROVIDER=template`은 외부 API·Key·모델
 
 PCM16 WAV 입력은 Python `wave`와 SciPy로 48kHz mono PCM16 WAV에 정규화하므로 FFmpeg 없이 동작한다. WebM/Ogg Opus 입력만 system FFmpeg가 필요하다. `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE`에 executable 이름 또는 절대 경로를 지정하며 미설치 상태에서도 Backend는 정상 시작하고 해당 요청만 `VOICE_NORMALIZER_UNAVAILABLE`로 실패한다. subprocess는 shell 없이 argument 배열·30초 기본 timeout·stdout/stderr 폐기·부분 output cleanup을 사용한다.
 
-저장소는 FFmpeg binary를 배포하지 않는다. 운영자는 설치한 build의 `ffmpeg -version`과 `ffmpeg -L`로 codec·LGPL/GPL 구성과 재배포 조건을 직접 확인해야 한다. 현재 Windows 개발 환경에서는 FFmpeg가 없어 실제 WebM/Ogg integration은 실행하지 않았고 fake subprocess·미설치 자동 test만 검증했다.
+Windows 10/11 개발 환경은 OS 기본 패키지 도구로 설치·업데이트 이력을 확인할 수 있는 Winget의 `Gyan.FFmpeg`를 권장한다. Chocolatey·Scoop도 가능하지만 별도 패키지 관리자 설치가 필요하고, 수동 압축 해제는 버전·PATH 갱신을 운영자가 직접 추적해야 하므로 fallback으로만 사용한다.
+
+```powershell
+winget install --id Gyan.FFmpeg -e --accept-package-agreements --accept-source-agreements
+
+# 설치 후 새 PowerShell을 열고 확인한다.
+ffmpeg -version
+ffmpeg -hide_banner -demuxers | Select-String 'matroska,webm|ogg'
+ffmpeg -hide_banner -decoders | Select-String 'opus|vorbis'
+
+# PATH 반영 전이라면 현재 세션에 설치된 ffmpeg.exe 절대 경로를 지정한다.
+$env:DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE = 'C:\path\to\ffmpeg.exe'
+python -m uvicorn backend.main:app --reload
+```
+
+환경 변수나 PATH를 바꾼 뒤에는 Backend를 재시작해야 한다. 정상 설치 기준은 `ffmpeg -version` 종료 코드 0, `matroska,webm`·`ogg` demuxer와 `opus` decoder 확인이다. 애플리케이션도 WebM/Ogg 요청 시 최초 한 번 `ffmpeg -version`을 실행해 실행 파일을 검증하고 성공한 절대 경로를 process 수명 동안 재사용한다. WAV 요청과 Backend startup은 이 검사와 독립적이다.
+
+Windows 11에서 Winget `Gyan.FFmpeg` 8.1.2 full build로 합성 Opus WebM/Ogg를 PCM16 48kHz mono WAV로 변환하고 손상 입력 cleanup을 확인했다. CI는 Ubuntu에서 `apt-get install ffmpeg` 후 Backend 전체 test를, Windows에서 Chocolatey FFmpeg 설치 후 실제 FFmpeg integration test를 실행한다. 검증 명령은 다음과 같다.
+
+```powershell
+$env:DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE = (Get-Command ffmpeg).Source
+python -m pytest -q backend/tests/test_voice_enrollment_audio.py -m integration
+```
+
+저장소는 FFmpeg binary를 배포하지 않으며 설치된 system dependency만 호출한다. Gyan full build의 실제 `ffmpeg -version`에는 `--enable-gpl`, `--enable-version3`, `--enable-libopus`가 포함되므로 운영 배포 이미지와 재배포 방식은 `ffmpeg -version`·`ffmpeg -L` 및 해당 build 고지 조건을 별도로 확인해야 한다. `[운영 배포 전 라이선스 검토 필요]`
 
 ## 선택적 ACE-Step 런타임
 
@@ -43,7 +67,7 @@ PCM16 WAV 입력은 Python `wave`와 SciPy로 48kHz mono PCM16 WAV에 정규화�
 
 반복 benchmark는 `ai_worker/scripts/run_ace_step_benchmark.py`에 `quality-resident.json` 같은 suite를 명시해 실행한다. `benchmark`, `gpu`, `slow`, `integration` 작업은 opt-in이며 일반 `pytest`에서 모델을 로드하지 않는다. 0.6B LM 비교는 공식 모델을 사용자가 먼저 설치하고 benchmark 환경에 `DOHAMUSIC_AI_ACE_STEP_LM_MODEL=acestep-5Hz-lm-0.6B`, backend `pt`를 명시한 경우에만 실행한다. 이 LM 변수는 제품 Backend 설정이 아니다.
 
-실험 WAV·로그·모델·runtime은 Git 제외 대상이다. FFmpeg는 검증 PC에 없었으므로 WAV만 확인했으며 MP3/AAC는 검증하지 않았다. 설치·연결은 [EXP-001](../../reports/experiments/EXP-001-ace-step-local-inference.md), 반복·LM은 [EXP-002](../../reports/experiments/EXP-002-ace-step-quality-and-stability.md)에 있다.
+실험 WAV·로그·모델·runtime은 Git 제외 대상이다. Guided Voice Enrollment에서는 WebM/Ogg Opus만 FFmpeg로 검증했으며 MP3/AAC는 허용 계약이 아니므로 검증하지 않았다. ACE-Step 설치·연결은 [EXP-001](../../reports/experiments/EXP-001-ace-step-local-inference.md), 반복·LM은 [EXP-002](../../reports/experiments/EXP-002-ace-step-quality-and-stability.md)에 있다.
 
 ## 선택적 Demucs 런타임
 
@@ -61,7 +85,7 @@ Demucs 4.1.0은 Backend와 별도 Python 3.11 환경에 설치한다. 검증 환
 
 ## Guided Voice Enrollment 확인
 
-Backend `8000`과 Frontend `3000`을 실행한 뒤 `/voice`에서 안내형 등록을 확인한다. 현재 Windows 개발 PC에는 FFmpeg가 없으므로 WAV Sample은 정규화·품질 검사·Profile 생성까지 지원하지만 브라우저가 생성한 WebM/Ogg는 `VOICE_NORMALIZER_UNAVAILABLE`일 수 있다. UI는 이 경우 WAV 업로드 fallback을 안내하며 FFmpeg 설치나 capability endpoint를 추측하지 않는다.
+Backend `8000`과 Frontend `3000`을 실행한 뒤 `/voice`에서 안내형 등록을 확인한다. FFmpeg가 설치되고 Backend의 `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE` 또는 PATH에서 탐지되면 WebM/Ogg를 처리한다. 탐지되지 않으면 WAV Sample은 계속 정규화·품질 검사·Profile 생성까지 지원하고 WebM/Ogg만 `VOICE_NORMALIZER_UNAVAILABLE`로 실패한다. UI는 이 경우 WAV 업로드 fallback을 안내하며 capability endpoint를 추측하지 않는다.
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
