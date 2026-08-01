@@ -10,7 +10,9 @@ from backend.models.stem_file import StemFile
 from backend.models.stem_job import StemJob
 from backend.models.voice_conversion_file import VoiceConversionFile
 from backend.models.voice_conversion_job import VoiceConversionJob
+from backend.models.voice_enrollment import VoiceEnrollment
 from backend.models.voice_profile import VoiceProfile
+from backend.models.voice_sample import VoiceSample
 
 __all__ = [
     "GeneratedFile",
@@ -23,5 +25,7 @@ __all__ = [
     "StemJob",
     "VoiceConversionFile",
     "VoiceConversionJob",
+    "VoiceEnrollment",
     "VoiceProfile",
+    "VoiceSample",
 ]

@@ -16,6 +16,8 @@ def test_database_storage_and_health_are_initialized(client) -> None:
         "pipeline_jobs",
         "pipeline_files",
         "voice_profiles",
+        "voice_enrollments",
+        "voice_samples",
         "alembic_version",
     }.issubset(set(inspector.get_table_names()))
 

@@ -92,8 +92,39 @@ Alembic 0009는 `cancel_requested_at`, `cancelled_at`, `retry_of_job_id` self FK
 | `quality_warnings` | json | 아니요 | 품질 warning code 배열 |
 | `consent_text_version` | varchar(50) | 예 | 확인한 동의문 버전 |
 | `consent_confirmed_at` | datetime | 예 | 동의 확인 시각 |
+| `active_reference_sample_id` | varchar(36) | 예 | 대표 `voice_samples.id`, unique FK·삭제 제한 |
 | `created_at` | datetime | 아니요 | 생성 시각 |
 | `updated_at` | datetime | 아니요 | 수정 시각 |
+
+## `voice_enrollments`
+
+| 필드 묶음 | Null | 설명 |
+|---|---|---|
+| `id`, `profile_name`, `status` | 아니요 | 등록 세션 기본키·draft 이름·상태 |
+| `profile_description` | 예 | draft 설명 |
+| `consent_confirmed`, `consent_policy_version`, `consent_confirmed_at` | 혼합 | 동의 여부·버전·시각 |
+| `voice_profile_id` | 예 | 완료 Profile nullable unique FK |
+| `last_activity_at`, `expires_at`, `absolute_expires_at` | 혼합 | 활동·sliding·absolute 만료 후보 |
+| `submitted_at`, `cancelled_at`, `completed_at`, `failure_code` | 예 | lifecycle evidence |
+| `cleanup_status`, `cleanup_requested_at`, `cleanup_completed_at`, `cleanup_failure_code` | 혼합 | cleanup 상태와 evidence |
+| `created_at`, `updated_at` | 아니요 | UTC 시각 |
+
+`status, expires_at`와 `cleanup_status`를 인덱싱한다. 실제 만료·cleanup worker는 아직 구현하지 않았다.
+
+## `voice_samples`
+
+| 필드 묶음 | Null | 설명 |
+|---|---|---|
+| `id`, `source_type`, `category`, `status` | 아니요 | Sample 식별·유입 경로·역할·상태 |
+| `enrollment_id`, `voice_profile_id` | 예 | 둘 중 하나 이상 필수인 소유권 FK |
+| `prompt_id` | 예 | 안내 prompt 식별자 |
+| `original_*`, `normalized_*` | 예 | 내부 content type·byte·Storage 경로 |
+| `duration_seconds`, `sample_rate`, `channels`, `bit_depth` | 예 | 검증된 audio metadata |
+| `quality_status`, `quality_warnings`, `failure_code` | 혼합 | 품질·실패 결과 |
+| `validated_at`, `promoted_at`, `expires_at`, `deleted_at`, `delete_failure_code` | 예 | lifecycle·cleanup evidence |
+| `created_at`, `updated_at` | 아니요 | UTC 시각 |
+
+`(enrollment_id, status)`, `(voice_profile_id, status)`, `(status, expires_at)`를 인덱싱한다. 내부 Storage 경로는 레거시 공유 가능성 때문에 unique가 아니다.
 
 ## `stem_jobs`
 

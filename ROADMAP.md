@@ -39,7 +39,7 @@
 | 6.6~6.9 Local Lyrics LLM | [계획] | Dataset·QLoRA·Adapter·Quality Gate 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
-| F6. Guided Voice Enrollment | [계획] | 요구사항·ADR 3건·API·DB 설계 제안 완료; Runtime·migration·Wizard·test 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획) |
+| F6. Guided Voice Enrollment | [계획] | 영속 모델·상태 전이·migration·legacy backfill·Repository test 완료; API·Storage·정규화·cleanup·Wizard 미구현 | [Frontend Roadmap](planning/frontend-roadmap.md#f6--guided-voice-enrollment-계획) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 
@@ -59,7 +59,7 @@
 ## F6 Guided Voice Enrollment 실행 순서 [계획]
 
 1. [ADR-024](docs/11-decisions/ADR-024-browser-voice-recording-server-normalization.md)의 Backend PCM16 WAV 정규화 제안을 Windows·CI FFmpeg와 Provider 청감 평가로 승인한다.
-2. [데이터 모델](docs/07-database/voice-enrollment-data-model.md)에 따라 `VoiceEnrollment`·`VoiceSample` additive migration과 기존 단일 Profile backfill을 구현한다.
+2. [완료] [데이터 모델](docs/07-database/voice-enrollment-data-model.md)에 따라 `VoiceEnrollment`·`VoiceSample` additive migration과 기존 단일 Profile backfill을 구현했다.
 3. 별도 Enrollment Storage·정규화 service와 [Enrollment API](docs/06-api/voice-enrollment-api.md)를 구현한다.
 4. sample 품질 검사, 24시간 sliding/7일 absolute 만료, idempotency·cleanup retry를 검증한다.
 5. 안내 문장·MediaRecorder·기존 WAV fallback·품질 확인·Profile 등록 Wizard를 구현한다.

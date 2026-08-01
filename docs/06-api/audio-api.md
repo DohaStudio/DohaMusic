@@ -31,4 +31,4 @@ Public DTO는 `id`, `name`, display filename, MIME, byte size, duration, sample 
 
 ## Guided Enrollment 영향 [계획]
 
-현재 API는 한 요청에서 단일 WAV를 검증하고 `READY` Profile까지 즉시 생성한다. 브라우저 MediaRecorder의 WebM/Ogg, 다중 sample, sample별 품질 결과, 전체 duration, Profile 설명, 사전 validation, 임시 Enrollment 상태, upload cancel·resume·idempotency와 동의 철회 API는 없다. 신규 `/api/voice-enrollments` path와 DTO는 [별도 제안 문서](voice-enrollment-api.md)에 두며 현재 API·OpenAPI 지원으로 표현하지 않는다. 기존 단일 WAV path는 전환 fallback으로 유지한다.
+현재 API는 한 요청에서 단일 WAV를 검증하고 `READY` Profile까지 즉시 생성한다. Enrollment·Sample 영속 모델은 구현됐지만 브라우저 MediaRecorder의 WebM/Ogg, 다중 sample API, sample별 품질 처리, 전체 duration, Profile 설명, 사전 validation, upload cancel·resume·idempotency와 동의 철회 API는 없다. 신규 `/api/voice-enrollments` path와 DTO는 [별도 제안 문서](voice-enrollment-api.md)에 두며 현재 API·OpenAPI 지원으로 표현하지 않는다. 기존 단일 WAV path는 전환 fallback으로 유지한다.

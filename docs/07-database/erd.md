@@ -136,7 +136,19 @@ erDiagram
   }
 ```
 
-`projects` 삭제는 `pipeline_jobs.project_id`를 `NULL`로 만들고 Job·결과 파일을 보존한다. `pipeline_jobs.retry_of_job_id`는 원본 Job self FK이며 원본 제거 시 `NULL`이다. `lyrics_documents`는 현재 다른 테이블과 FK로 연결하지 않는다. `voice_conversion_jobs.source_file_id`는 `stem_files` 중 `file_type=vocals`만 Service에서 허용한다. Voice Conversion과 Pipeline의 `voice_profile_id`는 동의된 profile만 허용한다. migration revision은 `20260731_0009`다.
+`projects` 삭제는 `pipeline_jobs.project_id`를 `NULL`로 만들고 Job·결과 파일을 보존한다. `pipeline_jobs.retry_of_job_id`는 원본 Job self FK이며 원본 제거 시 `NULL`이다. `lyrics_documents`는 현재 다른 테이블과 FK로 연결하지 않는다. `voice_conversion_jobs.source_file_id`는 `stem_files` 중 `file_type=vocals`만 Service에서 허용한다. Voice Conversion과 Pipeline의 `voice_profile_id`는 동의된 profile만 허용한다. migration revision은 `20260801_0010`이다.
+
+# F6 Voice Enrollment 관계(Alembic 0010)
+
+```mermaid
+erDiagram
+  VOICE_ENROLLMENTS ||--o{ VOICE_SAMPLES : collects
+  VOICE_ENROLLMENTS o|--o| VOICE_PROFILES : creates
+  VOICE_PROFILES ||--o{ VOICE_SAMPLES : retains
+  VOICE_PROFILES o|--o| VOICE_SAMPLES : active_reference
+```
+
+Sample은 Enrollment 또는 Profile 중 하나 이상에 속한다. Profile의 대표 Sample FK는 nullable unique이고 삭제를 제한한다. 기존 Profile은 파일 접근 없이 `LEGACY_REFERENCE` Sample로 backfill한다.
 # Lyrics Revision 관계 (Alembic 0006)
 
 ```mermaid

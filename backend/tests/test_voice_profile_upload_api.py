@@ -5,7 +5,10 @@ import wave
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from sqlalchemy import select
 
+from backend.models.voice_profile import VoiceProfile
+from backend.models.voice_sample import VoiceSample
 from backend.services import voice_upload_service
 
 
@@ -62,6 +65,14 @@ def test_upload_list_get_and_delete_voice_profile(client: TestClient) -> None:
     assert stored.resolve().is_relative_to(
         client.app.state.storage.voice_references_dir.resolve()
     )
+    with client.app.state.session_factory() as session:
+        persisted_profile = session.get(VoiceProfile, profile["id"])
+        compatibility_sample = session.scalar(
+            select(VoiceSample).where(VoiceSample.voice_profile_id == profile["id"])
+        )
+        assert persisted_profile.active_reference_sample_id == compatibility_sample.id
+        assert compatibility_sample.source_type == "FILE_UPLOAD"
+        assert compatibility_sample.status == "PROMOTED"
 
     listed = client.get("/api/voice-profiles")
     assert listed.status_code == 200
@@ -75,6 +86,15 @@ def test_upload_list_get_and_delete_voice_profile(client: TestClient) -> None:
     assert not stored.exists()
     assert not stored.parent.exists()
     assert client.get(f"/api/voice-profiles/{profile['id']}").status_code == 404
+    with client.app.state.session_factory() as session:
+        assert (
+            session.scalar(
+                select(VoiceSample.id).where(
+                    VoiceSample.voice_profile_id == profile["id"]
+                )
+            )
+            is None
+        )
 
 
 def test_legacy_profile_has_nullable_upload_metadata(client: TestClient) -> None:

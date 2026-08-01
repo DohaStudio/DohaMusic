@@ -7,6 +7,8 @@
 > 관련 문서: [Voice Enrollment API](../06-api/voice-enrollment-api.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [Storage Architecture](../03-architecture/storage-architecture.md), [음성 동의 정책](../09-security/voice-consent-policy.md)
 > 관련 PR: 이 ADR을 승인·구현하는 PR에서 갱신
 
+> 구현 메모: Alembic `20260801_0010`에서 Enrollment·Sample lifecycle 및 만료·cleanup 상태 필드와 조회 인덱스를 먼저 구현했다. 24시간 sliding/7일 absolute 계산, idempotency 저장소, Storage와 cleanup worker는 아직 제안 상태다.
+
 ## Context
 
 현재 upload는 한 HTTP 요청에서 임시 파일 검증, final move, Profile 생성까지 수행한다. 여러 sample에서는 브라우저 종료, 일부 검증 실패, 취소, 중복 submit, DB·파일 이동 실패와 방치된 개인 음성을 하나의 요청으로 복구할 수 없다. 명시적 제출 전 데이터를 최종 Profile로 취급하면 불완전 Profile과 orphan이 생긴다.
