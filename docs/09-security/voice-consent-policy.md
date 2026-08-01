@@ -24,7 +24,7 @@ Voice Enrollment create는 권리·처리·임시 보관 동의 `v1`을 필수�
 
 현재 `DELETE /api/voice-profiles/{id}`는 Pipeline 또는 Voice Conversion Job이 참조한 Profile을 `VOICE_PROFILE_IN_USE`로 차단하고, 미사용 legacy upload와 Enrollment가 승격한 retained reference들을 Profile과 함께 물리 삭제한다. 동의 철회 전용 API, 철회 상태, 대기 작업 중단과 파생 파일·cache·개인화 모델 artifact 삭제는 구현되지 않았다. 이 차이를 사용자에게 “철회 완료”로 표시하지 않는다.
 
-## Voice Enrollment 브라우저 처리 요구사항 [계획]
+## Voice Enrollment 브라우저 처리 요구사항 [구현]
 
 - 마이크 권한은 사용자의 녹음 시작 행동 뒤 요청하며 페이지 진입만으로 요청하지 않는다.
 - 권리·처리·임시 보관 안내 확인과 사용자의 명시적 sample upload 행동 전에는 녹음 Blob과 선택 파일을 서버로 전송하지 않는다. sample upload 뒤에도 최종 submit 전에는 Voice Profile을 생성하지 않는다.
@@ -35,6 +35,8 @@ Voice Enrollment create는 권리·처리·임시 보관 동의 `v1`을 필수�
 - 로그에는 원본 파일명·내부 Storage path·임시 path·음성 내용·embedding을 남기지 않는다. 필요한 경우 opaque ID, 안전한 오류 코드, byte·duration 같은 최소 metadata와 correlation ID만 기록한다.
 - sample별 안내 문장·품질 metadata는 Voice reference 검증 목적으로만 최소 저장하고 Enrollment 24시간 sliding/7일 absolute 만료와 Profile 삭제 범위를 적용한다. 전사·embedding·고급 화자 분석은 목적·보존·접근 주체를 별도로 승인하기 전 저장하지 않는다.
 - 브라우저 preview는 메모리 Blob만 사용한다. 서버 원본 preview endpoint는 현재 없으며 인증·소유권·감사 없이는 추가하지 않는다.
+
+Frontend는 `v1`의 권리·Voice Conversion 처리·임시 저장·최종 정규화 reference 동의를 모두 확인해야 Enrollment create를 허용한다. `sessionStorage`에는 opaque Enrollment ID와 현재 단계만 저장하며 Blob과 raw idempotency key는 메모리에서만 관리한다. 새로고침 후 업로드 완료 Sample은 GET으로 복원하지만 업로드 전 녹음은 복원하지 않는다.
 
 ## 목적 분리
 

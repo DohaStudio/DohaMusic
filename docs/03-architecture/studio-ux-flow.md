@@ -40,9 +40,10 @@ Desktop에서는 모든 section이 하나의 작업 공간과 timeline에 공존
 ## 3. Voice
 
 - 동의된 `voice_profile_id`가 필요하다.
-- Voice Profile list에서 등록된 Profile을 선택하고, 목록이 비면 `/voice`에서 WAV를 등록한다. 선택 ID는 session draft에 유지한다.
-- `/voice`의 사용자용 multipart upload는 단일 25MB 이하, 5~60초 PCM16 WAV를 Profile로 즉시 생성한다. 운영자 배치 path create는 개발 플래그 전용이다.
-- 브라우저 직접 녹음, 다중 sample, 제출 전 server validation과 Enrollment 임시 상태는 F6 `[계획]`이며 현재 지원 기능으로 표시하지 않는다. 세부 경계는 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)을 따른다.
+- Voice Profile list에서 등록된 Profile을 선택하고, 목록이 비면 `/voice`의 Guided Wizard에서 새 Profile을 등록한다. 완료된 신규 Profile은 목록 refetch 뒤 Studio 선택 ID와 이름에 즉시 반영한다.
+- `/voice`는 권리·처리·임시 보관·최종 reference 동의 후 Enrollment를 만들고 MediaRecorder 또는 WAV/WebM/Ogg 파일로 최대 10개 Sample을 등록한다. 품질 경고를 명시 확인하고 대표 Sample을 선택해야 submit할 수 있다.
+- `sessionStorage`에는 업로드 완료 Enrollment ID와 현재 단계만 저장하며 Blob은 메모리에만 둔다. 만료·not found에서는 복원 ID를 제거한다. 기존 단일 WAV 즉시 Profile API는 `빠른 WAV 등록`, 운영자 path create는 개발 플래그 전용이다.
+- 현재 서버에 FFmpeg가 없어 WebM/Ogg 녹음은 `VOICE_NORMALIZER_UNAVAILABLE`일 수 있으며 WAV fallback을 안내한다. 실제 장치·Safari와 최종 Voice Conversion 품질은 검증하지 않았다.
 
 ## 4. Review
 

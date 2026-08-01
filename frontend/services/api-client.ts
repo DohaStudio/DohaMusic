@@ -18,6 +18,8 @@ const userMessages: Record<string, string> = {
   VOICE_FILE_TOO_LARGE: "파일 크기가 너무 큽니다. 25MB 이하 파일을 선택해 주세요.",
   VOICE_FILE_TYPE_UNSUPPORTED: "현재 WAV 파일만 지원합니다.",
   VOICE_PROFILE_IN_USE: "이 목소리는 생성 중인 음악에서 사용 중이라 삭제할 수 없습니다.",
+  VOICE_ENROLLMENT_EXPIRED: "음성 등록 시간이 만료되었습니다. 새 등록을 시작해 주세요.",
+  VOICE_NORMALIZER_UNAVAILABLE: "현재 서버에서는 이 녹음 형식을 처리할 수 없습니다. WAV 파일을 업로드해 주세요.",
   HTTP_ERROR: "요청을 처리하지 못했습니다. 입력 내용을 확인해 주세요.",
   PIPELINE_CANCEL_NOT_ALLOWED: "이미 완료되었거나 실패한 음악은 취소할 수 없습니다.",
   PIPELINE_RETRY_NOT_ALLOWED: "실패하거나 취소된 음악만 다시 만들 수 있습니다.",

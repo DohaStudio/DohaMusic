@@ -311,7 +311,8 @@ test("Voice WAV를 등록하고 목록에서 선택한다", async ({
 }, testInfo) => {
   await mockBackend(page);
   await page.goto("/voice");
-  await page.getByLabel("목소리 이름").fill("Doha Voice");
+  await page.getByText("빠른 WAV 등록 (기존 방식)").click();
+  await page.getByLabel("빠른 등록 이름").fill("Doha Voice");
   await page.getByLabel("목소리 파일").setInputFiles({
     name: "voice-reference.wav",
     mimeType: "audio/wav",

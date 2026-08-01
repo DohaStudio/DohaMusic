@@ -6,7 +6,7 @@
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
-> F6 Guided Voice Enrollment는 `[진행 중]`입니다. Profile 1:N Sample·대표 reference와 Alembic `0010`, Enrollment 7개 API·WAV/WebM/Ogg 정규화·임시 Storage·기본 품질 검사·멱등성·lazy expiration을 Backend에 구현했습니다. FFmpeg가 없으면 WebM/Ogg만 안전하게 거부하며 기존 WAV API는 유지됩니다. 주기적 cleanup scheduler·Frontend Wizard·인증은 미구현이고 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
+> F6 Guided Voice Enrollment는 `[진행 중]`입니다. Profile 1:N Sample·대표 reference, Enrollment 7개 API·정규화·품질·멱등성·lazy expiration과 `/voice` 8단계 Wizard·MediaRecorder·파일 업로드·대표 선택·복원·Studio 연결을 구현했습니다. FFmpeg가 없으면 WebM/Ogg만 안전하게 거부하며 기존 빠른 WAV 등록은 유지됩니다. 실제 FFmpeg 통합·주기적 cleanup scheduler·인증은 미구현이고 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
 
 > K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1·K3.2·K3.3은 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Quality Metrics, 예상 Tempo와 에너지·반복 기반 후렴 후보를 분석하며 K3.4 Preview는 `[계획]`입니다.
 
@@ -52,7 +52,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [계획] | MP3 변환 |
 | [완료] | Frontend Pipeline 상태·진행률·오류·cooperative Cancel·새 Job Retry |
 | [완료] | Pipeline 기반 생성 History·Project 관리와 Result 재진입·재생·다운로드 |
-| [계획] | 사용자 안내형 Voice Enrollment Wizard와 브라우저 MediaRecorder |
+| [완료] | 사용자 안내형 Voice Enrollment Wizard와 브라우저 MediaRecorder·WAV fallback |
 | [완료] | Guided Voice Enrollment 영속 모델·7개 API·다중 sample·정규화·기본 품질 검사·Profile 승격 |
 | [완료] | K-POP Structured Generation Options 검증·Prompt 컴파일·Snapshot·Retry·공개 설정 요약 |
 | [완료] | K3.0 Audio Analysis 제품·결과·실패·평가·라이브러리·ADR 계약 문서 |

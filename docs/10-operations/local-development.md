@@ -58,6 +58,25 @@ Demucs 4.1.0은 Backend와 별도 Python 3.11 환경에 설치한다. 검증 환
 `backend/.env.example`의 `DOHAMUSIC_VOICE_SEED_VC_*` 절대 경로를 설정하고 `DOHAMUSIC_VOICE_PROVIDER=seed_vc`를 선택한다. Backend runner는 offline 모드로 실행되어 모델을 자동 다운로드하지 않는다. 실제 GPU 테스트는 `DOHAMUSIC_RUN_SEED_VC_GPU_TEST=1`과 테스트 source/reference 경로를 명시한 경우에만 실행한다. 본인 또는 명시적으로 동의받은 reference만 `voices/references` 아래에 두며 모델·개인 음성·출력은 Git에 포함하지 않는다. 자세한 결과는 [EXP-004](../../reports/experiments/EXP-004-seed-vc.md)를 따른다.
 
 `seed_vc`는 현재 `Experimental`이므로 로컬 기술 검증에만 명시적으로 선택한다. Phase 5 Pipeline은 기본 `MockVoiceConverter`만 사용해 Workflow 경계를 검증했으며 실제 사용자 트래픽·공개 Preview에는 연결하지 않는다. 저장 전·resample 후·PCM16 export 후 peak를 검증하기 전에는 clipping 경고를 무시하지 않는다.
+
+## Guided Voice Enrollment 확인
+
+Backend `8000`과 Frontend `3000`을 실행한 뒤 `/voice`에서 안내형 등록을 확인한다. 현재 Windows 개발 PC에는 FFmpeg가 없으므로 WAV Sample은 정규화·품질 검사·Profile 생성까지 지원하지만 브라우저가 생성한 WebM/Ogg는 `VOICE_NORMALIZER_UNAVAILABLE`일 수 있다. UI는 이 경우 WAV 업로드 fallback을 안내하며 FFmpeg 설치나 capability endpoint를 추측하지 않는다.
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:8000/health
+Invoke-RestMethod http://127.0.0.1:8000/openapi.json
+Invoke-WebRequest http://127.0.0.1:3000/voice -UseBasicParsing
+
+cd frontend
+npm run lint
+npm run typecheck
+npm run test
+npm run build
+npm run test:e2e
+```
+
+자동 E2E는 메모리 합성 WAV와 API mock을 사용하고 개인 음성을 수집·커밋하지 않는다. 실제 Backend 연결은 프로그램으로 생성한 합성 WAV로 create·upload·submit·Profile 조회 후 Profile을 삭제해 검증할 수 있다. 실제 마이크·장치별 MIME과 Safari·Firefox 지원은 사용자 동의 로컬 수동 평가가 필요하다.
 ## Pipeline Cancel·Retry 확인
 
 동의된 Voice Profile로 Pipeline을 만든 뒤 실제 Job ID를 사용한다.

@@ -1,10 +1,10 @@
 # Guided Voice Enrollment API
 
-> 문서 상태: [진행 중] Backend 구현 완료, Frontend 미구현
+> 문서 상태: [진행 중] Backend·Frontend 구현 완료, 운영 후속 미구현
 > 최종 수정일: 2026-08-01
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [현재 음성 프로필 API](audio-api.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [데이터 모델](../07-database/voice-enrollment-data-model.md), [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md), [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)
-> 구현 상태: `/api/voice-enrollments` 7개 endpoint, 동기 정규화·검증, 임시 Storage·Profile 승격, lazy expiration과 create·upload·submit idempotency를 구현했다. 주기적 scanner·cleanup scheduler, durable Queue, Frontend Wizard와 인증·소유권은 미구현이다.
+> 구현 상태: `/api/voice-enrollments` 7개 endpoint, 동기 정규화·검증, 임시 Storage·Profile 승격, lazy expiration과 create·upload·submit idempotency 및 Frontend Wizard 연결을 구현했다. 주기적 scanner·cleanup scheduler, durable Queue, 실제 FFmpeg WebM/Ogg 통합과 인증·소유권은 미구현이다.
 
 ## 1. 기존 API와 Enrollment API의 경계
 
@@ -279,7 +279,7 @@ stateDiagram-v2
 - 여러 Sample 중 일부 실패, warning 확인 submit, FAIL 차단, cancel·expire·retry·duplicate submit
 - cleanup pending/failed, 공개 DTO path 비노출, legacy 단일 WAV API 회귀
 
-### Frontend 후속
+### Frontend 구현
 
-- MediaRecorder feature detection·권한 거부·WebM/Ogg, upload·삭제·warning 확인, 새로고침·이탈·중복 제출
-- Chromium·Firefox·Safari 후보와 360px mobile, WAV fallback, Object URL·media track cleanup
+- MediaRecorder feature detection·권한 거부·WebM/Ogg 안전 오류, upload·삭제·warning 확인, 새로고침·이탈·중복 제출을 구현했다.
+- Chromium Desktop·Pixel 7 viewport의 WAV fallback·Profile 생성 E2E를 통과했다. 실제 MediaRecorder 장치와 Safari·Firefox MIME은 `[검증 필요]`다.

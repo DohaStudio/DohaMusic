@@ -7,6 +7,7 @@ import { userErrorMessage } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
 import { useStudioStore } from "@/stores/studio-store";
 import type { VoiceProfileDto } from "@/types/api";
+import { VoiceEnrollmentWizard } from "./voice-enrollment-wizard";
 
 export const MAX_VOICE_FILE_BYTES = 25 * 1024 * 1024;
 const VOICE_PROFILES_KEY = ["voice-profiles"] as const;
@@ -73,9 +74,12 @@ export function VoiceProfilePanel() {
         <h1>내 목소리로 노래할 준비</h1>
         <p>깨끗하게 녹음한 목소리를 등록하고 음악 만들기에 사용하세요.</p>
       </header>
+      <VoiceEnrollmentWizard />
       <div className="two-panel">
-        <form
-          className="surface-card studio-form"
+        <details className="surface-card legacy-voice-upload">
+          <summary>빠른 WAV 등록 (기존 방식)</summary>
+          <form
+          className="studio-form"
           onSubmit={(event) => {
             event.preventDefault();
             const validation = validateVoiceFile(file);
@@ -84,8 +88,9 @@ export function VoiceProfilePanel() {
             upload.mutate();
           }}
         >
-          <h2>새 목소리 등록</h2>
-          <Field label="목소리 이름" htmlFor="voice-upload-name">
+          <h2>빠른 WAV 등록</h2>
+          <p className="muted">Guided 등록을 사용할 수 없을 때 한 개의 WAV로 바로 Voice Profile을 만드는 기존 기능입니다.</p>
+          <Field label="빠른 등록 이름" htmlFor="voice-upload-name">
             <Input
               id="voice-upload-name"
               value={name}
@@ -125,7 +130,8 @@ export function VoiceProfilePanel() {
           <Button disabled={!name || !file || !consent || upload.isPending}>
             {upload.isPending ? "등록 중…" : "내 목소리 등록"}
           </Button>
-        </form>
+          </form>
+        </details>
         <article className="surface-card">
           <h2>등록한 목소리</h2>
           {profiles.isPending ? (

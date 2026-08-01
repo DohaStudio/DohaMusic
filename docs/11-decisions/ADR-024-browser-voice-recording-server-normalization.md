@@ -13,6 +13,8 @@
 
 교체 가능한 normalizer interface와 Python WAV 변환, shell 없는 optional FFmpeg WebM/Ogg decoder, timeout·출력 재검증·부분 cleanup·미설치 오류를 구현했다. 2026-08-01 Windows 개발 환경에는 FFmpeg가 없어 fake subprocess와 unavailable 경로만 자동 검증했다. 실제 WebM/Ogg decode와 고정 build license·재현성 근거가 부족하므로 상태는 `[제안]`으로 유지한다.
 
+> Frontend 구현 메모: `/voice`는 `audio/wav`, `audio/webm;codecs=opus`, `audio/webm`, `audio/ogg;codecs=opus`, `audio/ogg` 순서로 `MediaRecorder.isTypeSupported()`를 확인하고 권한·녹음·일시정지·재개·60초 종료·입력 수준·preview를 제공한다. WebM/Ogg normalization 실패는 WAV fallback으로 안내한다. 자동 E2E는 합성 WAV를 사용했으며 실제 장치별 MIME과 WebM/Ogg는 미검증이므로 ADR 상태는 `[제안]`을 유지한다.
+
 ## Decision
 
 Frontend는 녹음, 미리 듣기, MIME feature detection, 대략적인 시간과 선택 파일 크기 표시만 담당한다. Backend가 파일 signature를 확인하고 허용 컨테이너를 decode해 표준 WAV로 정규화하며, 저장 metadata와 품질 결과의 최종 권위가 된다.

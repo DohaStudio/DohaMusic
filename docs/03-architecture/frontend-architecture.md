@@ -2,12 +2,12 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-01
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment [계획]
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend [완료]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [History](history-management.md), [Project](project-management.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
-Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
+Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
 ```mermaid
 flowchart LR
@@ -147,21 +147,22 @@ Audio Metadata는 별도 endpoint가 아니라 Pipeline의 `result_metadata`와 
 
 OpenAPI는 FastAPI request·response 명세이고 OpenAI API는 Experimental 외부 Lyrics Provider다. Local Lyrics LLM은 공개 Base를 자체 권리 Dataset으로 파인튜닝하는 Planned Backend Provider다. Frontend API client는 이 세 용어를 구분하고 Provider SDK를 포함하지 않는다.
 
-## F6 Voice Enrollment 책임 경계 [계획]
+## F6 Voice Enrollment 책임 경계 [Frontend 완료]
 
-F6는 현재 `app/voice/page.tsx`와 `features/voice/voice-profile.tsx`를 기반으로 하되, 브라우저 녹음·다중 sample·사전 품질 검사 계약이 확정된 뒤 책임별로 확장한다. 아래 이름은 구현 확정 파일명이 아니라 설계 후보다.
+F6는 `app/voice/page.tsx`와 기존 `features/voice/voice-profile.tsx`를 유지하면서 다음 책임으로 확장했다.
 
 ```text
 app/voice
 - route entry, loading, error boundary
 
 features/voice
-- enrollment orchestration, recording lifecycle, file selection
-- quality result mapping, profile form, submit flow
+- voice-enrollment-wizard: 단계·server mutation·복원·submit orchestration
+- use-voice-recorder: permission, MediaRecorder, 입력 수준, Blob·stream cleanup
+- voice-enrollment-types/utils: 공개 DTO allowlist·상태·품질·오류·session mapper
+- voice-profile: 기존 빠른 WAV fallback과 Profile 목록·선택·삭제
 
 services
-- 현재 Voice Profile API
-- 후속 upload·validation API는 Backend 계약 확정 후 추가
+- 기존 Voice Profile API와 Enrollment create/get/sample get·upload·delete/submit/cancel
 
 hooks
 - microphone permission, MediaRecorder lifecycle, page-leave protection
@@ -176,11 +177,11 @@ types
 컴포넌트 후보는 `VoiceEnrollmentPage`, `VoiceEnrollmentStepper`, `VoiceConsentStep`, `VoiceMethodSelector`, `VoicePromptCard`, `VoiceRecorder`, `AudioLevelMeter`, `VoiceFileUploader`, `VoiceSampleList`, `VoiceDurationSummary`, `VoiceQualityResult`, `VoiceProfileForm`, `VoiceEnrollmentComplete`다.
 
 - `app`은 route·loading·error boundary만 담당하고 MediaRecorder·upload orchestration을 갖지 않는다.
-- `features/voice`는 녹음·파일·validation·제출 흐름을 조합하되 API DTO를 UI 상태로 직접 사용하지 않는다.
-- `services`에는 실제 OpenAPI 계약이 확정된 endpoint만 추가한다. Enrollment 후보 상태와 제안 오류 코드를 Backend enum처럼 만들지 않는다.
+- `features/voice`는 녹음·파일·validation·제출 흐름을 조합하고 snake_case 공개 DTO를 명시적 mapper로 allowlist한 뒤 UI 상태와 분리한다.
+- `services`에는 실제 OpenAPI의 7개 Enrollment endpoint만 추가했다. 서버 상태는 Backend enum과 일치하며 `RECORDING`, `PAUSED`, `PREVIEW`는 UI 전용이다.
 - microphone stream, recording Blob과 Object URL은 메모리 lifecycle로 관리하고 `localStorage`·`sessionStorage`에 저장하지 않는다.
-- 현재 `sessionStorage`에는 Studio 선택용 opaque Profile ID·이름만 유지한다. Enrollment draft 복원을 추가할 경우 음성 binary와 내부 path를 제외한다.
-- [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md)는 MediaRecorder WAV/WebM/Ogg를 Backend가 PCM16 48kHz mono WAV로 정규화하는 경계를 `[제안]`했다. Frontend는 feature detection·녹음·preview·기본 크기만 담당하며 실제 decoder·Provider 검증과 Enrollment API 구현 전에는 녹음을 활성 기능으로 노출하지 않는다.
+- `sessionStorage`에는 Studio 선택용 opaque Profile ID·이름과 Enrollment ID·현재 단계 allowlist만 유지한다. 음성 binary, idempotency raw key와 내부 path는 저장하지 않는다.
+- [ADR-024](../11-decisions/ADR-024-browser-voice-recording-server-normalization.md)에 따라 `audio/wav → audio/webm;codecs=opus → audio/webm → audio/ogg;codecs=opus → audio/ogg`를 feature detection하고 Backend PCM16 48kHz mono 정규화에 전달한다. 현재 FFmpeg 미설치 환경에서는 WebM/Ogg 오류를 WAV fallback으로 안내한다.
 - sample upload 뒤 받은 server-generated Enrollment·Sample ID와 공개 metadata만 복원 후보로 두고, final submit 전 Profile 생성 완료로 표시하지 않는다. audio binary·내부 path는 Web Storage에 넣지 않는다.
 - 접근성·상태·오류·테스트 기준은 [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)을 따른다.
 
