@@ -8,6 +8,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Voice Enrollment WAV 업로드
+
+- Frontend의 Next.js rewrite proxy가 기본 10MB를 넘는 multipart body를 절단해 Backend 계약상 유효한 WAV 업로드를 500으로 반환하던 문제를 수정했다.
+- Backend의 25MiB 파일 제한에 multipart metadata 여유를 더해 proxy request body limit를 26MiB로 설정하고 설정 회귀 테스트를 추가했다.
+- Backend·공개 API·DB·migration·Storage·scheduler 계약과 F6 `[진행 중]` 상태는 변경하지 않았다.
+
 ### 변경 — Guided Voice Enrollment UI
 
 - 정상 안내를 INFO 카드로 분리하고 실제 오류에만 경고 UI를 사용하도록 Voice Enrollment Wizard의 메시지 위계를 정리했다.

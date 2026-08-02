@@ -102,6 +102,8 @@ Demucs 4.1.0은 Backend와 별도 Python 3.11 환경에 설치한다. 검증 환
 
 Backend `8000`과 Frontend `3000`을 실행한 뒤 `/voice`에서 안내형 등록을 확인한다. FFmpeg가 설치되고 Backend의 `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE` 또는 PATH에서 탐지되면 WebM/Ogg를 처리한다. 탐지되지 않으면 WAV Sample은 계속 정규화·품질 검사·Profile 생성까지 지원하고 WebM/Ogg만 `VOICE_NORMALIZER_UNAVAILABLE`로 실패한다. UI는 이 경우 WAV 업로드 fallback을 안내하며 capability endpoint를 추측하지 않는다.
 
+Frontend의 `/backend` rewrite는 Backend의 파일당 25MiB 계약을 보존하기 위해 Next.js `experimental.proxyClientMaxBodySize`를 26MiB로 설정한다. 1MiB 여유는 multipart field와 boundary metadata용이다. 이 값이 Backend 제한보다 작으면 큰 WAV body가 proxy에서 잘려 `500` 또는 `ECONNRESET`로 보일 수 있으므로 두 제한을 함께 검토한다. 설정 변경 후에는 Frontend server를 재시작한다.
+
 ```powershell
 Invoke-RestMethod http://127.0.0.1:8000/health
 Invoke-RestMethod http://127.0.0.1:8000/openapi.json
