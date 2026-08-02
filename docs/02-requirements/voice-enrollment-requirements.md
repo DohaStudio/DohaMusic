@@ -261,7 +261,7 @@ MediaRecorder는 브라우저에 따라 `audio/webm`, `audio/ogg` 등을 생성�
 |---|---|---|---|---|---|---|
 | 확장자·MIME | 허용 입력 제한 | Frontend + Backend | 가능 | `.wav`와 허용 MIME 외 실패 | 현재 WAV 파일만 등록할 수 있습니다. | MIME; 내부 path 제외 |
 | byte 크기·빈 파일 | 자원 제한 | Frontend + Backend | 가능 | 1~25MB 통과, 0 또는 초과 실패 | 빈 파일입니다 / 25MB 이하로 준비해 주세요. | `size_bytes` |
-| WAV decode·PCM | 손상·미지원 차단 | Backend | 가능 | RIFF/WAVE, PCM16, 무압축 외 실패 | 파일을 읽을 수 없거나 지원하지 않는 WAV입니다. | format 세부값은 safe allowlist만 |
+| WAV decode·PCM | 손상·미지원 차단 | Backend | 가능 | RIFF/WAVE, little-endian PCM16, 무압축만 성공. PCM24·float32·ADPCM·WAVE_FORMAT_EXTENSIBLE은 `VOICE_SAMPLE_UNSUPPORTED_CODEC`, RF64·손상 header는 container/decode 오류 | 이 WAV 파일의 오디오 형식은 지원하지 않습니다. PCM 16-bit WAV로 변환해 주세요. | format tag·bit depth allowlist만 기록하고 원본 이름·path는 제외 |
 | duration | 현재 Provider 입력 경계 | Backend | 가능 | 5~60초 통과, 범위 밖 실패 | 5초 이상 60초 이하로 준비해 주세요. | `duration_seconds` |
 | channel·sample rate | 기본 호환성 | Backend | 가능 | mono/stereo, 16kHz 이상 외 실패 | 16kHz 이상 mono 또는 stereo WAV가 필요합니다. | `channels`, `sample_rate` |
 | peak·clipping | 과대 입력 경고 | Backend | 부분 가능 | sample `>=32735` 비율 `>0.001` warning; 제품 임계값은 재검증 필요 | 소리가 찌그러질 수 있습니다. 음량을 낮춰 다시 녹음해 보세요. | 현재 warning만 저장, peak 값 미저장 |

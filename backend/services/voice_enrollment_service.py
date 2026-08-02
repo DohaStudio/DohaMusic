@@ -16,6 +16,7 @@ from starlette.concurrency import run_in_threadpool
 
 from backend.core.config import Settings
 from backend.core.exceptions import AppError
+from backend.core.logging import get_logger
 from backend.core.voice_enrollment_status import (
     VoiceCleanupStatus,
     VoiceEnrollmentStatus,
@@ -54,6 +55,7 @@ from backend.voice_enrollment.validator import QUALITY_VERSION, VoiceAudioValida
 UPLOAD_CHUNK_BYTES = 1024 * 1024
 MEDIA_HEADER_BYTES = 64 * 1024
 CONSENT_POLICY_VERSION = "v1"
+logger = get_logger(__name__)
 
 
 class VoiceEnrollmentService:
@@ -318,7 +320,20 @@ class VoiceEnrollmentService:
                 sample_id, claim_id, error.code, paths.directory
             )
             raise
-        except Exception:  # noqa: BLE001 - expose only a safe provider failure
+        except Exception as error:
+            logger.error(
+                "Unexpected voice sample processing failure",
+                extra={
+                    "enrollment_id": enrollment_id,
+                    "sample_id": sample_id,
+                    "exception_type": type(error).__name__,
+                },
+                exc_info=(
+                    RuntimeError,
+                    RuntimeError("exception details redacted"),
+                    error.__traceback__,
+                ),
+            )
             self._record_upload_failure(
                 sample_id,
                 claim_id,
@@ -924,6 +939,10 @@ ERRORS: dict[str, tuple[int, str]] = {
     "VOICE_SAMPLE_DECODE_FAILED": (
         422,
         "음성 파일을 읽지 못했습니다. 다른 파일을 선택해 주세요.",
+    ),
+    "VOICE_SAMPLE_UNSUPPORTED_CODEC": (
+        422,
+        "이 WAV 파일의 오디오 형식은 지원하지 않습니다. PCM 16-bit WAV로 변환해 주세요.",
     ),
     "VOICE_SAMPLE_NORMALIZATION_FAILED": (
         500,

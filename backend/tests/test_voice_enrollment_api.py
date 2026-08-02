@@ -4,6 +4,7 @@ import io
 import json
 import os
 import shutil
+import struct
 import uuid
 import wave
 from array import array
@@ -16,6 +17,7 @@ from fastapi.testclient import TestClient
 
 from backend.models.voice_enrollment import VoiceEnrollment
 from backend.models.voice_profile import VoiceProfile
+from backend.models.voice_sample import VoiceSample
 from backend.repositories.idempotency_repository import IdempotencyRepository
 
 
@@ -27,16 +29,41 @@ def _system_ffmpeg() -> str | None:
     return shutil.which(configured)
 
 
-def _wav_bytes(*, duration: float = 6.0, value: int = 5000) -> bytes:
+def _wav_bytes(
+    *,
+    duration: float = 6.0,
+    value: int = 5000,
+    rate: int = 16_000,
+    channels: int = 2,
+) -> bytes:
     output = io.BytesIO()
-    rate = 16_000
-    samples = array("h", [value] * int(duration * rate) * 2)
+    samples = array("h", [value] * int(duration * rate) * channels)
     with wave.open(output, "wb") as target:
-        target.setnchannels(2)
+        target.setnchannels(channels)
         target.setsampwidth(2)
         target.setframerate(rate)
         target.writeframes(samples.tobytes())
     return output.getvalue()
+
+
+def _encoded_wav_bytes(
+    *, format_tag: int, bit_depth: int, payload: bytes, extra: bytes = b""
+) -> bytes:
+    rate = 48_000
+    channels = 1
+    block_align = channels * ((bit_depth + 7) // 8)
+    fmt = struct.pack(
+        "<HHIIHH",
+        format_tag,
+        channels,
+        rate,
+        rate * block_align,
+        block_align,
+        bit_depth,
+    ) + extra
+    chunks = b"fmt " + struct.pack("<I", len(fmt)) + fmt
+    chunks += b"data" + struct.pack("<I", len(payload)) + payload
+    return b"RIFF" + struct.pack("<I", len(chunks) + 4) + b"WAVE" + chunks
 
 
 def _create(client: TestClient, key: str | None = None):
@@ -64,7 +91,13 @@ def _upload(
         f"/api/voice-enrollments/{enrollment_id}/samples",
         headers={"Idempotency-Key": key or str(uuid.uuid4())},
         data={"source_type": "FILE_UPLOAD", "category": "BASIC_SPEECH"},
-        files={"file": ("voice.wav", wav or _wav_bytes(), "audio/wav")},
+        files={
+            "file": (
+                "voice.wav",
+                wav if wav is not None else _wav_bytes(),
+                "audio/wav",
+            )
+        },
     )
 
 
@@ -339,6 +372,87 @@ def test_installed_ffmpeg_malformed_webm_returns_decode_failure(
     assert response.json()["error"]["code"] == "VOICE_SAMPLE_DECODE_FAILED"
 
 
+def test_long_pcm16_wav_returns_duration_error_and_cleans_storage(
+    client: TestClient, app: FastAPI
+) -> None:
+    enrollment_id = _create(client).json()["id"]
+
+    response = _upload(
+        client,
+        enrollment_id,
+        wav=_wav_bytes(duration=61, rate=48_000, channels=2),
+    )
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == "VOICE_SAMPLE_DURATION_TOO_LONG"
+    with app.state.session_factory() as session:
+        samples = session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
+        assert len(samples) == 1
+        assert samples[0].failure_code == "VOICE_SAMPLE_DURATION_TOO_LONG"
+        assert samples[0].original_storage_path is None
+        assert samples[0].normalized_storage_path is None
+    enrollment_directory = (
+        app.state.settings.storage_root / "voices" / "enrollments" / enrollment_id
+    )
+    assert not enrollment_directory.exists() or not any(enrollment_directory.rglob("*"))
+
+
+def test_unsupported_wav_retry_is_idempotent_and_cleans_storage(
+    client: TestClient, app: FastAPI
+) -> None:
+    enrollment_id = _create(client).json()["id"]
+    key = str(uuid.uuid4())
+    pcm24 = _encoded_wav_bytes(
+        format_tag=1,
+        bit_depth=24,
+        payload=b"\x00\x00\x00" * 48_000,
+    )
+
+    first = _upload(client, enrollment_id, key=key, wav=pcm24)
+    same_key_retry = _upload(client, enrollment_id, key=key, wav=pcm24)
+    new_key_retry = _upload(client, enrollment_id, wav=pcm24)
+
+    for response in (first, same_key_retry, new_key_retry):
+        assert response.status_code == 422
+        assert response.json()["error"]["code"] == "VOICE_SAMPLE_UNSUPPORTED_CODEC"
+    with app.state.session_factory() as session:
+        samples = session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
+        assert len(samples) == 3
+        assert all(sample.status == "FAILED" for sample in samples)
+        assert all(
+            sample.failure_code == "VOICE_SAMPLE_UNSUPPORTED_CODEC"
+            for sample in samples
+        )
+        assert all(sample.original_storage_path is None for sample in samples)
+        assert all(sample.normalized_storage_path is None for sample in samples)
+    enrollment_directory = (
+        app.state.settings.storage_root / "voices" / "enrollments" / enrollment_id
+    )
+    assert not enrollment_directory.exists() or not any(enrollment_directory.rglob("*"))
+
+
+@pytest.mark.parametrize(
+    ("payload", "expected_code"),
+    [
+        (b"", "VOICE_SAMPLE_EMPTY_AUDIO"),
+        (
+            b"RIFF\x04\x00\x00\x00WAVE",
+            "VOICE_SAMPLE_DECODE_FAILED",
+        ),
+    ],
+    ids=["empty", "malformed"],
+)
+def test_empty_and_malformed_wav_fail_safely(
+    client: TestClient, payload: bytes, expected_code: str
+) -> None:
+    enrollment_id = _create(client).json()["id"]
+
+    response = _upload(client, enrollment_id, wav=payload)
+
+    assert response.status_code == 422
+    assert response.json()["error"]["code"] == expected_code
+
+
 def test_upload_limit_conflict_and_submit_rollback(
     client: TestClient, app: FastAPI, monkeypatch
 ) -> None:
@@ -414,3 +528,8 @@ def test_openapi_contains_voice_enrollment_paths(client: TestClient) -> None:
     }
     assert expected <= set(paths)
     assert "/api/voice-profiles/upload" in paths
+    upload = paths["/api/voice-enrollments/{enrollment_id}/samples"]["post"]
+    unsupported = upload["responses"]["422"]["content"]["application/json"][
+        "examples"
+    ]["unsupported_wav_codec"]["value"]
+    assert unsupported["error"]["code"] == "VOICE_SAMPLE_UNSUPPORTED_CODEC"

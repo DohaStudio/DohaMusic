@@ -245,6 +245,7 @@ stateDiagram-v2
 | `VOICE_SAMPLE_DURATION_TOO_SHORT` | 422 | 음성은 5초 이상이어야 합니다. | 다시 녹음 | 해당 Sample 교체 | decoded duration | audio content |
 | `VOICE_SAMPLE_DURATION_TOO_LONG` | 422 | 음성은 60초 이하여야 합니다. | 다시 녹음 | 해당 Sample 교체 | decoded duration | audio content |
 | `VOICE_SAMPLE_DECODE_FAILED` | 422 | 음성 파일을 읽지 못했습니다. 다시 녹음하거나 다른 파일을 선택해 주세요. | 입력 변경 | Sample 교체 | decoder exit category·timeout 여부 | command·stderr·path |
+| `VOICE_SAMPLE_UNSUPPORTED_CODEC` | 422 | 이 WAV 파일의 오디오 형식은 지원하지 않습니다. PCM 16-bit WAV로 변환해 주세요. | 형식 변환 | PCM16 WAV로 변환 후 재업로드 | WAV format tag·bit depth allowlist 결과 | 원본 파일명·path·audio content |
 | `VOICE_SAMPLE_NORMALIZATION_FAILED` | 500 | 음성 형식을 준비하지 못했습니다. 다시 시도해 주세요. | 예 | 같은 key 재시도 | tool version·stage·timeout | command·path·stderr |
 | `VOICE_SAMPLE_VALIDATION_FAILED` | 422 | 이 음성 샘플은 등록 조건을 충족하지 않습니다. | 입력 변경 | 실패 항목·재녹음 표시 | safe validation codes·metrics | raw samples |
 | `VOICE_SAMPLE_IN_USE` | 409 | 등록 처리 중이거나 사용 중인 샘플은 삭제할 수 없습니다. | 상태 후 | polling·Profile 안내 | state·reference relation | DB lock detail |
@@ -266,7 +267,7 @@ stateDiagram-v2
 
 ### Backend unit
 
-- MIME allowlist·signature 불일치, decode 실패·timeout, duration·sample rate·channel·bit depth와 정규화 출력
+- MIME allowlist·signature 불일치, PCM24·float32·ADPCM·WAVE_FORMAT_EXTENSIBLE·RF64, decode 실패·timeout, duration·sample rate·channel·bit depth와 정규화 출력
 - PASS/WARNING/FAIL, warning acknowledgement, temp·partial output cleanup, expiration, idempotency와 invalid transition
 
 ### Repository·DB

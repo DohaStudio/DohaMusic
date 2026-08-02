@@ -8,6 +8,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Voice Enrollment WAV 정규화 오류 분류
+
+- 60초를 넘는 PCM16 WAV가 정규화 출력 상한에서 `VOICE_SAMPLE_NORMALIZATION_FAILED` 500으로 오분류되던 문제를 `VOICE_SAMPLE_DURATION_TOO_LONG` 422로 수정했다.
+- PCM24·float32·ADPCM·WAVE_FORMAT_EXTENSIBLE WAV를 `VOICE_SAMPLE_UNSUPPORTED_CODEC` 422로 분리하고 PCM 16-bit WAV 변환 안내를 Backend·OpenAPI·Frontend에 반영했다.
+- PCM16 mono/stereo/16kHz resample, 미지원 codec, 손상·빈 WAV, 부분 출력 cleanup, 동일·신규 idempotency key 재시도와 실패 DB·Storage cleanup 회귀 테스트를 추가했다.
+
 ### 수정 — Voice Enrollment WAV 업로드
 
 - Frontend의 Next.js rewrite proxy가 기본 10MB를 넘는 multipart body를 절단해 Backend 계약상 유효한 WAV 업로드를 500으로 반환하던 문제를 수정했다.
