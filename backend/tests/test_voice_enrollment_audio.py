@@ -62,9 +62,12 @@ def _encoded_wav_bytes(
 ) -> bytes:
     block_align = channels * ((bit_depth + 7) // 8)
     byte_rate = rate * block_align
-    fmt = struct.pack(
-        "<HHIIHH", format_tag, channels, rate, byte_rate, block_align, bit_depth
-    ) + extra
+    fmt = (
+        struct.pack(
+            "<HHIIHH", format_tag, channels, rate, byte_rate, block_align, bit_depth
+        )
+        + extra
+    )
     chunks = b"fmt " + struct.pack("<I", len(fmt)) + fmt
     chunks += b"data" + struct.pack("<I", len(payload)) + payload
     return b"RIFF" + struct.pack("<I", len(chunks) + 4) + b"WAVE" + chunks
@@ -174,7 +177,7 @@ def test_wav_normalizer_rejects_empty_or_malformed_and_cleans_output(
 
 
 def test_wav_normalizer_classifies_output_limit_as_duration_failure(
-    tmp_path: Path
+    tmp_path: Path,
 ) -> None:
     source = tmp_path / "long.wav"
     output = tmp_path / "output.wav"

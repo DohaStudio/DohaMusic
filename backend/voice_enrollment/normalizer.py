@@ -139,11 +139,7 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
         try:
             with source_path.open("rb") as source:
                 header = source.read(12)
-                if (
-                    len(header) != 12
-                    or header[:4] != b"RIFF"
-                    or header[8:] != b"WAVE"
-                ):
+                if len(header) != 12 or header[:4] != b"RIFF" or header[8:] != b"WAVE":
                     raise VoiceAudioProcessingError("VOICE_SAMPLE_DECODE_FAILED")
                 while chunk_header := source.read(8):
                     if len(chunk_header) != 8:

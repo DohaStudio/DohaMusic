@@ -52,15 +52,18 @@ def _encoded_wav_bytes(
     rate = 48_000
     channels = 1
     block_align = channels * ((bit_depth + 7) // 8)
-    fmt = struct.pack(
-        "<HHIIHH",
-        format_tag,
-        channels,
-        rate,
-        rate * block_align,
-        block_align,
-        bit_depth,
-    ) + extra
+    fmt = (
+        struct.pack(
+            "<HHIIHH",
+            format_tag,
+            channels,
+            rate,
+            rate * block_align,
+            block_align,
+            bit_depth,
+        )
+        + extra
+    )
     chunks = b"fmt " + struct.pack("<I", len(fmt)) + fmt
     chunks += b"data" + struct.pack("<I", len(payload)) + payload
     return b"RIFF" + struct.pack("<I", len(chunks) + 4) + b"WAVE" + chunks
@@ -386,7 +389,9 @@ def test_long_pcm16_wav_returns_duration_error_and_cleans_storage(
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VOICE_SAMPLE_DURATION_TOO_LONG"
     with app.state.session_factory() as session:
-        samples = session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
+        samples = (
+            session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
+        )
         assert len(samples) == 1
         assert samples[0].failure_code == "VOICE_SAMPLE_DURATION_TOO_LONG"
         assert samples[0].original_storage_path is None
@@ -416,7 +421,9 @@ def test_unsupported_wav_retry_is_idempotent_and_cleans_storage(
         assert response.status_code == 422
         assert response.json()["error"]["code"] == "VOICE_SAMPLE_UNSUPPORTED_CODEC"
     with app.state.session_factory() as session:
-        samples = session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
+        samples = (
+            session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
+        )
         assert len(samples) == 3
         assert all(sample.status == "FAILED" for sample in samples)
         assert all(
@@ -529,7 +536,7 @@ def test_openapi_contains_voice_enrollment_paths(client: TestClient) -> None:
     assert expected <= set(paths)
     assert "/api/voice-profiles/upload" in paths
     upload = paths["/api/voice-enrollments/{enrollment_id}/samples"]["post"]
-    unsupported = upload["responses"]["422"]["content"]["application/json"][
-        "examples"
-    ]["unsupported_wav_codec"]["value"]
+    unsupported = upload["responses"]["422"]["content"]["application/json"]["examples"][
+        "unsupported_wav_codec"
+    ]["value"]
     assert unsupported["error"]["code"] == "VOICE_SAMPLE_UNSUPPORTED_CODEC"
