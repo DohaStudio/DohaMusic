@@ -22,6 +22,31 @@ IdempotencyKey = Annotated[
     str | None,
     Header(alias="Idempotency-Key", min_length=1, max_length=128),
 ]
+VOICE_SAMPLE_UPLOAD_RESPONSES = {
+    422: {
+        "description": (
+            "파일 길이, decode 또는 WAV codec/bit depth가 등록 계약에 맞지 않음"
+        ),
+        "content": {
+            "application/json": {
+                "examples": {
+                    "unsupported_wav_codec": {
+                        "summary": "PCM16이 아닌 WAV",
+                        "value": {
+                            "error": {
+                                "code": "VOICE_SAMPLE_UNSUPPORTED_CODEC",
+                                "message": (
+                                    "이 WAV 파일의 오디오 형식은 지원하지 않습니다. "
+                                    "PCM 16-bit WAV로 변환해 주세요."
+                                ),
+                            }
+                        },
+                    }
+                }
+            }
+        },
+    }
+}
 
 
 def _private_no_store(response: Response) -> None:
@@ -55,6 +80,7 @@ def get_voice_enrollment(
     "/{enrollment_id}/samples",
     response_model=VoiceSampleResponse,
     status_code=status.HTTP_201_CREATED,
+    responses=VOICE_SAMPLE_UPLOAD_RESPONSES,
 )
 async def upload_voice_sample(
     enrollment_id: str,

@@ -4,6 +4,7 @@ import io
 import math
 import os
 import shutil
+import struct
 import subprocess
 import uuid
 import wave
@@ -50,6 +51,39 @@ def _sine_wav_bytes(*, duration: float = 1.0, rate: int = 48_000) -> bytes:
     return output.getvalue()
 
 
+def _encoded_wav_bytes(
+    *,
+    format_tag: int,
+    bit_depth: int,
+    payload: bytes,
+    rate: int = 48_000,
+    channels: int = 1,
+    extra: bytes = b"",
+) -> bytes:
+    block_align = channels * ((bit_depth + 7) // 8)
+    byte_rate = rate * block_align
+    fmt = (
+        struct.pack(
+            "<HHIIHH", format_tag, channels, rate, byte_rate, block_align, bit_depth
+        )
+        + extra
+    )
+    chunks = b"fmt " + struct.pack("<I", len(fmt)) + fmt
+    chunks += b"data" + struct.pack("<I", len(payload)) + payload
+    return b"RIFF" + struct.pack("<I", len(chunks) + 4) + b"WAVE" + chunks
+
+
+def _extensible_pcm16_wav_bytes() -> bytes:
+    pcm_subformat = bytes.fromhex("0100000000001000800000aa00389b71")
+    extra = struct.pack("<H", 22) + struct.pack("<HI", 16, 0) + pcm_subformat
+    return _encoded_wav_bytes(
+        format_tag=0xFFFE,
+        bit_depth=16,
+        payload=b"\x00\x00" * 48_000,
+        extra=extra,
+    )
+
+
 def _system_ffmpeg() -> str | None:
     configured = os.getenv("DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE", "ffmpeg")
     candidate = Path(configured)
@@ -58,10 +92,17 @@ def _system_ffmpeg() -> str | None:
     return shutil.which(configured)
 
 
-def test_wav_normalizer_outputs_pcm16_48khz_mono(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("rate", "channels"),
+    [(48_000, 1), (48_000, 2), (16_000, 1)],
+    ids=["pcm16-mono", "pcm16-stereo", "pcm16-16khz-resample"],
+)
+def test_wav_normalizer_outputs_pcm16_48khz_mono(
+    tmp_path: Path, rate: int, channels: int
+) -> None:
     source = tmp_path / "source with spaces.wav"
     output = tmp_path / "output.wav"
-    source.write_bytes(_wav_bytes())
+    source.write_bytes(_wav_bytes(rate=rate, channels=channels))
     normalizer = HybridVoiceAudioNormalizer(
         ffmpeg_executable="missing", timeout_seconds=1, max_output_bytes=200_000
     )
@@ -74,6 +115,108 @@ def test_wav_normalizer_outputs_pcm16_48khz_mono(tmp_path: Path) -> None:
         assert normalized.getsampwidth() == 2
         assert normalized.getframerate() == 48_000
         assert normalized.getnframes() == pytest.approx(48_000, abs=2)
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        _encoded_wav_bytes(
+            format_tag=1,
+            bit_depth=24,
+            payload=b"\x00\x00\x00" * 48_000,
+        ),
+        _encoded_wav_bytes(
+            format_tag=3,
+            bit_depth=32,
+            payload=b"\x00\x00\x00\x00" * 48_000,
+        ),
+        _encoded_wav_bytes(
+            format_tag=2,
+            bit_depth=4,
+            payload=b"\x00" * 24_000,
+        ),
+        _extensible_pcm16_wav_bytes(),
+    ],
+    ids=["pcm24", "float32", "adpcm", "wave-format-extensible"],
+)
+def test_wav_normalizer_rejects_unsupported_codec(
+    tmp_path: Path, payload: bytes
+) -> None:
+    source = tmp_path / "unsupported.wav"
+    output = tmp_path / "output.wav"
+    source.write_bytes(payload)
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable="missing", timeout_seconds=1, max_output_bytes=200_000
+    )
+
+    with pytest.raises(
+        VoiceAudioProcessingError, match="VOICE_SAMPLE_UNSUPPORTED_CODEC"
+    ):
+        normalizer.normalize(source, output, VoiceContainer.WAV)
+
+    assert not output.exists()
+    assert not output.with_suffix(".normalizing").exists()
+
+
+@pytest.mark.parametrize("payload", [b"", b"RIFF\x04\x00\x00\x00WAVE"])
+def test_wav_normalizer_rejects_empty_or_malformed_and_cleans_output(
+    tmp_path: Path, payload: bytes
+) -> None:
+    source = tmp_path / "invalid.wav"
+    output = tmp_path / "output.wav"
+    source.write_bytes(payload)
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable="missing", timeout_seconds=1, max_output_bytes=200_000
+    )
+
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DECODE_FAILED"):
+        normalizer.normalize(source, output, VoiceContainer.WAV)
+
+    assert not output.exists()
+    assert not output.with_suffix(".normalizing").exists()
+
+
+def test_wav_normalizer_classifies_output_limit_as_duration_failure(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "long.wav"
+    output = tmp_path / "output.wav"
+    source.write_bytes(_wav_bytes(duration=1.1, rate=48_000, channels=1))
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable="missing", timeout_seconds=1, max_output_bytes=96_044
+    )
+
+    with pytest.raises(
+        VoiceAudioProcessingError, match="VOICE_SAMPLE_DURATION_TOO_LONG"
+    ):
+        normalizer.normalize(source, output, VoiceContainer.WAV)
+
+    assert not output.exists()
+    assert not output.with_suffix(".normalizing").exists()
+
+
+def test_wav_normalizer_cleans_partial_output_after_os_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source = tmp_path / "source.wav"
+    output = tmp_path / "output.wav"
+    source.write_bytes(_wav_bytes())
+    normalizer = HybridVoiceAudioNormalizer(
+        ffmpeg_executable="missing", timeout_seconds=1, max_output_bytes=200_000
+    )
+
+    def fail_after_partial(_source: Path, partial: Path) -> None:
+        partial.write_bytes(b"partial")
+        raise OSError("simulated atomic write failure")
+
+    monkeypatch.setattr(normalizer, "_normalize_wav", fail_after_partial)
+    with pytest.raises(
+        VoiceAudioProcessingError, match="VOICE_SAMPLE_NORMALIZATION_FAILED"
+    ):
+        normalizer.normalize(source, output, VoiceContainer.WAV)
+
+    assert not output.exists()
+    assert not output.with_suffix(".normalizing").exists()
 
 
 @pytest.mark.integration
@@ -199,6 +342,14 @@ def test_media_validation_rejects_mismatch_and_filename_path() -> None:
         validate_media("sample.wav", "audio/ogg", b"OggSxxxxOpusHead")
     with pytest.raises(VoiceAudioProcessingError):
         validate_media("../sample.wav", "audio/wav", _wav_bytes())
+    with pytest.raises(
+        VoiceAudioProcessingError, match="VOICE_SAMPLE_UNSUPPORTED_MEDIA_TYPE"
+    ):
+        validate_media(
+            "sample.wav",
+            "audio/wav",
+            b"RF64\xff\xff\xff\xffWAVE" + b"\x00" * 64,
+        )
 
 
 def test_ffmpeg_missing_timeout_nonzero_and_argument_list(

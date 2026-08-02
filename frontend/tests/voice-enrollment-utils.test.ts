@@ -69,6 +69,9 @@ describe("Voice Enrollment utilities", () => {
     const error = new ApiError(503, "VOICE_NORMALIZER_UNAVAILABLE", "internal");
     expect(voiceEnrollmentErrorMessage(error)).toContain("WAV 파일");
     expect(voiceEnrollmentErrorMessage(error)).not.toContain("internal");
+    const unsupported = new ApiError(422, "VOICE_SAMPLE_UNSUPPORTED_CODEC", "internal");
+    expect(voiceEnrollmentErrorMessage(unsupported)).toContain("PCM 16-bit WAV");
+    expect(voiceEnrollmentErrorMessage(unsupported)).not.toContain("internal");
   });
 
   it("만료와 not found에서만 session 복원 값을 제거하도록 분류한다", () => {

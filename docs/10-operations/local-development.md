@@ -23,7 +23,7 @@ Lyrics 기본값 `DOHAMUSIC_LYRICS_PROVIDER=template`은 외부 API·Key·모델
 
 ## Guided Voice Enrollment와 FFmpeg
 
-PCM16 WAV 입력은 Python `wave`와 SciPy로 48kHz mono PCM16 WAV에 정규화하므로 FFmpeg 없이 동작한다. WebM/Ogg Opus 입력만 system FFmpeg가 필요하다. `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE`에 executable 이름 또는 절대 경로를 지정하며 미설치 상태에서도 Backend는 정상 시작하고 해당 요청만 `VOICE_NORMALIZER_UNAVAILABLE`로 실패한다. subprocess는 shell 없이 argument 배열·30초 기본 timeout·stdout/stderr 폐기·부분 output cleanup을 사용한다.
+little-endian 무압축 PCM16 WAV 입력은 Python `wave`와 SciPy로 48kHz mono PCM16 WAV에 정규화하므로 FFmpeg 없이 동작한다. PCM24·float32·ADPCM·WAVE_FORMAT_EXTENSIBLE WAV는 자동 변환하지 않고 `422 VOICE_SAMPLE_UNSUPPORTED_CODEC`으로 PCM 16-bit 변환을 안내하며, RF64와 손상 header는 container/decode 오류로 거절한다. 60초를 넘겨 정규화 출력 상한을 초과한 입력은 서버 장애가 아닌 `422 VOICE_SAMPLE_DURATION_TOO_LONG`으로 분류한다. WebM/Ogg Opus 입력만 system FFmpeg가 필요하다. `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE`에 executable 이름 또는 절대 경로를 지정하며 미설치 상태에서도 Backend는 정상 시작하고 해당 요청만 `VOICE_NORMALIZER_UNAVAILABLE`로 실패한다. subprocess는 shell 없이 argument 배열·30초 기본 timeout·stdout/stderr 폐기·부분 output cleanup을 사용한다.
 
 Windows 10/11 개발 환경은 OS 기본 패키지 도구로 설치·업데이트 이력을 확인할 수 있는 Winget의 `Gyan.FFmpeg`를 권장한다. Chocolatey·Scoop도 가능하지만 별도 패키지 관리자 설치가 필요하고, 수동 압축 해제는 버전·PATH 갱신을 운영자가 직접 추적해야 하므로 fallback으로만 사용한다.
 

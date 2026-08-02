@@ -79,6 +79,12 @@ Web Audio API·AudioWorklet·client PCM encoder는 현재 API를 재사용할 �
 
 브라우저별 Blob 차이를 Backend가 흡수하고 최종 WAV와 metadata를 일관되게 만들 수 있다. 반면 FFmpeg 배포, codec 빌드 범위, Windows process 종료, 악성 container와 resource exhaustion 회귀 검증이 추가된다. 기존 단일 WAV upload는 호환 경로로 유지하며 새 Enrollment API만 이 정규화 계약을 사용한다.
 
+## 구현 메모 (2026-08-02)
+
+- WAV 지원 범위는 RIFF/WAVE little-endian 무압축 PCM16으로 고정한다. PCM24·float32·ADPCM·WAVE_FORMAT_EXTENSIBLE은 억지로 변환하지 않고 `422 VOICE_SAMPLE_UNSUPPORTED_CODEC`으로 안내한다.
+- RF64는 현재 RIFF/WAVE signature allowlist 밖이므로 `415 VOICE_SAMPLE_UNSUPPORTED_MEDIA_TYPE`으로 거절하고, 손상된 RIFF/WAVE는 `422 VOICE_SAMPLE_DECODE_FAILED`로 구분한다.
+- 60초 출력 상한 초과는 normalization 서버 장애가 아니라 `422 VOICE_SAMPLE_DURATION_TOO_LONG`이다. 실패 시 original·`.normalizing`·최종 output을 제거하고 idempotency claim을 해제해 동일 key와 새 key 재시도를 모두 허용한다.
+
 ## Rollback·Migration
 
 신규 WebM/Ogg allowlist와 정규화 worker를 비활성화하고 F6를 기존 PCM16 WAV upload fallback으로 되돌린다. 기존 `voice_profiles`와 `voices/references/{profile_id}/reference.wav`는 변경하지 않는다. 임시 Enrollment 파일은 ADR-026 cleanup으로 제거한다.

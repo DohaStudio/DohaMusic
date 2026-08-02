@@ -171,6 +171,7 @@ const ENROLLMENT_ERROR_MESSAGES: Record<string, string> = {
   VOICE_SAMPLE_DURATION_TOO_SHORT: "음성은 5초 이상이어야 합니다.",
   VOICE_SAMPLE_DURATION_TOO_LONG: "음성은 60초 이하여야 합니다.",
   VOICE_SAMPLE_DECODE_FAILED: "음성 파일을 읽지 못했습니다. 다시 녹음하거나 다른 파일을 선택해 주세요.",
+  VOICE_SAMPLE_UNSUPPORTED_CODEC: "이 WAV 파일의 오디오 형식은 지원하지 않습니다. PCM 16-bit WAV로 변환해 주세요.",
   VOICE_SAMPLE_NORMALIZATION_FAILED: "음성 형식을 준비하지 못했습니다. 같은 파일로 다시 시도해 주세요.",
   VOICE_SAMPLE_VALIDATION_FAILED: "이 음성 샘플은 등록 조건을 충족하지 않습니다.",
   VOICE_SAMPLE_IN_USE: "등록 처리 중이거나 사용 중인 샘플은 삭제할 수 없습니다.",
