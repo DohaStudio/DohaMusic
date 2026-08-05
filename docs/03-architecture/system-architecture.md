@@ -3,7 +3,7 @@
 > 문서 목적: 구현된 구성요소와 향후 확장 경계를 정의한다.
 > 현재 상태: **Backend Foundation + 선택적 ACE-Step·Demucs·Seed-VC Adapter 구현 / DohaLM·DohaAudio·DohaVocal 외부 Provider 전환 [계획]**
 > 최종 수정일: 2026-08-05
-> 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Lyrics AI](lyrics-ai.md), [Pipeline Orchestrator](pipeline-orchestrator.md)
+> 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Lyrics AI](lyrics-ai.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [Workspace Artifact 모델](workspace-artifact-model.md)
 
 ```mermaid
 flowchart TB
@@ -60,4 +60,10 @@ DohaLM은 LLM 모델·Adapter 로딩, 가사 생성·분석·수정안 생성, s
 
 DohaMusic은 사용자 UI, 가사 편집기·버전 관리, 사용자 수정·승인, 음악 비즈니스 로직, 음악 생성 작업, 음성 동의, 오디오 처리, 결과 저장과 상업 이용 검토 상태를 담당한다. 새 기능은 DohaLM을 직접 호출하지 않고 FastAPI의 Provider Adapter와 Workspace·Job Orchestrator 경계를 통과한다. DohaLM 장애·timeout·상업 승인 실패 시 직접 작성 가사 경로를 유지하며, 승인되지 않은 AI 초안은 음악 생성 작업 큐로 전달하지 않는다.
 
-관련 결정은 [ADR-002](../11-decisions/ADR-002-modular-ai-pipeline.md), [ADR-003](../11-decisions/ADR-003-async-job-processing.md), [ADR-005](../11-decisions/ADR-005-ai-worker-dependency-isolation.md), [ADR-006](../11-decisions/ADR-006-ace-step-primary-provider.md), [ADR-007](../11-decisions/ADR-007-ace-step-runtime-lifecycle.md), [ADR-008](../11-decisions/ADR-008-stem-separation-provider.md), [ADR-027](../11-decisions/ADR-027-dohalm-lyrics-provider-boundary.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md)을 따른다.
+## Provider Artifact와 Workspace 결과 경계 — [계획]
+
+DohaLM·DohaAudio·DohaVocal의 모델·학습·평가·Runtime 결과는 각각 `DohaArtifacts/lm`, `DohaArtifacts/audio`, `DohaArtifacts/vocal`에 속한다. DohaMusic은 사용자가 선택한 AssetVersion 조합의 Composition Snapshot, Mix, Preview와 Export를 `DohaArtifacts/music`에 관리한다.
+
+Mix와 최종 Export는 DohaMusic 책임이다. Provider는 서로 직접 호출하거나 Workspace `music` 영역에 직접 쓰지 않으며 DohaMusic Orchestrator가 Provider 결과와 프로젝트 Asset의 연결을 관리한다. 현재 로컬 Pipeline Storage와 API는 유지되고 이 외부 Artifact 구조는 아직 구현되지 않았다.
+
+관련 결정은 [ADR-002](../11-decisions/ADR-002-modular-ai-pipeline.md), [ADR-003](../11-decisions/ADR-003-async-job-processing.md), [ADR-005](../11-decisions/ADR-005-ai-worker-dependency-isolation.md), [ADR-006](../11-decisions/ADR-006-ace-step-primary-provider.md), [ADR-007](../11-decisions/ADR-007-ace-step-runtime-lifecycle.md), [ADR-008](../11-decisions/ADR-008-stem-separation-provider.md), [ADR-027](../11-decisions/ADR-027-dohalm-lyrics-provider-boundary.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md)을 따른다.

@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — DohaMusic Workspace `music` Artifact 도메인
+
+- Composition Snapshot의 권위 있는 관계 데이터는 DB가 소유하고 `snapshots` 폴더는 재현·직렬화·백업용 Artifact라는 경계를 명확히 했다.
+- Provider Runtime의 `lm`·`audio`·`vocal` Artifact와 DohaMusic Workspace의 Mix·Export·Preview·Composition Snapshot·실행 기록을 분리했다.
+- `D:/DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` 목표 구조와 Mix·Export의 DohaMusic 책임을 문서화했다.
+- Snapshot이 최신 Asset이 아니라 특정 AssetVersion을 참조하도록 계획하고 현재 폴더·환경 변수·코드·DB는 변경하지 않음을 명시했다.
+
 ### 문서 — AI Provider 저장소 책임과 단계적 Runtime 분리
 
 - DohaMusic을 제품 서비스와 Workspace·Job Orchestrator·결과 관리·Mixer·최종 Export 책임으로 유지하고 DohaLM, DohaAudio, DohaVocal의 Dataset·학습·평가·Runtime 책임 경계를 정의했다. DohaAudio·DohaVocal 저장소는 존재하며 Runtime 기능은 `[계획]`으로 구분했다.

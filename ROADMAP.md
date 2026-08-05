@@ -55,6 +55,7 @@
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
+| Workspace Artifact Domain | [계획] | `DohaArtifacts/music` 책임 문서화, 폴더·DB·Runtime 미구현 | [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | Phase A 문서화 진행, Phase B~D 미착수 | [Provider Separation DoD](docs/DoD/Provider-Separation.md) |
 
@@ -71,7 +72,8 @@
 9. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5와 F6 Frontend Wizard·MediaRecorder·품질·대표 선택·복원, Windows/CI FFmpeg와 cleanup scheduler/crash recovery를 완료했다. F6 전체는 인증·실기기 평가가 남아 `[진행 중]`이며 기존 Phase 8 완료 상태와 분리한다.
 10. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 11. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
-12. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
+12. Workspace Artifact 구현 전 `AssetVersion` 기반 Composition Snapshot, Artifact ID/URI, 기존 Pipeline 결과 backfill·rollback과 `DohaArtifacts/music` resolver 계약을 별도 작업으로 확정한다.
+13. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
 
 ## F6 Guided Voice Enrollment 실행 순서 [진행 중]
 

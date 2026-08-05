@@ -6,6 +6,8 @@
 
 > DohaLM Lyrics 연동: 별도 저장소의 LLM 모델·추론 Provider인 [DohaLM](https://github.com/DohaStudio/DohaLM/tree/develop)을 REST/Streaming API 또는 향후 Python SDK로 호출하는 Reference Application 구조는 `[계획]`입니다. DohaLM의 현재 REST/SSE MVP는 일반 Chat 계약이며 Python SDK와 DohaMusic 전용 Lyrics API는 아직 확정되지 않았습니다. `AIHUB-71748` 계열은 비상업 연구 범위이므로 상업용 DohaMusic 작업에서 사용할 수 없습니다.
 
+> Workspace Artifact 도메인: Provider Runtime 결과의 `DohaArtifacts/lm|audio|vocal`과 별도로 Mix·Export·Preview·Composition Snapshot·실행 기록을 위한 `DohaArtifacts/music` 구조는 `[계획]`입니다. 로컬 폴더·환경 변수·DB·Runtime은 아직 변경하지 않았습니다.
+
 > AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지하고, 실제 저장소로 존재하는 DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider 기능으로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
@@ -69,6 +71,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | K3.2 final WAV detected BPM·confidence·요청 BPM 오차·half/double-time 후보와 Result·History·Project UI |
 | [완료] | K3.3 final WAV 에너지·반복 기반 15초 후렴 후보·confidence·중앙 fallback과 Result·History·Project UI |
 | [계획] | K3.4 Preview Export 실제 구현 |
+| [계획] | AssetVersion 기반 Composition Snapshot과 `DohaArtifacts/music`의 Mix·Export·Preview 저장 영역 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 
@@ -106,6 +109,7 @@ flowchart LR
 - Database: SQLite **[완료]**, PostgreSQL/MySQL 교체 **[계획]**
 - Task Queue: 프로세스 내부 단일 ThreadPool **[완료]**, 외부 Queue **[계획]**
 - Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
+- Workspace Artifact: `DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` **[계획]**, 설계는 [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md)
 - Audio DSP: NumPy·SciPy 기반 Default Mixer와 pyloudnorm Integrated LUFS 후처리 **[완료]**, True Peak **[미지원]**
 - Lyrics: Template **[Stable 기본값]**, Mock **[Test]**, OpenAI **[Experimental]**, DohaLM **[Planned]**, `local_llm` **[Planned]**
 - External AI Provider: DohaAudio·DohaVocal Runtime API **[계획]**, 현재 ACE-Step·Demucs·Seed-VC subprocess 호환 계층 유지
