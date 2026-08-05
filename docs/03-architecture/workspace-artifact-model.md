@@ -69,7 +69,7 @@ model_versions
 created_at
 ```
 
-Snapshot 자체는 Mix Asset이 아니다. 특정 조합과 설정을 재현하기 위한 불변 입력 계약이며, 변경할 때는 기존 Snapshot을 수정하지 않고 새 Snapshot을 만든다.
+Snapshot 자체는 Mix Asset이 아니다. 특정 조합과 설정을 재현하기 위한 불변 입력 계약이며, 변경할 때는 기존 Snapshot을 수정하지 않고 새 Snapshot을 만든다. 권위 있는 Snapshot 관계 데이터와 현재 선택 상태의 원장은 DB다. `DohaArtifacts/music/snapshots`에는 재현·교환·백업을 위한 직렬화 Artifact만 저장하며 이 파일을 DB 관계의 독립 원장으로 사용하지 않는다.
 
 ## Mix Asset
 

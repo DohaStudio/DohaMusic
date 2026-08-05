@@ -58,7 +58,7 @@ D:/DohaArtifacts/
 - `mixes/`: Composition Snapshot을 입력으로 DohaMusic Mixer가 만든 Mix Asset의 파일 Artifact
 - `exports/`: 선택된 Mix AssetVersion에서 만든 WAV·MP3·FLAC 등 최종 Export Artifact
 - `previews/`: 낮은 용량의 빠른 재생 파일, waveform cache와 기타 재생 파생물
-- `snapshots/`: 특정 AssetVersion 조합, processing chain과 mix settings의 불변 Snapshot 표현
+- `snapshots/`: DB가 소유하는 특정 AssetVersion 조합, processing chain과 mix settings를 재현·교환·백업하기 위한 불변 직렬화 Artifact. 권위 있는 관계 데이터는 DB에 유지
 - `runs/`: Mix Job·Export Job 실행 로그, 설정 snapshot과 안전한 진단 metadata
 
 내부 DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact는 opaque ID 또는 향후 versioned URI로 식별하고 실제 root 해석은 Storage 계층에 둔다. 구체적인 URI와 migration은 아직 `[계획]`이다.

@@ -28,6 +28,7 @@ DohaLM, DohaAudio와 DohaVocal의 모델·학습·평가·Runtime 산출물은 P
 6. Mix Job은 Snapshot을 입력으로 Mix Asset을 만들고 Export Job은 Mix AssetVersion을 입력으로 Export Asset을 만든다.
 7. DB·Manifest·공개 API에는 로컬 절대 경로를 저장하지 않고 opaque Artifact ID 또는 향후 versioned URI를 사용한다.
 8. 이번 결정은 문서 계약이며 폴더 생성, 파일 이동, 환경 변수, 코드와 DB migration을 수행하지 않는다.
+9. Composition Snapshot의 권위 있는 관계 데이터는 DB가 소유한다. `snapshots` 폴더는 재현·직렬화·백업용 Artifact만 저장하며 별도 관계 원장이 아니다.
 
 ## 선택 이유
 
