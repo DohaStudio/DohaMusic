@@ -5,6 +5,16 @@
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
+## Workspace v1 목표 계약 — [계획]
+
+DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 아직 FastAPI Endpoint, OpenAPI Schema, DB와 테스트로 구현되지 않았다. 아래 현행 API와 상태는 그대로 유지한다.
+
+- [Workspace REST API 공통 계약](workspace-rest-api-contract.md)
+- [목표 Endpoint 목록](workspace-rest-api-endpoints.md)
+- [Provider API 계약](provider-api-contract.md)
+- [API 전환 전략](api-contract-migration-strategy.md)
+- [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
+
 | 메서드 | 경로 | 성공 응답 | 설명 |
 |---|---|---:|---|
 | `GET` | `/health` | 200 | 애플리케이션 상태 확인 |
