@@ -1,9 +1,9 @@
 # Lyrics AI 아키텍처
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-05
 > 관련 기능: Phase 6 Lyrics AI
-> 관련 문서: [Lyrics API](../06-api/lyrics-api.md), [ADR-014](../11-decisions/ADR-014-lyrics-generator-architecture.md), [ADR-016](../11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [Local Lyrics LLM Roadmap](../../planning/local-lyrics-llm-roadmap.md)
+> 관련 문서: [Lyrics API](../06-api/lyrics-api.md), [DohaLM 연동](dohalm-integration.md), [ADR-014](../11-decisions/ADR-014-lyrics-generator-architecture.md), [ADR-027](../11-decisions/ADR-027-dohalm-lyrics-provider-boundary.md), [Local Lyrics LLM Roadmap](../../planning/local-lyrics-llm-roadmap.md)
 
 ## 구조
 
@@ -14,6 +14,8 @@ Lyrics API
       ├─ TemplateLyricsGenerator (기본)
       ├─ MockLyricsGenerator
       ├─ OpenAILyricsGenerator [Experimental]
+      ├─ DohaLMLyricsAdapter [Planned]
+      │      → DohaLM REST·Streaming API
       └─ LocalLyricsLLMAdapter [Planned]
              → Local Inference Runtime
              → Fine-tuned Lyrics LLM
@@ -55,6 +57,8 @@ Phase 6 API는 Pipeline을 호출하지 않으며 Pipeline도 LyricsService를 �
 
 의미 기반 수정은 `RevisionCapableLyricsGenerator`의 선택 기능이다. 원본을 보존하고 parent/version과 전후 hash를 가진 새 문서를 만든다. 외부 Prompt에는 허용된 가사 필드만 넣고 내부 ID·파일·음성 데이터를 제외한다. 실패 fallback은 요청별 명시 허용 때만 Template로 전환한다.
 
+DohaLM은 별도 저장소의 LLM 모델·추론 Provider이며 DohaMusic은 Reference Application이다. 계획된 `DohaLMLyricsAdapter`는 DohaLM REST/Streaming 또는 향후 SDK 응답을 공통 `LyricsGenerationResult`와 분석 결과로 변환한다. 현재 DohaLM은 일반 Chat REST/SSE MVP만 구현됐고 Python SDK·전용 Lyrics API·정식 versioned manifest는 미완료이므로, 기본 Provider·API·Pipeline은 변경하지 않는다. 세부 경계는 [DohaLM 연동](dohalm-integration.md)을 따른다.
+
 ## Phase 6.6~6.9 Local Lyrics LLM 목표 구조
 
 ```text
@@ -94,6 +98,7 @@ DohaMusic은 LLM 구조를 처음부터 설계하거나 사전학습하지 않�
 | `template` | Stable 기본값 | 결정적 로컬 가사 초안 |
 | `mock` | Test | API·계약·오류 테스트 |
 | `openai` | Experimental | 외부 Provider 구조화 출력·수정·비용·지연 비교 |
+| `dohalm` | Planned | 별도 DohaLM Runtime의 생성·분석·수정 제안 연동 |
 | `local_llm` | Planned | 파인튜닝 자체 모델의 향후 연결 |
 
 | Local Lyrics LLM 항목 | 현재 상태 |

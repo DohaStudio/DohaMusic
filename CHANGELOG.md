@@ -2,11 +2,17 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-02
+> 최종 수정일: 2026-08-05
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 — DohaLM 가사 생성·분석 연동 계획
+
+- DohaLM과 DohaMusic의 Provider·Reference Application 경계, REST/Streaming 우선 연동과 미완료 Python SDK·전용 Lyrics API의 검증 게이트를 문서화했다.
+- AI 초안·수정 제안·사용자 편집·최종 승인 버전과 모델 사용·라이선스 계보를 분리하고 승인본만 음악 Pipeline에 전달하도록 계획했다.
+- `AIHUB-71748` 계열을 `research_only`로 분류하고 상업 작업에는 `commercial_approved` 모델만 허용하는 fail-closed 정책을 추가했다.
 
 ### 수정 — Voice Enrollment WAV 정규화 오류 분류
 

@@ -2,7 +2,7 @@
 
 > 상태: [완료]
 > 진행률: 14/14, 100%
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-08-05
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-6-lyrics-ai--완료), [Generated Content Policy](../09-security/generated-content-policy.md)
 
 ## 목표
@@ -54,10 +54,14 @@ Lyrics Adapter·API·`lyrics_documents`·Benchmark·안전 평가·ADR-014·EXP-
 ## 예상 다음 단계
 
 Phase 7 Doha Voice와 Phase 8 Studio 우선순위를 재검토한다.
-# Phase 6.5 확장 상태 (2026-07-29)
+# Phase 6.5 확장 상태 (2026-08-05)
 
 - Phase 6 로컬 Lyrics AI의 완료 상태는 유지한다.
 - OpenAI 외부 Adapter·Factory·strict Schema·오류·retry·명시적 fallback·비용 metadata: `[Experimental 구현 완료]`
+- DohaLM REST/Streaming Provider·가사 생성·분석·수정 제안·사용자 승인 연동: `[계획] 0%`
+- DohaLM 일반 Chat REST/SSE MVP는 확인했지만 Python SDK·전용 Lyrics API·versioned manifest·DohaMusic Adapter·가사 승인 DB·Pipeline 연결은 미구현이다.
+- `AIHUB-71748` 계열은 `research_only`이며 상업 작업에서 사용할 수 없다. 상업용 release는 전체 모델·데이터 계보가 `commercial_approved`일 때만 후보가 된다.
+- 이 계획 문서화는 기존 Phase 6의 `14/14, 100%` 완료 판정과 OpenAI Experimental 구현 상태를 변경하지 않는다.
 
 # Phase 6.6~6.9 Local Lyrics LLM 확장 상태 (2026-07-31)
 

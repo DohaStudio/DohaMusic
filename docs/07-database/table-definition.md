@@ -2,6 +2,7 @@
 
 > 문서 목적: 현재 실제 테이블의 책임과 필드를 정의한다.
 > 현재 상태: **구현 완료**
+> 최종 수정일: 2026-08-05
 
 모든 ID는 애플리케이션에서 생성하는 UUID 문자열이다. 시각은 UTC 기준으로 기록한다.
 
@@ -30,6 +31,8 @@
 | `created_at`, `updated_at` | datetime | 아니요 | UTC 시각 |
 
 Alembic 0006이 수정 이력 필드를 추가한다. 원본은 덮어쓰지 않으며 자식이 있는 원본 삭제를 거부한다. 외부 호출은 전체 5초 deadline으로 제한한다. 더 긴 외부 LLM 비동기 처리 도입 시 generation job과 상태 모델을 별도로 추가한다.
+
+DohaLM 연동에 필요한 명시적 Project·Version·Generation·Analysis·Approval·ModelUsage·LicenseReview는 현재 테이블이 아니다. 계획 schema와 `version_type`은 [가사 버전·승인 데이터 모델](lyrics-versioning-data-model.md)에 분리하며 migration 승인 전까지 구현 완료 표에 섞지 않는다.
 
 ## `projects`와 History
 
