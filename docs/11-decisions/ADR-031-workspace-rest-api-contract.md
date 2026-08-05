@@ -5,7 +5,7 @@
 > 최종 수정일: 2026-08-05
 > 관련 기능: DohaMusic Workspace REST API 재설계
 > 관련 문서: [공통 계약](../06-api/workspace-rest-api-contract.md), [Endpoint 목록](../06-api/workspace-rest-api-endpoints.md), [Provider API](../06-api/provider-api-contract.md), [API 전환 전략](../06-api/api-contract-migration-strategy.md)
-> 관련 PR: [추후 연결]
+> 관련 PR: [PR #53](https://github.com/DohaStudio/DohaMusic/pull/53)
 
 ## 배경
 
