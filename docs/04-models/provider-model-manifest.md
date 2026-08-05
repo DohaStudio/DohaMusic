@@ -1,9 +1,9 @@
 # Provider Model Manifest 최소 계약
 
 > 문서 상태: [승인]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 > 관련 기능: 외부 AI Provider 식별·호환성·권리·계보
-> 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md)
+> 관련 문서: [DohaStudio Model Manifest 공통 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/06-model-manifest-specification.md), [책임 경계](../03-architecture/repository-provider-boundaries.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md)
 
 ## 목적
 
@@ -17,17 +17,20 @@ DohaMusic이 Provider 내부 모델 구조나 로컬 경로를 알지 않고도 
 | `model_id` | Provider 내부에서 안정적인 모델 식별자 |
 | `model_version` | 모델 release 버전 |
 | `checkpoint_version` | Checkpoint 또는 Adapter version·식별자 |
+| `model_type` | 생성·분석·변환 등 모델 유형 |
 | `capabilities` | 지원 기능 목록 |
 | `input_formats` | 지원 입력 MIME·schema·audio 규격 |
 | `output_formats` | 지원 출력 MIME·schema·audio 규격 |
 | `api_contract_version` | Provider API 계약 버전 |
-| `dataset_or_training_run_id` | Dataset version 또는 Training Run 계보 |
+| `dataset_manifest_id` | 학습 Dataset Manifest 식별자 |
+| `training_run_id` | Training 또는 Fine-tuning Run 식별자 |
 | `evaluation_result_id` | 승인 근거가 되는 평가 결과 식별자 |
 | `license_status` | 코드·가중치·데이터 라이선스 검토 상태 |
 | `commercial_usage_status` | 상업 이용 가능 상태 |
 | `recommended_vram` | 검증된 권장 VRAM과 단위 |
 | `runtime_environment` | Python·CUDA·핵심 runtime version 정보 |
 | `artifact_checksum` | 모델 Artifact 무결성 checksum과 algorithm |
+| `created_at` | Manifest 생성 시각 |
 
 ## 규칙
 
@@ -48,17 +51,20 @@ DohaMusic이 Provider 내부 모델 구조나 로컬 경로를 알지 않고도 
   "model_id": "planned-music-generator",
   "model_version": "0.0.0-planned",
   "checkpoint_version": "not_available",
+  "model_type": "music_generation",
   "capabilities": [],
   "input_formats": [],
   "output_formats": [],
   "api_contract_version": "draft-v1",
-  "dataset_or_training_run_id": "not_available",
+  "dataset_manifest_id": "not_available",
+  "training_run_id": "not_available",
   "evaluation_result_id": "not_available",
   "license_status": "verification_required",
   "commercial_usage_status": "verification_required",
   "recommended_vram": "verification_required",
   "runtime_environment": "verification_required",
-  "artifact_checksum": "not_available"
+  "artifact_checksum": "not_available",
+  "created_at": "2026-08-06T00:00:00Z"
 }
 ```
 

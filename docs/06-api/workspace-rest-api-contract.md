@@ -1,7 +1,7 @@
 # Workspace REST API 공통 계약
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace REST API 재설계
 > 구현 상태: API 계약 문서만 작성, FastAPI·Endpoint·OpenAPI YAML·SQL·ORM·테스트 미구현
 > 관련 문서: [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
@@ -28,7 +28,7 @@ Workspace
 
 ### 2.1 DohaStudio Common Specification
 
-기준은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/develop/docs/specifications)의 `develop` 반영 commit `a32a4d88d9378e59877a1ec64c1ecc1bf0574434`입니다.
+기준은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`이며, 감사·재현 기준은 commit `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
 - Asset, AssetVersion, Artifact와 AssetRelation
 - Provider Contract와 Job Contract
@@ -292,8 +292,6 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 
 ## 13. 미확정 사항
 
-- Common Specification과 DB Redesign의 정식 contract version
-- `Asset.workspace_id`와 N:M `ProjectAsset` 계약의 정식 contract version
 - API ID의 UUID version과 전역 고유성 범위
 - cursor 서명·만료·암호화 방식
 - Idempotency-Key 보존 기간과 분산 환경 저장소

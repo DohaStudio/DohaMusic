@@ -1,7 +1,7 @@
 # Asset 중심 목표 Table Definition
 
 > 문서 상태: [제안]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
 > 구현 상태: 논리 Table Definition만 작성, SQL·ORM·Migration 미구현
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
@@ -59,7 +59,7 @@ ProjectAsset는 MusicProject와 Asset의 N:M 연결을 소유합니다.
 | `project_id` | UUID | 아니요 | FK, Index | `music_projects.project_id` |
 | `asset_id` | UUID | 아니요 | FK, Index | `assets.asset_id` |
 | `role` | string | 예 | Index | Project 안 표시·구성 역할 |
-| `sort_order` | integer | 아니요 |  | UI 정렬 순서 |
+| `display_order` | integer | 아니요 |  | Project 안 표시 순서 |
 | `created_at` | timestamp | 아니요 |  | 연결 생성 시각 |
 | `deleted_at` | timestamp | 예 | Index | 연결 해제 시각 |
 
@@ -74,6 +74,7 @@ Asset은 실제 파일이 아닌 논리 작품 객체입니다.
 | Field | Type | Null | Key | 설명 |
 |---|---|---:|---|---|
 | `asset_id` | UUID | 아니요 | PK | Asset 식별자 |
+| `workspace_id` | UUID | 예 | FK, Index | 자산을 소유하는 Workspace 식별자. 저장소별 단일 Workspace 계약에서는 생략 가능 |
 | `owner_id` | UUID | 아니요 | Index | 사용자 또는 Workspace Owner 식별자 |
 | `asset_type` | string | 아니요 | Index | `lyrics`, `music`, `vocal`, `stem`, `recording`, `mix`, `export` |
 | `selected_asset_version_id` | UUID | 예 | FK, Unique | 현재 Selection인 `asset_versions.asset_version_id` |

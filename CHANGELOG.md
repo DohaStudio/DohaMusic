@@ -2,11 +2,20 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 — 최종 아키텍처 기준선 검토
+
+- DohaStudio Common Specification `0.1.0` / `draft-baseline`의 `main` 링크와 감사 기준 commit을 Workspace DB·REST API·Provider 경계 문서에 고정했다.
+- 목표 `assets` Table에 선택적 `workspace_id`를 명시하고 `ProjectAsset.display_order` 용어를 정렬해 `Asset.project_id` 부재와 N:M 계약을 Table Definition·ERD·REST API까지 일치시켰다.
+- 로컬 저장 정책을 `DohaData/{lm,audio,vocal}`과 Provider·Workspace 책임이 분리된 `DohaArtifacts/{lm,audio,vocal,music}` 구조로 정렬했다.
+- Provider Model Manifest 최소 계약에 `model_type`, `dataset_manifest_id`, `training_run_id`, `created_at`을 반영해 공통 명세와 필드명을 일치시켰다.
+- 저장소 소유자와 Apache-2.0 적용 제외 범위를 현재 DohaStudio 조직·권리 정책에 맞게 명확히 했다.
+- 코드·Runtime·DB Migration·Dataset·모델·Artifact와 실제 로컬 폴더는 변경하지 않았다.
 
 ### 문서 — Workspace REST API 재설계
 

@@ -1,8 +1,8 @@
 # 로컬 Dataset·Artifact 공통 관리 정책
 
 > 문서 상태: [승인]
-> 최종 수정일: 2026-08-05
-> 관련 기능: DohaLM·DohaAudio·DohaVocal 로컬 데이터와 모델 산출물 관리
+> 최종 수정일: 2026-08-06
+> 관련 기능: DohaLM·DohaAudio·DohaVocal 로컬 데이터·모델 산출물과 DohaMusic Workspace 결과 관리
 > 관련 문서: [Dataset 구조](dataset-structure.md), [Audio Data Policy](audio-data-policy.md), [Provider Model Manifest](../04-models/provider-model-manifest.md), [책임 경계](../03-architecture/repository-provider-boundaries.md)
 
 ## 원칙
@@ -14,23 +14,26 @@ Dataset과 Artifact는 Git 밖에서 관리한다. 저장소에는 재현과 검
 ```text
 D:/DohaData/
 ├── lm/
-├── music/
+├── audio/
 └── vocal/
 
 D:/DohaArtifacts/
 ├── lm/
-├── music/
-└── vocal/
+├── audio/
+├── vocal/
+└── music/
 ```
 
 위 경로는 Windows 개발 환경 예시이며 표준 경로가 아니다. 실제 경로는 환경 변수로 주입한다.
+
+`lm`, `audio`, `vocal` Artifact 영역은 각 Provider의 Runtime·Training·Evaluation 결과를 저장합니다. `music`은 Provider 영역이 아니라 DohaMusic Workspace의 Mix·Export·Preview·Composition Snapshot·실행 기록을 저장하며, Provider가 직접 기록하지 않습니다.
 
 ```env
 DOHA_DATA_ROOT=D:/DohaData
 DOHA_ARTIFACT_ROOT=D:/DohaArtifacts
 
 DOHALM_DATA_ROOT=D:/DohaData/lm
-DOHAAUDIO_DATA_ROOT=D:/DohaData/music
+DOHAAUDIO_DATA_ROOT=D:/DohaData/audio
 DOHAVOCAL_DATA_ROOT=D:/DohaData/vocal
 ```
 

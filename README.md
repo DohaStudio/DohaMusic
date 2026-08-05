@@ -10,6 +10,8 @@
 
 > AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지하고, 실제 저장소로 존재하는 DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider 기능으로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
 
+> 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
+
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
 > F6 Guided Voice Enrollment는 `[진행 중]`입니다. 구현과 Windows FFmpeg 8.1.2·Ubuntu/Windows CI에 더해 실제 Chrome·Edge 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 자동 Validation을 수행했습니다. 실제 사용자 마이크·실제 Android/iOS/Safari와 인증·소유권은 남아 있습니다. 결과는 [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md)와 [운영·수동 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)를 따르며 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
@@ -20,7 +22,7 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료**
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.
@@ -194,7 +196,8 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 ## 라이선스 검토 상태
 
 - 저장소 코드와 문서: [Apache License 2.0](LICENSE)
-- AI 모델·가중치·데이터셋·의존성: **[검증 필요]**
+- Dataset·외부 모델·모델 가중치·Checkpoint·Adapter·생성 결과·개인 음성·동의 증적·제3자 콘텐츠: 저장소의 Apache-2.0 적용 대상이 아니며 권리를 별도로 검토한다.
+- AI 모델·가중치·데이터셋·의존성의 개별 라이선스: **[검증 필요]**
 - 상업적 이용 가능 여부: 모델별로 별도 판정하며 추정하지 않는다.
 
 Seed-VC 기술 실측은 [EXP-004](reports/experiments/EXP-004-seed-vc.md), 사용자 음색 평가는 [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md)에 분리한다. Phase 4.5 결정은 [QG-001](reports/quality-gates/QG-001-voice-conversion-operational-readiness.md), Provider 수명주기는 [ADR-010](docs/11-decisions/ADR-010-voice-provider-selection-policy.md), Phase 4.6 비교·점수·선정은 [Provider 비교](docs/01-research/voice-provider-comparison.md), [Provider Score](docs/04-models/voice-provider-score.md), [ADR-011](docs/11-decisions/ADR-011-voice-provider-selection.md)을 따른다.
