@@ -51,7 +51,7 @@ flowchart LR
 - DohaMusic은 Provider 결과의 선택 관계, Snapshot, Mix, Preview와 Export를 `music`에 둔다.
 - Provider는 서로 직접 호출하지 않고 DohaMusic Orchestrator를 통한다.
 
-## Composition Snapshot
+## Composition Snapshot 계약
 
 Snapshot은 Asset의 최신값이 아니라 불변 `AssetVersion`을 참조한다. 이후 Asset에 새 버전이 추가돼도 기존 Mix와 Export가 같은 입력을 추적할 수 있어야 한다.
 
@@ -71,13 +71,13 @@ created_at
 
 Snapshot 자체는 Mix Asset이 아니다. 특정 조합과 설정을 재현하기 위한 불변 입력 계약이며, 변경할 때는 기존 Snapshot을 수정하지 않고 새 Snapshot을 만든다. 권위 있는 Snapshot 관계 데이터와 현재 선택 상태의 원장은 DB다. `DohaArtifacts/music/snapshots`에는 재현·교환·백업을 위한 직렬화 Artifact만 저장하며 이 파일을 DB 관계의 독립 원장으로 사용하지 않는다.
 
-## Mix Asset
+## Mix Asset 계약
 
 Mix는 DohaMusic 책임이다. 선택한 Vocal·Music·Stem AssetVersion, processing chain과 mix settings를 결합하고 결과를 새 Mix AssetVersion으로 등록한다.
 
 Mix 파일 Artifact의 목표 위치는 `D:/DohaArtifacts/music/mixes`다. Provider Runtime은 이 위치에 직접 결과를 기록하지 않는다.
 
-## Export Asset
+## Export Asset 계약
 
 Export는 선택한 Mix AssetVersion을 WAV·MP3·FLAC 같은 전달 형식으로 변환한다. 각 출력은 별도 Export AssetVersion과 Artifact로 추적하고 목표 위치는 `D:/DohaArtifacts/music/exports`다.
 

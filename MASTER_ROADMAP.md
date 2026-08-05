@@ -1,4 +1,4 @@
-# DohaMusic Master Roadmap
+# DohaMusic 마스터 로드맵
 
 ## Phase 6.5 External Lyrics LLM 상태
 
