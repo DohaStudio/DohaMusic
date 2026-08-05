@@ -30,11 +30,13 @@
 | [ADR-024](ADR-024-browser-voice-recording-server-normalization.md) | 브라우저 WAV·WebM/Ogg를 Backend에서 PCM16 WAV로 정규화하는 경계 | 제안 |
 | [ADR-025](ADR-025-voice-profile-multiple-samples-reference.md) | Voice Profile 1:N Sample과 명시적 대표 Reference | 승인 |
 | [ADR-026](ADR-026-voice-enrollment-lifecycle-cleanup.md) | Enrollment 임시 업로드·만료·idempotency·cleanup 수명주기 | 승인 |
+| [ADR-027](ADR-027-dohalm-lyrics-provider-boundary.md) | DohaLM Provider·가사 버전·사용자 승인·상업 이용 경계 | 제안 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 # Phase 6.5
 
 - [ADR-015 — External Lyrics LLM Provider](ADR-015-external-lyrics-llm-provider.md): OpenAI Responses API Adapter를 Experimental로 추가하고 Template 기본값, strict Schema, retry·fallback·비용·데이터 경계를 결정한다.
+- [ADR-027 — DohaLM 가사 Provider와 사용자 승인 경계](ADR-027-dohalm-lyrics-provider-boundary.md): 별도 DohaLM Runtime 연동, 사용자 최종 승인, 직접 작성 fallback과 상업 이용 fail-closed 정책을 제안한다.
 
 # Phase 6.6~6.9
 

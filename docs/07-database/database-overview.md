@@ -2,6 +2,7 @@
 
 > 문서 목적: 현재 영속 계층과 교체 경계를 정의한다.
 > 현재 상태: **SQLite/SQLAlchemy/Alembic 구현 완료**
+> 최종 수정일: 2026-08-05
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
@@ -18,3 +19,5 @@ Pipeline 필드와 보존 규칙은 [Pipeline 테이블](pipeline-tables.md)을 
 # Phase 6.5 변경
 
 Alembic `20260729_0006`은 `lyrics_documents`에 self-reference parent, version, revision instruction, 전후 SHA-256을 추가한다. Provider 응답은 검증 후 새 row로만 저장되며 기존 버전은 불변이다.
+
+DohaLM 공동 창작 연동에서 필요한 Project·Version·Generation·Analysis·Approval·ModelUsage·LicenseReview 분리는 아직 `[계획]`이며 현재 테이블 수나 migration head를 변경하지 않는다. 개념 관계와 현재 `lyrics_documents`의 전환 대안은 [가사 버전·승인 데이터 모델](lyrics-versioning-data-model.md)을 따른다.

@@ -1,10 +1,13 @@
 # Lyrics Provider 선정 및 수명주기 정책
 
+> 최종 수정일: 2026-08-05
+
 ## Provider Matrix
 
 ```text
 template (Stable 기본값)
   → openai (Experimental, 명시적 선택)
+  → dohalm (Planned, 별도 Runtime·상업 승인 필요)
   → template fallback (요청별 명시적 허용 시만)
   → mock (테스트 전용)
 ```
@@ -15,6 +18,8 @@ template (Stable 기본값)
 - `Rejected`: 기술·비용·권리·보안 기준을 충족하지 못해 선택 불가
 
 기본값은 `template`이며 OpenAI를 자동 선택하지 않는다. OpenAI 실패는 timeout, 일시적 network/5xx, rate limit에만 재시도한다. 인증·잘못된 요청·콘텐츠 차단·유효하지 않은 출력은 재시도하지 않는다. Template fallback은 `allow_template_fallback=true`일 때만 수행하고 실제 Provider와 사유를 metadata에 남긴다.
+
+DohaLM은 별도 저장소의 LLM 모델·추론 Provider이며 현재 DohaMusic Adapter는 `[계획]`이다. 일반 Chat REST/SSE MVP를 전용 Lyrics 운영 계약으로 간주하지 않고 Python SDK·manifest·가사 schema 확정 후 검증한다. 상업 작업은 정확한 모델·가중치·Adapter·데이터 계보가 `commercial_approved`일 때만 허용하며 `AIHUB-71748` 계열은 `research_only`로 차단한다. 장애 시 연구용 모델로 자동 전환하지 않고 직접 작성 가사 경로를 유지한다.
 
 실제 외부 호출은 사용자 별도 승인, API Key 제공, paid opt-in을 모두 충족해야 한다. 무료 크레딧·무료 한도만으로 호출하지 않으며 결제 수단 등록을 요청하지 않는다. 일반 테스트와 CI에서는 `external`, `integration`, `paid` 테스트를 실행하지 않는다.
 

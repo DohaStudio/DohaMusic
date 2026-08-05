@@ -1,7 +1,9 @@
 # 시스템 아키텍처
 
 > 문서 목적: 구현된 구성요소와 향후 확장 경계를 정의한다.
-> 현재 상태: **Backend Foundation + 선택적 ACE-Step·Demucs Adapter 구현**
+> 현재 상태: **Backend Foundation + 선택적 ACE-Step·Demucs Adapter 구현 / DohaLM 연동 [계획]**
+> 최종 수정일: 2026-08-05
+> 관련 문서: [DohaLM 연동](dohalm-integration.md), [Lyrics AI](lyrics-ai.md), [Pipeline Orchestrator](pipeline-orchestrator.md)
 
 ```mermaid
 flowchart TB
@@ -32,4 +34,22 @@ HTTP 요청은 Router → Service → Repository 계층을 따른다. 생성 요
 
 현재 영속 계층은 SQLite와 SQLAlchemy, 스키마 관리는 Alembic, 파일 저장소는 로컬 디렉터리다. ACE-Step과 Demucs는 선택적 실험 Provider이며 기본값이 아니다. Stem 분리는 별도 Job·API로 구현했고 음색 변환은 포함하지 않는다. 외부 Queue, 인증과 프론트엔드는 범위 밖이며 다중 프로세스 내구성은 후속 ADR에서 결정한다.
 
-관련 결정은 [ADR-002](../11-decisions/ADR-002-modular-ai-pipeline.md), [ADR-003](../11-decisions/ADR-003-async-job-processing.md), [ADR-005](../11-decisions/ADR-005-ai-worker-dependency-isolation.md), [ADR-006](../11-decisions/ADR-006-ace-step-primary-provider.md), [ADR-007](../11-decisions/ADR-007-ace-step-runtime-lifecycle.md), [ADR-008](../11-decisions/ADR-008-stem-separation-provider.md)을 따른다.
+## DohaLM 가사 연동 경계 — [계획]
+
+```mermaid
+flowchart LR
+  U[사용자] --> N[Next.js 가사 편집기]
+  N --> A[FastAPI Orchestrator]
+  A --> D[DohaLM REST·Streaming API]
+  D --> L[가사 생성·분석·수정 제안]
+  L --> N
+  N --> V[사용자 수정·최종 승인]
+  V -->|승인본| Q[음악 생성 작업 큐]
+  N -->|직접 작성 fallback| V
+```
+
+DohaLM은 LLM 모델·Adapter 로딩, 가사 생성·분석·수정안 생성, streaming, prompt 처리, 모델 버전 관리와 model manifest 제공을 담당한다. 현재 확인된 `develop` 구현은 일반 Chat REST/SSE MVP와 Provider metadata이며, 전용 Lyrics API·정식 versioned manifest·Python SDK는 `[검증 필요]` 또는 `[계획]`이다.
+
+DohaMusic은 사용자 UI, 가사 편집기·버전 관리, 사용자 수정·승인, 음악 비즈니스 로직, 음악 생성 작업, 음성 동의, 오디오 처리, 결과 저장과 상업 이용 검토 상태를 담당한다. 새 기능은 DohaLM을 직접 호출하지 않고 FastAPI의 Provider Adapter와 Pipeline Orchestrator 경계를 통과한다. DohaLM 장애·timeout·상업 승인 실패 시 직접 작성 가사 경로를 유지하며, 승인되지 않은 AI 초안은 음악 생성 작업 큐로 전달하지 않는다.
+
+관련 결정은 [ADR-002](../11-decisions/ADR-002-modular-ai-pipeline.md), [ADR-003](../11-decisions/ADR-003-async-job-processing.md), [ADR-005](../11-decisions/ADR-005-ai-worker-dependency-isolation.md), [ADR-006](../11-decisions/ADR-006-ace-step-primary-provider.md), [ADR-007](../11-decisions/ADR-007-ace-step-runtime-lifecycle.md), [ADR-008](../11-decisions/ADR-008-stem-separation-provider.md), [ADR-027](../11-decisions/ADR-027-dohalm-lyrics-provider-boundary.md)을 따른다.

@@ -6,11 +6,12 @@
 |---|---|---|
 | Phase 6 Lyrics AI | [완료] | 기존 Template·Mock 기반 DoD 유지 |
 | OpenAI Lyrics Adapter | [Experimental] | strict Schema·Factory·오류·retry·fallback·Revision 자동 검증 완료 |
+| DohaLM Lyrics Provider | [계획] `0%` | 일반 Chat REST/SSE MVP만 확인, Python SDK·전용 Lyrics API·manifest·DohaMusic Adapter 미완료 |
 | 외부 Provider 실제 실측 | [사용자 승인 필요] [API Key 필요] [유료 실측 미수행] | 실제 유료 API 호출 없음, 발생 비용 0원, API Key 사용 없음 |
 | External Provider 품질 승인 | [사용자 평가 필요] | EVAL-006 미작성 |
 | Stable 승격·Pipeline 연결 | [보류] | 품질·비용·지연·데이터·법률·인증 게이트 미통과 |
 
-Phase 6 완료 상태는 변경하지 않는다. 기본 Provider는 `template`이며 Phase 6 자체, External Provider의 Experimental 상태와 Local Lyrics LLM의 Planned 상태를 분리한다.
+Phase 6 완료 상태는 변경하지 않는다. 기본 Provider는 `template`이며 Phase 6 자체, OpenAI External Provider의 Experimental 상태, DohaLM Reference Integration의 Planned 상태와 Local Lyrics LLM의 Planned 상태를 분리한다. DohaLM은 별도 저장소의 모델·추론 Provider이고 현재 `AIHUB-71748` 계열은 비상업 연구 범위이므로 상업 Pipeline에서 사용할 수 없다.
 
 ## Phase 6.6~6.9 Local Lyrics LLM 상태
 
@@ -24,7 +25,7 @@ Phase 6 완료 상태는 변경하지 않는다. 기본 Provider는 `template`�
 전체 LLM 사전학습은 범위 밖이다. 공개 Instruct Base 후보를 라이선스·상업 이용·파생 모델 조건과 RTX 3060 Ti 8GB 실행성으로 검토하고 권리 확보 Lyrics Dataset으로 QLoRA SFT를 우선 검토한다. 세부 기준은 [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md)과 [Roadmap](planning/local-lyrics-llm-roadmap.md)을 따른다.
 
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-05
 > 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.
 > 관련 문서: [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md), [작업 지침](AGENTS.md), [ADR](docs/11-decisions/README.md), [변경 이력](CHANGELOG.md)
 
@@ -188,7 +189,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 - 선행 조건: 생성 Provider 입력 계약과 콘텐츠 정책 검토.
 - 완료 조건: [Phase-06 DoD](docs/DoD/Phase-06.md), 로컬 Provider·안전·Backend·자동 품질 검증. 실제 창작 품질은 사용자 평가로 분리한다.
 - 산출물: Lyrics Adapter·API·`lyrics_documents`·Benchmark·안전 평가·ADR·EXP·EVAL.
-- 관련 문서: [Lyrics AI](docs/03-architecture/lyrics-ai.md), [Lyrics API](docs/06-api/lyrics-api.md), [Generated Content Policy](docs/09-security/generated-content-policy.md).
+- 관련 문서: [Lyrics AI](docs/03-architecture/lyrics-ai.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md), [Lyrics API](docs/06-api/lyrics-api.md), [Generated Content Policy](docs/09-security/generated-content-policy.md).
 - 관련 ADR·실험: [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md).
 - 예상 다음 단계: Phase 7 Doha Voice 또는 Phase 8 Studio 선행 설계 검토.
 
