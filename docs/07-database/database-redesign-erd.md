@@ -1,7 +1,7 @@
 # Asset 중심 목표 ERD
 
 > 문서 상태: [제안]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
 > 구현 상태: ERD만 설계, DB·SQL·ORM 미구현
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
@@ -11,6 +11,7 @@
 ```mermaid
 erDiagram
   WORKSPACES ||--o{ MUSIC_PROJECTS : contains
+  WORKSPACES o|--o{ ASSETS : scopes
   WORKSPACES ||--o{ RECORDING_ENROLLMENTS : authorizes
   WORKSPACES ||--o{ FAVORITES : owns
   WORKSPACES ||--o{ HISTORY : records
@@ -71,10 +72,13 @@ erDiagram
     uuid project_asset_id PK
     uuid project_id FK
     uuid asset_id FK
+    string role
+    integer display_order
     timestamp deleted_at
   }
   ASSETS {
     uuid asset_id PK
+    uuid workspace_id FK
     uuid owner_id
     string asset_type
     uuid selected_asset_version_id FK
@@ -224,6 +228,7 @@ erDiagram
 | 관계 | Cardinality | 정책 |
 |---|---|---|
 | Workspace → MusicProject | 1:N | Project는 정확히 하나의 Workspace에 속함 |
+| Workspace → Asset | 1:N, 선택적 | 저장소별 단일 Workspace 계약에서는 Asset의 Workspace 참조를 생략할 수 있음 |
 | MusicProject ↔ Asset | N:M | `ProjectAsset`으로만 연결 |
 | Asset → AssetVersion | 1:N | 최소 한 Version, Version 번호 단조 증가 |
 | AssetVersion → Artifact | 1:N | 실제 파일·Payload를 Artifact ID로 참조 |

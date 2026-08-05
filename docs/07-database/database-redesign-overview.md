@@ -1,7 +1,7 @@
 # Asset 중심 데이터베이스 재설계 개요
 
 > 문서 상태: [제안]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
 > 구현 상태: 문서·ERD 설계만 완료, SQL·ORM·Migration·API 미구현
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
@@ -13,6 +13,7 @@ DohaMusic의 목표 데이터베이스를 기존 Pipeline 중심 구조에서 Wo
 ```text
 Workspace
 → MusicProject
+→ ProjectAsset
 → Asset
 → AssetVersion
 → Artifact
@@ -27,20 +28,20 @@ Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않�
 
 ## 2. Common Specification 기준
 
-설계 기준은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/develop/docs/specifications)의 `develop` 반영 commit `a32a4d88d9378e59877a1ec64c1ecc1bf0574434`입니다.
+설계 기준은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`이며, 감사·재현 기준은 commit `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
-- [Asset 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/01-asset-specification.md)
-- [AssetVersion 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/02-asset-version-specification.md)
-- [Artifact 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/03-artifact-specification.md)
-- [Provider 계약](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/04-provider-contract.md)
-- [Job 계약](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/05-job-contract.md)
-- [Model Manifest 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/06-model-manifest-specification.md)
-- [Dataset Manifest 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/07-dataset-manifest-specification.md)
-- [Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/08-composition-snapshot-specification.md)
-- [Storage 구조 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/09-storage-layout-specification.md)
-- [공통 용어](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/10-common-terms.md)
+- [Asset 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/01-asset-specification.md)
+- [AssetVersion 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/02-asset-version-specification.md)
+- [Artifact 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md)
+- [Provider 계약](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md)
+- [Job 계약](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
+- [Model Manifest 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/06-model-manifest-specification.md)
+- [Dataset Manifest 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/07-dataset-manifest-specification.md)
+- [Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/08-composition-snapshot-specification.md)
+- [Storage 구조 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/09-storage-layout-specification.md)
+- [공통 용어](https://github.com/DohaStudio/.github/blob/main/docs/specifications/10-common-terms.md)
 
-Common Specification은 아직 `[제안]`입니다. 이번 설계도 같은 상태를 유지하며, 공통 명세가 변경되면 구현 전에 차이를 다시 검토합니다.
+Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`이 아닙니다. 이번 설계는 `[제안]` 상태를 유지하고, 공통 명세가 변경되면 구현 전에 차이를 다시 검토합니다.
 
 ## 3. 설계 원칙
 

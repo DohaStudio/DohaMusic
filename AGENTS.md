@@ -7,7 +7,7 @@
 이 문서의 적용 범위는 저장소 루트와 모든 하위 디렉터리이다.
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-07-29
+> 최종 수정일: 2026-08-06
 > 관련 기능: 저장소 전체 작업 절차
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [README](README.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
@@ -16,7 +16,7 @@
 | 항목 | 값 |
 |---|---|
 | 프로젝트명 | DohaMusic |
-| 저장소 | `DDORINY/DohaMusic` |
+| 저장소 | `DohaStudio/DohaMusic` |
 | 개발 기준 브랜치 | `develop` |
 | 안정화 브랜치 | `main` |
 | 기본 문서 언어 | 한국어 |

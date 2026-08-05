@@ -1,7 +1,7 @@
 # Workspace REST API Endpoint 목록
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace REST API 재설계
 > 구현 상태: Method·Path·계약만 정의, Endpoint 미구현
 > 관련 문서: [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
@@ -60,7 +60,7 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 | `POST` | `/api/v1/projects/{project_id}/assets` | 201 | 기존 Asset을 Project에 연결 |
 | `DELETE` | `/api/v1/projects/{project_id}/assets/{asset_id}` | 204 | ProjectAsset 관계 해제 |
 
-Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `sort_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
+Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `display_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
 
 ## 5. Asset API — 5개
 
@@ -72,7 +72,7 @@ Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, �
 | `PATCH` | `/api/v1/assets/{asset_id}` | 200 | 변경 가능한 Asset Metadata 수정 |
 | `DELETE` | `/api/v1/assets/{asset_id}` | 204 | Asset Soft Delete |
 
-POST는 `asset_type`, `owner_id`와 초기 Metadata만 받으며 Version을 자동 생성하지 않습니다. `asset_type`은 Common Specification과 DB Redesign에 정의된 값만 사용합니다.
+POST는 선택적 `workspace_id`, `asset_type`, `owner_id`와 초기 Metadata만 받으며 Version을 자동 생성하지 않습니다. 저장소별 단일 Workspace 계약에서는 `workspace_id`를 생략할 수 있고, `asset_type`은 Common Specification과 DB Redesign에 정의된 값만 사용합니다.
 
 ## 6. AssetVersion API — 4개
 
