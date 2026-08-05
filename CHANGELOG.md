@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace SQLAlchemy Entity 초기 구현
+
+- 기존 14개 Runtime Entity를 교체하지 않고 `backend.models.workspace` namespace에 목표 21개 SQLAlchemy 2.0 Entity를 additive로 추가했다.
+- 기존 `DeclarativeBase`를 재사용하고 UUID 생성 함수, 생성·수정 시각과 Soft Delete Mixin, `AssetType`·목표 `JobStatus` 문자열 Enum을 구현했다.
+- 문서의 PK·FK·Unique·Index·Nullable, `ProjectAsset` N:M, AssetVersion·Snapshot 계보, JobInput·JobOutput, RecordingEnrollment·Approval 관계를 metadata에 반영했다.
+- 모든 신규 Entity를 `backend.models`에서 명시적으로 등록하고 mapper 대칭·FK 해석·35개 전체 metadata Table의 in-memory SQLite `create_all`을 검증했다.
+- Alembic Migration·실제 DB 변경·Repository·Service·REST API·Worker·Runtime·Frontend는 변경하지 않았다.
+
 ### 문서 — 최종 아키텍처 기준선 검토
 
 - DohaStudio Common Specification `0.1.0` / `draft-baseline`의 `main` 링크와 감사 기준 commit을 Workspace DB·REST API·Provider 경계 문서에 고정했다.
