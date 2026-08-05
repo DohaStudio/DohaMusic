@@ -59,4 +59,3 @@ SciPy `wavfile`로 PCM WAV를 decode하고 NumPy `float64`로 정규화한다. S
 - peak normalization은 작은 신호와 그 잡음도 함께 키울 수 있다.
 - soft limiter는 mastering-grade loudness processor가 아니다.
 - 자동 지표는 파일 무결성과 clipping 위험을 보조할 뿐 청감 품질을 승인하지 않는다. 청감 평가는 [EVAL-004](../../reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에 사용자가 기록한다.
-

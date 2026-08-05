@@ -34,4 +34,3 @@ Pipeline 구조와 AI Adapter 계약을 변경하지 않고 실제 합성이 가
 ## 재검토 조건
 
 LUFS 목표, True Peak 제한, 다중 stem, mastering chain, 외부 DSP runtime 또는 출력 codec 정책이 필요해지면 재검토한다. [EVAL-004](../../reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)의 사용자 청취 결과에서 balance·자연스러움 문제가 확인돼도 gain 기본값을 재검토한다.
-
