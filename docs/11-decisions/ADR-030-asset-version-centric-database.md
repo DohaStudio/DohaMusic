@@ -5,7 +5,7 @@
 > 최종 수정일: 2026-08-05
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
 > 관련 문서: [재설계 개요](../07-database/database-redesign-overview.md), [목표 ERD](../07-database/database-redesign-erd.md), [목표 Table Definition](../07-database/database-redesign-table-definition.md), [Migration 전략](../07-database/database-redesign-migration-strategy.md)
-> 관련 PR: [추후 연결]
+> 관련 PR: [PR #52](https://github.com/DohaStudio/DohaMusic/pull/52)
 
 ## 배경
 
