@@ -3,7 +3,7 @@
 > 문서 상태: [제안]
 > 최종 수정일: 2026-08-05
 > 관련 기능: 저장소 분리와 외부 AI Provider 전환
-> 관련 문서: [시스템 아키텍처](system-architecture.md), [AI 파이프라인](ai-pipeline.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md), [DohaStudio 공통 명세 Draft PR #2](https://github.com/DohaStudio/.github/pull/2)
+> 관련 문서: [시스템 아키텍처](system-architecture.md), [AI 파이프라인](ai-pipeline.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md), [DohaStudio 공통 Provider 계약](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/04-provider-contract.md)
 
 ## 목적과 현재 상태
 

@@ -4,7 +4,7 @@
 > 작성일: 2026-08-05
 > 최종 수정일: 2026-08-05
 > 관련 기능: AI Provider 저장소 분리와 단계적 Runtime 전환
-> 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [AI Pipeline](../03-architecture/ai-pipeline.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [Model Manifest](../04-models/provider-model-manifest.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [DohaStudio 공통 명세 Draft PR #2](https://github.com/DohaStudio/.github/pull/2)
+> 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [AI Pipeline](../03-architecture/ai-pipeline.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [Model Manifest](../04-models/provider-model-manifest.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [DohaStudio 공통 Provider 계약](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/04-provider-contract.md)
 > 관련 PR: 이 문서를 추가한 `develop` 대상 PR
 
 ## 배경
