@@ -1,4 +1,4 @@
-# DohaMusic Master Roadmap
+# DohaMusic 마스터 로드맵
 
 ## Phase 6.5 External Lyrics LLM 상태
 
@@ -23,6 +23,19 @@ Phase 6 완료 상태는 변경하지 않는다. 기본 Provider는 `template`�
 | 6.9 Local Lyrics Quality Gate | [계획] `0%` | 자동·사용자 평가 미실시, 운영 미승인 |
 
 전체 LLM 사전학습은 범위 밖이다. 공개 Instruct Base 후보를 라이선스·상업 이용·파생 모델 조건과 RTX 3060 Ti 8GB 실행성으로 검토하고 권리 확보 Lyrics Dataset으로 QLoRA SFT를 우선 검토한다. 세부 기준은 [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md)과 [Roadmap](planning/local-lyrics-llm-roadmap.md)을 따른다.
+
+DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime과 Model Manifest의 기술 구현은 DohaLM이 소유한다. DohaMusic은 `LyricsGenerator` 호환 Provider Client, 편집·버전·최종 승인과 Pipeline 입력 경계를 유지한다.
+
+## AI Provider 저장소 분리 상태
+
+| 단계 | 상태 | 사실 기준 |
+|---|---|---|
+| Phase A Boundary Definition | [진행 중] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화, `develop` 병합 전 |
+| Phase B New Implementation Separation | [계획] | DohaAudio·DohaVocal 저장소 존재, Provider Runtime·Client 미구현 |
+| Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
+| Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
+
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소는 존재하며 Runtime 기능은 `[계획]`이다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
 
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-05
@@ -69,6 +82,8 @@ F6       Guided Voice Enrollment     [진행 중]
 K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
 Phase 9  Production                  [계획]
+  ↓ 병행
+Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획]
 ```
 
 | Phase | 상태 | 진행률 | 사실 기준 | DoD |
@@ -87,6 +102,7 @@ Phase 9  Production                  [계획]
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
+| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 문서화 진행, 저장소·Runtime 미구현 | [Provider Separation](docs/DoD/Provider-Separation.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
@@ -207,7 +223,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 ## Phase 7. Doha Voice — [계획]
 
 - 목표: 동의·삭제 가능한 본인 가창 Dataset으로 개인화 음성 품질을 검증한다.
-- 구현 범위·포함 기능: Dataset, preprocessing, LoRA·Fine Tuning 후보, Benchmark·Evaluation.
+- 구현 범위·포함 기능: DohaVocal `[계획]`의 Dataset, preprocessing, LoRA·Fine Tuning 후보, Checkpoint, Benchmark·Evaluation과 Runtime 후보. DohaMusic은 동의·권한·삭제 결정과 Provider Orchestration을 유지한다.
 - 제외 기능: 타인 음성 학습, 무동의 수집, 대규모 기반 모델 사전학습.
 - 선행 조건: Voice Conversion baseline, 동의·삭제·라이선스·보안 ADR 승인.
 - 완료 조건: [Phase-07 DoD](docs/DoD/Phase-07.md), 데이터 계보·삭제·전후 비교·사용 승인.
@@ -216,7 +232,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 - 관련 ADR·실험: 개인 음성 학습 ADR·실험 필요, 아직 없음.
 - 예상 다음 단계: Phase 8 Doha Studio.
 
-Phase 7은 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화하는 별도 단계다. 가사 text Dataset, Instruct LLM, LoRA Adapter와 checkpoint·Model Card·저장 정책을 공유하지 않는다. F6 Voice Enrollment는 기존 Voice Conversion용 참조 음성 등록 UX이며 장시간 Dataset·학습 동의·split·artifact를 포함하지 않는다.
+Phase 7은 DohaVocal에서 동의된 사용자 음성으로 `VoiceConverter` 후보를 개인화하는 별도 단계다. 신규 Singing Voice·Voice Conversion도 DohaVocal에서 구현한다. 가사 text Dataset, Instruct LLM, LoRA Adapter와 checkpoint·Model Card·저장 정책을 공유하지 않는다. F6 Voice Enrollment는 DohaMusic의 기존 Voice Conversion용 참조 음성 등록 UX이며 장시간 Dataset·학습 동의·split·artifact를 포함하지 않는다.
 
 ## Phase 8. Doha Studio — [완료]
 
