@@ -1,9 +1,9 @@
 # Pipeline Orchestrator
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-05
 > 관련 기능: Phase 5 Pipeline / Phase 5.1 Mixer / K3.1 Quality / K3.2 Tempo / K3.3 Hook
-> 관련 문서: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)
+> 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md)
 
 ## 책임과 경계
 
@@ -22,6 +22,8 @@ POST /api/pipelines
 ```
 
 Music·Stem·Voice 단계는 각각 `MusicGenerator`, `StemSeparator`, `VoiceConverter` 인터페이스만 사용한다. 애플리케이션 시작 시 선택된 기존 Provider가 그대로 주입된다. Voice 기본값은 `mock`이며 Primary Provider가 승인되기 전까지 운영 Provider로 자동 전환하지 않는다.
+
+Pipeline Orchestrator는 저장소 분리 후에도 DohaMusic에 남는다. Provider 선택, Job 상태, 취소·재시도, 결과 계보, 상업 이용 상태와 단일 GPU admission control을 중앙에서 관리하며 DohaLM·DohaAudio·DohaVocal Provider가 서로 직접 호출하는 것을 허용하지 않는다. 기존 subprocess와 로컬 `Path` 계약은 호환 계층이고, 외부 Runtime·Artifact 계약은 [전환 Roadmap](../../planning/repository-separation-roadmap.md)에 따라 단계적으로 도입한다.
 
 ## Context와 결과
 

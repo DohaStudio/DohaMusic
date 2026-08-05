@@ -3,7 +3,7 @@
 > 상태: [계획]
 > 진행률: 0/16, 0%
 > 최종 수정일: 2026-08-01
-> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-7-doha-voice--계획), [Audio Data Policy](../05-data/audio-data-policy.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)
+> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-7-doha-voice--계획), [책임 경계](../03-architecture/repository-provider-boundaries.md), [Audio Data Policy](../05-data/audio-data-policy.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md)
 
 ## 목표
 
@@ -11,7 +11,7 @@
 
 ## 구현 범위와 포함 기능
 
-Dataset, recording·metadata, preprocessing, LoRA·Fine Tuning 후보, 학습·Benchmark·Evaluation과 Model Card를 포함한다.
+DohaVocal `[계획]`이 Dataset의 기술 처리, preprocessing, LoRA·Fine Tuning 후보, 학습·Checkpoint·Benchmark·Evaluation과 Model Manifest를 소유한다. DohaMusic은 recording UX, 동의·소유권·접근 권한·삭제 결정과 Provider Orchestration을 소유한다.
 
 ## 제외 기능
 
@@ -55,7 +55,7 @@ Dataset·전처리 도구·학습 설정·Model Card·Benchmark·EXP·EVAL·ADR.
 
 ## 예상 다음 단계
 
-Phase 8 Doha Studio에서 승인된 Voice 모델을 선택적으로 제공한다.
+DohaMusic이 DohaVocal의 승인된 Voice Provider를 선택적으로 호출한다.
 
 K-POP Style Fine-tuning, 개인 Voice 학습, Local Lyrics LLM은 서로 다른 Dataset·목표·Adapter 경계를 유지한다. K-POP 제어 계층 K0 문서는 Phase 7 학습 착수나 Voice Provider 승인을 의미하지 않는다.
 

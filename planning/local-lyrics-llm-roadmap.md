@@ -1,9 +1,11 @@
 # Local Lyrics LLM Roadmap
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-05
 > 관련 Phase: 6.6~6.9
 > 관련 문서: [ADR-016](../docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [Lyrics Architecture](../docs/03-architecture/lyrics-ai.md), [Dataset Policy](../docs/05-data/lyrics-dataset-policy.md), [Model Card](../docs/04-models/local-lyrics-llm-model-card-template.md)
+
+> 저장소 책임: Dataset·Training·Evaluation·Runtime·Model Manifest 구현은 DohaLM이 소유한다. DohaMusic은 `LyricsGenerator` 호환 Provider Client, 가사 편집·버전·최종 승인과 Pipeline 전달을 소유한다. 이 문서의 Phase 번호는 기존 계획 추적용이며 DohaMusic 내부 학습 구현을 지시하지 않는다.
 
 ## 현재 상태
 
@@ -89,7 +91,7 @@ license 미승인, 반복 OOM, 재현 실패, 암기·leakage 또는 baseline �
 
 ### 목적
 
-검증 학습 산출물을 API 변화 없이 `LyricsGenerator` 경계의 명시적 `local_llm` Provider 후보로 연결한다.
+DohaLM이 제공하는 검증 학습 산출물과 Runtime을 DohaMusic의 `LyricsGenerator` 경계에 명시적 외부 Provider 후보로 연결한다.
 
 ### 선행 조건
 
@@ -99,8 +101,8 @@ license 미승인, 반복 OOM, 재현 실패, 암기·leakage 또는 baseline �
 
 ### 주요 작업
 
-- `LocalLyricsLLMAdapter`와 local inference runtime 경계
-- Base model·Tokenizer·Adapter/model path 설정 계획
+- DohaLM Runtime과 DohaMusic Provider Client 경계
+- Base model·Tokenizer·Adapter는 DohaLM 내부에 격리하고 DohaMusic에는 경로를 노출하지 않는 계약
 - 기존 `LyricsGenerator` 결과, Provider Factory와 공통 Validator 재사용
 - timeout, OOM, invalid output와 안전한 오류·metadata
 - Template·Mock 회귀 유지와 API 계약 무변경 확인

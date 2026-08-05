@@ -18,6 +18,17 @@
 4. Phase 6.9에서 Validator·한국어 품질·응답 시간·peak VRAM·실패율·사용자 blind 평가를 통과해야 운영 승격을 검토한다.
 5. 모든 게이트 전까지 Base 미선정·Dataset 미구축·학습 미착수·Adapter 미구현 상태이며 기본 Provider는 `template`이다.
 
+## AI Provider 저장소 분리 Track
+
+[저장소 분리 Roadmap](planning/repository-separation-roadmap.md)에 따라 책임 경계와 Runtime 이전을 분리한다.
+
+1. Phase A `[진행 중]`: 책임, Provider 계약 범위, Dataset·Artifact 정책, Model Manifest와 ADR을 문서화하고 `develop` 병합을 검증한다.
+2. Phase B `[계획]`: 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현하고 DohaMusic에는 Provider Client를 둔다.
+3. Phase C `[계획]`: ACE-Step·Demucs·Seed-VC Runner를 순차 이전하고 로컬 `Path`를 Artifact ID·URI 계약으로 전환한다.
+4. Phase D `[계획]`: 전환 검증이 끝난 내부 Runner와 구형 Adapter만 제거하고 운영 계약 version과 DoD를 확정한다.
+
+현재는 문서 경계만 확정하며 DohaAudio·DohaVocal 저장소, Runtime API, Provider HTTP API, Artifact URI와 공통 Model Registry는 구현하지 않는다.
+
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-08-05
 > 현재 상태: **Phase 6 Template·Mock 기반 완료 / DohaLM 연동·Local Lyrics LLM 계획 0% / 외부 LLM·운영 Voice Provider 보류**
@@ -45,13 +56,14 @@
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
+| AI Provider 저장소 분리 | [진행 중] | Phase A 문서화 진행, Phase B~D 미착수 | [Provider Separation DoD](docs/DoD/Provider-Separation.md) |
 
 ## 현재 우선 작업
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
 3. DohaLM 전용 Lyrics API 또는 승인된 범용 계약, versioned manifest와 상업용 모델 계보를 확정한 뒤 Adapter·가사 승인·Pipeline snapshot을 구현한다.
-4. [Local Lyrics LLM Roadmap](planning/local-lyrics-llm-roadmap.md)에 따라 Phase 6.6 Dataset 권리·manifest를 먼저 확정한다.
+4. [Local Lyrics LLM Roadmap](planning/local-lyrics-llm-roadmap.md)에 따라 DohaLM이 Phase 6.6 Dataset 권리·manifest를 먼저 확정하고 DohaMusic은 Provider 연동·승인 경계를 유지한다.
 5. [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)에서 실제 곡의 balance·자연스러움·noise·clipping을 사용자가 평가한다.
 6. RVC 또는 상업 사용 가능한 zero-shot SVC 후보의 RTX 3060 Ti·라이선스·청취 게이트를 계속 검토한다.
 7. [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md), [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md), [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 완료한다.
@@ -59,6 +71,7 @@
 9. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5와 F6 Frontend Wizard·MediaRecorder·품질·대표 선택·복원, Windows/CI FFmpeg와 cleanup scheduler/crash recovery를 완료했다. F6 전체는 인증·실기기 평가가 남아 `[진행 중]`이며 기존 Phase 8 완료 상태와 분리한다.
 10. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 11. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
+12. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
 
 ## F6 Guided Voice Enrollment 실행 순서 [진행 중]
 

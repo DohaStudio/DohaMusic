@@ -6,6 +6,8 @@
 
 > DohaLM Lyrics 연동: 별도 저장소의 LLM 모델·추론 Provider인 [DohaLM](https://github.com/DohaStudio/DohaLM/tree/develop)을 REST/Streaming API 또는 향후 Python SDK로 호출하는 Reference Application 구조는 `[계획]`입니다. DohaLM의 현재 REST/SSE MVP는 일반 Chat 계약이며 Python SDK와 DohaMusic 전용 Lyrics API는 아직 확정되지 않았습니다. `AIHUB-71748` 계열은 비상업 연구 범위이므로 상업용 DohaMusic 작업에서 사용할 수 없습니다.
 
+> AI Provider 저장소 분리: DohaMusic은 제품 서비스·Pipeline Orchestration·Mixer·최종 Export를 유지하고, DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess는 호환 계층으로 유지합니다.
+
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
 > F6 Guided Voice Enrollment는 `[진행 중]`입니다. 구현과 Windows FFmpeg 8.1.2·Ubuntu/Windows CI에 더해 실제 Chrome·Edge 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 자동 Validation을 수행했습니다. 실제 사용자 마이크·실제 Android/iOS/Safari와 인증·소유권은 남아 있습니다. 결과는 [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md)와 [운영·수동 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)를 따르며 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
@@ -20,6 +22,8 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.
+
+장기적으로 DohaMusic은 Next.js·FastAPI·인증·프로젝트·Job·DB·가사 승인·음성 동의·Provider Client·Pipeline·결과 관리에 집중한다. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소와 Runtime API는 아직 `[계획]`이며 자세한 책임은 [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md)를 따른다.
 
 ## 최종 목표
 
@@ -83,9 +87,9 @@ flowchart LR
   L --> E
   E --> A{사용자 수정·최종 승인}
   A -->|미승인| E
-  A -->|승인본| G[음악·가창 생성]
-  G --> S[보컬·반주 분리]
-  R[동의된 참조 음성] --> V[음색 변환]
+  A -->|승인본| G[DohaAudio 음악 생성 계획]
+  G --> S[DohaAudio Stem 분리 계획]
+  R[동의된 참조 음성] --> V[DohaVocal 음색 변환 계획]
   S --> V
   S --> M[믹싱]
   V --> M
@@ -104,6 +108,7 @@ flowchart LR
 - Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
 - Audio DSP: NumPy·SciPy 기반 Default Mixer와 pyloudnorm Integrated LUFS 후처리 **[완료]**, True Peak **[미지원]**
 - Lyrics: Template **[Stable 기본값]**, Mock **[Test]**, OpenAI **[Experimental]**, DohaLM **[Planned]**, `local_llm` **[Planned]**
+- External AI Provider: DohaAudio·DohaVocal Runtime API **[계획]**, 현재 ACE-Step·Demucs·Seed-VC subprocess 호환 계층 유지
 - AI 모델: 어댑터를 통한 교체 가능한 공개 사전학습 모델
 
 모델명은 후보일 뿐이며, 라이선스와 로컬 벤치마크를 통과하기 전에는 채택하지 않는다. 자세한 기준은 [모델 비교](docs/01-research/model-comparison.md)와 [모델 선정 정책](docs/04-models/model-selection-policy.md)을 따른다.
@@ -124,6 +129,8 @@ DohaMusic/
 ├─ CHANGELOG.md
 └─ CONTRIBUTING.md
 ```
+
+위 트리는 현재 실제 DohaMusic checkout이다. 목표 저장소 경계는 [저장소와 AI Provider 책임 경계](docs/03-architecture/repository-provider-boundaries.md)에 정의하며 DohaAudio·DohaVocal은 아직 생성되지 않았다.
 
 ## 빠른 시작
 
@@ -165,12 +172,13 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 전체 일정과 완료 기준: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md)
 - 목표와 범위: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md)
 - 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md), [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md)
-- 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md)
+- 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md), [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md)
 - Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md), [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
 - API와 데이터: [API 개요](docs/06-api/api-overview.md), [ERD](docs/07-database/erd.md), [가사 버전 데이터 모델](docs/07-database/lyrics-versioning-data-model.md), [Voice Enrollment API](docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](docs/07-database/voice-enrollment-data-model.md)
 - Voice Enrollment 검증과 운영: [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md), [운영·수동 검증 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)
 - 안전과 권리: [음성 동의 정책](docs/09-security/voice-consent-policy.md), [생성 콘텐츠 정책](docs/09-security/generated-content-policy.md)
 - 의사결정: [ADR 목록](docs/11-decisions/README.md)
+- Provider 계약과 데이터: [Model Manifest](docs/04-models/provider-model-manifest.md), [로컬 Dataset·Artifact 정책](docs/05-data/local-dataset-artifact-policy.md), [분리 Roadmap](planning/repository-separation-roadmap.md)
 - Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Audio Quality Engine](docs/03-architecture/audio-quality-engine.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)
 - Lyrics AI: [Architecture](docs/03-architecture/lyrics-ai.md), [API](docs/06-api/lyrics-api.md), [Dataset Policy](docs/05-data/lyrics-dataset-policy.md), [Local LLM Roadmap](planning/local-lyrics-llm-roadmap.md), [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)
 - K-POP 제작 제어: [제품 정의](docs/02-product/kpop-creation-product-definition.md), [Generation Options](docs/03-architecture/kpop-generation-options.md), [Prompt Compiler](docs/03-architecture/kpop-prompt-compiler.md), [Capability Matrix](docs/04-models/kpop-provider-capability-matrix.md), [K3 Audio Analysis](docs/02-product/k3-audio-analysis-product-definition.md), [K3 결과 계약](docs/03-architecture/audio-analysis-result-contract.md), [Roadmap](planning/kpop-creation-roadmap.md), [ADR-023](docs/11-decisions/ADR-023-audio-analysis-and-preview-architecture.md), [EVAL-008](reports/evaluations/EVAL-008-audio-analysis-validation.md)
