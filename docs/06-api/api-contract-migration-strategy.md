@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-05
 > 관련 기능: 현행 기능별 API에서 Workspace v1 API로 단계적 전환
 > 구현 상태: 전략만 작성, Endpoint·Adapter·Redirect·OpenAPI 미구현
-> 관련 문서: [현재 API 개요](api-overview.md), [목표 공통 계약](workspace-rest-api-contract.md), [목표 Endpoint 목록](workspace-rest-api-endpoints.md), [DB 전환 전략](https://github.com/DohaStudio/DohaMusic/blob/4c4b87cc64b123fee32f238755159870814fd8df/docs/07-database/database-redesign-migration-strategy.md)
+> 관련 문서: [현재 API 개요](api-overview.md), [목표 공통 계약](workspace-rest-api-contract.md), [목표 Endpoint 목록](workspace-rest-api-endpoints.md), [DB 전환 전략](https://github.com/DohaStudio/DohaMusic/blob/6a8e0f36c1a1a29ca300fe905a704a66780b9e28/docs/07-database/database-redesign-migration-strategy.md)
 
 ## 1. 현재와 목표
 

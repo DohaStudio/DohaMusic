@@ -28,7 +28,7 @@ Workspace
 
 ### 2.1 DohaStudio Common Specification
 
-기준은 [DohaStudio/.github Draft PR #2](https://github.com/DohaStudio/.github/pull/2)의 commit `2a804e2`입니다.
+기준은 [DohaStudio/.github Draft PR #2](https://github.com/DohaStudio/.github/pull/2)의 commit `8422e43`입니다.
 
 - Asset, AssetVersion, Artifact와 AssetRelation
 - Provider Contract와 Job Contract
@@ -38,7 +38,7 @@ Workspace
 
 ### 2.2 DohaMusic Database Redesign
 
-DB 기준은 [DohaMusic Draft PR #52](https://github.com/DohaStudio/DohaMusic/pull/52)의 commit `4c4b87c`입니다.
+DB 기준은 [DohaMusic Draft PR #52](https://github.com/DohaStudio/DohaMusic/pull/52)의 commit `6a8e0f3`입니다.
 
 - 21개 목표 Entity와 Table
 - ProjectAsset N:M 관계
