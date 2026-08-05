@@ -5,7 +5,7 @@
 > 최종 수정일: 2026-08-05
 > 관련 기능: Phase 6.5 External Lyrics LLM 확장
 > 관련 문서: [DohaLM 연동](../03-architecture/dohalm-integration.md), [Lyrics AI](../03-architecture/lyrics-ai.md), [가사 버전 데이터 모델](../07-database/lyrics-versioning-data-model.md), [라이선스 검토](../01-research/licensing-review.md)
-> 관련 PR: [검증 필요: PR 생성 후 연결]
+> 관련 PR: [PR #48](https://github.com/DohaStudio/DohaMusic/pull/48)
 
 ## 배경
 
