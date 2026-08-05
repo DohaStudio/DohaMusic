@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Asset 중심 데이터베이스 재설계
+
+- DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·Composition Snapshot·Job 중심의 21개 Entity와 21개 목표 Table을 설계했다.
+- Pipeline이 결과를 소유하지 않고 AssetVersion이 불변 결과를 소유하도록 ERD, PK·FK·Unique·Index, Selection·Approval·삭제·Snapshot 정책을 정의했다.
+- 현행 14개 Table에서 목표 구조로 전환하는 additive backfill, Dual Write, Shadow Read, Read 전환과 Legacy 제거 순서 및 검증 Gate를 문서화했다.
+- SQL·ORM·Migration·API·DB 파일·Artifact 파일과 Runtime은 변경하지 않았으며 목표 구조는 `[제안]`으로 유지한다.
+
 ### 문서 — DohaLM 가사 생성·분석 연동 계획
 
 - DohaLM과 DohaMusic의 Provider·Reference Application 경계, REST/Streaming 우선 연동과 미완료 Python SDK·전용 Lyrics API의 검증 게이트를 문서화했다.

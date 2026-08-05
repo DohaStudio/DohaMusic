@@ -31,8 +31,13 @@
 | [ADR-025](ADR-025-voice-profile-multiple-samples-reference.md) | Voice Profile 1:N Sample과 명시적 대표 Reference | 승인 |
 | [ADR-026](ADR-026-voice-enrollment-lifecycle-cleanup.md) | Enrollment 임시 업로드·만료·idempotency·cleanup 수명주기 | 승인 |
 | [ADR-027](ADR-027-dohalm-lyrics-provider-boundary.md) | DohaLM Provider·가사 버전·사용자 승인·상업 이용 경계 | 제안 |
+| [ADR-030](ADR-030-asset-version-centric-database.md) | AssetVersion 중심 Workspace 데이터베이스와 단계적 전환 | 제안 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
+
+# Workspace 데이터베이스
+
+- [ADR-030 — AssetVersion 중심 Workspace 데이터베이스](ADR-030-asset-version-centric-database.md): 현행 Pipeline 중심 결과 소유권을 AssetVersion·Artifact로 옮기고 21개 목표 Table과 단계적 Migration 원칙을 제안한다.
 # Phase 6.5
 
 - [ADR-015 — External Lyrics LLM Provider](ADR-015-external-lyrics-llm-provider.md): OpenAI Responses API Adapter를 Experimental로 추가하고 Template 기본값, strict Schema, retry·fallback·비용·데이터 경계를 결정한다.
