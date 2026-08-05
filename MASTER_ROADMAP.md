@@ -68,6 +68,8 @@ F6       Guided Voice Enrollment     [진행 중]
   ↓
 K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
+Track    Workspace Artifact Domain   [계획]
+  ↓ 병행
 Phase 9  Production                  [계획]
 ```
 
@@ -86,9 +88,12 @@ Phase 9  Production                  [계획]
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
+| Workspace Artifact Domain | [계획] | `░░░░░░░░░░ 0%` | `DohaArtifacts/music` 책임 문서화, 폴더·DB·Runtime 미구현 | [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
+
+Workspace Artifact Domain은 Provider Runtime의 `lm`·`audio`·`vocal` 결과와 DohaMusic의 Mix·Export·Preview·Composition Snapshot을 분리하는 계획 Track이다. 목표 root는 `D:/DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}`이며 이번 문서화로 폴더·환경 변수·코드·DB가 구현된 것으로 계산하지 않는다. Phase 5와 Phase 8의 기존 완료 상태도 변경하지 않는다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

@@ -8,6 +8,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — DohaMusic Workspace `music` Artifact 도메인
+
+- Provider Runtime의 `lm`·`audio`·`vocal` Artifact와 DohaMusic Workspace의 Mix·Export·Preview·Composition Snapshot·실행 기록을 분리했다.
+- `D:/DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` 목표 구조와 Mix·Export의 DohaMusic 책임을 문서화했다.
+- Snapshot이 최신 Asset이 아니라 특정 AssetVersion을 참조하도록 계획하고 현재 폴더·환경 변수·코드·DB는 변경하지 않음을 명시했다.
+
 ### 문서 — DohaLM 가사 생성·분석 연동 계획
 
 - DohaLM과 DohaMusic의 Provider·Reference Application 경계, REST/Streaming 우선 연동과 미완료 Python SDK·전용 Lyrics API의 검증 게이트를 문서화했다.

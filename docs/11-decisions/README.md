@@ -31,6 +31,7 @@
 | [ADR-025](ADR-025-voice-profile-multiple-samples-reference.md) | Voice Profile 1:N Sample과 명시적 대표 Reference | 승인 |
 | [ADR-026](ADR-026-voice-enrollment-lifecycle-cleanup.md) | Enrollment 임시 업로드·만료·idempotency·cleanup 수명주기 | 승인 |
 | [ADR-027](ADR-027-dohalm-lyrics-provider-boundary.md) | DohaLM Provider·가사 버전·사용자 승인·상업 이용 경계 | 제안 |
+| [ADR-029](ADR-029-dohamusic-workspace-artifact-domain.md) | DohaMusic Workspace 전용 `music` Artifact 도메인 | 제안 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 # Phase 6.5
@@ -49,6 +50,7 @@
 - [ADR-020 — Project History Retention](ADR-020-project-history-retention.md): Project 삭제 시 연결만 해제하고 Job과 결과 파일을 보존한다.
 - [ADR-019 — Secure Voice Profile Upload](ADR-019-secure-voice-profile-upload.md): 동의된 WAV를 안전하게 저장하고 공개 metadata·삭제 정책과 원본 비공개 경계를 결정한다.
 - [ADR-021 — Pipeline Job Cancel·Retry](ADR-021-pipeline-job-cancel-retry.md): 단계 경계 cooperative 취소와 입력 Snapshot 기반 새 Job Retry를 결정한다.
+- [ADR-029 — DohaMusic Workspace 전용 music Artifact 도메인](ADR-029-dohamusic-workspace-artifact-domain.md): Provider Artifact와 Composition Snapshot·Mix·Preview·Export 결과의 Workspace 저장 책임을 분리한다.
 
 # K-POP Creation Control
 
