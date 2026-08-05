@@ -72,9 +72,10 @@
 9. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5와 F6 Frontend Wizard·MediaRecorder·품질·대표 선택·복원, Windows/CI FFmpeg와 cleanup scheduler/crash recovery를 완료했다. F6 전체는 인증·실기기 평가가 남아 `[진행 중]`이며 기존 Phase 8 완료 상태와 분리한다.
 10. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 11. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
-12. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 문서·ERD만 `[제안]` 상태다. Common Specification 확정과 Migration 승인 전에는 현재 14개 Table·API·Runtime을 변경하지 않는다.
-13. Workspace Artifact 구현 전 `AssetVersion` 기반 Composition Snapshot, Artifact ID/URI, 기존 Pipeline 결과 backfill·rollback과 `DohaArtifacts/music` resolver 계약을 별도 작업으로 확정한다.
-14. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
+12. [Workspace v1 API 계약](docs/06-api/workspace-rest-api-contract.md)은 Common Specification과 DB Redesign 기준의 문서 설계만 `[계획]` 상태다. 선행 계약 확정 전에는 현재 `/api` Router·OpenAPI·DB·Frontend를 변경하지 않는다.
+13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 문서·ERD만 `[제안]` 상태다. Common Specification 확정과 Migration 승인 전에는 현재 14개 Table·API·Runtime을 변경하지 않는다.
+14. Workspace Artifact 구현 전 `AssetVersion` 기반 Composition Snapshot, Artifact ID/URI, 기존 Pipeline 결과 backfill·rollback과 `DohaArtifacts/music` resolver 계약을 별도 작업으로 확정한다.
+15. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
 
 ## F6 Guided Voice Enrollment 실행 순서 [진행 중]
 
