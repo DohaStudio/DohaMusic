@@ -2,11 +2,15 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-02
+> 최종 수정일: 2026-08-05
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 변경 — GitHub 저장소 소유자
+
+- GitHub 저장소 소유자 변경에 따라 저장소 식별자와 기존 PR 링크를 `DDORINY/DohaMusic`에서 `DohaStudio/DohaMusic`으로 갱신했다.
 
 ### 수정 — Voice Enrollment WAV 정규화 오류 분류
 

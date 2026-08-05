@@ -2,7 +2,7 @@
 
 > 상태: [승인]
 > 작성일: 2026-07-31
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-05
 > 관련 기능: Phase 8 Doha Studio MVP
 > 관련 문서: [Frontend Architecture](../03-architecture/frontend-architecture.md), [Responsive Guide](../03-architecture/responsive-guide.md), [Frontend Roadmap](../../planning/frontend-roadmap.md)
 
@@ -70,7 +70,7 @@ Next.js rewrite가 `/backend/*`를 server-only `DOHAMUSIC_API_ORIGIN`으로 전�
 
 ## 관련 PR
 
-- [PR #19](https://github.com/DDORINY/DohaMusic/pull/19) — Doha Studio Responsive Frontend MVP
-- [PR #20](https://github.com/DDORINY/DohaMusic/pull/20) — Frontend 보안 경계와 유지보수 구조
-- [PR #21](https://github.com/DDORINY/DohaMusic/pull/21) — Audio 재생·다운로드
+- [PR #19](https://github.com/DohaStudio/DohaMusic/pull/19) — Doha Studio Responsive Frontend MVP
+- [PR #20](https://github.com/DohaStudio/DohaMusic/pull/20) — Frontend 보안 경계와 유지보수 구조
+- [PR #21](https://github.com/DohaStudio/DohaMusic/pull/21) — Audio 재생·다운로드
 - PR #22 — Voice Profile upload·list·get·Studio 선택
