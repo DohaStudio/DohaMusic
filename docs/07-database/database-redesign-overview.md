@@ -49,7 +49,7 @@ Common Specification은 아직 `[제안]`입니다. 이번 설계도 같은 상�
 - 초기 사용자는 한 명이지만 모든 `MusicProject`는 하나의 `Workspace`에 속합니다.
 - `Workspace`는 향후 사용자·권한 확장 경계를 유지합니다.
 - `MusicProject`와 `Asset`은 `ProjectAsset`을 통한 N:M 관계입니다.
-- Common Specification의 `Asset.project_id` 최소 필드와 N:M `ProjectAsset` 요구가 충돌하므로 목표 관계에서는 `ProjectAsset`을 단일 연결 기준으로 채택합니다. 공통 명세 확정 전에 이 필드 충돌을 해소해야 합니다.
+- Common Specification Draft PR #2는 Asset을 Workspace 범위 재사용 자산으로 정의하고 `Asset.project_id`를 제거했습니다. 이 설계도 `Asset.workspace_id`와 N:M `ProjectAsset`을 단일 Project 연결 기준으로 사용합니다.
 
 ### 3.2 Asset, AssetVersion과 Artifact
 
@@ -174,7 +174,7 @@ Common Specification은 아직 `[제안]`입니다. 이번 설계도 같은 상�
 
 ## 8. 미확정 사항
 
-- Common Specification의 `Asset.project_id`와 N:M `ProjectAsset` 중 최종 필드 계약
+- Common Specification Draft PR #2의 최종 merge commit과 contract version
 - ID의 전역 고유성 범위와 UUID version
 - JSON field의 JSON Schema와 contract version
 - Artifact Catalog 또는 Resolver의 구현·운영 주체

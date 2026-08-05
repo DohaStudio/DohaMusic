@@ -10,6 +10,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 — Asset 중심 데이터베이스 재설계
 
+- DohaStudio Common Specification Draft PR #2에서 `Asset.project_id`를 제거하고 `Asset.workspace_id`·`ProjectAsset` N:M 계약으로 정렬한 결과를 반영했다.
 - DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·Composition Snapshot·Job 중심의 21개 Entity와 21개 목표 Table을 설계했다.
 - Pipeline이 결과를 소유하지 않고 AssetVersion이 불변 결과를 소유하도록 ERD, PK·FK·Unique·Index, Selection·Approval·삭제·Snapshot 정책을 정의했다.
 - 현행 14개 Table에서 목표 구조로 전환하는 additive backfill, Dual Write, Shadow Read, Read 전환과 Legacy 제거 순서 및 검증 Gate를 문서화했다.

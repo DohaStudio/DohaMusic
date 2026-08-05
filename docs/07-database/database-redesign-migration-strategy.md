@@ -75,7 +75,7 @@
 ### Phase 0 — Specification 고정
 
 1. DohaStudio Common Specification의 merge commit과 contract version을 확정합니다.
-2. `Asset.project_id`와 N:M `ProjectAsset` 충돌을 해소합니다.
+2. 확정된 `Asset.workspace_id`와 N:M `ProjectAsset` 계약이 목표 Table Definition과 일치하는지 재검증합니다.
 3. ID, enum, JSON Schema, Artifact Resolver와 Approval 계약을 승인합니다.
 4. 목표 ERD와 Table Definition을 ADR 상태와 함께 승인합니다.
 
