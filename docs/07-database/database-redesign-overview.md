@@ -29,16 +29,16 @@ Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않�
 
 설계 기준은 DohaStudio Common Specification Draft PR [#2](https://github.com/DohaStudio/.github/pull/2)의 commit `2a804e2`입니다.
 
-- [Asset Specification](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/01-asset-specification.md)
-- [AssetVersion Specification](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/02-asset-version-specification.md)
-- [Artifact Specification](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/03-artifact-specification.md)
-- [Provider Contract](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/04-provider-contract.md)
-- [Job Contract](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/05-job-contract.md)
-- [Model Manifest Specification](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/06-model-manifest-specification.md)
-- [Dataset Manifest Specification](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/07-dataset-manifest-specification.md)
-- [Composition Snapshot Specification](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/08-composition-snapshot-specification.md)
-- [Storage Layout Specification](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/09-storage-layout-specification.md)
-- [Common Terms](https://github.com/DohaStudio/.github/blob/2a804e2736b0d89bd0948ddc132493c73b991354/docs/specifications/10-common-terms.md)
+- [Asset 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/01-asset-specification.md)
+- [AssetVersion 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/02-asset-version-specification.md)
+- [Artifact 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/03-artifact-specification.md)
+- [Provider 계약](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/04-provider-contract.md)
+- [Job 계약](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/05-job-contract.md)
+- [Model Manifest 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/06-model-manifest-specification.md)
+- [Dataset Manifest 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/07-dataset-manifest-specification.md)
+- [Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/08-composition-snapshot-specification.md)
+- [Storage 구조 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/09-storage-layout-specification.md)
+- [공통 용어](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/10-common-terms.md)
 
 Common Specification은 아직 `[제안]`입니다. 이번 설계도 같은 상태를 유지하며, 공통 명세가 변경되면 구현 전에 차이를 다시 검토합니다.
 
