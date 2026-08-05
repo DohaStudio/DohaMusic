@@ -65,4 +65,4 @@ Provider 모델 수명주기와 사용자의 프로젝트 결과 수명주기를
 
 ## 관련 PR
 
-Draft PR 생성 후 연결한다.
+- [PR #51 — DohaMusic music Artifact 도메인 문서화](https://github.com/DohaStudio/DohaMusic/pull/51)
