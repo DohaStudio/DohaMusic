@@ -1,4 +1,4 @@
-# Pipeline Orchestrator
+# Pipeline Orchestrator 아키텍처
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-05
@@ -60,7 +60,7 @@ ExportStep(final.wav)
 
 공통 오류는 `PipelineError`, `StepError`, `ProviderError`, `StepTimeoutError`, `ValidationError`, `OutputError`로 분리한다. API에는 내부 예외나 경로를 노출하지 않는다.
 
-## Cancel·Retry
+## 취소·재시도
 
 `PENDING` 취소는 즉시 `CANCELLED`로 확정한다. 실행 중 취소는 DB에 `CANCEL_REQUESTED`를 먼저 commit하고 Worker가 Job 시작 전, 각 단계 시작 전·완료 후, 결과 metadata·파일 저장 전에 확인해 `CANCELLED`로 확정한다. 부분 출력은 정리하고 최종 Result는 공개하지 않는다.
 

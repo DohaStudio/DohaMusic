@@ -52,7 +52,7 @@ DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Legacy·Comp
 - 개인 음성의 철회·삭제는 DohaMusic이 명령하며 DohaVocal은 파생 Dataset·cache·Checkpoint·Adapter의 처리 결과를 추적 가능하게 반환해야 한다.
 - 허용 URI scheme, 서명 URL, 암호화와 object storage 구현은 보안 검토 후 확정한다.
 
-## Provider API versioning
+## Provider API 버전 관리
 
 - 호환성을 깨는 request·response·상태·오류·Artifact 의미 변경은 major contract version을 올린다.
 - additive field는 기존 Client가 무시할 수 있어야 하며 필수 필드 변경은 호환성 테스트를 요구한다.

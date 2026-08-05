@@ -1,4 +1,4 @@
-# Phase 7 Definition of Done — Doha Voice
+# Phase 7 완료 기준 — Doha Voice
 
 > 상태: [계획]
 > 진행률: 0/16, 0%

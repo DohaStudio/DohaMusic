@@ -1,4 +1,4 @@
-# ADR-016 — Local Lyrics LLM Fine-tuning
+# ADR-016 — 로컬 가사 LLM Fine-tuning
 
 > 상태: 계획 승인, 저장소 책임은 ADR-028로 갱신
 > 작성일: 2026-07-31
