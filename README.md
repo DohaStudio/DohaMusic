@@ -6,7 +6,7 @@
 
 > DohaLM Lyrics 연동: 별도 저장소의 LLM 모델·추론 Provider인 [DohaLM](https://github.com/DohaStudio/DohaLM/tree/develop)을 REST/Streaming API 또는 향후 Python SDK로 호출하는 Reference Application 구조는 `[계획]`입니다. DohaLM의 현재 REST/SSE MVP는 일반 Chat 계약이며 Python SDK와 DohaMusic 전용 Lyrics API는 아직 확정되지 않았습니다. `AIHUB-71748` 계열은 비상업 연구 범위이므로 상업용 DohaMusic 작업에서 사용할 수 없습니다.
 
-> AI Provider 저장소 분리: DohaMusic은 제품 서비스·Pipeline Orchestration·Mixer·최종 Export를 유지하고, DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess는 호환 계층으로 유지합니다.
+> AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지하고, 실제 저장소로 존재하는 DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider 기능으로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
@@ -23,7 +23,7 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.
 
-장기적으로 DohaMusic은 Next.js·FastAPI·인증·프로젝트·Job·DB·가사 승인·음성 동의·Provider Client·Pipeline·결과 관리에 집중한다. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소와 Runtime API는 아직 `[계획]`이며 자세한 책임은 [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md)를 따른다.
+장기적으로 DohaMusic은 Next.js·FastAPI·인증·프로젝트·Job·DB·가사 승인·음성 동의·Provider Client·Workspace Workflow·결과 관리에 집중한다. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소는 존재하며 Runtime API는 아직 `[계획]`이다. 자세한 책임은 [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md)를 따른다.
 
 ## 최종 목표
 
@@ -130,7 +130,7 @@ DohaMusic/
 └─ CONTRIBUTING.md
 ```
 
-위 트리는 현재 실제 DohaMusic checkout이다. 목표 저장소 경계는 [저장소와 AI Provider 책임 경계](docs/03-architecture/repository-provider-boundaries.md)에 정의하며 DohaAudio·DohaVocal은 아직 생성되지 않았다.
+위 트리는 현재 실제 DohaMusic checkout이다. 목표 저장소 경계는 [저장소와 AI Provider 책임 경계](docs/03-architecture/repository-provider-boundaries.md)에 정의한다. DohaAudio·DohaVocal 저장소는 존재하지만 Runtime 기능은 `[계획]`이다.
 
 ## 빠른 시작
 

@@ -17,7 +17,7 @@
 - [ ] `develop` 대상 PR 검토와 병합
 - [ ] 병합 후 링크·상태·원격 `develop` 검증
 
-Phase A는 문서와 계약 방향만 확정한다. 저장소 생성, 코드 이동, Runtime API 구현과 운영 Provider 승격은 포함하지 않는다.
+Phase A는 문서와 계약 방향만 제안한다. DohaAudio·DohaVocal 저장소는 이미 존재하며, 코드 이동, Runtime API 구현과 운영 Provider 승격은 포함하지 않는다.
 
 ## Phase B — New Implementation Separation [계획]
 

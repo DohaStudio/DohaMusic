@@ -27,7 +27,7 @@
 3. Phase C `[계획]`: ACE-Step·Demucs·Seed-VC Runner를 순차 이전하고 로컬 `Path`를 Artifact ID·URI 계약으로 전환한다.
 4. Phase D `[계획]`: 전환 검증이 끝난 내부 Runner와 구형 Adapter만 제거하고 운영 계약 version과 DoD를 확정한다.
 
-현재는 문서 경계만 확정하며 DohaAudio·DohaVocal 저장소, Runtime API, Provider HTTP API, Artifact URI와 공통 Model Registry는 구현하지 않는다.
+현재는 문서 경계만 제안한다. DohaAudio·DohaVocal 저장소는 존재하지만 Runtime API, Provider HTTP API, Artifact URI와 공통 Model Registry는 구현하지 않는다.
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-08-05

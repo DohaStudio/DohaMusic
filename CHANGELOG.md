@@ -10,7 +10,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 — AI Provider 저장소 책임과 단계적 Runtime 분리
 
-- DohaMusic을 제품 서비스·Pipeline Orchestrator·결과 관리·Mixer·최종 Export 책임으로 유지하고 DohaLM, DohaAudio `[계획]`, DohaVocal `[계획]`의 Dataset·학습·평가·Runtime 책임 경계를 정의했다.
+- DohaMusic을 제품 서비스와 Workspace·Job Orchestrator·결과 관리·Mixer·최종 Export 책임으로 유지하고 DohaLM, DohaAudio, DohaVocal의 Dataset·학습·평가·Runtime 책임 경계를 정의했다. DohaAudio·DohaVocal 저장소는 존재하며 Runtime 기능은 `[계획]`으로 구분했다.
+- 기존 `PipelineExecutor`를 장기 제품 책임이 아닌 Legacy·Compatibility Workflow로 명시하고 DohaStudio 공통 명세 참조를 추가했다.
 - 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현하고 기존 ACE-Step·Demucs·Seed-VC subprocess는 검증된 전환 전까지 호환 계층으로 유지하도록 정했다.
 - Git 밖의 공통 Dataset·Artifact root 정책, Model Manifest 최소 계약과 Provider Job·Artifact ID·URI·API versioning·GPU admission control을 ADR-028과 단계적 Roadmap·DoD에 기록했다.
 - 이번 변경은 문서만 수정하며 저장소 생성, Runtime 코드 이동, HTTP API, Artifact URI와 공통 Model Registry 구현을 포함하지 않는다.

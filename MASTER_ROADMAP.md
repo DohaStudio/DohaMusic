@@ -31,11 +31,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [진행 중] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화, `develop` 병합 전 |
-| Phase B New Implementation Separation | [계획] | DohaAudio·DohaVocal 미생성, Provider Client 미구현 |
+| Phase B New Implementation Separation | [계획] | DohaAudio·DohaVocal 저장소 존재, Provider Runtime·Client 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 서비스·Pipeline Orchestrator·Mixer·최종 Export를 소유한다. 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소는 `[계획]`이며 현재 구현 상태를 변경하지 않는다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소는 존재하며 Runtime 기능은 `[계획]`이다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
 
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-05

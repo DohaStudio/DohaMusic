@@ -23,7 +23,7 @@ POST /api/pipelines
 
 Music·Stem·Voice 단계는 각각 `MusicGenerator`, `StemSeparator`, `VoiceConverter` 인터페이스만 사용한다. 애플리케이션 시작 시 선택된 기존 Provider가 그대로 주입된다. Voice 기본값은 `mock`이며 Primary Provider가 승인되기 전까지 운영 Provider로 자동 전환하지 않는다.
 
-Pipeline Orchestrator는 저장소 분리 후에도 DohaMusic에 남는다. Provider 선택, Job 상태, 취소·재시도, 결과 계보, 상업 이용 상태와 단일 GPU admission control을 중앙에서 관리하며 DohaLM·DohaAudio·DohaVocal Provider가 서로 직접 호출하는 것을 허용하지 않는다. 기존 subprocess와 로컬 `Path` 계약은 호환 계층이고, 외부 Runtime·Artifact 계약은 [전환 Roadmap](../../planning/repository-separation-roadmap.md)에 따라 단계적으로 도입한다.
+현재 `PipelineExecutor` 기반 Pipeline Orchestrator는 구현 완료 상태를 유지하지만 장기 제품 책임의 이름으로 고정하지 않는다. 저장소 분리 이후에는 Legacy·Compatibility Workflow로서 DohaMusic의 Workspace·Job Orchestrator 아래에 남는다. Provider 선택, Job 상태, 취소·재시도, 결과 계보, 상업 이용 상태와 단일 GPU admission control은 DohaMusic이 중앙 관리하며 DohaLM·DohaAudio·DohaVocal Provider의 직접 호출을 허용하지 않는다. 기존 subprocess와 로컬 `Path` 계약은 호환 계층이고, 외부 Runtime·Artifact 계약은 [전환 Roadmap](../../planning/repository-separation-roadmap.md)에 따라 단계적으로 도입한다.
 
 ## Context와 결과
 

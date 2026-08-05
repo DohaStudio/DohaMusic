@@ -1,15 +1,15 @@
 # ADR-028 — 외부 Provider Runtime과 Artifact 계약
 
-> 상태: [승인]
+> 상태: [제안]
 > 작성일: 2026-08-05
 > 최종 수정일: 2026-08-05
 > 관련 기능: AI Provider 저장소 분리와 단계적 Runtime 전환
-> 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [AI Pipeline](../03-architecture/ai-pipeline.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [Model Manifest](../04-models/provider-model-manifest.md), [전환 로드맵](../../planning/repository-separation-roadmap.md)
+> 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [AI Pipeline](../03-architecture/ai-pipeline.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [Model Manifest](../04-models/provider-model-manifest.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [DohaStudio 공통 명세 Draft PR #2](https://github.com/DohaStudio/.github/pull/2)
 > 관련 PR: 이 문서를 추가한 `develop` 대상 PR
 
 ## 배경
 
-DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Pipeline Orchestrator를 갖고 있으며 ACE-Step·Demucs·Seed-VC를 격리 subprocess로 실행한다. DohaLM은 별도 저장소의 Lyrics Provider로 계획돼 있다. 모델별 Dataset·학습·평가·CUDA 환경과 서비스 책임을 분리하기 위해 DohaAudio와 DohaVocal을 외부 Provider 저장소로 둘 필요가 있다.
+DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Legacy·Compatibility `PipelineExecutor`를 갖고 있으며 ACE-Step·Demucs·Seed-VC를 격리 subprocess로 실행한다. DohaLM, DohaAudio와 DohaVocal은 별도 저장소로 존재한다. 모델별 Dataset·학습·평가·CUDA 환경과 제품 서비스 책임을 분리하기 위해 이들을 외부 Provider 저장소 경계로 유지할 필요가 있다.
 
 ## 문제
 
@@ -18,12 +18,12 @@ DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Pipeline Orc
 ## 결정
 
 1. 저장소 책임 분리와 Runtime 분리를 별도 단계로 수행한다.
-2. DohaMusic은 제품 서비스, Pipeline Orchestration, Provider 선택·호출, 작업 상태, 결과·Artifact 관리, 상업 이용과 접근 권한을 소유한다.
-3. DohaLM은 Lyrics, DohaAudio는 Music Generation·Stem Separation, DohaVocal은 Singing Voice·Voice Conversion의 Dataset·학습·평가·Model Manifest·Runtime을 소유한다. DohaAudio와 DohaVocal은 현재 `[계획]`이다.
+2. DohaMusic은 제품 서비스와 Workspace·Job Orchestration, Provider 선택·호출, 작업 상태, 결과·Artifact 관리, 상업 이용과 접근 권한을 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow로 유지한다.
+3. DohaLM은 Lyrics, DohaAudio는 Music Generation·Stem Separation, DohaVocal은 Singing Voice·Voice Conversion의 Dataset·학습·평가·Model Manifest·Runtime을 소유한다. DohaAudio와 DohaVocal 저장소는 존재하며 해당 Runtime 기능은 현재 `[계획]`이다.
 4. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다.
 5. ACE-Step·Demucs·Seed-VC의 기존 Adapter·Runner는 새 Runtime 계약이 검증될 때까지 로컬 subprocess 호환 계층으로 유지한다.
 6. 장기 Provider 연동은 versioned HTTP 또는 동등한 독립 Runtime 계약을 사용한다. 구체 protocol과 배포 기술은 구현 전 검증으로 확정한다.
-7. Provider 간 직접 호출을 금지한다. 모든 Workflow는 DohaMusic Pipeline Orchestrator를 통과한다.
+7. Provider 간 직접 호출을 금지한다. 모든 Provider Job 연결은 DohaMusic Workspace·Job Orchestrator를 통과한다.
 8. 단일 GPU 환경의 작업 승인, 동시성 한도와 모델 로드 순서를 포함한 GPU admission control은 DohaMusic이 관리한다.
 9. Provider 경계를 넘는 파일은 로컬 절대 Path 대신 Artifact ID 또는 URI와 checksum으로 식별하는 방향으로 전환한다.
 10. API와 Artifact 계약은 명시적으로 versioning하고 Model Manifest의 `api_contract_version`과 호환성을 검증한다.
@@ -35,7 +35,7 @@ DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Pipeline Orc
 | 영역 | 필수 계약 |
 |---|---|
 | 작업 생성 | request ID·idempotency key·capability·Manifest selector·입력 Artifact 참조 |
-| 상태 | `PENDING`, `RUNNING`, `COMPLETED`, `FAILED`, `CANCEL_REQUESTED`, `CANCELLED` 또는 versioned 대응 상태 |
+| 상태 | 공통 `pending`, `running`, `succeeded`, `failed`, `canceled` 상태와 별도 취소 요청·재시도 Metadata |
 | 취소 | 수락 여부, cooperative·강제 취소 능력과 최종 상태 |
 | 재시도 | 재시도 가능 오류, attempt, 원본 작업 관계와 중복 방지 |
 | 오류 | 안정적인 code, 재시도 가능성, 공개 message와 비공개 진단 분리 |
@@ -94,7 +94,7 @@ ADR-005의 subprocess 격리, ADR-007의 작업별 ACE-Step 수명주기, ADR-00
 
 ## 재검토 조건
 
-- DohaAudio 또는 DohaVocal 저장소를 생성할 때
+- DohaAudio 또는 DohaVocal에서 첫 Runtime 구현을 시작할 때
 - 첫 Provider Runtime API와 인증·Artifact transport를 선택할 때
 - 외부 Queue, object storage 또는 GPU scheduler를 도입할 때
 - Provider 상태·취소·재시도 또는 Model Manifest schema를 확정할 때
