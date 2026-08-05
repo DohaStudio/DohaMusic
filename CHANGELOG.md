@@ -10,6 +10,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 — Workspace REST API 재설계
 
+- DohaStudio Common Specification의 `Asset.project_id` 제거와 `Asset.workspace_id`·`ProjectAsset` N:M 계약을 API 선행 기준으로 반영했다.
 - Pipeline 실행 중심이 아닌 Workspace·Project·Asset·AssetVersion·Artifact·Composition Snapshot·Job 중심의 `/api/v1` 목표 계약을 정의했다.
 - 16개 API 그룹과 64개 Method·Path 조합, REST Method·Response·Error·cursor·filter·sort·Idempotency-Key·major version 정책을 문서화했다.
 - Workspace Job과 Orchestrator 전용 Provider Job을 분리하고 Provider 간 직접 호출·경로 노출·기존 Version 덮어쓰기를 금지했다.

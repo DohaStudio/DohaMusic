@@ -293,7 +293,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 ## 13. 미확정 사항
 
 - Common Specification과 DB Redesign의 merge·contract version
-- `Asset.project_id`와 N:M ProjectAsset의 공통 명세 충돌
+- `Asset.workspace_id`와 N:M `ProjectAsset` 계약의 최종 merge commit·contract version
 - API ID의 UUID version과 전역 고유성 범위
 - cursor 서명·만료·암호화 방식
 - Idempotency-Key 보존 기간과 분산 환경 저장소
