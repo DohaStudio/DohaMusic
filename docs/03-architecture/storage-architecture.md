@@ -1,5 +1,11 @@
 # 저장소 아키텍처
 
+> 문서 상태: [운영 기준 + 계획]
+> 최종 수정일: 2026-08-05
+> 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [데이터베이스 개요](../07-database/database-overview.md)
+
+## 현재 구현
+
 ```text
 backend/storage/
 ├─ inputs/
@@ -20,6 +26,42 @@ backend/storage/
 Voice 출력은 `voices/converted/{job_id}.wav`, 실행 metadata는 `voices/metadata/{job_id}.json`이다. 사용자용 단일 WAV upload는 검증 전 `voices/references/.uploads/{uuid}.tmp`, 성공 후 `voices/references/{profile_uuid}/reference.wav`를 사용하며 실패 시 temp·final orphan을 정리한다. legacy 운영자 배치 참조 파일도 개발 호환으로 유지한다. 참조 음성·변환 음성·모델·cache·실험 파일은 Git에서 제외한다. 원본 참조 음성 content/download는 제공하지 않고 완료 Pipeline의 허용된 WAV만 Service 검증 후 `FileResponse`로 전달하며 Storage 디렉터리 자체는 정적으로 공개하지 않는다.
 
 F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)에 따라 `voices/enrollments/{enrollment_id}/samples/{sample_id}/original.{wav|webm|ogg}`와 `normalized.wav` 임시 root, `voices/references/{profile_id}/samples/{sample_id}/reference.wav` 승격 구조를 구현했다. UUID 생성 경로, root·traversal·symlink 검사, 임시 suffix와 rename, overwrite 방지와 반복 cleanup을 적용한다. 원본은 submit·sample 삭제·취소·만료 때 제거하고 실패는 `DELETE_FAILED`/cleanup failure로 추적한다. process-local scheduler는 DB 기준 orphan scan·retry와 시작 복구를 수행하며 공개 DTO와 로그에는 내부 경로를 포함하지 않는다.
+
+## 목표 Artifact 도메인 [계획]
+
+현재 `AUDIO_STORAGE_ROOT` 구현과 별개로 장기 로컬 Artifact root를 다음처럼 구분한다. 이번 문서 변경은 디렉터리 생성, 파일 이동, 환경 변수 추가와 Storage resolver 구현을 포함하지 않는다.
+
+```text
+D:/DohaArtifacts/
+├── lm/       # DohaLM Provider 모델·학습·평가·Runtime 산출물
+├── audio/    # DohaAudio Provider 음악 생성·분리·분석 산출물
+├── vocal/    # DohaVocal Provider 보컬 생성·변환·보정 산출물
+└── music/    # DohaMusic Workspace 프로젝트 결과물
+    ├── mixes/
+    ├── exports/
+    ├── previews/
+    ├── snapshots/
+    └── runs/
+```
+
+| 도메인 | 소유 책임 | 대표 Artifact |
+|---|---|---|
+| `lm` | DohaLM Provider | LLM checkpoint, adapter, model, evaluation, run |
+| `audio` | DohaAudio Provider `[계획]` | Music Generation, instrumental, stem, audio evaluation, Runtime 결과 |
+| `vocal` | DohaVocal Provider `[계획]` | AI Vocal, recording 기술 처리 결과, Voice Conversion, Pitch·Timing Correction, vocal evaluation, Runtime 결과 |
+| `music` | DohaMusic Workspace | Mix Asset, Export Asset, Preview, Composition Snapshot, Mix·Export Job 실행 기록 |
+
+`audio`와 `vocal`은 모델·Provider 실행 결과를 소유하고 `music`은 사용자가 선택한 특정 AssetVersion을 조합한 프로젝트 결과를 소유한다. Provider가 Mix 또는 최종 Export를 소유하지 않으며 Provider끼리 `music` 영역을 직접 쓰지 않는다.
+
+### `music` 하위 구조 [계획]
+
+- `mixes/`: Composition Snapshot을 입력으로 DohaMusic Mixer가 만든 Mix Asset의 파일 Artifact
+- `exports/`: 선택된 Mix AssetVersion에서 만든 WAV·MP3·FLAC 등 최종 Export Artifact
+- `previews/`: 낮은 용량의 빠른 재생 파일, waveform cache와 기타 재생 파생물
+- `snapshots/`: DB가 소유하는 특정 AssetVersion 조합, processing chain과 mix settings를 재현·교환·백업하기 위한 불변 직렬화 Artifact. 권위 있는 관계 데이터는 DB에 유지
+- `runs/`: Mix Job·Export Job 실행 로그, 설정 snapshot과 안전한 진단 metadata
+
+내부 DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact는 opaque ID 또는 향후 versioned URI로 식별하고 실제 root 해석은 Storage 계층에 둔다. 구체적인 URI와 migration은 아직 `[계획]`이다.
 
 ## K3 Preview 저장 목표 [계획]
 

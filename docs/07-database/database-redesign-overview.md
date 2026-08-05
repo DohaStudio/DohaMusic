@@ -27,18 +27,18 @@ Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않�
 
 ## 2. Common Specification 기준
 
-설계 기준은 DohaStudio Common Specification Draft PR [#2](https://github.com/DohaStudio/.github/pull/2)의 commit `2a804e2`입니다.
+설계 기준은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/develop/docs/specifications)의 `develop` 반영 commit `a32a4d88d9378e59877a1ec64c1ecc1bf0574434`입니다.
 
-- [Asset 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/01-asset-specification.md)
-- [AssetVersion 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/02-asset-version-specification.md)
-- [Artifact 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/03-artifact-specification.md)
-- [Provider 계약](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/04-provider-contract.md)
-- [Job 계약](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/05-job-contract.md)
-- [Model Manifest 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/06-model-manifest-specification.md)
-- [Dataset Manifest 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/07-dataset-manifest-specification.md)
-- [Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/08-composition-snapshot-specification.md)
-- [Storage 구조 명세](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/09-storage-layout-specification.md)
-- [공통 용어](https://github.com/DohaStudio/.github/blob/8422e438b0ae1243a6888660142ee270a596229f/docs/specifications/10-common-terms.md)
+- [Asset 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/01-asset-specification.md)
+- [AssetVersion 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/02-asset-version-specification.md)
+- [Artifact 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/03-artifact-specification.md)
+- [Provider 계약](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/04-provider-contract.md)
+- [Job 계약](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/05-job-contract.md)
+- [Model Manifest 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/06-model-manifest-specification.md)
+- [Dataset Manifest 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/07-dataset-manifest-specification.md)
+- [Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/08-composition-snapshot-specification.md)
+- [Storage 구조 명세](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/09-storage-layout-specification.md)
+- [공통 용어](https://github.com/DohaStudio/.github/blob/develop/docs/specifications/10-common-terms.md)
 
 Common Specification은 아직 `[제안]`입니다. 이번 설계도 같은 상태를 유지하며, 공통 명세가 변경되면 구현 전에 차이를 다시 검토합니다.
 
@@ -49,7 +49,7 @@ Common Specification은 아직 `[제안]`입니다. 이번 설계도 같은 상�
 - 초기 사용자는 한 명이지만 모든 `MusicProject`는 하나의 `Workspace`에 속합니다.
 - `Workspace`는 향후 사용자·권한 확장 경계를 유지합니다.
 - `MusicProject`와 `Asset`은 `ProjectAsset`을 통한 N:M 관계입니다.
-- Common Specification Draft PR #2는 Asset을 Workspace 범위 재사용 자산으로 정의하고 `Asset.project_id`를 제거했습니다. 이 설계도 `Asset.workspace_id`와 N:M `ProjectAsset`을 단일 Project 연결 기준으로 사용합니다.
+- 확정된 Common Specification은 Asset을 Workspace 범위 재사용 자산으로 정의하고 `Asset.project_id`를 제거했습니다. 이 설계도 `Asset.workspace_id`와 N:M `ProjectAsset`을 단일 Project 연결 기준으로 사용합니다.
 
 ### 3.2 Asset, AssetVersion과 Artifact
 
@@ -174,7 +174,7 @@ Common Specification은 아직 `[제안]`입니다. 이번 설계도 같은 상�
 
 ## 8. 미확정 사항
 
-- Common Specification Draft PR #2의 최종 merge commit과 contract version
+- Common Specification의 정식 contract version
 - ID의 전역 고유성 범위와 UUID version
 - JSON field의 JSON Schema와 contract version
 - Artifact Catalog 또는 Resolver의 구현·운영 주체

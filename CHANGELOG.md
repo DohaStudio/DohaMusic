@@ -10,11 +10,26 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 — Asset 중심 데이터베이스 재설계
 
-- DohaStudio Common Specification Draft PR #2에서 `Asset.project_id`를 제거하고 `Asset.workspace_id`·`ProjectAsset` N:M 계약으로 정렬한 결과를 반영했다.
+- 확정된 DohaStudio Common Specification에서 `Asset.project_id`를 제거하고 `Asset.workspace_id`·`ProjectAsset` N:M 계약으로 정렬한 결과를 반영했다.
 - DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·Composition Snapshot·Job 중심의 21개 Entity와 21개 목표 Table을 설계했다.
 - Pipeline이 결과를 소유하지 않고 AssetVersion이 불변 결과를 소유하도록 ERD, PK·FK·Unique·Index, Selection·Approval·삭제·Snapshot 정책을 정의했다.
 - 현행 14개 Table에서 목표 구조로 전환하는 additive backfill, Dual Write, Shadow Read, Read 전환과 Legacy 제거 순서 및 검증 Gate를 문서화했다.
 - SQL·ORM·Migration·API·DB 파일·Artifact 파일과 Runtime은 변경하지 않았으며 목표 구조는 `[제안]`으로 유지한다.
+
+### 문서 — DohaMusic Workspace `music` Artifact 도메인
+
+- Composition Snapshot의 권위 있는 관계 데이터는 DB가 소유하고 `snapshots` 폴더는 재현·직렬화·백업용 Artifact라는 경계를 명확히 했다.
+- Provider Runtime의 `lm`·`audio`·`vocal` Artifact와 DohaMusic Workspace의 Mix·Export·Preview·Composition Snapshot·실행 기록을 분리했다.
+- `D:/DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` 목표 구조와 Mix·Export의 DohaMusic 책임을 문서화했다.
+- Snapshot이 최신 Asset이 아니라 특정 AssetVersion을 참조하도록 계획하고 현재 폴더·환경 변수·코드·DB는 변경하지 않음을 명시했다.
+
+### 문서 — AI Provider 저장소 책임과 단계적 Runtime 분리
+
+- DohaMusic을 제품 서비스와 Workspace·Job Orchestrator·결과 관리·Mixer·최종 Export 책임으로 유지하고 DohaLM, DohaAudio, DohaVocal의 Dataset·학습·평가·Runtime 책임 경계를 정의했다. DohaAudio·DohaVocal 저장소는 존재하며 Runtime 기능은 `[계획]`으로 구분했다.
+- 기존 `PipelineExecutor`를 장기 제품 책임이 아닌 Legacy·Compatibility Workflow로 명시하고 확정된 DohaStudio 공통 Provider 계약 참조를 추가했다.
+- 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현하고 기존 ACE-Step·Demucs·Seed-VC subprocess는 검증된 전환 전까지 호환 계층으로 유지하도록 정했다.
+- Git 밖의 공통 Dataset·Artifact root 정책, Model Manifest 최소 계약과 Provider Job·Artifact ID·URI·API versioning·GPU admission control을 ADR-028과 단계적 Roadmap·DoD에 기록했다.
+- 이번 변경은 문서만 수정하며 저장소 생성, Runtime 코드 이동, HTTP API, Artifact URI와 공통 Model Registry 구현을 포함하지 않는다.
 
 ### 문서 — DohaLM 가사 생성·분석 연동 계획
 

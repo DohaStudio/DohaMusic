@@ -2,6 +2,8 @@
 
 > 문서 목적: 생성·Stem·Voice와 Pipeline Orchestrator의 모델 교체 계약을 정의한다.
 > 현재 상태: **음악·Stem·Voice Mock 기본 / 선택적 Adapter / Default Audio Mixer 통합 완료**
+> 최종 수정일: 2026-08-05
+> 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md)
 
 ```mermaid
 flowchart LR
@@ -52,6 +54,14 @@ flowchart LR
 ```
 
 각 단계는 `PipelineContext`의 다음 입력만 채운다. 재시도·진행률·오류·benchmark는 Executor와 Worker가 통합 관리한다. Mixer 기본 Provider는 실제 합성을 수행하는 `DefaultAudioMixer`이고 `MockAudioMixer`는 회귀·격리 테스트용으로 유지한다. 자세한 DSP 경계는 [Audio Quality Engine](audio-quality-engine.md), Workflow 경계는 [Pipeline Orchestrator](pipeline-orchestrator.md)를 따른다.
+
+## 외부 Provider 전환 경계 — [계획]
+
+`PipelineExecutor`와 단계 순서는 DohaMusic에 유지한다. 신규 Music Generator와 Stem Separation Runtime은 DohaAudio, 신규 Singing Voice·Voice Conversion Runtime은 DohaVocal에서 구현한다. Provider는 서로 직접 호출하지 않고 DohaMusic이 선택·호출·상태 전이와 GPU admission control을 관리한다.
+
+현재 `PipelineContext`의 로컬 파일 경로와 ACE-Step·Demucs·Seed-VC subprocess 호출은 실제 구현된 호환 계약이다. 이를 즉시 제거하지 않으며 새 Runtime의 Job·취소·재시도·오류·Health와 Artifact ID·URI 계약을 검증한 뒤 Provider별로 순차 전환한다. DohaAudio·DohaVocal Runtime API와 Artifact URI는 아직 구현되지 않았다.
+
+장기 Provider Client는 기존 `MusicGenerator`, `StemSeparator`, `VoiceConverter`의 역할을 유지하되 모델 내부 경로와 의존성을 노출하지 않는다. 출력에는 [Model Manifest](../04-models/provider-model-manifest.md) identity와 Artifact checksum을 포함하는 방향으로 확장한다.
 
 ## 향후 Voice Provider Matrix
 

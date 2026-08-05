@@ -31,3 +31,9 @@ DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·
 Alembic `20260729_0006`은 `lyrics_documents`에 self-reference parent, version, revision instruction, 전후 SHA-256을 추가한다. Provider 응답은 검증 후 새 row로만 저장되며 기존 버전은 불변이다.
 
 DohaLM 공동 창작 연동에서 필요한 Project·Version·Generation·Analysis·Approval·ModelUsage·LicenseReview 분리는 아직 `[계획]`이며 현재 테이블 수나 migration head를 변경하지 않는다. 개념 관계와 현재 `lyrics_documents`의 전환 대안은 [가사 버전·승인 데이터 모델](lyrics-versioning-data-model.md)을 따른다.
+
+## Workspace Artifact와 Composition Snapshot [계획]
+
+`Asset`, `AssetVersion`, `Artifact`, `CompositionSnapshot`, `MixJob`과 `ExportJob`은 현재 ORM·테이블·migration에 존재하지 않는다. 목표 모델에서 Snapshot은 최신 Asset ID가 아니라 특정 Lyrics·Music·Vocal·Stem AssetVersion과 processing chain·mix settings·Provider·모델 버전을 불변으로 참조한다.
+
+Mix Asset, Export Asset, Preview, Snapshot과 실행 기록의 목표 도메인은 `DohaArtifacts/music`이다. DB에는 로컬 절대 경로를 저장하지 않고 opaque Artifact ID 또는 향후 versioned URI만 저장한다. 현재 `pipeline_jobs`, `pipeline_files`, `AUDIO_STORAGE_ROOT`와 Alembic head는 이번 문서 작업에서 변경하지 않는다. 세부 계획은 [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md)과 [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md)을 따른다.
