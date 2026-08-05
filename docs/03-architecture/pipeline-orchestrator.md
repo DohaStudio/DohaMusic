@@ -1,9 +1,9 @@
-# Pipeline Orchestrator
+# Pipeline Orchestrator 아키텍처
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-05
 > 관련 기능: Phase 5 Pipeline / Phase 5.1 Mixer / K3.1 Quality / K3.2 Tempo / K3.3 Hook
-> 관련 문서: [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-013](../11-decisions/ADR-013-audio-mixing-engine.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](../../reports/experiments/EXP-006-audio-mixing.md)
+> 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-012](../11-decisions/ADR-012-pipeline-orchestrator.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md), [Pipeline API](../06-api/pipeline-api.md), [EXP-005](../../reports/experiments/EXP-005-pipeline-execution.md)
 
 ## 책임과 경계
 
@@ -22,6 +22,8 @@ POST /api/pipelines
 ```
 
 Music·Stem·Voice 단계는 각각 `MusicGenerator`, `StemSeparator`, `VoiceConverter` 인터페이스만 사용한다. 애플리케이션 시작 시 선택된 기존 Provider가 그대로 주입된다. Voice 기본값은 `mock`이며 Primary Provider가 승인되기 전까지 운영 Provider로 자동 전환하지 않는다.
+
+현재 `PipelineExecutor` 기반 Pipeline Orchestrator는 구현 완료 상태를 유지하지만 장기 제품 책임의 이름으로 고정하지 않는다. 저장소 분리 이후에는 Legacy·Compatibility Workflow로서 DohaMusic의 Workspace·Job Orchestrator 아래에 남는다. Provider 선택, Job 상태, 취소·재시도, 결과 계보, 상업 이용 상태와 단일 GPU admission control은 DohaMusic이 중앙 관리하며 DohaLM·DohaAudio·DohaVocal Provider의 직접 호출을 허용하지 않는다. 기존 subprocess와 로컬 `Path` 계약은 호환 계층이고, 외부 Runtime·Artifact 계약은 [전환 Roadmap](../../planning/repository-separation-roadmap.md)에 따라 단계적으로 도입한다.
 
 ## Context와 결과
 
@@ -58,7 +60,7 @@ ExportStep(final.wav)
 
 공통 오류는 `PipelineError`, `StepError`, `ProviderError`, `StepTimeoutError`, `ValidationError`, `OutputError`로 분리한다. API에는 내부 예외나 경로를 노출하지 않는다.
 
-## Cancel·Retry
+## 취소·재시도
 
 `PENDING` 취소는 즉시 `CANCELLED`로 확정한다. 실행 중 취소는 DB에 `CANCEL_REQUESTED`를 먼저 commit하고 Worker가 Job 시작 전, 각 단계 시작 전·완료 후, 결과 metadata·파일 저장 전에 확인해 `CANCELLED`로 확정한다. 부분 출력은 정리하고 최종 Result는 공개하지 않는다.
 

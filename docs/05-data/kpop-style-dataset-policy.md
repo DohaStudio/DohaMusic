@@ -3,7 +3,7 @@
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
 > 관련 기능: 향후 K-POP Style Fine-tuning
-> 관련 문서: [Audio Data Policy](audio-data-policy.md), [Lyrics Dataset Policy](lyrics-dataset-policy.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md)
+> 관련 문서: [Audio Data Policy](audio-data-policy.md), [Lyrics Dataset Policy](lyrics-dataset-policy.md), [로컬 Dataset·Artifact 정책](local-dataset-artifact-policy.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md)
 
 이번 단계는 정책 정의만 수행하며 Dataset 구축·수집·전처리·LoRA 학습을 수행하지 않는다.
 
@@ -24,6 +24,8 @@
 ## 데이터 분리
 
 Music Style LoRA, Voice Personalization, Lyrics LLM은 목적·권리·Adapter가 서로 다른 Dataset이다. 개인 음성은 Style·Lyrics Dataset과 물리적·논리적으로 분리하고 명시적 동의와 삭제 정책을 따른다.
+
+기술 소유권은 Music Dataset은 DohaAudio `[계획]`, Vocal Dataset은 DohaVocal `[계획]`, Lyrics Dataset은 DohaLM에 둔다. Dataset binary와 Checkpoint는 Git에 포함하지 않으며 DohaMusic은 음성 동의·접근·삭제 결정과 작업 provenance를 소유한다.
 
 ## 향후 후보 범위
 
