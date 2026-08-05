@@ -3,6 +3,7 @@
 > 문서 목적: 현재 실제 테이블의 책임과 필드를 정의한다.
 > 현재 상태: **구현 완료**
 > 최종 수정일: 2026-08-05
+> Asset 중심 목표 구조: [목표 Table Definition](database-redesign-table-definition.md) — [제안], 미구현
 
 모든 ID는 애플리케이션에서 생성하는 UUID 문자열이다. 시각은 UTC 기준으로 기록한다.
 
