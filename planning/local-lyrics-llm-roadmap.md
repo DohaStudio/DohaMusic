@@ -1,15 +1,17 @@
-# Local Lyrics LLM Roadmap
+# 로컬 가사 LLM 로드맵
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-05
 > 관련 Phase: 6.6~6.9
 > 관련 문서: [ADR-016](../docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [Lyrics Architecture](../docs/03-architecture/lyrics-ai.md), [Dataset Policy](../docs/05-data/lyrics-dataset-policy.md), [Model Card](../docs/04-models/local-lyrics-llm-model-card-template.md)
+
+> 저장소 책임: Dataset·Training·Evaluation·Runtime·Model Manifest 구현은 DohaLM이 소유한다. DohaMusic은 `LyricsGenerator` 호환 Provider Client, 가사 편집·버전·최종 승인과 Pipeline 전달을 소유한다. 이 문서의 Phase 번호는 기존 계획 추적용이며 DohaMusic 내부 학습 구현을 지시하지 않는다.
 
 ## 현재 상태
 
 Base Model 미선정, Dataset 미구축, Training Script 미구현, QLoRA SFT 미착수, checkpoint 없음, `LocalLyricsLLMAdapter` 미구현, 품질 평가 미실시, 운영 미승인이다. Qwen 계열 1.7B~4B Instruct는 우선 검토 후보이며 확정 모델이 아니다.
 
-## Phase 6.6 — Local Lyrics Dataset
+## Phase 6.6 — 로컬 가사 Dataset
 
 ### 목적
 
@@ -48,7 +50,7 @@ Dataset Card, record·rights manifest, 원본/가공 version, split·duplicate·
 
 권리 미확정, 약관 위반 수집, 삭제 불가, leakage 또는 안전한 규모 미달.
 
-## Phase 6.7 — Local Lyrics LLM Fine-tuning
+## Phase 6.7 — 로컬 가사 LLM Fine-tuning
 
 ### 목적
 
@@ -85,11 +87,11 @@ OOM·긴 학습 시간, quantization 품질 저하, 과적합·암기·표현 �
 
 license 미승인, 반복 OOM, 재현 실패, 암기·leakage 또는 baseline 악화.
 
-## Phase 6.8 — Local Lyrics Provider Integration
+## Phase 6.8 — 로컬 가사 Provider 연동
 
 ### 목적
 
-검증 학습 산출물을 API 변화 없이 `LyricsGenerator` 경계의 명시적 `local_llm` Provider 후보로 연결한다.
+DohaLM이 제공하는 검증 학습 산출물과 Runtime을 DohaMusic의 `LyricsGenerator` 경계에 명시적 외부 Provider 후보로 연결한다.
 
 ### 선행 조건
 
@@ -99,8 +101,8 @@ license 미승인, 반복 OOM, 재현 실패, 암기·leakage 또는 baseline �
 
 ### 주요 작업
 
-- `LocalLyricsLLMAdapter`와 local inference runtime 경계
-- Base model·Tokenizer·Adapter/model path 설정 계획
+- DohaLM Runtime과 DohaMusic Provider Client 경계
+- Base model·Tokenizer·Adapter는 DohaLM 내부에 격리하고 DohaMusic에는 경로를 노출하지 않는 계약
 - 기존 `LyricsGenerator` 결과, Provider Factory와 공통 Validator 재사용
 - timeout, OOM, invalid output와 안전한 오류·metadata
 - Template·Mock 회귀 유지와 API 계약 무변경 확인
@@ -124,7 +126,7 @@ runtime 의존성 충돌, memory leak·OOM, 구조화 출력 실패, 동기 API 
 
 Service·Repository 대규모 변경, Validator 우회, API 파괴, runtime 격리·timeout·해제 실패.
 
-## Phase 6.9 — Local Lyrics Quality Gate
+## Phase 6.9 — 로컬 가사 품질 Gate
 
 ### 목적
 

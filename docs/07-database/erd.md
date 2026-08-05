@@ -1,5 +1,8 @@
 # ERD
 
+> 현재 구현 기준: Alembic head `20260801_0011`, 14개 Table
+> Asset 중심 목표 구조: [목표 ERD](database-redesign-erd.md) — [제안], 미구현
+
 ```mermaid
 erDiagram
   GENERATION_JOBS ||--o{ GENERATED_FILES : creates

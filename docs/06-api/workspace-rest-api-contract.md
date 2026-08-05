@@ -28,7 +28,7 @@ Workspace
 
 ### 2.1 DohaStudio Common Specification
 
-기준은 [DohaStudio/.github Draft PR #2](https://github.com/DohaStudio/.github/pull/2)의 commit `8422e43`입니다.
+기준은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/develop/docs/specifications)의 `develop` 반영 commit `a32a4d88d9378e59877a1ec64c1ecc1bf0574434`입니다.
 
 - Asset, AssetVersion, Artifact와 AssetRelation
 - Provider Contract와 Job Contract
@@ -38,7 +38,7 @@ Workspace
 
 ### 2.2 DohaMusic Database Redesign
 
-DB 기준은 [DohaMusic Draft PR #52](https://github.com/DohaStudio/DohaMusic/pull/52)의 commit `6a8e0f3`입니다.
+DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/database-redesign-overview.md)의 `develop` 반영 commit `6ef006251c761a7aaa736710bc6a872124701c3c`입니다.
 
 - 21개 목표 Entity와 Table
 - ProjectAsset N:M 관계
@@ -47,7 +47,7 @@ DB 기준은 [DohaMusic Draft PR #52](https://github.com/DohaStudio/DohaMusic/pu
 - Recording Asset와 RecordingEnrollment 분리
 - Selection과 Approval 분리
 
-두 선행 PR은 아직 Draft입니다. 계약이 변경되면 API 구현 전에 이 문서를 다시 검토합니다.
+두 선행 계약은 `develop`에 반영됐지만 Common Specification은 `[제안]`, 데이터베이스 설계는 `[제안]` 상태입니다. 계약이 변경되면 API 구현 전에 이 문서를 다시 검토합니다.
 
 ## 3. API 영역과 Version
 
@@ -292,8 +292,8 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 
 ## 13. 미확정 사항
 
-- Common Specification과 DB Redesign의 merge·contract version
-- `Asset.workspace_id`와 N:M `ProjectAsset` 계약의 최종 merge commit·contract version
+- Common Specification과 DB Redesign의 정식 contract version
+- `Asset.workspace_id`와 N:M `ProjectAsset` 계약의 정식 contract version
 - API ID의 UUID version과 전역 고유성 범위
 - cursor 서명·만료·암호화 방식
 - Idempotency-Key 보존 기간과 분산 환경 저장소

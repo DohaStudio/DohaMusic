@@ -1,10 +1,10 @@
-# ADR-016 — Local Lyrics LLM Fine-tuning
+# ADR-016 — 로컬 가사 LLM Fine-tuning
 
-> 상태: 계획 승인, 구현 보류
+> 상태: 계획 승인, 저장소 책임은 ADR-028로 갱신
 > 작성일: 2026-07-31
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-05
 > 관련 기능: Phase 6.6~6.9 Local Lyrics LLM
-> 관련 문서: [Lyrics AI](../03-architecture/lyrics-ai.md), [Dataset Policy](../05-data/lyrics-dataset-policy.md), [Roadmap](../../planning/local-lyrics-llm-roadmap.md)
+> 관련 문서: [Lyrics AI](../03-architecture/lyrics-ai.md), [Dataset Policy](../05-data/lyrics-dataset-policy.md), [Roadmap](../../planning/local-lyrics-llm-roadmap.md), [ADR-028](ADR-028-provider-runtime-artifact-contract.md)
 
 ## 배경
 
@@ -21,7 +21,7 @@ Phase 6은 `TemplateLyricsGenerator`·`MockLyricsGenerator`, API, Repository와 
 3. 직접 제작하거나 명시적 학습 권리를 확보한 Dataset만 사용한다.
 4. 1차 방식은 QLoRA SFT이며 Full Fine-tuning은 기본 전략에서 제외한다.
 5. 산출물은 추적 가능한 LoRA Adapter 또는 별도 검증된 병합 모델이다.
-6. `LocalLyricsLLMAdapter`가 기존 `LyricsGenerator` 계약으로 변환하고 `LyricsValidator`를 재사용한다.
+6. DohaLM이 Dataset·Fine-tuning·Evaluation·Runtime을 소유하고, DohaMusic의 Provider Client가 결과를 기존 `LyricsGenerator` 계약으로 변환해 `LyricsValidator`를 재사용한다.
 7. 승인 전 기본 Provider는 `template`, OpenAI는 비교용 Experimental을 유지한다.
 8. 승인 전 Local Provider를 Pipeline에 자동 연결하지 않는다.
 
@@ -66,7 +66,7 @@ Phase 6은 `TemplateLyricsGenerator`·`MockLyricsGenerator`, API, Repository와 
 
 ## 마이그레이션
 
-현재 구현·API·DB·Provider 기본값 변경은 없다. Phase 6.8에서만 `local_llm`을 명시적 Planned/Experimental 경로로 추가하며 Phase 6.9 승인 전 Stable·Pipeline 자동 연결을 금지한다.
+현재 구현·API·DB·Provider 기본값 변경은 없다. Phase 6.8에서만 DohaLM 외부 Provider를 명시적 Planned/Experimental 경로로 추가하며 Phase 6.9 승인 전 Stable·Pipeline 자동 연결을 금지한다. 기존 Fine-tuning 전략은 유지하지만 DohaMusic 내부 Runtime·checkpoint 경로를 추가하지 않는다.
 
 ## 관련 PR
 

@@ -19,7 +19,7 @@
 | [ADR-012](ADR-012-pipeline-orchestrator.md) | Mock 기반 Pipeline Orchestrator와 단계 정책 | 승인 |
 | [ADR-013](ADR-013-audio-mixing-engine.md) | Default Audio Mixer의 gain·headroom·limiter·normalization·metadata 정책 | 승인 |
 | [ADR-014](ADR-014-lyrics-generator-architecture.md) | LyricsGenerator·Template Provider·Validator·DB·Pipeline 경계 | 승인 |
-| [ADR-016](ADR-016-local-lyrics-llm-finetuning.md) | 공개 Instruct Base·권리 확보 Dataset·QLoRA SFT·Local Adapter | 계획 승인, 구현 보류 |
+| [ADR-016](ADR-016-local-lyrics-llm-finetuning.md) | 공개 Instruct Base·권리 확보 Dataset·QLoRA SFT·Local Adapter | 계획 승인, 저장소 책임은 ADR-028로 갱신 |
 | [ADR-017](ADR-017-frontend-technology-stack.md) | Phase 8 Frontend framework·style·state·form·test stack | 승인 |
 | [ADR-018](ADR-018-secure-audio-file-access.md) | Pipeline 결과 WAV의 경로 비노출 streaming·download 경계 | 승인 |
 | [ADR-019](ADR-019-secure-voice-profile-upload.md) | 동의된 WAV upload·검증·저장·삭제 경계 | 승인 |
@@ -31,13 +31,25 @@
 | [ADR-025](ADR-025-voice-profile-multiple-samples-reference.md) | Voice Profile 1:N Sample과 명시적 대표 Reference | 승인 |
 | [ADR-026](ADR-026-voice-enrollment-lifecycle-cleanup.md) | Enrollment 임시 업로드·만료·idempotency·cleanup 수명주기 | 승인 |
 | [ADR-027](ADR-027-dohalm-lyrics-provider-boundary.md) | DohaLM Provider·가사 버전·사용자 승인·상업 이용 경계 | 제안 |
+| [ADR-028](ADR-028-provider-runtime-artifact-contract.md) | 외부 AI Provider 저장소·Runtime·Artifact 단계적 전환 계약 | 승인 |
+| [ADR-029](ADR-029-dohamusic-workspace-artifact-domain.md) | DohaMusic Workspace 전용 `music` Artifact 도메인 | 제안 |
+| [ADR-030](ADR-030-asset-version-centric-database.md) | AssetVersion 중심 Workspace 데이터베이스와 단계적 전환 | 제안 |
 | [ADR-031](ADR-031-workspace-rest-api-contract.md) | Workspace 중심 REST API와 단계적 Legacy 전환 | 제안 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
+# AI Provider 저장소 분리
+
+- [ADR-028 — 외부 Provider Runtime과 Artifact 계약](ADR-028-provider-runtime-artifact-contract.md): 저장소 책임과 Runtime 이전을 분리하고 DohaAudio·DohaVocal 계획 경계, subprocess 호환, versioned Job·Artifact·GPU Orchestration 원칙을 결정한다.
+
+# Workspace 데이터베이스
+
+- [ADR-030 — AssetVersion 중심 Workspace 데이터베이스](ADR-030-asset-version-centric-database.md): 현행 Pipeline 중심 결과 소유권을 AssetVersion·Artifact로 옮기고 21개 목표 Table과 단계적 Migration 원칙을 제안한다.
+
 # Workspace API
 
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
+
 # Phase 6.5
 
 - [ADR-015 — External Lyrics LLM Provider](ADR-015-external-lyrics-llm-provider.md): OpenAI Responses API Adapter를 Experimental로 추가하고 Template 기본값, strict Schema, retry·fallback·비용·데이터 경계를 결정한다.
@@ -54,6 +66,7 @@
 - [ADR-020 — Project History Retention](ADR-020-project-history-retention.md): Project 삭제 시 연결만 해제하고 Job과 결과 파일을 보존한다.
 - [ADR-019 — Secure Voice Profile Upload](ADR-019-secure-voice-profile-upload.md): 동의된 WAV를 안전하게 저장하고 공개 metadata·삭제 정책과 원본 비공개 경계를 결정한다.
 - [ADR-021 — Pipeline Job Cancel·Retry](ADR-021-pipeline-job-cancel-retry.md): 단계 경계 cooperative 취소와 입력 Snapshot 기반 새 Job Retry를 결정한다.
+- [ADR-029 — DohaMusic Workspace 전용 music Artifact 도메인](ADR-029-dohamusic-workspace-artifact-domain.md): Provider Artifact와 Composition Snapshot·Mix·Preview·Export 결과의 Workspace 저장 책임을 분리한다.
 
 # K-POP Creation Control
 
