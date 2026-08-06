@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Frontend dependency 기준선 정합성
+
+- `brace-expansion`을 `5.0.9`, `minimatch`를 `10.2.6`, `postcss`를 `8.5.25`로 제한해 기존 override와 lockfile의 취약 버전을 안전한 패치 버전으로 교체했다.
+- 기존 기준선에서 이미 선택하던 `sharp 0.35.0`을 직접 production dependency로 명시하고 `@img/sharp-wasm32 0.35.0`을 선택 dependency로 선언해 npm 11의 orphan 설치와 `extraneous` 문제를 제거했다.
+- Next.js·React·TypeScript 버전과 Frontend 기능은 변경하지 않았으며 `npm ci`, `npm ls`, audit 0건, lint, typecheck, 97개 Vitest와 production build를 통과했다.
+- 원인과 취약점별 처리 근거는 [Frontend dependency 기준선 검증 보고서](reports/validation/VALIDATION-FRONTEND-DEPENDENCY-BASELINE.md)에 기록했다.
+
 ### 검증 — 코드 기준선 안정화 점검
 
 - `main` 대비 `develop`의 512개 파일을 Backend·Frontend·AI Worker·Alembic·테스트·문서·설정·스크립트로 분류하고 전체 제품 기준선 승격 영향을 기록했다.
