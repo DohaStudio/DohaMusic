@@ -1,9 +1,9 @@
 # Workspace API 공통 기반과 Bootstrap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-07
 > 관련 기능: Workspace REST API 선행 기반과 단일 사용자 기본 Workspace 준비
-> 구현 상태: 공통 기반·명시적 도구 구현, 실제 Bootstrap·Resource Endpoint 미수행
+> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor 기반 구현, 실제 Bootstrap·Resource Endpoint 미수행
 > 관련 문서: [공통 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [API 전환 전략](api-contract-migration-strategy.md), [DB 전환 전략](../07-database/database-redesign-migration-strategy.md)
 
 ## 1. 범위
@@ -122,7 +122,7 @@ Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자�
 
 ## 9. Cursor pagination 후속 판단
 
-Workspace Repository는 현재 `limit`·`offset`과 Resource별 정렬을 사용합니다. 이를 API cursor로 노출하지 않습니다. 후속 구현은 최소한 다음 값을 포함하는 versioned opaque base64url payload를 검토합니다.
+기존 내부 Workspace Repository는 호환성을 위해 `limit`·`offset`을 유지하지만 이를 API cursor로 노출하지 않습니다. HMAC-SHA256 기반 Cursor codec과 Workspace·Project의 `(created_at DESC, UUID DESC)` keyset Repository·Service 기반은 구현했으며, versioned opaque base64url payload는 다음 값을 포함합니다.
 
 - Resource type
 - sort와 방향
@@ -130,12 +130,12 @@ Workspace Repository는 현재 `limit`·`offset`과 Resource별 정렬을 사용
 - 마지막 `created_at`
 - 마지막 Resource UUID
 
-Client 변조를 막기 위해 환경별 비밀키를 사용하는 HMAC 서명이 필요합니다. 비밀키가 없는 unsigned cursor를 운영 계약으로 사용하지 않습니다. 이번 단계에서는 cursor codec과 목록 Endpoint를 구현하지 않습니다.
+Client 변조를 막기 위해 환경별 전용 비밀키로 HMAC 서명을 검증하며 비밀키가 없는 unsigned cursor는 허용하지 않습니다. 다만 `/api/v1` Resource Endpoint 연결, `CursorCodec`의 App Composition 등록, keyset 복합 Index Migration과 실제 목록 API 공개는 후속 작업입니다.
 
 ## 10. 후속 순서
 
 1. Idempotency scope·fingerprint·replay 계약
-2. HMAC 서명 cursor codec과 Repository keyset 조회
+2. HMAC 서명 cursor codec과 Repository·Service keyset 기반 — [완료]
 3. 기본 Workspace 실제 실행의 별도 운영 승인
 4. 읽기 전용 Workspace Resource Route
 5. Project·Asset 등 mutation Route와 History·Idempotency 연결

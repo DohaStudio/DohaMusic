@@ -15,6 +15,7 @@ from backend.services.workspace.job_service import (
 )
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
+    CursorPage,
     WorkspaceService,
 )
 
@@ -30,4 +31,5 @@ __all__ = [
     "SnapshotItemInput",
     "WorkspaceService",
     "BootstrapWorkspaceResult",
+    "CursorPage",
 ]
