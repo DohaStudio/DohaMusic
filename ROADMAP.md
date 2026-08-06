@@ -73,7 +73,7 @@
 10. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 11. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
 12. [Workspace v1 API 계약](docs/06-api/workspace-rest-api-contract.md)은 Common Specification과 DB Redesign 기준의 문서 설계만 `[계획]` 상태다. 선행 계약 확정 전에는 현재 `/api` Router·OpenAPI·DB·Frontend를 변경하지 않는다.
-13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 21개 SQLAlchemy 2.0 Entity의 additive metadata 등록까지 `[진행 중]`이다. Alembic Migration·실제 DB Table·Repository·Service·API는 미구현이며 현재 14개 Table과 Runtime source of truth는 변경하지 않는다.
+13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 21개 SQLAlchemy 2.0 Entity와 additive Alembic revision `20260806_0012` 작성·임시 SQLite 검증까지 `[진행 중]`이다. 실제 사용자 DB 적용·backfill·dual write·Repository·Service·API는 미구현이며 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
 14. Workspace Artifact 구현 전 `AssetVersion` 기반 Composition Snapshot, Artifact ID/URI, 기존 Pipeline 결과 backfill·rollback과 `DohaArtifacts/music` resolver 계약을 별도 작업으로 확정한다.
 15. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
 

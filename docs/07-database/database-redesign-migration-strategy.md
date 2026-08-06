@@ -1,14 +1,14 @@
 # Asset 중심 데이터베이스 Migration 전략
 
-> 문서 상태: [제안]
-> 최종 수정일: 2026-08-05
+> 문서 상태: [진행 중]
+> 최종 수정일: 2026-08-06
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 전략만 작성, Migration·SQL·ORM·파일 이동 미수행
-> 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md)
+> 구현 상태: 목표 Entity와 additive Migration 파일 작성·임시 SQLite 검증 완료, 실제 DB 적용·backfill·dual write·파일 이동 미수행
+> 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md)
 
 ## 1. 현재 기준
 
-최신 `develop`의 Alembic head는 `20260801_0011`이며 현재 Table은 14개입니다.
+작업 기준 `develop`의 Alembic head는 `20260801_0011`이며 실제 DB의 현행 Table은 14개입니다. 신규 additive revision `20260806_0012`는 목표 Workspace Table 21개를 추가하는 소스 기준 head이며 실제 사용자 DB에는 적용하지 않았습니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -34,6 +34,16 @@
 - 파일 경로는 API나 목표 Workspace Table로 복사하지 않습니다.
 - 실제 파일 이동과 Artifact Resolver 도입은 DB row 변환과 분리합니다.
 - downgrade가 새 데이터 손실을 만들면 자동 downgrade를 제공하지 않고 명시적으로 차단합니다.
+
+### 2.1 Additive revision `20260806_0012`
+
+- `upgrade()`는 목표 Workspace Table 21개와 해당 FK·Index·Unique·Check Constraint만 생성합니다.
+- 기존 Runtime Table 14개에 대한 `alter`, Column 추가·삭제, 데이터 SQL과 backfill은 포함하지 않습니다.
+- `downgrade()`는 신규 21개 Table과 Index만 역순으로 제거하며 기존 Runtime schema는 변경하지 않습니다.
+- SQLAlchemy `Uuid(as_uuid=True)`는 Python에서 UUID를 생성하고 SQLite에서는 호환 문자열 형식으로 저장합니다. server-side UUID 생성은 사용하지 않습니다.
+- `AssetType`과 목표 `JobStatus`는 `native_enum=False` 문자열로 저장합니다. 현재 Entity는 application-side `validate_strings=True`를 사용하며 DB-level Enum Check Constraint는 선언하지 않으므로 migration에도 임의 추가하지 않습니다.
+- JSON·Boolean·timezone 지정 DateTime은 SQLAlchemy의 SQLite 호환 타입을 사용합니다. Python 3.12 SQLite datetime adapter 폐기 예정 경고는 별도 후속 작업으로 유지합니다.
+- `assets.selected_asset_version_id`와 `asset_versions.asset_id`의 순환 FK는 SQLite의 신규 Table 생성 계약에서 임시 DB 검증을 통과했습니다. 다른 DB 제품으로 전환할 때는 Constraint 생성 단계를 별도로 검토합니다.
 
 ## 3. 현재 Table별 권장 매핑
 
@@ -90,12 +100,14 @@
 
 이 단계는 파일을 이동하거나 삭제하지 않습니다.
 
-### Phase 2 — 목표 Schema 추가
+### Phase 2 — 목표 Schema 추가 [진행 중]
 
-1. 21개 목표 Table을 현행 Table과 나란히 추가합니다.
-2. FK, Unique, Index와 Check를 DB별로 검증합니다.
+1. `[완료]` 21개 목표 Table을 추가하는 additive revision 파일을 작성하고 임시 SQLite DB에서 검증합니다.
+2. `[완료]` FK, Unique, Index와 Check를 Entity metadata와 비교하고 이름 중복이 없음을 검증합니다.
 3. 기본 Workspace를 만들고 기존 `projects`를 `music_projects`로 backfill합니다.
 4. 현행 API 읽기·쓰기는 아직 바꾸지 않습니다.
+
+1~2번 완료는 migration 파일과 임시 DB 검증 범위입니다. 실제 사용자 DB 적용과 3번 backfill은 별도 승인 전까지 미수행입니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 
