@@ -28,7 +28,15 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Service·REST API·backfill·dual write·Legacy 제거는 아직 구현하지 않았다.
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 구현 중이며 REST API·backfill·dual write·Legacy 제거는 아직 구현하지 않았다.
+
+## Workspace Application Service 경계
+
+Workspace Application Service는 `backend.services.workspace` namespace에 Aggregate별 5개 Service로 구성한다. 각 Service는 `session_factory`를 주입받고 변경 Use Case마다 `with session.begin()`으로 하나의 transaction을 관리한다. 같은 Use Case가 여러 Repository를 사용해도 동일 Session을 공유하며 Repository는 transaction을 종료하지 않는다.
+
+별도 범용 Unit of Work Framework는 도입하지 않는다. 현재는 단일 동기 SQLAlchemy Session과 하나의 Database만 사용하고 분산 transaction이나 Message Broker transaction이 없기 때문이다. 향후 외부 transaction 조정이 실제로 필요해지면 현재 Service transaction 패턴을 Unit of Work로 추출한다.
+
+Service는 SQLAlchemy Entity 또는 내부 dataclass 결과를 반환하고 API용 Pydantic Schema, `HTTPException`, Provider 호출과 Worker dispatch를 사용하지 않는다. 자세한 계약과 상태 전이는 [Workspace Service transaction 설계](workspace-service-transaction.md)를 따른다.
 
 기본 Provider는 모두 Mock이다. ACE-Step, Demucs, Seed-VC는 실제 Job에서만 설정을 검증하고 격리 subprocess를 시작한다. 세 Worker는 `max_workers=1`인 shared executor를 사용해 RTX 3060 Ti GPU 점유를 직렬화한다. 외부 Queue, Redis, Celery는 아직 사용하지 않는다.
 

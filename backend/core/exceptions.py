@@ -25,6 +25,39 @@ class ResourceNotFoundError(AppError):
         )
 
 
+class ResourceConflictError(AppError):
+    """현재 application 상태와 충돌하는 요청."""
+
+    def __init__(self, resource_name: str) -> None:
+        super().__init__(
+            code="RESOURCE_CONFLICT",
+            message=f"{resource_name} 요청이 현재 상태와 충돌합니다.",
+            status_code=409,
+        )
+
+
+class ApplicationValidationError(AppError):
+    """API transport와 독립적인 application 입력 검증 오류."""
+
+    def __init__(self, message: str) -> None:
+        super().__init__(
+            code="VALIDATION_ERROR",
+            message=message,
+            status_code=422,
+        )
+
+
+class InvalidStateError(AppError):
+    """허용되지 않은 lifecycle 또는 상태 전이."""
+
+    def __init__(self, resource_name: str) -> None:
+        super().__init__(
+            code="INVALID_STATE",
+            message=f"{resource_name}의 현재 상태에서는 요청을 수행할 수 없습니다.",
+            status_code=409,
+        )
+
+
 class InvalidVoiceReferenceError(AppError):
     def __init__(self) -> None:
         super().__init__(

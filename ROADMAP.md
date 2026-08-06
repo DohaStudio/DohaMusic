@@ -55,7 +55,7 @@
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact Domain | [진행 중] | Entity·실제 DB additive migration 완료, Workspace Repository 구현 중, Artifact 폴더·Runtime 미전환 | [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md) |
+| Workspace Artifact Domain | [진행 중] | Entity·실제 DB additive migration·Repository 완료, Service transaction 구현 중, Artifact 폴더·Runtime 미전환 | [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | Phase A 문서화 진행, Phase B~D 미착수 | [Provider Separation DoD](docs/DoD/Provider-Separation.md) |
 
@@ -73,7 +73,7 @@
 10. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 11. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
 12. [Workspace v1 API 계약](docs/06-api/workspace-rest-api-contract.md)은 Common Specification과 DB Redesign 기준의 문서 설계만 `[계획]` 상태다. 선행 계약 확정 전에는 현재 `/api` Router·OpenAPI·DB·Frontend를 변경하지 않는다.
-13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 21개 SQLAlchemy 2.0 Entity, additive revision `20260806_0012`, 실제 사용자 DB 적용과 Workspace 전용 Repository까지 `[진행 중]`이다. 신규 Workspace Table 21개는 비어 있으며 backfill·dual write·Service·API·Legacy 제거는 미구현이다. 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
+13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 21개 SQLAlchemy 2.0 Entity, additive revision `20260806_0012`, 실제 사용자 DB 적용, Workspace Repository와 [Service 소유 transaction](docs/03-architecture/workspace-service-transaction.md)까지 `[진행 중]`이다. 별도 범용 Unit of Work는 도입하지 않았다. 신규 Workspace Table 21개는 비어 있으며 backfill·dual write·REST API·Frontend·Legacy 제거는 미구현이다. 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
 14. Workspace Artifact 구현 전 `AssetVersion` 기반 Composition Snapshot, Artifact ID/URI, 기존 Pipeline 결과 backfill·rollback과 `DohaArtifacts/music` resolver 계약을 별도 작업으로 확정한다.
 15. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
 
