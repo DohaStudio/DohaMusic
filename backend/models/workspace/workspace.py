@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import ForeignKey, Index, Integer, String, Text, UniqueConstraint, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.base import Base
@@ -29,6 +29,21 @@ if TYPE_CHECKING:
 
 class Workspace(TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "workspaces"
+    __table_args__ = (
+        Index(
+            "ix_workspaces_active_keyset",
+            "deleted_at",
+            "created_at",
+            "workspace_id",
+        ),
+        Index(
+            "ix_workspaces_owner_active_keyset",
+            "owner_id",
+            "deleted_at",
+            "created_at",
+            "workspace_id",
+        ),
+    )
 
     workspace_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid
@@ -50,6 +65,15 @@ class Workspace(TimestampMixin, SoftDeleteMixin, Base):
 
 class MusicProject(TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "music_projects"
+    __table_args__ = (
+        Index(
+            "ix_music_projects_workspace_active_keyset",
+            "workspace_id",
+            "deleted_at",
+            "created_at",
+            "project_id",
+        ),
+    )
 
     project_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid

@@ -4,7 +4,7 @@
 > 검증일: 2026-08-06
 > 기준 브랜치: `feature/cursor-pagination`
 > 기준 develop: `e5681db0443feb47a44da639f0ac31abb69a6bc3`
-> 관련 문서: [Cursor Pagination 설계](../../docs/06-api/cursor-pagination.md), [Workspace REST API 계약](../../docs/06-api/workspace-rest-api-contract.md)
+> 관련 문서: [Cursor Pagination 설계](../../docs/06-api/cursor-pagination.md), [Workspace REST API 계약](../../docs/06-api/workspace-rest-api-contract.md), [Keyset Index 검증](VALIDATION-WORKSPACE-KEYSET-INDEXES.md)
 
 DohaStudio Common Specification `0.1.0` / `draft-baseline`의 `main` 기준선을 확인했으며, 이번 변경은 공통 Asset·Job·Artifact 계약이나 명세 버전을 변경하지 않습니다.
 
@@ -66,4 +66,4 @@ Cursor는 여러 요청에 걸친 전체 목록의 snapshot isolation을 보장�
 
 Cursor Pagination 기반 자체의 BLOCKER는 없습니다. Workspace·Project Resource Endpoint는 아직 없으며 후속 PR에서 app composition, `limit`·`cursor` Query와 Collection Envelope를 연결해야 합니다.
 
-서명 키 교체와 cursor 만료는 운영 전 확정할 WARNING입니다. 이번 구현은 서명 키가 바뀌면 기존 cursor가 안전하게 `INVALID_CURSOR`가 되는 방식이며 별도 grace key는 제공하지 않습니다. 현재 Workspace·Project keyset 정렬용 복합 Index도 Resource Endpoint 운영 연결 전 별도 Migration에서 실제 Query Plan을 기준으로 추가해야 합니다.
+서명 키 교체와 cursor 만료는 운영 전 확정할 WARNING입니다. 이번 구현은 서명 키가 바뀌면 기존 cursor가 안전하게 `INVALID_CURSOR`가 되는 방식이며 별도 grace key는 제공하지 않습니다. Workspace·Project keyset 정렬용 복합 Index는 후속 Alembic `20260807_0013`과 Entity metadata에 추가해 임시 SQLite Query Plan을 검증했습니다. 실제 사용자 DB 적용과 Resource Endpoint 운영 연결은 아직 수행하지 않았습니다.
