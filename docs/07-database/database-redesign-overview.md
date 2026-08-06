@@ -24,7 +24,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 초기 SQLAlchemy Entity mapping을 정의합니다. additive migration은 별도 구현됐지만 실제 사용자 DB, 기존 14개 Runtime Entity, API, Storage 경로와 Runtime 코드는 변경하지 않았습니다.
+이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. additive revision `20260806_0012`는 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 신규 Workspace Table 21개는 현재 빈 상태이고, Service·API·backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
 
 ## 2. Common Specification 기준
 
