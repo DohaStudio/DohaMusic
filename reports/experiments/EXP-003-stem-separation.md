@@ -1,8 +1,8 @@
 # EXP-003: Stem Separation 로컬 추론 및 Adapter 검증
 
-> 실행일: 2026-07-29  
-> 상태: **기술 검증 완료 / 사용자 청취 평가 필요**  
-> 장치: NVIDIA GeForce RTX 3060 Ti 8GB, Windows 11  
+> 실행일: 2026-07-29
+> 상태: **기술 검증 완료 / 사용자 청취 평가 필요**
+> 장치: NVIDIA GeForce RTX 3060 Ti 8GB, Windows 11
 > 모델: HTDemucs, Demucs 4.1.0
 
 ## 목적

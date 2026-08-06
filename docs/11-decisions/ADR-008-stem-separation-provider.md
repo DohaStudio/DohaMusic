@@ -1,7 +1,7 @@
 # ADR-008: HTDemucs Stem Provider와 출력 계약
 
-> 상태: **채택됨**  
-> 결정일: 2026-07-29  
+> 상태: **채택됨**
+> 결정일: 2026-07-29
 > 관련 작업: Phase 3 Stem Separation
 
 ## 배경
