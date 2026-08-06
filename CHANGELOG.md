@@ -16,6 +16,22 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 모든 신규 Entity를 `backend.models`에서 명시적으로 등록하고 mapper 대칭·FK 해석·35개 전체 metadata Table의 in-memory SQLite `create_all`을 검증했다.
 - Alembic Migration·실제 DB 변경·Repository·Service·REST API·Worker·Runtime·Frontend는 변경하지 않았다.
 
+### 수정 — Frontend dependency 기준선 정합성
+
+- `brace-expansion`을 `5.0.9`, `minimatch`를 `10.2.6`, `postcss`를 `8.5.25`로 제한해 기존 override와 lockfile의 취약 버전을 안전한 패치 버전으로 교체했다.
+- 기존 기준선에서 이미 선택하던 `sharp 0.35.0`을 직접 production dependency로 명시하고 `@img/sharp-wasm32 0.35.0`을 선택 dependency로 선언해 npm 11의 orphan 설치와 `extraneous` 문제를 제거했다.
+- Next.js·React·TypeScript 버전과 Frontend 기능은 변경하지 않았으며 `npm ci`, `npm ls`, audit 0건, lint, typecheck, 97개 Vitest와 production build를 통과했다.
+- 원인과 취약점별 처리 근거는 [Frontend dependency 기준선 검증 보고서](reports/validation/VALIDATION-FRONTEND-DEPENDENCY-BASELINE.md)에 기록했다.
+
+### 검증 — 코드 기준선 안정화 점검
+
+- `main` 대비 `develop`의 512개 파일을 Backend·Frontend·AI Worker·Alembic·테스트·문서·설정·스크립트로 분류하고 전체 제품 기준선 승격 영향을 기록했다.
+- FastAPI·기존 14개 Runtime Entity·Alembic 단일 head·SQLite metadata와 Backend 195개, Frontend 97개 테스트 및 Frontend lint·typecheck·build를 검증했다.
+- Git 추적 파일의 비밀정보·절대 운영 경로·Dataset·모델·Checkpoint·미디어·대용량 파일 포함 여부와 PR #55의 Workspace Entity 격리를 확인했다.
+- `git diff --check`를 막던 6개 문서의 trailing whitespace와 EOF 공백만 제거했으며 내용과 의미는 변경하지 않았다.
+- Frontend dependency tree의 `npm ls` 오류와 npm audit의 high 2건·moderate 2건을 main 승격 BLOCKER로 기록하고 자동 dependency 변경은 수행하지 않았다.
+- 상세 결과와 후속 Gate는 [코드 기준선 안정화 검토 보고서](reports/validation/VALIDATION-WORKSPACE-CODE-BASELINE.md)에 기록했다.
+
 ### 문서 — 최종 아키텍처 기준선 검토
 
 - DohaStudio Common Specification `0.1.0` / `draft-baseline`의 `main` 링크와 감사 기준 commit을 Workspace DB·REST API·Provider 경계 문서에 고정했다.

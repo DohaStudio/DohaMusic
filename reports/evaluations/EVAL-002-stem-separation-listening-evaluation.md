@@ -1,7 +1,7 @@
 # EVAL-002: Stem Separation 수동 청취 평가표
 
-> 평가 상태: **사용자 입력 대기**  
-> Codex 자동 점수: **작성하지 않음**  
+> 평가 상태: **사용자 입력 대기**
+> Codex 자동 점수: **작성하지 않음**
 > 연결 실험: [EXP-003](../experiments/EXP-003-stem-separation.md)
 
 ## 평가 대상
