@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 21개 SQLAlchemy 2.0 Entity·metadata 등록 완료, Alembic Migration·실제 DB Table·Repository·Service·API 미구현
+> 구현 상태: 목표 21개 Entity·metadata와 additive revision `20260806_0012` 구현 완료, 실제 사용자 DB·Repository·Service·API 미적용
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -24,7 +24,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 초기 SQLAlchemy Entity mapping을 정의합니다. 기존 14개 Runtime Entity, Alembic Migration, 실제 DB, API, Storage 경로와 Runtime 코드는 변경하지 않습니다.
+이 문서는 목표 논리 구조와 초기 SQLAlchemy Entity mapping을 정의합니다. additive migration은 별도 구현됐지만 실제 사용자 DB, 기존 14개 Runtime Entity, API, Storage 경로와 Runtime 코드는 변경하지 않았습니다.
 
 ## 2. Common Specification 기준
 
@@ -154,7 +154,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 
 ## 6. 현재 구현과의 관계
 
-현재 14개 Table과 Alembic head `20260801_0011`은 계속 현행 DB 기준입니다. 목표 21개 Entity는 `backend.models.workspace`에 additive로 구현되어 공통 `Base.metadata`에 등록되지만, Migration을 만들지 않았으므로 실제 DB에는 목표 21개 Table이 아직 존재하지 않습니다.
+현행 사용자 DB는 별도 Inventory 전까지 Runtime Table 14개와 revision `20260801_0011`을 적용 전 기준으로 가정합니다. 목표 21개 Entity와 revision `20260806_0012`는 소스에 구현됐지만 실제 사용자 DB에는 아직 적용하지 않았습니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

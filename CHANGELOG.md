@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace DB Migration 사전 점검
+
+- 실제 사용자 DB 경로를 필수 인자로 받고 SQLite read-only URI로 Inventory·무결성·schema drift를 검사하는 preflight 도구를 추가했다.
+- 별도 확인 인수가 있어야 SQLite backup API로 timestamp backup을 생성하고 checksum·revision·Table·integrity를 검증하도록 했다.
+- 실제 적용 Runbook, Preflight 체크리스트, Backup·Rollback 정책과 fixture 검증 보고서를 추가했다.
+- 임시 fixture에서 원본 checksum 불변, backup, upgrade 복사본 35개 Table과 backup 복원본 14개 Table을 검증했다.
+- 실제 사용자 DB 접근·Migration, backfill·dual write·Legacy 제거와 Runtime FK 설정 변경은 수행하지 않았다.
+
 ### 추가 — Workspace Entity additive Migration
 
 - 기존 Alembic head `20260801_0011` 다음에 목표 Workspace Table 21개만 생성하는 `20260806_0012` revision을 추가했다.
