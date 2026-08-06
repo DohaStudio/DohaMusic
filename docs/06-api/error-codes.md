@@ -2,11 +2,14 @@
 
 > 문서 목적: API와 Worker의 안정적인 오류 코드를 정의한다.
 > 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
-> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler 분기 구현, Resource별 오류 mapping 미구현
+> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler와 Cursor 오류 구현, Resource별 오류 mapping 미구현
 
 | 코드 | 의미 |
 |---|---|
 | `INVALID_INPUT` | API 요청 형식 또는 범위 오류 |
+| `INVALID_CURSOR` | 형식·서명·version·Resource·filter·정렬·위치·limit가 유효하지 않은 Cursor |
+| `INVALID_LIMIT` | Cursor page limit이 1~100 범위를 벗어남 |
+| `CURSOR_CONFIGURATION_ERROR` | 전용 Cursor 서명 키가 없거나 32바이트 미만인 서버 설정 오류 |
 | `INVALID_KPOP_PRESET` | 지원하지 않는 K-POP Preset |
 | `INVALID_REQUESTED_BPM` | 70~180 범위를 벗어난 목표 BPM |
 | `INVALID_LANGUAGE_RATIO` | 한국어·영어 비율 범위 또는 합계 오류 |

@@ -7,7 +7,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
 
 class Settings(BaseModel):
@@ -18,6 +18,7 @@ class Settings(BaseModel):
     app_name: str = "DohaMusic Backend"
     database_url: str = "sqlite:///./backend/storage/doha_music.db"
     auto_migrate: bool = False
+    cursor_signing_key: SecretStr = SecretStr("")
     storage_root: Path = Path("backend/storage")
     music_generator: str = "mock"
     model_name: str = "mock-music-generator"
@@ -127,6 +128,7 @@ class Settings(BaseModel):
             "APP_NAME": "app_name",
             "DATABASE_URL": "database_url",
             "DOHAMUSIC_AUTO_MIGRATE": "auto_migrate",
+            "DOHAMUSIC_CURSOR_SIGNING_KEY": "cursor_signing_key",
             "AUDIO_STORAGE_ROOT": "storage_root",
             "DOHAMUSIC_MUSIC_GENERATOR": "music_generator",
             "MODEL_NAME": "model_name",

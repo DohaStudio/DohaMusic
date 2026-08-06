@@ -24,11 +24,11 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 | `JobRepository` | `Job`, `JobInput`, `JobOutput`, `ModelUsage` |
 | `CollaborationRepository` | `RecordingEnrollment`, `Tag`, `Comment`, `Favorite`, `History`, `Approval` |
 
-각 Repository는 호출자가 주입한 동기 SQLAlchemy `Session`만 사용하고 `add`·`flush`·조회·명시적 Soft Delete만 수행한다. `commit`과 `rollback`은 여러 Aggregate 작업을 하나의 transaction으로 묶을 향후 Service 또는 Unit of Work가 담당한다. 목록 조회는 SQLAlchemy 2.0 `select()`와 안정적인 `created_at`·기본 키 정렬, 명시적인 기본 `limit`과 `offset`을 사용한다.
+각 Repository는 호출자가 주입한 동기 SQLAlchemy `Session`만 사용하고 `add`·`flush`·조회·명시적 Soft Delete만 수행한다. `commit`과 `rollback`은 여러 Aggregate 작업을 하나의 transaction으로 묶을 향후 Service 또는 Unit of Work가 담당한다. 기존 내부 목록 조회는 명시적인 `limit`·`offset`을 유지한다. Workspace v1 목록용 조회는 offset을 사용하지 않고 `(created_at DESC, UUID DESC)`와 마지막 두 정렬 값을 사용하는 keyset 메서드로 분리한다.
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 완료했고 `/api/v1` 공통 Router·응답·request ID·오류 기반과 명시적 Bootstrap 도구를 추가했다. Resource REST API·backfill·dual write·Legacy 제거는 아직 구현하지 않았다.
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 완료했고 `/api/v1` 공통 Router·응답·request ID·오류 기반, 명시적 Bootstrap 도구와 HMAC Cursor 기반을 추가했다. Resource REST API·backfill·dual write·Legacy 제거는 아직 구현하지 않았다.
 
 ## Workspace Application Service 경계
 
@@ -37,6 +37,8 @@ Workspace Application Service는 `backend.services.workspace` namespace에 Aggre
 별도 범용 Unit of Work Framework는 도입하지 않는다. 현재는 단일 동기 SQLAlchemy Session과 하나의 Database만 사용하고 분산 transaction이나 Message Broker transaction이 없기 때문이다. 향후 외부 transaction 조정이 실제로 필요해지면 현재 Service transaction 패턴을 Unit of Work로 추출한다.
 
 Service는 SQLAlchemy Entity 또는 내부 dataclass 결과를 반환하고 API용 Pydantic Schema, `HTTPException`, Provider 호출과 Worker dispatch를 사용하지 않는다. 자세한 계약과 상태 전이는 [Workspace Service transaction 설계](workspace-service-transaction.md)를 따른다.
+
+Workspace와 Project 목록의 API용 Service 메서드는 주입된 `CursorCodec`으로 cursor를 검증하고 Repository에 `limit + 1` keyset 조회를 요청한다. 일반 CRUD·Bootstrap은 codec 없이 계속 사용할 수 있으며 서명 키 누락은 cursor 기능을 호출할 때만 설정 오류가 된다. Resource Router와 app composition 등록은 후속 작업이다.
 
 기본 Provider는 모두 Mock이다. ACE-Step, Demucs, Seed-VC는 실제 Job에서만 설정을 검증하고 격리 subprocess를 시작한다. 세 Worker는 `max_workers=1`인 shared executor를 사용해 RTX 3060 Ti GPU 점유를 직렬화한다. 외부 Queue, Redis, Celery는 아직 사용하지 않는다.
 

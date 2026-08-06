@@ -4,13 +4,17 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Generic, Literal, TypeVar
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from backend.core.cursor_pagination import CURSOR_SORT, CursorCodec, filter_fingerprint
 from backend.core.exceptions import (
     ApplicationValidationError,
+    CursorConfigurationError,
+    InvalidLimitError,
     InvalidStateError,
     ResourceConflictError,
     ResourceNotFoundError,
@@ -32,11 +36,28 @@ class BootstrapWorkspaceResult:
     created: bool
 
 
+PageItemT = TypeVar("PageItemT")
+
+
+@dataclass(frozen=True, slots=True)
+class CursorPage(Generic[PageItemT]):
+    items: tuple[PageItemT, ...]
+    next_cursor: str | None
+    has_more: bool
+    limit: int
+
+
 class WorkspaceService:
     """Workspace aggregate의 transaction 경계를 소유한다."""
 
-    def __init__(self, session_factory: Callable[[], Session]) -> None:
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        *,
+        cursor_codec: CursorCodec | None = None,
+    ) -> None:
         self.session_factory = session_factory
+        self.cursor_codec = cursor_codec
 
     def create_workspace(
         self,
@@ -120,6 +141,47 @@ class WorkspaceService:
                 owner_id=owner_id, limit=limit, offset=offset
             )
 
+    def list_workspace_page(
+        self,
+        *,
+        cursor: str | None = None,
+        limit: int = 50,
+        owner_id: UUID | None = None,
+    ) -> CursorPage[Workspace]:
+        _validate_page_limit(limit)
+        codec = self._require_cursor_codec()
+        filter_hash = filter_fingerprint(
+            {
+                "include_deleted": False,
+                "owner_id": str(owner_id) if owner_id is not None else None,
+                "sort": CURSOR_SORT,
+            }
+        )
+        position = (
+            codec.decode(
+                cursor,
+                expected_resource="workspace",
+                expected_filter_hash=filter_hash,
+                expected_limit=limit,
+            )
+            if cursor is not None
+            else None
+        )
+        with self.session_factory() as session:
+            rows = WorkspaceRepository(session).list_workspaces_after(
+                owner_id=owner_id,
+                last_created_at=(position.last_created_at if position else None),
+                last_id=(position.last_id if position else None),
+                limit=limit + 1,
+            )
+        return self._build_page(
+            rows,
+            resource="workspace",
+            id_attribute="workspace_id",
+            filter_hash=filter_hash,
+            limit=limit,
+        )
+
     def rename_workspace(self, workspace_id: UUID, name: str) -> Workspace:
         normalized_name = _required_text(name, "Workspace 이름")
         with self.session_factory() as session, session.begin():
@@ -196,6 +258,50 @@ class WorkspaceService:
             if repository.get_workspace(workspace_id) is None:
                 raise ResourceNotFoundError("Workspace")
             return repository.list_projects(workspace_id, limit=limit, offset=offset)
+
+    def list_project_page(
+        self,
+        workspace_id: UUID,
+        *,
+        cursor: str | None = None,
+        limit: int = 50,
+    ) -> CursorPage[MusicProject]:
+        _validate_page_limit(limit)
+        codec = self._require_cursor_codec()
+        filter_hash = filter_fingerprint(
+            {
+                "include_deleted": False,
+                "sort": CURSOR_SORT,
+                "workspace_id": str(workspace_id),
+            }
+        )
+        position = (
+            codec.decode(
+                cursor,
+                expected_resource="project",
+                expected_filter_hash=filter_hash,
+                expected_limit=limit,
+            )
+            if cursor is not None
+            else None
+        )
+        with self.session_factory() as session:
+            repository = WorkspaceRepository(session)
+            if repository.get_workspace(workspace_id) is None:
+                raise ResourceNotFoundError("Workspace")
+            rows = repository.list_projects_after(
+                workspace_id,
+                last_created_at=(position.last_created_at if position else None),
+                last_id=(position.last_id if position else None),
+                limit=limit + 1,
+            )
+        return self._build_page(
+            rows,
+            resource="project",
+            id_attribute="project_id",
+            filter_hash=filter_hash,
+            limit=limit,
+        )
 
     def update_project_metadata(
         self,
@@ -317,6 +423,39 @@ class WorkspaceService:
                 project_id, limit=limit, offset=offset
             )
 
+    def _require_cursor_codec(self) -> CursorCodec:
+        if self.cursor_codec is None:
+            raise CursorConfigurationError()
+        return self.cursor_codec
+
+    def _build_page(
+        self,
+        rows: list[PageItemT],
+        *,
+        resource: Literal["workspace", "project"],
+        id_attribute: str,
+        filter_hash: str,
+        limit: int,
+    ) -> CursorPage[PageItemT]:
+        has_more = len(rows) > limit
+        items = tuple(rows[:limit])
+        next_cursor = None
+        if has_more:
+            last_item = items[-1]
+            next_cursor = self._require_cursor_codec().encode(
+                resource=resource,
+                last_created_at=getattr(last_item, "created_at"),
+                last_id=getattr(last_item, id_attribute),
+                filter_hash=filter_hash,
+                limit=limit,
+            )
+        return CursorPage(
+            items=items,
+            next_cursor=next_cursor,
+            has_more=has_more,
+            limit=limit,
+        )
+
     @staticmethod
     def _validate_asset_scope(project: MusicProject, asset: Asset) -> None:
         if (
@@ -326,3 +465,8 @@ class WorkspaceService:
             raise ApplicationValidationError(
                 "Asset과 Project의 Workspace 범위가 일치하지 않습니다."
             )
+
+
+def _validate_page_limit(limit: int) -> None:
+    if isinstance(limit, bool) or not 1 <= limit <= 100:
+        raise InvalidLimitError()

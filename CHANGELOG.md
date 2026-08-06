@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — HMAC Cursor Pagination 기반
+
+- `DOHAMUSIC_CURSOR_SIGNING_KEY` 전용 비밀 설정과 canonical JSON·base64url·HMAC-SHA256 기반 opaque cursor codec을 추가했다.
+- Cursor에는 version, Resource, 정렬, 마지막 `created_at`·UUID, filter fingerprint와 page limit만 포함하고 filter 원문·사용자 데이터·경로·credential은 포함하지 않는다.
+- Workspace와 MusicProject에 `(created_at DESC, UUID DESC)` keyset 조회와 `limit + 1` 기반 `CursorPage` Service 결과를 추가해 `has_more=true`일 때만 서명된 `next_cursor`를 발급한다.
+- 임시 SQLite에서 같은 생성 시각의 복수 row, 여러 page, Soft Delete 제외, Workspace filter 고정과 중복·누락 부재를 검증했다.
+- Workspace·Project Resource Endpoint, 외부 offset, 실제 사용자 DB 접근, Alembic·Runtime·Frontend·Idempotency 변경은 수행하지 않았다.
+
 ### 추가 — Workspace API 공통 기반과 명시적 Bootstrap
 
 - FastAPI `0.141.1`부터 중첩 Router가 최상위 `app.routes`에 펼쳐지지 않는 환경 차이를 반영해, Route 기준선 테스트가 내부 저장 형태가 아닌 정규화된 등록 Route와 OpenAPI 계약을 검증하도록 수정했다.
@@ -15,7 +23,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 검증된 `X-Request-ID`를 재사용하고 그 외 요청에는 opaque UUID를 생성해 `request.state`, 응답 payload와 header에서 연결하도록 했다.
 - 명시적 SQLite URL과 필수 `owner_id`, revision `20260806_0012`, Workspace Table을 확인한 뒤에만 단일 사용자 기본 Workspace를 생성하는 `--apply` Bootstrap CLI를 추가했다. dry-run은 DB를 열거나 변경하지 않는다.
 - Bootstrap 재실행은 같은 owner의 활성 Workspace를 반환하며 여러 활성 Workspace, 잘못된 revision과 누락 Table은 중단한다. 실제 사용자 DB에는 실행하지 않았다.
-- 64개 Resource Endpoint, 일반 Idempotency-Key 저장·재생, cursor codec, Artifact Resolver, Job dispatch, Frontend, backfill·dual write는 구현하지 않았다.
+- 64개 Resource Endpoint, 일반 Idempotency-Key 저장·재생, Artifact Resolver, Job dispatch, Frontend, backfill·dual write는 구현하지 않았다.
 
 ### 추가 — Workspace Application Service와 transaction 경계
 

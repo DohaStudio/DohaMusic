@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.mixins import utc_now
@@ -65,6 +66,35 @@ class WorkspaceRepository:
         )
         return list(self.session.scalars(statement))
 
+    def list_workspaces_after(
+        self,
+        *,
+        owner_id: UUID | None = None,
+        last_created_at: datetime | None = None,
+        last_id: UUID | None = None,
+        limit: int = 100,
+    ) -> list[Workspace]:
+        """외부 API cursor를 위한 안정적인 DESC keyset 조회."""
+
+        _validate_keyset_position(last_created_at, last_id)
+        statement = select(Workspace).where(Workspace.deleted_at.is_(None))
+        if owner_id is not None:
+            statement = statement.where(Workspace.owner_id == owner_id)
+        if last_created_at is not None and last_id is not None:
+            statement = statement.where(
+                or_(
+                    Workspace.created_at < last_created_at,
+                    and_(
+                        Workspace.created_at == last_created_at,
+                        Workspace.workspace_id < last_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            Workspace.created_at.desc(), Workspace.workspace_id.desc()
+        ).limit(limit)
+        return list(self.session.scalars(statement))
+
     def workspace_name_exists(
         self, owner_id: UUID, name: str, *, include_deleted: bool = False
     ) -> bool:
@@ -112,6 +142,36 @@ class WorkspaceRepository:
             .limit(limit)
             .offset(offset)
         )
+        return list(self.session.scalars(statement))
+
+    def list_projects_after(
+        self,
+        workspace_id: UUID,
+        *,
+        last_created_at: datetime | None = None,
+        last_id: UUID | None = None,
+        limit: int = 100,
+    ) -> list[MusicProject]:
+        """Workspace filter를 고정한 Project DESC keyset 조회."""
+
+        _validate_keyset_position(last_created_at, last_id)
+        statement = select(MusicProject).where(
+            MusicProject.workspace_id == workspace_id,
+            MusicProject.deleted_at.is_(None),
+        )
+        if last_created_at is not None and last_id is not None:
+            statement = statement.where(
+                or_(
+                    MusicProject.created_at < last_created_at,
+                    and_(
+                        MusicProject.created_at == last_created_at,
+                        MusicProject.project_id < last_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            MusicProject.created_at.desc(), MusicProject.project_id.desc()
+        ).limit(limit)
         return list(self.session.scalars(statement))
 
     def project_title_exists(
@@ -210,3 +270,10 @@ class WorkspaceRepository:
         project_asset.display_order = display_order
         self.session.flush()
         return project_asset
+
+
+def _validate_keyset_position(
+    last_created_at: datetime | None, last_id: UUID | None
+) -> None:
+    if (last_created_at is None) != (last_id is None):
+        raise ValueError("keyset position requires both created_at and id")

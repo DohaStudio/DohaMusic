@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 Router·응답 Schema·request ID·오류 분기와 명시적 Bootstrap 도구 구현, Resource Endpoint·OpenAPI YAML·Idempotency replay·cursor codec 미구현
+> 구현 상태: `/api/v1` 공통 Router·응답 Schema·request ID·오류 분기, 명시적 Bootstrap 도구와 HMAC Cursor 기반 구현, Resource Endpoint·OpenAPI YAML·Idempotency replay 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
@@ -252,6 +252,11 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - `cursor`는 서버가 발급한 opaque 값이며 client가 해석하거나 수정하지 않습니다.
 - 정렬 기준과 filter가 바뀌면 기존 cursor를 재사용하지 않습니다.
 - `page` 기반 offset pagination은 v1 목표 계약에서 사용하지 않습니다. `page`와 `cursor`를 함께 지원해 결과가 달라지는 문제를 피합니다.
+- Cursor payload는 version, Resource, 방향, 정렬, 마지막 `created_at`·UUID, filter fingerprint와 page limit을 포함합니다.
+- Payload는 canonical JSON을 base64url로 인코딩하고 전용 `DOHAMUSIC_CURSOR_SIGNING_KEY`로 HMAC-SHA256 서명합니다. unsigned cursor는 허용하지 않습니다.
+- Workspace·Project는 `(created_at DESC, resource_id DESC)` keyset과 `limit + 1` 조회를 사용합니다. `has_more=true`이면 `next_cursor`가 반드시 존재하고 마지막 page에서는 `null`입니다.
+- 서명 키는 32바이트 이상이어야 하며 자동 생성·하드코딩·로그 출력을 금지합니다. Resource Endpoint가 아직 없으므로 codec 사용 시점에 검증합니다.
+- 자세한 구현 경계는 [Cursor Pagination 설계](cursor-pagination.md)를 따릅니다.
 
 ### 10.2 Query 규칙
 
@@ -293,7 +298,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 ## 13. 미확정 사항
 
 - API ID의 UUID version과 전역 고유성 범위
-- cursor 서명·만료·암호화 방식
+- cursor 서명 키 교체와 만료 정책
 - Idempotency-Key 보존 기간과 분산 환경 저장소
 - optimistic concurrency와 `ETag`·`If-Match` 적용 범위
 - Artifact content·download의 Range, 만료 link와 object storage 전환

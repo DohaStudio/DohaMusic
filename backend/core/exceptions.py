@@ -58,6 +58,40 @@ class InvalidStateError(AppError):
         )
 
 
+class InvalidCursorError(AppError):
+    """외부에 세부 검증 원인을 노출하지 않는 cursor 오류."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(
+            code="INVALID_CURSOR",
+            message="Cursor가 유효하지 않습니다.",
+            status_code=422,
+        )
+        self.reason = reason
+
+
+class CursorConfigurationError(AppError):
+    """Cursor 서명 설정이 준비되지 않은 서버 구성 오류."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            code="CURSOR_CONFIGURATION_ERROR",
+            message="Cursor Pagination 설정을 확인할 수 없습니다.",
+            status_code=500,
+        )
+
+
+class InvalidLimitError(AppError):
+    """Cursor page 크기 범위 오류."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            code="INVALID_LIMIT",
+            message="limit은 1에서 100 사이의 정수여야 합니다.",
+            status_code=422,
+        )
+
+
 class InvalidVoiceReferenceError(AppError):
     def __init__(self) -> None:
         super().__init__(
