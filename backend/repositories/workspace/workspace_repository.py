@@ -184,6 +184,21 @@ class WorkspaceRepository:
             statement = statement.where(ProjectAsset.deleted_at.is_(None))
         return self.session.scalar(statement.limit(1)) is not None
 
+    def find_project_asset(
+        self,
+        project_id: UUID,
+        asset_id: UUID,
+        *,
+        include_deleted: bool = False,
+    ) -> ProjectAsset | None:
+        statement = select(ProjectAsset).where(
+            ProjectAsset.project_id == project_id,
+            ProjectAsset.asset_id == asset_id,
+        )
+        if not include_deleted:
+            statement = statement.where(ProjectAsset.deleted_at.is_(None))
+        return self.session.scalar(statement.limit(1))
+
     def remove_project_asset(self, project_asset: ProjectAsset) -> ProjectAsset:
         project_asset.deleted_at = utc_now()
         self.session.flush()

@@ -16,7 +16,7 @@ Pipeline 필드와 보존 규칙은 [Pipeline 테이블](pipeline-tables.md)을 
 
 ## Asset 중심 목표 DB — [진행 중]
 
-DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심의 21개 Entity와 additive migration 파일을 구현했다. metadata는 총 35개 Table이며 실제 사용자 DB 적용, backfill과 Runtime 전환은 미수행이다. 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
+DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심의 21개 Entity와 additive migration을 구현해 실제 사용자 DB에 적용했다. metadata는 총 35개 Table이고 신규 Workspace Table 21개는 비어 있으며, backfill과 Runtime 전환은 미수행이다. 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
 
 - [재설계 개요](database-redesign-overview.md)
 - [목표 ERD](database-redesign-erd.md)

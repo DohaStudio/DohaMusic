@@ -97,6 +97,19 @@ class CollaborationRepository:
             statement = statement.where(Tag.deleted_at.is_(None))
         return self.session.scalar(statement.limit(1)) is not None
 
+    def find_tag(
+        self, asset_id: UUID, name: str, *, include_deleted: bool = False
+    ) -> Tag | None:
+        statement = select(Tag).where(Tag.asset_id == asset_id, Tag.name == name)
+        if not include_deleted:
+            statement = statement.where(Tag.deleted_at.is_(None))
+        return self.session.scalar(statement.limit(1))
+
+    def soft_delete_tag(self, tag: Tag) -> Tag:
+        tag.deleted_at = utc_now()
+        self.session.flush()
+        return tag
+
     def add_comment(self, comment: Comment) -> Comment:
         self.session.add(comment)
         self.session.flush()
@@ -178,6 +191,21 @@ class CollaborationRepository:
         if not include_deleted:
             statement = statement.where(Favorite.deleted_at.is_(None))
         return self.session.scalar(statement.limit(1)) is not None
+
+    def find_favorite(
+        self,
+        workspace_id: UUID,
+        asset_id: UUID,
+        *,
+        include_deleted: bool = False,
+    ) -> Favorite | None:
+        statement = select(Favorite).where(
+            Favorite.workspace_id == workspace_id,
+            Favorite.asset_id == asset_id,
+        )
+        if not include_deleted:
+            statement = statement.where(Favorite.deleted_at.is_(None))
+        return self.session.scalar(statement.limit(1))
 
     def remove_favorite(self, favorite: Favorite) -> Favorite:
         favorite.deleted_at = utc_now()

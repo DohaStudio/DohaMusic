@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 21개 Entity·metadata와 additive revision `20260806_0012`의 실제 사용자 DB 적용 완료, Workspace Repository 구현 중, Service·API·backfill·dual write 미구현
+> 구현 상태: 목표 21개 Entity·metadata와 additive revision `20260806_0012`의 실제 사용자 DB 적용·Workspace Repository 완료, Service transaction 구현 중, API·backfill·dual write 미구현
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -161,6 +161,8 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - Entity 계약 검증: `backend/tests/test_workspace_entities.py`
 - Workspace Repository: `backend/repositories/workspace/`
 - Repository 계약 검증: `backend/tests/test_workspace_repositories.py`
+- Workspace Service: `backend/services/workspace/`
+- Service transaction 검증: `backend/tests/test_workspace_services.py`
 
 - 현재 ERD: [erd.md](erd.md)
 - 현재 Table Definition: [table-definition.md](table-definition.md)
@@ -173,7 +175,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 ## 7. 이번 작업에서 하지 않는 것
 
 - SQL 또는 Alembic Migration 작성
-- Service 생성과 Workspace Repository 연결
+- REST API·Pydantic Schema와 Workspace Service 연결
 - API·Worker·Pipeline 변경
 - DB 파일 생성·변환
 - Artifact 파일 이동 또는 환경 변수 변경

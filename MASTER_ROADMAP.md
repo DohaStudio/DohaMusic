@@ -103,13 +103,13 @@ Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact Domain | [진행 중] | 독립 체크리스트 | Entity·실제 DB additive migration 완료, Workspace Repository 구현 중, Artifact 폴더·Runtime 미전환 | [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md) |
+| Workspace Artifact Domain | [진행 중] | 독립 체크리스트 | Entity·실제 DB additive migration·Repository 완료, Service transaction 구현 중, Artifact 폴더·Runtime 미전환 | [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 문서화 진행, 저장소·Runtime 미구현 | [Provider Separation](docs/DoD/Provider-Separation.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
-Workspace Artifact Domain은 Provider Runtime의 `lm`·`audio`·`vocal` 결과와 DohaMusic의 Mix·Export·Preview·Composition Snapshot을 분리하는 진행 중 Track이다. 목표 21개 Entity와 additive revision을 구현해 실제 사용자 DB에 적용했고 Workspace 전용 Repository를 additive namespace로 구현 중이다. 신규 Table은 비어 있고 현행 Runtime Table 14개가 계속 source of truth이며, backfill·dual write·Service·API·Legacy 제거와 `D:/DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` 폴더·Runtime 전환은 수행하지 않았다. Phase 5와 Phase 8의 기존 완료 상태도 변경하지 않는다.
+Workspace Artifact Domain은 Provider Runtime의 `lm`·`audio`·`vocal` 결과와 DohaMusic의 Mix·Export·Preview·Composition Snapshot을 분리하는 진행 중 Track이다. 목표 21개 Entity와 additive revision을 실제 사용자 DB에 적용했고 Workspace Repository를 완료했으며 Service 메서드가 transaction을 소유하는 Application Service를 구현 중이다. 별도 범용 Unit of Work는 현재 단일 DB·단일 Session 구조에 필요하지 않아 도입하지 않았다. 신규 Table은 비어 있고 현행 Runtime Table 14개가 계속 source of truth이며, backfill·dual write·REST API·Frontend·Legacy 제거와 `D:/DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` 폴더·Runtime 전환은 수행하지 않았다. Phase 5와 Phase 8의 기존 완료 상태도 변경하지 않는다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace Application Service와 transaction 경계
+
+- Workspace·Asset·Composition·Job·Collaboration 5개 Application Service를 additive namespace에 추가하고 Service 메서드가 동기 SQLAlchemy transaction을 소유하도록 했다.
+- 같은 Session을 공유하는 여러 Workspace Repository 변경은 성공 시 한 번 commit되고 예외 시 전체 rollback되며 Repository의 commit·rollback 금지 정책을 유지한다.
+- Resource Not Found·Conflict·Validation·Invalid State application 오류를 FastAPI와 분리하고 Job 공통 상태 전이와 불변 Version·Snapshot 계약을 Service에서 검증한다.
+- Soft Delete된 `ProjectAsset`, `Tag`, `Favorite`의 Unique row는 새 row를 만들지 않고 같은 식별 row를 복구한다. 감사 식별자와 계보는 보존한다.
+- 범용 Unit of Work, REST API·Pydantic Schema·Frontend·Provider 호출·backfill·dual write·Runtime 전환은 구현하지 않았다.
+
 ### 추가 — Workspace Repository 계층
 
 - 기존 Runtime Repository를 변경하지 않고 `backend.repositories.workspace` 아래에 Workspace·Asset·Composition·Job·Collaboration 5개 Aggregate Repository를 additive로 추가했다.

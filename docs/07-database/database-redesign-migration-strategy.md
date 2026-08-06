@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity와 additive Migration의 실제 사용자 DB 적용 완료, Workspace Repository 구현 중, backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity와 additive Migration의 실제 사용자 DB 적용 및 Workspace Repository 구현 완료, Workspace Service와 transaction 경계 구현 중, backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
