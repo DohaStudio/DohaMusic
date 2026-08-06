@@ -1,7 +1,8 @@
 # ERD
 
-> 현재 구현 기준: Alembic head `20260801_0011`, 14개 Table
-> Asset 중심 목표 구조: [목표 ERD](database-redesign-erd.md) — [제안], 미구현
+> 현재 Runtime DB 기준: 별도 Inventory 전 적용 전제 `20260801_0011`, 14개 Table
+> 소스 Alembic head: `20260806_0012`, Workspace 21개 Table additive migration 구현·실제 사용자 DB 미적용
+> Asset 중심 목표 구조: [목표 ERD](database-redesign-erd.md) — [진행 중]
 
 ```mermaid
 erDiagram
@@ -139,7 +140,7 @@ erDiagram
   }
 ```
 
-`projects` 삭제는 `pipeline_jobs.project_id`를 `NULL`로 만들고 Job·결과 파일을 보존한다. `pipeline_jobs.retry_of_job_id`는 원본 Job self FK이며 원본 제거 시 `NULL`이다. `lyrics_documents`와 `idempotency_records`는 다른 테이블과 FK로 연결하지 않는다. `voice_conversion_jobs.source_file_id`는 `stem_files` 중 `file_type=vocals`만 Service에서 허용한다. Voice Conversion과 Pipeline의 `voice_profile_id`는 동의된 profile만 허용한다. migration head는 `20260801_0011`이다.
+`projects` 삭제는 `pipeline_jobs.project_id`를 `NULL`로 만들고 Job·결과 파일을 보존한다. `pipeline_jobs.retry_of_job_id`는 원본 Job self FK이며 원본 제거 시 `NULL`이다. `lyrics_documents`와 `idempotency_records`는 다른 테이블과 FK로 연결하지 않는다. `voice_conversion_jobs.source_file_id`는 `stem_files` 중 `file_type=vocals`만 Service에서 허용한다. Voice Conversion과 Pipeline의 `voice_profile_id`는 동의된 profile만 허용한다. 이 현행 ERD는 Runtime 14개 Table을 나타내며 소스 migration head `20260806_0012`의 Workspace Table은 [목표 ERD](database-redesign-erd.md)에 분리한다.
 
 # F6 Voice Enrollment 관계(Alembic 0010~0011)
 
