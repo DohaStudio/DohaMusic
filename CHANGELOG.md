@@ -10,6 +10,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가 — Workspace API 공통 기반과 명시적 Bootstrap
 
+- FastAPI `0.141.1`부터 중첩 Router가 최상위 `app.routes`에 펼쳐지지 않는 환경 차이를 반영해, Route 기준선 테스트가 내부 저장 형태가 아닌 정규화된 등록 Route와 OpenAPI 계약을 검증하도록 수정했다.
 - 기존 `/api` payload를 변경하지 않고 빈 `/api/v1` Router 기반, 성공·Collection·오류 Pydantic v2 Schema와 v1 전용 오류 응답 분기를 추가했다.
 - 검증된 `X-Request-ID`를 재사용하고 그 외 요청에는 opaque UUID를 생성해 `request.state`, 응답 payload와 header에서 연결하도록 했다.
 - 명시적 SQLite URL과 필수 `owner_id`, revision `20260806_0012`, Workspace Table을 확인한 뒤에만 단일 사용자 기본 Workspace를 생성하는 `--apply` Bootstrap CLI를 추가했다. dry-run은 DB를 열거나 변경하지 않는다.

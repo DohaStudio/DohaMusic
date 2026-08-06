@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from collections import Counter
+from collections.abc import Iterable
 from uuid import UUID
 
 from fastapi import FastAPI, Request
 from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
+from starlette.routing import BaseRoute
 
 from backend.api.exception_handlers import register_exception_handlers
 from backend.api.v1.dependencies import (
@@ -25,6 +27,19 @@ from backend.schemas.workspace import CollectionResponse
 
 class InputPayload(BaseModel):
     name: str = Field(min_length=2)
+
+
+def _flatten_registered_routes(routes: Iterable[BaseRoute]) -> list[BaseRoute]:
+    """Normalize expanded and nested FastAPI router representations."""
+
+    registered_routes: list[BaseRoute] = []
+    for route in routes:
+        original_router = getattr(route, "original_router", None)
+        if original_router is None:
+            registered_routes.append(route)
+            continue
+        registered_routes.extend(_flatten_registered_routes(original_router.routes))
+    return registered_routes
 
 
 def _test_app() -> FastAPI:
@@ -182,10 +197,12 @@ def test_collection_schema_matches_documented_contract() -> None:
 
 def test_v1_router_is_foundation_only_and_runtime_route_count_is_stable() -> None:
     app = create_app()
-    routes = [route for route in app.routes if isinstance(route, APIRoute)]
+    registered_routes = _flatten_registered_routes(app.routes)
+    api_routes = [route for route in registered_routes if isinstance(route, APIRoute)]
+    openapi_paths = app.openapi()["paths"]
     operation_ids = [
         operation["operationId"]
-        for path_item in app.openapi()["paths"].values()
+        for path_item in openapi_paths.values()
         for operation in path_item.values()
         if isinstance(operation, dict) and "operationId" in operation
     ]
@@ -195,9 +212,23 @@ def test_v1_router_is_foundation_only_and_runtime_route_count_is_stable() -> Non
         if count > 1
     }
 
-    assert len(app.routes) == 45
+    assert len(registered_routes) == 45
+    assert len(api_routes) == 41
+    assert len(openapi_paths) == 34
+    assert len(operation_ids) == 43
+    assert (
+        len(
+            [
+                path
+                for path in openapi_paths
+                if path.startswith("/api/") and not path.startswith("/api/v1")
+            ]
+        )
+        == 33
+    )
+    assert "/health" in openapi_paths
     assert workspace_v1_router.routes == []
-    assert not [route for route in routes if route.path.startswith("/api/v1")]
+    assert not [path for path in openapi_paths if path.startswith("/api/v1")]
     assert len(duplicate_ids) == 2
     assert {operation_id.rsplit("_", 1)[0] for operation_id in duplicate_ids} == {
         "download_pipeline_file_api_pipelines__job_id__files__file_id__download",
