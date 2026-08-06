@@ -7,10 +7,11 @@ from pathlib import Path
 
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import create_engine, inspect, text
+from sqlalchemy import inspect, text
 
 import backend.models  # noqa: F401
 from backend.db.base import Base
+from backend.db.session import create_database_engine
 from backend.models.workspace import WORKSPACE_ENTITY_CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -125,8 +126,9 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
 
     workspace_tables = _workspace_tables()
     legacy_tables = set(Base.metadata.tables) - workspace_tables
-    engine = create_engine(database_url)
+    engine = create_database_engine(database_url)
     with engine.connect() as connection:
+        assert connection.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
         inspector = inspect(connection)
         upgraded_tables = set(inspector.get_table_names())
         upgraded_revision = connection.execute(

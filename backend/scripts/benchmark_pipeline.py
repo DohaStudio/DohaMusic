@@ -23,6 +23,7 @@ def run_benchmark(
         app = create_app(
             Settings(
                 database_url=f"sqlite:///{(root / 'benchmark.db').as_posix()}",
+                auto_migrate=True,
                 storage_root=root / "storage",
                 mock_generation_delay_seconds=0.01,
                 mock_stem_delay_seconds=0.01,

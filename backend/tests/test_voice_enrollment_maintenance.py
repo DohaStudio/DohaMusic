@@ -331,13 +331,6 @@ def test_orphan_scan_deletes_only_unambiguous_server_paths(client) -> None:
     orphan_reference.parent.mkdir(parents=True)
     orphan_reference.write_bytes(b"orphan")
     os.utime(orphan_reference, (old.timestamp(), old.timestamp()))
-    enrollmentless = _create_sample(client, str(uuid.uuid4()))
-    with client.app.state.session_factory() as session:
-        profileless = VoiceSampleRepository(session).create(
-            voice_profile_id=str(uuid.uuid4()),
-            source_type=VoiceSampleSourceType.LEGACY_REFERENCE.value,
-            category="legacy",
-        )
     missing_enrollment = _create_enrollment(
         client, status=VoiceEnrollmentStatus.READY_TO_SUBMIT.value
     )
@@ -352,15 +345,13 @@ def test_orphan_scan_deletes_only_unambiguous_server_paths(client) -> None:
     )
 
     maintenance = _maintenance(client, voice_orphan_grace_seconds=0)
-    assert maintenance.scan_orphans() == 6
+    assert maintenance.scan_orphans() == 4
     assert not orphan.exists()
     assert not orphan_reference.exists()
     assert ambiguous.exists()
-    assert maintenance.metrics.snapshot()["orphan_found"] == 6
-    assert maintenance.process_cleanup() == 3
+    assert maintenance.metrics.snapshot()["orphan_found"] == 4
+    assert maintenance.process_cleanup() == 1
     with client.app.state.session_factory() as session:
-        assert session.get(VoiceSample, enrollmentless.id).status == "DELETED"
-        assert session.get(VoiceSample, profileless.id).status == "DELETED"
         assert session.get(VoiceSample, missing_sample.id).status == "DELETED"
         assert session.get(VoiceEnrollment, missing_enrollment.id).status == "DRAFT"
 

@@ -94,3 +94,7 @@ Check Constraint와 SQLite DDL의 모든 수동 변경 흔적은 자동 비교�
 ## 8. 결론
 
 Preflight 도구와 Runbook은 fixture 기준으로 검증되었습니다. 실제 사용자 DB 적용 판정은 `BLOCKED`입니다. 실제 DB read-only Inventory 승인, FK 연결 정책 수정, 검증된 backup과 최종 적용 승인이 모두 필요합니다.
+
+## 9. 후속 상태
+
+[SQLite Migration 안전 제어 검증](VALIDATION-SQLITE-MIGRATION-SAFETY.md)에서 startup 자동 Migration 기본 실행과 Runtime·Alembic SQLite FK 미활성화 문제를 후속 해소했습니다. 이 보고서의 당시 검증 결과는 이력으로 유지하며, 실제 사용자 DB Inventory·검증된 backup·최종 적용 승인이 없으므로 실제 적용 판정은 계속 `BLOCKED`입니다.

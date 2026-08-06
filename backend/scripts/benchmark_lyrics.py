@@ -39,6 +39,7 @@ def run_benchmark() -> dict[str, object]:
         app = create_app(
             Settings(
                 database_url=f"sqlite:///{(root / 'benchmark.db').as_posix()}",
+                auto_migrate=True,
                 storage_root=root / "storage",
                 lyrics_provider="template",
                 mock_generation_delay_seconds=0.0,

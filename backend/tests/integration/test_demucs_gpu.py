@@ -48,6 +48,7 @@ def test_demucs_provider_completes_through_backend_api(tmp_path: Path) -> None:
     app = create_app(
         Settings(
             database_url=f"sqlite:///{(tmp_path / 'demucs.db').as_posix()}",
+            auto_migrate=True,
             storage_root=tmp_path / "storage",
             mock_generation_delay_seconds=0,
             stem_provider="demucs",

@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — SQLite Migration 안전 제어
+
+- 앱 lifespan의 Alembic `upgrade head`를 `DOHAMUSIC_AUTO_MIGRATE=true`에서만 실행하도록 변경하고 기본값을 `false`로 고정했다.
+- Runtime과 Alembic online SQLite 연결이 공통 helper로 연결마다 `PRAGMA foreign_keys=ON`을 적용하고 Alembic이 활성 상태를 확인하도록 했다.
+- 임시·테스트 DB 경로만 명시적으로 자동 Migration을 사용하도록 분리하고 실제 사용자 DB Inventory·backup·Migration은 수행하지 않았다.
+- 실제 사용자 DB Inventory, 검증된 backup과 최종 적용 승인은 계속 BLOCKER로 유지한다.
+
 ### 추가 — Workspace DB Migration 사전 점검
 
 - 실제 사용자 DB 경로를 필수 인자로 받고 SQLite read-only URI로 Inventory·무결성·schema drift를 검사하는 preflight 도구를 추가했다.

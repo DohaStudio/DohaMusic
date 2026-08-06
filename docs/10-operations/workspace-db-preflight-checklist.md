@@ -8,6 +8,8 @@
 
 체크 표시는 실제 증거를 확보한 실행 기록에서만 변경합니다. 문서 생성이나 fixture 테스트만으로 사용자 DB 항목을 완료 처리하지 않습니다.
 
+코드 기준선에서는 Runtime·Alembic online SQLite 연결의 FK 활성화와 startup 자동 Migration 기본 비활성화를 구현했습니다. 아래 Gate E의 체크 표시는 실제 사용자 DB Inventory·backup·최종 승인과 적용 실행 증거가 없으므로 계속 비워 둡니다.
+
 ## Gate A — 대상과 승인
 
 - [ ] 사용자 DB read-only 접근 승인을 받았다.

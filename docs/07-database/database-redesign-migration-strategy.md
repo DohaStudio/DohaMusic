@@ -100,7 +100,7 @@
 
 이 단계는 파일을 이동하거나 삭제하지 않습니다.
 
-실제 적용은 [Preflight 체크리스트](../10-operations/workspace-db-preflight-checklist.md)의 모든 Gate와 사용자 승인을 요구합니다. 현재 앱의 시작 시 자동 `upgrade head`와 Runtime·Alembic 연결의 미설정 `PRAGMA foreign_keys=ON`은 실제 적용 BLOCKER입니다.
+실제 적용은 [Preflight 체크리스트](../10-operations/workspace-db-preflight-checklist.md)의 모든 Gate와 사용자 승인을 요구합니다. 앱 startup 자동 `upgrade head`는 기본 비활성화했고 Runtime·Alembic online SQLite 연결은 `PRAGMA foreign_keys=ON`을 보장합니다. 실제 사용자 DB Inventory·backup과 최종 적용 승인은 여전히 BLOCKER이며, 코드 검증만으로 실제 적용 완료를 선언하지 않습니다.
 
 ### Phase 2 — 목표 Schema 추가 [진행 중]
 

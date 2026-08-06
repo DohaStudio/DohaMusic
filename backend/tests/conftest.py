@@ -15,6 +15,7 @@ def app(tmp_path) -> FastAPI:
     return create_app(
         Settings(
             database_url=f"sqlite:///{(tmp_path / 'test.db').as_posix()}",
+            auto_migrate=True,
             storage_root=tmp_path / "storage",
             mock_generation_delay_seconds=0.01,
             worker_max_threads=1,

@@ -84,6 +84,7 @@ def test_existing_profiles_are_backfilled_without_file_access(tmp_path) -> None:
                 },
             )
 
+    config.attributes["allow_legacy_sqlite_batch_fk_bypass"] = True
     command.upgrade(config, "head")
     with engine.connect() as connection:
         rows = (
