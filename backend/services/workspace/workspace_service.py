@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import dataclass
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from backend.core.exceptions import (
     ApplicationValidationError,
+    InvalidStateError,
     ResourceConflictError,
     ResourceNotFoundError,
 )
@@ -22,6 +24,12 @@ def _required_text(value: str, field_name: str) -> str:
     if not normalized:
         raise ApplicationValidationError(f"{field_name}은(는) 비어 있을 수 없습니다.")
     return normalized
+
+
+@dataclass(frozen=True, slots=True)
+class BootstrapWorkspaceResult:
+    workspace: Workspace
+    created: bool
 
 
 class WorkspaceService:
@@ -54,6 +62,44 @@ class WorkspaceService:
             return workspace
         except IntegrityError:
             raise ResourceConflictError("Workspace") from None
+
+    def bootstrap_default_workspace(
+        self,
+        *,
+        owner_id: UUID,
+        name: str,
+    ) -> BootstrapWorkspaceResult:
+        """단일 owner의 기본 Workspace를 한 transaction에서 생성하거나 재사용한다."""
+
+        normalized_name = _required_text(name, "Workspace 이름")
+        try:
+            with self.session_factory() as session, session.begin():
+                repository = WorkspaceRepository(session)
+                active_workspaces = repository.list_workspaces(limit=2)
+                if len(active_workspaces) > 1:
+                    raise InvalidStateError("기본 Workspace")
+                if active_workspaces:
+                    if active_workspaces[0].owner_id != owner_id:
+                        raise ResourceConflictError("기본 Workspace owner")
+                    result = BootstrapWorkspaceResult(
+                        workspace=active_workspaces[0],
+                        created=False,
+                    )
+                else:
+                    workspace = repository.add_workspace(
+                        Workspace(
+                            owner_id=owner_id,
+                            name=normalized_name,
+                            lifecycle_status="active",
+                        )
+                    )
+                    result = BootstrapWorkspaceResult(
+                        workspace=workspace,
+                        created=True,
+                    )
+            return result
+        except IntegrityError:
+            raise ResourceConflictError("기본 Workspace") from None
 
     def get_workspace(self, workspace_id: UUID) -> Workspace:
         with self.session_factory() as session:

@@ -28,7 +28,7 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 구현 중이며 REST API·backfill·dual write·Legacy 제거는 아직 구현하지 않았다.
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 완료했고 `/api/v1` 공통 Router·응답·request ID·오류 기반과 명시적 Bootstrap 도구를 추가했다. Resource REST API·backfill·dual write·Legacy 제거는 아직 구현하지 않았다.
 
 ## Workspace Application Service 경계
 

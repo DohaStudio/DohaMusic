@@ -2,7 +2,7 @@
 
 > 문서 목적: API와 Worker의 안정적인 오류 코드를 정의한다.
 > 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
-> Workspace v1 목표 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — [계획], 미구현
+> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler 분기 구현, Resource별 오류 mapping 미구현
 
 | 코드 | 의미 |
 |---|---|
