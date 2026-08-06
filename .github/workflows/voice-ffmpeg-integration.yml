@@ -1,0 +1,61 @@
+name: Voice FFmpeg integration
+
+on:
+  pull_request:
+    branches: [develop]
+    paths:
+      - ".github/workflows/voice-ffmpeg-integration.yml"
+      - "backend/**"
+      - "pyproject.toml"
+  push:
+    branches: [develop]
+    paths:
+      - ".github/workflows/voice-ffmpeg-integration.yml"
+      - "backend/**"
+      - "pyproject.toml"
+
+permissions:
+  contents: read
+
+jobs:
+  backend-ubuntu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          ffmpeg -version
+      - name: Install Backend
+        run: python -m pip install -e ".[dev]"
+      - name: Ruff changed scope
+        run: python -m ruff check backend/voice_enrollment/normalizer.py backend/tests/test_voice_enrollment_audio.py
+      - name: Ruff format
+        run: python -m ruff format --check .
+      - name: Backend tests with real FFmpeg
+        run: python -m pytest -q
+
+  ffmpeg-windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install FFmpeg
+        shell: pwsh
+        run: |
+          choco install ffmpeg --no-progress -y
+          ffmpeg -version
+      - name: Install Backend
+        run: python -m pip install -e ".[dev]"
+      - name: Windows FFmpeg integration
+        run: python -m pytest -q backend/tests/test_voice_enrollment_audio.py -m integration

@@ -1,0 +1,14 @@
+import { AppShell } from "@/components/app-shell";
+import { ResultPanel } from "@/features/pipeline/result-panel";
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ jobId: string }>;
+}) {
+  const { jobId } = await params;
+  return (
+    <AppShell>
+      <ResultPanel jobId={jobId} />
+    </AppShell>
+  );
+}

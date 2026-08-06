@@ -1,0 +1,13 @@
+{
+  "experiment_id": "EXP-002-lm-comparison",
+  "runs": [
+    {"run_id": "lm-0.6b-seed-20260729", "seed": 20260729}
+  ],
+  "request": {
+    "prompt": "감성적인 한국어 팝 발라드, 잔잔한 피아노와 스트링, 여성 솔로 보컬, 따뜻하지만 쓸쓸한 분위기",
+    "lyrics": "[Verse]\n조용한 밤이 다시 찾아오면\n남겨진 기억을 따라 걸어가\n\n[Chorus]\n다시 너를 부를 수 있다면\n멈춘 계절도 돌아올까",
+    "instrumental": false,
+    "duration_seconds": 20,
+    "vocal_language": "ko"
+  }
+}

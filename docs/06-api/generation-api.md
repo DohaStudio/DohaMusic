@@ -1,10 +1,40 @@
 # 생성 API
 
-> 문서 목적: 음악 생성 요청의 입력, 검증, 응답 계약을 정의한다.
-> 현재 상태: **설계 초안 / 미구현**
+> 문서 목적: 음악 생성 Job의 생성·조회·파일 목록 계약을 정의한다.
+> 현재 상태: **Mock 기본 / ACE-Step 선택적 Provider**
 
-`POST /api/v1/generation-requests`
+## 생성 요청
 
-요청 후보 필드: `prompt`, `lyrics`, `genre`, `mood`, `bpm`, `duration_seconds`, `seed`, `voice_profile_id`, `output_formats`. 프롬프트 또는 가사 중 하나 이상이 필요하며 음성 프로필은 유효한 동의와 소유권이 필요하다.
+`POST /api/generations`
 
-성공 시 `202`와 `generation_request_id`, `job_id`, `status=PENDING`을 반환한다. 같은 멱등성 키의 재전송은 동일 요청을 반환한다. 범위·형식 오류, 동의 오류, 모델 비가용 오류는 [오류 코드](error-codes.md)로 구분한다.
+```json
+{
+  "prompt": "잔잔한 피아노 음악",
+  "lyrics": null,
+  "genre": "ambient",
+  "duration_seconds": 30,
+  "seed": 42
+}
+```
+
+| 필드 | 필수 | 제약 |
+|---|---|---|
+| `prompt` | 예 | 1~4,000자 |
+| `lyrics` | 아니요 | 최대 20,000자 |
+| `genre` | 아니요 | 최대 100자 |
+| `duration_seconds` | 아니요 | 1~600, 기본값 30 |
+| `seed` | 아니요 | 0~2,147,483,647 |
+
+성공 시 `202`와 Job 전체 정보를 반환한다. 최초 상태는 `PENDING`이며 내부 Worker가 비동기로 처리한다. 기본 Provider는 Mock이고 서버 환경에서 `ace_step`을 선택한 경우 같은 API 계약으로 실제 Adapter가 실행된다. 요청에서 Provider를 임의 선택하는 기능은 없다.
+
+## Job 조회
+
+`GET /api/generations/{id}`
+
+응답에는 `id`, `status`, 입력 스냅샷, `current_step`, 오류 정보, 생성·수정·완료 시각이 포함된다.
+
+## 결과 파일 조회
+
+`GET /api/generations/{id}/files`
+
+완료 후 공개 파일 식별 metadata를 반환하고 내부 DB의 `file_path`는 public HTTP response에 포함하지 않는다. Mock 결과는 `mock_audio`, ACE-Step 결과는 `generated_audio`다. 이번 content·download 제공 범위는 완료 Pipeline 결과이며 Generation 개별 파일 capability는 계속 `false`다.

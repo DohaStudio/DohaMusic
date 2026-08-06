@@ -16,6 +16,8 @@ eggs/
 .eggs/
 lib/
 lib64/
+!frontend/lib/
+!frontend/lib/*.ts
 parts/
 sdist/
 var/
@@ -49,6 +51,10 @@ coverage.xml
 *.py.cover
 .hypothesis/
 .pytest_cache/
+.test-tmp/
+.test-tmp-*/
+.gpu-test-tmp/
+.gpu-test-tmp-*/
 cover/
 
 # Translations
@@ -60,6 +66,38 @@ cover/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
+backend/storage/*.db
+backend/storage/*.db-*
+backend/storage/inputs/*
+!backend/storage/inputs/.gitkeep
+backend/storage/outputs/*
+!backend/storage/outputs/.gitkeep
+backend/storage/voices/*
+!backend/storage/voices/references/
+!backend/storage/voices/converted/
+!backend/storage/voices/references/.gitkeep
+!backend/storage/voices/converted/.gitkeep
+backend/storage/samples/*
+!backend/storage/samples/.gitkeep
+backend/storage/stems/*
+!backend/storage/stems/vocals/
+!backend/storage/stems/instrumentals/
+!backend/storage/stems/vocals/.gitkeep
+!backend/storage/stems/instrumentals/.gitkeep
+backend/storage/experiments/*
+
+# Local AI runtimes, model caches, checkpoints, and generated artifacts
+/.ace-step-runtime/
+/.stem-separation-runtime/
+/.seed-vc-runtime/
+/checkpoints/
+/models/
+/model-cache/
+/.huggingface/
+*.ckpt
+*.safetensors
+*.pt
+*.pth
 
 # Flask stuff:
 instance/
@@ -205,6 +243,15 @@ tempCodeRunnerFile.py
 
 # Ruff stuff:
 .ruff_cache/
+
+# Frontend dependencies and generated reports
+frontend/node_modules/
+frontend/.next/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+frontend/.env.local
+*.tsbuildinfo
 
 # PyPI configuration file
 .pypirc

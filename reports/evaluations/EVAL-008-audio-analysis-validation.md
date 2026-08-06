@@ -1,0 +1,136 @@
+# EVAL-008: Audio Analysis 검증 계획
+
+> 상태: [진행 중 — K3.1·K3.2·K3.3 완료, K3.4 계획]
+> 작성일: 2026-07-31
+> 최종 수정일: 2026-08-01
+> 관련 기능: K3.1~K3.4 Audio Quality·Tempo·Hook·Preview 평가
+> 관련 문서: [K3 제품 정의](../../docs/02-product/k3-audio-analysis-product-definition.md), [라이브러리 비교](../../docs/01-research/audio-analysis-library-comparison.md), [EVAL-007](EVAL-007-kpop-dance-generation.md)
+
+## 목적과 원칙
+
+K3 analyzer가 측정값·추정값·실패를 계약대로 구분하는지 검증한다. K3.1 Quality, K3.2 Tempo와 K3.3 Hook 자동 fixture·Pipeline·API·Frontend 결과를 기록했으며 K3.4는 평가 설계를 유지한다. 생성 음원과 개인 음성은 Git에 커밋하지 않았다.
+
+## 공통 기록
+
+- fixture ID·권리·hash, WAV format·sample rate·channels·duration
+- `audio_analysis_version`과 각 후보 library/version/config
+- CPU·OS·Python, wall/CPU time, peak RSS
+- ground truth/reference tool과 허용 오차
+- status·warning·confidence, 실패 원인
+- 실제 값, absolute/relative error, 통과 여부
+
+## BPM 검증
+
+| 데이터 | 목적 |
+|---|---|
+| 메트로놈 합성 60·80·100·120·140·160 BPM | 명확한 ground truth |
+| 고정 BPM drum loop | 실제 transient 패턴 |
+| half-time·double-time 편곡 | octave tempo 오류 분류 |
+| 무박 intro 후 고정 tempo | 초기 무박 영향 |
+| tempo change 곡 | global tempo 한계·stability |
+| 30초·60초 권리 확보 K-POP Dance 결과 | 제품 대표성, 자동 ground truth 아님 |
+
+측정값은 detected BPM, ground truth BPM, signed/absolute error, confidence, half/double error, 분석 시간을 포함한다. provisional 자동 통과 기준은 명확한 합성/고정 loop에서 half/double 보정 후 absolute error 2 BPM 이내다. 생성곡은 수동 beat annotation과 비교하며 기준은 구현 benchmark 후 확정한다.
+
+confidence는 high/medium/low/unavailable 구간별 실제 오류 분포를 검토한다. 높은 confidence가 더 낮은 오류와 연결되지 않으면 UI 등급으로 사용하지 않는다.
+
+### K3.2 자동 검증 결과 — 2026-08-01
+
+- 기존 NumPy 1.26.4·SciPy 1.17.1의 onset energy autocorrelation을 사용해 새 의존성을 추가하지 않았다.
+- 16초 PCM16 합성 click track 60·80·100·120·140·160 BPM을 모두 ±3 BPM 이내로 추정했다.
+- 동일 WAV에 서로 다른 `requested_bpm`을 넣어도 `detected_bpm`이 같아 요청값이 추정을 유도하지 않음을 확인했다.
+- 60→요청 120은 half-time, 160→요청 80은 double-time 후보로 분류했다.
+- silence·1초 short·손상 WAV·비 WAV를 finite하지 않은 값이나 내부 path 없이 안전한 실패/미지원으로 처리했다.
+- 공개 DTO에서 raw onset·frame·FFT·debug·path를 제거하고 Retry가 이전 Tempo 대신 새 WAV를 분석함을 확인했다.
+- Frontend Completed·Partial·Failed·Unavailable, confidence 경계와 Result·History·Project Desktop/Mobile 표시를 검증했다.
+- 실제 드럼 loop·무박 intro·tempo change·생성 K-POP의 confidence 분포와 성능 수치는 후속 운영 품질 평가로 남긴다.
+
+## Loudness·Peak 검증
+
+- Sample Peak: synthetic impulse·sine의 계산값과 reference 비교
+- Integrated LUFS: ITU-R BS.1770/EBU R 128 test signal 및 승인 reference meter 비교
+- True Peak: 표준 test signal과 reference meter 비교; oversampling 미구현이면 미지원 유지
+- Clipping: positive/negative full-scale, over-range float, clipped PCM
+- Mono·Stereo와 44.1/48 kHz
+- short audio, silence, empty/invalid/truncated WAV
+
+LUFS·True Peak 허용 오차는 사용 library와 EBU test set의 compliance 조건을 확인한 뒤 확정한다. reference 후보는 EBU Loudness test set과 라이선스 검토된 FFmpeg/전용 meter다. 단순 RMS 또는 Sample Peak를 LUFS·True Peak reference로 사용하지 않는다.
+
+## Hook·Chorus 후보 검증
+
+권리 확보 또는 합성 데이터에 사용자가 반복 구간과 Chorus 시작 후보를 annotation한다.
+
+- 허용 start/end 오차
+- 후보와 label의 temporal overlap·IoU
+- top-1 precision, candidate recall
+- 반복 score·energy contrast와 confidence calibration
+- 15초 Preview 후보로 사용 가능한지
+- 사용자가 곡의 핵심 구간으로 느끼는지
+- 반복 청취에 적합한지
+
+Hook ground truth는 본질적으로 주관적이므로 “정확도” 단일 숫자로 승인하지 않는다. Stage A의 제품 Gate는 top-1 후보의 Preview 유용성과 저신뢰 결과의 안전한 fallback이다.
+
+### K3.3 자동 검증 결과 — 2026-08-01
+
+- 자체 합성 60초 WAV의 두 반복 고에너지 구간에서 15초 `energy_repetition` 후보와 `0.50` 이상 confidence를 선택했다.
+- 단일 고에너지 구간은 `energy_peak`, 일정한 tone과 낮은 confidence는 곡 중앙 `fallback_middle`로 분류했다.
+- 15초 미만 WAV는 전체 길이의 PARTIAL fallback, 무음·손상·미지원 입력은 candidate 없이 안전한 FAILED/UNSUPPORTED로 처리했다.
+- Hook 실패·fallback 이후에도 Pipeline은 `COMPLETED`와 final WAV capability를 유지하고 aggregate analysis만 `PARTIAL` 또는 `FAILED`로 구분했다.
+- 공개 DTO에서 raw frame score·경로를 제외하고 Retry가 이전 Hook metadata 대신 새 WAV를 분석함을 확인했다.
+- Frontend Result의 “후렴 후보/추정 구간”, History 후보 유무, Project 요약과 Completed·Partial·Failed·Unavailable Desktop/Mobile 표시를 검증했다.
+- 실제 음악의 사용자 label·temporal overlap·confidence calibration과 Preview 유용성은 후속 운영 품질 평가로 남긴다.
+
+## Preview 검증
+
+- 원본이 15초 이상이면 frame 기준 정확히 15초
+- short source 정책과 중앙 fallback 재현성
+- RIFF/WAVE 재생 가능, channel·sample rate 유지
+- 원본 파일 hash 불변
+- 20 ms fade in/out과 시작·끝 click 청취
+- Hook 후보 대표성, fallback 정상 동작
+- secure content/download, Range, MIME, path 비노출
+- 취소·실패·Job/Result 삭제 cleanup과 orphan 부재
+
+## 실패·호환 검증
+
+- 분석 없음 구형 Result는 정상 재생되고 `not_requested/unavailable`로 표시된다.
+- 일부 analyzer 실패는 `partial`, 전체 분석 실패는 `failed/unsupported`가 되며 Pipeline Result는 유지된다.
+- malformed metadata·unknown version·내부 경로는 공개 DTO에서 제거된다.
+- Retry는 새 WAV를 분석하고 기존 결과를 복사하지 않는다.
+- Re-analysis가 도입되면 동일 WAV·새 version 관계와 기존 결과 보존을 검증한다.
+
+## 성능·취소 검증
+
+60초 Stereo WAV 기준 wall/CPU time, peak RSS, file size와 cancellation latency를 측정한다. “일반 CPU에서 수 초~수십 초”는 provisional 예산이며 실제 장비·동시 Job·긴 곡 결과로 K3.1 구현 PR에서 상한을 확정한다. 측정하지 않은 수치를 완료 근거로 사용하지 않는다.
+
+### K3.1 실측 — 2026-08-01
+
+- 환경: Windows, Python 3.12.5, Intel64 Family 6 Model 151, NumPy 1.26.4, SciPy 1.17.1, pyloudnorm 0.2.0
+- 입력: 자체 합성 1 kHz sine, -20 dBFS, 48 kHz Stereo PCM16
+- 측정: 동일 warm process에서 `perf_counter`, 2 ms RSS sampling; 파일 생성 메모리는 baseline 전에 회수
+
+| 길이 | WAV 크기 | wall time | peak RSS 증가 | status | Integrated LUFS |
+|---:|---:|---:|---:|---|---:|
+| 30초 | 5.49 MiB | 0.1161초 | 73.51 MiB | `COMPLETED` | -20.034610 |
+| 60초 | 10.99 MiB | 0.2173초 | 148.32 MiB | `COMPLETED` | -20.034610 |
+
+단일 로컬 관찰값이며 운영 성능 보장이 아니다. 분석은 Pipeline `COMPLETED` 이후 실행하므로 분석 중 취소가 완료 Job을 되돌리지 않음을 integration test로 확인했다. 별도 분석 cancel API가 없어 cancellation latency는 측정 대상이 아니다.
+
+### K3.1 자동 검증 결과
+
+- 1 kHz -20 dBFS mono reference: 약 -23.05 LUFS, 동일 stereo: 약 -20.03 LUFS, 허용 오차 ±0.1 LU
+- mono/stereo·PCM16/24/32·duration·sample rate·Sample Peak·positive/negative clipping scalar count·ratio 통과
+- silence·0.1초 short는 non-finite 값 없이 `PARTIAL`, empty·invalid·missing은 safe `FAILED`, 3채널은 `UNSUPPORTED`
+- 분석 exception·metadata 1회 저장 실패에서도 Pipeline `COMPLETED`와 final WAV file capability 유지
+- 공개 DTO에서 source role·path·command·stack·raw debug 제거, 구형 Result null 호환 확인
+
+## 완료 판정
+
+- [x] K3.1 quality reference와 invalid 경계 통과
+- [x] K3.2 합성 BPM error·half/double·confidence 경계 통과
+- [x] K3.3 합성 Hook 후보·fallback·비차단·공개/UI 경계 통과
+- [ ] K3.4 정확한 길이·fade·secure access·cleanup 통과
+- [x] K3.1 성능과 완료 경계 기록
+- [x] K3.1 실패·partial·unsupported와 구형 Result 회귀 통과
+
+현재 결과: `K3.1·K3.2·K3.3 [완료]`, `K3.4 [미실행·계획]`. 실제 음악의 overlap·사용자 유용성 평가는 K3.3 운영 품질 후속 항목이다.

@@ -1,0 +1,237 @@
+export type PipelineStatus =
+  | "PENDING"
+  | "VALIDATING"
+  | "GENERATING"
+  | "STEM_SEPARATING"
+  | "VOICE_CONVERTING"
+  | "MIXING"
+  | "EXPORTING"
+  | "CANCEL_REQUESTED"
+  | "COMPLETED"
+  | "FAILED"
+  | "CANCELLED";
+
+export interface LyricsSectionDto {
+  section_type: string;
+  lines: string[];
+}
+export interface LyricsValidationDto {
+  valid: boolean;
+  normalized_lyrics: string;
+  sections: LyricsSectionDto[];
+  warnings: string[];
+  errors: string[];
+  character_count: number;
+  line_count: number;
+  section_count: number;
+  repetition_ratio: number;
+}
+export interface LyricsDocumentDto {
+  id: string;
+  parent_id: string | null;
+  version: number;
+  revision_instruction: string | null;
+  source_hash: string | null;
+  result_hash: string | null;
+  title: string | null;
+  language: string;
+  topic: string;
+  genre: string | null;
+  mood: string | null;
+  keywords: string[];
+  structure: string[];
+  sections: LyricsSectionDto[];
+  full_text: string;
+  provider: string;
+  model_name: string;
+  model_version: string | null;
+  status: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+export interface LyricsCreateDto {
+  topic: string;
+  genre?: string;
+  mood?: string;
+  language: string;
+  keywords: string[];
+  structure: string[];
+  target_duration_seconds?: number;
+  additional_instructions?: string;
+  allow_template_fallback: boolean;
+  generation_options?: KPopGenerationOptionsDto;
+}
+export interface VoiceProfileDto {
+  id: string;
+  name: string;
+  display_filename: string | null;
+  mime_type: string | null;
+  size_bytes: number | null;
+  duration_seconds: number | null;
+  sample_rate: number | null;
+  channels: number | null;
+  consent_confirmed: boolean;
+  consent_text_version: string | null;
+  status: "READY" | "INVALID" | "DELETED";
+  quality_warnings: string[];
+  created_at: string;
+  updated_at: string;
+}
+export interface PipelineCreateDto {
+  prompt: string;
+  lyrics?: string;
+  genre?: string;
+  duration_seconds: number;
+  seed?: number;
+  voice_profile_id: string;
+  project_id?: string;
+  generation_options?: KPopGenerationOptionsDto;
+}
+export interface KPopGenerationOptionsDto {
+  preset_id: "kpop_dance" | "kpop_easy_listening" | "kpop_performance";
+  requested_bpm?: number;
+  language_ratio?: { ko: number; en: number };
+  hook?: {
+    phrase: string;
+    style: "title_repeat" | "chant";
+    repeat_count: number;
+  };
+  include_post_chorus?: boolean;
+  include_dance_break?: boolean;
+  vocal_energy?: "low" | "medium" | "high";
+  concept?: string;
+}
+export type AudioAnalysisStatusDto =
+  | "NOT_REQUESTED"
+  | "PENDING"
+  | "COMPLETED"
+  | "PARTIAL"
+  | "FAILED"
+  | "UNSUPPORTED";
+export interface AudioQualityMetricsDto {
+  duration_seconds: number;
+  sample_rate: number;
+  channels: number;
+  sample_peak_dbfs: number | null;
+  clipping_detected: boolean;
+  clipping_sample_count: number;
+  clipping_ratio: number;
+  integrated_lufs: number | null;
+}
+export interface TempoAnalysisDto {
+  version: string;
+  status: AudioAnalysisStatusDto;
+  requested_bpm: number | null;
+  detected_bpm: number | null;
+  confidence: number | null;
+  bpm_error: number | null;
+  absolute_bpm_error: number | null;
+  half_time_candidate: boolean;
+  double_time_candidate: boolean;
+}
+export type HookSelectionStrategyDto =
+  | "energy_repetition"
+  | "energy_peak"
+  | "fallback_middle"
+  | "unavailable";
+export interface HookCandidateDto {
+  start_seconds: number;
+  end_seconds: number;
+  duration_seconds: number;
+  confidence: number;
+  selection_strategy: HookSelectionStrategyDto;
+}
+export interface HookAnalysisDto {
+  hook_analysis_version: string;
+  status: AudioAnalysisStatusDto;
+  candidate: HookCandidateDto | null;
+}
+export interface AudioAnalysisDto {
+  audio_analysis_version: string;
+  analysis_status: AudioAnalysisStatusDto;
+  quality: AudioQualityMetricsDto | null;
+  tempo?: TempoAnalysisDto | null;
+  hook?: HookAnalysisDto | null;
+  warnings: string[];
+}
+export interface PipelineJobDto {
+  id: string;
+  project_id: string | null;
+  voice_profile_id: string;
+  status: PipelineStatus;
+  current_step: string;
+  progress_percent: number;
+  prompt: string;
+  lyrics: string | null;
+  genre: string | null;
+  duration_seconds: number;
+  seed: number | null;
+  pipeline_version: string;
+  result_metadata: Record<string, unknown>;
+  failed_step: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
+  completed_at: string | null;
+  cancel_requested_at: string | null;
+  cancelled_at: string | null;
+  retry_of_job_id: string | null;
+  can_cancel: boolean;
+  can_retry: boolean;
+  generation_options?: KPopGenerationOptionsDto | null;
+  kpop_prompt_compiler_version?: string | null;
+  audio_analysis?: AudioAnalysisDto | null;
+}
+export interface PipelineCancelDto {
+  job_id: string;
+  status: PipelineStatus;
+  cancel_requested_at: string | null;
+  cancelled_at: string | null;
+  message: string;
+}
+export interface PipelineRetryDto { source_job_id: string; job: PipelineJobDto; }
+export interface HistoryItemDto {
+  job_id: string;
+  project_id: string | null;
+  title: string;
+  status: PipelineStatus;
+  created_at: string;
+  duration: number;
+  voice_profile_name: string;
+  has_audio: boolean;
+  can_cancel: boolean;
+  can_retry: boolean;
+  retry_of_job_id: string | null;
+  generation_options?: KPopGenerationOptionsDto | null;
+  kpop_prompt_compiler_version?: string | null;
+  audio_analysis?: AudioAnalysisDto | null;
+}
+export interface HistoryDetailDto extends HistoryItemDto {
+  prompt: string;
+  genre: string | null;
+  completed_at: string | null;
+}
+export interface ProjectDto {
+  id: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+  job_count: number;
+}
+export interface ProjectDetailDto extends ProjectDto {
+  jobs: HistoryItemDto[];
+}
+export interface PipelineFileDto {
+  id: string;
+  job_id: string;
+  file_type: string;
+  mime_type: string;
+  created_at: string;
+  content_available: boolean;
+  download_available: boolean;
+  content_url: string | null;
+  download_url: string | null;
+}

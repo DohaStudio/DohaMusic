@@ -1,0 +1,433 @@
+# Asset 중심 목표 Table Definition
+
+> 문서 상태: [제안]
+> 최종 수정일: 2026-08-06
+> 관련 기능: DohaMusic Workspace 데이터베이스 재설계
+> 구현 상태: 논리 Table Definition만 작성, SQL·ORM·Migration 미구현
+> 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
+
+## 1. 표기 기준
+
+- 타입은 특정 DB 제품의 SQL이 아닌 논리 타입입니다.
+- `UUID`, `string`, `text`, `integer`, `bigint`, `decimal`, `boolean`, `timestamp`, `json`을 사용합니다.
+- 모든 시각은 UTC입니다.
+- `PK`, `FK`, `Unique`, `Index`는 구현 시 반드시 반영할 논리 제약입니다.
+- 불변 Table은 생성 후 내용 변경을 허용하지 않습니다.
+- enum 최종 값과 field 길이는 Common Specification의 contract version 확정 후 고정합니다.
+
+## 2. Workspace와 Project
+
+### 2.1 `workspaces`
+
+Workspace는 사용자·Project·권한·Asset·Job·결과를 관리하는 최상위 제품 영역입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `workspace_id` | UUID | 아니요 | PK | Workspace 식별자 |
+| `owner_id` | UUID | 아니요 | Index | 외부 사용자·권한 경계의 Owner 식별자 |
+| `name` | string | 아니요 |  | 표시 이름 |
+| `lifecycle_status` | string | 아니요 | Index | `active`, `archived`, 삭제 lifecycle |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `updated_at` | timestamp | 아니요 |  | Metadata 최종 변경 시각 |
+| `deleted_at` | timestamp | 예 | Index | Soft Delete 시각 |
+
+Unique 후보는 초기 단일 사용자 강제를 위한 `owner_id` 단독 제약이 아닙니다. 향후 한 Owner가 여러 Workspace를 가질 수 있도록 허용합니다.
+
+### 2.2 `music_projects`
+
+MusicProject는 하나의 음악 작업 단위입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `project_id` | UUID | 아니요 | PK | Project 식별자 |
+| `workspace_id` | UUID | 아니요 | FK, Index | `workspaces.workspace_id` |
+| `title` | string | 아니요 | Index | Project 제목 |
+| `description` | text | 예 |  | 설명 |
+| `lifecycle_status` | string | 아니요 | Index | Project lifecycle |
+| `created_by` | UUID | 아니요 | Index | 생성 actor |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `updated_at` | timestamp | 아니요 |  | Metadata 최종 변경 시각 |
+| `deleted_at` | timestamp | 예 | Index | Soft Delete 시각 |
+
+### 2.3 `project_assets`
+
+ProjectAsset는 MusicProject와 Asset의 N:M 연결을 소유합니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `project_asset_id` | UUID | 아니요 | PK | 연결 식별자 |
+| `project_id` | UUID | 아니요 | FK, Index | `music_projects.project_id` |
+| `asset_id` | UUID | 아니요 | FK, Index | `assets.asset_id` |
+| `role` | string | 예 | Index | Project 안 표시·구성 역할 |
+| `display_order` | integer | 아니요 |  | Project 안 표시 순서 |
+| `created_at` | timestamp | 아니요 |  | 연결 생성 시각 |
+| `deleted_at` | timestamp | 예 | Index | 연결 해제 시각 |
+
+`(project_id, asset_id)`는 Unique입니다. 다시 연결할 때 새 중복 row를 만들지 않고 기존 Soft Delete row를 복원합니다.
+
+## 3. Asset와 Artifact
+
+### 3.1 `assets`
+
+Asset은 실제 파일이 아닌 논리 작품 객체입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `asset_id` | UUID | 아니요 | PK | Asset 식별자 |
+| `workspace_id` | UUID | 예 | FK, Index | 자산을 소유하는 Workspace 식별자. 저장소별 단일 Workspace 계약에서는 생략 가능 |
+| `owner_id` | UUID | 아니요 | Index | 사용자 또는 Workspace Owner 식별자 |
+| `asset_type` | string | 아니요 | Index | `lyrics`, `music`, `vocal`, `stem`, `recording`, `mix`, `export` |
+| `selected_asset_version_id` | UUID | 예 | FK, Unique | 현재 Selection인 `asset_versions.asset_version_id` |
+| `lifecycle_status` | string | 아니요 | Index | `draft`, `active`, `archived`, 삭제 lifecycle |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `updated_at` | timestamp | 아니요 |  | 변경 가능한 Metadata 시각 |
+| `deleted_at` | timestamp | 예 | Index | Soft Delete 시각 |
+
+`selected_asset_version_id`는 같은 Asset의 Version만 허용합니다. 이 교차 row 규칙은 Service transaction에서 검증합니다.
+
+### 3.2 `asset_versions`
+
+AssetVersion은 Asset의 불변 상태와 계보입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `asset_version_id` | UUID | 아니요 | PK | 불변 Version 식별자 |
+| `asset_id` | UUID | 아니요 | FK, Index | `assets.asset_id` |
+| `version_number` | integer | 아니요 | Unique 조합 | Asset 내부 단조 증가 번호 |
+| `version_origin` | string | 아니요 | Index | Common Specification의 Version 생성 원인 |
+| `parent_asset_version_id` | UUID | 예 | FK, Index | 같은 Asset의 직접 이전 Version |
+| `processing_chain_id` | UUID | 예 | FK, Index | 적용된 `processing_chains.processing_chain_id` |
+| `provider_id` | string | 예 | Index | 생성 Provider. 사용자 작성이면 없음 |
+| `model_manifest_id` | string | 예 | Index | 사용 Model Manifest. 모델 미사용이면 없음 |
+| `settings_snapshot` | json | 아니요 |  | 생성 시점 불변 설정 |
+| `created_by` | UUID | 아니요 | Index | 사용자 또는 시스템 actor |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+`(asset_id, version_number)`는 Unique입니다. `version_number`는 감소·재사용하지 않으며 row의 UPDATE와 직접 DELETE를 금지합니다.
+
+### 3.3 `artifacts`
+
+Artifact는 실제 파일 또는 직렬화된 Payload의 식별·무결성 Metadata입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `artifact_id` | UUID | 아니요 | PK | 저장 위치와 독립적인 Artifact 식별자 |
+| `asset_version_id` | UUID | 아니요 | FK, Index | 소유 `asset_versions.asset_version_id` |
+| `artifact_kind` | string | 아니요 | Index | Artifact 논리 유형 |
+| `media_type` | string | 아니요 | Index | MIME 또는 직렬화 형식 |
+| `size_bytes` | bigint | 아니요 |  | Payload 크기 |
+| `checksum_algorithm` | string | 아니요 |  | 기본 `sha256` |
+| `artifact_checksum` | string | 아니요 | Index | Payload checksum |
+| `producer_type` | string | 아니요 | Index | `user`, `provider`, `workspace`, `import` |
+| `producer_id` | string | 예 | Index | Provider 또는 actor 식별자 |
+| `run_id` | string | 예 | Index | Job·Training·Evaluation Run 식별자 |
+| `retention_status` | string | 아니요 | Index | 보존·삭제 lifecycle |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+절대 경로와 상대 경로 field를 두지 않습니다. 같은 `artifact_id`의 Payload는 덮어쓰지 않습니다. `(checksum_algorithm, artifact_checksum, size_bytes)`는 중복 탐지 Index이며 자동 병합 Unique로 사용하지 않습니다.
+
+### 3.4 `asset_relations`
+
+AssetRelation은 부모·파생·Stem·Voice Conversion 등 의미 관계를 저장합니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `relation_id` | UUID | 아니요 | PK | 관계 식별자 |
+| `source_asset_id` | UUID | 예 | FK, Index | source `assets.asset_id` |
+| `target_asset_id` | UUID | 예 | FK, Index | target `assets.asset_id` |
+| `source_asset_version_id` | UUID | 예 | FK, Index | source `asset_versions.asset_version_id` |
+| `target_asset_version_id` | UUID | 예 | FK, Index | target `asset_versions.asset_version_id` |
+| `relation_type` | string | 아니요 | Index | versioned 관계 유형 |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+Asset 쌍 또는 AssetVersion 쌍 중 하나만 완성하는 Check가 필요합니다. source와 target이 같은 자기 관계, 순환 파생과 완전히 같은 중복 관계를 금지합니다.
+
+## 4. Composition Snapshot과 Processing
+
+### 4.1 `composition_snapshots`
+
+CompositionSnapshot은 Project의 정확한 작품 구성을 고정한 불변 객체입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `composition_snapshot_id` | UUID | 아니요 | PK | Snapshot 식별자 |
+| `project_id` | UUID | 아니요 | FK, Index | `music_projects.project_id` |
+| `snapshot_version` | integer | 아니요 | Unique 조합 | Project 내부 단조 증가 번호 |
+| `processing_chain_id` | UUID | 예 | FK, Index | 대표 Processing Chain |
+| `mix_settings_snapshot` | json | 아니요 |  | 생성 시점 Mix 설정 |
+| `provider_versions` | json | 아니요 |  | Provider와 contract version snapshot |
+| `model_manifest_ids` | json | 아니요 |  | Model Manifest ID와 model version snapshot |
+| `created_by` | UUID | 아니요 | Index | 생성 actor |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+`(project_id, snapshot_version)`는 Unique입니다. 생성 후 UPDATE와 DELETE를 금지합니다.
+
+### 4.2 `snapshot_items`
+
+SnapshotItem은 Snapshot 안의 역할별 정확한 AssetVersion을 고정합니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `snapshot_item_id` | UUID | 아니요 | PK | Item 식별자 |
+| `composition_snapshot_id` | UUID | 아니요 | FK, Index | `composition_snapshots.composition_snapshot_id` |
+| `asset_version_id` | UUID | 아니요 | FK, Index | 고정된 `asset_versions.asset_version_id` |
+| `item_role` | string | 아니요 | Index | Lyrics, Music, Vocal, Stem, Mix 역할 |
+| `sort_order` | integer | 아니요 |  | 같은 역할 안 순서 |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+`(composition_snapshot_id, item_role, sort_order)`와 `(composition_snapshot_id, asset_version_id, item_role)`는 Unique입니다. Snapshot과 함께 불변입니다.
+
+### 4.3 `processing_chains`
+
+ProcessingChain은 순서가 있는 처리 정의입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `processing_chain_id` | UUID | 아니요 | PK | Chain 식별자 |
+| `name` | string | 아니요 |  | 표시 이름 |
+| `chain_version` | string | 아니요 | Unique 조합 | Chain version |
+| `chain_checksum` | string | 아니요 | Unique | 단계·설정 전체 checksum |
+| `created_by` | UUID | 아니요 | Index | 생성 actor |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+`(name, chain_version)`은 Unique입니다. 사용된 Chain은 수정하지 않고 새 version을 만듭니다.
+
+### 4.4 `processing_steps`
+
+ProcessingStep은 Chain 안의 개별 처리 단계입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `processing_step_id` | UUID | 아니요 | PK | Step 식별자 |
+| `processing_chain_id` | UUID | 아니요 | FK, Index | `processing_chains.processing_chain_id` |
+| `step_order` | integer | 아니요 | Unique 조합 | 1부터 증가하는 실행 순서 |
+| `step_type` | string | 아니요 | Index | Noise, Pitch, Timing, Normalize, AutoTune, Voice Conversion 등 |
+| `settings_snapshot` | json | 아니요 |  | 단계별 불변 설정 |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+`(processing_chain_id, step_order)`는 Unique입니다. Chain과 함께 불변입니다.
+
+## 5. Job과 ModelUsage
+
+### 5.1 `jobs`
+
+Job은 Provider 또는 Workspace가 수행하는 독립 비동기 실행 단위입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `job_id` | UUID | 아니요 | PK | Job 식별자 |
+| `project_id` | UUID | 아니요 | FK, Index | `music_projects.project_id` |
+| `composition_snapshot_id` | UUID | 예 | FK, Index | 실행 문맥 Snapshot |
+| `job_type` | string | 아니요 | Index | Lyrics/Music/Vocal Generation, Mix, Export 등 |
+| `status` | string | 아니요 | Index | `queued`, `running`, `succeeded`, `failed`, `cancelled` |
+| `provider_id` | string | 예 | Index | 실행 Provider 또는 Workspace component |
+| `api_contract_version` | string | 아니요 | Index | 사용한 계약 version |
+| `model_manifest_id` | string | 예 | Index | 대표 실행 Model Manifest. 모델 미사용이면 없음 |
+| `progress_percent` | decimal | 예 |  | 0~100 진행률 |
+| `stage` | string | 예 | Index | 현재 안전한 처리 단계 |
+| `settings_snapshot` | json | 아니요 |  | 실행 시점 설정 |
+| `retry_of_job_id` | UUID | 예 | FK, Index | 원본 실패·취소 Job |
+| `error_code` | string | 예 | Index | 구조화된 안전 오류 코드 |
+| `error_message` | text | 예 |  | 한국어 사용자 메시지 또는 지역화 key |
+| `error_retryable` | boolean | 예 |  | 재시도 가능 여부 |
+| `error_details_id` | string | 예 | Index | 비공개 상세 진단 참조 |
+| `requested_by` | UUID | 아니요 | Index | 요청 actor |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `started_at` | timestamp | 예 |  | 실행 시작 시각 |
+| `completed_at` | timestamp | 예 |  | 종료 시각 |
+
+종료 상태는 다른 상태로 되돌리지 않습니다. Retry는 새 row입니다. `status`, `created_at`과 `(project_id, created_at)`을 복합 Index로 둡니다.
+
+### 5.2 `job_inputs`
+
+JobInput은 실행 입력 Version 또는 직접 입력 Artifact를 연결합니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `job_input_id` | UUID | 아니요 | PK | 입력 연결 식별자 |
+| `job_id` | UUID | 아니요 | FK, Index | `jobs.job_id` |
+| `asset_version_id` | UUID | 예 | FK, Index | 입력 `asset_versions.asset_version_id` |
+| `artifact_id` | UUID | 예 | FK, Index | 직접 입력 `artifacts.artifact_id` |
+| `input_order` | integer | 아니요 | Unique 조합 | 입력 순서 |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+
+`asset_version_id`, `artifact_id` 중 정확히 하나만 필요합니다. `(job_id, input_order)`는 Unique이며 row는 불변입니다.
+
+### 5.3 `job_outputs`
+
+JobOutput은 성공 후 등록된 출력 Version 또는 Artifact를 연결합니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `job_output_id` | UUID | 아니요 | PK | 출력 연결 식별자 |
+| `job_id` | UUID | 아니요 | FK, Index | `jobs.job_id` |
+| `asset_version_id` | UUID | 예 | FK, Index | 출력 `asset_versions.asset_version_id` |
+| `artifact_id` | UUID | 예 | FK, Index | 출력 `artifacts.artifact_id` |
+| `output_order` | integer | 아니요 | Unique 조합 | 출력 순서 |
+| `created_at` | timestamp | 아니요 |  | 등록 시각 |
+
+`asset_version_id`, `artifact_id` 중 정확히 하나만 필요합니다. `(job_id, output_order)`는 Unique이며 `succeeded` 확정 전에 Artifact checksum을 검증합니다.
+
+### 5.4 `model_usages`
+
+ModelUsage는 실제 실행 Model과 권리 계보를 Job 결과에 연결합니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `model_usage_id` | UUID | 아니요 | PK | 사용 기록 식별자 |
+| `job_id` | UUID | 아니요 | FK, Index | `jobs.job_id` |
+| `asset_version_id` | UUID | 예 | FK, Index | 결과 `asset_versions.asset_version_id` |
+| `provider_id` | string | 아니요 | Index | Provider 식별자 |
+| `model_manifest_id` | string | 아니요 | Index | Model Manifest 식별자 |
+| `model_id` | string | 아니요 | Index | Model 논리 식별자 |
+| `model_version` | string | 아니요 |  | Model version |
+| `checkpoint_version` | string | 예 |  | Checkpoint version |
+| `api_contract_version` | string | 아니요 | Index | Provider 계약 version |
+| `license_status` | string | 아니요 | Index | License 검토 상태 |
+| `commercial_usage_status` | string | 아니요 | Index | 상업 이용 검토 상태 |
+| `created_at` | timestamp | 아니요 |  | 기록 시각 |
+
+`(job_id, model_manifest_id, asset_version_id)`는 중복 방지 Unique 후보입니다. ModelUsage는 게시 후 불변입니다.
+
+## 6. Enrollment, Approval과 Workspace Metadata
+
+### 6.1 `recording_enrollments`
+
+RecordingEnrollment는 작품 Recording과 분리된 음색 등록·참조 승인 과정입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `recording_enrollment_id` | UUID | 아니요 | PK | Enrollment 식별자 |
+| `workspace_id` | UUID | 아니요 | FK, Index | `workspaces.workspace_id` |
+| `recording_asset_version_id` | UUID | 아니요 | FK, Index | 승인된 Recording AssetVersion |
+| `status` | string | 아니요 | Index | Enrollment lifecycle |
+| `consent_policy_version` | string | 아니요 | Index | 동의문 version |
+| `consent_evidence_id` | string | 아니요 | Index | 접근 제어된 동의 증적 식별자 |
+| `created_by` | UUID | 아니요 | Index | 등록 actor |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `completed_at` | timestamp | 예 |  | 완료 시각 |
+| `deleted_at` | timestamp | 예 | Index | Soft Delete·철회 요청 시각 |
+
+작품 Recording, Enrollment와 Training Dataset은 서로 다른 객체입니다. `(workspace_id, recording_asset_version_id, consent_policy_version)`는 중복 등록 방지 Unique입니다.
+
+### 6.2 `approvals`
+
+Approval은 대상과 목적별 승인 판단·근거를 보존하는 불변 이벤트입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `approval_id` | UUID | 아니요 | PK | 승인 이벤트 식별자 |
+| `asset_version_id` | UUID | 예 | FK, Index | 승인 대상 AssetVersion |
+| `recording_enrollment_id` | UUID | 예 | FK, Index | 승인 대상 RecordingEnrollment |
+| `model_usage_id` | UUID | 예 | FK, Index | 승인 대상 ModelUsage |
+| `usage_purpose` | string | 아니요 | Index | 최종 사용·음성 사용·상업 이용 등 목적 |
+| `status` | string | 아니요 | Index | 검토·승인·거절·철회 상태 |
+| `approved_by` | UUID | 아니요 | Index | 결정 actor |
+| `evidence_id` | string | 아니요 | Index | 근거 식별자 |
+| `decided_at` | timestamp | 아니요 | Index | 결정 시각 |
+| `created_at` | timestamp | 아니요 |  | 기록 시각 |
+
+세 대상 FK 중 정확히 하나만 필요합니다. 판단 변경과 철회는 기존 row UPDATE가 아니라 새 Approval 이벤트로 기록합니다.
+
+### 6.3 `tags`
+
+Tag는 Asset 분류 Metadata입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `tag_id` | UUID | 아니요 | PK | Tag 식별자 |
+| `asset_id` | UUID | 아니요 | FK, Index | `assets.asset_id` |
+| `name` | string | 아니요 | Index | 정규화된 Tag 이름 |
+| `created_by` | UUID | 아니요 | Index | 생성 actor |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `deleted_at` | timestamp | 예 | Index | Soft Delete 시각 |
+
+`(asset_id, name)`은 Unique이며 다시 추가할 때 기존 row를 복원합니다.
+
+### 6.4 `comments`
+
+Comment는 특정 불변 AssetVersion에 대한 의견입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `comment_id` | UUID | 아니요 | PK | Comment 식별자 |
+| `asset_version_id` | UUID | 아니요 | FK, Index | `asset_versions.asset_version_id` |
+| `created_by` | UUID | 아니요 | Index | 작성 actor |
+| `body` | text | 아니요 |  | Comment 본문 |
+| `created_at` | timestamp | 아니요 | Index | 생성 시각 |
+| `updated_at` | timestamp | 아니요 |  | 본문 수정 시각 |
+| `deleted_at` | timestamp | 예 | Index | Soft Delete 시각 |
+
+`(asset_version_id, created_at)`을 조회 Index로 둡니다. Comment 수정은 History에 기록합니다.
+
+### 6.5 `favorites`
+
+Favorite는 Workspace와 Asset의 선호 연결입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `favorite_id` | UUID | 아니요 | PK | Favorite 식별자 |
+| `workspace_id` | UUID | 아니요 | FK, Index | `workspaces.workspace_id` |
+| `asset_id` | UUID | 아니요 | FK, Index | `assets.asset_id` |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `deleted_at` | timestamp | 예 | Index | 해제 시각 |
+
+`(workspace_id, asset_id)`는 Unique이며 다시 선택할 때 기존 row를 복원합니다.
+
+### 6.6 `history`
+
+History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Table로 사용하지 않습니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `history_id` | UUID | 아니요 | PK | History 식별자 |
+| `workspace_id` | UUID | 아니요 | FK, Index | `workspaces.workspace_id` |
+| `actor_id` | UUID | 아니요 | Index | 행위 actor |
+| `entity_type` | string | 아니요 | Index | allowlist 대상 Entity 유형 |
+| `entity_id` | UUID | 아니요 | Index | 대상 식별자 |
+| `action` | string | 아니요 | Index | 생성·Selection·승인·삭제 요청 등 |
+| `before_snapshot` | json | 예 |  | 민감정보를 제거한 변경 전 Metadata |
+| `after_snapshot` | json | 예 |  | 민감정보를 제거한 변경 후 Metadata |
+| `created_at` | timestamp | 아니요 | Index | 발생 시각 |
+
+`(workspace_id, created_at)`과 `(entity_type, entity_id, created_at)`을 복합 Index로 둡니다. History는 append-only이며 절대 경로, 비밀정보, 개인 음성 Payload와 동의 증적 원문을 저장하지 않습니다.
+
+## 7. 공통 FK 삭제 동작
+
+| 관계 | 삭제 동작 |
+|---|---|
+| Workspace → MusicProject | 물리 삭제 제한, Soft Delete 사용 |
+| MusicProject → ProjectAsset·Snapshot·Job | 물리 삭제 제한 |
+| Asset → AssetVersion | 물리 삭제 제한 |
+| AssetVersion → Artifact·SnapshotItem·JobInput/Output·ModelUsage | 물리 삭제 제한 |
+| Job → Input·Output·ModelUsage | 물리 삭제 제한 |
+| ProcessingChain → Step·Version·Snapshot | 물리 삭제 제한 |
+| RecordingEnrollment·ModelUsage → Approval | 물리 삭제 제한 |
+
+불변·감사 근거에 `CASCADE DELETE`를 사용하지 않습니다. 구현 전에 보존 기간과 개인정보 삭제 의무가 충돌하는 사례를 별도 검증해야 합니다.
+
+## 8. 필수 Unique와 Index 요약
+
+| Table | Unique | 주요 Index |
+|---|---|---|
+| `project_assets` | `(project_id, asset_id)` | `project_id`, `asset_id`, `deleted_at` |
+| `asset_versions` | `(asset_id, version_number)` | `parent_asset_version_id`, `version_origin` |
+| `composition_snapshots` | `(project_id, snapshot_version)` | `project_id`, `created_at` |
+| `snapshot_items` | `(composition_snapshot_id, item_role, sort_order)` | `asset_version_id` |
+| `processing_chains` | `(name, chain_version)`, `chain_checksum` | `created_by` |
+| `processing_steps` | `(processing_chain_id, step_order)` | `step_type` |
+| `job_inputs` | `(job_id, input_order)` | `asset_version_id`, `artifact_id` |
+| `job_outputs` | `(job_id, output_order)` | `asset_version_id`, `artifact_id` |
+| `tags` | `(asset_id, name)` | `name`, `deleted_at` |
+| `favorites` | `(workspace_id, asset_id)` | `workspace_id`, `deleted_at` |
+| `jobs` | 없음 | `(project_id, created_at)`, `(status, created_at)`, `retry_of_job_id` |
+| `artifacts` | Artifact ID | checksum 조합, `retention_status`, `run_id` |
+
+## 9. 구현 전 검증 항목
+
+- 순환 FK인 Asset Selection 생성 순서와 deferred constraint 지원 여부
+- SQLite와 향후 운영 DB에서 Check·partial unique 동등성
+- 불변 row의 UPDATE 차단을 Service, Repository 또는 DB 중 어디서 강제할지
+- `json` field의 JSON Schema와 versioning
+- History의 논리 참조 무결성과 개인정보 최소화
+- Artifact Resolver 없이 DB에 경로를 저장하지 않는 API·Worker 전환 순서

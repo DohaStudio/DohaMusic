@@ -1,15 +1,67 @@
 # API 개요
 
-> 문서 목적: MVP REST API 자원, 공통 규칙과 보안 경계를 정의한다.
-> 현재 상태: **설계 초안 / 미구현**
+> 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
+> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Guided Voice Enrollment + Pipeline + Lyrics + History·Project API 구현 완료**
 
-기본 prefix는 `/api/v1`을 제안한다. 모든 사용자 자원은 인증과 소유권 검사를 거친다. 생성 요청은 비동기이며 `202 Accepted`와 작업 ID를 반환한다.
+기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
-| 영역 | 예시 경로 | 문서 |
-|---|---|---|
-| 생성 | `POST /generation-requests` | [생성 API](generation-api.md) |
-| 작업 | `GET /jobs/{job_id}` | [작업 API](job-api.md) |
-| 모델 | `GET /models` | [모델 API](model-api.md) |
-| 오디오 | `POST /voice-samples`, `GET /files/{file_id}` | [오디오 API](audio-api.md) |
+## Workspace v1 목표 계약 — [계획]
 
-오류는 안정적인 `code`, 사용자용 `message`, 추적용 `request_id`, 선택적 `details`를 반환한다. 정확한 스키마와 인증 방식은 구현 전에 OpenAPI에서 확정한다.
+DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 아직 FastAPI Endpoint, OpenAPI Schema, DB와 테스트로 구현되지 않았다. 아래 현행 API와 상태는 그대로 유지한다.
+
+- [Workspace REST API 공통 계약](workspace-rest-api-contract.md)
+- [목표 Endpoint 목록](workspace-rest-api-endpoints.md)
+- [Provider API 계약](provider-api-contract.md)
+- [API 전환 전략](api-contract-migration-strategy.md)
+- [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
+
+| 메서드 | 경로 | 성공 응답 | 설명 |
+|---|---|---:|---|
+| `GET` | `/health` | 200 | 애플리케이션 상태 확인 |
+| `POST` | `/api/generations` | 202 | Mock 생성 Job 생성 |
+| `GET` | `/api/generations/{id}` | 200 | Job 상태 조회 |
+| `GET` | `/api/generations/{id}/files` | 200 | Job 결과 파일 메타데이터 조회 |
+| `POST` | `/api/stems` | 202 | 생성 파일 기반 Stem 분리 Job 생성 |
+| `GET` | `/api/stems/{job}` | 200 | Stem Job 상태 조회 |
+| `GET` | `/api/stems/{job}/files` | 200 | vocals·instrumental·metadata 조회 |
+| `POST` | `/api/voice-profiles` | 201 | 동의가 확인된 음성 프로필 메타데이터 생성 |
+| `POST` | `/api/voice-profiles/upload` | 201 | 동의된 WAV를 검증·저장하고 Profile 생성 |
+| `GET` | `/api/voice-profiles` | 200 | 공개 Voice Profile 목록 |
+| `GET` | `/api/voice-profiles/{id}` | 200 | 공개 Voice Profile 상세 |
+| `DELETE` | `/api/voice-profiles/{id}` | 204 | 음성 프로필 삭제 |
+| `POST` | `/api/voice-conversion` | 202 | vocals와 동의된 Voice Profile로 변환 Job 생성 |
+| `POST` | `/api/voice-enrollments` | 201 | Guided Voice Enrollment draft 생성 |
+| `GET` | `/api/voice-enrollments/{id}` | 200 | Enrollment·Sample·cleanup 요약 조회와 lazy 만료 |
+| `POST` | `/api/voice-enrollments/{id}/samples` | 201 | WAV/WebM/Ogg upload·정규화·기본 품질 검사 |
+| `GET/DELETE` | `/api/voice-enrollments/{id}/samples/{sample_id}` | 200 | Sample 조회·cleanup 삭제 |
+| `POST` | `/api/voice-enrollments/{id}/submit` | 201 | 대표 Sample을 Voice Profile로 승격 |
+| `POST` | `/api/voice-enrollments/{id}/cancel` | 200 | 미완료 Enrollment 취소·cleanup |
+| `GET` | `/api/voice-conversion/{job}` | 200 | Voice Conversion Job 조회 |
+| `GET` | `/api/voice-conversion/{job}/files` | 200 | converted_voice·metadata 조회 |
+| `POST` | `/api/pipelines` | 202 | Mock AI·Default Audio Mixer Pipeline Job 생성 |
+| `GET` | `/api/pipelines/{job}` | 200 | 단계·진행률·metadata 조회 |
+| `GET` | `/api/pipelines/{job}/files` | 200 | Pipeline 결과 파일 metadata 조회 |
+| `GET` | `/api/history` | 200 | 최신순 History 목록·검색·상태·페이지네이션 |
+| `GET` | `/api/history/{job}` | 200 | History 상세 조회 |
+| `GET` | `/api/projects` | 200 | Project 목록과 Job 수 조회 |
+| `POST` | `/api/projects` | 201 | Project 생성 |
+| `GET` | `/api/projects/{id}` | 200 | Project와 포함 Job 조회 |
+| `PATCH` | `/api/projects/{id}` | 200 | Project 제목·설명 변경 |
+| `DELETE` | `/api/projects/{id}` | 204 | Project 연결 해제 삭제, Job·파일 유지 |
+| `POST` | `/api/lyrics` | 201 | Template·Mock 가사 초안 생성·저장 |
+| `GET` | `/api/lyrics/{id}` | 200 | 가사 문서 조회 |
+| `POST` | `/api/lyrics/validate` | 200 | 직접 작성 가사 정규화·검증 |
+| `DELETE` | `/api/lyrics/{id}` | 204 | 가사 문서 삭제 |
+
+생성, Stem, Voice, Pipeline 요청은 비동기이며 `202 Accepted`와 `PENDING` Job을 반환한다. Lyrics와 Guided Voice Enrollment 정규화·제출은 로컬 동기 계약이며 `201`/`200`을 반환한다. Enrollment의 CPU·subprocess 처리는 threadpool을 사용하지만 별도 durable Job은 만들지 않는다. 오류는 다음 형식을 사용한다.
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Generation job을(를) 찾을 수 없습니다."
+  }
+}
+```
+
+Pipeline 결과 WAV의 content/download, 기존 Voice Profile 단일 WAV upload, Guided Enrollment 다중 sample·사전 validation·임시 상태와 Pipeline 취소·새 Job 재시도를 제공한다. Guided Enrollment의 주기 만료·cleanup·crash recovery는 공개 endpoint 없이 Backend lifecycle에서 동작한다. 인증·사용자 소유권, Voice 원본 content와 개별 생성 모듈 download API는 후속 단계 범위다.

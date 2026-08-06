@@ -1,0 +1,20 @@
+import Link from "next/link";
+import { Brand, Vinyl } from "@/components/brand";
+export default function NotFound() {
+  return (
+    <main id="main-content" className="not-found">
+      <Brand />
+      <Vinyl small />
+      <p className="eyebrow">404 · TRACK NOT FOUND</p>
+      <h1>
+        이 트랙은 아직
+        <br />
+        프레스되지 않았어요.
+      </h1>
+      <p>주소를 확인하거나 Studio로 돌아가 새로운 음악을 시작하세요.</p>
+      <Link className="button" href="/studio">
+        Studio로 돌아가기
+      </Link>
+    </main>
+  );
+}

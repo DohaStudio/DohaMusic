@@ -1,17 +1,80 @@
 # 오류 코드
 
-> 문서 목적: API와 Worker가 공유하는 안정적인 오류 분류를 정의한다.
-> 현재 상태: **초안**
+> 문서 목적: API와 Worker의 안정적인 오류 코드를 정의한다.
+> 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
+> Workspace v1 목표 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — [계획], 미구현
 
-| 코드 | 의미 | 재시도 |
-|---|---|---|
-| `INVALID_INPUT` | 요청 형식·범위 오류 | 수정 후 가능 |
-| `VOICE_CONSENT_REQUIRED` | 동의 없음·만료·철회 | 동의 해결 후 가능 |
-| `FILE_FORMAT_UNSUPPORTED` | 미지원 또는 디코딩 불가 | 다른 파일 필요 |
-| `MODEL_UNAVAILABLE` | 모델 로드/가용성 문제 | 조건부 |
-| `GPU_OUT_OF_MEMORY` | 안전 설정에서도 VRAM 부족 | 설정/모델 변경 필요 |
-| `PIPELINE_STEP_FAILED` | 단계별 일반 실패 | 실행 로그 판정 |
-| `JOB_NOT_RETRYABLE` | 정책상 재시도 불가 | 불가 |
-| `ACCESS_DENIED` | 인증·소유권 부족 | 권한 해결 필요 |
+| 코드 | 의미 |
+|---|---|
+| `INVALID_INPUT` | API 요청 형식 또는 범위 오류 |
+| `INVALID_KPOP_PRESET` | 지원하지 않는 K-POP Preset |
+| `INVALID_REQUESTED_BPM` | 70~180 범위를 벗어난 목표 BPM |
+| `INVALID_LANGUAGE_RATIO` | 한국어·영어 비율 범위 또는 합계 오류 |
+| `INVALID_HOOK_OPTIONS` | Hook 문구·방식·반복 횟수 오류 |
+| `INVALID_VOCAL_ENERGY` | 허용되지 않은 보컬 에너지 |
+| `INVALID_CONCEPT` | Concept 길이·제어문자 오류 |
+| `INVALID_GENERATION_OPTIONS` | 알 수 없는 Structured Option 등 K-POP 설정 오류 |
+| `PRESET_GENRE_MISMATCH` | Preset canonical genre와 요청 genre 불일치 |
+| `INVALID_KPOP_PROMPT` | 모방 방지 또는 컴파일 길이 제한 위반 |
+| `RESOURCE_NOT_FOUND` | Job 또는 음성 프로필 없음 |
+| `INTERNAL_ERROR` | 처리되지 않은 API 내부 예외 |
+| `MOCK_GENERATION_FAILED` | Mock 생성 실패 |
+| `AI_PROVIDER_NOT_CONFIGURED` | 알 수 없는 Provider 설정 |
+| `AI_DEPENDENCY_NOT_INSTALLED` | 격리 런타임 또는 runner 없음 |
+| `AI_MODEL_NOT_FOUND` | checkout·checkpoint·모델 없음 |
+| `AI_MODEL_LOAD_FAILED` | 모델 초기화 실패 |
+| `AI_INFERENCE_FAILED` | 추론 또는 runner 응답 실패 |
+| `AI_OUT_OF_MEMORY` | CUDA 메모리 부족 |
+| `AI_OUTPUT_NOT_CREATED` | 결과 오디오 없음 |
+| `AI_AUDIO_DECODE_FAILED` | 생성 파일을 WAV로 해석할 수 없음 |
+| `AI_TIMEOUT` | AI subprocess 제한 시간 초과 |
+| `STEM_PROVIDER_NOT_CONFIGURED` | 알 수 없거나 불완전한 Stem Provider 설정 |
+| `STEM_DEPENDENCY_NOT_INSTALLED` | Demucs 격리 Python 또는 runner 없음 |
+| `STEM_MODEL_NOT_FOUND` | HTDemucs cache·checkpoint 없음 |
+| `STEM_MODEL_LOAD_FAILED` | Demucs 모델 초기화 실패 |
+| `STEM_SEPARATION_FAILED` | 분리 또는 runner 응답 실패 |
+| `STEM_OUT_OF_MEMORY` | Stem 추론 중 CUDA 메모리 부족 |
+| `STEM_OUTPUT_NOT_CREATED` | vocals 또는 instrumental 생성 실패 |
+| `STEM_AUDIO_DECODE_FAILED` | 입력 오디오 디코딩 실패 |
+| `STEM_TIMEOUT` | Stem subprocess 제한 시간 초과 |
+| `LYRICS_PROVIDER_NOT_SUPPORTED` | 지원하지 않는 Lyrics Provider 시작 설정 |
+| `LYRICS_GENERATION_FAILED` | Lyrics Provider 실행 실패 |
+| `LYRICS_OUTPUT_INVALID` | Provider 결과 구조 검증 실패 |
+| `LYRICS_VALIDATION_FAILED` | 직접 가사 검증을 진행할 수 없는 입력 |
+| `PIPELINE_NOT_FOUND` | Pipeline Job 없음 |
+| `PIPELINE_JOB_NOT_FOUND` | Cancel·Retry 대상 Pipeline Job 없음 |
+| `PIPELINE_CANCEL_NOT_ALLOWED` | 완료·실패 상태에서 취소 요청 |
+| `PIPELINE_RETRY_NOT_ALLOWED` | 실패·취소 외 상태에서 Retry 요청 |
+| `PIPELINE_RETRY_INPUT_MISSING` | 원본 입력 스냅샷 검증 실패 |
+| `RETRY_VOICE_PROFILE_UNAVAILABLE` | 원본 Voice Profile 없음·비활성·동의 무효 |
+| `FILE_NOT_FOUND` | 결과 File 없음 |
+| `FILE_JOB_MISMATCH` | File이 요청한 Pipeline에 속하지 않음 |
+| `PIPELINE_NOT_COMPLETED` | 완료 전 결과 파일 접근 요청 |
+| `FILE_CONTENT_UNAVAILABLE` | 재생 capability가 없는 파일 |
+| `FILE_DOWNLOAD_UNAVAILABLE` | 다운로드 capability가 없는 파일 |
+| `FILE_PATH_INVALID` | Storage 경계를 벗어나거나 symlink인 경로 |
+| `FILE_MISSING_FROM_STORAGE` | DB 기록에 대응하는 regular file 없음 |
+| `UNSUPPORTED_AUDIO_FILE` | 허용되지 않은 type·MIME·확장자·WAV header |
+| `INVALID_RANGE` | 지원하지 않거나 만족할 수 없는 byte Range |
+| `AUDIO_ANALYSIS_DECODE_FAILED` | final WAV decode 실패, Pipeline은 `COMPLETED` 유지 |
+| `AUDIO_ANALYSIS_UNSUPPORTED` | 지원하지 않는 WAV 형식·채널 |
+| `AUDIO_ANALYSIS_LUFS_UNAVAILABLE` | Integrated LUFS 계산 불가, quality는 `PARTIAL` |
+| `AUDIO_ANALYSIS_INTERNAL_ERROR` | 안전한 분석 실패, Pipeline·final WAV 영향 없음 |
+| `VOICE_CONSENT_REQUIRED` | Voice upload 동의 누락 또는 false |
+| `VOICE_FILE_REQUIRED` | multipart 음성 파일 누락 |
+| `VOICE_FILE_EMPTY` | 빈 음성 파일 |
+| `VOICE_FILE_TOO_LARGE` | 25MB 초과 파일 |
+| `VOICE_FILE_TOO_SHORT` | 5초 미만 WAV |
+| `VOICE_FILE_TOO_LONG` | 60초 초과 WAV |
+| `VOICE_FILE_TYPE_UNSUPPORTED` | WAV 확장자·MIME 불일치 |
+| `VOICE_FILE_DECODE_FAILED` | 손상되거나 decode 불가능한 WAV |
+| `VOICE_REFERENCE_INVALID` | sample rate·channel·PCM 계약 위반 |
+| `VOICE_PROFILE_NOT_FOUND` | Voice Profile 없음 |
+| `VOICE_PROFILE_IN_USE` | Pipeline·Voice Job이 참조해 삭제 차단 |
+| `VOICE_STORAGE_WRITE_FAILED` | 안전한 Voice 저장 실패 |
+| `VOICE_STORAGE_DELETE_FAILED` | 관리 Voice 파일 삭제 실패 |
 
-내부 예외, 로컬 경로, 개인정보, 비밀 값은 사용자 메시지에 노출하지 않는다.
+API 오류는 `{ "error": { "code", "message" } }` 형식이다. Audio Analysis 오류는 기본 API 실패가 아니라 `audio_analysis.analysis_status`와 safe warning으로 표시하며 Pipeline Job을 `FAILED`로 바꾸지 않는다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않는다.
+# External Lyrics 오류
+
+`LYRICS_API_KEY_MISSING`, `LYRICS_PROVIDER_NOT_SUPPORTED`, `LYRICS_PROVIDER_UNAVAILABLE`, `LYRICS_RATE_LIMITED`, `LYRICS_TIMEOUT`, `LYRICS_AUTHENTICATION_FAILED`, `LYRICS_REQUEST_REJECTED`, `LYRICS_OUTPUT_INVALID`, `LYRICS_CONTENT_BLOCKED`, `LYRICS_COST_LIMIT_EXCEEDED`, `LYRICS_REVISION_FAILED`를 구분한다. Provider 원문 body·request ID·인증 정보는 응답에 노출하지 않는다.
