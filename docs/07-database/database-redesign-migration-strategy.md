@@ -3,12 +3,12 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity와 additive Migration 파일 작성·임시 SQLite 검증 완료, 실제 DB 적용·backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity와 additive Migration의 실제 사용자 DB 적용 완료, Workspace Repository 구현 중, backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-소스 기준 Alembic head는 `20260806_0012`이며 이전 head `20260801_0011` 다음에 목표 Workspace Table 21개를 추가합니다. 실제 사용자 DB는 별도 승인된 Inventory 전까지 Runtime Table 14개와 revision `0011`을 적용 전 기준으로 가정하며, 신규 revision은 아직 적용하지 않았습니다.
+소스와 실제 사용자 DB의 Alembic head는 `20260806_0012`이며 이전 head `20260801_0011` 다음에 목표 Workspace Table 21개를 additive로 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -94,13 +94,13 @@
 ### Phase 1 — 현행 Inventory와 복구 기준
 
 1. `[도구 완료·실DB 미수행]` 14개 Table row 수, revision, FK, integrity와 schema drift를 read-only로 기록합니다.
-2. `[정책·fixture 완료·실DB 미수행]` SQLite backup API와 복구 절차를 별도 검증합니다.
+2. `[완료]` SQLite backup API로 실제 사용자 DB backup을 검증하고 원본과 분리된 임시 위치에서 복구 절차를 검증했습니다.
 3. 모든 파일 Metadata와 실제 파일 존재 여부·크기·checksum을 읽기 전용으로 대조합니다.
 4. 개인 음성, Consent와 삭제 대기 데이터를 별도 위험 목록으로 분류합니다.
 
 이 단계는 파일을 이동하거나 삭제하지 않습니다.
 
-실제 적용은 [Preflight 체크리스트](../10-operations/workspace-db-preflight-checklist.md)의 모든 Gate와 사용자 승인을 요구합니다. 앱 startup 자동 `upgrade head`는 기본 비활성화했고 Runtime·Alembic online SQLite 연결은 `PRAGMA foreign_keys=ON`을 보장합니다. 실제 사용자 DB Inventory·backup과 최종 적용 승인은 여전히 BLOCKER이며, 코드 검증만으로 실제 적용 완료를 선언하지 않습니다.
+실제 적용은 [Preflight 체크리스트](../10-operations/workspace-db-preflight-checklist.md)의 모든 Gate와 사용자 승인을 거쳐 완료했습니다. 앱 startup 자동 `upgrade head`는 기본 비활성화했고 Runtime·Alembic online SQLite 연결은 `PRAGMA foreign_keys=ON`을 보장합니다. 이번 Repository 작업에서는 실제 사용자 DB를 다시 읽거나 변경하지 않습니다.
 
 ### Phase 2 — 목표 Schema 추가 [진행 중]
 
@@ -109,7 +109,7 @@
 3. 기본 Workspace를 만들고 기존 `projects`를 `music_projects`로 backfill합니다.
 4. 현행 API 읽기·쓰기는 아직 바꾸지 않습니다.
 
-1~2번 완료는 migration 파일과 임시 DB 검증 범위입니다. 실제 사용자 DB 적용과 3번 backfill은 별도 승인 전까지 미수행입니다.
+1~2번과 실제 사용자 DB additive 적용은 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill은 별도 승인 전까지 미수행입니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 

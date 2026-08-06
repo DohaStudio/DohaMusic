@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace Repository 계층
+
+- 기존 Runtime Repository를 변경하지 않고 `backend.repositories.workspace` 아래에 Workspace·Asset·Composition·Job·Collaboration 5개 Aggregate Repository를 additive로 추가했다.
+- 신규 Repository는 주입받은 동기 `Session`에서 `add`·`flush`·조회만 수행하며 `commit`·`rollback`은 향후 Service 또는 Unit of Work의 transaction 경계로 남겼다.
+- SQLAlchemy 2.0 조회, 안정적인 정렬, 제한된 `limit`·`offset`, Soft Delete 기본 필터와 Entity·Constraint 계약을 임시 SQLite Repository 테스트로 검증했다.
+- Workspace Entity와 실제 사용자 DB additive migration은 완료됐지만 신규 Table은 비어 있다. backfill·dual write·Service·REST API·Legacy 제거는 수행하지 않았고 기존 Runtime Table 14개가 계속 source of truth다.
+
 ### 수정 — SQLite Migration 안전 제어
 
 - 앱 lifespan의 Alembic `upgrade head`를 `DOHAMUSIC_AUTO_MIGRATE=true`에서만 실행하도록 변경하고 기본값을 `false`로 고정했다.

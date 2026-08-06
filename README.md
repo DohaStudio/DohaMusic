@@ -12,7 +12,7 @@
 
 > 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
-> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 additive Alembic revision `20260806_0012`는 구현·임시 DB 검증을 완료했습니다. 실제 사용자 DB 적용 전 [Preflight Runbook](docs/10-operations/workspace-db-migration-runbook.md)과 read-only·backup 도구를 준비했지만 실제 DB 접근·적용, backfill·dual write·Repository·Service·REST API는 미수행이며 현행 14개 Runtime Table이 source of truth입니다.
+> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 additive Alembic revision `20260806_0012`를 구현하고 승인된 절차로 실제 사용자 DB에 적용했습니다. 신규 Workspace Table은 비어 있으며 현행 14개 Runtime Table이 계속 source of truth입니다. Workspace 전용 Repository는 additive namespace로 구현 중이고, backfill·dual write·Service·REST API·Legacy 제거는 미구현입니다.
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
