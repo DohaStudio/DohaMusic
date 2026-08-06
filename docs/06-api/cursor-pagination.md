@@ -12,9 +12,9 @@ Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keys
 
 ## 2. 서명 키
 
-`DOHAMUSIC_CURSOR_SIGNING_KEY`는 Cursor 전용 비밀값이며 UTF-8 기준 32바이트 이상이어야 합니다. 자동 생성값이나 Production 기본값을 제공하지 않고 Pydantic `SecretStr`로 보관합니다. 기존 Runtime과 Bootstrap은 cursor가 필요하지 않으므로 앱 시작을 막지 않으며 `CursorCodec` 구성 또는 page 기능 사용 시점에 검증합니다.
+`DOHAMUSIC_CURSOR_SIGNING_KEY`는 Cursor 전용 비밀값이며 UTF-8 기준 32바이트 이상이어야 합니다. 자동 생성값이나 Production 기본값을 제공하지 않고 Pydantic `SecretStr`로 보관합니다. `.env.example` 값은 공개 placeholder가 유효한 키로 사용되지 않도록 비워 둡니다. 기존 Runtime과 Bootstrap은 cursor가 필요하지 않으므로 앱 시작을 막지 않으며 `CursorCodec` 구성 또는 page 기능 사용 시점에 검증합니다.
 
-실제 비밀값은 Git·문서·오류·로그에 기록하지 않습니다. `backend/.env.example`에는 설정 위치를 설명하는 placeholder만 둡니다. JWT 등 다른 목적의 비밀키와 공유하지 않습니다.
+실제 비밀값은 Git·문서·오류·로그에 기록하지 않습니다. `backend/.env.example`에는 빈 설정 항목과 생성 기준 주석만 둡니다. JWT 등 다른 목적의 비밀키와 공유하지 않습니다.
 
 ## 3. 토큰 계약
 
@@ -41,7 +41,7 @@ Payload에 owner·Workspace 이름·Project 제목·DB 경로·Table명·SQL·cr
 
 ## 4. 검증과 오류
 
-Decode는 token 구조와 base64url, `compare_digest` 기반 서명, 정확한 payload field 집합, version, Resource, 방향, 정렬, UUID, timezone이 있는 datetime, filter fingerprint와 limit을 검증합니다. 실패 원인은 내부 `reason`으로만 구분하며 외부에는 `422 INVALID_CURSOR`와 고정 메시지만 제공합니다.
+Decode는 2 KiB 최대 길이를 먼저 확인한 뒤 token 구조와 base64url, `compare_digest` 기반 서명, 정확한 payload field 집합, version, Resource, 방향, 정렬, UUID, timezone이 있는 datetime, filter fingerprint와 limit을 검증합니다. `v`와 `limit`은 Boolean·실수·문자열을 허용하지 않는 정확한 정수입니다. 실패 원인은 내부 `reason`으로만 구분하며 외부에는 `422 INVALID_CURSOR`와 고정 메시지만 제공합니다.
 
 서명 키가 없거나 짧으면 `500 CURSOR_CONFIGURATION_ERROR`, 요청 limit이 범위를 벗어나면 `422 INVALID_LIMIT`입니다. 서명값과 payload 원문을 오류에 포함하지 않습니다.
 
@@ -61,6 +61,10 @@ OR (created_at = last_created_at AND resource_id < last_id)
 Repository는 SQLAlchemy 2.0 `select()`만 사용하고 Soft Delete row를 제외합니다. 기존 내부 `limit`·`offset` 메서드는 호환성을 위해 유지하지만 API용 page Service는 `list_*_after()`만 사용합니다.
 
 Service는 `limit + 1`개를 조회해 `has_more`를 계산하고 응답 항목은 `limit`개로 자릅니다. 다음 row가 있으면 마지막 반환 row로 서명된 `next_cursor`를 만들고, 마지막 page와 빈 page에서는 `has_more=false`, `next_cursor=null`을 반환합니다.
+
+페이지 사이에 row가 생성·삭제될 수 있으므로 이 계약은 전체 목록의 snapshot isolation을 보장하지 않습니다. 새로 생성된 상위 row를 과거 cursor가 다시 탐색하지 않고 Soft Delete된 후속 row는 제외하며, 이미 반환한 row를 재반환하지 않는 forward-only keyset 동작을 보장합니다.
+
+현재 Workspace·Project Table에는 정렬을 모두 포괄하는 복합 Index가 없어 SQLite가 임시 정렬 B-Tree를 사용할 수 있습니다. Cursor 논리와 정확성의 BLOCKER는 아니지만 Resource Endpoint를 운영 연결하기 전에 Workspace `(owner_id, deleted_at, created_at, workspace_id)`와 Project `(workspace_id, deleted_at, created_at, project_id)` 후보를 별도 Migration에서 실제 Query Plan과 함께 확정합니다.
 
 ## 7. 후속 작업
 

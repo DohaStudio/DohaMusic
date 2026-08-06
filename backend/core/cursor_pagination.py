@@ -22,6 +22,7 @@ CURSOR_SORT = "created_at_desc"
 MIN_CURSOR_SIGNING_KEY_BYTES = 32
 MIN_PAGE_LIMIT = 1
 MAX_PAGE_LIMIT = 100
+MAX_CURSOR_TOKEN_LENGTH = 2_048
 _FILTER_HASH_PATTERN = re.compile(r"[0-9a-f]{64}")
 _PAYLOAD_FIELDS = {
     "v",
@@ -92,6 +93,8 @@ class CursorCodec:
         _validate_resource(expected_resource)
         _validate_filter_hash(expected_filter_hash)
         _validate_limit(expected_limit)
+        if not isinstance(token, str) or len(token) > MAX_CURSOR_TOKEN_LENGTH:
+            raise InvalidCursorError("token_format")
         try:
             payload_part, signature_part = token.split(".")
             payload_bytes = _base64url_decode(payload_part)
@@ -111,7 +114,8 @@ class CursorCodec:
             raise InvalidCursorError("payload_json") from None
         if not isinstance(payload, dict) or set(payload) != _PAYLOAD_FIELDS:
             raise InvalidCursorError("payload_shape")
-        if payload.get("v") != CURSOR_VERSION:
+        payload_version = payload.get("v")
+        if type(payload_version) is not int or payload_version != CURSOR_VERSION:
             raise InvalidCursorError("version")
         if payload.get("resource") != expected_resource:
             raise InvalidCursorError("resource")
@@ -121,7 +125,8 @@ class CursorCodec:
             raise InvalidCursorError("sort")
         if payload.get("filter_hash") != expected_filter_hash:
             raise InvalidCursorError("filter")
-        if payload.get("limit") != expected_limit:
+        payload_limit = payload.get("limit")
+        if type(payload_limit) is not int or payload_limit != expected_limit:
             raise InvalidCursorError("limit")
         try:
             last_created_at = _parse_datetime(payload.get("last_created_at"))
@@ -191,9 +196,5 @@ def _validate_filter_hash(filter_hash: object) -> None:
 
 
 def _validate_limit(limit: object) -> None:
-    if (
-        not isinstance(limit, int)
-        or isinstance(limit, bool)
-        or not MIN_PAGE_LIMIT <= limit <= MAX_PAGE_LIMIT
-    ):
+    if type(limit) is not int or not MIN_PAGE_LIMIT <= limit <= MAX_PAGE_LIMIT:
         raise InvalidCursorError("limit")

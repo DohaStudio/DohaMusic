@@ -14,7 +14,11 @@ import pytest
 from sqlalchemy.orm import sessionmaker
 
 from backend.core.config import Settings
-from backend.core.cursor_pagination import CursorCodec, filter_fingerprint
+from backend.core.cursor_pagination import (
+    MAX_CURSOR_TOKEN_LENGTH,
+    CursorCodec,
+    filter_fingerprint,
+)
 from backend.core.exceptions import (
     CursorConfigurationError,
     InvalidCursorError,
@@ -43,15 +47,20 @@ def session_factory(tmp_path: Path):
     engine.dispose()
 
 
-def _workspace(identifier: int, *, deleted: bool = False) -> Workspace:
+def _workspace(
+    identifier: int,
+    *,
+    deleted: bool = False,
+    created_at: datetime = CREATED_AT,
+) -> Workspace:
     return Workspace(
         workspace_id=UUID(int=identifier),
         owner_id=UUID(int=10_000 + identifier),
         name=f"Workspace {identifier}",
         lifecycle_status="active",
-        created_at=CREATED_AT,
-        updated_at=CREATED_AT,
-        deleted_at=CREATED_AT + timedelta(days=1) if deleted else None,
+        created_at=created_at,
+        updated_at=created_at,
+        deleted_at=created_at + timedelta(days=1) if deleted else None,
     )
 
 
@@ -186,11 +195,17 @@ def test_codec_rejects_invalid_format_signature_and_payload_tampering() -> None:
     ("field", "value"),
     [
         ("v", 2),
+        ("v", True),
+        ("v", 1.0),
+        ("v", "1"),
         ("direction", "previous"),
         ("sort", "created_at_asc"),
         ("last_created_at", "not-a-datetime"),
         ("last_id", "not-a-uuid"),
         ("limit", 0),
+        ("limit", True),
+        ("limit", 50.0),
+        ("limit", "50"),
     ],
 )
 def test_codec_rejects_invalid_signed_payload(field: str, value: object) -> None:
@@ -243,6 +258,26 @@ def test_codec_rejects_unexpected_signed_payload_field() -> None:
         )
 
 
+def test_codec_rejects_cursor_over_maximum_length() -> None:
+    codec = CursorCodec(TEST_KEY)
+    token = codec.encode(
+        resource="workspace",
+        last_created_at=CREATED_AT,
+        last_id=UUID(int=1),
+        filter_hash=_filter_hash(),
+        limit=50,
+    )
+    assert len(token) < MAX_CURSOR_TOKEN_LENGTH
+
+    with pytest.raises(InvalidCursorError):
+        codec.decode(
+            "A" * (MAX_CURSOR_TOKEN_LENGTH + 1),
+            expected_resource="workspace",
+            expected_filter_hash=_filter_hash(),
+            expected_limit=50,
+        )
+
+
 def test_cursor_secret_is_required_redacted_and_loaded_from_environment(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -275,6 +310,49 @@ def test_workspace_pages_have_no_duplicates_or_omissions(session_factory) -> Non
     assert third.has_more is False and third.next_cursor is None
     assert identifiers == [UUID(int=index) for index in range(5, 0, -1)]
     assert len(set(identifiers)) == 5
+
+
+def test_workspace_pages_order_mixed_timestamps_before_uuid(session_factory) -> None:
+    older = CREATED_AT - timedelta(days=1)
+    with session_factory.begin() as session:
+        session.add_all(
+            [
+                _workspace(1),
+                _workspace(2),
+                _workspace(9, created_at=older),
+            ]
+        )
+    service = WorkspaceService(session_factory, cursor_codec=CursorCodec(TEST_KEY))
+
+    first = service.list_workspace_page(limit=2)
+    second = service.list_workspace_page(limit=2, cursor=first.next_cursor)
+    identifiers = [item.workspace_id for item in first.items + second.items]
+
+    assert identifiers == [UUID(int=2), UUID(int=1), UUID(int=9)]
+    assert first.has_more is True and first.next_cursor is not None
+    assert second.has_more is False and second.next_cursor is None
+    assert len(set(identifiers)) == 3
+
+
+def test_workspace_page_remains_forward_only_after_mutation(session_factory) -> None:
+    with session_factory.begin() as session:
+        session.add_all([_workspace(index) for index in range(1, 6)])
+    service = WorkspaceService(session_factory, cursor_codec=CursorCodec(TEST_KEY))
+    first = service.list_workspace_page(limit=2)
+
+    with session_factory.begin() as session:
+        session.add(_workspace(6, created_at=CREATED_AT + timedelta(days=1)))
+        workspace = session.get(Workspace, UUID(int=3))
+        assert workspace is not None
+        workspace.deleted_at = CREATED_AT + timedelta(hours=1)
+
+    second = service.list_workspace_page(limit=2, cursor=first.next_cursor)
+    identifiers = [item.workspace_id for item in first.items + second.items]
+
+    assert identifiers == [UUID(int=5), UUID(int=4), UUID(int=2), UUID(int=1)]
+    assert len(set(identifiers)) == 4
+    assert UUID(int=6) not in identifiers
+    assert second.has_more is False and second.next_cursor is None
 
 
 def test_workspace_page_handles_empty_exact_limit_and_owner_filter(
@@ -369,6 +447,8 @@ def test_page_methods_require_codec_and_valid_limit(session_factory) -> None:
     with pytest.raises(CursorConfigurationError):
         WorkspaceService(session_factory).list_workspace_page()
     service = WorkspaceService(session_factory, cursor_codec=CursorCodec(TEST_KEY))
-    for invalid_limit in [0, 101, True]:
+    assert service.list_workspace_page(limit=1).limit == 1
+    assert service.list_workspace_page(limit=100).limit == 100
+    for invalid_limit in [True, False, 1.0, 1.5, "10", 0, 101]:
         with pytest.raises(InvalidLimitError):
             service.list_workspace_page(limit=invalid_limit)

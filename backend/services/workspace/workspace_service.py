@@ -467,6 +467,6 @@ class WorkspaceService:
             )
 
 
-def _validate_page_limit(limit: int) -> None:
-    if isinstance(limit, bool) or not 1 <= limit <= 100:
+def _validate_page_limit(limit: object) -> None:
+    if type(limit) is not int or not 1 <= limit <= 100:
         raise InvalidLimitError()

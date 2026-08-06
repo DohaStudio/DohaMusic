@@ -13,6 +13,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - `DOHAMUSIC_CURSOR_SIGNING_KEY` 전용 비밀 설정과 canonical JSON·base64url·HMAC-SHA256 기반 opaque cursor codec을 추가했다.
 - Cursor에는 version, Resource, 정렬, 마지막 `created_at`·UUID, filter fingerprint와 page limit만 포함하고 filter 원문·사용자 데이터·경로·credential은 포함하지 않는다.
 - Workspace와 MusicProject에 `(created_at DESC, UUID DESC)` keyset 조회와 `limit + 1` 기반 `CursorPage` Service 결과를 추가해 `has_more=true`일 때만 서명된 `next_cursor`를 발급한다.
+- Service와 서명된 payload의 `v`·`limit`을 정확한 정수로 제한하고 공개 placeholder key와 2 KiB를 초과하는 Cursor 입력을 안전하게 거부한다.
 - 임시 SQLite에서 같은 생성 시각의 복수 row, 여러 page, Soft Delete 제외, Workspace filter 고정과 중복·누락 부재를 검증했다.
 - Workspace·Project Resource Endpoint, 외부 offset, 실제 사용자 DB 접근, Alembic·Runtime·Frontend·Idempotency 변경은 수행하지 않았다.
 
