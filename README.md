@@ -144,6 +144,8 @@ DohaMusic/
 
 Python 3.11 이상이 필요하다.
 
+아래 Alembic 명령은 새 로컬 개발 DB를 명시적으로 구성하는 절차다. 기존 사용자 DB에는 실행하지 않으며, 앱 startup 자동 Migration의 기본값은 `DOHAMUSIC_AUTO_MIGRATE=false`다.
+
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1

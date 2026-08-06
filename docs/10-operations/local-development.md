@@ -5,6 +5,8 @@
 
 ## Backend
 
+다음 Alembic 명령은 새 임시·로컬 개발 DB를 명시적으로 구성할 때만 사용합니다. 기존 사용자 DB는 [Workspace DB Migration Runbook](workspace-db-migration-runbook.md)의 Inventory·backup·승인 Gate 없이 변경하지 않으며, 앱 startup 자동 Migration은 기본적으로 비활성화됩니다.
+
 ```powershell
 python -m venv .venv
 .venv\Scripts\Activate.ps1

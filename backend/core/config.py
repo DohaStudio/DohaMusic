@@ -17,6 +17,7 @@ class Settings(BaseModel):
 
     app_name: str = "DohaMusic Backend"
     database_url: str = "sqlite:///./backend/storage/doha_music.db"
+    auto_migrate: bool = False
     storage_root: Path = Path("backend/storage")
     music_generator: str = "mock"
     model_name: str = "mock-music-generator"
@@ -125,6 +126,7 @@ class Settings(BaseModel):
         mapping = {
             "APP_NAME": "app_name",
             "DATABASE_URL": "database_url",
+            "DOHAMUSIC_AUTO_MIGRATE": "auto_migrate",
             "AUDIO_STORAGE_ROOT": "storage_root",
             "DOHAMUSIC_MUSIC_GENERATOR": "music_generator",
             "MODEL_NAME": "model_name",

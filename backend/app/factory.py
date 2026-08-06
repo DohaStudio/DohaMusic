@@ -58,6 +58,19 @@ from backend.workers.voice_conversion_worker import VoiceConversionWorker
 logger = get_logger(__name__)
 
 
+def run_startup_migration(settings: Settings) -> None:
+    """Run the legacy startup migration only after explicit opt-in."""
+
+    if not settings.auto_migrate:
+        logger.warning(
+            "automatic_database_migration_disabled "
+            "manual_preflight_required=true schema_changed=false"
+        )
+        return
+    logger.warning("automatic_database_migration_enabled target_revision=head")
+    upgrade_database(settings.database_url)
+
+
 def create_app(settings: Settings | None = None) -> FastAPI:
     """Build an application with replaceable infrastructure dependencies."""
 
@@ -68,7 +81,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         storage = StorageService(resolved_settings.storage_root)
         storage.ensure_layout()
-        upgrade_database(resolved_settings.database_url)
+        run_startup_migration(resolved_settings)
 
         session_factory = create_session_factory(resolved_settings.database_url)
         music_generator = create_music_generator(resolved_settings, storage)

@@ -160,3 +160,7 @@ Python 3.12 SQLite datetime adapter 폐기 예정 경고는 이번 additive migr
 - SQLite 외 DB 제품의 순환 FK 생성 전략
 - 실제 SQLite 연결의 `PRAGMA foreign_keys=ON` 적용과 기존 데이터 `foreign_key_check`
 - autogenerate가 감지한 기존 `pipeline_jobs.input_snapshot` nullable drift의 별도 정리
+
+## 11. 후속 상태
+
+[SQLite Migration 안전 제어 검증](VALIDATION-SQLITE-MIGRATION-SAFETY.md)에서 Runtime·Alembic online SQLite 연결의 `PRAGMA foreign_keys=ON`과 `foreign_key_check` 회귀를 임시 DB로 후속 검증했습니다. 이 보고서의 당시 미구현 목록은 이력으로 유지하며, 실제 사용자 DB Inventory·backup·Migration과 기존 row 검증은 계속 미수행입니다.

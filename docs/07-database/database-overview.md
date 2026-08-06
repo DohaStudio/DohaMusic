@@ -6,7 +6,7 @@
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
-SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 소스 기준 head는 `20260806_0012`지만 실제 사용자 DB 적용은 미수행이다. 애플리케이션 시작 시 자동으로 `head`까지 마이그레이션하므로 실제 DB 사전 점검과 승인 전에는 대상 DB를 가리키는 앱을 시작하지 않는다. 안전 절차는 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)을 따른다.
+SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 소스 기준 head는 `20260806_0012`지만 실제 사용자 DB 적용은 미수행이다. 애플리케이션 startup의 자동 Migration은 기본 비활성화이며 `DOHAMUSIC_AUTO_MIGRATE=true`를 명시한 경우에만 기존 `upgrade head`를 실행한다. 사용자 DB에는 opt-in을 사용하지 않고 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
 
 승인 전에는 기본 URL로 `upgrade head`를 실행하지 않습니다. revision 확인과 실제 적용 명령은 Runbook의 경로 확인·backup·FK Gate를 통과한 실행 기록에서만 사용합니다.
 
