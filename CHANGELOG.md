@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace Entity additive Migration
+
+- 기존 Alembic head `20260801_0011` 다음에 목표 Workspace Table 21개만 생성하는 `20260806_0012` revision을 추가했다.
+- 기존 Runtime Table 14개와 Column·Constraint·데이터를 변경하지 않고 신규 FK 39개, Index 109개, Check Constraint 8개와 Unique Constraint 17개를 Entity metadata와 일치시켰다.
+- 임시 SQLite DB에서 upgrade 후 전체 35개 application Table과 downgrade 후 Legacy 14개 Table 보존을 검증했다.
+- 실제 사용자 DB Migration, backfill, dual write, Legacy 제거와 Repository·Service·REST API 구현은 수행하지 않았다.
+
 ### 추가 — Workspace SQLAlchemy Entity 초기 구현
 
 - 기존 14개 Runtime Entity를 교체하지 않고 `backend.models.workspace` namespace에 목표 21개 SQLAlchemy 2.0 Entity를 additive로 추가했다.
