@@ -12,6 +12,8 @@
 
 > 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
+> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity는 기존 14개 Runtime Entity와 분리된 additive namespace에 `[진행 중]`으로 등록했습니다. Alembic Migration·실제 DB Table·Repository·Service·REST API는 아직 구현하지 않았으며 현행 Runtime source of truth는 변경하지 않았습니다.
+
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
 > F6 Guided Voice Enrollment는 `[진행 중]`입니다. 구현과 Windows FFmpeg 8.1.2·Ubuntu/Windows CI에 더해 실제 Chrome·Edge 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 자동 Validation을 수행했습니다. 실제 사용자 마이크·실제 Android/iOS/Safari와 인증·소유권은 남아 있습니다. 결과는 [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md)와 [운영·수동 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)를 따르며 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.

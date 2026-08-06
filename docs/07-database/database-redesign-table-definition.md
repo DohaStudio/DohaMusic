@@ -1,9 +1,9 @@
 # Asset 중심 목표 Table Definition
 
-> 문서 상태: [제안]
+> 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 논리 Table Definition만 작성, SQL·ORM·Migration 미구현
+> 구현 상태: 21개 SQLAlchemy 2.0 Entity mapping 완료, SQL Migration·실제 DB Table 미구현
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 표기 기준

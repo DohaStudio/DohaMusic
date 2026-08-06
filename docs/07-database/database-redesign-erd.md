@@ -1,9 +1,9 @@
 # Asset 중심 목표 ERD
 
-> 문서 상태: [제안]
+> 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: ERD만 설계, DB·SQL·ORM 미구현
+> 구현 상태: ERD 기반 SQLAlchemy 2.0 Entity mapping 완료, DB·SQL Migration 미구현
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 전체 ERD
