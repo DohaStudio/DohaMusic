@@ -1,10 +1,10 @@
 # Workspace REST API 공통 계약
 
-> 문서 상태: [계획]
+> 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: API 계약 문서만 작성, FastAPI·Endpoint·OpenAPI YAML·SQL·ORM·테스트 미구현
-> 관련 문서: [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
+> 구현 상태: `/api/v1` 공통 Router·응답 Schema·request ID·오류 분기와 명시적 Bootstrap 도구 구현, Resource Endpoint·OpenAPI YAML·Idempotency replay·cursor codec 미구현
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
 

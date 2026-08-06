@@ -13,7 +13,10 @@ from backend.services.workspace.job_service import (
     JobService,
     ModelUsageInput,
 )
-from backend.services.workspace.workspace_service import WorkspaceService
+from backend.services.workspace.workspace_service import (
+    BootstrapWorkspaceResult,
+    WorkspaceService,
+)
 
 __all__ = [
     "AssetService",
@@ -26,4 +29,5 @@ __all__ = [
     "ProcessingStepInput",
     "SnapshotItemInput",
     "WorkspaceService",
+    "BootstrapWorkspaceResult",
 ]

@@ -3,8 +3,8 @@
 > 문서 상태: [계획]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Method·Path·계약만 정의, Endpoint 미구현
-> 관련 문서: [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
+> 구현 상태: `/api/v1` 공통 기반만 구현, 아래 64개 Resource Endpoint는 모두 미구현
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
 
@@ -38,7 +38,7 @@ Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. 모든
 | `GET` | `/api/v1/workspaces/{workspace_id}` | 200 | Workspace 상세 |
 | `PATCH` | `/api/v1/workspaces/{workspace_id}` | 200 | 이름 등 변경 가능한 Metadata 수정 |
 
-초기 단일 사용자 환경에서는 기본 Workspace가 bootstrap돼 있다고 가정합니다. Workspace 생성·삭제 Endpoint는 v1 범위에서 제외합니다.
+초기 단일 사용자 환경은 [명시적 Bootstrap 도구](workspace-api-foundation-bootstrap.md)로 기본 Workspace를 준비합니다. 도구는 구현했지만 실제 사용자 DB에는 실행하지 않았으므로 현재 기본 Workspace 존재를 완료로 간주하지 않습니다. Workspace 생성·삭제 Endpoint는 v1 범위에서 제외합니다.
 
 ## 3. Project API — 5개
 

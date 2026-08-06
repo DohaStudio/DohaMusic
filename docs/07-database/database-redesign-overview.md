@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 21개 Entity·metadata와 additive revision `20260806_0012`의 실제 사용자 DB 적용·Workspace Repository 완료, Service transaction 구현 중, API·backfill·dual write 미구현
+> 구현 상태: 목표 21개 Entity·metadata와 additive revision `20260806_0012`의 실제 사용자 DB 적용·Workspace Repository·Service transaction 완료, API 공통 기반·명시적 Bootstrap 구현 중, Resource API·backfill·dual write 미구현
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -24,7 +24,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. additive revision `20260806_0012`는 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 신규 Workspace Table 21개는 현재 빈 상태이고, Service·API·backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
+이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. additive revision `20260806_0012`는 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. Repository와 Service는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table 21개는 현재 빈 상태입니다. Resource API·backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
 
 ## 2. Common Specification 기준
 

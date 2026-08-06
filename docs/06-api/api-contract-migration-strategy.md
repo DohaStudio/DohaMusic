@@ -1,16 +1,16 @@
 # Workspace REST API 전환 전략
 
-> 문서 상태: [계획]
+> 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-05
 > 관련 기능: 현행 기능별 API에서 Workspace v1 API로 단계적 전환
-> 구현 상태: 전략만 작성, Endpoint·Adapter·Redirect·OpenAPI 미구현
-> 관련 문서: [현재 API 개요](api-overview.md), [목표 공통 계약](workspace-rest-api-contract.md), [목표 Endpoint 목록](workspace-rest-api-endpoints.md), [DB 전환 전략](https://github.com/DohaStudio/DohaMusic/blob/6a8e0f36c1a1a29ca300fe905a704a66780b9e28/docs/07-database/database-redesign-migration-strategy.md)
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구 구현, Resource Endpoint·Adapter·Redirect·OpenAPI 미구현
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [현재 API 개요](api-overview.md), [목표 공통 계약](workspace-rest-api-contract.md), [목표 Endpoint 목록](workspace-rest-api-endpoints.md), [DB 전환 전략](../07-database/database-redesign-migration-strategy.md)
 
 ## 1. 현재와 목표
 
 현재 API는 `/api/generations`, `/api/stems`, `/api/voice-conversion`, `/api/pipelines`, `/api/lyrics`, `/api/voice-profiles`, `/api/voice-enrollments`, `/api/projects`와 `/api/history`처럼 기능별 Resource를 노출합니다.
 
-목표 API는 `/api/v1` 아래 Workspace·Project·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심으로 통합합니다. 목표 API 문서 작성은 현재 Endpoint의 동작이나 status를 변경하지 않습니다.
+목표 API는 `/api/v1` 아래 Workspace·Project·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심으로 통합합니다. 공통 Router·응답·request ID·오류 기반은 별도 namespace에 추가했지만 Resource Route는 연결하지 않았으며 현재 Endpoint의 동작이나 status를 변경하지 않습니다.
 
 ## 2. 현행 경로 매핑
 

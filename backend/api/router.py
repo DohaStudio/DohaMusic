@@ -11,6 +11,7 @@ from backend.api.routes.stems import router as stems_router
 from backend.api.routes.voice_conversion import router as voice_conversion_router
 from backend.api.routes.voice_enrollments import router as voice_enrollments_router
 from backend.api.routes.voice_profiles import router as voice_profiles_router
+from backend.api.v1.router import router as workspace_v1_router
 
 api_router = APIRouter()
 api_router.include_router(health_router)
@@ -22,3 +23,4 @@ api_router.include_router(stems_router, prefix="/api")
 api_router.include_router(voice_profiles_router, prefix="/api")
 api_router.include_router(voice_enrollments_router, prefix="/api")
 api_router.include_router(voice_conversion_router, prefix="/api")
+api_router.include_router(workspace_v1_router, prefix="/api/v1")

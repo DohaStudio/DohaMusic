@@ -14,6 +14,7 @@ from backend.ai.stem_factory import create_stem_separator
 from backend.ai.voice_factory import create_voice_converter
 from backend.api.exception_handlers import register_exception_handlers
 from backend.api.router import api_router
+from backend.api.v1.dependencies import get_request_id, register_request_id_middleware
 from backend.audio.factory import create_audio_mixer
 from backend.audio_analysis import (
     DefaultAudioQualityAnalyzer,
@@ -254,26 +255,34 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         call_next: Callable[[Request], Awaitable[Response]],
     ) -> Response:
         started_at = time.perf_counter()
+        request_id = get_request_id(request)
         logger.info(
-            "request_started method=%s path=%s", request.method, request.url.path
+            "request_started method=%s path=%s request_id=%s",
+            request.method,
+            request.url.path,
+            request_id,
         )
         try:
             response = await call_next(request)
         except Exception:
             logger.exception(
-                "request_failed method=%s path=%s",
+                "request_failed method=%s path=%s request_id=%s",
                 request.method,
                 request.url.path,
+                request_id,
             )
             raise
         elapsed_ms = round((time.perf_counter() - started_at) * 1_000, 2)
         logger.info(
-            "request_finished method=%s path=%s status=%s duration_ms=%s",
+            "request_finished method=%s path=%s status=%s duration_ms=%s request_id=%s",
             request.method,
             request.url.path,
             response.status_code,
             elapsed_ms,
+            request_id,
         )
         return response
+
+    register_request_id_middleware(app)
 
     return app
