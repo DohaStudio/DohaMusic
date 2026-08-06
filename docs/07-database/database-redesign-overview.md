@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-06
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 21개 Entity·metadata와 additive revision `20260806_0012` 구현 완료, 실제 사용자 DB·Repository·Service·API 미적용
+> 구현 상태: 목표 21개 Entity·metadata와 additive revision `20260806_0012`의 실제 사용자 DB 적용 완료, Workspace Repository 구현 중, Service·API·backfill·dual write 미구현
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -154,11 +154,13 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 
 ## 6. 현재 구현과의 관계
 
-현행 사용자 DB는 별도 Inventory 전까지 Runtime Table 14개와 revision `20260801_0011`을 적용 전 기준으로 가정합니다. 목표 21개 Entity와 revision `20260806_0012`는 소스에 구현됐지만 실제 사용자 DB에는 아직 적용하지 않았습니다.
+실제 사용자 DB에는 revision `20260806_0012`와 Workspace Table 21개가 additive로 적용됐습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개와 기존 Repository·Service·API가 계속 source of truth입니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`
 - Entity 계약 검증: `backend/tests/test_workspace_entities.py`
+- Workspace Repository: `backend/repositories/workspace/`
+- Repository 계약 검증: `backend/tests/test_workspace_repositories.py`
 
 - 현재 ERD: [erd.md](erd.md)
 - 현재 Table Definition: [table-definition.md](table-definition.md)
@@ -171,7 +173,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 ## 7. 이번 작업에서 하지 않는 것
 
 - SQL 또는 Alembic Migration 작성
-- Repository와 Service 생성
+- Service 생성과 Workspace Repository 연결
 - API·Worker·Pipeline 변경
 - DB 파일 생성·변환
 - Artifact 파일 이동 또는 환경 변수 변경
