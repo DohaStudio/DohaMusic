@@ -1,7 +1,7 @@
 # DohaMusic Workspace Artifact 모델
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-08
 > 관련 기능: AssetVersion 기반 Composition Snapshot, Mix, Export
 > 관련 문서: [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md)
 
@@ -9,7 +9,7 @@
 
 DohaMusic은 AI Provider가 아니라 개인 AI 음악 제작 Workspace다. DohaLM·DohaAudio·DohaVocal의 Runtime 산출물과 사용자가 선택·조합해 만든 프로젝트 결과물의 저장 책임을 분리한다.
 
-이번 문서는 목표 계약만 정의한다. `D:/DohaArtifacts/music` 디렉터리, Asset·Snapshot DB, Mix·Export Job, Artifact URI와 파일 이동은 아직 구현하지 않았다.
+이 문서는 목표 계약을 정의한다. Asset·Snapshot 목표 Entity와 Asset Cursor·keyset Repository/Service 기반은 구현했지만 `D:/DohaArtifacts/music` 디렉터리, Resource API, Mix·Export Job, Artifact URI와 파일 이동은 아직 구현하지 않았다. 실제 사용자 DB의 Asset Index는 `20260807_0014` 상태이며 source `20260808_0015`는 미적용이다.
 
 ## Workspace 흐름
 

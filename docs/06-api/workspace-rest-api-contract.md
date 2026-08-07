@@ -100,6 +100,8 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - Resource별 Not Found·Conflict를 `WORKSPACE_NOT_FOUND`, `PROJECT_NOT_FOUND`, `ASSET_NOT_FOUND`, `PROJECT_ASSET_NOT_FOUND`, `WORKSPACE_NAME_CONFLICT`, `PROJECT_TITLE_CONFLICT`, `PROJECT_ASSET_CONFLICT`로 변환합니다.
 - ProjectAsset은 별도 Resource 그룹으로 유지하고 `(display_order ASC, project_asset_id ASC)` Cursor·Project filter·keyset page를 Router에 연결했습니다. POST는 기존 Asset만 연결하고 DELETE는 Asset·AssetVersion을 보존한 채 관계만 Soft Delete합니다.
 - DohaMusic은 REST 식별 경로, 기존 Unique Constraint와 Soft Delete restore 정책에 따라 같은 `(project_id, asset_id)` 연결을 하나만 허용합니다. Common Specification `0.1.0`의 role 포함 중복 기준보다 엄격한 저장소 계약이며 `role`은 관계 identity가 아니라 변경 가능한 Metadata입니다.
+- Asset Resource API는 아직 0/5입니다. 선행 기반은 신뢰된 effective Owner의 활성 Asset 전체, 선택적 `workspace_id=<uuid>`·`asset_type`, `(created_at DESC, asset_id DESC)` version 1 Cursor와 keyset Repository·Service로 확정했습니다.
+- Asset 목록의 `owner_id`, `include_deleted`, `lifecycle_status`, 자유 검색과 임의 sort는 공개하지 않습니다. 향후 Router는 Bootstrap된 Workspace context에서 Owner를 파생하고 Owner 조건 없는 전체 Table 조회를 금지합니다.
 
 ## 5. REST Method 원칙
 
@@ -282,6 +284,20 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 | `page` | v1 미지원. 전달 시 `400 PAGINATION_MODE_UNSUPPORTED` |
 
 기본 정렬은 안정적인 `(created_at DESC, resource_id DESC)`입니다. 임의 SQL field, raw expression과 wildcard field를 받지 않습니다.
+
+### 10.3 Asset 목록 Query
+
+| Parameter | 공개 여부 | 규칙 |
+|---|---|---|
+| `workspace_id` | 허용 | UUID 직접 query 형식. 현재 effective Owner 소유 Workspace만 허용 |
+| `asset_type` | 허용 | Common Specification과 `AssetType` enum 값만 허용 |
+| `owner_id` | 금지 | 인증·Bootstrap context에서 파생하며 query·body·header로 받지 않음 |
+| `include_deleted` | 금지 | 항상 `false`, `deleted_at IS NULL` 고정 |
+| `lifecycle_status` | 금지 | 이번 v1 Asset 목록 filter에서 미지원 |
+| `search` | 금지 | 검색 대상 Metadata 계약이 없어 미지원 |
+| `sort` | 금지 | `(created_at DESC, asset_id DESC)` 고정 |
+
+`workspace_id`를 생략하면 effective Owner의 Workspace 미지정 Asset을 포함한 전체 활성 Asset을 조회합니다. 임의 Owner 전체나 다른 Workspace의 Asset은 조회하지 않습니다. 이 Query 계약은 Cursor fingerprint와 Index 설계를 위한 선행 계약이며 Asset Router는 아직 구현하지 않았습니다.
 
 ## 11. 권한과 Workspace 경계
 

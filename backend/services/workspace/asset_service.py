@@ -4,14 +4,18 @@ from __future__ import annotations
 
 import re
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from backend.core.cursor_pagination import CURSOR_SORT, CursorCodec, filter_fingerprint
 from backend.core.exceptions import (
     ApplicationValidationError,
+    CursorConfigurationError,
+    InvalidLimitError,
     ResourceConflictError,
     ResourceNotFoundError,
 )
@@ -38,11 +42,25 @@ def _required_text(value: str, field_name: str) -> str:
     return normalized
 
 
+@dataclass(frozen=True, slots=True)
+class AssetCursorPage:
+    items: tuple[Asset, ...]
+    next_cursor: str | None
+    has_more: bool
+    limit: int
+
+
 class AssetService:
     """Asset aggregate의 transaction과 불변 Version 생성 규칙을 소유한다."""
 
-    def __init__(self, session_factory: Callable[[], Session]) -> None:
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        *,
+        cursor_codec: CursorCodec | None = None,
+    ) -> None:
         self.session_factory = session_factory
+        self.cursor_codec = cursor_codec
 
     def create_asset(
         self,
@@ -101,6 +119,75 @@ class AssetService:
                 limit=limit,
                 offset=offset,
             )
+
+    def list_asset_page(
+        self,
+        *,
+        owner_id: UUID,
+        workspace_id: UUID | None = None,
+        asset_type: AssetType | None = None,
+        cursor: str | None = None,
+        limit: int = 50,
+    ) -> AssetCursorPage:
+        """신뢰된 Owner scope의 활성 Asset을 DESC cursor page로 조회한다."""
+
+        _validate_page_limit(limit)
+        codec = self._require_cursor_codec()
+        filter_hash = filter_fingerprint(
+            {
+                "asset_type": asset_type.value if asset_type is not None else None,
+                "include_deleted": False,
+                "owner_id": str(owner_id),
+                "sort": CURSOR_SORT,
+                "workspace_id": str(workspace_id) if workspace_id is not None else None,
+            }
+        )
+        position = (
+            codec.decode(
+                cursor,
+                expected_resource="asset",
+                expected_filter_hash=filter_hash,
+                expected_limit=limit,
+            )
+            if cursor is not None
+            else None
+        )
+        with self.session_factory() as session:
+            if workspace_id is not None:
+                workspace = WorkspaceRepository(session).get_workspace(workspace_id)
+                if workspace is None or workspace.owner_id != owner_id:
+                    raise ResourceNotFoundError("Workspace")
+            rows = AssetRepository(session).list_assets_after(
+                owner_id=owner_id,
+                workspace_id=workspace_id,
+                asset_type=asset_type,
+                last_created_at=(position.last_created_at if position else None),
+                last_id=(position.last_id if position else None),
+                limit=limit + 1,
+            )
+        has_more = len(rows) > limit
+        items = tuple(rows[:limit])
+        next_cursor = None
+        if has_more:
+            last_item = items[-1]
+            next_cursor = codec.encode(
+                resource="asset",
+                last_created_at=last_item.created_at,
+                last_id=last_item.asset_id,
+                filter_hash=filter_hash,
+                limit=limit,
+            )
+        return AssetCursorPage(
+            items=items,
+            next_cursor=next_cursor,
+            has_more=has_more,
+            limit=limit,
+        )
+
+    def _require_cursor_codec(self) -> CursorCodec:
+        if self.cursor_codec is None:
+            raise CursorConfigurationError()
+        return self.cursor_codec
 
     def update_asset_metadata(self, asset_id: UUID, *, lifecycle_status: str) -> Asset:
         normalized_status = _required_text(lifecycle_status, "Asset 상태")
@@ -374,3 +461,8 @@ class AssetService:
                 limit=limit,
                 offset=offset,
             )
+
+
+def _validate_page_limit(limit: object) -> None:
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise InvalidLimitError()

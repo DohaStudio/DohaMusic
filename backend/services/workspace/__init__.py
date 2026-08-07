@@ -1,6 +1,6 @@
 """Workspace application service의 명시적 export."""
 
-from backend.services.workspace.asset_service import AssetService
+from backend.services.workspace.asset_service import AssetCursorPage, AssetService
 from backend.services.workspace.collaboration_service import CollaborationService
 from backend.services.workspace.composition_service import (
     CompositionService,
@@ -21,6 +21,7 @@ from backend.services.workspace.workspace_service import (
 
 __all__ = [
     "AssetService",
+    "AssetCursorPage",
     "CollaborationService",
     "CompositionService",
     "JobReferenceInput",
