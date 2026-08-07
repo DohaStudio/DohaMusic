@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — ProjectAsset Resource REST API
+
+- `GET·POST /api/v1/projects/{project_id}/assets`와 `DELETE /api/v1/projects/{project_id}/assets/{asset_id}`를 추가해 ProjectAsset 목록·기존 Asset 연결·관계 해제를 제공한다.
+- 목록은 Project에 결합된 HMAC Cursor와 `display_order ASC, project_asset_id ASC` keyset 조회를 사용하고 외부 응답은 `asset_id`, `role`, `display_order`만 노출한다.
+- 같은 `(project_id, asset_id)` 활성 관계는 `409 PROJECT_ASSET_CONFLICT`로 거부하고 Soft Delete 관계는 같은 식별 row를 복원한다. DELETE는 ProjectAsset만 Soft Delete하며 Asset·AssetVersion과 다른 Project 연결은 보존한다.
+- 공개 입력의 내부 식별자·소유권·감사 필드를 거부하고 Project·Asset·ProjectAsset Not Found를 Resource별 안전한 오류 코드로 구분한다.
+- Resource API 진행도는 11/64이며 다음 범위는 Asset Cursor·Index와 Resource API 5개다. 실제 Bootstrap·backfill·dual write·Frontend·Alembic revision과 실제 사용자 DB는 변경하지 않았다.
+- 구현·회귀 검증 결과는 [ProjectAsset Resource API 검증](reports/validation/VALIDATION-PROJECT-ASSET-API.md)에 기록했다.
+
 ### 변경 — ProjectAsset keyset Index 실제 사용자 DB 적용
 
 - 승인된 Inventory·backup·restore·migration rehearsal Gate를 거쳐 실제 사용자 SQLite DB를 `20260807_0013`에서 `20260807_0014`로 승격했다.

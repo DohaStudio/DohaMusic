@@ -12,7 +12,7 @@
 
 > 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
-> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity, additive revision `20260806_0012`, Workspace·Project keyset Index revision `20260807_0013`과 ProjectAsset partial keyset Index revision `20260807_0014`를 승인된 절차로 실제 사용자 DB에 적용했습니다. Workspace·MusicProject Resource API 8개만 구현 상태이며 ProjectAsset API를 포함한 나머지 56개, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
+> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity, additive revision `20260806_0012`, Workspace·Project keyset Index revision `20260807_0013`과 ProjectAsset partial keyset Index revision `20260807_0014`를 승인된 절차로 실제 사용자 DB에 적용했습니다. Workspace·MusicProject·ProjectAsset Resource API 11개를 구현했으며 나머지 53개, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
@@ -24,7 +24,7 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료**
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-07
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.

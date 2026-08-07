@@ -397,11 +397,18 @@ class WorkspaceService:
 
     def detach_asset(self, *, project_id: UUID, asset_id: UUID) -> ProjectAsset:
         with self.session_factory() as session, session.begin():
-            repository = WorkspaceRepository(session)
-            project_asset = repository.find_project_asset(project_id, asset_id)
+            workspace_repository = WorkspaceRepository(session)
+            asset_repository = AssetRepository(session)
+            if workspace_repository.get_project(project_id) is None:
+                raise ResourceNotFoundError("MusicProject")
+            if asset_repository.get_asset(asset_id) is None:
+                raise ResourceNotFoundError("Asset")
+            project_asset = workspace_repository.find_project_asset(
+                project_id, asset_id
+            )
             if project_asset is None:
                 raise ResourceNotFoundError("ProjectAsset")
-            repository.remove_project_asset(project_asset)
+            workspace_repository.remove_project_asset(project_asset)
         return project_asset
 
     def reorder_project_asset(

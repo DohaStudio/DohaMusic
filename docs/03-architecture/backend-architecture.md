@@ -28,7 +28,7 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 완료했고 `/api/v1` 공통 기반, 명시적 Bootstrap 도구, HMAC Cursor와 Workspace·MusicProject Resource Endpoint 8개를 추가했다. ProjectAsset Cursor·Repository·Service page 기반은 완료했지만 Router 3개는 아직 구현하지 않았다. Resource API 진행도는 8/64이며 backfill·dual write·Legacy 제거도 미수행이다.
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 완료했고 `/api/v1` 공통 기반, 명시적 Bootstrap 도구, HMAC Cursor와 Workspace·MusicProject·ProjectAsset Resource Endpoint 11개를 추가했다. Resource API 진행도는 11/64이며 Asset 이하 53개 Endpoint와 backfill·dual write·Legacy 제거는 미구현이다.
 
 ## Workspace Application Service 경계
 
@@ -38,7 +38,7 @@ Workspace Application Service는 `backend.services.workspace` namespace에 Aggre
 
 Service는 SQLAlchemy Entity 또는 내부 dataclass 결과를 반환하고 API용 Pydantic Schema, `HTTPException`, Provider 호출과 Worker dispatch를 사용하지 않는다. 자세한 계약과 상태 전이는 [Workspace Service transaction 설계](workspace-service-transaction.md)를 따른다.
 
-Workspace·Project와 선행 ProjectAsset 목록 Service는 App Factory가 주입한 `CursorCodec`으로 Resource별 payload를 검증하고 Repository에 `limit + 1` keyset 조회를 요청한다. ProjectAsset은 `project_id` filter fingerprint와 정확한 정수 `last_display_order`를 사용하며 기존 Workspace·Project version 1 token을 변경하지 않는다. Resource Router는 App State dependency로 `WorkspaceService`만 사용하며 Repository·Session·Cursor를 직접 생성하지 않는다. 일반 CRUD·Bootstrap은 codec 없이 계속 사용할 수 있으며 서명 키 누락은 cursor 기능을 호출할 때만 설정 오류가 된다.
+Workspace·Project·ProjectAsset 목록 Service는 App Factory가 주입한 `CursorCodec`으로 Resource별 payload를 검증하고 Repository에 `limit + 1` keyset 조회를 요청한다. ProjectAsset은 `project_id` filter fingerprint와 정확한 정수 `last_display_order`를 사용하며 기존 Workspace·Project version 1 token을 변경하지 않는다. Resource Router는 App State dependency로 `WorkspaceService`만 사용하며 Repository·Session·Cursor를 직접 생성하지 않는다. ProjectAsset POST는 기존 Asset 연결 또는 Soft Delete 관계 복원만 수행하고 DELETE는 관계만 Soft Delete한다. 일반 CRUD·Bootstrap은 codec 없이 계속 사용할 수 있으며 서명 키 누락은 cursor 기능을 호출할 때만 설정 오류가 된다.
 
 공개 Workspace·MusicProject DTO는 SQLAlchemy Entity를 직접 직렬화하지 않고 allowlist Pydantic v2 Schema를 사용한다. 내부 `owner_id`·`created_by`, Soft Delete 시각과 ORM relationship은 노출하지 않으며 Project 생성의 감사 식별자는 Workspace 소유자에서 Service 입력으로 파생한다.
 

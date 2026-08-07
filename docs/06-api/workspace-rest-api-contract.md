@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project Resource Endpoint 8개와 ProjectAsset Cursor 선행 기반 구현, ProjectAsset Router를 포함한 나머지 56개·OpenAPI YAML·Idempotency replay 미구현
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset Resource Endpoint 11개 구현, 나머지 53개·OpenAPI YAML·Idempotency replay 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
@@ -91,14 +91,14 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 
 ### 4.1 현재 구현 범위
 
-- Workspace 목록·상세·이름 수정 3개와 MusicProject 목록·생성·상세·수정·Soft Delete 5개를 구현했습니다.
+- Workspace 3개, MusicProject 5개와 ProjectAsset 목록·연결·관계 해제 3개를 구현했습니다.
 - Router는 App State dependency로 주입된 `WorkspaceService`만 호출하고 Repository·Session·Cursor를 직접 생성하지 않습니다.
 - 목록은 기존 HMAC Cursor와 `limit + 1` keyset 조회를 사용하며 외부 offset을 받지 않습니다.
 - `owner_id`와 `created_by`는 공개 입력에서 금지하고 Project 생성자는 Workspace 소유자에서 파생합니다.
 - `owner_id`와 `created_by`는 현재 공개 응답 DTO에도 포함하지 않습니다.
 - Workspace가 없으면 `409 WORKSPACE_BOOTSTRAP_REQUIRED`를 반환하며 Bootstrap을 암묵적으로 실행하지 않습니다.
-- Resource별 Not Found·Conflict를 `WORKSPACE_NOT_FOUND`, `PROJECT_NOT_FOUND`, `WORKSPACE_NAME_CONFLICT`, `PROJECT_TITLE_CONFLICT`로 변환합니다.
-- ProjectAsset은 별도 Resource 그룹으로 유지하고 `(display_order ASC, project_asset_id ASC)` Cursor·Project filter·keyset page 기반만 선행 구현했습니다. Router 3개는 아직 `[계획]`입니다.
+- Resource별 Not Found·Conflict를 `WORKSPACE_NOT_FOUND`, `PROJECT_NOT_FOUND`, `ASSET_NOT_FOUND`, `PROJECT_ASSET_NOT_FOUND`, `WORKSPACE_NAME_CONFLICT`, `PROJECT_TITLE_CONFLICT`, `PROJECT_ASSET_CONFLICT`로 변환합니다.
+- ProjectAsset은 별도 Resource 그룹으로 유지하고 `(display_order ASC, project_asset_id ASC)` Cursor·Project filter·keyset page를 Router에 연결했습니다. POST는 기존 Asset만 연결하고 DELETE는 Asset·AssetVersion을 보존한 채 관계만 Soft Delete합니다.
 - DohaMusic은 REST 식별 경로, 기존 Unique Constraint와 Soft Delete restore 정책에 따라 같은 `(project_id, asset_id)` 연결을 하나만 허용합니다. Common Specification `0.1.0`의 role 포함 중복 기준보다 엄격한 저장소 계약이며 `role`은 관계 identity가 아니라 변경 가능한 Metadata입니다.
 
 ## 5. REST Method 원칙
