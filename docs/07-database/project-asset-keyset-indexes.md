@@ -3,7 +3,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-07
 > 관련 기능: ProjectAsset Cursor Pagination 선행 기반
-> 구현 상태: Cursor·Repository·Service page·Entity metadata·Alembic `20260807_0014`와 실제 사용자 DB 적용 완료, Resource Router 미수행
+> 구현 상태: Cursor·Repository·Service page·Resource Router·Entity metadata·Alembic `20260807_0014`와 실제 사용자 DB 적용 완료
 > 관련 문서: [Cursor Pagination](../06-api/cursor-pagination.md), [REST API 계약](../06-api/workspace-rest-api-contract.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 정렬과 조회 계약
@@ -105,7 +105,8 @@ DohaStudio Common Specification `0.1.0 / draft-baseline`에는 `(project_id, ass
 ## 7. 후속 작업
 
 1. `[완료]` 실제 사용자 DB에 `20260807_0014`를 적용했습니다.
-2. `[계획]` ProjectAsset Resource Router 3개를 Cursor page와 연결합니다.
+2. `[완료]` ProjectAsset Resource Router 3개를 Cursor page와 연결했습니다.
+3. `[계획]` Asset Cursor·Index와 Resource API 5개를 구현합니다.
 3. `[계획]` API에서 Bootstrap Required, Project·Asset Not Found, 중복·restore·연결 해제 계약을 검증합니다.
 
-Resource API 진행도는 현재 8/64이며 이번 선행 기반이 Endpoint 완료를 의미하지 않습니다.
+Resource API 진행도는 현재 11/64이며 ProjectAsset 3개 Endpoint가 완료됐습니다.

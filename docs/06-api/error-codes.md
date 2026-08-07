@@ -2,7 +2,7 @@
 
 > 문서 목적: API와 Worker의 안정적인 오류 코드를 정의한다.
 > 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
-> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler·Cursor와 Workspace·MusicProject Resource 오류 mapping 구현
+> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler·Cursor와 Workspace·MusicProject·ProjectAsset Resource 오류 mapping 구현
 
 | 코드 | 의미 |
 |---|---|
@@ -15,6 +15,9 @@
 | `WORKSPACE_NAME_CONFLICT` | 같은 owner 범위에서 Workspace 이름 충돌 |
 | `PROJECT_NOT_FOUND` | 요청한 MusicProject가 없거나 Soft Delete됨 |
 | `PROJECT_TITLE_CONFLICT` | 같은 Workspace 범위에서 MusicProject 제목 충돌 |
+| `ASSET_NOT_FOUND` | 요청한 Asset이 없거나 Soft Delete됨 |
+| `PROJECT_ASSET_NOT_FOUND` | 요청한 ProjectAsset 관계가 없거나 Soft Delete됨 |
+| `PROJECT_ASSET_CONFLICT` | 같은 Project와 Asset의 활성 관계가 이미 존재함 |
 | `INVALID_STATE` | 현재 Resource 상태에서 요청을 수행할 수 없음 |
 | `INVALID_KPOP_PRESET` | 지원하지 않는 K-POP Preset |
 | `INVALID_REQUESTED_BPM` | 70~180 범위를 벗어난 목표 BPM |

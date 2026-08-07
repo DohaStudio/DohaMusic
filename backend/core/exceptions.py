@@ -18,6 +18,7 @@ class AppError(Exception):
 
 class ResourceNotFoundError(AppError):
     def __init__(self, resource_name: str) -> None:
+        self.resource_name = resource_name
         super().__init__(
             code="RESOURCE_NOT_FOUND",
             message=f"{resource_name}을(를) 찾을 수 없습니다.",
@@ -29,6 +30,7 @@ class ResourceConflictError(AppError):
     """현재 application 상태와 충돌하는 요청."""
 
     def __init__(self, resource_name: str) -> None:
+        self.resource_name = resource_name
         super().__init__(
             code="RESOURCE_CONFLICT",
             message=f"{resource_name} 요청이 현재 상태와 충돌합니다.",

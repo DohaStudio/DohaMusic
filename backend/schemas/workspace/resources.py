@@ -71,3 +71,19 @@ class ProjectUpdateRequest(BaseModel):
         if "title" in self.model_fields_set and self.title is None:
             raise ValueError("title은 null로 수정할 수 없습니다.")
         return self
+
+
+class ProjectAssetSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    asset_id: UUID
+    role: str | None
+    display_order: int
+
+
+class ProjectAssetCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    asset_id: UUID
+    role: str | None = None
+    display_order: int = Field(default=0, ge=0, strict=True)

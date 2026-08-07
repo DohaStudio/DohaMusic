@@ -3,12 +3,12 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-07
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: Workspace·Project Cursor와 실제 DB 0013 적용, ProjectAsset Cursor·Repository·Service page와 실제 DB 0014 적용 완료; ProjectAsset Router 미구현
+> 구현 상태: Workspace·Project·ProjectAsset Cursor와 Resource Router, 실제 DB 0013·0014 적용 완료
 > 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md)
 
 ## 1. 목적과 범위
 
-Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project 조회는 Resource Router에 연결했고 ProjectAsset은 Router 구현 전 Cursor·Repository·Service page와 실제 DB Index를 준비했습니다. 인증·Idempotency·backfill은 포함하지 않습니다.
+Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project·ProjectAsset 조회를 Resource Router에 연결했으며 인증·Idempotency·backfill은 포함하지 않습니다.
 
 ## 2. 서명 키
 
@@ -88,7 +88,8 @@ ProjectAsset은 full `(project_id, deleted_at, display_order, project_asset_id)`
 4. `[완료]` Collection Envelope의 `has_more`와 `next_cursor` 불변 조건을 API 테스트로 검증했습니다.
 5. `[완료]` ProjectAsset 전용 position·Project filter·Repository·Service page와 0014 Index를 임시 SQLite에서 검증했습니다.
 6. `[완료]` 승인된 절차로 실제 사용자 DB에 0014를 적용했습니다.
-7. `[계획]` ProjectAsset Resource Router 3개를 연결합니다.
+7. `[완료]` ProjectAsset Resource Router 3개를 연결했습니다.
+8. `[계획]` Asset Cursor·Index와 Resource API 5개를 구현합니다.
 8. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
-나머지 56개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.
+나머지 53개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.

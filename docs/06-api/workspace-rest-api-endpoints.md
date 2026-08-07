@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace·MusicProject 8개 완료, ProjectAsset Cursor 선행 기반 완료, ProjectAsset Router를 포함한 나머지 56개 Resource Endpoint 계획
+> 구현 상태: Workspace·MusicProject·ProjectAsset 11개 완료, 나머지 53개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -28,7 +28,7 @@
 | Health | 2 |
 | **합계** | **64** |
 
-Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject 8개는 `[완료]`이며 나머지 56개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
+Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject·ProjectAsset 11개는 `[완료]`이며 나머지 53개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
 
 ## 2. Workspace API — 3개
 
@@ -58,15 +58,15 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 
 ## 4. ProjectAsset API — 3개
 
-| Method | Path | 성공 | 목적 |
-|---|---|---:|---|
-| `GET` | `/api/v1/projects/{project_id}/assets` | 200 | ProjectAsset 연결 목록 |
-| `POST` | `/api/v1/projects/{project_id}/assets` | 201 | 기존 Asset을 Project에 연결 |
-| `DELETE` | `/api/v1/projects/{project_id}/assets/{asset_id}` | 204 | ProjectAsset 관계 해제 |
+| Method | Path | 성공 | 상태 | 목적 |
+|---|---|---:|---|---|
+| `GET` | `/api/v1/projects/{project_id}/assets` | 200 | [완료] | ProjectAsset 연결 목록 |
+| `POST` | `/api/v1/projects/{project_id}/assets` | 201 | [완료] | 기존 Asset을 Project에 연결 |
+| `DELETE` | `/api/v1/projects/{project_id}/assets/{asset_id}` | 204 | [완료] | ProjectAsset 관계 해제 |
 
 Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `display_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
 
-세 Endpoint는 아직 `[계획]`입니다. 목록용 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 revision `20260807_0014` partial Index를 선행 구현했고 Index는 실제 사용자 DB에 적용했습니다. Router는 아직 연결하지 않았으므로 Resource API 진행도는 8/64입니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다.
+세 Endpoint는 구현했습니다. 목록은 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 실제 적용된 revision `20260807_0014` partial Index를 사용합니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다. POST는 Asset 또는 AssetVersion을 생성하지 않으며 DELETE는 관계만 Soft Delete합니다. Resource API 진행도는 11/64입니다.
 
 ## 5. Asset API — 5개
 

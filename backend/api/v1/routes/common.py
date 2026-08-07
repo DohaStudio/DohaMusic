@@ -61,6 +61,30 @@ def project_title_conflict() -> AppError:
     )
 
 
+def asset_not_found() -> AppError:
+    return AppError(
+        code="ASSET_NOT_FOUND",
+        message="Asset을 찾을 수 없습니다.",
+        status_code=404,
+    )
+
+
+def project_asset_not_found() -> AppError:
+    return AppError(
+        code="PROJECT_ASSET_NOT_FOUND",
+        message="ProjectAsset 연결을 찾을 수 없습니다.",
+        status_code=404,
+    )
+
+
+def project_asset_conflict() -> AppError:
+    return AppError(
+        code="PROJECT_ASSET_CONFLICT",
+        message="Project와 Asset이 이미 연결돼 있습니다.",
+        status_code=409,
+    )
+
+
 def invalid_input(message: str = "요청 입력값이 유효하지 않습니다.") -> AppError:
     return AppError(code="INVALID_INPUT", message=message, status_code=422)
 
@@ -91,6 +115,21 @@ def map_project_error(exc: Exception) -> AppError:
         return project_not_found()
     if isinstance(exc, ResourceConflictError):
         return project_title_conflict()
+    if isinstance(exc, ApplicationValidationError):
+        return invalid_input(exc.message)
+    raise exc
+
+
+def map_project_asset_error(exc: Exception) -> AppError:
+    if isinstance(exc, ResourceNotFoundError):
+        if exc.resource_name == "MusicProject":
+            return project_not_found()
+        if exc.resource_name == "Asset":
+            return asset_not_found()
+        if exc.resource_name == "ProjectAsset":
+            return project_asset_not_found()
+    if isinstance(exc, ResourceConflictError) and exc.resource_name == "ProjectAsset":
+        return project_asset_conflict()
     if isinstance(exc, ApplicationValidationError):
         return invalid_input(exc.message)
     raise exc
