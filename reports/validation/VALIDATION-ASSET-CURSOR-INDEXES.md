@@ -48,11 +48,11 @@ Alembic `20260807_0014` 임시 SQLite에 6,000개 Asset을 구성하고 공식 f
 |---|---|
 | Asset Cursor·Service 전용 테스트 | PASS |
 | Asset keyset Query Plan·Migration round-trip 전용 테스트 | PASS |
-| 신규 전용 테스트 합계 | 8 passed |
-| Cursor·Repository·Service·Entity 회귀 | PASS — 87 passed |
+| 신규 전용 테스트 합계 | 9 passed |
+| Cursor·Repository·Service·Entity 회귀 | PASS — 88 passed |
 | Workspace·Project·ProjectAsset API 회귀 | PASS — 50 passed |
 | Alembic·keyset·Preflight·SQLite 안전성 회귀 | PASS — 21 passed |
-| 중복 없이 합산한 선별 검증 | PASS — 158 passed |
+| 중복 없이 합산한 선별 검증 | PASS — 159 passed |
 | Python compile | PASS |
 | Ruff lint | PASS |
 | Ruff format check | PASS — Backend 267개 파일 |
@@ -72,4 +72,4 @@ Alembic `20260807_0014` 임시 SQLite에 6,000개 Asset을 구성하고 공식 f
 - 기존 단일 Index와 신규 복합 Index의 prefix 중복은 운영 통계를 확보한 뒤 별도 PR에서 검토한다.
 - Python 3.12 SQLite 기본 datetime adapter 폐기 예정 경고를 유지한다.
 - 인증이 아직 없으므로 향후 Router는 Bootstrap된 Workspace의 Owner context에서 effective Owner를 파생해야 한다.
-- 전체 Backend suite는 실행하지 않았으며 선별 158개 회귀와 후속 GitHub Actions를 최종 Gate로 사용한다.
+- 전체 Backend suite는 실행하지 않았으며 선별 159개 회귀와 후속 GitHub Actions를 최종 Gate로 사용한다.

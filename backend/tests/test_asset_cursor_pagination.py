@@ -226,6 +226,17 @@ def test_asset_page_is_owner_scoped_stable_and_excludes_deleted(
     assert any(item.workspace_id is None for item in collected)
 
 
+def test_asset_page_returns_terminal_empty_page(session_factory) -> None:
+    service = AssetService(session_factory, cursor_codec=CursorCodec(TEST_KEY))
+
+    page = service.list_asset_page(owner_id=_id(1, 1), limit=20)
+
+    assert page.items == ()
+    assert page.has_more is False
+    assert page.next_cursor is None
+    assert page.limit == 20
+
+
 def test_asset_page_filters_workspace_and_type_and_binds_cursor(
     session_factory,
 ) -> None:
