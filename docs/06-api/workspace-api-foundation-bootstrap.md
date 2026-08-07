@@ -3,24 +3,24 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: Workspace REST API 선행 기반과 단일 사용자 기본 Workspace 준비
-> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor 기반 구현, 실제 Bootstrap·Resource Endpoint 미수행
+> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor와 Workspace·MusicProject Resource Endpoint 8개 구현, 실제 Bootstrap 미수행
 > 관련 문서: [공통 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [API 전환 전략](api-contract-migration-strategy.md), [DB 전환 전략](../07-database/database-redesign-migration-strategy.md)
 
 ## 1. 범위
 
-이번 단계는 Workspace Resource API를 구현하기 전에 필요한 transport 계약과 기본 Workspace 생성 경계를 분리합니다.
+이 문서는 Workspace Resource API 구현 전에 마련한 transport 계약과 기본 Workspace 생성 경계를 설명하고 현재 연결 상태를 함께 기록합니다.
 
-- 빈 `/api/v1` Router namespace
+- `/api/v1` Router namespace와 Workspace·MusicProject Router
 - 성공·Collection·오류 Pydantic v2 Schema
 - request ID 생성·전달
 - 기존 `AppError`·validation·내부 오류의 v1 payload 분기
 - 단일 사용자 기본 Workspace의 명시적 Bootstrap CLI
 
-Workspace·Project·Asset·Snapshot·Job 등의 64개 Resource Endpoint는 모두 `[미구현]`입니다. `/api/v1` Router에 임시 상태 Route도 추가하지 않습니다.
+Workspace·MusicProject 8개 Resource Endpoint는 `[완료]`이며 ProjectAsset 이하 나머지 56개는 `[미구현]`입니다. 임시 상태 Route는 추가하지 않습니다.
 
 ## 2. Router와 응답 계약
 
-최상위 Router는 기존 Runtime Route를 `/api`에 그대로 유지하고 `backend.api.v1.router`를 `/api/v1`에 연결합니다. v1 Router에는 아직 Resource Route가 없어 FastAPI Route 수는 45개로 유지됩니다.
+최상위 Router는 기존 Runtime Route를 `/api`에 그대로 유지하고 `backend.api.v1.router`를 `/api/v1`에 연결합니다. Workspace·MusicProject 8개 Operation 추가 후 등록 Route는 53개, `APIRoute`는 49개이며 기존 Runtime 경로 수는 유지됩니다.
 
 단일 성공 응답은 `data`, `request_id`를 사용합니다. Collection 응답은 `data`, `pagination`, `links`, `request_id`를 사용하며 `pagination`은 `limit`, `next_cursor`, `has_more`를 가집니다. 오류는 다음 구조입니다.
 
@@ -35,7 +35,7 @@ Workspace·Project·Asset·Snapshot·Job 등의 64개 Resource Endpoint는 모�
 }
 ```
 
-SQLAlchemy Entity를 직접 JSON으로 반환하지 않습니다. v1 공통 Schema는 Resource DTO가 아니며 Resource별 allowlist Schema는 후속 PR에서 정의합니다.
+SQLAlchemy Entity를 직접 JSON으로 반환하지 않습니다. v1 공통 Schema와 별도로 Workspace·MusicProject allowlist DTO를 정의했고 내부 소유권·삭제·ORM 관계 필드는 노출하지 않습니다.
 
 ## 3. request ID
 
@@ -103,7 +103,7 @@ Project·Asset·AssetVersion과 Runtime Table row는 생성하거나 변경하�
 - 명시적 SQLite URL
 - 기존 SQLite 파일 또는 명시적 in-memory 테스트 DB
 - `alembic_version` Table 존재
-- revision이 정확히 `20260806_0012`
+- revision이 정확히 `20260807_0013`
 - `workspaces` Table 존재
 
 Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자동 생성을 수행하지 않습니다. 이번 작업에서는 실제 사용자 DB에 Bootstrap을 실행하지 않습니다.
@@ -130,13 +130,13 @@ Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자�
 - 마지막 `created_at`
 - 마지막 Resource UUID
 
-Client 변조를 막기 위해 환경별 전용 비밀키로 HMAC 서명을 검증하며 비밀키가 없는 unsigned cursor는 허용하지 않습니다. 다만 `/api/v1` Resource Endpoint 연결, `CursorCodec`의 App Composition 등록, keyset 복합 Index Migration과 실제 목록 API 공개는 후속 작업입니다.
+Client 변조를 막기 위해 환경별 전용 비밀키로 HMAC 서명을 검증하며 비밀키가 없는 unsigned cursor는 허용하지 않습니다. `CursorCodec`의 App Composition 등록, keyset 복합 Index 실제 적용과 Workspace·Project 목록 API 연결은 완료했습니다.
 
 ## 10. 후속 순서
 
 1. Idempotency scope·fingerprint·replay 계약
 2. HMAC 서명 cursor codec과 Repository·Service keyset 기반 — [완료]
 3. 기본 Workspace 실제 실행의 별도 운영 승인
-4. 읽기 전용 Workspace Resource Route
-5. Project·Asset 등 mutation Route와 History·Idempotency 연결
+4. 읽기 전용 Workspace Resource Route — [완료]
+5. Project mutation Route — [부분 완료: Project 5개 완료, Asset·History·Idempotency 미구현]
 6. Artifact Resolver와 Job dispatch 이후 관련 Endpoint

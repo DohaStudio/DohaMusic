@@ -2,7 +2,7 @@
 
 > 문서 목적: API와 Worker의 안정적인 오류 코드를 정의한다.
 > 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
-> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler와 Cursor 오류 구현, Resource별 오류 mapping 미구현
+> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler·Cursor와 Workspace·MusicProject Resource 오류 mapping 구현
 
 | 코드 | 의미 |
 |---|---|
@@ -10,6 +10,12 @@
 | `INVALID_CURSOR` | 형식·서명·version·Resource·filter·정렬·위치·limit가 유효하지 않은 Cursor |
 | `INVALID_LIMIT` | Cursor page limit이 1~100 범위를 벗어남 |
 | `CURSOR_CONFIGURATION_ERROR` | 전용 Cursor 서명 키가 없거나 32바이트 미만인 서버 설정 오류 |
+| `WORKSPACE_BOOTSTRAP_REQUIRED` | 기본 Workspace가 없어 명시적 Bootstrap 필요 |
+| `WORKSPACE_NOT_FOUND` | 요청한 Workspace가 없거나 Soft Delete됨 |
+| `WORKSPACE_NAME_CONFLICT` | 같은 owner 범위에서 Workspace 이름 충돌 |
+| `PROJECT_NOT_FOUND` | 요청한 MusicProject가 없거나 Soft Delete됨 |
+| `PROJECT_TITLE_CONFLICT` | 같은 Workspace 범위에서 MusicProject 제목 충돌 |
+| `INVALID_STATE` | 현재 Resource 상태에서 요청을 수행할 수 없음 |
 | `INVALID_KPOP_PRESET` | 지원하지 않는 K-POP Preset |
 | `INVALID_REQUESTED_BPM` | 70~180 범위를 벗어난 목표 BPM |
 | `INVALID_LANGUAGE_RATIO` | 한국어·영어 비율 범위 또는 합계 오류 |
@@ -77,7 +83,7 @@
 | `VOICE_STORAGE_WRITE_FAILED` | 안전한 Voice 저장 실패 |
 | `VOICE_STORAGE_DELETE_FAILED` | 관리 Voice 파일 삭제 실패 |
 
-API 오류는 `{ "error": { "code", "message" } }` 형식이다. Audio Analysis 오류는 기본 API 실패가 아니라 `audio_analysis.analysis_status`와 safe warning으로 표시하며 Pipeline Job을 `FAILED`로 바꾸지 않는다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않는다.
+기존 `/api` 오류는 `{ "error": { "code", "message" } }` 형식을 유지합니다. `/api/v1`은 `error_code`, `message`, `details`, `request_id`를 사용합니다. Audio Analysis 오류는 기본 API 실패가 아니라 `audio_analysis.analysis_status`와 safe warning으로 표시하며 Pipeline Job을 `FAILED`로 바꾸지 않습니다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않습니다.
 # External Lyrics 오류
 
 `LYRICS_API_KEY_MISSING`, `LYRICS_PROVIDER_NOT_SUPPORTED`, `LYRICS_PROVIDER_UNAVAILABLE`, `LYRICS_RATE_LIMITED`, `LYRICS_TIMEOUT`, `LYRICS_AUTHENTICATION_FAILED`, `LYRICS_REQUEST_REJECTED`, `LYRICS_OUTPUT_INVALID`, `LYRICS_CONTENT_BLOCKED`, `LYRICS_COST_LIMIT_EXCEEDED`, `LYRICS_REVISION_FAILED`를 구분한다. Provider 원문 body·request ID·인증 정보는 응답에 노출하지 않는다.

@@ -10,6 +10,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from backend.cli.workspace_bootstrap import (
+    BOOTSTRAP_TARGET_REVISION,
     WorkspaceBootstrapError,
     execute_bootstrap,
     resolve_database_url,
@@ -17,14 +18,17 @@ from backend.cli.workspace_bootstrap import (
 from backend.core.exceptions import InvalidStateError, ResourceConflictError
 from backend.db.base import Base
 from backend.db.session import create_database_engine, create_session_factory
-from backend.db.workspace_preflight import TARGET_REVISION
 from backend.models.project import Project
 from backend.models.workspace import Workspace
 from backend.repositories.workspace import WorkspaceRepository
 from backend.services.workspace import WorkspaceService
 
 
-def _database_url(path: Path, *, revision: str = TARGET_REVISION) -> str:
+def _database_url(
+    path: Path,
+    *,
+    revision: str = BOOTSTRAP_TARGET_REVISION,
+) -> str:
     url = f"sqlite:///{path.as_posix()}"
     engine = create_database_engine(url)
     Base.metadata.create_all(engine)
@@ -109,7 +113,7 @@ def test_wrong_revision_is_blocked_without_workspace_change(tmp_path: Path) -> N
         tmp_path / "wrong-revision.db", revision="20260801_0011"
     )
 
-    with pytest.raises(WorkspaceBootstrapError, match=TARGET_REVISION):
+    with pytest.raises(WorkspaceBootstrapError, match=BOOTSTRAP_TARGET_REVISION):
         execute_bootstrap(
             database_url=database_url,
             owner_id=uuid4(),
@@ -130,7 +134,7 @@ def test_missing_workspace_table_is_blocked(tmp_path: Path) -> None:
         )
         connection.execute(
             text("INSERT INTO alembic_version VALUES (:revision)"),
-            {"revision": TARGET_REVISION},
+            {"revision": BOOTSTRAP_TARGET_REVISION},
         )
     engine.dispose()
 

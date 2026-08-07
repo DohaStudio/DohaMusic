@@ -8,6 +8,8 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
 
+from backend.services.workspace import WorkspaceService
+
 REQUEST_ID_HEADER = "X-Request-ID"
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
 
@@ -32,6 +34,15 @@ def get_request_id(request: Request) -> str:
     request_id = normalize_request_id(request.headers.get(REQUEST_ID_HEADER))
     request.state.request_id = request_id
     return request_id
+
+
+def get_workspace_service(request: Request) -> WorkspaceService:
+    """App composition root에서 구성한 WorkspaceService를 제공한다."""
+
+    service = getattr(request.app.state, "workspace_service", None)
+    if not isinstance(service, WorkspaceService):
+        raise RuntimeError("WorkspaceService가 구성되지 않았습니다.")
+    return service
 
 
 def register_request_id_middleware(app: FastAPI) -> None:

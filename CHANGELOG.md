@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — 첫 Workspace Resource REST API
+
+- 기존 API Foundation과 `WorkspaceService`를 연결해 Workspace 3개, MusicProject 5개 등 `/api/v1` Resource Endpoint 8개를 추가했다.
+- Workspace가 없는 단일 사용자 환경은 `409 WORKSPACE_BOOTSTRAP_REQUIRED`로 중단하고, `owner_id`와 `created_by`를 공개 입력에서 받지 않으며 Project 생성자는 Workspace 소유자에서 파생한다.
+- 응답에서도 내부 소유권 식별자를 제외하고, 모든 Endpoint의 고유 operation ID·한국어 summary·tag와 FastAPI version 독립 Route 검증을 고정했다.
+- 명시적 Bootstrap CLI가 현재 Alembic head `20260807_0013`만 허용하도록 이전 Migration preflight revision과 기대값을 분리했다.
+- 목록은 기존 HMAC Cursor와 keyset 조회를 그대로 사용하고 Project 삭제는 연결 Asset 계보를 보존하는 Soft Delete와 빈 `204 No Content` 응답으로 처리한다.
+- ProjectAsset·Asset·AssetVersion·Artifact·Composition·Job API, 인증·권한·Idempotency·Frontend·backfill·dual write는 구현하지 않았다.
+
 ### 추가 — Workspace keyset 복합 Index
 
 - Workspace 전체 활성 목록, owner별 활성 목록과 MusicProject의 Workspace별 활성 목록을 위한 세 개의 복합 Index와 Alembic `20260807_0013` revision을 추가했다.

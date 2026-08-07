@@ -22,6 +22,7 @@ from backend.audio_analysis import (
     DefaultTempoAnalyzer,
 )
 from backend.core.config import Settings, get_settings
+from backend.core.cursor_pagination import CursorCodec
 from backend.core.logging import configure_logging, get_logger
 from backend.db.migrations import upgrade_database
 from backend.db.session import create_session_factory
@@ -44,6 +45,7 @@ from backend.services.voice_conversion_service import VoiceConversionService
 from backend.services.voice_enrollment_service import VoiceEnrollmentService
 from backend.services.voice_profile_service import VoiceProfileService
 from backend.services.voice_upload_service import VoiceUploadService
+from backend.services.workspace import WorkspaceService
 from backend.storage.service import StorageService
 from backend.voice_enrollment.maintenance import (
     VoiceEnrollmentMaintenanceService,
@@ -85,6 +87,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         run_startup_migration(resolved_settings)
 
         session_factory = create_session_factory(resolved_settings.database_url)
+        cursor_signing_key = resolved_settings.cursor_signing_key.get_secret_value()
+        cursor_codec = CursorCodec(cursor_signing_key) if cursor_signing_key else None
         music_generator = create_music_generator(resolved_settings, storage)
         stem_separator = create_stem_separator(resolved_settings, storage)
         voice_converter = create_voice_converter(resolved_settings, storage)
@@ -168,6 +172,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
         app.state.settings = resolved_settings
         app.state.session_factory = session_factory
+        app.state.workspace_service = WorkspaceService(
+            session_factory,
+            cursor_codec=cursor_codec,
+        )
         app.state.storage = storage
         app.state.worker = worker
         app.state.dispatcher = dispatcher

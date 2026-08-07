@@ -10,6 +10,15 @@ from backend.schemas.workspace.common import (
     Pagination,
     SuccessResponse,
 )
+from backend.schemas.workspace.resources import (
+    ProjectCreateRequest,
+    ProjectDetail,
+    ProjectSummary,
+    ProjectUpdateRequest,
+    WorkspaceDetail,
+    WorkspaceSummary,
+    WorkspaceUpdateRequest,
+)
 
 __all__ = [
     "CollectionLinks",
@@ -20,4 +29,11 @@ __all__ = [
     "Pagination",
     "SuccessResponse",
     "WorkspaceBootstrapResult",
+    "ProjectCreateRequest",
+    "ProjectDetail",
+    "ProjectSummary",
+    "ProjectUpdateRequest",
+    "WorkspaceDetail",
+    "WorkspaceSummary",
+    "WorkspaceUpdateRequest",
 ]

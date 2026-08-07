@@ -3,12 +3,12 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-07
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: codec·설정·Workspace와 Project Repository·Service page·keyset Index source migration 완료, 실제 사용자 DB 적용·Resource Endpoint 미구현
+> 구현 상태: codec·설정·Workspace와 Project Repository·Service page·keyset Index 실제 적용·Resource 목록 연결 완료
 > 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Keyset Index 설계](../07-database/workspace-keyset-indexes.md)
 
 ## 1. 목적과 범위
 
-Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. 이 단계는 공통 cursor와 Workspace·Project 조회 기반만 구현하며 `/api/v1` Resource Router, 인증, Idempotency, 실제 사용자 DB 작업은 포함하지 않습니다.
+Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. 공통 cursor와 Workspace·Project 조회 기반을 Resource Router에 연결했으며 인증·Idempotency·backfill은 포함하지 않습니다.
 
 ## 2. 서명 키
 
@@ -66,14 +66,14 @@ Service는 `limit + 1`개를 조회해 `has_more`를 계산하고 응답 항목�
 
 Alembic `20260807_0013`은 전체 활성 Workspace용 `(deleted_at, created_at, workspace_id)`, owner별 활성 Workspace용 `(owner_id, deleted_at, created_at, workspace_id)`, Workspace별 활성 MusicProject용 `(workspace_id, deleted_at, created_at, project_id)` 복합 Index를 추가합니다. 임시 SQLite의 첫·다음 page 여섯 쿼리에서 신규 Index가 선택되고 정렬용 임시 B-Tree가 제거됐습니다. SQLite는 ASC Index를 역방향으로 탐색하므로 metadata와 migration에는 명시적 DESC를 사용하지 않습니다.
 
-`deleted_at IS NULL` partial 후보는 owner별 Workspace와 Project에는 사용됐지만 기존 `ix_workspaces_deleted_at`가 owner 없는 목록에서 계속 선택되어 임시 정렬을 제거하지 못했습니다. 기존 Index를 제거하거나 Repository에 Index hint를 넣지 않고 현재 쿼리 의미를 유지하기 위해 비-partial 구성을 선택했습니다. 세부 후보와 계획은 [Workspace keyset Index 설계](../07-database/workspace-keyset-indexes.md)를 따릅니다. 실제 사용자 DB에는 신규 revision을 적용하지 않았습니다.
+`deleted_at IS NULL` partial 후보는 owner별 Workspace와 Project에는 사용됐지만 기존 `ix_workspaces_deleted_at`가 owner 없는 목록에서 계속 선택되어 임시 정렬을 제거하지 못했습니다. 기존 Index를 제거하거나 Repository에 Index hint를 넣지 않고 현재 쿼리 의미를 유지하기 위해 비-partial 구성을 선택했습니다. 세부 후보와 계획은 [Workspace keyset Index 설계](../07-database/workspace-keyset-indexes.md)를 따릅니다. 신규 revision은 승인된 절차로 실제 사용자 DB에 적용했습니다.
 
 ## 7. 후속 작업
 
-1. 별도 승인된 Preflight·backup·rehearsal 절차 후 실제 사용자 DB에 `20260807_0013` 적용을 검토합니다.
-2. App composition에서 환경 설정으로 `CursorCodec`을 구성합니다.
-3. Workspace·Project Resource 목록 Route에 `limit`과 `cursor`를 연결합니다.
-4. 공통 Collection Envelope의 `has_more`와 `next_cursor` 불변 조건을 API 테스트로 검증합니다.
+1. `[완료]` Preflight·backup·rehearsal과 승인 후 실제 사용자 DB에 `20260807_0013`을 적용했습니다.
+2. `[완료]` App composition에서 환경 설정으로 `CursorCodec`을 구성했습니다.
+3. `[완료]` Workspace·Project Resource 목록 Route에 `limit`과 `cursor`를 연결했습니다.
+4. `[완료]` Collection Envelope의 `has_more`와 `next_cursor` 불변 조건을 API 테스트로 검증했습니다.
 5. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
-Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.
+나머지 56개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.
