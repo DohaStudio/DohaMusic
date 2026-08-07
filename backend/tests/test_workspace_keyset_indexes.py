@@ -219,7 +219,6 @@ def test_keyset_revision_query_plans_and_round_trip(tmp_path: Path) -> None:
     config = _config(database_url)
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_heads() == [REVISION]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
 
     command.upgrade(config, PREVIOUS_REVISION)

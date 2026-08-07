@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — ProjectAsset Cursor Pagination 기반
+
+- ProjectAsset 목록에 `display_order ASC, project_asset_id ASC` 정렬과 Project ID에 결합된 HMAC Cursor payload를 추가하되 기존 Workspace·Project version 1 token 의미는 유지했다.
+- `WorkspaceRepository.list_project_assets_after()`와 `WorkspaceService.list_project_asset_page()`에 offset 없는 `limit + 1` keyset 조회, `has_more`와 `next_cursor` 계약을 추가했다.
+- 활성 ProjectAsset용 partial Index `ix_project_assets_active_keyset`과 Alembic source revision `20260807_0014`를 추가하고 full·partial 후보의 임시 SQLite Query Plan을 비교해 partial 후보를 채택했다.
+- DohaMusic의 ProjectAsset identity는 REST 식별 경로와 기존 Unique Constraint·restore 정책에 맞춰 `(project_id, asset_id)`로 유지하며 `role`은 변경 가능한 관계 Metadata로 취급한다.
+- ProjectAsset Router·Resource Endpoint, 실제 사용자 DB 접근과 0014 적용, Asset API·backfill·dual write·Frontend는 수행하지 않았다. Resource API 진행도는 8/64를 유지한다.
+
 ### 추가 — 첫 Workspace Resource REST API
 
 - 기존 API Foundation과 `WorkspaceService`를 연결해 Workspace 3개, MusicProject 5개 등 `/api/v1` Resource Endpoint 8개를 추가했다.

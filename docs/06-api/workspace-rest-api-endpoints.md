@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace·MusicProject 8개 완료, 나머지 56개 Resource Endpoint 계획
+> 구현 상태: Workspace·MusicProject 8개 완료, ProjectAsset Cursor 선행 기반 완료, ProjectAsset Router를 포함한 나머지 56개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -65,6 +65,8 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 | `DELETE` | `/api/v1/projects/{project_id}/assets/{asset_id}` | 204 | ProjectAsset 관계 해제 |
 
 Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `display_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
+
+세 Endpoint는 아직 `[계획]`입니다. 목록용 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 source revision `20260807_0014` partial Index만 선행 구현했습니다. 실제 사용자 DB 0014 적용과 Router 연결 전까지 Resource API 진행도는 8/64입니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다.
 
 ## 5. Asset API — 5개
 

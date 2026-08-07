@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 21개 Entity·metadata, revision `20260806_0012`·`20260807_0013` 실제 적용, Workspace Repository·Service와 첫 Resource API 8개 완료, 실제 Bootstrap·backfill·dual write 미구현
+> 구현 상태: 목표 21개 Entity·metadata, revision `20260806_0012`·`20260807_0013` 실제 적용, ProjectAsset keyset Index `20260807_0014` source 검증, Workspace Repository·Service와 첫 Resource API 8개 완료; 0014 실제 적용·Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -51,6 +51,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - `Workspace`는 향후 사용자·권한 확장 경계를 유지합니다.
 - `MusicProject`와 `Asset`은 `ProjectAsset`을 통한 N:M 관계입니다.
 - 확정된 Common Specification은 Asset을 Workspace 범위 재사용 자산으로 정의하고 `Asset.project_id`를 제거했습니다. 이 설계도 `Asset.workspace_id`와 N:M `ProjectAsset`을 단일 Project 연결 기준으로 사용합니다.
+- DohaMusic은 현재 REST 식별 경로와 Unique Constraint에 맞춰 `(project_id, asset_id)`를 ProjectAsset identity로 사용합니다. `role`은 관계 Metadata이며 같은 Asset을 같은 Project에 role만 바꿔 중복 연결하지 않습니다. Soft Delete 후 재연결은 기존 row를 복원합니다.
 
 ### 3.2 Asset, AssetVersion과 Artifact
 
@@ -154,7 +155,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`와 keyset Index 3개를 추가한 `20260807_0013`이 적용됐습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개와 기존 Runtime Repository·Service·API가 계속 source of truth입니다. Workspace·MusicProject v1 Resource API 8개는 신규 Table이 비어 있으면 명시적 Bootstrap을 요구합니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`와 Workspace·Project keyset Index 3개를 추가한 `20260807_0013`이 적용됐습니다. 소스 head `20260807_0014`의 ProjectAsset partial keyset Index는 임시 SQLite에서만 검증했고 실제 사용자 DB에는 적용하지 않았습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject v1 Resource API 8개만 구현 상태이고 ProjectAsset Router 3개는 계획입니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

@@ -5,7 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, Index, Integer, String, Text, UniqueConstraint, Uuid
+from sqlalchemy import (
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    Uuid,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.base import Base
@@ -103,6 +112,13 @@ class ProjectAsset(CreatedAtMixin, SoftDeleteMixin, Base):
     __table_args__ = (
         UniqueConstraint(
             "project_id", "asset_id", name="uq_project_assets_project_asset"
+        ),
+        Index(
+            "ix_project_assets_active_keyset",
+            "project_id",
+            "display_order",
+            "project_asset_id",
+            sqlite_where=text("deleted_at IS NULL"),
         ),
     )
 

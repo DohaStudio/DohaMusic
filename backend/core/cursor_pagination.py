@@ -15,21 +15,33 @@ from uuid import UUID
 
 from backend.core.exceptions import CursorConfigurationError, InvalidCursorError
 
-CursorResource = Literal["workspace", "project"]
+CreatedAtCursorResource = Literal["workspace", "project"]
+CursorResource = Literal["workspace", "project", "project_asset"]
 CURSOR_VERSION = 1
 CURSOR_DIRECTION = "next"
 CURSOR_SORT = "created_at_desc"
+PROJECT_ASSET_CURSOR_SORT = "display_order_asc"
 MIN_CURSOR_SIGNING_KEY_BYTES = 32
 MIN_PAGE_LIMIT = 1
 MAX_PAGE_LIMIT = 100
 MAX_CURSOR_TOKEN_LENGTH = 2_048
 _FILTER_HASH_PATTERN = re.compile(r"[0-9a-f]{64}")
-_PAYLOAD_FIELDS = {
+_CREATED_AT_PAYLOAD_FIELDS = {
     "v",
     "resource",
     "direction",
     "sort",
     "last_created_at",
+    "last_id",
+    "filter_hash",
+    "limit",
+}
+_DISPLAY_ORDER_PAYLOAD_FIELDS = {
+    "v",
+    "resource",
+    "direction",
+    "sort",
+    "last_display_order",
     "last_id",
     "filter_hash",
     "limit",
@@ -41,6 +53,14 @@ class CursorPosition:
     """검증을 마친 keyset 위치."""
 
     last_created_at: datetime
+    last_id: UUID
+
+
+@dataclass(frozen=True, slots=True)
+class DisplayOrderCursorPosition:
+    """ProjectAsset display order keyset 위치."""
+
+    last_display_order: int
     last_id: UUID
 
 
@@ -58,14 +78,14 @@ class CursorCodec:
     def encode(
         self,
         *,
-        resource: CursorResource,
+        resource: CreatedAtCursorResource,
         last_created_at: datetime,
         last_id: UUID,
         filter_hash: str,
         limit: int,
     ) -> str:
         normalized_time = _normalize_datetime(last_created_at)
-        _validate_resource(resource)
+        _validate_created_at_resource(resource)
         _validate_filter_hash(filter_hash)
         _validate_limit(limit)
         payload = {
@@ -78,41 +98,21 @@ class CursorCodec:
             "sort": CURSOR_SORT,
             "v": CURSOR_VERSION,
         }
-        payload_bytes = _canonical_json(payload)
-        signature = hmac.new(self._signing_key, payload_bytes, hashlib.sha256).digest()
-        return f"{_base64url_encode(payload_bytes)}.{_base64url_encode(signature)}"
+        return self._encode_payload(payload)
 
     def decode(
         self,
         token: str,
         *,
-        expected_resource: CursorResource,
+        expected_resource: CreatedAtCursorResource,
         expected_filter_hash: str,
         expected_limit: int,
     ) -> CursorPosition:
-        _validate_resource(expected_resource)
+        _validate_created_at_resource(expected_resource)
         _validate_filter_hash(expected_filter_hash)
         _validate_limit(expected_limit)
-        if not isinstance(token, str) or len(token) > MAX_CURSOR_TOKEN_LENGTH:
-            raise InvalidCursorError("token_format")
-        try:
-            payload_part, signature_part = token.split(".")
-            payload_bytes = _base64url_decode(payload_part)
-            supplied_signature = _base64url_decode(signature_part)
-        except (ValueError, UnicodeError, binascii.Error):
-            raise InvalidCursorError("token_format") from None
-
-        expected_signature = hmac.new(
-            self._signing_key, payload_bytes, hashlib.sha256
-        ).digest()
-        if not hmac.compare_digest(supplied_signature, expected_signature):
-            raise InvalidCursorError("signature")
-
-        try:
-            payload = json.loads(payload_bytes)
-        except (UnicodeDecodeError, json.JSONDecodeError, TypeError):
-            raise InvalidCursorError("payload_json") from None
-        if not isinstance(payload, dict) or set(payload) != _PAYLOAD_FIELDS:
+        payload = self._decode_payload(token)
+        if set(payload) != _CREATED_AT_PAYLOAD_FIELDS:
             raise InvalidCursorError("payload_shape")
         payload_version = payload.get("v")
         if type(payload_version) is not int or payload_version != CURSOR_VERSION:
@@ -134,6 +134,97 @@ class CursorCodec:
         except (TypeError, ValueError):
             raise InvalidCursorError("position") from None
         return CursorPosition(last_created_at=last_created_at, last_id=last_id)
+
+    def encode_project_asset(
+        self,
+        *,
+        last_display_order: int,
+        last_id: UUID,
+        filter_hash: str,
+        limit: int,
+    ) -> str:
+        """ProjectAsset ASC keyset 위치를 서명한다."""
+
+        _validate_display_order(last_display_order)
+        _validate_filter_hash(filter_hash)
+        _validate_limit(limit)
+        payload = {
+            "direction": CURSOR_DIRECTION,
+            "filter_hash": filter_hash,
+            "last_display_order": last_display_order,
+            "last_id": str(last_id),
+            "limit": limit,
+            "resource": "project_asset",
+            "sort": PROJECT_ASSET_CURSOR_SORT,
+            "v": CURSOR_VERSION,
+        }
+        return self._encode_payload(payload)
+
+    def decode_project_asset(
+        self,
+        token: str,
+        *,
+        expected_filter_hash: str,
+        expected_limit: int,
+    ) -> DisplayOrderCursorPosition:
+        """서명과 ProjectAsset 전용 payload를 엄격하게 검증한다."""
+
+        _validate_filter_hash(expected_filter_hash)
+        _validate_limit(expected_limit)
+        payload = self._decode_payload(token)
+        if set(payload) != _DISPLAY_ORDER_PAYLOAD_FIELDS:
+            raise InvalidCursorError("payload_shape")
+        payload_version = payload.get("v")
+        if type(payload_version) is not int or payload_version != CURSOR_VERSION:
+            raise InvalidCursorError("version")
+        if payload.get("resource") != "project_asset":
+            raise InvalidCursorError("resource")
+        if payload.get("direction") != CURSOR_DIRECTION:
+            raise InvalidCursorError("direction")
+        if payload.get("sort") != PROJECT_ASSET_CURSOR_SORT:
+            raise InvalidCursorError("sort")
+        if payload.get("filter_hash") != expected_filter_hash:
+            raise InvalidCursorError("filter")
+        payload_limit = payload.get("limit")
+        if type(payload_limit) is not int or payload_limit != expected_limit:
+            raise InvalidCursorError("limit")
+        last_display_order = payload.get("last_display_order")
+        _validate_display_order(last_display_order)
+        try:
+            last_id = UUID(str(payload.get("last_id")))
+        except (TypeError, ValueError):
+            raise InvalidCursorError("position") from None
+        return DisplayOrderCursorPosition(
+            last_display_order=last_display_order,
+            last_id=last_id,
+        )
+
+    def _encode_payload(self, payload: Mapping[str, object]) -> str:
+        payload_bytes = _canonical_json(payload)
+        signature = hmac.new(self._signing_key, payload_bytes, hashlib.sha256).digest()
+        return f"{_base64url_encode(payload_bytes)}.{_base64url_encode(signature)}"
+
+    def _decode_payload(self, token: str) -> dict[str, object]:
+        if not isinstance(token, str) or len(token) > MAX_CURSOR_TOKEN_LENGTH:
+            raise InvalidCursorError("token_format")
+        try:
+            payload_part, signature_part = token.split(".")
+            payload_bytes = _base64url_decode(payload_part)
+            supplied_signature = _base64url_decode(signature_part)
+        except (ValueError, UnicodeError, binascii.Error):
+            raise InvalidCursorError("token_format") from None
+        expected_signature = hmac.new(
+            self._signing_key, payload_bytes, hashlib.sha256
+        ).digest()
+        if not hmac.compare_digest(supplied_signature, expected_signature):
+            raise InvalidCursorError("signature")
+        try:
+            payload = json.loads(payload_bytes)
+        except (UnicodeDecodeError, json.JSONDecodeError, TypeError):
+            raise InvalidCursorError("payload_json") from None
+        if not isinstance(payload, dict):
+            raise InvalidCursorError("payload_shape")
+        return payload
 
 
 def filter_fingerprint(filters: Mapping[str, object]) -> str:
@@ -183,7 +274,7 @@ def _parse_datetime(value: object) -> datetime:
     return parsed.astimezone(timezone.utc)
 
 
-def _validate_resource(resource: object) -> None:
+def _validate_created_at_resource(resource: object) -> None:
     if resource not in {"workspace", "project"}:
         raise InvalidCursorError("resource")
 
@@ -198,3 +289,8 @@ def _validate_filter_hash(filter_hash: object) -> None:
 def _validate_limit(limit: object) -> None:
     if type(limit) is not int or not MIN_PAGE_LIMIT <= limit <= MAX_PAGE_LIMIT:
         raise InvalidCursorError("limit")
+
+
+def _validate_display_order(value: object) -> None:
+    if type(value) is not int or value < 0:
+        raise InvalidCursorError("position")
