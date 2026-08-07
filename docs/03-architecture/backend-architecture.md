@@ -24,7 +24,7 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 | `JobRepository` | `Job`, `JobInput`, `JobOutput`, `ModelUsage` |
 | `CollaborationRepository` | `RecordingEnrollment`, `Tag`, `Comment`, `Favorite`, `History`, `Approval` |
 
-각 Repository는 호출자가 주입한 동기 SQLAlchemy `Session`만 사용하고 `add`·`flush`·조회·명시적 Soft Delete만 수행한다. `commit`과 `rollback`은 여러 Aggregate 작업을 하나의 transaction으로 묶을 향후 Service 또는 Unit of Work가 담당한다. 기존 내부 목록 조회는 명시적인 `limit`·`offset`을 유지한다. Workspace v1 목록용 조회는 offset을 사용하지 않고 `(created_at DESC, UUID DESC)`와 마지막 두 정렬 값을 사용하는 keyset 메서드로 분리한다.
+각 Repository는 호출자가 주입한 동기 SQLAlchemy `Session`만 사용하고 `add`·`flush`·조회·명시적 Soft Delete만 수행한다. `commit`과 `rollback`은 여러 Aggregate 작업을 하나의 transaction으로 묶을 향후 Service 또는 Unit of Work가 담당한다. 기존 내부 목록 조회는 명시적인 `limit`·`offset`을 유지한다. Workspace v1 목록용 조회는 offset을 사용하지 않고 `(created_at DESC, UUID DESC)`와 마지막 두 정렬 값을 사용하는 keyset 메서드로 분리한다. Alembic `20260807_0013`의 세 복합 Index는 전체·owner별 Workspace와 Workspace별 MusicProject 정렬을 지원하며 [실제 Query Plan 비교](../07-database/workspace-keyset-indexes.md)를 통과했다. 실제 사용자 DB 적용과 Resource Router 연결은 별도 승인 범위다.
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 

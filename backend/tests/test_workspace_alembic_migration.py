@@ -24,6 +24,11 @@ REVISION_PATH = (
 )
 REVISION = "20260806_0012"
 PREVIOUS_REVISION = "20260801_0011"
+KEYSET_INDEX_NAMES = {
+    "ix_music_projects_workspace_active_keyset",
+    "ix_workspaces_active_keyset",
+    "ix_workspaces_owner_active_keyset",
+}
 FORBIDDEN_OPERATIONS = {
     "add_column",
     "alter_column",
@@ -109,7 +114,8 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
         for constraint in Base.metadata.tables[table_name].constraints
         if constraint.name
     ]
-    assert len(index_names) == 109
+    assert len(set(index_names) - KEYSET_INDEX_NAMES) == 109
+    assert len(index_names) == 112
     assert len(index_names) == len(set(index_names))
     assert len(constraint_names) == 23
     assert len(constraint_names) == len(set(constraint_names))
@@ -122,7 +128,7 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
     config.set_main_option("script_location", str(ROOT / "backend" / "alembic"))
     config.set_main_option("sqlalchemy.url", database_url)
 
-    command.upgrade(config, "head")
+    command.upgrade(config, REVISION)
 
     workspace_tables = _workspace_tables()
     legacy_tables = set(Base.metadata.tables) - workspace_tables

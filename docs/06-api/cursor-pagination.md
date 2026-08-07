@@ -1,10 +1,10 @@
 # HMAC Cursor Pagination 설계
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-07
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: codec·설정·Workspace와 Project Repository·Service page 완료, Resource Endpoint 미구현
-> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md)
+> 구현 상태: codec·설정·Workspace와 Project Repository·Service page·keyset Index source migration 완료, 실제 사용자 DB 적용·Resource Endpoint 미구현
+> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Keyset Index 설계](../07-database/workspace-keyset-indexes.md)
 
 ## 1. 목적과 범위
 
@@ -64,13 +64,16 @@ Service는 `limit + 1`개를 조회해 `has_more`를 계산하고 응답 항목�
 
 페이지 사이에 row가 생성·삭제될 수 있으므로 이 계약은 전체 목록의 snapshot isolation을 보장하지 않습니다. 새로 생성된 상위 row를 과거 cursor가 다시 탐색하지 않고 Soft Delete된 후속 row는 제외하며, 이미 반환한 row를 재반환하지 않는 forward-only keyset 동작을 보장합니다.
 
-현재 Workspace·Project Table에는 정렬을 모두 포괄하는 복합 Index가 없어 SQLite가 임시 정렬 B-Tree를 사용할 수 있습니다. Cursor 논리와 정확성의 BLOCKER는 아니지만 Resource Endpoint를 운영 연결하기 전에 Workspace `(owner_id, deleted_at, created_at, workspace_id)`와 Project `(workspace_id, deleted_at, created_at, project_id)` 후보를 별도 Migration에서 실제 Query Plan과 함께 확정합니다.
+Alembic `20260807_0013`은 전체 활성 Workspace용 `(deleted_at, created_at, workspace_id)`, owner별 활성 Workspace용 `(owner_id, deleted_at, created_at, workspace_id)`, Workspace별 활성 MusicProject용 `(workspace_id, deleted_at, created_at, project_id)` 복합 Index를 추가합니다. 임시 SQLite의 첫·다음 page 여섯 쿼리에서 신규 Index가 선택되고 정렬용 임시 B-Tree가 제거됐습니다. SQLite는 ASC Index를 역방향으로 탐색하므로 metadata와 migration에는 명시적 DESC를 사용하지 않습니다.
+
+`deleted_at IS NULL` partial 후보는 owner별 Workspace와 Project에는 사용됐지만 기존 `ix_workspaces_deleted_at`가 owner 없는 목록에서 계속 선택되어 임시 정렬을 제거하지 못했습니다. 기존 Index를 제거하거나 Repository에 Index hint를 넣지 않고 현재 쿼리 의미를 유지하기 위해 비-partial 구성을 선택했습니다. 세부 후보와 계획은 [Workspace keyset Index 설계](../07-database/workspace-keyset-indexes.md)를 따릅니다. 실제 사용자 DB에는 신규 revision을 적용하지 않았습니다.
 
 ## 7. 후속 작업
 
-1. App composition에서 환경 설정으로 `CursorCodec`을 구성합니다.
-2. Workspace·Project Resource 목록 Route에 `limit`과 `cursor`를 연결합니다.
-3. 공통 Collection Envelope의 `has_more`와 `next_cursor` 불변 조건을 API 테스트로 검증합니다.
-4. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
+1. 별도 승인된 Preflight·backup·rehearsal 절차 후 실제 사용자 DB에 `20260807_0013` 적용을 검토합니다.
+2. App composition에서 환경 설정으로 `CursorCodec`을 구성합니다.
+3. Workspace·Project Resource 목록 Route에 `limit`과 `cursor`를 연결합니다.
+4. 공통 Collection Envelope의 `has_more`와 `next_cursor` 불변 조건을 API 테스트로 검증합니다.
+5. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.

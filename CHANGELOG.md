@@ -2,11 +2,18 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-07
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Workspace keyset 복합 Index
+
+- Workspace 전체 활성 목록, owner별 활성 목록과 MusicProject의 Workspace별 활성 목록을 위한 세 개의 복합 Index와 Alembic `20260807_0013` revision을 추가했다.
+- 수백 건의 임시 SQLite fixture에서 여섯 가지 첫·다음 page 쿼리를 `EXPLAIN QUERY PLAN`으로 비교해 신규 Index 사용과 `USE TEMP B-TREE FOR ORDER BY` 제거를 검증했다.
+- 기존 단일 Index를 유지하면서 Entity metadata와 Migration의 Index 이름·Column 순서를 일치시켰고, upgrade·downgrade에서 Table·row·기존 Index와 무결성이 보존되는지 검증했다.
+- 실제 사용자 DB Migration·조회·backup, Resource Endpoint, Cursor payload, Repository·Service 계약, Frontend와 backfill·dual write는 수행하지 않았다.
 
 ### 추가 — HMAC Cursor Pagination 기반
 
