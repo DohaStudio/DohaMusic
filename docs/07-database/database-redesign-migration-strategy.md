@@ -3,12 +3,12 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity·0012·0013 실제 적용, ProjectAsset keyset Index 0014 source 검증, Workspace Repository·Service와 첫 Resource API 8개 완료; 0014 실제 적용·Bootstrap·backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity·0012·0013·0014 실제 적용, Workspace Repository·Service와 첫 Resource API 8개 완료; ProjectAsset API·Bootstrap·backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head는 ProjectAsset partial keyset Index를 추가한 `20260807_0014`이고 실제 사용자 DB는 `20260807_0013`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개를 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head와 실제 사용자 DB revision은 ProjectAsset partial keyset Index를 추가한 `20260807_0014`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개를 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -55,12 +55,12 @@ Alembic source head는 ProjectAsset partial keyset Index를 추가한 `20260807_
 - 기존 Preflight·backup·restore rehearsal·명시적 승인 Gate를 통과한 뒤 실제 사용자 DB에 적용했습니다.
 - 상세 설계와 partial·DESC 후보 판단은 [Workspace keyset Index 설계](workspace-keyset-indexes.md)를 따릅니다.
 
-### 2.3 ProjectAsset keyset Index source revision `20260807_0014`
+### 2.3 ProjectAsset keyset Index revision `20260807_0014`
 
 - 활성 ProjectAsset 목록의 `(display_order ASC, project_asset_id ASC)` 정렬을 위해 `(project_id, display_order, project_asset_id) WHERE deleted_at IS NULL` partial Index 하나만 추가합니다.
 - full `(project_id, deleted_at, display_order, project_asset_id)` 후보와 partial 후보가 모두 임시 SQLite 첫·다음 page에서 신규 Index를 사용하고 `USE TEMP B-TREE FOR ORDER BY`를 제거했습니다. 활성 row만 포함하는 partial 후보를 최종 선택했습니다.
 - 기존 Table·Column·FK·Unique Constraint·row와 0012·0013 revision을 변경하지 않습니다. Downgrade는 이번 Index만 제거합니다.
-- source와 metadata 검증만 완료했으며 실제 사용자 DB의 revision은 계속 `20260807_0013`입니다. 실제 적용은 별도 Inventory·backup·rehearsal·승인 작업으로 분리합니다.
+- read-only Inventory, 검증된 backup·restore rehearsal, migration·downgrade rehearsal과 명시적 승인 Gate를 통과한 뒤 실제 사용자 DB에 적용했습니다.
 - 상세 Query Plan과 중복 계약은 [ProjectAsset keyset Index 설계](project-asset-keyset-indexes.md)를 따릅니다.
 
 ## 3. 현재 Table별 권장 매핑
@@ -127,7 +127,7 @@ Alembic source head는 ProjectAsset partial keyset Index를 추가한 `20260807_
 3. 기본 Workspace를 만들고 기존 `projects`를 `music_projects`로 backfill합니다.
 4. 현행 API 읽기·쓰기는 아직 바꾸지 않습니다.
 
-1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`의 실제 사용자 DB 적용을 완료했습니다. ProjectAsset keyset Index `20260807_0014`는 source·임시 DB 검증만 완료했고 실제 적용은 별도 승인 전까지 미수행입니다. 신규 Workspace Table row는 0건이며 3번 backfill도 수행하지 않았습니다.
+1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 

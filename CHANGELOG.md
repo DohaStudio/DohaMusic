@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 변경 — ProjectAsset keyset Index 실제 사용자 DB 적용
+
+- 승인된 Inventory·backup·restore·migration rehearsal Gate를 거쳐 실제 사용자 SQLite DB를 `20260807_0013`에서 `20260807_0014`로 승격했다.
+- `ix_project_assets_active_keyset`을 적용하고 첫 page·다음 page 조회에서 신규 Index 사용, TEMP B-TREE 없음, full scan 없음과 전체 application data digest 보존을 확인했다.
+- Runtime Table 14개는 계속 source of truth이며 ProjectAsset Router·Resource Endpoint, Bootstrap·backfill·dual write·Frontend는 구현하거나 실행하지 않았다.
+- 적용 결과는 [ProjectAsset keyset Index 실제 DB 적용 검증](reports/validation/VALIDATION-PROJECT-ASSET-KEYSET-INDEX-APPLICATION.md)에 기록했다.
+
 ### 추가 — ProjectAsset Cursor Pagination 기반
 
 - ProjectAsset 목록에 `display_order ASC, project_asset_id ASC` 정렬과 Project ID에 결합된 HMAC Cursor payload를 추가하되 기존 Workspace·Project version 1 token 의미는 유지했다.

@@ -66,7 +66,7 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 
 Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `display_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
 
-세 Endpoint는 아직 `[계획]`입니다. 목록용 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 source revision `20260807_0014` partial Index만 선행 구현했습니다. 실제 사용자 DB 0014 적용과 Router 연결 전까지 Resource API 진행도는 8/64입니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다.
+세 Endpoint는 아직 `[계획]`입니다. 목록용 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 revision `20260807_0014` partial Index를 선행 구현했고 Index는 실제 사용자 DB에 적용했습니다. Router는 아직 연결하지 않았으므로 Resource API 진행도는 8/64입니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다.
 
 ## 5. Asset API — 5개
 

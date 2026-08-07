@@ -24,7 +24,7 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 | `JobRepository` | `Job`, `JobInput`, `JobOutput`, `ModelUsage` |
 | `CollaborationRepository` | `RecordingEnrollment`, `Tag`, `Comment`, `Favorite`, `History`, `Approval` |
 
-각 Repository는 호출자가 주입한 동기 SQLAlchemy `Session`만 사용하고 `add`·`flush`·조회·명시적 Soft Delete만 수행한다. `commit`과 `rollback`은 여러 Aggregate 작업을 하나의 transaction으로 묶는 Service가 담당한다. 기존 내부 목록 조회는 명시적인 `limit`·`offset`을 유지한다. Workspace v1 목록용 조회는 offset을 사용하지 않고 Resource별 keyset 메서드로 분리한다. Workspace·Project는 `(created_at DESC, UUID DESC)`, ProjectAsset은 `(display_order ASC, project_asset_id ASC)`를 사용한다. Alembic `20260807_0013`의 세 Index는 실제 사용자 DB에 적용됐고, ProjectAsset partial Index source revision `20260807_0014`는 [임시 SQLite Query Plan 비교](../07-database/project-asset-keyset-indexes.md)만 완료해 실제 사용자 DB에는 적용하지 않았다.
+각 Repository는 호출자가 주입한 동기 SQLAlchemy `Session`만 사용하고 `add`·`flush`·조회·명시적 Soft Delete만 수행한다. `commit`과 `rollback`은 여러 Aggregate 작업을 하나의 transaction으로 묶는 Service가 담당한다. 기존 내부 목록 조회는 명시적인 `limit`·`offset`을 유지한다. Workspace v1 목록용 조회는 offset을 사용하지 않고 Resource별 keyset 메서드로 분리한다. Workspace·Project는 `(created_at DESC, UUID DESC)`, ProjectAsset은 `(display_order ASC, project_asset_id ASC)`를 사용한다. Alembic `20260807_0013`의 세 Index와 ProjectAsset partial Index revision `20260807_0014`는 승인된 절차로 실제 사용자 DB에 적용됐다. 실제 Query Plan은 첫 page·다음 page 모두 신규 ProjectAsset Index를 사용하며 임시 정렬은 발생하지 않았다. 세부 결과는 [ProjectAsset keyset Index 설계](../07-database/project-asset-keyset-indexes.md)를 따른다.
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 

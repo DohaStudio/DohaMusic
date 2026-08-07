@@ -3,7 +3,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-07
 > 관련 기능: ProjectAsset Cursor Pagination 선행 기반
-> 구현 상태: Cursor·Repository·Service page·Entity metadata·Alembic `20260807_0014` source와 임시 SQLite 검증 완료, 실제 사용자 DB 적용·Resource Router 미수행
+> 구현 상태: Cursor·Repository·Service page·Entity metadata·Alembic `20260807_0014`와 실제 사용자 DB 적용 완료, Resource Router 미수행
 > 관련 문서: [Cursor Pagination](../06-api/cursor-pagination.md), [REST API 계약](../06-api/workspace-rest-api-contract.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 정렬과 조회 계약
@@ -85,13 +85,26 @@ DohaStudio Common Specification `0.1.0 / draft-baseline`에는 `(project_id, ass
 - Downgrade: 같은 Index 하나만 제거
 - Table·Column·FK·Unique·data 변경: 없음
 - backfill: 없음
-- 실제 사용자 DB 적용: 미수행
+- 실제 사용자 DB 적용: 완료
 
-임시 SQLite upgrade·downgrade에서 row 수, 기존 schema, `quick_check`, `integrity_check`와 `foreign_key_check`를 보존했습니다. 실제 사용자 DB 적용은 별도 read-only Inventory, backup·restore rehearsal, migration rehearsal와 명시적 승인 후 수행합니다.
+임시 SQLite upgrade·downgrade에서 row 수, 기존 schema, `quick_check`, `integrity_check`와 `foreign_key_check`를 보존했습니다. 이후 별도 read-only Inventory, backup·restore rehearsal, migration·downgrade rehearsal과 명시적 승인 Gate를 거쳐 실제 사용자 DB에도 적용했습니다.
+
+실제 사용자 DB 적용 결과는 다음과 같습니다.
+
+- 적용 전·후 revision: `20260807_0013 → 20260807_0014`
+- 첫 page·다음 page: 모두 `ix_project_assets_active_keyset` 사용
+- TEMP B-TREE·full scan: 0건
+- 전체 application row count·결정적 data digest: 전후 동일
+- `quick_check`·`integrity_check`: `ok`
+- `foreign_key_check`: 위반 0건
+- 정식 backup·manifest: 보존
+- 자동 downgrade·restore: 실행하지 않음
+
+상세 증거는 [ProjectAsset keyset Index 실제 DB 적용 검증](../../reports/validation/VALIDATION-PROJECT-ASSET-KEYSET-INDEX-APPLICATION.md)에 기록했습니다.
 
 ## 7. 후속 작업
 
-1. `[계획]` 실제 사용자 DB에 `20260807_0014`를 적용합니다.
+1. `[완료]` 실제 사용자 DB에 `20260807_0014`를 적용했습니다.
 2. `[계획]` ProjectAsset Resource Router 3개를 Cursor page와 연결합니다.
 3. `[계획]` API에서 Bootstrap Required, Project·Asset Not Found, 중복·restore·연결 해제 계약을 검증합니다.
 
