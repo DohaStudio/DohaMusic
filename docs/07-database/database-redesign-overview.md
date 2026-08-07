@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 21개 Entity·metadata, revision `20260806_0012`·`20260807_0013` 실제 적용, ProjectAsset keyset Index `20260807_0014` source 검증, Workspace Repository·Service와 첫 Resource API 8개 완료; 0014 실제 적용·Bootstrap·backfill·dual write 미수행
+> 구현 상태: 목표 21개 Entity·metadata와 revision `20260806_0012`·`20260807_0013`·`20260807_0014` 실제 적용, Workspace Repository·Service와 첫 Resource API 8개 완료; ProjectAsset API·Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -155,7 +155,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`와 Workspace·Project keyset Index 3개를 추가한 `20260807_0013`이 적용됐습니다. 소스 head `20260807_0014`의 ProjectAsset partial keyset Index는 임시 SQLite에서만 검증했고 실제 사용자 DB에는 적용하지 않았습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject v1 Resource API 8개만 구현 상태이고 ProjectAsset Router 3개는 계획입니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`과 ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`가 적용됐습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject v1 Resource API 8개만 구현 상태이고 ProjectAsset Router 3개는 계획입니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

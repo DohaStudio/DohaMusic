@@ -3,12 +3,12 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-07
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: Workspace·Project Cursor와 실제 DB 0013 적용, ProjectAsset Cursor·Repository·Service page와 0014 source 검증 완료; ProjectAsset Router·실제 DB 0014 적용 미수행
+> 구현 상태: Workspace·Project Cursor와 실제 DB 0013 적용, ProjectAsset Cursor·Repository·Service page와 실제 DB 0014 적용 완료; ProjectAsset Router 미구현
 > 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md)
 
 ## 1. 목적과 범위
 
-Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project 조회는 Resource Router에 연결했고 ProjectAsset은 Router 구현 전 Cursor·Repository·Service page와 Index source만 준비했습니다. 인증·Idempotency·backfill은 포함하지 않습니다.
+Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project 조회는 Resource Router에 연결했고 ProjectAsset은 Router 구현 전 Cursor·Repository·Service page와 실제 DB Index를 준비했습니다. 인증·Idempotency·backfill은 포함하지 않습니다.
 
 ## 2. 서명 키
 
@@ -78,7 +78,7 @@ Alembic `20260807_0013`은 전체 활성 Workspace용 `(deleted_at, created_at, 
 
 `deleted_at IS NULL` partial 후보는 owner별 Workspace와 Project에는 사용됐지만 기존 `ix_workspaces_deleted_at`가 owner 없는 목록에서 계속 선택되어 임시 정렬을 제거하지 못했습니다. 기존 Index를 제거하거나 Repository에 Index hint를 넣지 않고 현재 쿼리 의미를 유지하기 위해 비-partial 구성을 선택했습니다. 세부 후보와 계획은 [Workspace keyset Index 설계](../07-database/workspace-keyset-indexes.md)를 따릅니다. 신규 revision은 승인된 절차로 실제 사용자 DB에 적용했습니다.
 
-ProjectAsset은 full `(project_id, deleted_at, display_order, project_asset_id)`와 partial `(project_id, display_order, project_asset_id) WHERE deleted_at IS NULL` 후보가 모두 첫·다음 page에서 임시 정렬을 제거했습니다. 활성 row만 포함하고 같은 계획 결과를 제공하는 partial 후보를 `20260807_0014` source revision으로 선택했습니다. 이 revision은 임시 SQLite에서만 검증했으며 실제 사용자 DB에는 적용하지 않았습니다. 세부 결과는 [ProjectAsset keyset Index 설계](../07-database/project-asset-keyset-indexes.md)를 따릅니다.
+ProjectAsset은 full `(project_id, deleted_at, display_order, project_asset_id)`와 partial `(project_id, display_order, project_asset_id) WHERE deleted_at IS NULL` 후보가 모두 첫·다음 page에서 임시 정렬을 제거했습니다. 활성 row만 포함하고 같은 계획 결과를 제공하는 partial 후보를 `20260807_0014` revision으로 선택해 실제 사용자 DB에 적용했습니다. 실제 Query Plan에서도 첫 page·다음 page 모두 신규 Index를 사용하고 TEMP B-TREE는 발생하지 않았습니다. 세부 결과는 [ProjectAsset keyset Index 설계](../07-database/project-asset-keyset-indexes.md)를 따릅니다.
 
 ## 7. 후속 작업
 
@@ -86,8 +86,9 @@ ProjectAsset은 full `(project_id, deleted_at, display_order, project_asset_id)`
 2. `[완료]` App composition에서 환경 설정으로 `CursorCodec`을 구성했습니다.
 3. `[완료]` Workspace·Project Resource 목록 Route에 `limit`과 `cursor`를 연결했습니다.
 4. `[완료]` Collection Envelope의 `has_more`와 `next_cursor` 불변 조건을 API 테스트로 검증했습니다.
-5. `[완료]` ProjectAsset 전용 position·Project filter·Repository·Service page와 0014 source Index를 임시 SQLite에서 검증했습니다.
-6. `[계획]` 별도 승인 후 실제 사용자 DB에 0014를 적용하고 ProjectAsset Resource Router 3개를 연결합니다.
-7. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
+5. `[완료]` ProjectAsset 전용 position·Project filter·Repository·Service page와 0014 Index를 임시 SQLite에서 검증했습니다.
+6. `[완료]` 승인된 절차로 실제 사용자 DB에 0014를 적용했습니다.
+7. `[계획]` ProjectAsset Resource Router 3개를 연결합니다.
+8. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
 나머지 56개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.
