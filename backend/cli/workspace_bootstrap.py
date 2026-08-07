@@ -15,9 +15,10 @@ from sqlalchemy.exc import ArgumentError, SQLAlchemyError
 
 from backend.core.exceptions import AppError
 from backend.db.session import create_database_engine, create_session_factory
-from backend.db.workspace_preflight import TARGET_REVISION
 from backend.schemas.workspace.bootstrap import WorkspaceBootstrapResult
 from backend.services.workspace import WorkspaceService
+
+BOOTSTRAP_TARGET_REVISION = "20260807_0013"
 
 
 class WorkspaceBootstrapError(RuntimeError):
@@ -86,9 +87,9 @@ def inspect_bootstrap_target(database_url: str) -> str:
             revision = connection.scalar(
                 text("SELECT version_num FROM alembic_version")
             )
-            if revision != TARGET_REVISION:
+            if revision != BOOTSTRAP_TARGET_REVISION:
                 raise WorkspaceBootstrapError(
-                    f"대상 DB revision은 {TARGET_REVISION}이어야 합니다."
+                    f"대상 DB revision은 {BOOTSTRAP_TARGET_REVISION}이어야 합니다."
                 )
             return str(revision)
     except WorkspaceBootstrapError:

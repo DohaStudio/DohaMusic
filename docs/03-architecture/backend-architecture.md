@@ -40,6 +40,8 @@ Service는 SQLAlchemy Entity 또는 내부 dataclass 결과를 반환하고 API�
 
 Workspace와 Project 목록의 API용 Service 메서드는 App Factory가 주입한 `CursorCodec`으로 cursor를 검증하고 Repository에 `limit + 1` keyset 조회를 요청한다. Resource Router는 App State dependency로 `WorkspaceService`만 사용하며 Repository·Session·Cursor를 직접 생성하지 않는다. 일반 CRUD·Bootstrap은 codec 없이 계속 사용할 수 있으며 서명 키 누락은 cursor 기능을 호출할 때만 설정 오류가 된다.
 
+공개 Workspace·MusicProject DTO는 SQLAlchemy Entity를 직접 직렬화하지 않고 allowlist Pydantic v2 Schema를 사용한다. 내부 `owner_id`·`created_by`, Soft Delete 시각과 ORM relationship은 노출하지 않으며 Project 생성의 감사 식별자는 Workspace 소유자에서 Service 입력으로 파생한다.
+
 기본 Provider는 모두 Mock이다. ACE-Step, Demucs, Seed-VC는 실제 Job에서만 설정을 검증하고 격리 subprocess를 시작한다. 세 Worker는 `max_workers=1`인 shared executor를 사용해 RTX 3060 Ti GPU 점유를 직렬화한다. 외부 Queue, Redis, Celery는 아직 사용하지 않는다.
 
 독립 생성·Stem·Voice Job은 유지한다. 별도 `PipelineService`와 `PipelineWorker`가 같은 인터페이스를 재사용해 5단계 Workflow를 실행하며 `pipeline_jobs/files`에 진행률·metadata·결과를 기록한다. 종료 시 SQLAlchemy Engine을 dispose해 SQLite 파일 handle을 해제한다.

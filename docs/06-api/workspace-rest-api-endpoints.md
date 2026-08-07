@@ -54,6 +54,8 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 
 공개 입력에는 `owner_id`와 `created_by`를 허용하지 않습니다. Project 생성 시 `created_by`는 요청한 Workspace의 `owner_id`에서 파생합니다. Workspace가 하나도 없으면 두 Collection API를 포함한 이 범위의 요청은 `409 WORKSPACE_BOOTSTRAP_REQUIRED`로 중단합니다.
 
+공개 응답에서도 내부 `owner_id`와 `created_by`를 반환하지 않습니다. Project PATCH에서 `description`을 생략하면 기존 값을 유지하고 명시적 `null`은 `INVALID_INPUT`으로 거부합니다.
+
 ## 4. ProjectAsset API — 3개
 
 | Method | Path | 성공 | 목적 |

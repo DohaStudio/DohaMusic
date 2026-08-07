@@ -3,12 +3,12 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity와 additive Migration의 실제 사용자 DB 적용 및 Workspace Repository·Service 구현 완료, keyset Index source revision 추가·실제 DB 적용 미수행, API 공통 기반·명시적 Bootstrap 구현 중, 실제 Bootstrap·backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity·additive Migration·keyset Index의 실제 사용자 DB 적용, Workspace Repository·Service와 첫 Resource API 8개 완료, 실제 Bootstrap·backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-소스의 Alembic head는 keyset 복합 Index만 추가하는 `20260807_0013`이고 실제 사용자 DB는 `20260806_0012`입니다. `20260806_0012`는 이전 head `20260801_0011` 다음에 목표 Workspace Table 21개를 additive로 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+소스와 실제 사용자 DB의 Alembic revision은 keyset 복합 Index를 추가한 `20260807_0013`입니다. `20260806_0012`는 이전 head `20260801_0011` 다음에 목표 Workspace Table 21개를 additive로 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -52,7 +52,7 @@
 - Entity metadata와 migration은 Index 이름과 Column 순서를 동일하게 유지합니다.
 - 임시 SQLite에서 upgrade 전 여섯 쿼리의 정렬용 임시 B-Tree를 확인하고 upgrade 후 신규 Index 사용과 임시 정렬 제거를 검증했습니다.
 - downgrade는 신규 Index 세 개만 역순으로 제거하며 기존 Index·Table·row와 무결성을 보존합니다.
-- 실제 사용자 DB에는 적용하지 않았습니다. 적용 시 기존 Preflight·backup·restore rehearsal·명시적 승인 Gate를 다시 통과해야 합니다.
+- 기존 Preflight·backup·restore rehearsal·명시적 승인 Gate를 통과한 뒤 실제 사용자 DB에 적용했습니다.
 - 상세 설계와 partial·DESC 후보 판단은 [Workspace keyset Index 설계](workspace-keyset-indexes.md)를 따릅니다.
 
 ## 3. 현재 Table별 권장 매핑
@@ -119,7 +119,7 @@
 3. 기본 Workspace를 만들고 기존 `projects`를 `music_projects`로 backfill합니다.
 4. 현행 API 읽기·쓰기는 아직 바꾸지 않습니다.
 
-1~2번과 `20260806_0012`의 실제 사용자 DB additive 적용은 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill은 별도 승인 전까지 미수행입니다. 후속 keyset Index revision `20260807_0013`은 source와 임시 SQLite 검증만 완료했고 실제 사용자 DB에는 적용하지 않았습니다.
+1~2번, `20260806_0012`의 additive Table 적용과 후속 keyset Index revision `20260807_0013`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill은 별도 승인 전까지 미수행입니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 

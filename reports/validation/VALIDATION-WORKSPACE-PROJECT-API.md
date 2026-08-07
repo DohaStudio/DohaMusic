@@ -14,19 +14,20 @@
 - 기존 `WorkspaceService`, Repository와 HMAC Cursor 회귀
 - App Factory의 `WorkspaceService` 구성과 OpenAPI 등록
 
-실제 사용자 DB, Bootstrap, Alembic 변경, backfill, dual write, Provider, Worker와 Frontend는 검증 중 접근하거나 실행하지 않았습니다. 모든 DB 테스트는 pytest가 만든 임시 SQLite 파일만 사용했습니다.
+실제 사용자 DB, 실제 Bootstrap, Alembic 변경, backfill, dual write, Provider, Worker와 Frontend는 검증 중 접근하거나 실행하지 않았습니다. 모든 DB 테스트는 pytest가 만든 임시 SQLite 파일만 사용했습니다.
 
 ## 2. 계약 결과
 
 | 항목 | 결과 | 근거 |
 |---|---|---|
 | Router 계층 경계 | PASS | App State dependency로 `WorkspaceService`만 주입하며 Repository·Session·Cursor 직접 사용 없음 |
-| 소유권 입력 차단 | PASS | body의 추가 필드와 query의 `owner_id`·`created_by` 거부 |
+| 소유권 입력·노출 차단 | PASS | body의 추가 필드와 query의 `owner_id`·`created_by` 거부, 공개 DTO에서도 제외 |
 | Project 생성자 | PASS | `Workspace.owner_id`에서 `created_by` 파생 |
-| Bootstrap Gate | PASS | Workspace 0개에서 `409 WORKSPACE_BOOTSTRAP_REQUIRED` |
+| Bootstrap Gate | PASS | 8개 Endpoint 모두 Workspace 0개에서 `409 WORKSPACE_BOOTSTRAP_REQUIRED` |
 | Pagination | PASS | 기존 HMAC Cursor와 keyset `limit + 1` 결과 연결, offset 입력 없음 |
 | Soft Delete | PASS | Project DELETE가 `204`와 빈 body 반환 |
-| 오류 계약 | PASS | Workspace·Project Not Found·Conflict와 `INVALID_INPUT` 검증 |
+| 오류 계약 | PASS | Workspace·Project Not Found·Conflict, `INVALID_INPUT`·`INVALID_CURSOR`·`INVALID_LIMIT` 검증 |
+| Bootstrap CLI revision | PASS | 실제 실행 없이 임시 DB에서 현재 head `20260807_0013`만 허용 |
 
 ## 3. Route·OpenAPI 결과
 
@@ -45,17 +46,25 @@
 
 | 검증 | 결과 |
 |---|---|
-| 신규 API와 API Foundation | 19 passed |
-| 신규 API·Foundation·Service·Repository·Cursor 선별 회귀 | 67 passed |
+| 신규 API와 API Foundation | 20 passed |
+| Workspace Bootstrap·Service·Repository·Entity·Migration·Cursor·Keyset 회귀 | 69 passed |
+| 기존 Runtime API 선별 회귀 | 14 passed |
 | Python compile | PASS |
 | `ruff check backend` | PASS |
 | Backend 259개 Python 파일 format check | PASS |
 | OpenAPI 생성 | PASS |
 
-전체 Backend는 356개 테스트를 수집했으나 900초 제한 안에 결과를 회수하지 못했습니다. 따라서 전체 suite를 통과했다고 표현하지 않으며, 모델·GPU·외부 API를 요구하는 integration test도 실행 완료로 간주하지 않습니다.
+로컬 전체 Backend는 356개 테스트를 수집했으나 900초 제한 안에 결과를 회수하지 못했습니다. 최초 GitHub Actions는 350 passed·5 skipped 후 FastAPI 버전별 중첩 Router 내부 표현을 직접 센 assertion 1개만 실패했습니다. 실제 OpenAPI 8개 Operation은 등록돼 있었으며, 테스트를 기존 정규화 helper 기반으로 최소 수정했습니다. 최신 head의 전체 CI 결과는 Actions 재실행 후 확정합니다.
 
-## 5. 판정
+## 5. 문서 동기화
 
-- BLOCKER: 0건
-- WARNING: 전체 Backend suite 시간 제한으로 최종 결과 미회수, 기존 OpenAPI operation ID 중복 2종
-- 결론: 이번 Resource API 범위와 직접 회귀 Gate는 PASS입니다. Draft PR 검토가 가능하며 전체 Backend 장시간 suite와 기존 operation ID 중복은 후속 검증 대상으로 유지합니다.
+- README의 실제 DB 기준을 `20260806_0012` Table과 `20260807_0013` keyset Index 적용 완료로 갱신했습니다.
+- API·Cursor·Bootstrap·DB Migration 현재 상태 문서에 Workspace·MusicProject 8개 완료, 나머지 56개 미구현을 반영했습니다.
+- 실제 Bootstrap·backfill·dual write·Frontend·Runtime source 전환·인증은 미수행 상태로 유지했습니다.
+- 과거 CHANGELOG와 기존 validation report의 당시 미수행 기록은 역사 기록으로 보존했습니다.
+
+## 6. 판정
+
+- BLOCKER: 최신 GitHub Actions 결과 확정 전까지 1건
+- WARNING: 로컬 전체 Backend suite 시간 제한, 기존 OpenAPI operation ID 중복 2종, SQLite datetime adapter와 Starlette TestClient 폐기 예정
+- 결론: 코드·문서 직접 Gate는 PASS입니다. 최신 `backend-ubuntu`와 `ffmpeg-windows`가 모두 성공해야 Ready 전환 가능으로 판정합니다.

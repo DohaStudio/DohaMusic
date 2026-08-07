@@ -95,6 +95,7 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - Router는 App State dependency로 주입된 `WorkspaceService`만 호출하고 Repository·Session·Cursor를 직접 생성하지 않습니다.
 - 목록은 기존 HMAC Cursor와 `limit + 1` keyset 조회를 사용하며 외부 offset을 받지 않습니다.
 - `owner_id`와 `created_by`는 공개 입력에서 금지하고 Project 생성자는 Workspace 소유자에서 파생합니다.
+- `owner_id`와 `created_by`는 현재 공개 응답 DTO에도 포함하지 않습니다.
 - Workspace가 없으면 `409 WORKSPACE_BOOTSTRAP_REQUIRED`를 반환하며 Bootstrap을 암묵적으로 실행하지 않습니다.
 - Resource별 Not Found·Conflict를 `WORKSPACE_NOT_FOUND`, `PROJECT_NOT_FOUND`, `WORKSPACE_NAME_CONFLICT`, `PROJECT_TITLE_CONFLICT`로 변환합니다.
 
@@ -264,7 +265,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - Cursor payload는 version, Resource, 방향, 정렬, 마지막 `created_at`·UUID, filter fingerprint와 page limit을 포함합니다.
 - Payload는 canonical JSON을 base64url로 인코딩하고 전용 `DOHAMUSIC_CURSOR_SIGNING_KEY`로 HMAC-SHA256 서명합니다. unsigned cursor는 허용하지 않습니다.
 - Workspace·Project는 `(created_at DESC, resource_id DESC)` keyset과 `limit + 1` 조회를 사용합니다. `has_more=true`이면 `next_cursor`가 반드시 존재하고 마지막 page에서는 `null`입니다.
-- 서명 키는 32바이트 이상이어야 하며 자동 생성·하드코딩·로그 출력을 금지합니다. Resource Endpoint가 아직 없으므로 codec 사용 시점에 검증합니다.
+- 서명 키는 32바이트 이상이어야 하며 자동 생성·하드코딩·로그 출력을 금지합니다. App Factory가 설정값으로 codec을 구성하고 목록 기능 사용 시점에 검증합니다.
 - 자세한 구현 경계는 [Cursor Pagination 설계](cursor-pagination.md)를 따릅니다.
 
 ### 10.2 Query 규칙

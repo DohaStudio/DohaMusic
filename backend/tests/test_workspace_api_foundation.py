@@ -227,8 +227,28 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         == 33
     )
     assert "/health" in openapi_paths
-    assert len(workspace_v1_router.routes) == 8
+    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 8
     assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 4
+    v1_operations = {
+        (method.upper(), path): operation
+        for path, path_item in openapi_paths.items()
+        if path.startswith("/api/v1")
+        for method, operation in path_item.items()
+        if isinstance(operation, dict) and "operationId" in operation
+    }
+    assert set(v1_operations) == {
+        ("GET", "/api/v1/workspaces"),
+        ("GET", "/api/v1/workspaces/{workspace_id}"),
+        ("PATCH", "/api/v1/workspaces/{workspace_id}"),
+        ("GET", "/api/v1/projects"),
+        ("POST", "/api/v1/projects"),
+        ("GET", "/api/v1/projects/{project_id}"),
+        ("PATCH", "/api/v1/projects/{project_id}"),
+        ("DELETE", "/api/v1/projects/{project_id}"),
+    }
+    assert len({item["operationId"] for item in v1_operations.values()}) == 8
+    assert all(item.get("summary") for item in v1_operations.values())
+    assert all(item.get("tags") for item in v1_operations.values())
     assert len(duplicate_ids) == 2
     assert {operation_id.rsplit("_", 1)[0] for operation_id in duplicate_ids} == {
         "download_pipeline_file_api_pipelines__job_id__files__file_id__download",

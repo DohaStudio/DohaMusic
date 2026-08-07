@@ -37,14 +37,17 @@ WorkspaceServiceDependency = Annotated[WorkspaceService, Depends(get_workspace_s
 
 
 @router.get(
-    "", response_model=CollectionResponse[ProjectSummary], operation_id="list_projects"
+    "",
+    response_model=CollectionResponse[ProjectSummary],
+    operation_id="list_projects",
+    summary="MusicProject 목록 조회",
 )
 def list_projects(
     workspace_id: UUID,
     request: Request,
     service: WorkspaceServiceDependency,
     cursor: Annotated[str | None, Query(max_length=2048)] = None,
-    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    limit: Annotated[int, Query()] = 50,
 ) -> CollectionResponse[ProjectSummary]:
     require_bootstrapped_workspace(service)
     try:
@@ -69,6 +72,7 @@ def list_projects(
     response_model=SuccessResponse[ProjectDetail],
     status_code=status.HTTP_201_CREATED,
     operation_id="create_project",
+    summary="MusicProject 생성",
 )
 def create_project(
     payload: ProjectCreateRequest,
@@ -99,6 +103,7 @@ def create_project(
     "/{project_id}",
     response_model=SuccessResponse[ProjectDetail],
     operation_id="get_project",
+    summary="MusicProject 상세 조회",
 )
 def get_project(
     project_id: UUID,
@@ -120,6 +125,7 @@ def get_project(
     "/{project_id}",
     response_model=SuccessResponse[ProjectDetail],
     operation_id="update_project",
+    summary="MusicProject Metadata 수정",
 )
 def update_project(
     project_id: UUID,
@@ -148,6 +154,7 @@ def update_project(
     status_code=status.HTTP_204_NO_CONTENT,
     response_class=Response,
     operation_id="delete_project",
+    summary="MusicProject Soft Delete",
 )
 def delete_project(project_id: UUID, service: WorkspaceServiceDependency) -> Response:
     require_bootstrapped_workspace(service)

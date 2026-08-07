@@ -3,7 +3,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-07
 > 관련 기능: Workspace·MusicProject HMAC Cursor Pagination의 SQLite Query Plan
-> 구현 상태: Entity metadata·Alembic `20260807_0013`·임시 SQLite 검증 완료, 실제 사용자 DB 적용 미수행
+> 구현 상태: Entity metadata·Alembic `20260807_0013`·임시 SQLite 검증과 실제 사용자 DB 적용 완료
 > 관련 문서: [Cursor Pagination](../06-api/cursor-pagination.md), [DB Migration 전략](database-redesign-migration-strategy.md), [검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-KEYSET-INDEXES.md)
 
 ## 1. 조회 계약
@@ -59,11 +59,11 @@ Entity `__table_args__`와 Alembic revision은 같은 이름과 Column 순서를
 
 `20260807_0013`은 `20260806_0012` 다음의 단일 head입니다. Upgrade는 세 Index만 생성하고 downgrade는 역순으로 세 Index만 제거합니다. 임시 SQLite round trip에서 Table·row 수, 기존 Index, `quick_check`, `integrity_check`, `foreign_key_check`를 보존했습니다.
 
-실제 사용자 DB는 읽거나 변경하지 않았습니다. 운영 적용은 read-only Inventory, 검증된 backup·restore rehearsal와 사용자 승인을 다시 거쳐야 합니다. 실제 통계에서 write 비용과 prefix 중복을 측정한 뒤 기존 단일 Index 제거 여부를 별도로 검토합니다.
+실제 사용자 DB에는 read-only Inventory, 검증된 backup·restore rehearsal와 사용자 승인 후 revision을 적용했습니다. 실제 통계에서 write 비용과 prefix 중복을 측정한 뒤 기존 단일 Index 제거 여부를 별도로 검토합니다.
 
 ## 7. 유지되는 경계
 
 - HMAC Cursor payload와 codec은 변경하지 않습니다.
 - Repository의 filter·정렬·다음 page 조건은 변경하지 않습니다.
 - Service의 `limit + 1`, `has_more`, `next_cursor` 계약은 변경하지 않습니다.
-- Resource Endpoint, Bootstrap, backfill, dual write와 Frontend는 구현하지 않습니다.
+- Workspace·MusicProject Resource Endpoint 8개는 구현했으며 실제 Bootstrap, backfill, dual write와 Frontend는 구현하지 않습니다.

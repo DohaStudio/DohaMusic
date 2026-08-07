@@ -38,12 +38,13 @@ WorkspaceServiceDependency = Annotated[WorkspaceService, Depends(get_workspace_s
     "",
     response_model=CollectionResponse[WorkspaceSummary],
     operation_id="list_workspaces",
+    summary="Workspace 목록 조회",
 )
 def list_workspaces(
     request: Request,
     service: WorkspaceServiceDependency,
     cursor: Annotated[str | None, Query(max_length=2048)] = None,
-    limit: Annotated[int, Query(ge=1, le=100)] = 50,
+    limit: Annotated[int, Query()] = 50,
 ) -> CollectionResponse[WorkspaceSummary]:
     require_bootstrapped_workspace(service)
     page = service.list_workspace_page(cursor=cursor, limit=limit)
@@ -64,6 +65,7 @@ def list_workspaces(
     "/{workspace_id}",
     response_model=SuccessResponse[WorkspaceDetail],
     operation_id="get_workspace",
+    summary="Workspace 상세 조회",
 )
 def get_workspace(
     workspace_id: UUID,
@@ -85,6 +87,7 @@ def get_workspace(
     "/{workspace_id}",
     response_model=SuccessResponse[WorkspaceDetail],
     operation_id="update_workspace",
+    summary="Workspace 이름 수정",
 )
 def update_workspace(
     workspace_id: UUID,

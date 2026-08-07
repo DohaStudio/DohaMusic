@@ -19,7 +19,7 @@ class WorkspaceSummary(BaseModel):
 
 
 class WorkspaceDetail(WorkspaceSummary):
-    owner_id: UUID
+    pass
 
 
 class WorkspaceUpdateRequest(BaseModel):
@@ -41,7 +41,6 @@ class ProjectSummary(BaseModel):
 
 class ProjectDetail(ProjectSummary):
     description: str | None
-    created_by: UUID
 
 
 class ProjectCreateRequest(BaseModel):
