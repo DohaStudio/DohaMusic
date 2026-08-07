@@ -1,9 +1,10 @@
 # Workspace·MusicProject Resource API 검증 보고서
 
-> 문서 상태: [진행 중]
+> 문서 상태: [완료]
 > 최종 수정일: 2026-08-07
 > 기준 브랜치: `feature/workspace-project-api`
 > 기준 develop: `ccd26c9670742b66859ee8c17e6e98820f65384b`
+> 검증 코드 head: `3fd59303a4745ac30a3342823ac4afd28e1fd9bc`
 > 관련 문서: [공통 계약](../../docs/06-api/workspace-rest-api-contract.md), [Endpoint 목록](../../docs/06-api/workspace-rest-api-endpoints.md)
 
 ## 1. 검증 범위
@@ -54,7 +55,9 @@
 | Backend 259개 Python 파일 format check | PASS |
 | OpenAPI 생성 | PASS |
 
-로컬 전체 Backend는 356개 테스트를 수집했으나 900초 제한 안에 결과를 회수하지 못했습니다. 최초 GitHub Actions는 350 passed·5 skipped 후 FastAPI 버전별 중첩 Router 내부 표현을 직접 센 assertion 1개만 실패했습니다. 실제 OpenAPI 8개 Operation은 등록돼 있었으며, 테스트를 기존 정규화 helper 기반으로 최소 수정했습니다. 최신 head의 전체 CI 결과는 Actions 재실행 후 확정합니다.
+로컬 전체 Backend는 356개 테스트를 수집했으나 900초 제한 안에 결과를 회수하지 못했습니다. 최초 GitHub Actions는 350 passed·5 skipped 후 FastAPI 버전별 중첩 Router 내부 표현을 직접 센 assertion 1개만 실패했습니다. 실제 OpenAPI 8개 Operation은 등록돼 있었으며, 테스트를 기존 정규화 helper 기반으로 최소 수정했습니다.
+
+수정 후 코드 head의 GitHub Actions는 `backend-ubuntu` 352 passed·5 skipped, `ffmpeg-windows` PASS로 완료됐습니다. Integration 5개 skip은 GPU·외부 API·유료 Provider를 CI에서 실행하지 않는 기존 정책입니다.
 
 ## 5. 문서 동기화
 
@@ -65,6 +68,6 @@
 
 ## 6. 판정
 
-- BLOCKER: 최신 GitHub Actions 결과 확정 전까지 1건
+- BLOCKER: 0건
 - WARNING: 로컬 전체 Backend suite 시간 제한, 기존 OpenAPI operation ID 중복 2종, SQLite datetime adapter와 Starlette TestClient 폐기 예정
-- 결론: 코드·문서 직접 Gate는 PASS입니다. 최신 `backend-ubuntu`와 `ffmpeg-windows`가 모두 성공해야 Ready 전환 가능으로 판정합니다.
+- 결론: 코드·문서 직접 Gate와 필수 GitHub Actions가 모두 PASS이므로 Ready 전환 가능합니다. 이번 검토에서는 Draft를 유지하고 Ready 전환·병합은 수행하지 않습니다.
