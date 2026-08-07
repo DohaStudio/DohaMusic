@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·HMAC Cursor와 Workspace·MusicProject Resource Endpoint 8개 구현, 나머지 56개·OpenAPI YAML·Idempotency replay 미구현
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project Resource Endpoint 8개와 ProjectAsset Cursor 선행 기반 구현, ProjectAsset Router를 포함한 나머지 56개·OpenAPI YAML·Idempotency replay 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
@@ -98,6 +98,8 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - `owner_id`와 `created_by`는 현재 공개 응답 DTO에도 포함하지 않습니다.
 - Workspace가 없으면 `409 WORKSPACE_BOOTSTRAP_REQUIRED`를 반환하며 Bootstrap을 암묵적으로 실행하지 않습니다.
 - Resource별 Not Found·Conflict를 `WORKSPACE_NOT_FOUND`, `PROJECT_NOT_FOUND`, `WORKSPACE_NAME_CONFLICT`, `PROJECT_TITLE_CONFLICT`로 변환합니다.
+- ProjectAsset은 별도 Resource 그룹으로 유지하고 `(display_order ASC, project_asset_id ASC)` Cursor·Project filter·keyset page 기반만 선행 구현했습니다. Router 3개는 아직 `[계획]`입니다.
+- DohaMusic은 REST 식별 경로, 기존 Unique Constraint와 Soft Delete restore 정책에 따라 같은 `(project_id, asset_id)` 연결을 하나만 허용합니다. Common Specification `0.1.0`의 role 포함 중복 기준보다 엄격한 저장소 계약이며 `role`은 관계 identity가 아니라 변경 가능한 Metadata입니다.
 
 ## 5. REST Method 원칙
 
@@ -264,7 +266,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - `page` 기반 offset pagination은 v1 목표 계약에서 사용하지 않습니다. `page`와 `cursor`를 함께 지원해 결과가 달라지는 문제를 피합니다.
 - Cursor payload는 version, Resource, 방향, 정렬, 마지막 `created_at`·UUID, filter fingerprint와 page limit을 포함합니다.
 - Payload는 canonical JSON을 base64url로 인코딩하고 전용 `DOHAMUSIC_CURSOR_SIGNING_KEY`로 HMAC-SHA256 서명합니다. unsigned cursor는 허용하지 않습니다.
-- Workspace·Project는 `(created_at DESC, resource_id DESC)` keyset과 `limit + 1` 조회를 사용합니다. `has_more=true`이면 `next_cursor`가 반드시 존재하고 마지막 page에서는 `null`입니다.
+- Workspace·Project는 `(created_at DESC, resource_id DESC)`, ProjectAsset은 `(display_order ASC, project_asset_id ASC)` keyset과 `limit + 1` 조회를 사용합니다. `has_more=true`이면 `next_cursor`가 반드시 존재하고 마지막 page에서는 `null`입니다.
 - 서명 키는 32바이트 이상이어야 하며 자동 생성·하드코딩·로그 출력을 금지합니다. App Factory가 설정값으로 codec을 구성하고 목록 기능 사용 시점에 검증합니다.
 - 자세한 구현 경계는 [Cursor Pagination 설계](cursor-pagination.md)를 따릅니다.
 

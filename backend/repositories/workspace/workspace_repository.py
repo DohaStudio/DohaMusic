@@ -229,6 +229,36 @@ class WorkspaceRepository:
         )
         return list(self.session.scalars(statement))
 
+    def list_project_assets_after(
+        self,
+        project_id: UUID,
+        *,
+        last_display_order: int | None = None,
+        last_id: UUID | None = None,
+        limit: int = 100,
+    ) -> list[ProjectAsset]:
+        """Project에 연결된 활성 Asset을 display order ASC keyset으로 조회한다."""
+
+        _validate_display_order_position(last_display_order, last_id)
+        statement = select(ProjectAsset).where(
+            ProjectAsset.project_id == project_id,
+            ProjectAsset.deleted_at.is_(None),
+        )
+        if last_display_order is not None and last_id is not None:
+            statement = statement.where(
+                or_(
+                    ProjectAsset.display_order > last_display_order,
+                    and_(
+                        ProjectAsset.display_order == last_display_order,
+                        ProjectAsset.project_asset_id > last_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            ProjectAsset.display_order.asc(), ProjectAsset.project_asset_id.asc()
+        ).limit(limit)
+        return list(self.session.scalars(statement))
+
     def project_asset_exists(
         self,
         project_id: UUID,
@@ -277,3 +307,14 @@ def _validate_keyset_position(
 ) -> None:
     if (last_created_at is None) != (last_id is None):
         raise ValueError("keyset position requires both created_at and id")
+
+
+def _validate_display_order_position(
+    last_display_order: int | None, last_id: UUID | None
+) -> None:
+    if (last_display_order is None) != (last_id is None):
+        raise ValueError("keyset position requires both display_order and id")
+    if last_display_order is not None and (
+        type(last_display_order) is not int or last_display_order < 0
+    ):
+        raise ValueError("display_order must be a non-negative integer")

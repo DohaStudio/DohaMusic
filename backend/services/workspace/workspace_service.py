@@ -10,7 +10,12 @@ from uuid import UUID
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from backend.core.cursor_pagination import CURSOR_SORT, CursorCodec, filter_fingerprint
+from backend.core.cursor_pagination import (
+    CURSOR_SORT,
+    PROJECT_ASSET_CURSOR_SORT,
+    CursorCodec,
+    filter_fingerprint,
+)
 from backend.core.exceptions import (
     ApplicationValidationError,
     CursorConfigurationError,
@@ -423,6 +428,49 @@ class WorkspaceService:
                 project_id, limit=limit, offset=offset
             )
 
+    def list_project_asset_page(
+        self,
+        project_id: UUID,
+        *,
+        cursor: str | None = None,
+        limit: int = 50,
+    ) -> CursorPage[ProjectAsset]:
+        """ProjectAsset 연결을 display order ASC cursor page로 조회한다."""
+
+        _validate_page_limit(limit)
+        codec = self._require_cursor_codec()
+        filter_hash = filter_fingerprint(
+            {
+                "include_deleted": False,
+                "project_id": str(project_id),
+                "sort": PROJECT_ASSET_CURSOR_SORT,
+            }
+        )
+        position = (
+            codec.decode_project_asset(
+                cursor,
+                expected_filter_hash=filter_hash,
+                expected_limit=limit,
+            )
+            if cursor is not None
+            else None
+        )
+        with self.session_factory() as session:
+            repository = WorkspaceRepository(session)
+            if repository.get_project(project_id) is None:
+                raise ResourceNotFoundError("MusicProject")
+            rows = repository.list_project_assets_after(
+                project_id,
+                last_display_order=(position.last_display_order if position else None),
+                last_id=(position.last_id if position else None),
+                limit=limit + 1,
+            )
+        return self._build_project_asset_page(
+            rows,
+            filter_hash=filter_hash,
+            limit=limit,
+        )
+
     def _require_cursor_codec(self) -> CursorCodec:
         if self.cursor_codec is None:
             raise CursorConfigurationError()
@@ -446,6 +494,31 @@ class WorkspaceService:
                 resource=resource,
                 last_created_at=getattr(last_item, "created_at"),
                 last_id=getattr(last_item, id_attribute),
+                filter_hash=filter_hash,
+                limit=limit,
+            )
+        return CursorPage(
+            items=items,
+            next_cursor=next_cursor,
+            has_more=has_more,
+            limit=limit,
+        )
+
+    def _build_project_asset_page(
+        self,
+        rows: list[ProjectAsset],
+        *,
+        filter_hash: str,
+        limit: int,
+    ) -> CursorPage[ProjectAsset]:
+        has_more = len(rows) > limit
+        items = tuple(rows[:limit])
+        next_cursor = None
+        if has_more:
+            last_item = items[-1]
+            next_cursor = self._require_cursor_codec().encode_project_asset(
+                last_display_order=last_item.display_order,
+                last_id=last_item.project_asset_id,
                 filter_hash=filter_hash,
                 limit=limit,
             )
