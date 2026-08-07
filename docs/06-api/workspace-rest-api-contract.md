@@ -1,9 +1,9 @@
 # Workspace REST API 공통 계약
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 Router·응답 Schema·request ID·오류 분기, 명시적 Bootstrap 도구와 HMAC Cursor 기반 구현, Resource Endpoint·OpenAPI YAML·Idempotency replay 미구현
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·HMAC Cursor와 Workspace·MusicProject Resource Endpoint 8개 구현, 나머지 56개·OpenAPI YAML·Idempotency replay 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
@@ -88,6 +88,15 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 16. Health API
 
 전체 목록과 성공 상태는 [Endpoint 목록](workspace-rest-api-endpoints.md)을 따릅니다.
+
+### 4.1 현재 구현 범위
+
+- Workspace 목록·상세·이름 수정 3개와 MusicProject 목록·생성·상세·수정·Soft Delete 5개를 구현했습니다.
+- Router는 App State dependency로 주입된 `WorkspaceService`만 호출하고 Repository·Session·Cursor를 직접 생성하지 않습니다.
+- 목록은 기존 HMAC Cursor와 `limit + 1` keyset 조회를 사용하며 외부 offset을 받지 않습니다.
+- `owner_id`와 `created_by`는 공개 입력에서 금지하고 Project 생성자는 Workspace 소유자에서 파생합니다.
+- Workspace가 없으면 `409 WORKSPACE_BOOTSTRAP_REQUIRED`를 반환하며 Bootstrap을 암묵적으로 실행하지 않습니다.
+- Resource별 Not Found·Conflict를 `WORKSPACE_NOT_FOUND`, `PROJECT_NOT_FOUND`, `WORKSPACE_NAME_CONFLICT`, `PROJECT_TITLE_CONFLICT`로 변환합니다.
 
 ## 5. REST Method 원칙
 

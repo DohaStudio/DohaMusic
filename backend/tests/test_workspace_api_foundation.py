@@ -195,7 +195,7 @@ def test_collection_schema_matches_documented_contract() -> None:
     assert result.links.next is None
 
 
-def test_v1_router_is_foundation_only_and_runtime_route_count_is_stable() -> None:
+def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> None:
     app = create_app()
     registered_routes = _flatten_registered_routes(app.routes)
     api_routes = [route for route in registered_routes if isinstance(route, APIRoute)]
@@ -212,10 +212,10 @@ def test_v1_router_is_foundation_only_and_runtime_route_count_is_stable() -> Non
         if count > 1
     }
 
-    assert len(registered_routes) == 45
-    assert len(api_routes) == 41
-    assert len(openapi_paths) == 34
-    assert len(operation_ids) == 43
+    assert len(registered_routes) == 53
+    assert len(api_routes) == 49
+    assert len(openapi_paths) == 38
+    assert len(operation_ids) == 51
     assert (
         len(
             [
@@ -227,8 +227,8 @@ def test_v1_router_is_foundation_only_and_runtime_route_count_is_stable() -> Non
         == 33
     )
     assert "/health" in openapi_paths
-    assert workspace_v1_router.routes == []
-    assert not [path for path in openapi_paths if path.startswith("/api/v1")]
+    assert len(workspace_v1_router.routes) == 8
+    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 4
     assert len(duplicate_ids) == 2
     assert {operation_id.rsplit("_", 1)[0] for operation_id in duplicate_ids} == {
         "download_pipeline_file_api_pipelines__job_id__files__file_id__download",

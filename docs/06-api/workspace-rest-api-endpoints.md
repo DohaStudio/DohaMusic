@@ -1,9 +1,9 @@
 # Workspace REST API Endpoint 목록
 
-> 문서 상태: [계획]
-> 최종 수정일: 2026-08-06
+> 문서 상태: [진행 중]
+> 최종 수정일: 2026-08-07
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 기반만 구현, 아래 64개 Resource Endpoint는 모두 미구현
+> 구현 상태: Workspace·MusicProject 8개 완료, 나머지 56개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -28,29 +28,31 @@
 | Health | 2 |
 | **합계** | **64** |
 
-Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. 모든 Endpoint는 `[계획]`이며 현재 구현 경로를 대체하지 않습니다.
+Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject 8개는 `[완료]`이며 나머지 56개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
 
 ## 2. Workspace API — 3개
 
-| Method | Path | 성공 | 목적 |
-|---|---|---:|---|
-| `GET` | `/api/v1/workspaces` | 200 | 접근 가능한 Workspace 목록 |
-| `GET` | `/api/v1/workspaces/{workspace_id}` | 200 | Workspace 상세 |
-| `PATCH` | `/api/v1/workspaces/{workspace_id}` | 200 | 이름 등 변경 가능한 Metadata 수정 |
+| Method | Path | 성공 | 상태 | 목적 |
+|---|---|---:|---|---|
+| `GET` | `/api/v1/workspaces` | 200 | [완료] | HMAC Cursor 기반 Workspace 목록 |
+| `GET` | `/api/v1/workspaces/{workspace_id}` | 200 | [완료] | Workspace 상세 |
+| `PATCH` | `/api/v1/workspaces/{workspace_id}` | 200 | [완료] | Workspace 이름 수정 |
 
 초기 단일 사용자 환경은 [명시적 Bootstrap 도구](workspace-api-foundation-bootstrap.md)로 기본 Workspace를 준비합니다. 도구는 구현했지만 실제 사용자 DB에는 실행하지 않았으므로 현재 기본 Workspace 존재를 완료로 간주하지 않습니다. Workspace 생성·삭제 Endpoint는 v1 범위에서 제외합니다.
 
 ## 3. Project API — 5개
 
-| Method | Path | 성공 | 목적 |
-|---|---|---:|---|
-| `GET` | `/api/v1/projects` | 200 | Workspace Project 목록 |
-| `POST` | `/api/v1/projects` | 201 | MusicProject 생성 |
-| `GET` | `/api/v1/projects/{project_id}` | 200 | MusicProject 상세 |
-| `PATCH` | `/api/v1/projects/{project_id}` | 200 | 제목·설명 등 Metadata 수정 |
-| `DELETE` | `/api/v1/projects/{project_id}` | 204 | MusicProject Soft Delete |
+| Method | Path | 성공 | 상태 | 목적 |
+|---|---|---:|---|---|
+| `GET` | `/api/v1/projects` | 200 | [완료] | HMAC Cursor 기반 Workspace Project 목록 |
+| `POST` | `/api/v1/projects` | 201 | [완료] | MusicProject 생성 |
+| `GET` | `/api/v1/projects/{project_id}` | 200 | [완료] | MusicProject 상세 |
+| `PATCH` | `/api/v1/projects/{project_id}` | 200 | [완료] | 제목·설명 Metadata 수정 |
+| `DELETE` | `/api/v1/projects/{project_id}` | 204 | [완료] | MusicProject Soft Delete |
 
 Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭제하지 않습니다.
+
+공개 입력에는 `owner_id`와 `created_by`를 허용하지 않습니다. Project 생성 시 `created_by`는 요청한 Workspace의 `owner_id`에서 파생합니다. Workspace가 하나도 없으면 두 Collection API를 포함한 이 범위의 요청은 `409 WORKSPACE_BOOTSTRAP_REQUIRED`로 중단합니다.
 
 ## 4. ProjectAsset API — 3개
 

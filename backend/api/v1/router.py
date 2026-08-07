@@ -1,8 +1,9 @@
-"""Workspace REST API v1 Router 기반.
-
-Resource Route는 후속 PR에서 기능 단위로 연결한다.
-"""
+"""Workspace REST API v1 Router와 첫 Resource Route 등록."""
 
 from fastapi import APIRouter
 
+from backend.api.v1.routes import projects_router, workspaces_router
+
 router = APIRouter()
+router.include_router(workspaces_router)
+router.include_router(projects_router)
