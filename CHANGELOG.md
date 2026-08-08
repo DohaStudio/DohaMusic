@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — AssetVersion Resource REST API
+
+- `GET·POST /api/v1/assets/{asset_id}/versions`와 `GET /api/v1/assets/{asset_id}/versions/{asset_version_id}`를 추가해 최신 Version 우선 목록, 새 불변 Version 생성과 단건 Lineage 조회를 제공한다.
+- 생성 요청은 `version_number`와 소유자·감사 필드를 받지 않는다. Service가 기존 최대 번호 다음 값을 할당하고 기존 Version을 덮어쓰거나 Selection·Artifact·Composition을 자동 변경하지 않는다.
+- AssetVersion PATCH·DELETE Endpoint를 제공하지 않으며, 상위 Version은 같은 Asset에 속해야 한다. Asset·Version 부재와 번호 충돌은 `ASSET_VERSION_NOT_FOUND`·`ASSET_VERSION_CONFLICT`를 포함한 안전한 오류로 변환한다.
+- Resource API 진행도는 19/64다. Alembic·Cursor·Index·실제 사용자 DB·Frontend·Runtime은 변경하지 않았고 Runtime Table 14개는 계속 source of truth다.
+- 구현·회귀 검증 결과는 [AssetVersion Resource API 검증](reports/validation/VALIDATION-ASSETVERSION-API.md)에 기록했다.
+
 ### 추가 — Asset Resource REST API
 
 - `GET·POST /api/v1/assets`와 `GET·PATCH·DELETE /api/v1/assets/{asset_id}`를 추가해 Owner scope 목록, 논리 Asset 생성, 상세 조회, 제한된 Metadata 수정과 Soft Delete를 제공한다.

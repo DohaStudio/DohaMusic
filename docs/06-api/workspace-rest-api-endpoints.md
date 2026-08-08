@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-08
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset 16개 완료, 나머지 48개 Resource Endpoint 계획
+> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 19개 완료, 나머지 45개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -28,7 +28,7 @@
 | Health | 2 |
 | **합계** | **64** |
 
-Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject·ProjectAsset·Asset 16개는 `[완료]`이며 나머지 48개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
+Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject·ProjectAsset·Asset과 AssetVersion 3개, 총 19개는 `[완료]`이며 나머지 45개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
 
 ## 2. Workspace API — 3개
 
@@ -66,7 +66,7 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 
 Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `display_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
 
-세 Endpoint는 구현했습니다. 목록은 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 실제 적용된 revision `20260807_0014` partial Index를 사용합니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다. POST는 Asset 또는 AssetVersion을 생성하지 않으며 DELETE는 관계만 Soft Delete합니다. Resource API 진행도는 16/64입니다.
+세 Endpoint는 구현했습니다. 목록은 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 실제 적용된 revision `20260807_0014` partial Index를 사용합니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다. POST는 Asset 또는 AssetVersion을 생성하지 않으며 DELETE는 관계만 Soft Delete합니다. 전체 Resource API 진행도는 AssetVersion 3개를 포함해 19/64입니다.
 
 ## 5. Asset API — 5개
 
@@ -84,14 +84,16 @@ POST는 선택적 `workspace_id`, 필수 `asset_type`과 초기 `lifecycle_statu
 
 ## 6. AssetVersion API — 4개
 
-| Method | Path | 성공 | 목적 |
-|---|---|---:|---|
-| `POST` | `/api/v1/assets/{asset_id}/versions` | 201 | 새 불변 AssetVersion 생성 |
-| `GET` | `/api/v1/assets/{asset_id}/versions` | 200 | Asset의 Version 목록 |
-| `GET` | `/api/v1/versions/{asset_version_id}` | 200 | AssetVersion 상세·Lineage 조회 |
-| `POST` | `/api/v1/assets/{asset_id}/selection` | 200 | 현재 Selection을 정확한 Version으로 변경 |
+| Method | Path | 성공 | 상태 | 목적 |
+|---|---|---:|---|---|
+| `POST` | `/api/v1/assets/{asset_id}/versions` | 201 | [완료] | 새 불변 AssetVersion 생성 |
+| `GET` | `/api/v1/assets/{asset_id}/versions` | 200 | [완료] | Asset의 Version 목록 |
+| `GET` | `/api/v1/assets/{asset_id}/versions/{asset_version_id}` | 200 | [완료] | AssetVersion 상세·Lineage 조회 |
+| `POST` | `/api/v1/assets/{asset_id}/selection` | 200 | [계획] | 현재 Selection을 정확한 Version으로 변경 |
 
-AssetVersion에는 PATCH와 DELETE가 없습니다. Selection 요청은 `asset_version_id`와 선택 이유를 받고 같은 Asset 소속인지 검사합니다. 과거 Version 선택은 Rollback이며 새 Version을 만들지 않습니다.
+생성 요청에는 필수 `version_origin`, 선택적 `settings_snapshot`, `parent_asset_version_id`, `processing_chain_id`, `provider_id`, `model_manifest_id`만 허용합니다. `version_number`는 Service가 기존 최대 번호 다음 값으로 결정하고 `created_by`는 소유 Asset에서 파생합니다. 기존 Version·Selection·Artifact·Composition은 변경하거나 자동 생성하지 않습니다.
+
+목록은 해당 Asset의 모든 Version을 `version_number DESC`로 반환하고, 상세는 URL의 Asset과 Version 소속이 정확히 일치해야 합니다. AssetVersion에는 PATCH와 DELETE가 없습니다. Selection Endpoint와 과거 Version 선택에 의한 Rollback은 아직 `[계획]`입니다. Resource API 진행도는 19/64입니다.
 
 ## 7. Artifact API — 3개
 

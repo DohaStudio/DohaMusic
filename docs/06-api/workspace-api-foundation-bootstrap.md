@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-07
 > 관련 기능: Workspace REST API 선행 기반과 단일 사용자 기본 Workspace 준비
-> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor와 Workspace·MusicProject·ProjectAsset·Asset Resource Endpoint 16개 구현, 실제 Bootstrap 미수행
+> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개 구현, 실제 Bootstrap 미수행
 > 관련 문서: [공통 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [API 전환 전략](api-contract-migration-strategy.md), [DB 전환 전략](../07-database/database-redesign-migration-strategy.md)
 
 ## 1. 범위
@@ -16,11 +16,11 @@
 - 기존 `AppError`·validation·내부 오류의 v1 payload 분기
 - 단일 사용자 기본 Workspace의 명시적 Bootstrap CLI
 
-Workspace·MusicProject·ProjectAsset·Asset 16개 Resource Endpoint는 `[완료]`이며 AssetVersion 이하 나머지 48개는 `[미구현]`입니다. 임시 상태 Route는 추가하지 않습니다.
+Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 19개 Resource Endpoint는 `[완료]`이며 Artifact 이하 나머지 45개는 `[미구현]`입니다. 임시 상태 Route는 추가하지 않습니다.
 
 ## 2. Router와 응답 계약
 
-최상위 Router는 기존 Runtime Route를 `/api`에 그대로 유지하고 `backend.api.v1.router`를 `/api/v1`에 연결합니다. Workspace·MusicProject·ProjectAsset·Asset 16개 Operation 추가 후 등록 Route는 61개, `APIRoute`는 57개이며 기존 Runtime 경로 수는 유지됩니다.
+최상위 Router는 기존 Runtime Route를 `/api`에 그대로 유지하고 `backend.api.v1.router`를 `/api/v1`에 연결합니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 19개 Operation 추가 후 등록 Route는 64개, `APIRoute`는 60개이며 기존 Runtime 경로 수는 유지됩니다.
 
 단일 성공 응답은 `data`, `request_id`를 사용합니다. Collection 응답은 `data`, `pagination`, `links`, `request_id`를 사용하며 `pagination`은 `limit`, `next_cursor`, `has_more`를 가집니다. 오류는 다음 구조입니다.
 
