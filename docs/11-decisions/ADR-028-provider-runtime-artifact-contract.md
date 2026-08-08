@@ -2,9 +2,9 @@
 
 > 상태: [제안]
 > 작성일: 2026-08-05
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-08
 > 관련 기능: AI Provider 저장소 분리와 단계적 Runtime 전환
-> 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [AI Pipeline](../03-architecture/ai-pipeline.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [Model Manifest](../04-models/provider-model-manifest.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [DohaStudio 공통 Provider 계약](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md)
+> 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [AI Pipeline](../03-architecture/ai-pipeline.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [Model Manifest](../04-models/provider-model-manifest.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [DohaStudio 공통 Provider 계약](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md)
 > 관련 PR: 이 문서를 추가한 `develop` 대상 PR
 
 ## 배경
@@ -42,7 +42,7 @@ DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Legacy·Comp
 | Health | process readiness, 모델 readiness와 일시적 수용 불가 상태 구분 |
 | 결과 | 출력 Artifact ID·URI, checksum, MIME·audio 규격, Model Manifest identity, 실행 metadata |
 
-세부 endpoint, 인증, callback·polling, object storage와 URI scheme은 아직 `[계획]`이며 구현 전에 별도 계약 검증이 필요하다.
+세부 Provider endpoint, 인증, callback·polling과 object storage transport는 아직 `[계획]`이다. DohaMusic 내부 Artifact URI는 [ADR-032](ADR-032-artifact-storage-resolver-integrity.md)에 따라 `artifact://<artifact_id>`로 고정하며 등록 전 Provider 임시 출력은 이 URI를 사용하지 않는다.
 
 ## Artifact 계약 원칙
 
@@ -50,7 +50,7 @@ DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Legacy·Comp
 - DohaMusic은 작업과 사용자에 대한 Artifact 소유권·접근 권한·보존·삭제 결정을 관리한다.
 - Provider는 입력 접근을 작업 범위와 시간으로 제한하고 결과 checksum과 계보를 반환한다.
 - 개인 음성의 철회·삭제는 DohaMusic이 명령하며 DohaVocal은 파생 Dataset·cache·Checkpoint·Adapter의 처리 결과를 추적 가능하게 반환해야 한다.
-- 허용 URI scheme, 서명 URL, 암호화와 object storage 구현은 보안 검토 후 확정한다.
+- 내부 논리 URI는 `artifact://<artifact_id>`를 사용하고 공개 응답은 Artifact API link를 우선한다. 서명 URL, 암호화와 object storage 구현은 보안 검토 후 확정한다.
 
 ## Provider API 버전 관리
 

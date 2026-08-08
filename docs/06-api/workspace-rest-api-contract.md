@@ -3,8 +3,8 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-08
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개 구현, 나머지 45개·OpenAPI YAML·Idempotency replay 미구현
-> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개 구현, Artifact API 0/3과 나머지 45개·OpenAPI YAML·Idempotency replay 미구현
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
 
@@ -148,7 +148,13 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - Artifact는 실제 파일 또는 직렬화된 Payload입니다.
 - API는 Artifact ID, kind, media type, size, checksum, retention status와 접근 link만 반환합니다.
 - 응답에 drive, mount, 절대 경로, 상대 경로, 임시 경로와 model path를 포함하지 않습니다.
-- content·download Endpoint는 매 요청 권한과 Artifact 무결성·보존 상태를 확인하는 계약입니다.
+- 공개 Endpoint는 Metadata·content·download 3개뿐이며 POST·PATCH·DELETE·목록을 제공하지 않습니다.
+- 공개 등록 대신 Provider·Worker·Import workflow의 trusted ingestion이 실제 bytes에서 SHA-256·크기·kind별 media type을 검증합니다. 호출자가 제출한 checksum·size·MIME·storage key·path는 authoritative 값이 아닙니다.
+- content·download Endpoint는 매 요청 `Artifact → AssetVersion → Asset → owner_id`, retention, kind별 delivery allowlist, Catalog locator와 Artifact 무결성을 확인합니다.
+- 내부 URI는 `artifact://<artifact_id>`이며 공개 응답은 API link를 사용합니다. Catalog의 backend·domain·storage key는 반환하지 않습니다.
+- `active`만 정책상 content·download가 가능하며 `quarantined`는 409, `expired`·`pending_delete`·`deleted`는 410으로 거부합니다.
+- 두 delivery Endpoint는 single byte range를 지원하고 multiple·invalid·unsatisfiable range는 `416 INVALID_RANGE`와 `Content-Range: bytes */<size>`로 거부합니다.
+- 세부 Storage·ingestion·Range·파일명·오류 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)을 따릅니다. Catalog·Resolver와 Artifact API는 아직 `[계획]`입니다.
 
 ### 6.4 Composition Snapshot
 
@@ -334,7 +340,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - cursor 서명 키 교체와 만료 정책
 - Idempotency-Key 보존 기간과 분산 환경 저장소
 - optimistic concurrency와 `ETag`·`If-Match` 적용 범위
-- Artifact content·download의 Range, 만료 link와 object storage 전환
+- Artifact object storage·서명 URL·replica와 대용량 checksum 검증 cache
 - Approval API를 별도 group으로 공개할지 AssetVersion·Enrollment action에 포함할지
 - 인증·Owner·Role·Workspace scope 모델
 - Provider API의 network namespace와 서비스 인증 방식

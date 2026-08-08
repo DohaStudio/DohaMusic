@@ -3,8 +3,8 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-08
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 19개 완료, 나머지 45개 Resource Endpoint 계획
-> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
+> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 19개 완료, Artifact API 0/3과 나머지 45개 Resource Endpoint 계획
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
 
@@ -103,7 +103,7 @@ POST는 선택적 `workspace_id`, 필수 `asset_type`과 초기 `lifecycle_statu
 | `GET` | `/api/v1/artifacts/{artifact_id}/content` | 200/206 | 승인된 inline content 제공 |
 | `GET` | `/api/v1/artifacts/{artifact_id}/download` | 200/206 | 승인된 attachment 제공 |
 
-Artifact 응답에는 물리 경로를 포함하지 않습니다. content·download는 retention status, Workspace 권한, media type, 크기와 checksum을 확인하며 삭제·격리 상태는 `410` 또는 `409`로 거부합니다. Range 계약의 상세 확정은 후속입니다.
+세 Endpoint는 모두 `[계획]`이며 Artifact API 진행도는 0/3입니다. 공개 POST·PATCH·DELETE·목록과 Version 하위 목록을 추가하지 않습니다. Artifact 응답에는 물리 경로·Catalog·storage key를 포함하지 않고 `artifact_id` 기반 API link만 제공합니다. content·download는 owner, retention, delivery allowlist, media type, 실제 크기와 SHA-256을 확인합니다. `quarantined`는 `409`, `expired`·`pending_delete`·`deleted`는 `410`으로 거부합니다. single byte range는 `206`, multiple·invalid·unsatisfiable range는 `416 INVALID_RANGE`이며 세부 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)을 따릅니다.
 
 ## 8. CompositionSnapshot API — 3개
 

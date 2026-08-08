@@ -1,9 +1,9 @@
 # Workspace DB Backup·Rollback 정책
 
-> 문서 상태: [사용자 승인 필요]
-> 최종 수정일: 2026-08-06
+> 문서 상태: [운영 기준]
+> 최종 수정일: 2026-08-08
 > 관련 기능: Workspace additive Migration의 원본 보존과 실패 복구
-> 구현 상태: 정책과 fixture rehearsal 완료, 실제 사용자 DB backup·restore·downgrade 미수행
+> 구현 상태: 실제 사용자 DB `20260806_0012`~`20260808_0015` 적용에서 backup·restore rehearsal 검증 완료; 자동 restore·downgrade 금지 유지
 > 관련 문서: [적용 Runbook](workspace-db-migration-runbook.md), [Preflight 체크리스트](workspace-db-preflight-checklist.md)
 
 ## 1. 기본 원칙

@@ -105,9 +105,12 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 
 - Provider Runtime 결과는 `DohaArtifacts/lm`, `DohaArtifacts/audio`, `DohaArtifacts/vocal`의 Artifact ID로 해석합니다.
 - Mix, Export, Preview와 Composition Snapshot 직렬화본은 `DohaArtifacts/music`의 Artifact ID로 해석합니다.
-- DB는 Root 이름, drive, mount와 상대 경로를 직접 저장하지 않습니다.
-- `Artifact` Metadata와 접근 제어된 Catalog 또는 Resolver가 물리 위치를 연결합니다.
+- Workspace `Artifact`는 Root 이름, drive, mount와 상대 경로를 저장하지 않습니다.
+- 내부 전용 별도 `artifact_storage_locations` Catalog Table이 Artifact ID와 backend·domain·canonical storage key를 1:1로 연결하고 Resolver가 승인된 root에서만 물리 위치를 해석합니다.
+- 내부 URI는 `artifact://<artifact_id>`이며 공개 API는 Artifact ID 기반 content·download link를 사용합니다.
 - Export는 `export` 유형 Asset과 불변 AssetVersion이며 WAV·MP3·FLAC 파일은 Artifact입니다.
+
+Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 구현하려면 현재 35개 application Table을 변경하지 않는 별도 additive Migration이 필요하며 이번 문서 기준선에서는 추가하지 않습니다. 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
 
 ## 4. 목표 Entity와 Table 수
 
@@ -155,7 +158,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`와 Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`가 적용됐습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion v1 Resource API 19개를 구현했고 나머지 45개 Endpoint는 계획입니다. AssetVersion API는 기존 schema와 `(asset_id, version_number)` Unique Constraint를 재사용하므로 추가 Alembic revision이나 Index가 필요하지 않습니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`와 Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`가 적용됐습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion v1 Resource API 19개를 구현했고 Artifact API 0/3을 포함한 나머지 45개 Endpoint는 계획입니다. AssetVersion API는 기존 schema와 `(asset_id, version_number)` Unique Constraint를 재사용합니다. 반면 Artifact Foundation은 별도 `artifact_storage_locations` Catalog가 필요하므로 구현 전에 신규 additive Migration을 별도 검증해야 합니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`
@@ -187,7 +190,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - Common Specification의 정식 contract version
 - ID의 전역 고유성 범위와 UUID version
 - JSON field의 JSON Schema와 contract version
-- Artifact Catalog 또는 Resolver의 구현·운영 주체
+- Artifact Catalog·Resolver 구현과 object storage·replica 확장 방식
 - `Approval.status`, `lifecycle_status`, 관계 유형의 최종 enum
 - Snapshot의 Provider/Model version을 JSON snapshot과 관계형 `ModelUsage` 중 어디까지 중복 보존할지
 - 인증 도입 후 `created_by`, `approved_by`와 Owner 식별자의 참조 방식

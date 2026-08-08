@@ -113,7 +113,7 @@ Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index �
 
 1. DohaStudio Common Specification의 merge commit과 contract version을 확정합니다.
 2. 확정된 `Asset.workspace_id`와 N:M `ProjectAsset` 계약이 목표 Table Definition과 일치하는지 재검증합니다.
-3. ID, enum, JSON Schema, Artifact Resolver와 Approval 계약을 승인합니다.
+3. `[Artifact 계약 완료]` ID·URI, 별도 `artifact_storage_locations` Catalog, Resolver·ingestion·무결성·retention 계약을 승인합니다. Approval과 나머지 enum·JSON Schema는 별도 확정합니다.
 4. 목표 ERD와 Table Definition을 ADR 상태와 함께 승인합니다.
 
 완료 전에는 Migration 파일을 작성하지 않습니다.
@@ -138,12 +138,14 @@ Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index �
 
 1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
+Artifact Foundation 구현 전에는 기존 35개 application Table을 변경하지 않고 내부 `artifact_storage_locations` Catalog만 추가하는 별도 additive revision을 설계합니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 임시 DB에서 검증한 뒤 실제 DB 적용은 기존 Runbook Gate와 별도 승인을 따릅니다.
+
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 
 1. Lyrics, Music, Stem, Vocal, Recording, Mix와 Export를 논리 Asset으로 분류합니다.
 2. 현행 row의 생성 순서·parent 관계로 AssetVersion을 단조 증가 생성합니다.
 3. 실제 Payload를 읽어 Artifact ID, 크기와 checksum을 등록합니다.
-4. 경로는 접근 제어된 Resolver로 옮기고 목표 DB에는 Artifact ID만 남깁니다.
+4. Workspace 도메인 참조에는 Artifact ID만 남기고 별도 내부 Catalog가 backend·domain·canonical storage key를 보존하도록 전환합니다.
 5. source와 파생 관계를 `AssetRelation`으로 검증합니다.
 
 실제 파일 이동은 별도 Storage Migration에서 수행하며 이 DB backfill과 같은 transaction으로 묶지 않습니다.
