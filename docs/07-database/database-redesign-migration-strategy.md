@@ -69,7 +69,7 @@ Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index �
 - 6,000개 임시 SQLite fixture의 공식 첫·다음 page 8개 Query에서 full·partial 후보를 비교했습니다. partial 후보는 기존 `ix_assets_deleted_at`를 선택해 임시 정렬이 남았고 full 후보만 신규 Index 사용과 TEMP B-TREE 제거를 만족했습니다.
 - 최종 Index는 `(owner_id, deleted_at, created_at, asset_id)`와 `(owner_id, workspace_id, deleted_at, created_at, asset_id)` 두 개입니다. 기존 단일 Index는 제거하지 않습니다.
 - Upgrade·downgrade는 신규 Index 두 개만 추가·제거하고 Table 35개, Runtime 14개, Workspace 21개와 Asset row digest·무결성을 보존합니다.
-- Source revision만 구현했으며 실제 사용자 DB에는 접근하거나 적용하지 않았습니다. 실제 적용은 별도 Inventory·backup·rehearsal·승인 절차를 따릅니다.
+- 별도 Inventory·backup·rehearsal·승인 절차를 거쳐 실제 사용자 DB에 적용했습니다.
 - 상세 계약은 [Asset keyset Index 설계](asset-keyset-indexes.md)를 따릅니다.
 
 ## 3. 현재 Table별 권장 매핑
@@ -136,7 +136,7 @@ Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index �
 3. 기본 Workspace를 만들고 기존 `projects`를 `music_projects`로 backfill합니다.
 4. 현행 API 읽기·쓰기는 아직 바꾸지 않습니다.
 
-1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`의 실제 사용자 DB 적용을 완료했습니다. Asset keyset Index source revision `20260808_0015`는 임시 DB 검증만 완료했고 실제 사용자 DB에는 미적용입니다. 신규 Workspace Table row는 0건이며 3번 backfill도 수행하지 않았습니다.
+1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 

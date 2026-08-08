@@ -80,7 +80,7 @@ Alembic `20260807_0013`은 전체 활성 Workspace용 `(deleted_at, created_at, 
 
 ProjectAsset은 full `(project_id, deleted_at, display_order, project_asset_id)`와 partial `(project_id, display_order, project_asset_id) WHERE deleted_at IS NULL` 후보가 모두 첫·다음 page에서 임시 정렬을 제거했습니다. 활성 row만 포함하고 같은 계획 결과를 제공하는 partial 후보를 `20260807_0014` revision으로 선택해 실제 사용자 DB에 적용했습니다. 실제 Query Plan에서도 첫 page·다음 page 모두 신규 Index를 사용하고 TEMP B-TREE는 발생하지 않았습니다. 세부 결과는 [ProjectAsset keyset Index 설계](../07-database/project-asset-keyset-indexes.md)를 따릅니다.
 
-Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_id=<uuid>`와 `asset_type`만 선택적으로 허용합니다. 6,000개 임시 SQLite fixture에서 Owner, Owner+type, Owner+Workspace와 Owner+Workspace+type의 첫·다음 page 8개 Query를 비교했습니다. partial 후보는 기존 `ix_assets_deleted_at`가 계속 선택돼 임시 정렬이 남았고, full Owner 및 Owner+Workspace 후보만 신규 Index 사용과 TEMP B-TREE 제거를 모두 만족했습니다. source revision `20260808_0015`는 두 full Index를 추가하지만 실제 사용자 DB에는 미적용입니다. 세부 결과는 [Asset keyset Index 설계](../07-database/asset-keyset-indexes.md)를 따릅니다.
+Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_id=<uuid>`와 `asset_type`만 선택적으로 허용합니다. 6,000개 임시 SQLite fixture에서 Owner, Owner+type, Owner+Workspace와 Owner+Workspace+type의 첫·다음 page 8개 Query를 비교했습니다. partial 후보는 기존 `ix_assets_deleted_at`가 계속 선택돼 임시 정렬이 남았고, full Owner 및 Owner+Workspace 후보만 신규 Index 사용과 TEMP B-TREE 제거를 모두 만족했습니다. source revision `20260808_0015`의 두 full Index는 실제 사용자 DB에 적용을 완료했습니다. 세부 결과는 [Asset keyset Index 설계](../07-database/asset-keyset-indexes.md)를 따릅니다.
 
 ## 7. 후속 작업
 
@@ -92,7 +92,7 @@ Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_i
 6. `[완료]` 승인된 절차로 실제 사용자 DB에 0014를 적용했습니다.
 7. `[완료]` ProjectAsset Resource Router 3개를 연결했습니다.
 8. `[완료]` Asset 공개 scope·filter, version 1 Cursor, keyset Repository·Service와 source Index revision `20260808_0015`를 구현했습니다.
-9. `[계획]` 별도 승인 절차로 실제 사용자 DB에 0015를 적용한 뒤 Asset Resource API 5개를 구현합니다.
+9. `[완료]` 별도 승인 절차로 실제 사용자 DB에 0015를 적용한 뒤 Asset Resource API 5개를 구현했습니다.
 10. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
 나머지 48개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.
