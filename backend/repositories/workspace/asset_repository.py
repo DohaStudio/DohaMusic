@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.asset import (
@@ -78,6 +79,42 @@ class AssetRepository:
             .limit(limit)
             .offset(offset)
         )
+        return list(self.session.scalars(statement))
+
+    def list_assets_after(
+        self,
+        *,
+        owner_id: UUID,
+        workspace_id: UUID | None = None,
+        asset_type: AssetType | None = None,
+        last_created_at: datetime | None = None,
+        last_id: UUID | None = None,
+        limit: int = 100,
+    ) -> list[Asset]:
+        """Owner scope를 고정한 활성 Asset DESC keyset 조회."""
+
+        _validate_keyset_position(last_created_at, last_id)
+        statement = select(Asset).where(
+            Asset.owner_id == owner_id,
+            Asset.deleted_at.is_(None),
+        )
+        if workspace_id is not None:
+            statement = statement.where(Asset.workspace_id == workspace_id)
+        if asset_type is not None:
+            statement = statement.where(Asset.asset_type == asset_type)
+        if last_created_at is not None and last_id is not None:
+            statement = statement.where(
+                or_(
+                    Asset.created_at < last_created_at,
+                    and_(
+                        Asset.created_at == last_created_at,
+                        Asset.asset_id < last_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            Asset.created_at.desc(), Asset.asset_id.desc()
+        ).limit(limit)
         return list(self.session.scalars(statement))
 
     def soft_delete_asset(self, asset: Asset) -> Asset:
@@ -206,3 +243,10 @@ class AssetRepository:
             AssetRelation.target_asset_version_id == target_asset_version_id,
         )
         return self.session.scalar(statement.limit(1)) is not None
+
+
+def _validate_keyset_position(
+    last_created_at: datetime | None, last_id: UUID | None
+) -> None:
+    if (last_created_at is None) != (last_id is None):
+        raise ValueError("keyset position requires both created_at and id")

@@ -2,11 +2,20 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-07
+> 최종 수정일: 2026-08-08
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Asset Cursor Pagination과 keyset Index 기반
+
+- 향후 Asset 공개 목록을 신뢰된 현재 Owner의 활성 Asset으로 제한하고 `workspace_id=<uuid>`와 `asset_type`만 선택적 filter로 허용한다. `owner_id`, `include_deleted`, lifecycle filter와 자유 검색은 공개하지 않는다.
+- 기존 version 1 created-at Cursor에 `resource=asset`을 추가하고 effective Owner·Workspace·Asset type·Soft Delete·정렬을 filter fingerprint로 결합했다. 기존 Workspace·Project·ProjectAsset token 의미는 변경하지 않았다.
+- `AssetRepository.list_assets_after()`와 `AssetService.list_asset_page()`에 `(created_at DESC, asset_id DESC)` 및 `limit + 1` 기반 keyset page를 추가했다. 기존 offset 호환 메서드와 Asset Router는 변경하지 않았다.
+- 6,000개 임시 SQLite fixture의 공식 첫·다음 page 8개 Query에서 full·partial 후보를 비교했다. partial 후보는 기존 `ix_assets_deleted_at`와 임시 정렬을 유지해 제외하고 Owner 및 Owner+Workspace full 복합 Index 두 개를 선택했다.
+- Asset Index 전용 source revision `20260808_0015`를 추가해 임시 DB upgrade·downgrade, Table 35개, row digest, metadata·reflection과 무결성 보존을 검증했다. 실제 사용자 DB는 접근하지 않아 revision `20260807_0014`를 유지한다.
+- Asset Resource API는 0/5, 전체 Resource API는 11/64를 유지한다. 검증 결과는 [Asset Cursor·Index 검증](reports/validation/VALIDATION-ASSET-CURSOR-INDEXES.md)에 기록했다.
 
 ### 추가 — ProjectAsset Resource REST API
 

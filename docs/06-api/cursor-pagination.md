@@ -1,14 +1,14 @@
 # HMAC Cursor Pagination 설계
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-07
+> 최종 수정일: 2026-08-08
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: Workspace·Project·ProjectAsset Cursor와 Resource Router, 실제 DB 0013·0014 적용 완료
-> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md)
+> 구현 상태: Workspace·Project·ProjectAsset Cursor와 Resource Router, Asset Cursor·Repository·Service와 source 0015 완료, 실제 DB 0013·0014 적용 완료·0015 미적용
+> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md), [Asset Index](../07-database/asset-keyset-indexes.md)
 
 ## 1. 목적과 범위
 
-Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project·ProjectAsset 조회를 Resource Router에 연결했으며 인증·Idempotency·backfill은 포함하지 않습니다.
+Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project·ProjectAsset 조회를 Resource Router에 연결했고 Asset은 Cursor·Repository·Service 기반만 구현했습니다. 인증·Idempotency·backfill과 Asset Router는 포함하지 않습니다.
 
 ## 2. 서명 키
 
@@ -29,16 +29,16 @@ Payload 필드는 다음으로 고정합니다.
 | 필드 | 값 |
 |---|---|
 | `v` | `1` |
-| `resource` | `workspace`, `project` 또는 `project_asset` |
+| `resource` | `workspace`, `project`, `project_asset` 또는 `asset` |
 | `direction` | `next` |
 | `sort` | `created_at_desc` |
-| `last_created_at` | Workspace·Project 직전 page 마지막 row의 UTC ISO 8601 시각 |
+| `last_created_at` | Workspace·Project·Asset 직전 page 마지막 row의 UTC ISO 8601 시각 |
 | `last_display_order` | ProjectAsset 직전 page 마지막 row의 정확한 정수 표시 순서 |
 | `last_id` | 직전 page 마지막 row의 UUID |
 | `filter_hash` | canonical filter JSON의 SHA-256 |
 | `limit` | 1~100의 page 크기 |
 
-Workspace·Project payload는 `last_created_at`, ProjectAsset payload는 `last_display_order`만 사용하며 두 position field를 한 token에 함께 넣지 않습니다. ProjectAsset은 `sort=display_order_asc`를 사용합니다. Resource별 정확한 field 집합을 검증하므로 version 1을 유지하면서 기존 token 의미와 서명을 바꾸지 않습니다. Payload에 owner·Workspace 이름·Project 제목·DB 경로·Table명·SQL·credential을 넣지 않습니다.
+Workspace·Project·Asset payload는 `last_created_at`, ProjectAsset payload는 `last_display_order`만 사용하며 두 position field를 한 token에 함께 넣지 않습니다. ProjectAsset은 `sort=display_order_asc`를 사용합니다. Asset은 기존 created-at payload에 새 Resource 값만 추가하므로 version 1을 유지하면서 기존 token 의미와 서명을 바꾸지 않습니다. Payload에 owner·Workspace 이름·Project 제목·DB 경로·Table명·SQL·credential을 넣지 않습니다.
 
 ## 4. 검증과 오류
 
@@ -48,11 +48,11 @@ Decode는 2 KiB 최대 길이를 먼저 확인한 뒤 token 구조와 base64url,
 
 ## 5. Filter fingerprint
 
-Workspace fingerprint는 `include_deleted=false`, 정렬과 내부 owner filter를 사용합니다. Project fingerprint는 `workspace_id`, ProjectAsset fingerprint는 `project_id`와 `include_deleted=false`·정렬을 사용합니다. JSON key 정렬과 공백 없는 canonical 직렬화 뒤 SHA-256을 계산하므로 다른 Workspace·Project·owner·정렬 조건에 cursor를 재사용할 수 없습니다.
+Workspace fingerprint는 `include_deleted=false`, 정렬과 내부 owner filter를 사용합니다. Project fingerprint는 `workspace_id`, ProjectAsset fingerprint는 `project_id`와 `include_deleted=false`·정렬을 사용합니다. Asset fingerprint는 신뢰된 effective Owner, 선택적 `workspace_id`·`asset_type`, `include_deleted=false`와 정렬을 사용합니다. JSON key 정렬과 공백 없는 canonical 직렬화 뒤 SHA-256을 계산하므로 다른 Owner·Workspace·Project·Asset type·정렬 조건에 cursor를 재사용할 수 없습니다.
 
 ## 6. Keyset 조회
 
-Workspace·Project 정렬은 `(created_at DESC, UUID DESC)`입니다. 다음 page 조건은 아래와 같습니다.
+Workspace·Project·Asset 정렬은 `(created_at DESC, UUID DESC)`입니다. 다음 page 조건은 아래와 같습니다.
 
 ```text
 created_at < last_created_at
@@ -80,6 +80,8 @@ Alembic `20260807_0013`은 전체 활성 Workspace용 `(deleted_at, created_at, 
 
 ProjectAsset은 full `(project_id, deleted_at, display_order, project_asset_id)`와 partial `(project_id, display_order, project_asset_id) WHERE deleted_at IS NULL` 후보가 모두 첫·다음 page에서 임시 정렬을 제거했습니다. 활성 row만 포함하고 같은 계획 결과를 제공하는 partial 후보를 `20260807_0014` revision으로 선택해 실제 사용자 DB에 적용했습니다. 실제 Query Plan에서도 첫 page·다음 page 모두 신규 Index를 사용하고 TEMP B-TREE는 발생하지 않았습니다. 세부 결과는 [ProjectAsset keyset Index 설계](../07-database/project-asset-keyset-indexes.md)를 따릅니다.
 
+Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_id=<uuid>`와 `asset_type`만 선택적으로 허용합니다. 6,000개 임시 SQLite fixture에서 Owner, Owner+type, Owner+Workspace와 Owner+Workspace+type의 첫·다음 page 8개 Query를 비교했습니다. partial 후보는 기존 `ix_assets_deleted_at`가 계속 선택돼 임시 정렬이 남았고, full Owner 및 Owner+Workspace 후보만 신규 Index 사용과 TEMP B-TREE 제거를 모두 만족했습니다. source revision `20260808_0015`는 두 full Index를 추가하지만 실제 사용자 DB에는 미적용입니다. 세부 결과는 [Asset keyset Index 설계](../07-database/asset-keyset-indexes.md)를 따릅니다.
+
 ## 7. 후속 작업
 
 1. `[완료]` Preflight·backup·rehearsal과 승인 후 실제 사용자 DB에 `20260807_0013`을 적용했습니다.
@@ -89,7 +91,8 @@ ProjectAsset은 full `(project_id, deleted_at, display_order, project_asset_id)`
 5. `[완료]` ProjectAsset 전용 position·Project filter·Repository·Service page와 0014 Index를 임시 SQLite에서 검증했습니다.
 6. `[완료]` 승인된 절차로 실제 사용자 DB에 0014를 적용했습니다.
 7. `[완료]` ProjectAsset Resource Router 3개를 연결했습니다.
-8. `[계획]` Asset Cursor·Index와 Resource API 5개를 구현합니다.
-8. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
+8. `[완료]` Asset 공개 scope·filter, version 1 Cursor, keyset Repository·Service와 source Index revision `20260808_0015`를 구현했습니다.
+9. `[계획]` 별도 승인 절차로 실제 사용자 DB에 0015를 적용한 뒤 Asset Resource API 5개를 구현합니다.
+10. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
 나머지 53개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.

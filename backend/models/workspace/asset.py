@@ -45,6 +45,23 @@ if TYPE_CHECKING:
 
 class Asset(TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "assets"
+    __table_args__ = (
+        Index(
+            "ix_assets_owner_active_keyset",
+            "owner_id",
+            "deleted_at",
+            "created_at",
+            "asset_id",
+        ),
+        Index(
+            "ix_assets_owner_workspace_active_keyset",
+            "owner_id",
+            "workspace_id",
+            "deleted_at",
+            "created_at",
+            "asset_id",
+        ),
+    )
 
     asset_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid

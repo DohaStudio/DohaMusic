@@ -16,6 +16,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260807_0014"
 PREVIOUS_REVISION = "20260807_0013"
+SOURCE_HEAD = "20260808_0015"
 INDEX_NAME = "ix_project_assets_active_keyset"
 INDEX_COLUMNS = ("project_id", "display_order", "project_asset_id")
 INDEX_PREDICATE = "deleted_at IS NULL"
@@ -234,7 +235,7 @@ def test_project_asset_index_candidates_query_plan_and_round_trip(
     config = _config(database_url)
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
     command.upgrade(config, PREVIOUS_REVISION)
     _insert_fixtures(database_url)

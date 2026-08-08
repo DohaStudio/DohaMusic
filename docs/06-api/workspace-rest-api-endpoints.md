@@ -78,7 +78,9 @@ Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, �
 | `PATCH` | `/api/v1/assets/{asset_id}` | 200 | 변경 가능한 Asset Metadata 수정 |
 | `DELETE` | `/api/v1/assets/{asset_id}` | 204 | Asset Soft Delete |
 
-POST는 선택적 `workspace_id`, `asset_type`, `owner_id`와 초기 Metadata만 받으며 Version을 자동 생성하지 않습니다. 저장소별 단일 Workspace 계약에서는 `workspace_id`를 생략할 수 있고, `asset_type`은 Common Specification과 DB Redesign에 정의된 값만 사용합니다.
+다섯 Endpoint는 아직 `[계획]`입니다. 목록은 향후 신뢰된 effective Owner의 활성 Asset에 한정하고 선택적 `workspace_id=<uuid>`와 `asset_type`만 filter로 받으며 `(created_at DESC, asset_id DESC)` HMAC Cursor를 사용합니다. `owner_id`, `include_deleted`, lifecycle filter, 검색과 임의 sort는 공개하지 않습니다.
+
+POST는 선택적 `workspace_id`, `asset_type`과 초기 Metadata만 받으며 Version을 자동 생성하지 않습니다. `owner_id`는 공개 입력으로 받지 않고 Bootstrap·인증 context에서 파생합니다. 저장소별 단일 Workspace 계약에서는 `workspace_id`를 생략할 수 있고, `asset_type`은 Common Specification과 DB Redesign에 정의된 값만 사용합니다.
 
 ## 6. AssetVersion API — 4개
 
