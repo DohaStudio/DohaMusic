@@ -9,7 +9,7 @@
 
 DohaMusic은 AI Provider가 아니라 개인 AI 음악 제작 Workspace다. DohaLM·DohaAudio·DohaVocal의 Runtime 산출물과 사용자가 선택·조합해 만든 프로젝트 결과물의 저장 책임을 분리한다.
 
-이 문서는 목표 계약을 정의한다. Asset·Snapshot 목표 Entity와 Asset Cursor·keyset Repository/Service 기반은 구현했지만 `D:/DohaArtifacts/music` 디렉터리, Resource API, Mix·Export Job, Artifact URI와 파일 이동은 아직 구현하지 않았다. 실제 사용자 DB의 Asset Index는 `20260807_0014` 상태이며 source `20260808_0015`는 미적용이다.
+이 문서는 목표 계약을 정의한다. Asset·Snapshot 목표 Entity와 Asset Cursor·keyset Repository/Service·Resource API 5개, 실제 사용자 DB Asset Index revision `20260808_0015`는 구현·적용했다. `D:/DohaArtifacts/music` 디렉터리, AssetVersion 이하 Resource API, Mix·Export Job, Artifact URI와 파일 이동은 아직 구현하지 않았다.
 
 ## Workspace 흐름
 

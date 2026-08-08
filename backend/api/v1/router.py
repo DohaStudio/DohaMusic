@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from backend.api.v1.routes import (
+    assets_router,
     project_assets_router,
     projects_router,
     workspaces_router,
@@ -12,3 +13,4 @@ router = APIRouter()
 router.include_router(workspaces_router)
 router.include_router(projects_router)
 router.include_router(project_assets_router)
+router.include_router(assets_router)

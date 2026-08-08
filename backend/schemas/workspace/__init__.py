@@ -11,6 +11,10 @@ from backend.schemas.workspace.common import (
     SuccessResponse,
 )
 from backend.schemas.workspace.resources import (
+    AssetCreateRequest,
+    AssetDetail,
+    AssetSummary,
+    AssetUpdateRequest,
     ProjectAssetCreateRequest,
     ProjectAssetSummary,
     ProjectCreateRequest,
@@ -23,6 +27,10 @@ from backend.schemas.workspace.resources import (
 )
 
 __all__ = [
+    "AssetCreateRequest",
+    "AssetDetail",
+    "AssetSummary",
+    "AssetUpdateRequest",
     "CollectionLinks",
     "CollectionResponse",
     "ErrorDetail",

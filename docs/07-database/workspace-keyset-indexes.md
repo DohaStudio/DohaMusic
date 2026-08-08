@@ -66,4 +66,4 @@ Entity `__table_args__`와 Alembic revision은 같은 이름과 Column 순서를
 - HMAC Cursor payload와 codec은 변경하지 않습니다.
 - Repository의 filter·정렬·다음 page 조건은 변경하지 않습니다.
 - Service의 `limit + 1`, `has_more`, `next_cursor` 계약은 변경하지 않습니다.
-- Workspace·MusicProject·ProjectAsset Resource Endpoint 11개는 구현했으며 실제 Bootstrap, backfill, dual write와 Frontend는 구현하지 않습니다.
+- Workspace·MusicProject·ProjectAsset·Asset Resource Endpoint 16개는 구현했으며 실제 Bootstrap, backfill, dual write와 Frontend는 구현하지 않습니다.

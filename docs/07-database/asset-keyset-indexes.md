@@ -3,12 +3,12 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-08
 > 관련 기능: Owner scope Asset Cursor Pagination과 Alembic `20260808_0015`
-> 구현 상태: Entity metadata·Repository·Service·source revision 완료, 실제 사용자 DB 미적용, Asset Resource API 미구현
+> 구현 상태: Entity metadata·Repository·Service·revision 실제 사용자 DB 적용·Asset Resource API 완료
 > 관련 문서: [Cursor Pagination](../06-api/cursor-pagination.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 공개 조회 계약
 
-향후 `GET /api/v1/assets`는 신뢰된 현재 Owner의 Soft Delete되지 않은 Asset만 조회한다. 공개 query에 `owner_id`와 `include_deleted`를 받지 않으며 Owner 조건 없는 전체 `assets` 조회를 허용하지 않는다.
+`GET /api/v1/assets`는 신뢰된 현재 Owner의 Soft Delete되지 않은 Asset만 조회한다. 공개 query에 `owner_id`와 `include_deleted`를 받지 않으며 Owner 조건 없는 전체 `assets` 조회를 허용하지 않는다.
 
 공개 filter allowlist는 다음 두 개다.
 
@@ -67,6 +67,6 @@ SQLite는 ASC Index를 역방향으로 탐색할 수 있으므로 metadata와 mi
 - Downgrade는 두 Index만 역순으로 제거한다.
 - Table·Column·FK·Unique·Check와 row를 변경하지 않는다.
 - 임시 SQLite upgrade·downgrade에서 Application Table 35개, Runtime Table 14개, Workspace Table 21개, row count·digest·무결성을 보존한다.
-- 실제 사용자 DB `20260807_0014`에는 이번 작업에서 접근하거나 `0015`를 적용하지 않는다.
+- 실제 사용자 DB에는 별도 Inventory·backup·restore·migration rehearsal과 사용자 승인을 거쳐 `20260808_0015`를 적용했다.
 
-실제 적용은 PR 병합 후 read-only Inventory, backup, restore rehearsal, migration rehearsal와 별도 사용자 승인을 거친다.
+적용 후 공식 Query 8개에서 신규 Index 사용, TEMP B-TREE 0건, full scan 0건과 row count·digest 보존을 확인했다.
