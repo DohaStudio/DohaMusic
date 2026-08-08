@@ -95,4 +95,4 @@ Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_i
 9. `[완료]` 별도 승인 절차로 실제 사용자 DB에 0015를 적용한 뒤 Asset Resource API 5개를 구현했습니다.
 10. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
-나머지 48개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다.
+나머지 45개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다. AssetVersion 목록은 단일 Asset의 완전한 계보를 최신 번호순으로 반환하므로 Cursor 계약을 사용하지 않습니다.

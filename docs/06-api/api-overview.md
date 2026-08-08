@@ -7,7 +7,7 @@
 
 ## Workspace v1 목표 계약 — [진행 중]
 
-DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 Router·응답 Schema·request ID·오류 분기와 명시적 Bootstrap 도구는 구현했지만 Resource Route는 연결하지 않았다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 모두 미구현이다. 아래 현행 API와 payload는 그대로 유지한다.
+DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 Router·응답 Schema·request ID·오류 분기, 명시적 Bootstrap 도구와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개를 구현했다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 나머지 45개는 `[계획]`이다. 아래 현행 API와 payload는 그대로 유지한다.
 
 - [Workspace REST API 공통 계약](workspace-rest-api-contract.md)
 - [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md)

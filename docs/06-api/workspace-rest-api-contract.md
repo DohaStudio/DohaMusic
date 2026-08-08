@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-08
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset Resource Endpoint 16개 구현, 나머지 48개·OpenAPI YAML·Idempotency replay 미구현
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개 구현, 나머지 45개·OpenAPI YAML·Idempotency replay 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
@@ -91,7 +91,7 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 
 ### 4.1 현재 구현 범위
 
-- Workspace 3개, MusicProject 5개, ProjectAsset 3개와 Asset 5개를 구현했습니다.
+- Workspace 3개, MusicProject 5개, ProjectAsset 3개, Asset 5개와 AssetVersion 3개를 구현했습니다.
 - Router는 App State dependency로 주입된 `WorkspaceService` 또는 `AssetService`만 호출하고 Repository·Session·Cursor를 직접 생성하지 않습니다.
 - 목록은 기존 HMAC Cursor와 `limit + 1` keyset 조회를 사용하며 외부 offset을 받지 않습니다.
 - `owner_id`와 `created_by`는 공개 입력에서 금지하고 Project 생성자는 Workspace 소유자에서 파생합니다.
@@ -103,6 +103,9 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - Asset Resource API 5개는 신뢰된 effective Owner의 활성 Asset 전체, 선택적 `workspace_id=<uuid>`·`asset_type`, `(created_at DESC, asset_id DESC)` version 1 Cursor와 keyset Repository·Service를 사용합니다.
 - Asset 목록의 `owner_id`, `include_deleted`, `lifecycle_status`, 자유 검색과 임의 sort는 공개하지 않습니다. Router는 Bootstrap된 Workspace context에서 Owner를 파생하고 Owner 조건 없는 전체 Table 조회를 금지합니다.
 - Asset 생성은 AssetVersion·Artifact·ProjectAsset을 자동 생성하지 않습니다. PATCH는 `lifecycle_status`만 허용하고 DELETE는 Asset만 Soft Delete하며 Version·Artifact·ProjectAsset을 보존합니다.
+- AssetVersion은 Asset 경로 아래에서만 생성·조회합니다. 생성자가 Version 번호를 입력하지 않으며 Service가 현재 최대 번호에 1을 더한 새 row를 transaction으로 추가합니다.
+- AssetVersion 목록은 완전한 계보 확인을 위해 해당 Asset의 Version을 `version_number DESC`로 반환합니다. 공개 입력·응답에는 `created_by`를 포함하지 않으며 Artifact·Selection·Composition을 자동 생성하거나 변경하지 않습니다.
+- AssetVersion 상세 경로는 Asset과 Version의 소속 관계를 함께 확인합니다. PATCH·DELETE Endpoint는 등록하지 않았습니다.
 
 ## 5. REST Method 원칙
 
@@ -138,6 +141,7 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - AssetVersion에는 PATCH와 DELETE Endpoint가 없습니다.
 - Version 번호는 증가만 하며 Rollback은 과거 Version을 Selection으로 다시 선택하는 동작입니다.
 - Provider가 기존 AssetVersion을 수정하지 않습니다.
+- 목록은 최신 번호부터 반환하고 상세는 `/assets/{asset_id}/versions/{asset_version_id}`에서 같은 Asset 소속을 검증합니다.
 
 ### 6.3 Artifact
 

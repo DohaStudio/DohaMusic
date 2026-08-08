@@ -77,6 +77,22 @@ def asset_conflict() -> AppError:
     )
 
 
+def asset_version_not_found() -> AppError:
+    return AppError(
+        code="ASSET_VERSION_NOT_FOUND",
+        message="AssetVersion을 찾을 수 없습니다.",
+        status_code=404,
+    )
+
+
+def asset_version_conflict() -> AppError:
+    return AppError(
+        code="ASSET_VERSION_CONFLICT",
+        message="AssetVersion 요청이 현재 상태와 충돌합니다.",
+        status_code=409,
+    )
+
+
 def project_asset_not_found() -> AppError:
     return AppError(
         code="PROJECT_ASSET_NOT_FOUND",
@@ -151,6 +167,23 @@ def map_asset_error(exc: Exception) -> AppError:
             return asset_not_found()
     if isinstance(exc, ResourceConflictError) and exc.resource_name == "Asset":
         return asset_conflict()
+    if isinstance(exc, ApplicationValidationError):
+        return invalid_input(exc.message)
+    raise exc
+
+
+def map_asset_version_error(exc: Exception) -> AppError:
+    if isinstance(exc, ResourceNotFoundError):
+        if exc.resource_name == "Asset":
+            return asset_not_found()
+        if "AssetVersion" in exc.resource_name:
+            return asset_version_not_found()
+        if exc.resource_name == "ProcessingChain":
+            return invalid_input("참조한 ProcessingChain을 찾을 수 없습니다.")
+    if isinstance(exc, ResourceConflictError) and exc.resource_name.startswith(
+        "AssetVersion"
+    ):
+        return asset_version_conflict()
     if isinstance(exc, ApplicationValidationError):
         return invalid_input(exc.message)
     raise exc

@@ -31,6 +31,6 @@ DohaLM 공동 창작 연동에서 필요한 Project·Version·Generation·Analys
 
 ## Workspace Artifact와 Composition Snapshot [계획]
 
-`Asset`, `AssetVersion`, `Artifact`, `CompositionSnapshot`과 공통 `Job`은 목표 ORM과 additive migration에 존재하지만 실제 사용자 DB와 Runtime에는 아직 적용되지 않았다. 목표 모델에서 Snapshot은 최신 Asset ID가 아니라 특정 Lyrics·Music·Vocal·Stem AssetVersion과 processing chain·mix settings·Provider·모델 버전을 불변으로 참조한다.
+`Asset`, `AssetVersion`, `Artifact`, `CompositionSnapshot`과 공통 `Job`은 목표 ORM과 additive migration으로 실제 사용자 DB에 적용됐지만 row는 아직 없고 Runtime source of truth도 전환하지 않았다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource API 19개만 구현했으며 Artifact 이하 API는 계획 상태다. 목표 모델에서 Snapshot은 최신 Asset ID가 아니라 특정 Lyrics·Music·Vocal·Stem AssetVersion과 processing chain·mix settings·Provider·모델 버전을 불변으로 참조한다.
 
 Mix Asset, Export Asset, Preview, Snapshot과 실행 기록의 목표 도메인은 `DohaArtifacts/music`이다. DB에는 로컬 절대 경로를 저장하지 않고 opaque Artifact ID 또는 향후 versioned URI만 저장한다. 현재 `pipeline_jobs`, `pipeline_files`, `AUDIO_STORAGE_ROOT`와 Runtime source of truth는 변경하지 않는다. 세부 계획은 [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md)과 [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md)을 따른다.

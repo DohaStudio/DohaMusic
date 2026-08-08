@@ -131,15 +131,26 @@ class AssetRepository:
         return self.session.get(AssetVersion, asset_version_id)
 
     def list_asset_versions(
-        self, asset_id: UUID, *, limit: int = 100, offset: int = 0
+        self,
+        asset_id: UUID,
+        *,
+        limit: int | None = 100,
+        offset: int = 0,
+        newest_first: bool = False,
     ) -> list[AssetVersion]:
+        ordering = (
+            (AssetVersion.version_number.desc(), AssetVersion.asset_version_id.desc())
+            if newest_first
+            else (AssetVersion.version_number, AssetVersion.asset_version_id)
+        )
         statement = (
             select(AssetVersion)
             .where(AssetVersion.asset_id == asset_id)
-            .order_by(AssetVersion.version_number, AssetVersion.asset_version_id)
-            .limit(limit)
+            .order_by(*ordering)
             .offset(offset)
         )
+        if limit is not None:
+            statement = statement.limit(limit)
         return list(self.session.scalars(statement))
 
     def get_latest_asset_version(self, asset_id: UUID) -> AssetVersion | None:

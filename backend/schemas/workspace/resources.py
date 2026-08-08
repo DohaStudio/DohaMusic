@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -127,3 +128,33 @@ class AssetUpdateRequest(BaseModel):
         if self.lifecycle_status is None:
             raise ValueError("lifecycle_status는 null로 수정할 수 없습니다.")
         return self
+
+
+class AssetVersionSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    asset_version_id: UUID
+    asset_id: UUID
+    version_number: int
+    version_origin: str
+    parent_asset_version_id: UUID | None
+    processing_chain_id: UUID | None
+    provider_id: str | None
+    model_manifest_id: str | None
+    settings_snapshot: dict[str, Any]
+    created_at: datetime
+
+
+class AssetVersionDetail(AssetVersionSummary):
+    pass
+
+
+class AssetVersionCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    version_origin: str = Field(min_length=1, max_length=255)
+    settings_snapshot: dict[str, Any] = Field(default_factory=dict)
+    parent_asset_version_id: UUID | None = None
+    processing_chain_id: UUID | None = None
+    provider_id: str | None = Field(default=None, min_length=1, max_length=255)
+    model_manifest_id: str | None = Field(default=None, min_length=1, max_length=255)

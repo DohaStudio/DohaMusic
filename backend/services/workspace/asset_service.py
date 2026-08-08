@@ -300,13 +300,23 @@ class AssetService:
             return version
 
     def list_asset_versions(
-        self, asset_id: UUID, *, limit: int = 100, offset: int = 0
+        self,
+        asset_id: UUID,
+        *,
+        limit: int | None = 100,
+        offset: int = 0,
+        newest_first: bool = False,
     ) -> list[AssetVersion]:
         with self.session_factory() as session:
             repository = AssetRepository(session)
             if repository.get_asset(asset_id) is None:
                 raise ResourceNotFoundError("Asset")
-            return repository.list_asset_versions(asset_id, limit=limit, offset=offset)
+            return repository.list_asset_versions(
+                asset_id,
+                limit=limit,
+                offset=offset,
+                newest_first=newest_first,
+            )
 
     def get_latest_asset_version(self, asset_id: UUID) -> AssetVersion | None:
         with self.session_factory() as session:
