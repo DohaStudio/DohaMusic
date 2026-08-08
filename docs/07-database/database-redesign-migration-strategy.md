@@ -3,12 +3,12 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-08
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity·0012·0013·0014 실제 적용, Asset Index source 0015와 Workspace Repository·Service·첫 Resource API 11개 완료; 실제 DB 0015·Bootstrap·backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity·0012~0015 실제 적용, Workspace Repository·Service·Resource API 16개 완료; Bootstrap·backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head는 Asset full keyset Index 두 개를 추가한 `20260808_0015`이고 실제 사용자 DB revision은 `20260807_0014`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개, `20260807_0014`는 ProjectAsset partial Index 하나를 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index 두 개를 추가한 `20260808_0015`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개, `20260807_0014`는 ProjectAsset partial Index 하나를 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|

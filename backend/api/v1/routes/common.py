@@ -69,6 +69,14 @@ def asset_not_found() -> AppError:
     )
 
 
+def asset_conflict() -> AppError:
+    return AppError(
+        code="ASSET_CONFLICT",
+        message="Asset 요청이 현재 상태와 충돌합니다.",
+        status_code=409,
+    )
+
+
 def project_asset_not_found() -> AppError:
     return AppError(
         code="PROJECT_ASSET_NOT_FOUND",
@@ -130,6 +138,19 @@ def map_project_asset_error(exc: Exception) -> AppError:
             return project_asset_not_found()
     if isinstance(exc, ResourceConflictError) and exc.resource_name == "ProjectAsset":
         return project_asset_conflict()
+    if isinstance(exc, ApplicationValidationError):
+        return invalid_input(exc.message)
+    raise exc
+
+
+def map_asset_error(exc: Exception) -> AppError:
+    if isinstance(exc, ResourceNotFoundError):
+        if exc.resource_name == "Workspace":
+            return workspace_not_found()
+        if exc.resource_name == "Asset":
+            return asset_not_found()
+    if isinstance(exc, ResourceConflictError) and exc.resource_name == "Asset":
+        return asset_conflict()
     if isinstance(exc, ApplicationValidationError):
         return invalid_input(exc.message)
     raise exc

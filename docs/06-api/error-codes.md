@@ -16,6 +16,7 @@
 | `PROJECT_NOT_FOUND` | 요청한 MusicProject가 없거나 Soft Delete됨 |
 | `PROJECT_TITLE_CONFLICT` | 같은 Workspace 범위에서 MusicProject 제목 충돌 |
 | `ASSET_NOT_FOUND` | 요청한 Asset이 없거나 Soft Delete됨 |
+| `ASSET_CONFLICT` | Asset 생성 또는 변경 요청이 현재 상태와 충돌함 |
 | `PROJECT_ASSET_NOT_FOUND` | 요청한 ProjectAsset 관계가 없거나 Soft Delete됨 |
 | `PROJECT_ASSET_CONFLICT` | 같은 Project와 Asset의 활성 관계가 이미 존재함 |
 | `INVALID_STATE` | 현재 Resource 상태에서 요청을 수행할 수 없음 |

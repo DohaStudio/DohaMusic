@@ -1,9 +1,9 @@
 # Workspace REST API Endpoint 목록
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-07
+> 최종 수정일: 2026-08-08
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace·MusicProject·ProjectAsset 11개 완료, 나머지 53개 Resource Endpoint 계획
+> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset 16개 완료, 나머지 48개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -28,7 +28,7 @@
 | Health | 2 |
 | **합계** | **64** |
 
-Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject·ProjectAsset 11개는 `[완료]`이며 나머지 53개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
+Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject·ProjectAsset·Asset 16개는 `[완료]`이며 나머지 48개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
 
 ## 2. Workspace API — 3개
 
@@ -66,21 +66,21 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 
 Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `display_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
 
-세 Endpoint는 구현했습니다. 목록은 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 실제 적용된 revision `20260807_0014` partial Index를 사용합니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다. POST는 Asset 또는 AssetVersion을 생성하지 않으며 DELETE는 관계만 Soft Delete합니다. Resource API 진행도는 11/64입니다.
+세 Endpoint는 구현했습니다. 목록은 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 실제 적용된 revision `20260807_0014` partial Index를 사용합니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다. POST는 Asset 또는 AssetVersion을 생성하지 않으며 DELETE는 관계만 Soft Delete합니다. Resource API 진행도는 16/64입니다.
 
 ## 5. Asset API — 5개
 
-| Method | Path | 성공 | 목적 |
-|---|---|---:|---|
-| `GET` | `/api/v1/assets` | 200 | Asset 목록·검색·filter |
-| `POST` | `/api/v1/assets` | 201 | 논리 Asset 생성 |
-| `GET` | `/api/v1/assets/{asset_id}` | 200 | Asset와 현재 Selection 조회 |
-| `PATCH` | `/api/v1/assets/{asset_id}` | 200 | 변경 가능한 Asset Metadata 수정 |
-| `DELETE` | `/api/v1/assets/{asset_id}` | 204 | Asset Soft Delete |
+| Method | Path | 성공 | 상태 | 목적 |
+|---|---|---:|---|---|
+| `GET` | `/api/v1/assets` | 200 | [완료] | Asset 목록·filter |
+| `POST` | `/api/v1/assets` | 201 | [완료] | 논리 Asset 생성 |
+| `GET` | `/api/v1/assets/{asset_id}` | 200 | [완료] | Asset와 현재 Selection 조회 |
+| `PATCH` | `/api/v1/assets/{asset_id}` | 200 | [완료] | 변경 가능한 Asset Metadata 수정 |
+| `DELETE` | `/api/v1/assets/{asset_id}` | 204 | [완료] | Asset Soft Delete |
 
-다섯 Endpoint는 아직 `[계획]`입니다. 목록은 향후 신뢰된 effective Owner의 활성 Asset에 한정하고 선택적 `workspace_id=<uuid>`와 `asset_type`만 filter로 받으며 `(created_at DESC, asset_id DESC)` HMAC Cursor를 사용합니다. `owner_id`, `include_deleted`, lifecycle filter, 검색과 임의 sort는 공개하지 않습니다.
+다섯 Endpoint를 구현했습니다. 목록은 신뢰된 effective Owner의 활성 Asset에 한정하고 선택적 `workspace_id=<uuid>`와 `asset_type`만 filter로 받으며 `(created_at DESC, asset_id DESC)` HMAC Cursor를 사용합니다. `owner_id`, `include_deleted`, lifecycle filter, 검색과 임의 sort는 공개하지 않습니다.
 
-POST는 선택적 `workspace_id`, `asset_type`과 초기 Metadata만 받으며 Version을 자동 생성하지 않습니다. `owner_id`는 공개 입력으로 받지 않고 Bootstrap·인증 context에서 파생합니다. 저장소별 단일 Workspace 계약에서는 `workspace_id`를 생략할 수 있고, `asset_type`은 Common Specification과 DB Redesign에 정의된 값만 사용합니다.
+POST는 선택적 `workspace_id`, 필수 `asset_type`과 초기 `lifecycle_status`만 받으며 Version·Artifact·ProjectAsset을 자동 생성하지 않습니다. `owner_id`는 공개 입력으로 받지 않고 Bootstrap Workspace context에서 파생합니다. 저장소별 단일 Workspace 계약에서는 `workspace_id`를 생략할 수 있고, `asset_type`은 Common Specification과 DB Redesign에 정의된 값만 사용합니다. PATCH는 `lifecycle_status`만 허용하며 DELETE는 Version·Artifact·ProjectAsset을 보존한 채 Asset을 Soft Delete합니다.
 
 ## 6. AssetVersion API — 4개
 

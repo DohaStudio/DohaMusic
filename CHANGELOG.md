@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Asset Resource REST API
+
+- `GET·POST /api/v1/assets`와 `GET·PATCH·DELETE /api/v1/assets/{asset_id}`를 추가해 Owner scope 목록, 논리 Asset 생성, 상세 조회, 제한된 Metadata 수정과 Soft Delete를 제공한다.
+- 목록은 선택적 `workspace_id`·`asset_type`, `(created_at DESC, asset_id DESC)` HMAC Cursor와 실제 사용자 DB에 적용된 revision `20260808_0015` Index를 사용하며 외부 offset과 `owner_id`를 노출하지 않는다.
+- POST는 Asset만 생성하고 AssetVersion·Artifact·ProjectAsset을 자동 생성하지 않는다. DELETE도 AssetVersion·Artifact·ProjectAsset을 삭제하지 않는다.
+- 공개 DTO와 입력에서 `owner_id`·`created_by` 및 내부 식별·삭제 필드를 제외하고 `ASSET_NOT_FOUND`, `ASSET_CONFLICT`, `WORKSPACE_BOOTSTRAP_REQUIRED`와 공통 Cursor·입력 오류 계약을 적용한다.
+- Resource API 진행도는 16/64다. Runtime Table 14개는 계속 source of truth이며 실제 Bootstrap·backfill·dual write·Frontend는 수행하지 않았다.
+- 구현·회귀 검증 결과는 [Asset Resource API 검증](reports/validation/VALIDATION-ASSET-API.md)에 기록했다.
+
 ### 추가 — Asset Cursor Pagination과 keyset Index 기반
 
 - 향후 Asset 공개 목록을 신뢰된 현재 Owner의 활성 Asset으로 제한하고 `workspace_id=<uuid>`와 `asset_type`만 선택적 filter로 허용한다. `owner_id`, `include_deleted`, lifecycle filter와 자유 검색은 공개하지 않는다.

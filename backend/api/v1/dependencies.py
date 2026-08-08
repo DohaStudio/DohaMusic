@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from fastapi import FastAPI, Request, Response
 
-from backend.services.workspace import WorkspaceService
+from backend.services.workspace import AssetService, WorkspaceService
 
 REQUEST_ID_HEADER = "X-Request-ID"
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
@@ -42,6 +42,15 @@ def get_workspace_service(request: Request) -> WorkspaceService:
     service = getattr(request.app.state, "workspace_service", None)
     if not isinstance(service, WorkspaceService):
         raise RuntimeError("WorkspaceService가 구성되지 않았습니다.")
+    return service
+
+
+def get_asset_service(request: Request) -> AssetService:
+    """App composition root에서 구성한 AssetService를 제공한다."""
+
+    service = getattr(request.app.state, "asset_service", None)
+    if not isinstance(service, AssetService):
+        raise RuntimeError("AssetService가 구성되지 않았습니다.")
     return service
 
 

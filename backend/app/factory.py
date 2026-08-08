@@ -45,7 +45,7 @@ from backend.services.voice_conversion_service import VoiceConversionService
 from backend.services.voice_enrollment_service import VoiceEnrollmentService
 from backend.services.voice_profile_service import VoiceProfileService
 from backend.services.voice_upload_service import VoiceUploadService
-from backend.services.workspace import WorkspaceService
+from backend.services.workspace import AssetService, WorkspaceService
 from backend.storage.service import StorageService
 from backend.voice_enrollment.maintenance import (
     VoiceEnrollmentMaintenanceService,
@@ -173,6 +173,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.settings = resolved_settings
         app.state.session_factory = session_factory
         app.state.workspace_service = WorkspaceService(
+            session_factory,
+            cursor_codec=cursor_codec,
+        )
+        app.state.asset_service = AssetService(
             session_factory,
             cursor_codec=cursor_codec,
         )

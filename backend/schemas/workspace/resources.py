@@ -7,6 +7,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from backend.models.workspace import AssetType
+
 
 class WorkspaceSummary(BaseModel):
     model_config = ConfigDict(extra="forbid", from_attributes=True)
@@ -87,3 +89,41 @@ class ProjectAssetCreateRequest(BaseModel):
     asset_id: UUID
     role: str | None = None
     display_order: int = Field(default=0, ge=0, strict=True)
+
+
+class AssetSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    asset_id: UUID
+    workspace_id: UUID | None
+    asset_type: AssetType
+    selected_asset_version_id: UUID | None
+    lifecycle_status: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class AssetDetail(AssetSummary):
+    pass
+
+
+class AssetCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    workspace_id: UUID | None = None
+    asset_type: AssetType
+    lifecycle_status: str = Field(default="active", min_length=1, max_length=255)
+
+
+class AssetUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    lifecycle_status: str | None = Field(default=None, min_length=1, max_length=255)
+
+    @model_validator(mode="after")
+    def require_lifecycle_status(self) -> AssetUpdateRequest:
+        if "lifecycle_status" not in self.model_fields_set:
+            raise ValueError("수정할 필드가 하나 이상 필요합니다.")
+        if self.lifecycle_status is None:
+            raise ValueError("lifecycle_status는 null로 수정할 수 없습니다.")
+        return self
