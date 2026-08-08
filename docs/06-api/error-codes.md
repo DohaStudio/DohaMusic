@@ -4,6 +4,8 @@
 > 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
 > Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler·Cursor와 Workspace·MusicProject·ProjectAsset Resource 오류 mapping 구현
 
+`ARTIFACT_*` 오류는 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)에서 승인한 `[계획]` 계약이며 Router·Resolver와 handler에는 아직 구현하지 않았습니다.
+
 | 코드 | 의미 |
 |---|---|
 | `INVALID_INPUT` | API 요청 형식 또는 범위 오류 |
@@ -18,6 +20,11 @@
 | `ASSET_NOT_FOUND` | 요청한 Asset이 없거나 Soft Delete됨 |
 | `ASSET_CONFLICT` | Asset 생성 또는 변경 요청이 현재 상태와 충돌함 |
 | `ASSET_VERSION_NOT_FOUND` | 요청한 AssetVersion이 없거나 URL의 Asset에 속하지 않음 |
+| `ARTIFACT_NOT_FOUND` | Artifact가 없거나 요청 Owner에게 존재를 공개할 수 없음 |
+| `ARTIFACT_CONTENT_UNAVAILABLE` | Catalog·Payload 누락 또는 delivery 정책상 안전하게 제공할 수 없음 |
+| `ARTIFACT_QUARANTINED` | Artifact가 격리 상태여서 content·download 불가 |
+| `ARTIFACT_GONE` | Artifact가 만료·삭제 대기·물리 삭제 상태임 |
+| `ARTIFACT_INTEGRITY_ERROR` | 실제 Payload의 크기 또는 checksum이 등록 Metadata와 불일치 |
 | `ASSET_VERSION_CONFLICT` | AssetVersion 번호 또는 불변 생성 계약이 기존 상태와 충돌함 |
 | `PROJECT_ASSET_NOT_FOUND` | 요청한 ProjectAsset 관계가 없거나 Soft Delete됨 |
 | `PROJECT_ASSET_CONFLICT` | 같은 Project와 Asset의 활성 관계가 이미 존재함 |

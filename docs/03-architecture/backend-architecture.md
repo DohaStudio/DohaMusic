@@ -28,7 +28,9 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 완료했고 `/api/v1` 공통 기반, 명시적 Bootstrap 도구, HMAC Cursor와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개를 추가했다. AssetVersion Router는 생성·최신순 목록·상세만 공개하고 Service가 단조 증가 번호와 transaction을 소유한다. PATCH·DELETE는 제공하지 않는다. Resource API 진행도는 19/64이며 Artifact 이하 45개 Endpoint와 backfill·dual write·Legacy 제거는 미구현이다.
+Artifact Storage의 목표 경계는 `Router → Artifact Application Service → Storage Resolver·trusted ingestion → Artifact·Catalog Repository`다. Artifact Entity는 무결성 Metadata만 유지하고 별도 내부 `artifact_storage_locations` Catalog가 backend·domain·canonical storage key를 소유한다. 공개 Artifact POST는 없으며 Provider·Worker·Import 결과는 trusted ingestion이 실제 bytes에서 SHA-256·크기·MIME를 검증한 뒤 등록한다. 이 경계는 [Artifact Storage 계약](artifact-storage-contract.md)으로 승인했지만 Catalog Entity·Migration·Resolver와 Artifact API 3개는 아직 구현하지 않았다.
+
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. Workspace Application Service는 별도 namespace로 완료했고 `/api/v1` 공통 기반, 명시적 Bootstrap 도구, HMAC Cursor와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개를 추가했다. AssetVersion Router는 생성·최신순 목록·상세만 공개하고 Service가 단조 증가 번호와 transaction을 소유한다. PATCH·DELETE는 제공하지 않는다. Resource API 진행도는 19/64, Artifact API는 0/3이며 Artifact 이하 45개 Endpoint와 Catalog·Resolver·backfill·dual write·Legacy 제거는 미구현이다.
 
 ## Workspace Application Service 경계
 

@@ -6,7 +6,7 @@
 
 > DohaLM Lyrics 연동: 별도 저장소의 LLM 모델·추론 Provider인 [DohaLM](https://github.com/DohaStudio/DohaLM/tree/develop)을 REST/Streaming API 또는 향후 Python SDK로 호출하는 Reference Application 구조는 `[계획]`입니다. DohaLM의 현재 REST/SSE MVP는 일반 Chat 계약이며 Python SDK와 DohaMusic 전용 Lyrics API는 아직 확정되지 않았습니다. `AIHUB-71748` 계열은 비상업 연구 범위이므로 상업용 DohaMusic 작업에서 사용할 수 없습니다.
 
-> Workspace Artifact 도메인: Provider Runtime 결과의 `DohaArtifacts/lm|audio|vocal`과 별도로 Mix·Export·Preview·Composition Snapshot·실행 기록을 위한 `DohaArtifacts/music` 구조는 `[계획]`입니다. 로컬 폴더·환경 변수·DB·Runtime은 아직 변경하지 않았습니다.
+> Workspace Artifact 도메인: Provider Runtime 결과의 `DohaArtifacts/lm|audio|vocal`과 별도로 Mix·Export·Preview·Composition Snapshot·실행 기록을 위한 `DohaArtifacts/music` 구조와 [Artifact Storage Resolver·무결성 계약](docs/03-architecture/artifact-storage-contract.md)을 확정했습니다. Catalog·Resolver·로컬 폴더·환경 변수·DB·Runtime은 아직 구현하지 않았고 Artifact API는 0/3입니다.
 
 > AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지하고, 실제 저장소로 존재하는 DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider 기능으로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
 

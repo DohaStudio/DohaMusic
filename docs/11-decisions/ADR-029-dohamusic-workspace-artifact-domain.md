@@ -2,14 +2,14 @@
 
 > 상태: 제안
 > 작성일: 2026-08-05
-> 최종 수정일: 2026-08-05
-> 관련 문서: [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md), [Storage Architecture](../03-architecture/storage-architecture.md), [Database Overview](../07-database/database-overview.md)
+> 최종 수정일: 2026-08-08
+> 관련 문서: [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md), [Storage Architecture](../03-architecture/storage-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-032](ADR-032-artifact-storage-resolver-integrity.md)
 
 ## 배경
 
 DohaLM, DohaAudio와 DohaVocal의 모델·학습·평가·Runtime 산출물은 Provider 도메인이다. DohaMusic은 이 결과를 선택하고 조합해 Mix·Preview·최종 Export를 만드는 개인 음악 제작 Workspace이므로 Provider 산출물과 프로젝트 결과물을 같은 Artifact 도메인에 두면 소유 책임과 보존 정책이 모호해진다.
 
-현재 구현은 `AUDIO_STORAGE_ROOT` 아래 Pipeline 중심 파일 구조를 사용하며 `D:/DohaArtifacts/music`, AssetVersion, Composition Snapshot과 독립 Mix·Export Asset은 구현하지 않았다.
+현재 구현은 `AUDIO_STORAGE_ROOT` 아래 Pipeline 중심 파일 구조를 사용한다. AssetVersion Entity·API는 구현했지만 `D:/DohaArtifacts/music`, Artifact Catalog·Resolver, Composition Snapshot과 독립 Mix·Export Asset은 구현하지 않았다.
 
 ## 문제
 
@@ -26,7 +26,7 @@ DohaLM, DohaAudio와 DohaVocal의 모델·학습·평가·Runtime 산출물은 P
 4. Mix와 최종 Export는 DohaMusic 책임이며 AI Provider 책임이 아니다.
 5. Composition Snapshot은 Asset이 아니라 불변 AssetVersion을 참조한다.
 6. Mix Job은 Snapshot을 입력으로 Mix Asset을 만들고 Export Job은 Mix AssetVersion을 입력으로 Export Asset을 만든다.
-7. DB·Manifest·공개 API에는 로컬 절대 경로를 저장하지 않고 opaque Artifact ID 또는 향후 versioned URI를 사용한다.
+7. DB·Manifest·공개 API에는 로컬 절대 경로를 저장하지 않는다. 내부 URI는 `artifact://<artifact_id>`, 공개 응답은 Artifact API link를 사용하고 물리 locator는 별도 내부 Catalog가 소유한다.
 8. 이번 결정은 문서 계약이며 폴더 생성, 파일 이동, 환경 변수, 코드와 DB migration을 수행하지 않는다.
 9. Composition Snapshot의 권위 있는 관계 데이터는 DB가 소유한다. `snapshots` 폴더는 재현·직렬화·백업용 Artifact만 저장하며 별도 관계 원장이 아니다.
 
@@ -51,14 +51,14 @@ Provider 모델 수명주기와 사용자의 프로젝트 결과 수명주기를
 ## 마이그레이션
 
 1. 문서와 책임 경계를 확정한다.
-2. Artifact ID/URI, AssetVersion과 Composition Snapshot schema를 별도 ADR·migration으로 검증한다.
+2. `[계약 완료]` Artifact ID/URI, 별도 Catalog·Resolver와 ingestion·무결성 경계를 ADR-032로 승인한다. Catalog Entity·Migration과 Resolver 구현은 별도 작업으로 검증한다.
 3. 신규 Mix·Export 결과부터 `music` 도메인을 사용한다.
 4. 기존 Pipeline 결과는 checksum·참조·rollback 검증 후 선택적으로 backfill한다.
 5. 모든 소비자가 전환된 뒤에만 구형 경로 제거를 검토한다.
 
 ## 재검토 조건
 
-- Artifact ID/URI와 Storage resolver를 구현할 때
+- Artifact Catalog·Resolver를 구현하거나 object storage로 확장할 때
 - Object Storage 또는 다중 Workspace를 도입할 때
 - Snapshot schema와 Asset 삭제·보존 정책을 확정할 때
 - Provider가 Workspace Artifact를 직접 쓰거나 Mix 책임을 요구할 때

@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Artifact Storage Resolver와 무결성 계약
+
+- Artifact를 정확한 AssetVersion에 귀속된 불변 Payload 기록으로 고정하고 공개 Artifact API를 Metadata·content·download 3개로 유지했다.
+- 경로 없는 Artifact와 물리 Payload 사이의 authoritative Catalog로 내부 `artifact_storage_locations` Table을 선택하고 `artifact://<artifact_id>`와 canonical domain-relative storage key 계약을 확정했다.
+- trusted ingestion이 실제 bytes에서 SHA-256·크기·kind별 media type을 검증한 뒤 exclusive publish하고 Artifact·Catalog를 같은 DB transaction에 등록하도록 정의했다.
+- owner 파생, retention 5개 상태, single byte range, 안전한 파일명, traversal·symlink·Windows reparse point·TOCTOU, 손상·누락 오류와 GC 경계를 문서화했다.
+- 구현 전 별도 Catalog additive Migration이 필요하며 Artifact Router·Resolver·Entity·Alembic·실제 DB·파일·Runtime은 변경하지 않았다. Resource API는 19/64, Artifact API는 0/3을 유지한다.
+- 검증 결과는 [Artifact Storage 계약 검증](reports/validation/VALIDATION-ARTIFACT-STORAGE-CONTRACT.md)에 기록했다.
+
 ### 추가 — AssetVersion Resource REST API
 
 - `GET·POST /api/v1/assets/{asset_id}/versions`와 `GET /api/v1/assets/{asset_id}/versions/{asset_version_id}`를 추가해 최신 Version 우선 목록, 새 불변 Version 생성과 단건 Lineage 조회를 제공한다.

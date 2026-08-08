@@ -3,13 +3,13 @@
 > 문서 상태: [계획]
 > 최종 수정일: 2026-08-08
 > 관련 기능: AssetVersion 기반 Composition Snapshot, Mix, Export
-> 관련 문서: [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md)
+> 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)
 
 ## 목적
 
 DohaMusic은 AI Provider가 아니라 개인 AI 음악 제작 Workspace다. DohaLM·DohaAudio·DohaVocal의 Runtime 산출물과 사용자가 선택·조합해 만든 프로젝트 결과물의 저장 책임을 분리한다.
 
-이 문서는 목표 계약을 정의한다. Asset·Snapshot 목표 Entity와 Asset Cursor·keyset Repository/Service·Resource API 5개, AssetVersion 생성·최신순 목록·상세 API 3개와 실제 사용자 DB Asset Index revision `20260808_0015`는 구현·적용했다. AssetVersion은 기존 row를 보존하고 새 번호의 row만 추가하며 PATCH·DELETE를 제공하지 않는다. `D:/DohaArtifacts/music` 디렉터리, Artifact 이하 Resource API, Mix·Export Job, Artifact URI와 파일 이동은 아직 구현하지 않았다.
+이 문서는 목표 계약을 정의한다. Asset·Snapshot 목표 Entity와 Asset Cursor·keyset Repository/Service·Resource API 5개, AssetVersion 생성·최신순 목록·상세 API 3개와 실제 사용자 DB Asset Index revision `20260808_0015`는 구현·적용했다. AssetVersion은 기존 row를 보존하고 새 번호의 row만 추가하며 PATCH·DELETE를 제공하지 않는다. Artifact ID와 물리 Payload는 별도 내부 DB Catalog와 Resolver가 연결하고 trusted ingestion이 실제 bytes의 SHA-256·크기·MIME를 검증한다는 계약을 확정했다. `D:/DohaArtifacts/music` 디렉터리, Catalog Table·Resolver·Artifact API 3개, Mix·Export Job과 파일 이동은 아직 구현하지 않았다.
 
 ## Workspace 흐름
 
@@ -92,4 +92,4 @@ Export는 선택한 Mix AssetVersion을 WAV·MP3·FLAC 같은 전달 형식으�
 
 ## 현재 호환 경계
 
-현재 `PipelineExecutor`, `pipeline_jobs`, `pipeline_files`와 `AUDIO_STORAGE_ROOT`는 그대로 유지한다. 기존 `final.wav`, Preview 후보와 metadata를 즉시 이동하거나 새 Asset으로 backfill하지 않는다. 실제 전환은 DB migration, Artifact ID/URI와 rollback 계약을 승인한 뒤 별도 작업으로 수행한다.
+현재 `PipelineExecutor`, `pipeline_jobs`, `pipeline_files`와 `AUDIO_STORAGE_ROOT`는 그대로 유지한다. 기존 `final.wav`, Preview 후보와 metadata를 즉시 이동하거나 새 Asset으로 backfill하지 않는다. [Artifact Storage 계약](artifact-storage-contract.md)은 `artifact://<artifact_id>`와 `artifact_storage_locations` Catalog 방향을 승인했지만 구현·Migration은 수행하지 않았다. 실제 전환은 Catalog additive Migration, Resolver·ingestion 검증과 rollback Gate를 통과한 별도 작업으로 수행한다.

@@ -35,6 +35,7 @@
 | [ADR-029](ADR-029-dohamusic-workspace-artifact-domain.md) | DohaMusic Workspace 전용 `music` Artifact 도메인 | 제안 |
 | [ADR-030](ADR-030-asset-version-centric-database.md) | AssetVersion 중심 Workspace 데이터베이스와 단계적 전환 | 제안 |
 | [ADR-031](ADR-031-workspace-rest-api-contract.md) | Workspace 중심 REST API와 단계적 Legacy 전환 | 제안 |
+| [ADR-032](ADR-032-artifact-storage-resolver-integrity.md) | Artifact Storage Catalog·Resolver·ingestion·무결성 경계 | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -49,6 +50,10 @@
 # Workspace API
 
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
+
+# Artifact Storage
+
+- [ADR-032 — Artifact Storage Resolver와 무결성 경계](ADR-032-artifact-storage-resolver-integrity.md): 경로 없는 Artifact와 별도 DB Catalog, `artifact://` URI, trusted ingestion, owner·retention·Range·GC 계약을 승인한다.
 
 # Phase 6.5
 
@@ -67,6 +72,7 @@
 - [ADR-019 — Secure Voice Profile Upload](ADR-019-secure-voice-profile-upload.md): 동의된 WAV를 안전하게 저장하고 공개 metadata·삭제 정책과 원본 비공개 경계를 결정한다.
 - [ADR-021 — Pipeline Job Cancel·Retry](ADR-021-pipeline-job-cancel-retry.md): 단계 경계 cooperative 취소와 입력 Snapshot 기반 새 Job Retry를 결정한다.
 - [ADR-029 — DohaMusic Workspace 전용 music Artifact 도메인](ADR-029-dohamusic-workspace-artifact-domain.md): Provider Artifact와 Composition Snapshot·Mix·Preview·Export 결과의 Workspace 저장 책임을 분리한다.
+- [ADR-032 — Artifact Storage Resolver와 무결성 경계](ADR-032-artifact-storage-resolver-integrity.md): Workspace와 Provider Artifact의 locator·무결성·공개 delivery 경계를 고정한다.
 
 # K-POP Creation Control
 

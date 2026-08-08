@@ -2,9 +2,9 @@
 
 > 상태: [제안]
 > 작성일: 2026-08-05
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-08
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 관련 문서: [공통 계약](../06-api/workspace-rest-api-contract.md), [Endpoint 목록](../06-api/workspace-rest-api-endpoints.md), [Provider API](../06-api/provider-api-contract.md), [API 전환 전략](../06-api/api-contract-migration-strategy.md)
+> 관련 문서: [공통 계약](../06-api/workspace-rest-api-contract.md), [Endpoint 목록](../06-api/workspace-rest-api-endpoints.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API](../06-api/provider-api-contract.md), [API 전환 전략](../06-api/api-contract-migration-strategy.md), [ADR-032](ADR-032-artifact-storage-resolver-integrity.md)
 > 관련 PR: [PR #53](https://github.com/DohaStudio/DohaMusic/pull/53)
 
 ## 배경
@@ -27,7 +27,7 @@ DohaMusic의 목표 API를 `/api/v1` Workspace REST API로 설계합니다.
 - Selection은 Asset의 현재 Version 선택이며 Snapshot과 분리합니다.
 - Job은 독립 비동기 실행 단위이며 다섯 공통 상태를 사용합니다.
 - Retry는 새 Job을 생성합니다.
-- Artifact API는 ID·checksum·권한 기반 Metadata와 content link를 제공하고 경로를 노출하지 않습니다.
+- Artifact API는 ID·checksum·owner·retention 기반 Metadata와 content·download link를 제공하고 경로·Catalog·storage key를 노출하지 않습니다. 공개 POST·PATCH·DELETE·Collection은 제공하지 않습니다.
 - Recording은 작품 Asset, Take는 AssetVersion, Enrollment는 별도 Consent·Approval 과정으로 구분합니다.
 - Workspace Job API와 Orchestrator 전용 Provider API를 분리합니다.
 - cursor pagination, 공통 success/error response, Idempotency-Key와 path major versioning을 사용합니다.
@@ -75,7 +75,7 @@ Common Specification PR #2와 DB Redesign PR #52가 선행 의존성입니다. �
 
 - Common Specification 또는 DB Redesign Entity·관계가 변경될 때
 - 인증·Owner·Workspace Role이 확정될 때
-- Artifact Resolver와 object storage 접근 계약이 결정될 때
+- Artifact Catalog·Resolver 구현 또는 object storage·replica 접근 계약이 변경될 때
 - Provider Runtime transport가 HTTP 외 방식으로 확정될 때
 - Recording Take upload·Artifact 등록 계약이 확정될 때
 - Approval·AssetRelation·ProcessingChain 공개 API 범위가 확정될 때
