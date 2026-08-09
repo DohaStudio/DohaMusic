@@ -1,9 +1,9 @@
 # Asset 중심 목표 Table Definition
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 21개 SQLAlchemy 2.0 Entity와 additive revision `20260806_0012` 완료, 실제 사용자 DB Table 미적용
+> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·source revision `20260809_0016` 구현, 실제 사용자 DB `20260808_0015`
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 표기 기준
@@ -126,7 +126,24 @@ Artifact는 실제 파일 또는 직렬화된 Payload의 식별·무결성 Metad
 
 절대 경로와 상대 경로 field를 두지 않습니다. 같은 `artifact_id`의 Payload는 덮어쓰지 않습니다. `(checksum_algorithm, artifact_checksum, size_bytes)`는 중복 탐지 Index이며 자동 병합 Unique로 사용하지 않습니다.
 
-### 3.4 `asset_relations`
+### 3.4 `artifact_storage_locations`
+
+ArtifactStorageLocation은 Artifact ID와 승인된 Storage root 내부 locator를 1:1로 연결하는 내부 운영 Entity입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `storage_location_id` | UUID | 아니요 | PK | Catalog row 식별자 |
+| `artifact_id` | UUID | 아니요 | FK, Unique | `artifacts.artifact_id`, 삭제 `RESTRICT` |
+| `storage_backend` | string | 아니요 | Unique 조합 | 초기 지원값 `local`; 비어 있지 않음 |
+| `storage_domain` | string | 아니요 | Unique 조합, Check | `lm`, `audio`, `vocal`, `music` |
+| `storage_key` | string | 아니요 | Unique 조합 | domain root 기준 canonical 상대 key |
+| `locator_version` | integer | 아니요 | Check | 1 이상의 locator 계약 version |
+| `published_at` | timestamp | 아니요 |  | 불변 Payload publish 완료 시각 |
+| `created_at` | timestamp | 아니요 |  | Catalog row 생성 시각 |
+
+`(storage_backend, storage_domain, storage_key)`는 Unique입니다. 절대·상대 path column을 두지 않으며 DB는 최소 불변 조건만 강제합니다. traversal·symlink·junction·root containment와 canonical key 검증은 후속 Resolver 책임입니다.
+
+### 3.5 `asset_relations`
 
 AssetRelation은 부모·파생·Stem·Voice Conversion 등 의미 관계를 저장합니다.
 
@@ -400,6 +417,7 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | MusicProject → ProjectAsset·Snapshot·Job | 물리 삭제 제한 |
 | Asset → AssetVersion | 물리 삭제 제한 |
 | AssetVersion → Artifact·SnapshotItem·JobInput/Output·ModelUsage | 물리 삭제 제한 |
+| Artifact → ArtifactStorageLocation | 1:1, 물리 삭제 제한 |
 | Job → Input·Output·ModelUsage | 물리 삭제 제한 |
 | ProcessingChain → Step·Version·Snapshot | 물리 삭제 제한 |
 | RecordingEnrollment·ModelUsage → Approval | 물리 삭제 제한 |
@@ -422,6 +440,7 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | `favorites` | `(workspace_id, asset_id)` | `workspace_id`, `deleted_at` |
 | `jobs` | 없음 | `(project_id, created_at)`, `(status, created_at)`, `retry_of_job_id` |
 | `artifacts` | Artifact ID | checksum 조합, `retention_status`, `run_id` |
+| `artifact_storage_locations` | `artifact_id`, `(storage_backend, storage_domain, storage_key)` | Unique 제약으로 역조회 지원, 별도 Index 없음 |
 
 ## 9. 구현 전 검증 항목
 
@@ -430,4 +449,5 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 - 불변 row의 UPDATE 차단을 Service, Repository 또는 DB 중 어디서 강제할지
 - `json` field의 JSON Schema와 versioning
 - History의 논리 참조 무결성과 개인정보 최소화
-- Artifact Resolver 없이 DB에 경로를 저장하지 않는 API·Worker 전환 순서
+- 실제 사용자 DB `20260808_0015 → 20260809_0016` 안전 적용과 복구 Gate
+- Catalog Resolver 없이 DB에 absolute path를 저장하지 않는 API·Worker 전환 순서

@@ -40,6 +40,7 @@ if TYPE_CHECKING:
         SnapshotItem,
     )
     from backend.models.workspace.job import JobInput, JobOutput, ModelUsage
+    from backend.models.workspace.storage import ArtifactStorageLocation
     from backend.models.workspace.workspace import ProjectAsset, Workspace
 
 
@@ -223,6 +224,9 @@ class Artifact(CreatedAtMixin, Base):
     retention_status: Mapped[str] = mapped_column(String, nullable=False, index=True)
 
     asset_version: Mapped[AssetVersion] = relationship(back_populates="artifacts")
+    storage_location: Mapped[ArtifactStorageLocation | None] = relationship(
+        "ArtifactStorageLocation", back_populates="artifact", uselist=False
+    )
     job_inputs: Mapped[list[JobInput]] = relationship(back_populates="artifact")
     job_outputs: Mapped[list[JobOutput]] = relationship(back_populates="artifact")
 

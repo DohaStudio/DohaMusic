@@ -18,6 +18,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260808_0015"
 PREVIOUS_REVISION = "20260807_0014"
+SOURCE_HEAD = "20260809_0016"
 INDEXES = {
     "ix_assets_owner_active_keyset": (
         "owner_id",
@@ -289,7 +290,7 @@ def test_asset_index_candidates_query_plan_and_round_trip(tmp_path: Path) -> Non
     config = _config(database_url)
     script = ScriptDirectory.from_config(config)
 
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
     command.upgrade(config, PREVIOUS_REVISION)
     _insert_fixtures(database_url)

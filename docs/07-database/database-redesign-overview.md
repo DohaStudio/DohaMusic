@@ -1,9 +1,9 @@
 # Asset 중심 데이터베이스 재설계 개요
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 21개 Entity·metadata와 revision `20260806_0012`~`20260808_0015` 실제 적용, Workspace Repository·Service와 Resource API 19개 완료; Bootstrap·backfill·dual write 미수행
+> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·source revision `20260809_0016` 구현, 실제 사용자 DB `20260808_0015`, Workspace Repository·Service와 Resource API 19개 완료; Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -24,7 +24,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260808_0015`는 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. Repository와 Service 및 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource API 19개는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table 21개는 현재 빈 상태입니다. Artifact 이하 Resource API·backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
+이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260808_0015`는 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity와 additive source revision `20260809_0016`을 구현해 metadata 36개 Table을 구성했지만 실제 사용자 DB에는 적용하지 않았습니다. Repository와 Service 및 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource API 19개는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table 21개는 현재 빈 상태입니다. Artifact 이하 Resource API·backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
 
 ## 2. Common Specification 기준
 
@@ -110,7 +110,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - 내부 URI는 `artifact://<artifact_id>`이며 공개 API는 Artifact ID 기반 content·download link를 사용합니다.
 - Export는 `export` 유형 Asset과 불변 AssetVersion이며 WAV·MP3·FLAC 파일은 Artifact입니다.
 
-Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 구현하려면 현재 35개 application Table을 변경하지 않는 별도 additive Migration이 필요하며 이번 문서 기준선에서는 추가하지 않습니다. 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
+Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive source revision `20260809_0016`을 구현해 source metadata는 36개 Table입니다. 실제 사용자 DB 적용, Catalog Repository·Resolver·ingestion은 별도 작업이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
 
 ## 4. 목표 Entity와 Table 수
 
@@ -158,7 +158,7 @@ Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`와 Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`가 적용됐습니다. 신규 Table row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion v1 Resource API 19개를 구현했고 Artifact API 0/3을 포함한 나머지 45개 Endpoint는 계획입니다. AssetVersion API는 기존 schema와 `(asset_id, version_number)` Unique Constraint를 재사용합니다. 반면 Artifact Foundation은 별도 `artifact_storage_locations` Catalog가 필요하므로 구현 전에 신규 additive Migration을 별도 검증해야 합니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`와 Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`가 적용됐습니다. source에는 `artifact_storage_locations` 하나를 추가하는 `20260809_0016`이 있으나 실제 사용자 DB에는 미적용입니다. 신규 Workspace Table row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion v1 Resource API 19개를 구현했고 Artifact API 0/3을 포함한 나머지 45개 Endpoint는 계획입니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

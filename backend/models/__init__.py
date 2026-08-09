@@ -15,8 +15,10 @@ from backend.models.voice_enrollment import VoiceEnrollment
 from backend.models.voice_profile import VoiceProfile
 from backend.models.voice_sample import VoiceSample
 from backend.models.workspace import (
+    ARTIFACT_STORAGE_ENTITY_CLASSES,
     Approval,
     Artifact,
+    ArtifactStorageLocation,
     Asset,
     AssetRelation,
     AssetVersion,
@@ -55,7 +57,9 @@ __all__ = [
     "VoiceProfile",
     "VoiceSample",
     "Approval",
+    "ARTIFACT_STORAGE_ENTITY_CLASSES",
     "Artifact",
+    "ArtifactStorageLocation",
     "Asset",
     "AssetRelation",
     "AssetVersion",

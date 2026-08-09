@@ -1,9 +1,9 @@
 # Asset 중심 목표 ERD
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: ERD 기반 Entity mapping과 additive revision `20260806_0012` 완료, 실제 사용자 DB 미적용
+> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·source revision `20260809_0016` 구현, 실제 사용자 DB `20260808_0015`
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 전체 ERD
@@ -24,6 +24,7 @@ erDiagram
   ASSETS ||--|{ ASSET_VERSIONS : versions
   ASSET_VERSIONS o|--o| ASSETS : selected_by
   ASSET_VERSIONS ||--o{ ARTIFACTS : materializes
+  ARTIFACTS ||--o| ARTIFACT_STORAGE_LOCATIONS : resolves_to
   ASSETS ||--o{ ASSET_RELATIONS : source
   ASSETS ||--o{ ASSET_RELATIONS : target
   ASSET_VERSIONS ||--o{ ASSET_RELATIONS : version_source
@@ -103,6 +104,15 @@ erDiagram
     string media_type
     string artifact_checksum
     string retention_status
+  }
+  ARTIFACT_STORAGE_LOCATIONS {
+    uuid storage_location_id PK
+    uuid artifact_id FK
+    string storage_backend
+    string storage_domain
+    string storage_key
+    integer locator_version
+    timestamp published_at
   }
   ASSET_RELATIONS {
     uuid relation_id PK
@@ -232,6 +242,7 @@ erDiagram
 | MusicProject ↔ Asset | N:M | `ProjectAsset`으로만 연결 |
 | Asset → AssetVersion | 1:N | 최소 한 Version, Version 번호 단조 증가 |
 | AssetVersion → Artifact | 1:N | 실제 파일·Payload를 Artifact ID로 참조 |
+| Artifact → ArtifactStorageLocation | 1:0..1 | authoritative locator 하나만 허용, FK 삭제 `RESTRICT` |
 | Asset ↔ Asset | N:M | `AssetRelation`으로 부모·파생·Stem·Voice Conversion 관계 표현 |
 | MusicProject → CompositionSnapshot | 1:N | Project별 Snapshot version 증가 |
 | CompositionSnapshot → SnapshotItem | 1:N | 최소 한 정확한 AssetVersion 참조 |

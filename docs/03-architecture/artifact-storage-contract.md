@@ -1,13 +1,13 @@
 # Artifact Storage Resolver와 무결성 계약
 
 > 문서 상태: [승인]
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-09
 > 관련 기능: Artifact Catalog, Storage Resolver, 안전한 ingestion과 content·download
 > 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Storage Architecture](storage-architecture.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
 
 ## 1. 목적과 현재 경계
 
-이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. 이번 기준선은 문서 계약만 승인하며 Artifact Router·Resolver·Catalog 코드, 신규 Table·Alembic revision, 실제 폴더와 파일 이동은 구현하지 않는다.
+이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog Entity와 additive source revision `20260809_0016`은 구현·임시 SQLite 검증을 완료했다. Artifact Router·Resolver·ingestion, 실제 사용자 DB 적용, 실제 폴더와 파일 이동은 구현하지 않는다.
 
 현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. 목표 Workspace Resource API는 19/64, Artifact API는 0/3이며 다음 세 공개 Endpoint는 `[계획]` 상태를 유지한다.
 
@@ -82,7 +82,7 @@ Artifact Entity에는 path와 storage key를 추가하지 않는다. 내부 전�
 | `artifact_id`의 deterministic path 변환 | 제외 | domain·backend·파일 형식·Provider별 보존 경계를 표현하기 어렵고 relocation 유연성이 낮음 |
 | 기존 Runtime 상대 경로 재사용 | 제외 | Legacy source of truth와 목표 Artifact 경계를 다시 결합함 |
 
-이 결정은 **신규 Entity·Table과 별도 additive Migration이 다음 구현 전에 필요함**을 의미한다. 이번 문서 PR은 목표 21개 Workspace Entity와 현재 Alembic `20260808_0015`를 변경하지 않는다.
+이 결정에 따라 별도 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Table, additive source revision `20260809_0016`을 구현했다. 목표 21개 Workspace Entity와 기존 35개 Table은 변경하지 않았으며 source metadata만 Catalog를 포함한 36개 Table이 됐다. 실제 사용자 DB는 접근하지 않아 `20260808_0015`를 유지한다.
 
 ## 5. Storage key 계약
 
@@ -289,11 +289,12 @@ DB row는 있지만 Catalog나 Payload가 없는 경우 `ARTIFACT_CONTENT_UNAVAI
 
 ## 17. 구현 선행 조건
 
-1. `artifact_storage_locations` Entity·additive Migration 설계와 임시 DB upgrade·downgrade 검증
-2. Storage root 설정과 canonical key validator 구현
-3. Catalog Repository, Resolver와 trusted ingestion Service 구현
-4. symlink·junction·traversal·TOCTOU·checksum·MIME·크기·orphan 테스트
-5. Owner·retention·delivery 정책 구현
-6. Artifact Metadata·content·download API 3개 구현
+1. `[완료]` `artifact_storage_locations` Entity·additive source revision `20260809_0016`과 임시 DB upgrade·downgrade 검증
+2. 실제 사용자 DB read-only Inventory·backup·restore·migration rehearsal과 별도 적용 승인
+3. Storage root 설정과 canonical key validator 구현
+4. Catalog Repository, Resolver와 trusted ingestion Service 구현
+5. symlink·junction·traversal·TOCTOU·checksum·MIME·크기·orphan 테스트
+6. Owner·retention·delivery 정책 구현
+7. Artifact Metadata·content·download API 3개 구현
 
 Catalog와 Resolver가 검증되기 전 Artifact API를 구현하지 않는다. Artifact Collection·Cursor·keyset Index와 Job API는 이 Foundation의 선행 조건이 아니다.

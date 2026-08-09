@@ -134,7 +134,9 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
     command.upgrade(config, REVISION)
 
     workspace_tables = _workspace_tables()
-    legacy_tables = set(Base.metadata.tables) - workspace_tables
+    legacy_tables = (
+        set(Base.metadata.tables) - workspace_tables - {"artifact_storage_locations"}
+    )
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
         assert connection.exec_driver_sql("PRAGMA foreign_keys").scalar_one() == 1
@@ -152,7 +154,9 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
         ).all()
 
     assert upgraded_revision == REVISION
-    assert upgraded_tables - {"alembic_version"} == set(Base.metadata.tables)
+    assert upgraded_tables - {"alembic_version"} == (
+        set(Base.metadata.tables) - {"artifact_storage_locations"}
+    )
     assert workspace_foreign_keys == 39
     assert foreign_key_violations == []
 

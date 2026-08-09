@@ -2,11 +2,20 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-09
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Artifact Storage Catalog 기반
+
+- `ArtifactStorageLocation`과 내부 `artifact_storage_locations` Table을 추가해 Artifact ID와 backend·domain·canonical root-relative storage key를 1:1로 연결했다.
+- Artifact Entity에는 경로 column을 추가하지 않고 FK `RESTRICT`, Artifact당 locator Unique와 `(storage_backend, storage_domain, storage_key)` Unique를 적용했다.
+- 빈 backend·key, 승인되지 않은 `lm|audio|vocal|music` 외 domain과 1 미만 locator version을 DB Check Constraint로 거부한다. traversal·symlink·정규화 검증은 후속 Resolver 책임으로 유지한다.
+- additive source revision `20260809_0016`은 Catalog Table 하나만 생성·제거하며 기존 35개 Table과 row count·digest·무결성을 임시 SQLite upgrade·downgrade에서 보존했다.
+- 실제 사용자 DB는 접근하거나 Migration하지 않아 `20260808_0015`를 유지한다. Resolver·ingestion·실제 checksum 검증·Artifact API 3개와 Resource API 진행도 19/64도 변경하지 않았다.
+- 검증 결과는 [Artifact Storage Catalog 검증](reports/validation/VALIDATION-ARTIFACT-STORAGE-CATALOG.md)에 기록했다.
 
 ### 문서 — Artifact Storage Resolver와 무결성 계약
 
