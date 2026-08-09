@@ -1,14 +1,14 @@
 # Asset 중심 데이터베이스 Migration 전략
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-09
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
 > 구현 상태: 목표 Entity·0012~0015 실제 적용, Workspace Repository·Service·Resource API 19개 완료; Bootstrap·backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index 두 개를 추가한 `20260808_0015`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개, `20260807_0014`는 ProjectAsset partial Index 하나를 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head는 내부 Artifact Catalog Table을 추가한 `20260809_0016`, 실제 사용자 DB revision은 `20260808_0015`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개, `20260807_0014`는 ProjectAsset partial Index 하나, `20260808_0015`는 Asset full keyset Index 두 개를 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -71,6 +71,14 @@ Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index �
 - Upgrade·downgrade는 신규 Index 두 개만 추가·제거하고 Table 35개, Runtime 14개, Workspace 21개와 Asset row digest·무결성을 보존합니다.
 - 별도 Inventory·backup·rehearsal·승인 절차를 거쳐 실제 사용자 DB에 적용했습니다.
 - 상세 계약은 [Asset keyset Index 설계](asset-keyset-indexes.md)를 따릅니다.
+
+### 2.5 Artifact Storage Catalog revision `20260809_0016`
+
+- 기존 35개 application Table을 변경하지 않고 내부 `artifact_storage_locations` Table 하나만 추가합니다.
+- Catalog는 Artifact와 1:1 `RESTRICT` FK, Artifact당 locator Unique와 `(storage_backend, storage_domain, storage_key)` Unique를 가집니다.
+- DB는 비어 있지 않은 backend·key, `lm|audio|vocal|music` domain과 양수 locator version을 강제합니다. canonical key·traversal·symlink 검증은 후속 Resolver 책임입니다.
+- 임시 SQLite에서 `0015 → 0016 → 0015` upgrade·downgrade, 기존 35개 Table·row count·digest·quick/integrity/FK 보존을 검증했습니다.
+- 실제 사용자 DB에는 적용하지 않았으며 별도 Inventory·backup·restore·migration rehearsal과 사용자 승인이 필요합니다.
 
 ## 3. 현재 Table별 권장 매핑
 
@@ -138,7 +146,7 @@ Alembic source head와 실제 사용자 DB revision은 Asset full keyset Index �
 
 1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
-Artifact Foundation 구현 전에는 기존 35개 application Table을 변경하지 않고 내부 `artifact_storage_locations` Catalog만 추가하는 별도 additive revision을 설계합니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 임시 DB에서 검증한 뒤 실제 DB 적용은 기존 Runbook Gate와 별도 승인을 따릅니다.
+Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 source revision `20260809_0016`을 구현했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 임시 DB에서 검증했습니다. 실제 DB 적용은 기존 Runbook Gate와 별도 승인을 따르며 Resolver·ingestion은 다음 단계입니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 

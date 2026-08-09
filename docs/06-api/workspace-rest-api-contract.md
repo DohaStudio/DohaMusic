@@ -1,7 +1,7 @@
 # Workspace REST API 공통 계약
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace REST API 재설계
 > 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개 구현, Artifact API 0/3과 나머지 45개·OpenAPI YAML·Idempotency replay 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
@@ -154,7 +154,7 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - 내부 URI는 `artifact://<artifact_id>`이며 공개 응답은 API link를 사용합니다. Catalog의 backend·domain·storage key는 반환하지 않습니다.
 - `active`만 정책상 content·download가 가능하며 `quarantined`는 409, `expired`·`pending_delete`·`deleted`는 410으로 거부합니다.
 - 두 delivery Endpoint는 single byte range를 지원하고 multiple·invalid·unsatisfiable range는 `416 INVALID_RANGE`와 `Content-Range: bytes */<size>`로 거부합니다.
-- 세부 Storage·ingestion·Range·파일명·오류 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)을 따릅니다. Catalog·Resolver와 Artifact API는 아직 `[계획]`입니다.
+- 세부 Storage·ingestion·Range·파일명·오류 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)을 따릅니다. Catalog Entity와 additive source revision `20260809_0016`은 구현했지만 실제 사용자 DB 적용·Resolver와 Artifact API는 아직 `[계획]`입니다.
 
 ### 6.4 Composition Snapshot
 

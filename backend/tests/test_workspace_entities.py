@@ -8,6 +8,7 @@ from sqlalchemy.orm import configure_mappers
 import backend.models  # noqa: F401
 from backend.db.base import Base
 from backend.models.workspace import (
+    ARTIFACT_STORAGE_ENTITY_CLASSES,
     Artifact,
     Asset,
     AssetType,
@@ -325,10 +326,14 @@ def test_workspace_enums_match_common_contract() -> None:
 
 def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     target_tables = set(EXPECTED_ENTITY_TABLES.values())
+    storage_tables = {
+        entity.__tablename__ for entity in ARTIFACT_STORAGE_ENTITY_CLASSES
+    }
 
     assert target_tables.isdisjoint(LEGACY_TABLES)
-    assert set(Base.metadata.tables) == target_tables | LEGACY_TABLES
-    assert len(Base.metadata.tables) == 35
+    assert storage_tables == {"artifact_storage_locations"}
+    assert set(Base.metadata.tables) == target_tables | storage_tables | LEGACY_TABLES
+    assert len(Base.metadata.tables) == 36
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

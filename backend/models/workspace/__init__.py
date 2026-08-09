@@ -22,6 +22,10 @@ from backend.models.workspace.composition import (
 )
 from backend.models.workspace.enums import AssetType, JobStatus
 from backend.models.workspace.job import Job, JobInput, JobOutput, ModelUsage
+from backend.models.workspace.storage import (
+    ARTIFACT_STORAGE_ENTITY_CLASSES,
+    ArtifactStorageLocation,
+)
 from backend.models.workspace.workspace import MusicProject, ProjectAsset, Workspace
 
 WORKSPACE_ENTITY_CLASSES = (
@@ -50,7 +54,9 @@ WORKSPACE_ENTITY_CLASSES = (
 
 __all__ = [
     "Approval",
+    "ARTIFACT_STORAGE_ENTITY_CLASSES",
     "Artifact",
+    "ArtifactStorageLocation",
     "Asset",
     "AssetRelation",
     "AssetType",

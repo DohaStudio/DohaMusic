@@ -2,7 +2,7 @@
 
 > 상태: 승인
 > 작성일: 2026-08-08
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-09
 > 관련 기능: Artifact Catalog, Storage Resolver, ingestion과 안전한 content·download
 > 관련 문서: [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-029](ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-031](ADR-031-workspace-rest-api-contract.md)
 
@@ -44,7 +44,7 @@ Workspace `Artifact` Entity는 `asset_version_id`, kind, MIME, size, checksum과
 
 ## 영향
 
-- 다음 구현 전에 `artifact_storage_locations` additive Migration이 필요하다.
+- `ArtifactStorageLocation` Entity와 additive source revision `20260809_0016`을 구현했다. 실제 사용자 DB 적용과 Resolver 구현은 별도 Gate가 필요하다.
 - Artifact Repository·Service·Router와 현재 Alembic head는 이번 ADR에서 변경하지 않는다.
 - Legacy `AUDIO_STORAGE_ROOT`, Runtime Table 14개와 기존 Pipeline은 source of truth를 유지한다.
 - Resource API는 19/64, Artifact API는 0/3을 유지한다.
@@ -52,11 +52,12 @@ Workspace `Artifact` Entity는 `asset_version_id`, kind, MIME, size, checksum과
 
 ## 마이그레이션
 
-1. Catalog Entity·Migration을 추가하고 기존 35개 Table을 변경하지 않는 additive upgrade·downgrade를 검증한다.
-2. canonical storage key validator, Resolver와 trusted ingestion을 임시 root에서 검증한다.
-3. Metadata·content·download API를 연결한다.
-4. 신규 결과부터 Catalog를 사용하고 Legacy 결과는 checksum·backup·rollback Gate 후 선택적으로 backfill한다.
-5. 모든 소비자가 전환되기 전 Legacy 경로나 파일을 삭제하지 않는다.
+1. `[완료]` Catalog Entity·source Migration을 추가하고 기존 35개 Table을 변경하지 않는 additive upgrade·downgrade를 임시 SQLite에서 검증한다.
+2. 실제 사용자 DB에 대해 read-only Inventory, backup·restore와 migration rehearsal을 수행하고 별도 승인 후 적용한다.
+3. canonical storage key validator, Resolver와 trusted ingestion을 임시 root에서 검증한다.
+4. Metadata·content·download API를 연결한다.
+5. 신규 결과부터 Catalog를 사용하고 Legacy 결과는 checksum·backup·rollback Gate 후 선택적으로 backfill한다.
+6. 모든 소비자가 전환되기 전 Legacy 경로나 파일을 삭제하지 않는다.
 
 ## 재검토 조건
 
