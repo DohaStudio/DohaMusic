@@ -149,6 +149,25 @@ class AssetVersionDetail(AssetVersionSummary):
     pass
 
 
+class ArtifactDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    artifact_id: UUID
+    asset_version_id: UUID
+    artifact_kind: str
+    media_type: str
+    size_bytes: int
+    checksum_algorithm: str
+    artifact_checksum: str
+    producer_type: str
+    producer_id: str | None
+    run_id: str | None
+    retention_status: str
+    created_at: datetime
+    content_url: str | None = None
+    download_url: str | None = None
+
+
 class AssetVersionCreateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 

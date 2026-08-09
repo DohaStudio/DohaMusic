@@ -4,11 +4,16 @@ from __future__ import annotations
 
 import re
 from collections.abc import Awaitable, Callable
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi import FastAPI, Request, Response
 
-from backend.services.workspace import AssetService, WorkspaceService
+from backend.core.exceptions import AppError
+from backend.services.workspace import (
+    ArtifactApplicationService,
+    AssetService,
+    WorkspaceService,
+)
 
 REQUEST_ID_HEADER = "X-Request-ID"
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
@@ -52,6 +57,28 @@ def get_asset_service(request: Request) -> AssetService:
     if not isinstance(service, AssetService):
         raise RuntimeError("AssetService가 구성되지 않았습니다.")
     return service
+
+
+def get_artifact_application_service(request: Request) -> ArtifactApplicationService:
+    """App composition root에서 구성한 ArtifactApplicationService를 제공한다."""
+
+    service = getattr(request.app.state, "artifact_application_service", None)
+    if not isinstance(service, ArtifactApplicationService):
+        raise RuntimeError("ArtifactApplicationService가 구성되지 않았습니다.")
+    return service
+
+
+def get_effective_owner_id(request: Request) -> UUID:
+    """단일 사용자 Workspace의 신뢰된 effective owner를 반환한다."""
+
+    workspaces = get_workspace_service(request).list_workspaces(limit=1)
+    if not workspaces:
+        raise AppError(
+            code="WORKSPACE_BOOTSTRAP_REQUIRED",
+            message="기본 Workspace Bootstrap이 필요합니다.",
+            status_code=409,
+        )
+    return workspaces[0].owner_id
 
 
 def register_request_id_middleware(app: FastAPI) -> None:

@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-08
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 19개 완료, Artifact API 0/3과 나머지 45개 Resource Endpoint 계획
+> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact 22개 완료, 나머지 42개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -28,7 +28,7 @@
 | Health | 2 |
 | **합계** | **64** |
 
-Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject·ProjectAsset·Asset과 AssetVersion 3개, 총 19개는 `[완료]`이며 나머지 45개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
+Endpoint 수는 HTTP Method와 Path 조합을 한 개로 계산합니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 3개와 Artifact 3개, 총 22개는 `[완료]`이며 나머지 42개는 `[계획]`입니다. 기존 `/api` Runtime 경로는 계속 운영 source of truth로 유지합니다.
 
 ## 2. Workspace API — 3개
 
@@ -66,7 +66,7 @@ Project 삭제가 연결 Asset, AssetVersion, Artifact, Snapshot과 Job을 삭�
 
 Project는 Asset을 직접 소유하지 않습니다. POST body는 `asset_id`, 선택적 `role`, `display_order`를 가지며 Asset 또는 Version을 새로 만들지 않습니다.
 
-세 Endpoint는 구현했습니다. 목록은 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 실제 적용된 revision `20260807_0014` partial Index를 사용합니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다. POST는 Asset 또는 AssetVersion을 생성하지 않으며 DELETE는 관계만 Soft Delete합니다. 전체 Resource API 진행도는 AssetVersion 3개를 포함해 19/64입니다.
+세 Endpoint는 구현했습니다. 목록은 HMAC Cursor·Project filter·`display_order ASC, project_asset_id ASC` keyset Service와 실제 적용된 revision `20260807_0014` partial Index를 사용합니다. 같은 `(project_id, asset_id)` 관계는 하나만 허용하고 Soft Delete 후 재연결하면 기존 row를 복원하며 `role`과 `display_order`를 갱신합니다. POST는 Asset 또는 AssetVersion을 생성하지 않으며 DELETE는 관계만 Soft Delete합니다. 전체 Resource API 진행도는 Artifact 3개를 포함해 22/64입니다.
 
 ## 5. Asset API — 5개
 
@@ -93,7 +93,7 @@ POST는 선택적 `workspace_id`, 필수 `asset_type`과 초기 `lifecycle_statu
 
 생성 요청에는 필수 `version_origin`, 선택적 `settings_snapshot`, `parent_asset_version_id`, `processing_chain_id`, `provider_id`, `model_manifest_id`만 허용합니다. `version_number`는 Service가 기존 최대 번호 다음 값으로 결정하고 `created_by`는 소유 Asset에서 파생합니다. 기존 Version·Selection·Artifact·Composition은 변경하거나 자동 생성하지 않습니다.
 
-목록은 해당 Asset의 모든 Version을 `version_number DESC`로 반환하고, 상세는 URL의 Asset과 Version 소속이 정확히 일치해야 합니다. AssetVersion에는 PATCH와 DELETE가 없습니다. Selection Endpoint와 과거 Version 선택에 의한 Rollback은 아직 `[계획]`입니다. Resource API 진행도는 19/64입니다.
+목록은 해당 Asset의 모든 Version을 `version_number DESC`로 반환하고, 상세는 URL의 Asset과 Version 소속이 정확히 일치해야 합니다. AssetVersion에는 PATCH와 DELETE가 없습니다. Selection Endpoint와 과거 Version 선택에 의한 Rollback은 아직 `[계획]`입니다. Resource API 진행도는 Artifact 3개를 포함해 22/64입니다.
 
 ## 7. Artifact API — 3개
 
@@ -103,7 +103,7 @@ POST는 선택적 `workspace_id`, 필수 `asset_type`과 초기 `lifecycle_statu
 | `GET` | `/api/v1/artifacts/{artifact_id}/content` | 200/206 | 승인된 inline content 제공 |
 | `GET` | `/api/v1/artifacts/{artifact_id}/download` | 200/206 | 승인된 attachment 제공 |
 
-세 Endpoint는 모두 `[계획]`이며 Artifact API 진행도는 0/3입니다. 공개 POST·PATCH·DELETE·목록과 Version 하위 목록을 추가하지 않습니다. Artifact 응답에는 물리 경로·Catalog·storage key를 포함하지 않고 `artifact_id` 기반 API link만 제공합니다. content·download는 owner, retention, delivery allowlist, media type, 실제 크기와 SHA-256을 확인합니다. `quarantined`는 `409`, `expired`·`pending_delete`·`deleted`는 `410`으로 거부합니다. single byte range는 `206`, multiple·invalid·unsatisfiable range는 `416 INVALID_RANGE`이며 세부 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)을 따릅니다.
+세 Endpoint는 모두 `[완료]`이며 Artifact API 진행도는 3/3입니다. 공개 POST·PATCH·DELETE·목록과 Version 하위 목록을 추가하지 않습니다. Artifact 응답에는 물리 경로·Catalog·storage key를 포함하지 않고 `artifact_id` 기반 API link만 제공합니다. content·download는 owner, retention, delivery allowlist, media type, 실제 크기와 SHA-256을 확인합니다. `quarantined`는 `409`, `expired`·`pending_delete`·`deleted`는 `410`으로 거부합니다. 전체 응답은 `200`, single byte range는 `206`, multiple·invalid·unsatisfiable range는 `416 INVALID_RANGE`이며 세부 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)을 따릅니다.
 
 ## 8. CompositionSnapshot API — 3개
 
