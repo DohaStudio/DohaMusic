@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Artifact 접근 제어와 reconciliation 기반
+
+- `ArtifactApplicationService`를 추가해 `Artifact → AssetVersion → Asset.owner_id` 계보에서 effective Owner를 검증하고 cross-owner·누락·삭제된 상위 Asset은 `ARTIFACT_NOT_FOUND`로 숨긴다.
+- `active|quarantined|expired|pending_delete|deleted` retention allowlist와 Metadata·Content Gate를 구현했다. Content는 `active`만 허용하고 같은 descriptor에서 실제 size와 전체 SHA-256을 검증한 뒤에만 내부 stream을 반환한다.
+- `ArtifactReconciliationService`는 local Catalog를 UUID keyset batch로 읽고 승인 namespace만 symlink·reparse fail-closed scan하여 missing·unreferenced·size/checksum drift·invalid locator·pending 후보를 path 없이 보고한다.
+- Reconciliation은 항상 dry-run이며 issue 결과를 상한 내에 보존한다. Artifact·Catalog·retention·Payload를 수정하거나 삭제하는 destructive repair는 구현하지 않았다.
+- 실제 사용자 DB·실제 `DohaArtifacts`·Alembic·Entity·API·Frontend는 변경하지 않았고 Resource API 19/64와 Artifact API 0/3을 유지한다.
+- 구현과 격리 검증 결과는 [Artifact 접근·reconciliation 검증](reports/validation/VALIDATION-ARTIFACT-ACCESS-RECONCILIATION.md)에 기록했다.
+
 ### 추가 — Artifact Trusted Ingestion
 
 - 공개 REST가 아닌 내부 `ArtifactIngestionService`와 `LocalArtifactPublisher`를 추가해 승인 staging root의 Payload만 immutable Artifact로 등록한다.

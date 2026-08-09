@@ -350,3 +350,9 @@ def open_regular_local_file(root: Path, path: Path) -> tuple[int, os.stat_result
     """검증된 root 아래 regular file을 no-follow 정책으로 연다."""
 
     return _open_regular_file(root, path)
+
+
+def is_link_or_reparse(path: Path) -> bool:
+    """Scanner가 Resolver와 같은 symlink·reparse 판정을 재사용한다."""
+
+    return _is_link_or_reparse(path)
