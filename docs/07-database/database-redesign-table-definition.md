@@ -141,7 +141,7 @@ ArtifactStorageLocation은 Artifact ID와 승인된 Storage root 내부 locator�
 | `published_at` | timestamp | 아니요 |  | 불변 Payload publish 완료 시각 |
 | `created_at` | timestamp | 아니요 |  | Catalog row 생성 시각 |
 
-`(storage_backend, storage_domain, storage_key)`는 Unique입니다. 절대·상대 path column을 두지 않으며 DB는 최소 불변 조건만 강제합니다. traversal·symlink·junction·root containment와 canonical key 검증은 후속 Resolver 책임입니다.
+`(storage_backend, storage_domain, storage_key)`는 Unique입니다. 절대·상대 path column을 두지 않으며 DB는 최소 불변 조건만 강제합니다. 구현된 local Resolver가 traversal·symlink·junction·reparse·root containment와 canonical key를 read boundary에서 재검증합니다.
 
 ### 3.5 `asset_relations`
 

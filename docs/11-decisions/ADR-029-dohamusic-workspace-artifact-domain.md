@@ -9,7 +9,7 @@
 
 DohaLM, DohaAudio와 DohaVocal의 모델·학습·평가·Runtime 산출물은 Provider 도메인이다. DohaMusic은 이 결과를 선택하고 조합해 Mix·Preview·최종 Export를 만드는 개인 음악 제작 Workspace이므로 Provider 산출물과 프로젝트 결과물을 같은 Artifact 도메인에 두면 소유 책임과 보존 정책이 모호해진다.
 
-현재 구현은 `AUDIO_STORAGE_ROOT` 아래 Pipeline 중심 파일 구조를 사용한다. AssetVersion Entity·API는 구현했지만 `D:/DohaArtifacts/music`, Artifact Catalog·Resolver, Composition Snapshot과 독립 Mix·Export Asset은 구현하지 않았다.
+현재 구현은 `AUDIO_STORAGE_ROOT` 아래 Pipeline 중심 파일 구조를 사용한다. AssetVersion Entity·API와 Artifact Catalog·local Resolver는 구현했지만 `D:/DohaArtifacts/music`, trusted ingestion, Composition Snapshot과 독립 Mix·Export Asset은 구현하지 않았다.
 
 ## 문제
 
@@ -51,7 +51,7 @@ Provider 모델 수명주기와 사용자의 프로젝트 결과 수명주기를
 ## 마이그레이션
 
 1. 문서와 책임 경계를 확정한다.
-2. `[계약 완료]` Artifact ID/URI, 별도 Catalog·Resolver와 ingestion·무결성 경계를 ADR-032로 승인한다. Catalog Entity·Migration과 Resolver 구현은 별도 작업으로 검증한다.
+2. `[부분 완료]` Artifact ID/URI, 별도 Catalog·Resolver와 ingestion·무결성 경계를 ADR-032로 승인했다. Catalog Entity·Migration과 local Resolver는 구현·검증했고 ingestion·전체 무결성 검증은 후속 작업이다.
 3. 신규 Mix·Export 결과부터 `music` 도메인을 사용한다.
 4. 기존 Pipeline 결과는 checksum·참조·rollback 검증 후 선택적으로 backfill한다.
 5. 모든 소비자가 전환된 뒤에만 구형 경로 제거를 검토한다.

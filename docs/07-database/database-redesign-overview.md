@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Workspace Repository·Service와 Resource API 19개 완료; Resolver·Bootstrap·backfill·dual write 미수행
+> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Workspace Repository·Service·Catalog 조회·local Resolver와 Resource API 19개 완료; Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -110,7 +110,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - 내부 URI는 `artifact://<artifact_id>`이며 공개 API는 Artifact ID 기반 content·download link를 사용합니다.
 - Export는 `export` 유형 Asset과 불변 AssetVersion이며 WAV·MP3·FLAC 파일은 Artifact입니다.
 
-Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. source metadata와 실제 DB는 36개 Table이고 Catalog row는 0개입니다. Catalog Repository·Resolver·trusted ingestion은 별도 작업이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
+Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. source metadata와 실제 DB는 36개 Table이고 Catalog row는 0개입니다. Catalog 조회 Repository와 local Resolver는 구현했고 trusted ingestion은 별도 후속 작업이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
 
 ## 4. 목표 Entity와 Table 수
 

@@ -4,7 +4,7 @@
 > 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
 > Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler·Cursor와 Workspace·MusicProject·ProjectAsset Resource 오류 mapping 구현
 
-`ARTIFACT_*` 오류는 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)에서 승인한 `[계획]` 계약이며 Router·Resolver와 handler에는 아직 구현하지 않았습니다.
+`ARTIFACT_*` 공개 HTTP 오류는 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)에서 승인한 `[계획]` 계약이며 Router와 handler에는 아직 구현하지 않았습니다. 내부 Resolver는 안전한 전용 오류 코드를 구현했지만 공개 오류 매핑은 후속 Artifact Application Service·API 책임입니다.
 
 | 코드 | 의미 |
 |---|---|

@@ -1,6 +1,9 @@
 """Workspace aggregate별 transaction 참여 Repository."""
 
 from backend.repositories.workspace.asset_repository import AssetRepository
+from backend.repositories.workspace.artifact_storage_repository import (
+    ArtifactStorageRepository,
+)
 from backend.repositories.workspace.collaboration_repository import (
     CollaborationRepository,
 )
@@ -12,6 +15,7 @@ from backend.repositories.workspace.workspace_repository import WorkspaceReposit
 
 __all__ = [
     "AssetRepository",
+    "ArtifactStorageRepository",
     "CollaborationRepository",
     "CompositionRepository",
     "JobRepository",
