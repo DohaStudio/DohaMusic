@@ -7,7 +7,7 @@
 
 ## Workspace v1 목표 계약 — [진행 중]
 
-DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 Router·응답 Schema·request ID·오류 분기, 명시적 Bootstrap 도구와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개를 구현했다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 나머지 45개는 `[계획]`이다. Artifact Metadata·content·download는 0/3으로 유지하되 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)에서 Catalog·Resolver·trusted ingestion·owner·retention·Range 선행 계약을 확정했다. 아래 현행 API와 payload는 그대로 유지한다.
+DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 Router·응답 Schema·request ID·오류 분기, 명시적 Bootstrap 도구와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개를 구현했다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 나머지 45개는 `[계획]`이다. 실제 사용자 DB에는 `artifact_storage_locations`를 포함한 revision `20260809_0016`을 적용했지만 Catalog row는 0개다. Artifact Metadata·content·download는 0/3이고 Resolver·trusted ingestion·physical checksum 검증·Range도 미구현이다. 아래 현행 API와 payload는 그대로 유지한다.
 
 - [Workspace REST API 공통 계약](workspace-rest-api-contract.md)
 - [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md)

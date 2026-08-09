@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·source revision `20260809_0016` 구현, 실제 사용자 DB `20260808_0015`
+> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Catalog row 0개
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 표기 기준
@@ -449,5 +449,5 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 - 불변 row의 UPDATE 차단을 Service, Repository 또는 DB 중 어디서 강제할지
 - `json` field의 JSON Schema와 versioning
 - History의 논리 참조 무결성과 개인정보 최소화
-- 실제 사용자 DB `20260808_0015 → 20260809_0016` 안전 적용과 복구 Gate
+- `[완료]` 실제 사용자 DB `20260808_0015 → 20260809_0016` 안전 적용과 복구 Gate
 - Catalog Resolver 없이 DB에 absolute path를 저장하지 않는 API·Worker 전환 순서

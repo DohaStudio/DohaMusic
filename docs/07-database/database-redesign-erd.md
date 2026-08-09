@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·source revision `20260809_0016` 구현, 실제 사용자 DB `20260808_0015`
+> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Catalog row 0개
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 전체 ERD

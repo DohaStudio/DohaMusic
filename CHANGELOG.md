@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 변경 — Artifact Storage Catalog 실제 사용자 DB 적용
+
+- 승인된 read-only Inventory, 정식 backup·restore, upgrade·downgrade rehearsal과 최종 writer·checksum·FK Gate를 거쳐 실제 사용자 SQLite DB를 `20260808_0015`에서 `20260809_0016`으로 승격했다.
+- Application Table은 35개에서 Catalog를 포함한 36개로 늘었고 Runtime Table 14개와 기존 35개 Table schema·79개 row·canonical digest는 그대로 보존됐다. `artifact_storage_locations`는 0 row다.
+- `quick_check`와 `integrity_check`는 `ok`, `foreign_key_check`는 0건, Runtime `foreign_keys`는 1이며 정식 backup과 manifest는 변경되지 않았다.
+- Resolver·trusted ingestion·physical checksum 검증·Range·Artifact API 3개, backfill·dual write·Runtime 전환은 수행하지 않았다. Resource API는 19/64이고 Runtime Table 14개가 계속 source of truth다.
+- 실제 적용 결과는 [Artifact Storage Catalog 0016 실제 적용 검증](reports/validation/VALIDATION-ARTIFACT-STORAGE-CATALOG-0016-APPLICATION.md)에 기록했다.
+
 ### 추가 — Artifact Storage Catalog 기반
 
 - `ArtifactStorageLocation`과 내부 `artifact_storage_locations` Table을 추가해 Artifact ID와 backend·domain·canonical root-relative storage key를 1:1로 연결했다.
