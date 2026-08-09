@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Artifact Trusted Ingestion
+
+- 공개 REST가 아닌 내부 `ArtifactIngestionService`와 `LocalArtifactPublisher`를 추가해 승인 staging root의 Payload만 immutable Artifact로 등록한다.
+- 실제 bytes를 streaming copy하며 SHA-256과 크기를 계산하고 WAV·FLAC·MP3, UTF-8 text와 bounded JSON을 kind별 fail-closed validator로 확인한다. caller checksum·MIME는 비교 hint로만 사용한다.
+- Artifact ID 기반 canonical key를 생성하고 final filesystem의 exclusive 임시 inode를 `fsync`한 뒤 hard-link publish하여 기존 Payload를 덮어쓰지 않는다. 같은 checksum은 lineage가 다르면 별도 Artifact로 허용한다.
+- Artifact와 `ArtifactStorageLocation`은 Service 소유 단일 transaction에 등록하고 Resolver round-trip으로 identity·size를 재검증한다. DB 실패 시 이번 실행이 만든 Payload만 보상 삭제하며 실패는 path 없는 orphan candidate로 보고한다.
+- `DOHA_ARTIFACT_STAGING_ROOT`를 기본 미설정 fail-closed 변수로 추가했다. 실제 사용자 DB·실제 `DohaArtifacts`·Alembic·API는 변경하지 않았고 Artifact API는 0/3, Resource API는 19/64를 유지한다.
+- 구현과 격리 검증 결과는 [Artifact Trusted Ingestion 검증](reports/validation/VALIDATION-ARTIFACT-TRUSTED-INGESTION.md)에 기록했다.
+
 ### 추가 — Artifact Storage Resolver
 
 - `ArtifactStorageRepository`와 내부 `ArtifactStorageResolver`를 추가해 Artifact ID의 Catalog locator를 설정으로 주입한 `lm|audio|vocal|music` root 내부 regular file로만 해석한다.

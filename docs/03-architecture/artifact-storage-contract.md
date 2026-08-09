@@ -7,7 +7,7 @@
 
 ## 1. 목적과 현재 경계
 
-이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog Entity와 additive revision `20260809_0016`은 구현·임시 SQLite 검증과 실제 사용자 DB 적용을 완료했다. 실제 DB에는 `artifact_storage_locations`가 존재하지만 row는 0개다. Catalog 조회 Repository와 설정 주입형 local Resolver는 구현했으며 Artifact Router·trusted ingestion·physical checksum·MIME 검증·Range, 실제 폴더와 파일 이동은 구현하지 않았다.
+이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 임시 root에서 authoritative SHA-256·size·MIME, immutable publish, Artifact·Catalog transaction과 실패 보상을 검증했다. Artifact Router·owner/retention 공개 Service·full orphan worker·Range와 실제 운영 폴더·파일 전환은 구현하지 않았다.
 
 현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. 목표 Workspace Resource API는 19/64, Artifact API는 0/3이며 다음 세 공개 Endpoint는 `[계획]` 상태를 유지한다.
 
@@ -53,7 +53,7 @@ D:/DohaArtifacts/
     └── runs/
 ```
 
-초기 local backend는 `DOHA_ARTIFACT_ROOT` 환경 설정으로 base root를 주입한다. 기본값은 미설정이며 `lm`, `audio`, `vocal`, `music` 하위 directory가 모두 안전한 실제 directory가 아니면 Resolver 구성을 fail-closed한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다. 코드와 공개 DTO에는 운영 절대 경로를 저장하지 않는다.
+초기 local backend는 `DOHA_ARTIFACT_ROOT` 환경 설정으로 base root를 주입한다. trusted ingestion의 서비스 소유 임시 Payload는 별도 `DOHA_ARTIFACT_STAGING_ROOT`로 주입하며 두 변수는 기본 미설정이고 서로 겹치면 fail-closed한다. 네 domain directory와 staging root는 실제 안전한 directory여야 한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다. 코드와 공개 DTO에는 운영 절대 경로를 저장하지 않는다.
 
 ## 4. authoritative Catalog 결정
 
@@ -158,6 +158,12 @@ Windows에서는 모든 component의 symlink와 사용 가능한 `Path.is_juncti
 - Artifact와 Catalog row는 같은 DB transaction에서 생성해 row만 존재하고 locator가 없는 상태를 만들지 않는다.
 
 Job은 Artifact의 필수 부모가 아니다. `import`, 사용자·Workspace 내부 생성과 Provider 결과가 모두 가능하고 `run_id`는 선택적이다. Provider 결과일 때만 성공한 Job의 `JobOutput`과 새 AssetVersion 계보를 함께 연결한다.
+
+현재 구현은 Common Specification의 kind 중 `lyrics_text`, `audio`, `stem`, `manifest`, `evaluation`, `snapshot`만 허용한다. Audio는 WAV·FLAC·MP3 header와 WAV parser, text는 streaming UTF-8 decoder, 구조화 kind는 16MiB 상한의 UTF-8 JSON parser로 검증한다. format validator와 권리 정책이 확정되지 않은 `model`·`checkpoint`는 fail-closed한다. producer는 `user`, `provider`, `workspace`, `import`만 허용하고 새 Artifact의 retention은 caller 입력 없이 `active`로 고정한다.
+
+storage key는 caller가 지정하지 않는다. non-`music`은 `payloads/<kind>/<uuid-shard>/<artifact-id>.<validated-extension>`, `music`은 `snapshots` 또는 `runs` namespace를 사용한다. source가 다른 filesystem에 있어도 final root 내부 exclusive 임시 inode로 streaming copy·file `fsync`한 뒤 hard-link로 publish하므로 기존 target을 덮어쓰지 않는다. POSIX에서는 directory `fsync`도 시도하며 Windows directory durability는 제한된 WARNING이다.
+
+DB 실패 시 이번 실행이 publish한 inode만 identity 확인 후 보상 삭제한다. 삭제 실패 또는 성공 후 staging 정리 실패는 absolute path 없는 `OrphanCandidate`와 내부 reporter hook으로 남긴다. 자동 삭제 worker, grace period scan과 영속 reconciliation 상태는 후속 범위다.
 
 ## 9. 무결성 Metadata 책임
 
@@ -293,8 +299,8 @@ DB row는 있지만 Catalog나 Payload가 없는 경우 `ARTIFACT_CONTENT_UNAVAI
 1. `[완료]` `artifact_storage_locations` Entity·additive source revision `20260809_0016`과 임시 DB upgrade·downgrade 검증
 2. `[완료]` 실제 사용자 DB read-only Inventory·backup·restore·migration rehearsal과 별도 승인에 따른 `20260809_0016` 적용
 3. `[완료]` Storage root 설정, canonical key validator, Catalog 조회 Repository와 local Resolver 구현
-4. trusted ingestion Service 구현
-5. symlink·junction·traversal·TOCTOU·checksum·MIME·크기·orphan 테스트
+4. `[완료]` trusted ingestion Service와 local Publisher 구현
+5. `[완료]` symlink·reparse simulation·traversal·checksum·MIME·크기·collision·orphan signal 테스트
 6. Owner·retention·delivery 정책 구현
 7. Artifact Metadata·content·download API 3개 구현
 

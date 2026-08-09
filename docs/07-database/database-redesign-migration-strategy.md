@@ -146,7 +146,7 @@ Alembic source head와 실제 사용자 DB revision은 내부 Artifact Catalog T
 
 1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`, Artifact Catalog revision `20260809_0016`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table과 Catalog row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
-Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 검증했습니다. Catalog 조회와 local Resolver도 구현했으며 trusted ingestion·physical checksum·MIME 검증·Range는 다음 단계입니다.
+Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 검증했습니다. Catalog 조회·local Resolver와 trusted ingestion의 physical SHA-256·size·MIME 검증도 구현했으며 owner/retention·full orphan worker·Range는 다음 단계입니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 

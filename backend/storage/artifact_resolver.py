@@ -110,6 +110,23 @@ class ArtifactStorageRoots:
         }
         object.__setattr__(self, "roots", MappingProxyType(validated))
 
+    def candidate_path(self, storage_domain: str, storage_key: str) -> Path:
+        """Resolver와 ingestion이 공유하는 canonical local 경로를 만든다."""
+
+        if storage_domain not in APPROVED_STORAGE_DOMAINS:
+            raise ArtifactStorageError(ArtifactStorageErrorCode.INVALID_DOMAIN)
+        key = _validate_storage_key(storage_key, storage_domain)
+        root = self.roots[storage_domain]
+        candidate = root.joinpath(*key.parts)
+        _assert_no_link_or_reparse(root, candidate)
+        try:
+            candidate.resolve(strict=False).relative_to(root)
+        except (OSError, RuntimeError, ValueError):
+            raise ArtifactStorageError(
+                ArtifactStorageErrorCode.STORAGE_ESCAPE
+            ) from None
+        return candidate
+
 
 class ArtifactStorageResolver:
     """Catalog locator를 검증하고 승인 root 내부 regular file만 반환한다."""
@@ -143,10 +160,10 @@ class ArtifactStorageResolver:
         if location.storage_domain not in APPROVED_STORAGE_DOMAINS:
             raise ArtifactStorageError(ArtifactStorageErrorCode.INVALID_DOMAIN)
 
-        key = _validate_storage_key(location.storage_key, location.storage_domain)
         root = self._roots.roots[location.storage_domain]
-        candidate = root.joinpath(*key.parts)
-        _assert_no_link_or_reparse(root, candidate)
+        candidate = self._roots.candidate_path(
+            location.storage_domain, location.storage_key
+        )
 
         try:
             resolved_path = candidate.resolve(strict=True)
@@ -315,3 +332,21 @@ def _open_regular_file(root: Path, path: Path) -> tuple[int, os.stat_result]:
     except Exception:
         os.close(descriptor)
         raise
+
+
+def validate_local_root(root: Path) -> Path:
+    """내부 storage 구성 요소가 공유하는 root 검증 경계."""
+
+    return _validate_root(root)
+
+
+def assert_safe_local_path(root: Path, candidate: Path) -> None:
+    """기존 경로 component의 link·reparse 우회를 거부한다."""
+
+    _assert_no_link_or_reparse(root, candidate)
+
+
+def open_regular_local_file(root: Path, path: Path) -> tuple[int, os.stat_result]:
+    """검증된 root 아래 regular file을 no-follow 정책으로 연다."""
+
+    return _open_regular_file(root, path)
