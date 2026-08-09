@@ -2,11 +2,19 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Artifact Storage Resolver
+
+- `ArtifactStorageRepository`와 내부 `ArtifactStorageResolver`를 추가해 Artifact ID의 Catalog locator를 설정으로 주입한 `lm|audio|vocal|music` root 내부 regular file로만 해석한다.
+- `DOHA_ARTIFACT_ROOT`는 기본 미설정이며 root 누락·비-directory·symlink/reparse 위험을 fail-closed한다. storage backend는 `local`, locator version은 `1`만 지원한다.
+- canonical POSIX 상대 key, `music` namespace allowlist, 정확한 `Path.relative_to()` containment, symlink·junction·reparse 거부와 열린 descriptor의 identity·size·mtime 재검증을 구현했다.
+- 실제 사용자 DB와 실제 `DohaArtifacts`에는 접근하지 않았고 Catalog row·Alembic·Route·Resource API는 변경하지 않았다. trusted ingestion, 전체 SHA-256·MIME 검증, orphan reconciliation, Range와 Artifact API 3개는 후속 작업이다.
+- 구현과 격리 검증 결과는 [Artifact Storage Resolver 검증](reports/validation/VALIDATION-ARTIFACT-STORAGE-RESOLVER.md)에 기록했다.
 
 ### 변경 — Artifact Storage Catalog 실제 사용자 DB 적용
 

@@ -1,7 +1,7 @@
 # 저장소 아키텍처
 
 > 문서 상태: [운영 기준 + 계획]
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 > 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Workspace Artifact 모델](workspace-artifact-model.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [데이터베이스 개요](../07-database/database-overview.md)
 
 ## 현재 구현
@@ -29,7 +29,7 @@ F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)�
 
 ## 목표 Artifact 도메인 [계획]
 
-현재 `AUDIO_STORAGE_ROOT` 구현과 별개로 장기 로컬 Artifact root를 다음처럼 구분한다. Artifact ID와 물리 Payload는 별도 내부 DB Catalog가 domain과 canonical root-relative storage key를 보존하고 Resolver가 승인된 root 안에서만 해석한다. `ArtifactStorageLocation` Catalog Entity와 additive source revision `20260809_0016`은 구현했지만 실제 사용자 DB 적용·디렉터리 생성·파일 이동·환경 변수·Storage Resolver 구현은 수행하지 않았다.
+현재 `AUDIO_STORAGE_ROOT` 구현과 별개로 장기 로컬 Artifact root를 다음처럼 구분한다. Artifact ID와 물리 Payload는 별도 내부 DB Catalog가 domain과 canonical root-relative storage key를 보존하고 Resolver가 승인된 root 안에서만 해석한다. `ArtifactStorageLocation` Catalog Entity와 additive revision `20260809_0016`은 실제 사용자 DB에 적용했고 `DOHA_ARTIFACT_ROOT` 설정과 local Resolver를 구현했다. 이번 구현과 검증에서는 실제 root directory를 생성하거나 사용자 파일을 읽고 이동하지 않았다.
 
 ```text
 D:/DohaArtifacts/
@@ -51,7 +51,7 @@ D:/DohaArtifacts/
 | `vocal` | DohaVocal Provider `[계획]` | AI Vocal, recording 기술 처리 결과, Voice Conversion, Pitch·Timing Correction, vocal evaluation, Runtime 결과 |
 | `music` | DohaMusic Workspace | Mix Asset, Export Asset, Preview, Composition Snapshot, Mix·Export Job 실행 기록 |
 
-`audio`와 `vocal`은 모델·Provider 실행 결과를 소유하고 `music`은 사용자가 선택한 특정 AssetVersion을 조합한 프로젝트 결과를 소유한다. Provider가 Mix 또는 최종 Export를 소유하지 않으며 Provider끼리 `music` 영역을 직접 쓰지 않는다.
+`audio`와 `vocal`은 모델·Provider 실행 결과를 소유하고 `music`은 사용자가 선택한 특정 AssetVersion을 조합한 프로젝트 결과를 소유한다. Provider가 Mix 또는 최종 Export를 소유하지 않으며 Provider끼리 `music` 영역을 직접 쓰지 않는다. Resolver 구성 시 네 domain directory가 모두 존재하는 안전한 directory여야 하고 root나 하위 component가 symlink·junction·reparse point이면 거부한다.
 
 ### `music` 하위 구조 [계획]
 
@@ -61,7 +61,7 @@ D:/DohaArtifacts/
 - `snapshots/`: DB가 소유하는 특정 AssetVersion 조합, processing chain과 mix settings를 재현·교환·백업하기 위한 불변 직렬화 Artifact. 권위 있는 관계 데이터는 DB에 유지
 - `runs/`: Mix Job·Export Job 실행 로그, 설정 snapshot과 안전한 진단 metadata
 
-내부 Workspace DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact의 내부 논리 URI는 `artifact://<artifact_id>`이며 공개 응답은 Artifact API link를 사용한다. 실제 root는 `artifact_storage_locations` Catalog의 backend·domain·storage key를 Resolver가 해석한다. Catalog Entity와 additive source Migration은 구현했으며 실제 사용자 DB 적용과 Resolver는 아직 `[계획]`이다.
+내부 Workspace DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact의 내부 논리 URI는 `artifact://<artifact_id>`이며 공개 응답은 Artifact API link를 사용한다. 실제 root는 `artifact_storage_locations` Catalog의 backend·domain·storage key를 Resolver가 해석한다. Catalog Entity·Migration·실제 사용자 DB 적용과 local Resolver는 완료했다. trusted ingestion, 실제 Payload 등록과 delivery는 아직 `[계획]`이다.
 
 ## K3 Preview 저장 목표 [계획]
 

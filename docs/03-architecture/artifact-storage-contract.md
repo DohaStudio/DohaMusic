@@ -1,13 +1,13 @@
 # Artifact Storage Resolver와 무결성 계약
 
 > 문서 상태: [승인]
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 > 관련 기능: Artifact Catalog, Storage Resolver, 안전한 ingestion과 content·download
 > 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Storage Architecture](storage-architecture.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
 
 ## 1. 목적과 현재 경계
 
-이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog Entity와 additive revision `20260809_0016`은 구현·임시 SQLite 검증과 실제 사용자 DB 적용을 완료했다. 실제 DB에는 `artifact_storage_locations`가 존재하지만 row는 0개다. Artifact Router·Resolver·trusted ingestion·physical checksum 검증·Range, 실제 폴더와 파일 이동은 구현하지 않았다.
+이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog Entity와 additive revision `20260809_0016`은 구현·임시 SQLite 검증과 실제 사용자 DB 적용을 완료했다. 실제 DB에는 `artifact_storage_locations`가 존재하지만 row는 0개다. Catalog 조회 Repository와 설정 주입형 local Resolver는 구현했으며 Artifact Router·trusted ingestion·physical checksum·MIME 검증·Range, 실제 폴더와 파일 이동은 구현하지 않았다.
 
 현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. 목표 Workspace Resource API는 19/64, Artifact API는 0/3이며 다음 세 공개 Endpoint는 `[계획]` 상태를 유지한다.
 
@@ -53,7 +53,7 @@ D:/DohaArtifacts/
     └── runs/
 ```
 
-초기 local backend는 `DOHA_ARTIFACT_ROOT` 같은 환경 설정으로 root를 주입하는 방향을 사용한다. 실제 환경 변수 추가는 구현 PR에서 수행한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다.
+초기 local backend는 `DOHA_ARTIFACT_ROOT` 환경 설정으로 base root를 주입한다. 기본값은 미설정이며 `lm`, `audio`, `vocal`, `music` 하위 directory가 모두 안전한 실제 directory가 아니면 Resolver 구성을 fail-closed한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다. 코드와 공개 DTO에는 운영 절대 경로를 저장하지 않는다.
 
 ## 4. authoritative Catalog 결정
 
@@ -118,20 +118,21 @@ artifact://<artifact_id>
 
 ## 7. Resolver 계약
 
-Resolver는 다음 순서로만 물리 Payload를 해석한다.
+공개 요청의 owner scope와 retention은 상위 Artifact Application Service가 먼저 확인한다. 승인된 `artifact_id`를 받은 Resolver는 다음 순서로만 물리 Payload를 해석한다.
 
 ```text
-artifact_id
-→ owner scope와 retention 확인
+승인된 artifact_id
 → Artifact Storage Catalog 조회
 → 승인된 backend·domain root 선택
 → canonical storage_key 검증
 → root와 결합 후 resolve
 → root containment·symlink/reparse point·regular file 검증
-→ 같은 열린 file handle의 stat·size·checksum 검증
+→ 열린 file descriptor의 identity·size·mtime 재검증
 ```
 
-Resolver는 Path를 Router, 공개 DTO, 오류 메시지 또는 로그에 반환하지 않는다. 내부 로그도 사용자 절대 경로 대신 `artifact_id`, domain과 안전한 오류 식별자만 기록한다.
+현재 Resolver는 `local` backend와 locator version `1`만 지원하고 그 밖의 값은 fallback 없이 거부한다. Resolver는 내부 dataclass에만 검증된 Path를 보존하며 Router, 공개 Pydantic DTO, 오류 메시지 또는 로그에 반환하지 않는다. 내부 로그도 사용자 절대 경로 대신 `artifact_id`, domain과 안전한 오류 식별자만 기록한다. Resolver는 Catalog·Artifact 생성, 파일 publish·copy·move·delete, transaction 종료, retention 전이와 HTTP 응답을 담당하지 않는다.
+
+Windows에서는 모든 component의 symlink와 사용 가능한 `Path.is_junction()` 및 `FILE_ATTRIBUTE_REPARSE_POINT` 검사를 조합한다. 경로 검사 뒤 `os.open()`한 descriptor와 `lstat` identity를 비교하고 content 계층이 같은 handle을 사용하도록 `open_payload()`를 제공한다. 다만 신뢰 root에 대한 동시 쓰기를 완전히 통제하는 것은 운영 권한 정책의 책임이며, delivery 전 전체 checksum 검증은 후속 단계다.
 
 ## 8. 신뢰된 ingestion
 
@@ -291,8 +292,8 @@ DB row는 있지만 Catalog나 Payload가 없는 경우 `ARTIFACT_CONTENT_UNAVAI
 
 1. `[완료]` `artifact_storage_locations` Entity·additive source revision `20260809_0016`과 임시 DB upgrade·downgrade 검증
 2. `[완료]` 실제 사용자 DB read-only Inventory·backup·restore·migration rehearsal과 별도 승인에 따른 `20260809_0016` 적용
-3. Storage root 설정과 canonical key validator 구현
-4. Catalog Repository, Resolver와 trusted ingestion Service 구현
+3. `[완료]` Storage root 설정, canonical key validator, Catalog 조회 Repository와 local Resolver 구현
+4. trusted ingestion Service 구현
 5. symlink·junction·traversal·TOCTOU·checksum·MIME·크기·orphan 테스트
 6. Owner·retention·delivery 정책 구현
 7. Artifact Metadata·content·download API 3개 구현

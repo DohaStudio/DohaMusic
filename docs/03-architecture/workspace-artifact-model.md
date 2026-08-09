@@ -1,7 +1,7 @@
 # DohaMusic Workspace Artifact 모델
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 > 관련 기능: AssetVersion 기반 Composition Snapshot, Mix, Export
 > 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)
 
@@ -9,7 +9,7 @@
 
 DohaMusic은 AI Provider가 아니라 개인 AI 음악 제작 Workspace다. DohaLM·DohaAudio·DohaVocal의 Runtime 산출물과 사용자가 선택·조합해 만든 프로젝트 결과물의 저장 책임을 분리한다.
 
-이 문서는 목표 계약을 정의한다. Asset·Snapshot 목표 Entity와 Asset Cursor·keyset Repository/Service·Resource API 5개, AssetVersion 생성·최신순 목록·상세 API 3개와 실제 사용자 DB Asset Index revision `20260808_0015`는 구현·적용했다. AssetVersion은 기존 row를 보존하고 새 번호의 row만 추가하며 PATCH·DELETE를 제공하지 않는다. Artifact ID와 물리 Payload를 1:1로 연결하는 내부 `ArtifactStorageLocation` Entity와 revision `20260809_0016`도 실제 사용자 DB에 적용했으며 Catalog row는 0개다. `D:/DohaArtifacts/music` 디렉터리, Resolver·trusted ingestion·physical checksum 검증·Range·Artifact API 3개, Mix·Export Job과 파일 이동은 아직 구현하지 않았다.
+이 문서는 목표 계약을 정의한다. Asset·Snapshot 목표 Entity와 Asset Cursor·keyset Repository/Service·Resource API 5개, AssetVersion 생성·최신순 목록·상세 API 3개와 실제 사용자 DB Asset Index revision `20260808_0015`는 구현·적용했다. AssetVersion은 기존 row를 보존하고 새 번호의 row만 추가하며 PATCH·DELETE를 제공하지 않는다. Artifact ID와 물리 Payload를 1:1로 연결하는 내부 `ArtifactStorageLocation` Entity와 revision `20260809_0016`도 실제 사용자 DB에 적용했으며 Catalog row는 0개다. Catalog 조회와 local Resolver는 구현했지만 `D:/DohaArtifacts/music` 디렉터리, trusted ingestion·physical checksum·MIME 검증·Range·Artifact API 3개, Mix·Export Job과 파일 이동은 아직 구현하지 않았다.
 
 ## Workspace 흐름
 
