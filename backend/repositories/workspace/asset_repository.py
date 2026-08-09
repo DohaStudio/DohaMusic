@@ -6,7 +6,7 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy import and_, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from backend.models.workspace.asset import (
     Artifact,
@@ -176,6 +176,26 @@ class AssetRepository:
 
     def get_artifact(self, artifact_id: UUID) -> Artifact | None:
         return self.session.get(Artifact, artifact_id)
+
+    def get_artifact_for_owner(
+        self,
+        artifact_id: UUID,
+        owner_id: UUID,
+    ) -> Artifact | None:
+        """Soft Delete되지 않은 Asset 계보의 Owner 범위에서 Artifact를 조회한다."""
+
+        statement = (
+            select(Artifact)
+            .join(Artifact.asset_version)
+            .join(AssetVersion.asset)
+            .where(
+                Artifact.artifact_id == artifact_id,
+                Asset.owner_id == owner_id,
+                Asset.deleted_at.is_(None),
+            )
+            .options(joinedload(Artifact.asset_version).joinedload(AssetVersion.asset))
+        )
+        return self.session.scalar(statement)
 
     def list_version_artifacts(
         self, asset_version_id: UUID, *, limit: int = 100, offset: int = 0

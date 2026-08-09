@@ -7,7 +7,7 @@
 
 ## 1. 목적과 현재 경계
 
-이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 임시 root에서 authoritative SHA-256·size·MIME, immutable publish, Artifact·Catalog transaction과 실패 보상을 검증했다. Artifact Router·owner/retention 공개 Service·full orphan worker·Range와 실제 운영 폴더·파일 전환은 구현하지 않았다.
+이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 임시 root에서 authoritative SHA-256·size·MIME, immutable publish, Artifact·Catalog transaction과 실패 보상을 검증했다. Owner 계보·retention·integrity read Gate와 batch dry-run reconciliation도 구현했다. Artifact Router·destructive reconciliation·Range와 실제 운영 폴더·파일 전환은 구현하지 않았다.
 
 현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. 목표 Workspace Resource API는 19/64, Artifact API는 0/3이며 다음 세 공개 Endpoint는 `[계획]` 상태를 유지한다.
 
@@ -301,7 +301,7 @@ DB row는 있지만 Catalog나 Payload가 없는 경우 `ARTIFACT_CONTENT_UNAVAI
 3. `[완료]` Storage root 설정, canonical key validator, Catalog 조회 Repository와 local Resolver 구현
 4. `[완료]` trusted ingestion Service와 local Publisher 구현
 5. `[완료]` symlink·reparse simulation·traversal·checksum·MIME·크기·collision·orphan signal 테스트
-6. Owner·retention·delivery 정책 구현
+6. `[완료]` Owner·retention·full SHA-256 read Gate와 dry-run reconciliation 구현
 7. Artifact Metadata·content·download API 3개 구현
 
 Catalog와 Resolver가 검증되기 전 Artifact API를 구현하지 않는다. Artifact Collection·Cursor·keyset Index와 Job API는 이 Foundation의 선행 조건이 아니다.

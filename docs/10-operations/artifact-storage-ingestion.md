@@ -55,14 +55,14 @@ Artifact와 `ArtifactStorageLocation`은 같은 SQLAlchemy transaction에 add·f
 
 DB 또는 검증 실패 시 이번 실행이 만든 final inode만 identity 비교 후 삭제한다. 삭제 실패는 `artifact_id`, domain, canonical storage key와 안전한 reason code만 포함하는 `OrphanCandidate`로 reporter hook에 전달한다. staging 정리 실패도 성공 결과의 `staging_cleanup_pending`과 별도 candidate로 보고한다. 실제 절대 경로와 Payload 내용은 기록하지 않는다.
 
-현재 reporter hook은 full reconciliation worker가 아니다. grace period scan, 영속 queue, 자동 재시도와 운영 삭제 승인은 후속 구현이다.
+Reporter hook과 별도로 [Artifact Storage Reconciliation](artifact-storage-reconciliation.md)의 batch dry-run scanner를 구현했다. 승인 namespace에서 cleanup failure·Catalog·filesystem drift를 탐지하지만 영속 queue, 자동 재시도와 운영 삭제 승인은 후속 구현이다.
 
 ## 6. 현재 미구현
 
 - 공개 Artifact POST와 Artifact API 3개
-- owner·retention 공개 Application Service
+- Artifact Router와 공개 owner·retention HTTP 연결
 - content·download와 Range HTTP
-- full orphan reconciliation worker
+- destructive reconciliation·영속 worker
 - model·checkpoint authoritative validator
 - local 이외 Storage backend
 - 실제 Provider·Runtime 연결과 기존 파일 backfill

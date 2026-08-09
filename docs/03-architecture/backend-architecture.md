@@ -28,9 +28,9 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 
 `AssetVersion`과 `CompositionSnapshot`에는 수정 메서드를 제공하지 않으며 Snapshot 조회가 최신 AssetVersion을 자동 선택하지 않는다. Repository는 SQLAlchemy Entity를 그대로 반환하고 권한·상태 전이·HTTP 오류·Storage URI 해석·Provider 호출을 처리하지 않는다.
 
-Artifact Storage의 목표 경계는 `Router → Artifact Application Service → Storage Resolver·Trusted Ingestion → Artifact·Catalog Repository`다. Catalog 조회·local Resolver에 이어 `ArtifactIngestionService → LocalArtifactPublisher`를 구현했다. Service가 AssetVersion 확인, Artifact·Catalog 단일 transaction과 보상을 소유하고 Publisher가 staging containment, streaming SHA-256·size, kind별 MIME, key 생성, exclusive publish와 file durability를 담당한다. Repository는 add·flush·조회만 수행하고 commit·rollback·filesystem을 소유하지 않는다. owner와 retention 공개 정책은 후속 Artifact Application Service 책임이며 Router는 Resolver나 Ingestion을 직접 호출하지 않는다. Range와 Artifact API 3개는 아직 구현하지 않았다.
+Artifact Storage의 목표 경계는 `Router → Artifact Application Service → Storage Resolver·Trusted Ingestion → Artifact·Catalog Repository`다. `ArtifactApplicationService`는 effective Owner 계보, retention matrix와 content 전 full SHA-256 read Gate를 소유한다. `ArtifactIngestionService → LocalArtifactPublisher`는 AssetVersion 확인, Artifact·Catalog 단일 transaction·보상과 staging containment·MIME·exclusive publish를 담당한다. `ArtifactReconciliationService`는 Catalog를 UUID keyset batch로 읽고 승인 namespace만 dry-run scan한다. Repository는 add·flush·조회만 수행하고 commit·rollback·filesystem을 소유하지 않는다. Router는 아직 이 Service들을 연결하지 않았으며 Range와 Artifact API 3개도 구현하지 않았다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. `/api/v1` Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint는 19개다. Resource API 진행도는 19/64, Artifact API는 0/3이며 Artifact 이하 45개 Endpoint와 owner/retention·full orphan worker·backfill·dual write·Legacy 제거는 미구현이다.
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. `/api/v1` Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint는 19개다. Resource API 진행도는 19/64, Artifact API는 0/3이며 Artifact 이하 45개 Endpoint와 destructive reconciliation·backfill·dual write·Legacy 제거는 미구현이다.
 
 ## Workspace Application Service 경계
 
