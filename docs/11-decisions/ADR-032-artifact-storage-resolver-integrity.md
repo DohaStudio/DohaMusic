@@ -46,7 +46,7 @@ Workspace `Artifact` Entity는 `asset_version_id`, kind, MIME, size, checksum과
 
 - `ArtifactStorageLocation` Entity와 additive revision `20260809_0016`을 구현하고 별도 Gate를 거쳐 실제 사용자 DB에 적용했다. Catalog row는 0개다.
 - Catalog 조회 전용 Repository와 설정 주입형 local Resolver를 구현했다. Resolver는 canonical key·domain root containment·symlink/junction/reparse·regular file과 descriptor identity를 검증하며 공개 Path·HTTP 응답·transaction을 소유하지 않는다.
-- Artifact Application Service·Router와 현재 Alembic head는 Resolver 구현에서 변경하지 않는다. owner·retention은 상위 Service, 전체 checksum·MIME와 publish는 후속 trusted ingestion·integrity 계층 책임이다.
+- `ArtifactIngestionService`와 `LocalArtifactPublisher`를 구현해 별도 staging root, streaming SHA-256·size, kind별 MIME, exclusive hard-link publish, Artifact·Catalog 단일 transaction과 cleanup 실패 orphan signal을 검증했다. owner·retention은 후속 상위 Service 책임이다.
 - Legacy `AUDIO_STORAGE_ROOT`, Runtime Table 14개와 기존 Pipeline은 source of truth를 유지한다.
 - Resource API는 19/64, Artifact API는 0/3을 유지한다.
 - Provider는 Workspace DB나 final Artifact root에 직접 쓰지 않고 임시 결과를 DohaMusic ingestion 경계에 전달한다.
@@ -56,7 +56,7 @@ Workspace `Artifact` Entity는 `asset_version_id`, kind, MIME, size, checksum과
 1. `[완료]` Catalog Entity·source Migration을 추가하고 기존 35개 Table을 변경하지 않는 additive upgrade·downgrade를 임시 SQLite에서 검증한다.
 2. `[완료]` 실제 사용자 DB에 대해 read-only Inventory, backup·restore와 migration rehearsal을 수행하고 별도 승인 후 적용한다.
 3. `[완료]` canonical storage key validator와 local Resolver를 임시 root에서 검증한다.
-4. trusted ingestion과 physical checksum·MIME 검증을 구현한다.
+4. `[완료]` trusted ingestion과 physical checksum·MIME 검증을 구현한다.
 5. Metadata·content·download API를 연결한다.
 6. 신규 결과부터 Catalog를 사용하고 Legacy 결과는 checksum·backup·rollback Gate 후 선택적으로 backfill한다.
 7. 모든 소비자가 전환되기 전 Legacy 경로나 파일을 삭제하지 않는다.
@@ -74,3 +74,4 @@ Workspace `Artifact` Entity는 `asset_version_id`, kind, MIME, size, checksum과
 - 이 ADR을 추가하는 `develop` 대상 문서 PR
 - Catalog Entity·Migration과 실제 DB 적용 PR
 - Artifact Storage Resolver 구현 PR
+- Artifact Trusted Ingestion 구현 PR

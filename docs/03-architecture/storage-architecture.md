@@ -29,7 +29,7 @@ F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)�
 
 ## 목표 Artifact 도메인 [계획]
 
-현재 `AUDIO_STORAGE_ROOT` 구현과 별개로 장기 로컬 Artifact root를 다음처럼 구분한다. Artifact ID와 물리 Payload는 별도 내부 DB Catalog가 domain과 canonical root-relative storage key를 보존하고 Resolver가 승인된 root 안에서만 해석한다. `ArtifactStorageLocation` Catalog Entity와 additive revision `20260809_0016`은 실제 사용자 DB에 적용했고 `DOHA_ARTIFACT_ROOT` 설정과 local Resolver를 구현했다. 이번 구현과 검증에서는 실제 root directory를 생성하거나 사용자 파일을 읽고 이동하지 않았다.
+현재 `AUDIO_STORAGE_ROOT` 구현과 별개로 장기 로컬 Artifact root를 다음처럼 구분한다. Catalog·`DOHA_ARTIFACT_ROOT` local Resolver와 별도 `DOHA_ARTIFACT_STAGING_ROOT` Trusted Ingestion을 구현했다. Ingestion은 staging과 네 domain root의 중첩을 거부하고 test root에서만 Payload를 publish했다. 실제 운영 root directory를 생성하거나 사용자 파일을 읽고 이동하지 않았다.
 
 ```text
 D:/DohaArtifacts/
@@ -61,7 +61,7 @@ D:/DohaArtifacts/
 - `snapshots/`: DB가 소유하는 특정 AssetVersion 조합, processing chain과 mix settings를 재현·교환·백업하기 위한 불변 직렬화 Artifact. 권위 있는 관계 데이터는 DB에 유지
 - `runs/`: Mix Job·Export Job 실행 로그, 설정 snapshot과 안전한 진단 metadata
 
-내부 Workspace DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact의 내부 논리 URI는 `artifact://<artifact_id>`이며 공개 응답은 Artifact API link를 사용한다. 실제 root는 `artifact_storage_locations` Catalog의 backend·domain·storage key를 Resolver가 해석한다. Catalog Entity·Migration·실제 사용자 DB 적용과 local Resolver는 완료했다. trusted ingestion, 실제 Payload 등록과 delivery는 아직 `[계획]`이다.
+내부 Workspace DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact의 내부 논리 URI는 `artifact://<artifact_id>`이며 공개 응답은 Artifact API link를 사용한다. Catalog·local Resolver와 trusted ingestion은 완료했다. 실제 운영 Payload 등록·Runtime 전환과 content/download delivery는 아직 `[계획]`이다.
 
 ## K3 Preview 저장 목표 [계획]
 

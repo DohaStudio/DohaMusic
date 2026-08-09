@@ -6,7 +6,7 @@
 
 > DohaLM Lyrics 연동: 별도 저장소의 LLM 모델·추론 Provider인 [DohaLM](https://github.com/DohaStudio/DohaLM/tree/develop)을 REST/Streaming API 또는 향후 Python SDK로 호출하는 Reference Application 구조는 `[계획]`입니다. DohaLM의 현재 REST/SSE MVP는 일반 Chat 계약이며 Python SDK와 DohaMusic 전용 Lyrics API는 아직 확정되지 않았습니다. `AIHUB-71748` 계열은 비상업 연구 범위이므로 상업용 DohaMusic 작업에서 사용할 수 없습니다.
 
-> Workspace Artifact 도메인: Provider Runtime 결과의 `DohaArtifacts/lm|audio|vocal`과 별도로 Mix·Export·Preview·Composition Snapshot·실행 기록을 위한 `DohaArtifacts/music` 구조와 [Artifact Storage Resolver·무결성 계약](docs/03-architecture/artifact-storage-contract.md)을 확정했습니다. 내부 `ArtifactStorageLocation` Catalog Entity와 additive revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했으며, Catalog 조회와 설정 주입형 local Resolver를 구현했습니다. 실제 Catalog row는 0개이며 trusted ingestion·physical checksum·MIME 검증·Range·로컬 폴더 생성·Runtime 연결과 Artifact API 3개는 아직 구현하지 않았습니다.
+> Workspace Artifact 도메인: Provider Runtime 결과의 `DohaArtifacts/lm|audio|vocal`과 별도로 Mix·Export·Preview·Composition Snapshot·실행 기록을 위한 `DohaArtifacts/music` 구조와 [Artifact Storage Resolver·무결성 계약](docs/03-architecture/artifact-storage-contract.md)을 확정했습니다. 내부 Catalog와 revision `20260809_0016`을 실제 사용자 DB에 적용했고, local Resolver와 [Trusted Ingestion 운영 계약](docs/10-operations/artifact-storage-ingestion.md)을 구현했습니다. Ingestion은 승인 staging root의 bytes에서 SHA-256·크기·MIME를 확정하고 overwrite 없는 publish와 Artifact·Catalog 단일 transaction·실패 보상을 수행합니다. 실제 Catalog row는 0개이며 full orphan worker·owner/retention 공개 Service·Range·Runtime 연결과 Artifact API 3개는 아직 구현하지 않았습니다.
 
 > AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지하고, 실제 저장소로 존재하는 DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider 기능으로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
 
@@ -24,7 +24,7 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료**
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.

@@ -11,7 +11,7 @@ from backend.models.workspace.storage import ArtifactStorageLocation
 
 
 class ArtifactStorageRepository:
-    """Catalog 조회만 수행하고 transaction과 filesystem을 소유하지 않는다."""
+    """Catalog persistence만 수행하고 transaction과 filesystem을 소유하지 않는다."""
 
     def __init__(self, session: Session) -> None:
         self.session = session
@@ -21,3 +21,10 @@ class ArtifactStorageRepository:
             ArtifactStorageLocation.artifact_id == artifact_id
         )
         return self.session.scalar(statement)
+
+    def add_storage_location(
+        self, location: ArtifactStorageLocation
+    ) -> ArtifactStorageLocation:
+        self.session.add(location)
+        self.session.flush()
+        return location

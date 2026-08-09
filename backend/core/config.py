@@ -21,6 +21,7 @@ class Settings(BaseModel):
     cursor_signing_key: SecretStr = SecretStr("")
     storage_root: Path = Path("backend/storage")
     artifact_root: Path | None = None
+    artifact_staging_root: Path | None = None
     music_generator: str = "mock"
     model_name: str = "mock-music-generator"
     model_version: str = "mock"
@@ -109,7 +110,7 @@ class Settings(BaseModel):
     def normalize_log_level(cls, value: str) -> str:
         return value.upper()
 
-    @field_validator("artifact_root", mode="before")
+    @field_validator("artifact_root", "artifact_staging_root", mode="before")
     @classmethod
     def normalize_optional_artifact_root(cls, value: object) -> object:
         if isinstance(value, str) and not value.strip():
@@ -139,6 +140,7 @@ class Settings(BaseModel):
             "DOHAMUSIC_CURSOR_SIGNING_KEY": "cursor_signing_key",
             "AUDIO_STORAGE_ROOT": "storage_root",
             "DOHA_ARTIFACT_ROOT": "artifact_root",
+            "DOHA_ARTIFACT_STAGING_ROOT": "artifact_staging_root",
             "DOHAMUSIC_MUSIC_GENERATOR": "music_generator",
             "MODEL_NAME": "model_name",
             "MODEL_VERSION": "model_version",
