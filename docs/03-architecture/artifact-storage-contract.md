@@ -7,7 +7,7 @@
 
 ## 1. 목적과 현재 경계
 
-이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog Entity와 additive source revision `20260809_0016`은 구현·임시 SQLite 검증을 완료했다. Artifact Router·Resolver·ingestion, 실제 사용자 DB 적용, 실제 폴더와 파일 이동은 구현하지 않는다.
+이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog Entity와 additive revision `20260809_0016`은 구현·임시 SQLite 검증과 실제 사용자 DB 적용을 완료했다. 실제 DB에는 `artifact_storage_locations`가 존재하지만 row는 0개다. Artifact Router·Resolver·trusted ingestion·physical checksum 검증·Range, 실제 폴더와 파일 이동은 구현하지 않았다.
 
 현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. 목표 Workspace Resource API는 19/64, Artifact API는 0/3이며 다음 세 공개 Endpoint는 `[계획]` 상태를 유지한다.
 
@@ -82,7 +82,7 @@ Artifact Entity에는 path와 storage key를 추가하지 않는다. 내부 전�
 | `artifact_id`의 deterministic path 변환 | 제외 | domain·backend·파일 형식·Provider별 보존 경계를 표현하기 어렵고 relocation 유연성이 낮음 |
 | 기존 Runtime 상대 경로 재사용 | 제외 | Legacy source of truth와 목표 Artifact 경계를 다시 결합함 |
 
-이 결정에 따라 별도 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Table, additive source revision `20260809_0016`을 구현했다. 목표 21개 Workspace Entity와 기존 35개 Table은 변경하지 않았으며 source metadata만 Catalog를 포함한 36개 Table이 됐다. 실제 사용자 DB는 접근하지 않아 `20260808_0015`를 유지한다.
+이 결정에 따라 별도 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Table, additive revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했다. 목표 21개 Workspace Entity와 기존 35개 Table은 변경하지 않았으며 source metadata와 실제 사용자 DB는 Catalog를 포함한 36개 Application Table이다. Catalog row는 0개이고 기존 79개 row와 canonical digest는 보존됐다.
 
 ## 5. Storage key 계약
 
@@ -290,7 +290,7 @@ DB row는 있지만 Catalog나 Payload가 없는 경우 `ARTIFACT_CONTENT_UNAVAI
 ## 17. 구현 선행 조건
 
 1. `[완료]` `artifact_storage_locations` Entity·additive source revision `20260809_0016`과 임시 DB upgrade·downgrade 검증
-2. 실제 사용자 DB read-only Inventory·backup·restore·migration rehearsal과 별도 적용 승인
+2. `[완료]` 실제 사용자 DB read-only Inventory·backup·restore·migration rehearsal과 별도 승인에 따른 `20260809_0016` 적용
 3. Storage root 설정과 canonical key validator 구현
 4. Catalog Repository, Resolver와 trusted ingestion Service 구현
 5. symlink·junction·traversal·TOCTOU·checksum·MIME·크기·orphan 테스트

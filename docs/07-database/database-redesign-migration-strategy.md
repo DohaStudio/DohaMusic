@@ -3,12 +3,12 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity·0012~0015 실제 적용, Workspace Repository·Service·Resource API 19개 완료; Bootstrap·backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity·0012~0016 실제 적용, Workspace Repository·Service·Resource API 19개 완료; Resolver·Bootstrap·backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head는 내부 Artifact Catalog Table을 추가한 `20260809_0016`, 실제 사용자 DB revision은 `20260808_0015`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개, `20260807_0014`는 ProjectAsset partial Index 하나, `20260808_0015`는 Asset full keyset Index 두 개를 추가했습니다. 신규 Workspace Table row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head와 실제 사용자 DB revision은 내부 Artifact Catalog Table을 추가한 `20260809_0016`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개, `20260807_0014`는 ProjectAsset partial Index 하나, `20260808_0015`는 Asset full keyset Index 두 개, `20260809_0016`은 Catalog Table 하나를 추가했습니다. 신규 Workspace Table과 Catalog row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -78,7 +78,7 @@ Alembic source head는 내부 Artifact Catalog Table을 추가한 `20260809_0016
 - Catalog는 Artifact와 1:1 `RESTRICT` FK, Artifact당 locator Unique와 `(storage_backend, storage_domain, storage_key)` Unique를 가집니다.
 - DB는 비어 있지 않은 backend·key, `lm|audio|vocal|music` domain과 양수 locator version을 강제합니다. canonical key·traversal·symlink 검증은 후속 Resolver 책임입니다.
 - 임시 SQLite에서 `0015 → 0016 → 0015` upgrade·downgrade, 기존 35개 Table·row count·digest·quick/integrity/FK 보존을 검증했습니다.
-- 실제 사용자 DB에는 적용하지 않았으며 별도 Inventory·backup·restore·migration rehearsal과 사용자 승인이 필요합니다.
+- read-only Inventory·backup·restore·migration·downgrade rehearsal과 별도 사용자 승인 Gate를 거쳐 실제 사용자 DB에 적용했습니다. 기존 35개 Table·79개 row·digest와 무결성은 보존됐고 Catalog row는 0개입니다.
 
 ## 3. 현재 Table별 권장 매핑
 
@@ -128,7 +128,7 @@ Alembic source head는 내부 Artifact Catalog Table을 추가한 `20260809_0016
 
 ### Phase 1 — 현행 Inventory와 복구 기준
 
-1. `[도구 완료·실DB 미수행]` 14개 Table row 수, revision, FK, integrity와 schema drift를 read-only로 기록합니다.
+1. `[완료]` 14개 Runtime Table을 포함한 row 수, revision, FK, integrity와 schema drift를 read-only로 기록했습니다.
 2. `[완료]` SQLite backup API로 실제 사용자 DB backup을 검증하고 원본과 분리된 임시 위치에서 복구 절차를 검증했습니다.
 3. 모든 파일 Metadata와 실제 파일 존재 여부·크기·checksum을 읽기 전용으로 대조합니다.
 4. 개인 음성, Consent와 삭제 대기 데이터를 별도 위험 목록으로 분류합니다.
@@ -144,9 +144,9 @@ Alembic source head는 내부 Artifact Catalog Table을 추가한 `20260809_0016
 3. 기본 Workspace를 만들고 기존 `projects`를 `music_projects`로 backfill합니다.
 4. 현행 API 읽기·쓰기는 아직 바꾸지 않습니다.
 
-1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table row는 0건이며 3번 backfill도 수행하지 않았습니다.
+1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`, Artifact Catalog revision `20260809_0016`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table과 Catalog row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
-Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 source revision `20260809_0016`을 구현했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 임시 DB에서 검증했습니다. 실제 DB 적용은 기존 Runbook Gate와 별도 승인을 따르며 Resolver·ingestion은 다음 단계입니다.
+Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 검증했습니다. Resolver·trusted ingestion·physical checksum 검증·Range는 다음 단계입니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 
