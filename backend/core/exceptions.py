@@ -94,6 +94,39 @@ class InvalidLimitError(AppError):
         )
 
 
+class WorkspaceBootstrapRequiredError(AppError):
+    """명시적 Workspace Bootstrap이 필요한 상태."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            code="WORKSPACE_BOOTSTRAP_REQUIRED",
+            message="기본 Workspace Bootstrap이 필요합니다.",
+            status_code=409,
+        )
+
+
+class IdempotencyConflictError(AppError):
+    """같은 idempotency key가 다른 요청에 사용된 상태."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            code="IDEMPOTENCY_CONFLICT",
+            message="같은 Idempotency-Key가 다른 요청에 사용됐습니다.",
+            status_code=409,
+        )
+
+
+class IdempotencyInProgressError(AppError):
+    """같은 idempotency 요청이 아직 처리 중인 상태."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            code="IDEMPOTENCY_IN_PROGRESS",
+            message="같은 Idempotency-Key 요청이 처리 중입니다.",
+            status_code=409,
+        )
+
+
 class InvalidVoiceReferenceError(AppError):
     def __init__(self) -> None:
         super().__init__(

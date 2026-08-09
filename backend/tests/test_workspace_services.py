@@ -20,6 +20,7 @@ from backend.core.exceptions import (
 from backend.db.base import Base
 from backend.db.session import create_database_engine
 from backend.models.pipeline_job import PipelineJob
+from backend.models.idempotency_record import IdempotencyRecord
 from backend.models.workspace import (
     Approval,
     Artifact,
@@ -80,6 +81,7 @@ def service_factory(tmp_path: Path):
         f"sqlite:///{(tmp_path / 'workspace-services.db').as_posix()}"
     )
     tables = [entity.__table__ for entity in WORKSPACE_ENTITY_CLASSES]
+    tables.append(IdempotencyRecord.__table__)
     Base.metadata.create_all(engine, tables=tables)
     factory = sessionmaker(
         bind=engine,
@@ -285,6 +287,12 @@ def test_asset_relation_duplicate_is_conflict(service_factory) -> None:
 def test_snapshot_creation_is_exact_and_atomic(service_factory, monkeypatch) -> None:
     graph = _seed_graph(service_factory)
     service = CompositionService(service_factory)
+    WorkspaceService(service_factory).attach_asset(
+        project_id=graph.project.project_id,
+        asset_id=graph.asset.asset_id,
+        display_order=0,
+        role="music",
+    )
     original = CompositionRepository.add_snapshot_item
     calls = 0
 
@@ -299,15 +307,15 @@ def test_snapshot_creation_is_exact_and_atomic(service_factory, monkeypatch) -> 
     with pytest.raises(RuntimeError, match="injected failure"):
         service.create_snapshot(
             project_id=graph.project.project_id,
-            snapshot_version=1,
+            effective_owner_id=graph.owner_id,
             items=[
                 SnapshotItemInput(graph.version.asset_version_id, "music", 0),
-                SnapshotItemInput(graph.version.asset_version_id, "reference", 1),
+                SnapshotItemInput(graph.version.asset_version_id, "vocal", 1),
             ],
             mix_settings_snapshot={},
             provider_versions={},
             model_manifest_ids={},
-            created_by=graph.owner_id,
+            idempotency_key="snapshot-rollback",
         )
 
     assert _count(service_factory, CompositionSnapshot) == 0
@@ -318,6 +326,12 @@ def test_snapshot_creation_is_exact_and_atomic(service_factory, monkeypatch) -> 
 def test_snapshot_and_processing_chain_success(service_factory) -> None:
     graph = _seed_graph(service_factory)
     service = CompositionService(service_factory)
+    WorkspaceService(service_factory).attach_asset(
+        project_id=graph.project.project_id,
+        asset_id=graph.asset.asset_id,
+        display_order=0,
+        role="music",
+    )
     chain = service.create_processing_chain(
         name="mix",
         chain_version="1",
@@ -325,18 +339,20 @@ def test_snapshot_and_processing_chain_success(service_factory) -> None:
         created_by=graph.owner_id,
         steps=[ProcessingStepInput(1, "normalize", {"peak": -1})],
     )
-    snapshot = service.create_snapshot(
+    result = service.create_snapshot(
         project_id=graph.project.project_id,
-        snapshot_version=1,
+        effective_owner_id=graph.owner_id,
         processing_chain_id=chain.processing_chain_id,
         items=[SnapshotItemInput(graph.version.asset_version_id, "music", 0)],
         mix_settings_snapshot={"gain": 0},
         provider_versions={},
         model_manifest_ids={},
-        created_by=graph.owner_id,
+        idempotency_key="snapshot-success",
     )
 
-    assert snapshot.processing_chain_id == chain.processing_chain_id
+    assert result.aggregate.snapshot.processing_chain_id == chain.processing_chain_id
+    assert result.aggregate.snapshot.snapshot_version == 1
+    assert result.aggregate.snapshot.created_by == graph.owner_id
     assert "update_snapshot" not in dir(service)
     assert _count(service_factory, ProcessingChain) == 1
     assert _count(service_factory, ProcessingStep) == 1

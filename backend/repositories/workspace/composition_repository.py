@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.asset import AssetVersion
@@ -30,6 +30,16 @@ class CompositionRepository:
     def get_snapshot(self, snapshot_id: UUID) -> CompositionSnapshot | None:
         return self.session.get(CompositionSnapshot, snapshot_id)
 
+    def get_next_snapshot_version(self, project_id: UUID) -> int:
+        """Project 내부의 다음 단조 증가 Snapshot version을 반환한다."""
+
+        latest = self.session.scalar(
+            select(func.max(CompositionSnapshot.snapshot_version)).where(
+                CompositionSnapshot.project_id == project_id
+            )
+        )
+        return (latest or 0) + 1
+
     def list_project_snapshots(
         self, project_id: UUID, *, limit: int = 100, offset: int = 0
     ) -> list[CompositionSnapshot]:
@@ -38,11 +48,41 @@ class CompositionRepository:
             .where(CompositionSnapshot.project_id == project_id)
             .order_by(
                 CompositionSnapshot.snapshot_version.desc(),
-                CompositionSnapshot.composition_snapshot_id,
+                CompositionSnapshot.composition_snapshot_id.desc(),
             )
             .limit(limit)
             .offset(offset)
         )
+        return list(self.session.scalars(statement))
+
+    def list_project_snapshots_after(
+        self,
+        project_id: UUID,
+        *,
+        last_snapshot_version: int | None = None,
+        last_id: UUID | None = None,
+        limit: int = 100,
+    ) -> list[CompositionSnapshot]:
+        """Project Snapshot을 version DESC keyset으로 조회한다."""
+
+        _validate_snapshot_position(last_snapshot_version, last_id)
+        statement = select(CompositionSnapshot).where(
+            CompositionSnapshot.project_id == project_id
+        )
+        if last_snapshot_version is not None and last_id is not None:
+            statement = statement.where(
+                or_(
+                    CompositionSnapshot.snapshot_version < last_snapshot_version,
+                    and_(
+                        CompositionSnapshot.snapshot_version == last_snapshot_version,
+                        CompositionSnapshot.composition_snapshot_id < last_id,
+                    ),
+                )
+            )
+        statement = statement.order_by(
+            CompositionSnapshot.snapshot_version.desc(),
+            CompositionSnapshot.composition_snapshot_id.desc(),
+        ).limit(limit)
         return list(self.session.scalars(statement))
 
     def list_asset_snapshots(
@@ -141,3 +181,14 @@ class CompositionRepository:
             ProcessingStep.step_order == step_order,
         )
         return self.session.scalar(statement.limit(1)) is not None
+
+
+def _validate_snapshot_position(
+    last_snapshot_version: int | None, last_id: UUID | None
+) -> None:
+    if (last_snapshot_version is None) != (last_id is None):
+        raise ValueError("Snapshot keyset 위치는 version과 ID가 함께 필요합니다.")
+    if last_snapshot_version is not None and (
+        type(last_snapshot_version) is not int or last_snapshot_version < 1
+    ):
+        raise ValueError("Snapshot version 위치가 유효하지 않습니다.")

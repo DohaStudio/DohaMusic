@@ -61,7 +61,7 @@ D:/DohaArtifacts/
 - `snapshots/`: DB가 소유하는 특정 AssetVersion 조합, processing chain과 mix settings를 재현·교환·백업하기 위한 불변 직렬화 Artifact. 권위 있는 관계 데이터는 DB에 유지
 - `runs/`: Mix Job·Export Job 실행 로그, 설정 snapshot과 안전한 진단 metadata
 
-내부 Workspace DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact의 내부 논리 URI는 `artifact://<artifact_id>`이며 공개 응답은 Artifact API link를 사용한다. Catalog·local Resolver와 trusted ingestion은 완료했다. 실제 운영 Payload 등록·Runtime 전환과 content/download delivery는 아직 `[계획]`이다.
+내부 Workspace DB와 공개 API는 로컬 절대 경로를 계약으로 사용하지 않는다. Artifact의 내부 논리 URI는 `artifact://<artifact_id>`이며 공개 응답은 Artifact API link를 사용한다. Catalog·local Resolver·trusted ingestion과 Artifact content/download delivery는 완료했다. 실제 운영 Payload 등록과 Runtime 전환은 아직 `[계획]`이다.
 
 ## K3 Preview 저장 목표 [계획]
 

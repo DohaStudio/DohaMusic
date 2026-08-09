@@ -2,9 +2,9 @@
 
 > 상태: [제안]
 > 작성일: 2026-08-05
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 관련 문서: [공통 계약](../06-api/workspace-rest-api-contract.md), [Endpoint 목록](../06-api/workspace-rest-api-endpoints.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API](../06-api/provider-api-contract.md), [API 전환 전략](../06-api/api-contract-migration-strategy.md), [ADR-032](ADR-032-artifact-storage-resolver-integrity.md)
+> 관련 문서: [공통 계약](../06-api/workspace-rest-api-contract.md), [Endpoint 목록](../06-api/workspace-rest-api-endpoints.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API](../06-api/provider-api-contract.md), [API 전환 전략](../06-api/api-contract-migration-strategy.md), [ADR-032](ADR-032-artifact-storage-resolver-integrity.md)
 > 관련 PR: [PR #53](https://github.com/DohaStudio/DohaMusic/pull/53)
 
 ## 배경
@@ -59,6 +59,10 @@ DohaMusic의 목표 API를 `/api/v1` Workspace REST API로 설계합니다.
 이번 ADR은 문서만 추가합니다. 현재 FastAPI Router, Endpoint, DTO, OpenAPI JSON, SQLAlchemy, Alembic, Worker, Runtime, Provider와 테스트는 변경하지 않습니다. 현재 API 문서는 계속 실제 구현 기준이며 목표 v1 API는 모두 `[계획]`입니다.
 
 Common Specification PR #2와 DB Redesign PR #52가 선행 의존성입니다. 두 계약이 변경되면 이 ADR을 구현 전에 갱신합니다.
+
+### 구현 메모 — 2026-08-10
+
+CompositionSnapshot Router 구현 전 단계로 effective Owner·ProjectAsset scope, 불변 Snapshot+Item 단일 transaction, Project별 자동 version과 유한 충돌 retry, `snapshot_version DESC` HMAC Cursor, aggregate 조회와 기존 `idempotency_records` 기반 replay를 구현했습니다. 기존 schema와 `(project_id, snapshot_version)` Unique Index를 재사용하므로 ADR의 API·DB 경계는 변경하지 않습니다. 공식 Endpoint 3개와 HTTP `Idempotency-Key` 연결은 후속 범위입니다.
 
 ## Migration
 

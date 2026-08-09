@@ -1,9 +1,9 @@
 # DohaMusic Workspace Artifact 모델
 
-> 문서 상태: [계획]
+> 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: AssetVersion 기반 Composition Snapshot, Mix, Export
-> 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)
+> 관련 문서: [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)
 
 ## 목적
 
@@ -70,6 +70,8 @@ created_at
 ```
 
 Snapshot 자체는 Mix Asset이 아니다. 특정 조합과 설정을 재현하기 위한 불변 입력 계약이며, 변경할 때는 기존 Snapshot을 수정하지 않고 새 Snapshot을 만든다. 권위 있는 Snapshot 관계 데이터와 현재 선택 상태의 원장은 DB다. `DohaArtifacts/music/snapshots`에는 재현·교환·백업을 위한 직렬화 Artifact만 저장하며 이 파일을 DB 관계의 독립 원장으로 사용하지 않는다.
+
+현재 Application 기반은 effective Owner·활성 Project, 같은 Workspace 또는 Owner 소유 Workspace 미지정 Asset과 활성 ProjectAsset 관계를 검증한다. 공개 role은 `lyrics`, `music`, `vocal`, `stem`, `mix`이며 정확한 AssetVersion만 고정한다. Snapshot+Item을 원자적으로 생성하고 Project별 version·Cursor·Idempotency를 관리하지만 공식 Router와 API 3개는 아직 `[계획]`이다.
 
 ## Mix Asset 계약
 

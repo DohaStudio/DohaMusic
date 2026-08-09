@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — CompositionSnapshot 계약과 Cursor 기반
+
+- effective Owner·활성 Project·같은 Workspace 또는 Owner 소유 global Asset·활성 ProjectAsset 관계를 검증하는 CompositionSnapshot Application 기반을 추가했다.
+- `lyrics|music|vocal|stem|mix` 역할과 정확한 AssetVersion, Project별 자동 `snapshot_version`, 최대 3회 concurrency retry, Snapshot+Item+Idempotency 단일 transaction을 구현했다.
+- `composition_snapshot` version 1 HMAC Cursor와 `(snapshot_version DESC, composition_snapshot_id DESC)` keyset 조회를 추가했다. 6,000개 임시 SQLite Query Plan에서 기존 Unique Index 사용, TEMP B-TREE 0건과 중복·누락 0건을 확인해 Alembic·Index는 변경하지 않았다.
+- Provider·Model Manifest를 제한된 문자열 mapping으로, Mix 설정을 깊이·항목 수가 제한된 JSON object로 검증하고 기존 `idempotency_records`를 Owner·Project scope로 재사용한다.
+- 공식 Router와 CompositionSnapshot Endpoint 3개는 아직 미구현이며 Resource API 22/64, 실제 사용자 DB `20260809_0016`, metadata 36개 Table과 Runtime source of truth 14개를 유지한다.
+- 계약과 검증은 [CompositionSnapshot 기반](docs/06-api/composition-snapshot-foundation.md)과 [검증 보고서](reports/validation/VALIDATION-COMPOSITION-SNAPSHOT-FOUNDATION.md)에 기록했다.
+
 ### 추가 — Artifact Resource API와 single-byte Range
 
 - `GET /api/v1/artifacts/{artifact_id}`, `/content`, `/download`를 추가해 Artifact Metadata와 검증된 Payload를 inline 또는 attachment로 제공한다.

@@ -161,6 +161,12 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - Snapshot은 정확한 AssetVersion만 참조합니다.
 - 생성 후 PATCH·DELETE하지 않습니다.
 - Asset Selection이 바뀌어도 과거 Snapshot은 변하지 않습니다.
+- effective Owner와 활성 Project scope를 검증하고 같은 Workspace Asset 또는 Owner 소유 Workspace 미지정 Asset만 허용합니다.
+- 모든 참조 Asset은 생성 시점에 대상 Project의 활성 ProjectAsset 관계를 가져야 하며, 이후 관계 분리는 과거 Snapshot을 무효화하지 않습니다.
+- 공개 role은 `lyrics`, `music`, `vocal`, `stem`, `mix`이며 Instrumental은 `music`으로 표현합니다.
+- `snapshot_version`과 `created_by`는 공개 입력이 아니라 Service가 각각 Project의 다음 번호와 effective Owner에서 파생합니다.
+- Snapshot과 전체 Item, Idempotency 완료 기록은 한 transaction에서 생성하고 일부만 남기지 않습니다.
+- 현재 Repository·Service·Cursor 기반만 구현했으며 Router와 공식 Endpoint 3개는 `[계획]`입니다. 세부 계약은 [CompositionSnapshot 기반](composition-snapshot-foundation.md)을 따릅니다.
 
 ### 6.5 Job
 
@@ -267,6 +273,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - 같은 key와 다른 fingerprint는 `409 IDEMPOTENCY_KEY_REUSED`입니다.
 - Retry replay는 새 Job을 추가 생성하지 않고 처음 만든 retry Job을 반환합니다.
 - 보존 기간은 최소 24시간을 기본안으로 두되 운영 정책 확정이 필요합니다.
+- CompositionSnapshot 기반은 기존 `idempotency_records`를 사용해 effective Owner·Project scope와 정규화된 body fingerprint를 24시간 보존합니다. 같은 key·요청은 aggregate를 재생하고 다른 요청은 conflict로 거부하며 Snapshot·Item과 같은 transaction에 기록합니다. HTTP header 연결은 Router 후속 범위입니다.
 
 ## 10. Pagination, Filter, Sort와 Search
 
@@ -277,9 +284,9 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - `cursor`는 서버가 발급한 opaque 값이며 client가 해석하거나 수정하지 않습니다.
 - 정렬 기준과 filter가 바뀌면 기존 cursor를 재사용하지 않습니다.
 - `page` 기반 offset pagination은 v1 목표 계약에서 사용하지 않습니다. `page`와 `cursor`를 함께 지원해 결과가 달라지는 문제를 피합니다.
-- Cursor payload는 version, Resource, 방향, 정렬, 마지막 `created_at`·UUID, filter fingerprint와 page limit을 포함합니다.
+- Cursor payload는 version, Resource, 방향, 정렬, Resource별 마지막 position·UUID, filter fingerprint와 page limit을 포함합니다. CompositionSnapshot position은 `last_snapshot_version`입니다.
 - Payload는 canonical JSON을 base64url로 인코딩하고 전용 `DOHAMUSIC_CURSOR_SIGNING_KEY`로 HMAC-SHA256 서명합니다. unsigned cursor는 허용하지 않습니다.
-- Workspace·Project는 `(created_at DESC, resource_id DESC)`, ProjectAsset은 `(display_order ASC, project_asset_id ASC)` keyset과 `limit + 1` 조회를 사용합니다. `has_more=true`이면 `next_cursor`가 반드시 존재하고 마지막 page에서는 `null`입니다.
+- Workspace·Project·Asset은 `(created_at DESC, resource_id DESC)`, ProjectAsset은 `(display_order ASC, project_asset_id ASC)`, CompositionSnapshot은 `(snapshot_version DESC, composition_snapshot_id DESC)` keyset과 `limit + 1` 조회를 사용합니다. `has_more=true`이면 `next_cursor`가 반드시 존재하고 마지막 page에서는 `null`입니다.
 - 서명 키는 32바이트 이상이어야 하며 자동 생성·하드코딩·로그 출력을 금지합니다. App Factory가 설정값으로 codec을 구성하고 목록 기능 사용 시점에 검증합니다.
 - 자세한 구현 경계는 [Cursor Pagination 설계](cursor-pagination.md)를 따릅니다.
 
