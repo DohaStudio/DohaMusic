@@ -11,6 +11,7 @@ from backend.schemas.workspace.common import (
     SuccessResponse,
 )
 from backend.schemas.workspace.resources import (
+    ArtifactDetail,
     AssetCreateRequest,
     AssetDetail,
     AssetSummary,
@@ -30,6 +31,7 @@ from backend.schemas.workspace.resources import (
 )
 
 __all__ = [
+    "ArtifactDetail",
     "AssetCreateRequest",
     "AssetDetail",
     "AssetSummary",

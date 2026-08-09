@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Artifact Resource API와 single-byte Range
+
+- `GET /api/v1/artifacts/{artifact_id}`, `/content`, `/download`를 추가해 Artifact Metadata와 검증된 Payload를 inline 또는 attachment로 제공한다.
+- Artifact Router는 effective Owner·retention·delivery allowlist·size·전체 SHA-256 검증을 `ArtifactApplicationService`에 위임하고 Repository·Resolver·filesystem에 직접 접근하지 않는다.
+- `bytes=start-end`, `bytes=start-`, `bytes=-suffix` 단일 Range를 지원하고 multiple·invalid·unsatisfiable 요청은 `416 INVALID_RANGE`와 `Content-Range: bytes */<size>`로 거부한다.
+- 공개 DTO와 오류에는 Catalog·storage key·URI·로컬 Path·checksum 기대값을 노출하지 않으며 공개 Artifact POST·PATCH·DELETE·Collection은 추가하지 않았다.
+- Resource API 진행도는 22/64, Artifact API는 3/3이다. Alembic·Entity·실제 사용자 DB·Frontend·Provider·Runtime은 변경하지 않았다.
+- 구현과 격리 검증 결과는 [Artifact Resource API 검증](reports/validation/VALIDATION-ARTIFACT-RESOURCE-API.md)에 기록했다.
+
 ### 추가 — Artifact 접근 제어와 reconciliation 기반
 
 - `ArtifactApplicationService`를 추가해 `Artifact → AssetVersion → Asset.owner_id` 계보에서 effective Owner를 검증하고 cross-owner·누락·삭제된 상위 Asset은 `ARTIFACT_NOT_FOUND`로 숨긴다.

@@ -158,7 +158,7 @@ Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`, Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`와 `artifact_storage_locations` 하나를 추가한 `20260809_0016`이 적용됐습니다. 신규 Workspace Table과 Catalog row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion v1 Resource API 19개를 구현했고 Artifact API 0/3을 포함한 나머지 45개 Endpoint는 계획입니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`, Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`와 `artifact_storage_locations` 하나를 추가한 `20260809_0016`이 적용됐습니다. 신규 Workspace Table과 Catalog row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact v1 Resource API 22개를 구현했고 나머지 42개 Endpoint는 계획입니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

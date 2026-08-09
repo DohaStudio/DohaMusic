@@ -7,9 +7,9 @@
 
 ## 1. 목적과 현재 경계
 
-이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 임시 root에서 authoritative SHA-256·size·MIME, immutable publish, Artifact·Catalog transaction과 실패 보상을 검증했다. Owner 계보·retention·integrity read Gate와 batch dry-run reconciliation도 구현했다. Artifact Router·destructive reconciliation·Range와 실제 운영 폴더·파일 전환은 구현하지 않았다.
+이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 임시 root에서 authoritative SHA-256·size·MIME, immutable publish, Artifact·Catalog transaction과 실패 보상을 검증했다. Owner 계보·retention·integrity read Gate, batch dry-run reconciliation, Artifact Router와 single-byte HTTP Range도 구현했다. destructive reconciliation과 실제 운영 폴더·파일 전환은 구현하지 않았다.
 
-현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. 목표 Workspace Resource API는 19/64, Artifact API는 0/3이며 다음 세 공개 Endpoint는 `[계획]` 상태를 유지한다.
+현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. Workspace Resource API는 22/64, Artifact API는 3/3이며 다음 세 공개 Endpoint를 구현했다.
 
 ```text
 GET /api/v1/artifacts/{artifact_id}
@@ -18,6 +18,8 @@ GET /api/v1/artifacts/{artifact_id}/download
 ```
 
 Artifact POST·PATCH·DELETE·목록과 Version 하위 Artifact 목록은 공개 계약에 추가하지 않는다.
+
+Metadata 응답은 논리 식별자·kind·MIME·크기·checksum·producer·retention·생성 시각과 활성 Artifact의 content·download link만 제공한다. Catalog, backend, domain, storage key, URI와 로컬 Path는 공개하지 않는다. content·download는 같은 검증된 descriptor를 1MiB chunk로 전달하며 전체 응답은 `200`, 유효한 단일 byte range는 `206`, multiple·invalid·unsatisfiable range는 `416 INVALID_RANGE`로 응답한다.
 
 ## 2. 도메인 의미와 불변성
 

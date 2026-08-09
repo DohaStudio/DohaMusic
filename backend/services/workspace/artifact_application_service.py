@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 from typing import BinaryIO
 from uuid import UUID
@@ -61,6 +62,7 @@ class ArtifactMetadata:
     producer_id: str | None
     run_id: str | None
     retention_status: str
+    created_at: datetime
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,7 +85,7 @@ class ArtifactApplicationService:
         self,
         session_factory: Callable[[], Session],
         *,
-        artifact_roots: ArtifactStorageRoots,
+        artifact_roots: ArtifactStorageRoots | None,
     ) -> None:
         self._session_factory = session_factory
         self._artifact_roots = artifact_roots
@@ -121,6 +123,8 @@ class ArtifactApplicationService:
                 effective_owner_id=effective_owner_id,
             )
             _require_content_retention(artifact.retention_status)
+            if self._artifact_roots is None:
+                raise ArtifactAccessError(ArtifactAccessErrorCode.CONTENT_UNAVAILABLE)
             if artifact.checksum_algorithm != "sha256":
                 raise ArtifactAccessError(ArtifactAccessErrorCode.INTEGRITY_ERROR)
             resolver = ArtifactStorageResolver(
@@ -196,6 +200,7 @@ def _to_metadata(artifact: Artifact) -> ArtifactMetadata:
         producer_id=artifact.producer_id,
         run_id=artifact.run_id,
         retention_status=artifact.retention_status,
+        created_at=artifact.created_at,
     )
 
 

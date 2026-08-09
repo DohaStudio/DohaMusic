@@ -57,11 +57,10 @@ DB 또는 검증 실패 시 이번 실행이 만든 final inode만 identity 비�
 
 Reporter hook과 별도로 [Artifact Storage Reconciliation](artifact-storage-reconciliation.md)의 batch dry-run scanner를 구현했다. 승인 namespace에서 cleanup failure·Catalog·filesystem drift를 탐지하지만 영속 queue, 자동 재시도와 운영 삭제 승인은 후속 구현이다.
 
-## 6. 현재 미구현
+## 6. 현재 구현과 후속 범위
 
-- 공개 Artifact POST와 Artifact API 3개
-- Artifact Router와 공개 owner·retention HTTP 연결
-- content·download와 Range HTTP
+- Artifact Metadata·content·download, 공개 owner·retention HTTP 연결과 single-byte Range는 구현했다.
+- 공개 Artifact POST·PATCH·DELETE·Collection은 계약에 없으며 추가하지 않았다.
 - destructive reconciliation·영속 worker
 - model·checkpoint authoritative validator
 - local 이외 Storage backend

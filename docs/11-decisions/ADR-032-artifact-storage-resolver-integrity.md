@@ -49,7 +49,7 @@ Workspace `Artifact` Entity는 `asset_version_id`, kind, MIME, size, checksum과
 - `ArtifactIngestionService`와 `LocalArtifactPublisher`를 구현해 별도 staging root, streaming SHA-256·size, kind별 MIME, exclusive hard-link publish, Artifact·Catalog 단일 transaction과 cleanup 실패 orphan signal을 검증했다.
 - `ArtifactApplicationService`는 Owner 계보와 retention matrix를 fail-closed하고 content 전달 전에 같은 descriptor의 size·전체 SHA-256을 검증한다. `ArtifactReconciliationService`는 Catalog batch와 승인 namespace를 dry-run scan하며 repair를 수행하지 않는다.
 - Legacy `AUDIO_STORAGE_ROOT`, Runtime Table 14개와 기존 Pipeline은 source of truth를 유지한다.
-- Resource API는 19/64, Artifact API는 0/3을 유지한다.
+- Artifact Metadata·content·download와 single-byte Range를 구현해 Resource API는 22/64, Artifact API는 3/3이다.
 - Provider는 Workspace DB나 final Artifact root에 직접 쓰지 않고 임시 결과를 DohaMusic ingestion 경계에 전달한다.
 
 ## 마이그레이션
@@ -59,7 +59,7 @@ Workspace `Artifact` Entity는 `asset_version_id`, kind, MIME, size, checksum과
 3. `[완료]` canonical storage key validator와 local Resolver를 임시 root에서 검증한다.
 4. `[완료]` trusted ingestion과 physical checksum·MIME 검증을 구현한다.
 5. `[완료]` Owner·retention·integrity read Gate와 dry-run reconciliation을 구현한다.
-6. Metadata·content·download API를 연결한다.
+6. `[완료]` Metadata·content·download API와 single-byte Range를 연결한다.
 7. 신규 결과부터 Catalog를 사용하고 Legacy 결과는 checksum·backup·rollback Gate 후 선택적으로 backfill한다.
 8. 모든 소비자가 전환되기 전 Legacy 경로나 파일을 삭제하지 않는다.
 

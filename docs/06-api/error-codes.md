@@ -2,9 +2,9 @@
 
 > 문서 목적: API와 Worker의 안정적인 오류 코드를 정의한다.
 > 현재 상태: **AI·Stem·Voice·Pipeline·Lyrics 구현 기준**
-> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler·Cursor와 Workspace·MusicProject·ProjectAsset Resource 오류 mapping 구현
+> Workspace v1 오류 구조: [Workspace REST API 공통 계약](workspace-rest-api-contract.md) — 공통 handler·Cursor와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact Resource 오류 mapping 구현
 
-`ARTIFACT_*` 공개 HTTP 오류는 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)에서 승인한 `[계획]` 계약이며 Router와 handler에는 아직 구현하지 않았습니다. 내부 `ArtifactApplicationService`는 Owner·retention·무결성 결과를 아래 코드로 구분하지만 HTTP status와 응답 Envelope 매핑은 후속 Artifact API 책임입니다.
+`ARTIFACT_*` 공개 HTTP 오류와 `INVALID_RANGE`는 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)에 따라 Artifact Router의 공통 Envelope로 매핑합니다. Owner가 다르거나 상위 Asset이 삭제된 경우 존재를 숨겨 `404 ARTIFACT_NOT_FOUND`, 제공 불가·격리는 `409`, 만료·삭제 대기는 `410`, 무결성 실패는 `500`, 유효하지 않은 Range는 `416`으로 응답하며 내부 경로·Catalog·checksum 기대값은 노출하지 않습니다.
 
 | 코드 | 의미 |
 |---|---|
