@@ -82,6 +82,12 @@ Alembic source head와 실제 사용자 DB revision은 내부 Artifact Catalog T
 - 임시 SQLite에서 `0015 → 0016 → 0015` upgrade·downgrade, 기존 35개 Table·row count·digest·quick/integrity/FK 보존을 검증했습니다.
 - read-only Inventory·backup·restore·migration·downgrade rehearsal과 별도 사용자 승인 Gate를 거쳐 실제 사용자 DB에 적용했습니다. 기존 35개 Table·79개 row·digest와 무결성은 보존됐고 Catalog row는 0개입니다.
 
+### 2.6 Workspace Job Foundation 후속 additive revision — [계획]
+
+[Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)과 [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)에 따라 다음 후속 revision에서 `jobs.workspace_id`, 내부 cancellation marker, claim·lease·heartbeat·attempt, `job_inputs.input_role`, `job_outputs.output_role`과 검증된 keyset Index를 추가합니다. ModelUsage Column은 현재 유지하고 seed·adapter·inference config는 bounded execution settings에 저장합니다.
+
+정확한 nullable·default·FK·Index는 임시 SQLite upgrade·downgrade, metadata·reflection과 목록 `EXPLAIN QUERY PLAN`을 통과한 뒤 확정합니다. 이 문서 작업은 revision을 만들거나 실제 사용자 DB를 변경하지 않으므로 source와 실제 DB head는 `20260809_0016`, Application Table은 36개로 유지합니다.
+
 ## 3. 현재 Table별 권장 매핑
 
 | 현재 Table | 목표 Entity | 변환 원칙 |
@@ -90,11 +96,11 @@ Alembic source head와 실제 사용자 DB revision은 내부 Artifact Catalog T
 | `lyrics_documents` | `Asset`, `AssetVersion`, `Artifact`, `AssetRelation`, `ModelUsage` | 문서 계열별 Lyrics Asset 생성, `version`·`parent_id` 계보 보존, 본문 직렬화 Artifact 등록, Provider 사용은 확인 가능한 범위만 기록 |
 | `generation_jobs` | `Job`, `JobInput`, `JobOutput`, `ModelUsage` | 공통 상태로 정규화하고 prompt·설정은 불변 `settings_snapshot`으로 보존 |
 | `generated_files` | Music `AssetVersion`, `Artifact`, `JobOutput` | 파일 Metadata와 checksum 검증 후 Artifact ID 발급, 절대·상대 경로는 Resolver로 분리 |
-| `stem_jobs` | `Job`, `JobInput`, `JobOutput`, `ModelUsage` | source file을 Artifact 또는 source AssetVersion 입력으로 연결 |
+| `stem_jobs` | `Job`, `JobInput`, `JobOutput`, `ModelUsage` | `source_audio` role과 exact Artifact 입력으로 연결하고 자동 Artifact 선택 금지 |
 | `stem_files` | Stem `Asset`, `AssetVersion`, `Artifact`, `AssetRelation` | vocals·instrumental을 별도 Stem Version으로 등록하고 source Music과 파생 관계 기록 |
 | `voice_conversion_jobs` | `Job`, `JobInput`, `JobOutput`, `ModelUsage` | Vocal input, RecordingEnrollment와 Model 사용 계보를 보존 |
 | `voice_conversion_files` | Vocal `AssetVersion`, `Artifact`, `AssetRelation` | 변환 Vocal을 새 불변 Version과 원본 파생 관계로 등록 |
-| `pipeline_jobs` | `Job`, `CompositionSnapshot`, `History` | 기존 통합 실행은 Legacy Job으로 보존하고 입력 snapshot을 CompositionSnapshot 후보로 정규화; 신규 실행은 기능별 독립 Job 사용. 최종 `job_type` enum은 계약 확정 전 미정 |
+| `pipeline_jobs` | `Job`, `CompositionSnapshot`, `History` | 기존 통합 실행은 Legacy Job으로 보존하고 입력 snapshot을 CompositionSnapshot 후보로 정규화; 신규 실행은 Foundation에 확정한 7개 독립 Job type으로 전환 |
 | `pipeline_files` | Mix·Export `AssetVersion`, `Artifact`, `JobOutput` | final·metadata 역할을 Mix 또는 Export 결과로 분류하고 `DohaArtifacts/music` 책임으로 전환 |
 | `voice_profiles` | `RecordingEnrollment`, Recording `Asset`·`AssetVersion`, `Approval` | Profile의 대표 reference·Consent를 Enrollment와 Recording Version으로 분리 |
 | `voice_enrollments` | `RecordingEnrollment`, `Approval`, `History` | 상태·동의문 version·완료·삭제 lifecycle을 보존 |

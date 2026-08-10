@@ -1,7 +1,7 @@
 # 시스템 아키텍처
 
 > 문서 목적: 구현된 구성요소와 향후 확장 경계를 정의한다.
-> 현재 상태: **Backend Foundation + 선택적 ACE-Step·Demucs·Seed-VC Adapter 구현 / DohaLM·DohaAudio·DohaVocal 외부 Provider 전환 [계획]**
+> 현재 상태: **Legacy Backend Foundation + 선택적 ACE-Step·Demucs·Seed-VC Adapter 구현 / Workspace Job 실행 기반·외부 Provider 전환 [계획]**
 > 최종 수정일: 2026-08-05
 > 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Lyrics AI](lyrics-ai.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [Workspace Artifact 모델](workspace-artifact-model.md)
 

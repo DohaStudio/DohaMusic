@@ -2,13 +2,13 @@
 
 > 문서 상태: [계획]
 > 최종 수정일: 2026-08-05
-> 관련 기능: DohaMusic Orchestrator와 DohaLM·DohaAudio·DohaVocal Provider 연결
+> 관련 기능: DohaMusic Workspace Job Orchestrator와 DohaLM·DohaAudio·DohaVocal Provider 연결
 > 구현 상태: 의미·REST 계약만 정의, Provider HTTP Runtime·Client·Endpoint 미구현
 > 관련 문서: [Workspace API 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [AI Pipeline](../03-architecture/ai-pipeline.md)
 
 ## 1. 목적
 
-Provider API는 DohaMusic Pipeline Orchestrator가 DohaLM, DohaAudio와 DohaVocal의 기능을 호출하는 내부 계약입니다. Workspace client용 Job API와 Provider Runtime transport를 분리합니다.
+Provider API는 DohaMusic Workspace·Job Orchestrator가 DohaLM, DohaAudio와 DohaVocal의 기능을 호출하는 내부 계약입니다. Workspace client용 Job API와 Provider Runtime transport를 분리합니다. Legacy `PipelineExecutor`는 호환 Workflow이며 Workspace Job Foundation 완료를 의미하지 않습니다.
 
 ```mermaid
 flowchart LR
@@ -82,27 +82,35 @@ HTTP는 장기 transport 방향이며 현재 ACE-Step·Demucs·Seed-VC Local Run
 
 ## 5. CreateJob Request
 
+```http
+Idempotency-Key: job:<workspace-job-id>
+```
+
 ```json
 {
   "job_id": "doha-music-issued-job-id",
   "provider_id": "audio",
   "capability": "music_generation",
   "api_contract_version": "1.0",
-  "idempotency_key": "opaque-idempotency-key",
   "project_id": "opaque-project-id",
-  "input_asset_version_ids": ["opaque-version-id"],
-  "input_artifact_ids": [],
+  "inputs": [
+    {
+      "input_role": "lyrics",
+      "artifact_id": "opaque-artifact-id"
+    }
+  ],
   "model_manifest_id": "opaque-manifest-id",
-  "settings_snapshot": {},
-  "requested_by": "opaque-actor-id"
+  "settings_snapshot": {}
 }
 ```
 
 ### 5.1 입력 규칙
 
 - DohaMusic이 먼저 Workspace Job ID를 발급하고 같은 `job_id`로 Provider 실행을 추적합니다.
+- transport idempotency는 HTTP `Idempotency-Key` header만 사용하며 body에 중복 field를 두지 않습니다.
 - Provider가 Workspace DB의 Asset, Version, Snapshot과 Approval을 직접 조회·수정하지 않습니다.
 - 입력 Artifact는 Provider가 허용된 Artifact resolver를 통해 읽을 수 있는 opaque ID 또는 승인된 URI로 전달합니다.
+- byte-level 입력은 role과 exact Artifact ID를 함께 전달하며 AssetVersion에서 latest/first Artifact를 자동 선택하지 않습니다.
 - 로컬 절대 경로, 사용자 profile 경로, token, 개인 연락처와 불필요한 원문을 전달하지 않습니다.
 - `settings_snapshot`은 capability별 versioned allowlist Schema를 사용합니다.
 - GPU admission을 통과하지 못한 요청은 Provider에 전달하지 않고 DohaMusic Job을 `queued`로 유지합니다.
@@ -119,7 +127,7 @@ HTTP는 장기 transport 방향이며 현재 ACE-Step·Demucs·Seed-VC Local Run
     "provider_id": "audio",
     "api_contract_version": "1.0",
     "model_manifest_id": "opaque-manifest-id",
-    "output_artifact_ids": [],
+    "outputs": [],
     "error": null,
     "created_at": "2026-08-05T00:00:00Z",
     "started_at": null,
@@ -142,7 +150,12 @@ Provider `succeeded`는 Runtime 출력 생성 완료를 의미합니다. DohaMus
     "status": "succeeded",
     "provider_id": "audio",
     "api_contract_version": "1.0",
-    "output_artifact_ids": ["opaque-artifact-id"],
+    "outputs": [
+      {
+        "output_role": "generated_audio",
+        "provider_artifact_id": "opaque-provider-artifact-id"
+      }
+    ],
     "version_metadata": {
       "version_origin": "ai_generated",
       "source_asset_version_ids": ["opaque-version-id"],
@@ -156,6 +169,7 @@ Provider `succeeded`는 Runtime 출력 생성 완료를 의미합니다. DohaMus
 ```
 
 - Provider는 Workspace `asset_version_id`를 임의로 발급하거나 Selection을 변경하지 않습니다.
+- `provider_artifact_id`는 Provider-side opaque handoff 식별자이며 DohaMusic Workspace `artifact_id`가 아닙니다. DohaMusic trusted ingestion이 실제 Payload를 검증하고 새 Workspace Artifact ID를 발급합니다.
 - `version_metadata`는 DohaMusic이 새 AssetVersion을 만들기 위한 검증 입력입니다.
 - 결과에 파일 경로를 포함하지 않습니다.
 - 실패·취소 Job의 부분 출력은 성공 Artifact로 등록하지 않습니다.
@@ -216,7 +230,7 @@ Provider 내부 stack trace, command, PID, CUDA path, model path와 Dataset 내�
 - Provider는 capability response에 지원 contract version을 명시합니다.
 - 호환되지 않는 요청은 `409 PROVIDER_CONTRACT_VERSION_UNSUPPORTED`로 거부합니다.
 - field 삭제·의미 변경은 새 Provider major contract version에서 수행합니다.
-- `CreateJob`과 `RetryJob`은 `Idempotency-Key`와 body의 `idempotency_key` 중 하나의 canonical 전달 방식을 구현 전에 확정해야 합니다. 두 값이 함께 존재하면 같아야 합니다.
+- Provider transport의 canonical idempotency 전달은 HTTP `Idempotency-Key` header 하나로 고정합니다. conceptual Common Specification의 `idempotency_key`는 이 header로 mapping하고 body에는 중복 key를 싣지 않습니다.
 - Provider는 같은 key·fingerprint에 같은 `job_id`를 반환합니다.
 
 ## 12. 접근 제어
@@ -236,4 +250,4 @@ Provider 내부 stack trace, command, PID, CUDA path, model path와 Dataset 내�
 - cancel 접수 상태를 공통 상태 밖 `stage`로만 표현할지 contract 확장할지
 - Provider service authentication과 key rotation
 - Health·Readiness timeout, circuit breaker와 retry 정책
-- Header와 body의 Idempotency key 중 canonical 방식
+- Provider invocation key의 rotation·retention과 감사 보존 기간

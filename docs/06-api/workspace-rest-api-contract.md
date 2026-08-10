@@ -3,8 +3,8 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개 구현, 나머지 39개·OpenAPI YAML·Job API 미구현
-> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개 구현, Workspace Job 공식 계약 완료·API 0/5, 나머지 39개 미구현
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
 
@@ -175,6 +175,10 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - 공통 상태는 `queued`, `running`, `succeeded`, `failed`, `cancelled`입니다.
 - Retry는 기존 Job을 초기화하지 않고 새 `job_id`를 생성합니다.
 - `progress_percent=100`만으로 성공을 확정하지 않고 출력 Artifact 검증 후 `succeeded`로 전이합니다.
+- 공개 상태는 5개를 유지하고 실행 중 cancel 요청은 내부 marker로 분리합니다.
+- byte-level 입력은 role과 명시적 Artifact ID로 고정하며 latest Artifact 자동 선택을 금지합니다.
+- Workspace 전체 Collection은 `project_id`, `status`, `job_type` filter와 `(created_at DESC, job_id DESC)` HMAC Cursor를 사용합니다.
+- Worker claim·lease와 completion Unit of Work는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따르며 아직 미구현입니다.
 
 ## 7. 공통 성공 Response
 

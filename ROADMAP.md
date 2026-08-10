@@ -42,7 +42,7 @@
 | Phase | 상태 | 현재 판정 | DoD |
 |---|---|---|---|
 | 0. 프로젝트 문서화 | [완료] | 초기 설계·정책·문서 체계 구축 | Master Phase 0 |
-| 1. Backend Foundation | [완료] | FastAPI·DB·Mock Job E2E | [Phase-01](docs/DoD/Phase-01.md) |
+| 1. Legacy Backend Foundation | [완료] | FastAPI·DB·Mock Job E2E; Workspace Job Foundation과 분리 | [Phase-01](docs/DoD/Phase-01.md) |
 | 2. Music Generation | [진행 중] | ACE-Step 조건부 채택, 기본 `mock`, 운영 Provider 미확정·EVAL-001 진행 중 | [Phase-02](docs/DoD/Phase-02.md) |
 | 2.5 Quality Benchmark | [진행 중] | 재현성·반복·운영 수명 검증 완료, EVAL-001 사용자 평가 진행 중 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | HTDemucs Adapter·API·Benchmark·EVAL 양식 | [Phase-03](docs/DoD/Phase-03.md) |
@@ -55,11 +55,13 @@
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact Domain | [진행 중] | Entity·Repository·Service, 실제 DB 0012~0016, Artifact API와 CompositionSnapshot 불변 생성·Cursor·Idempotency·공식 API 3개 완료; Job API·destructive repair·나머지 39개 API·운영 Artifact 폴더·Runtime 미구현 | [CompositionSnapshot API](docs/06-api/composition-snapshot-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | 실제 DB 0012~0016, Artifact·CompositionSnapshot API 완료, Workspace Job 공식 계약 완료; Job Migration·Cursor·claim/lease·Service·API 0/5와 나머지 39개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | Phase A 문서화 진행, Phase B~D 미착수 | [Provider Separation DoD](docs/DoD/Provider-Separation.md) |
 
 ## 현재 우선 작업
+
+**최우선:** [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md)에 확정한 역할·Workspace scope·cancel marker·claim/lease·keyset Index를 additive Migration과 격리 fixture로 먼저 구현한다. Job API는 이 기반과 completion Unit of Work 검증 전 시작하지 않는다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.

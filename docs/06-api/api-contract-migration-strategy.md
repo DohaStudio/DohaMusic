@@ -31,7 +31,7 @@
 | `POST /api/pipelines/{id}/retry` | `POST /api/v1/jobs/{job_id}/retry` | 새 Job ID와 `retry_of_job_id` 사용 |
 | `/api/pipelines/{id}/files/...` | `/api/v1/artifacts/{artifact_id}/...` | Job·File 경로 대신 Artifact 권한·checksum 검증 |
 | `POST /api/lyrics` | Lyrics Job + AssetVersion | 생성은 Job, 검증 결과는 새 Lyrics Version |
-| `POST /api/lyrics/{id}/revisions` | `POST /api/v1/jobs` 또는 Version 생성 | `lyrics_revision`, 원본 Version 불변 유지 |
+| `POST /api/lyrics/{id}/revisions` | AssetVersion 생성 또는 후속 versioned Job type | 현재 공식 7개 Job type에는 `lyrics_revision`을 넣지 않고 원본 Version 불변 유지 |
 | `GET /api/lyrics/{id}` | AssetVersion API | Lyrics Asset와 Version을 분리 |
 | `DELETE /api/lyrics/{id}` | `DELETE /api/v1/assets/{asset_id}` | Version 직접 삭제가 아닌 Asset Soft Delete |
 | `/api/projects` | `/api/v1/projects` | 기본 Workspace ID를 명시적으로 연결 |

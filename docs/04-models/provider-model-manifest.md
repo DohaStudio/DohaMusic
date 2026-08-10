@@ -41,6 +41,10 @@ DohaMusic이 Provider 내부 모델 구조나 로컬 경로를 알지 않고도 
 - Checksum은 Artifact 전송 또는 로딩 전에 검증할 수 있어야 한다.
 - Manifest 변경이 API 호환성이나 출력 의미를 바꾸면 version을 올리고 DohaMusic Provider Client 호환성을 검증한다.
 
+## Workspace Job ModelUsage
+
+Workspace `Job.model_manifest_id`는 요청된 Manifest이며 `ModelUsage`는 Provider가 확인한 실제 실행 결과다. Provider·model·version·checkpoint·contract version·license·commercial status는 completion Unit of Work에서 기록한다. Seed·adapter·inference config는 새 ModelUsage Column을 추측해 추가하지 않고 versioned allowlist를 사용하는 bounded `Job.settings_snapshot`에 저장한다. 비밀 prompt/context와 경로는 Manifest·ModelUsage·공개 Job 응답에 포함하지 않는다. 세부 실행 경계는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따른다.
+
 ## 예시
 
 다음은 schema 방향을 설명하기 위한 예시이며 현재 Provider release를 나타내지 않는다.

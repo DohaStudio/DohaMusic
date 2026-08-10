@@ -3,7 +3,7 @@
 > 문서 상태: [승인]
 > 최종 수정일: 2026-08-10
 > 관련 기능: Artifact Catalog, Storage Resolver, 안전한 ingestion과 content·download
-> 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Storage Architecture](storage-architecture.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
+> 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Workspace Job Foundation](workspace-job-foundation.md), [Storage Architecture](storage-architecture.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
 
 ## 1. 목적과 현재 경계
 
@@ -160,6 +160,8 @@ Windows에서는 모든 component의 symlink와 사용 가능한 `Path.is_juncti
 - Artifact와 Catalog row는 같은 DB transaction에서 생성해 row만 존재하고 locator가 없는 상태를 만들지 않는다.
 
 Job은 Artifact의 필수 부모가 아니다. `import`, 사용자·Workspace 내부 생성과 Provider 결과가 모두 가능하고 `run_id`는 선택적이다. Provider 결과일 때만 성공한 Job의 `JobOutput`과 새 AssetVersion 계보를 함께 연결한다.
+
+Workspace Job 결과는 단일 Artifact ingestion 성공만으로 Job을 성공 처리하지 않는다. 필수 output 전체를 검증한 뒤 Artifact·Catalog·필요한 AssetVersion·JobOutput·ModelUsage와 상태를 completion Unit of Work에 등록한다. 일부 output만 생성되면 Job은 `failed`이며 partial Payload는 staging 제거 또는 quarantine하고 정상 사용자 Artifact로 공개하지 않는다. 구체적인 cancel race와 보상 순서는 [Workspace Job Foundation](workspace-job-foundation.md)을 따른다.
 
 현재 구현은 Common Specification의 kind 중 `lyrics_text`, `audio`, `stem`, `manifest`, `evaluation`, `snapshot`만 허용한다. Audio는 WAV·FLAC·MP3 header와 WAV parser, text는 streaming UTF-8 decoder, 구조화 kind는 16MiB 상한의 UTF-8 JSON parser로 검증한다. format validator와 권리 정책이 확정되지 않은 `model`·`checkpoint`는 fail-closed한다. producer는 `user`, `provider`, `workspace`, `import`만 허용하고 새 Artifact의 retention은 caller 입력 없이 `active`로 고정한다.
 

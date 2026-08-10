@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Workspace Job Foundation 공식 계약
+
+- Legacy Generation·Stem·Voice·Pipeline Job과 Workspace `jobs` Aggregate를 분리하고 현재 완료 상태가 Workspace Job API 완료를 의미하지 않음을 명시했다.
+- 현재 제품 근거가 있는 7개 Job type과 Snapshot·input/output role Matrix, exact Artifact 선택, 공개 5-state·내부 cancel marker, 새 Job retry와 Owner·Workspace scope를 확정했다.
+- Provider header idempotency, Worker claim·lease·heartbeat·crash failure, completion Unit of Work와 부분 출력 quarantine·보상 경계를 [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md)과 [ADR-033](docs/11-decisions/ADR-033-workspace-job-execution-boundary.md)에 기록했다.
+- 다음 additive Migration의 Workspace scope·role·cancellation·claim/lease Column과 검증할 keyset Index를 문서화했다. Python·Entity·Alembic·실제 DB·Artifact·Provider·Worker·API는 변경하지 않았으며 Job API 0/5, Resource API 25/64, source와 실제 DB `20260809_0016`, metadata 36개 Table을 유지한다.
+
 ### 수정 — Bootstrap CLI revision 기준 동기화
 
 - Bootstrap CLI가 허용하는 대상 revision을 이전 `20260807_0013`에서 현재 Alembic source head와 정확히 일치하는 `20260809_0016`으로 변경했다.

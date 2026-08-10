@@ -36,7 +36,7 @@ DoD는 각 Phase를 완료로 선언하기 위한 검증 가능한 체크리스�
 
 | Phase | 문서 | 현재 상태 |
 |---|---|---|
-| 1. Backend Foundation | [Phase-01](Phase-01.md) | [완료] |
+| 1. Legacy Backend Foundation | [Phase-01](Phase-01.md) | [완료] |
 | 2. Music Generation | [Phase-02](Phase-02.md) | [진행 중] |
 | 2.5 Quality Benchmark | [Phase-02.5](Phase-02.5.md) | [진행 중] |
 | 3. Stem Separation | [Phase-03](Phase-03.md) | [완료] |

@@ -16,6 +16,8 @@
 
 > CompositionSnapshot API: [공개 계약과 Application 기반](docs/06-api/composition-snapshot-foundation.md)을 재사용해 목록·생성·상세 Router 3개, effective Owner·ProjectAsset scope, 불변 Snapshot+Item 원자적 생성, Project별 자동 version, `snapshot_version DESC` HMAC Cursor, aggregate 조회, bounded Provider·Manifest 계보와 `Idempotency-Key` replay를 구현했습니다. CompositionSnapshot API는 3/3, Resource API는 25/64입니다.
 
+> Workspace Job Foundation: [공식 계약](docs/03-architecture/workspace-job-foundation.md)과 [ADR-033](docs/11-decisions/ADR-033-workspace-job-execution-boundary.md)에서 Legacy Runtime Job과 Workspace Job을 분리하고 7개 Job type, role 기반 exact Artifact input/output, 공개 5-state와 내부 cancel marker, 새 Job retry, Owner·Workspace scope, HMAC Cursor·Index, Worker claim·lease·heartbeat와 Artifact completion Unit of Work를 확정했습니다. 계약만 `[완료]`이며 Entity·Migration·Cursor·Worker·Service·API는 미구현입니다. Job API는 0/5, Resource API는 25/64이고 Backend Foundation·Generative AI Track 완료 상태로 승격하지 않습니다.
+
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
 > F6 Guided Voice Enrollment는 `[진행 중]`입니다. 구현과 Windows FFmpeg 8.1.2·Ubuntu/Windows CI에 더해 실제 Chrome·Edge 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 자동 Validation을 수행했습니다. 실제 사용자 마이크·실제 Android/iOS/Safari와 인증·소유권은 남아 있습니다. 결과는 [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md)와 [운영·수동 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)를 따르며 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
@@ -41,7 +43,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 
 | 상태 | 기능 |
 |---|---|
-| [완료] | FastAPI Router·Service·Repository·SQLAlchemy 기반 Backend Foundation |
+| [완료] | Legacy FastAPI Router·Service·Repository·SQLAlchemy 기반 Backend Foundation |
 | [완료] | SQLite·Alembic 초기 schema와 로컬 Storage 구성 |
 | [완료] | Mock Worker 기반 비동기 Job 생성·조회·결과 파일 목록 |
 | [완료] | 동의 확인이 필수인 음성 프로필 생성·삭제 API |
@@ -78,6 +80,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | K3.3 final WAV 에너지·반복 기반 15초 후렴 후보·confidence·중앙 fallback과 Result·History·Project UI |
 | [계획] | K3.4 Preview Export 실제 구현 |
 | [진행 중] | AssetVersion 기반 CompositionSnapshot Application 기반과 공식 API 3개 완료, Job API와 `DohaArtifacts/music`의 Mix·Export·Preview 운영 연결 계획 |
+| [완료: 계약] | Workspace Job Aggregate·상태·입출력·Provider·claim/lease·completion 경계 확정, 구현·API 0/5 미완료 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 
@@ -184,7 +187,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 전체 일정과 완료 기준: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md)
 - 목표와 범위: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md)
 - 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md), [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md)
-- 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md), [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md)
+- 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md), [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md), [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md)
 - Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md), [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
 - API와 데이터: [현재 API 개요](docs/06-api/api-overview.md), [Workspace v1 목표 계약](docs/06-api/workspace-rest-api-contract.md), [현재 ERD](docs/07-database/erd.md), [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md), [가사 버전 데이터 모델](docs/07-database/lyrics-versioning-data-model.md), [Voice Enrollment API](docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](docs/07-database/voice-enrollment-data-model.md)
 - Voice Enrollment 검증과 운영: [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md), [운영·수동 검증 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)

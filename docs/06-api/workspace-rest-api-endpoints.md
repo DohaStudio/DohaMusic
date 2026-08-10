@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot 25개 완료, 나머지 39개 Resource Endpoint 계획
+> 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot 25개 완료, Job 공식 계약 완료·API 0/5, 나머지 39개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -130,18 +130,18 @@ POST는 `project_id`, 역할별 `asset_version_id`, `processing_chain_id`, Mix S
 ### 9.1 Job 유형
 
 - `lyrics_generation`
-- `lyrics_revision`
 - `music_generation`
 - `stem_separation`
-- `vocal_generation`
 - `voice_conversion`
-- `vocal_correction`
+- `audio_analysis`
 - `mix`
 - `export`
 
-POST body는 `job_type`, `project_id`, 선택적 `composition_snapshot_id`, `input_asset_version_ids`, `input_artifact_ids`, `provider_id`, `model_manifest_id`와 `settings_snapshot`을 사용합니다.
+POST body는 `job_type`, `project_id`, type Matrix에 따른 선택적 또는 필수 `composition_snapshot_id`, role과 `asset_version_id XOR artifact_id`를 가진 ordered `inputs`, 선택적 Provider·Model Manifest 요청과 bounded `settings_snapshot`을 사용합니다. 공개 `owner_id`, `requested_by`, 상태·출력과 실행 제어 필드는 받지 않습니다.
 
 Job 생성이 기존 AssetVersion을 수정하지 않습니다. 성공 결과의 `output_asset_version_ids`, `output_artifact_ids`는 DohaMusic이 Provider 결과를 검증·등록한 뒤 공개합니다.
+
+공식 type별 Snapshot·input/output role, Artifact 선택, 5-state·cancel·retry, Owner scope, Job Cursor·Index, claim·lease와 completion Unit of Work는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따릅니다. JobInput·JobOutput 독립 Endpoint는 제공하지 않습니다. 역할 Column과 실행 제어 Migration, Cursor·Worker·Service·Router가 모두 미구현이므로 Job API는 0/5, 전체 Resource API는 25/64를 유지합니다.
 
 ## 10. Recording API — 3개
 

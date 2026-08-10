@@ -36,6 +36,7 @@
 | [ADR-030](ADR-030-asset-version-centric-database.md) | AssetVersion 중심 Workspace 데이터베이스와 단계적 전환 | 제안 |
 | [ADR-031](ADR-031-workspace-rest-api-contract.md) | Workspace 중심 REST API와 단계적 Legacy 전환 | 제안 |
 | [ADR-032](ADR-032-artifact-storage-resolver-integrity.md) | Artifact Storage Catalog·Resolver·ingestion·무결성 경계 | 승인 |
+| [ADR-033](ADR-033-workspace-job-execution-boundary.md) | Workspace Job 실행·claim·cancel·Artifact completion 경계 | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -54,6 +55,10 @@
 # Artifact Storage
 
 - [ADR-032 — Artifact Storage Resolver와 무결성 경계](ADR-032-artifact-storage-resolver-integrity.md): 경로 없는 Artifact와 별도 DB Catalog, `artifact://` URI, trusted ingestion, owner·retention·Range·GC 계약을 승인한다.
+
+# Workspace Job
+
+- [ADR-033 — Workspace Job 실행·claim·완료 경계](ADR-033-workspace-job-execution-boundary.md): 공개 5-state와 내부 cancel marker, role 기반 exact Artifact, Workspace scope, claim·lease와 completion 보상 경계를 승인한다.
 
 # Phase 6.5
 
