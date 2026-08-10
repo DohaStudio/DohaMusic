@@ -68,14 +68,20 @@ class Graph:
     artifact: Artifact
 
 
-def _seed_graph(factory, *, owner_id: UUID | None = None) -> Graph:
+def _seed_graph(
+    factory,
+    *,
+    owner_id: UUID | None = None,
+    workspace_name: str = "개인 공간",
+    project_title: str = "프로젝트",
+) -> Graph:
     owner = owner_id or uuid4()
     workspace_service = WorkspaceService(factory)
     asset_service = AssetService(factory)
-    workspace = workspace_service.create_workspace(owner_id=owner, name="개인 공간")
+    workspace = workspace_service.create_workspace(owner_id=owner, name=workspace_name)
     project = workspace_service.create_project(
         workspace_id=workspace.workspace_id,
-        title="프로젝트",
+        title=project_title,
         created_by=owner,
     )
     asset = asset_service.create_asset(
@@ -199,6 +205,63 @@ def test_create_rejects_bootstrap_owner_type_matrix_and_conflicting_key(
             settings_snapshot={"prompt": "different"},
             idempotency_key="same-key",
         )
+
+
+def test_create_key_conflicts_across_projects_and_workspaces_for_same_owner(
+    session_factory,
+) -> None:
+    graph = _seed_graph(session_factory)
+    workspace_service = WorkspaceService(session_factory)
+    service = JobService(session_factory)
+    second_project = workspace_service.create_project(
+        workspace_id=graph.workspace.workspace_id,
+        title="두 번째 프로젝트",
+        created_by=graph.owner_id,
+    )
+    workspace_service.attach_asset(
+        project_id=second_project.project_id,
+        asset_id=graph.asset.asset_id,
+        display_order=0,
+        role="music",
+    )
+
+    _create_music_job(service, graph, key="owner-create-project")
+    job_count = _count(session_factory, Job)
+    record_count = _count(session_factory, IdempotencyRecord)
+    with pytest.raises(IdempotencyConflictError):
+        service.create_job_for_owner(
+            effective_owner_id=graph.owner_id,
+            project_id=second_project.project_id,
+            job_type="music_generation",
+            api_contract_version="1",
+            settings_snapshot={"prompt": "instrumental"},
+            idempotency_key="owner-create-project",
+            inputs=(
+                JobReferenceInput(
+                    input_order=0,
+                    input_role="lyrics",
+                    asset_version_id=graph.version.asset_version_id,
+                ),
+            ),
+            provider_id="planned-provider",
+            model_manifest_id="manifest-1",
+        )
+    assert _count(session_factory, Job) == job_count
+    assert _count(session_factory, IdempotencyRecord) == record_count
+
+    second_workspace = _seed_graph(
+        session_factory,
+        owner_id=graph.owner_id,
+        workspace_name="두 번째 공간",
+        project_title="다른 공간 프로젝트",
+    )
+    _create_music_job(service, graph, key="owner-create-workspace")
+    job_count = _count(session_factory, Job)
+    record_count = _count(session_factory, IdempotencyRecord)
+    with pytest.raises(IdempotencyConflictError):
+        _create_music_job(service, second_workspace, key="owner-create-workspace")
+    assert _count(session_factory, Job) == job_count
+    assert _count(session_factory, IdempotencyRecord) == record_count
 
 
 def test_input_xor_role_byte_lineage_and_owner_scope(session_factory) -> None:
@@ -425,6 +488,48 @@ def test_retry_creates_new_frozen_job_and_replays_same_key(session_factory) -> N
     )
     assert replay.aggregate.job.job_id == new_job.job_id
     assert _count(session_factory, Job) == 2
+
+
+def test_retry_key_conflicts_across_original_jobs_without_partial_rows(
+    session_factory,
+) -> None:
+    graph = _seed_graph(session_factory)
+    service = JobService(session_factory)
+    originals = [
+        _create_music_job(service, graph, key=f"create-{index}").aggregate.job
+        for index in range(2)
+    ]
+    for original in originals:
+        service.transition_job_for_owner(
+            original.job_id,
+            effective_owner_id=graph.owner_id,
+            status=JobStatus.RUNNING,
+        )
+        service.transition_job_for_owner(
+            original.job_id,
+            effective_owner_id=graph.owner_id,
+            status=JobStatus.FAILED,
+            error_code="JOB_FAILED",
+            error_message="작업이 실패했습니다.",
+        )
+
+    service.retry_job_for_owner(
+        originals[0].job_id,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="owner-retry",
+    )
+    job_count = _count(session_factory, Job)
+    input_count = _count(session_factory, JobInput)
+    record_count = _count(session_factory, IdempotencyRecord)
+    with pytest.raises(IdempotencyConflictError):
+        service.retry_job_for_owner(
+            originals[1].job_id,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="owner-retry",
+        )
+    assert _count(session_factory, Job) == job_count
+    assert _count(session_factory, JobInput) == input_count
+    assert _count(session_factory, IdempotencyRecord) == record_count
 
 
 def test_owner_aggregate_hides_foreign_job_and_orders_children(session_factory) -> None:

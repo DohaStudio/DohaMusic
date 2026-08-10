@@ -13,20 +13,21 @@
 - queued 초기값, succeeded를 제외한 상태 전이, 단조 progress와 bounded stage
 - queued 즉시 취소, running cancel marker와 상태 기반 반복 취소
 - 실패·취소 원본의 frozen retry와 `retry_of_job_id` lineage
-- create/retry `Idempotency-Key`, canonical fingerprint, replay·conflict·rollback
+- Owner 단위 create/retry action scope와 Workspace·Project·원본 Job을 포함한 canonical fingerprint
+- 동일 요청 replay, 프로젝트·Workspace·원본 Job 교차 key conflict와 rollback
 - ordered JobInput·JobOutput·ModelUsage aggregate read
 
 ## 결과
 
 | 항목 | 결과 |
 |---|---|
-| 신규 Job Service 테스트 | 9 passed |
+| 신규 Job Service 테스트 | 11 passed |
 | Job Cursor·Workspace Service 회귀 | 20 passed |
 | Job schema migration·Repository 회귀 | 10 passed |
 | CompositionSnapshot 회귀 | 24 passed |
 | Artifact 접근·reconciliation 회귀 | 36 passed |
 | API Foundation·Workspace/Project 회귀 | 20 passed |
-| 합계 | 119 passed |
+| 합계 | 121 passed |
 | Python compile | PASS |
 | Ruff lint·format | PASS |
 | Metadata | 36개 Table 유지 |
@@ -36,7 +37,7 @@
 
 ## Transaction과 경계
 
-Service가 transaction을 소유하고 Repository는 `commit()`·`rollback()`을 호출하지 않는다. Job·ordered JobInput·멱등성 record 중 하나가 실패하면 임시 SQLite 검증에서 부분 row가 남지 않았다. 요청 Provider·Manifest는 Job에만 저장하며 실제 `ModelUsage`는 Completion Unit of Work 전에는 만들지 않는다.
+Service가 transaction을 소유하고 Repository는 `commit()`·`rollback()`을 호출하지 않는다. create/retry 멱등성 scope는 endpoint action과 effective Owner namespace로 고정하고, authoritative Workspace·Project·원본 Job과 frozen 요청 값은 fingerprint로 비교한다. Job·ordered JobInput·멱등성 record 중 하나가 실패하거나 동일 key가 다른 요청에 재사용되면 임시 SQLite 검증에서 부분 row가 남지 않았다. 요청 Provider·Manifest는 Job에만 저장하며 실제 `ModelUsage`는 Completion Unit of Work 전에는 만들지 않는다.
 
 ## 남은 범위
 

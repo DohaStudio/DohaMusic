@@ -230,22 +230,23 @@ class JobService:
         normalized_contract = _bounded_text(
             api_contract_version, "API contract version", 64
         )
-        fingerprint = _job_create_fingerprint(
-            effective_owner_id=effective_owner_id,
-            project_id=project_id,
-            job_type=normalized_type,
-            composition_snapshot_id=composition_snapshot_id,
-            inputs=normalized_inputs,
-            provider_id=normalized_provider,
-            model_manifest_id=normalized_manifest,
-            api_contract_version=normalized_contract,
-            settings_snapshot=normalized_settings,
-        )
-        scope = f"workspace:job:create:{effective_owner_id}:{project_id}"
+        scope = f"workspace:job:create:{effective_owner_id}"
         try:
             with self.session_factory() as session, session.begin():
                 project = self._require_project_scope(
                     session, project_id, effective_owner_id
+                )
+                fingerprint = _job_create_fingerprint(
+                    effective_owner_id=effective_owner_id,
+                    workspace_id=project.workspace_id,
+                    project_id=project_id,
+                    job_type=normalized_type,
+                    composition_snapshot_id=composition_snapshot_id,
+                    inputs=normalized_inputs,
+                    provider_id=normalized_provider,
+                    model_manifest_id=normalized_manifest,
+                    api_contract_version=normalized_contract,
+                    settings_snapshot=normalized_settings,
                 )
                 idempotency_repository = IdempotencyRepository(session)
                 claim = _claim_idempotency(
@@ -428,13 +429,7 @@ class JobService:
         idempotency_key: str,
     ) -> JobCreation:
         normalized_key = _normalize_idempotency_key(idempotency_key)
-        fingerprint = _canonical_fingerprint(
-            {
-                "effective_owner_id": str(effective_owner_id),
-                "original_job_id": str(job_id),
-            }
-        )
-        scope = f"workspace:job:retry:{effective_owner_id}:{job_id}"
+        scope = f"workspace:job:retry:{effective_owner_id}"
         try:
             with self.session_factory() as session, session.begin():
                 repository = JobRepository(session)
@@ -486,6 +481,19 @@ class JobService:
                         raise ApplicationValidationError(
                             "재시도 JobInput의 exact AssetVersion이 CompositionSnapshot과 일치하지 않습니다."
                         )
+                fingerprint = _job_retry_fingerprint(
+                    effective_owner_id=effective_owner_id,
+                    workspace_id=project.workspace_id,
+                    original_job_id=original.job_id,
+                    project_id=original.project_id,
+                    job_type=original_type,
+                    composition_snapshot_id=original.composition_snapshot_id,
+                    inputs=original_inputs,
+                    provider_id=original.provider_id,
+                    model_manifest_id=original.model_manifest_id,
+                    api_contract_version=original.api_contract_version,
+                    settings_snapshot=original.settings_snapshot,
+                )
                 idempotency_repository = IdempotencyRepository(session)
                 claim = _claim_idempotency(
                     idempotency_repository,
@@ -1313,6 +1321,7 @@ def _snapshot_has_input(
 def _job_create_fingerprint(
     *,
     effective_owner_id: UUID,
+    workspace_id: UUID,
     project_id: UUID,
     job_type: str,
     composition_snapshot_id: UUID | None,
@@ -1347,6 +1356,52 @@ def _job_create_fingerprint(
             "project_id": str(project_id),
             "provider_id": provider_id,
             "settings_snapshot": settings_snapshot,
+            "workspace_id": str(workspace_id),
+        }
+    )
+
+
+def _job_retry_fingerprint(
+    *,
+    effective_owner_id: UUID,
+    workspace_id: UUID,
+    original_job_id: UUID,
+    project_id: UUID,
+    job_type: str,
+    composition_snapshot_id: UUID | None,
+    inputs: Sequence[JobReferenceInput],
+    provider_id: str | None,
+    model_manifest_id: str | None,
+    api_contract_version: str,
+    settings_snapshot: dict[str, Any],
+) -> str:
+    return _canonical_fingerprint(
+        {
+            "api_contract_version": api_contract_version,
+            "composition_snapshot_id": (
+                str(composition_snapshot_id)
+                if composition_snapshot_id is not None
+                else None
+            ),
+            "effective_owner_id": str(effective_owner_id),
+            "inputs": [
+                {
+                    "artifact_id": str(item.artifact_id) if item.artifact_id else None,
+                    "asset_version_id": (
+                        str(item.asset_version_id) if item.asset_version_id else None
+                    ),
+                    "input_order": item.input_order,
+                    "input_role": item.input_role,
+                }
+                for item in inputs
+            ],
+            "job_type": job_type,
+            "model_manifest_id": model_manifest_id,
+            "original_job_id": str(original_job_id),
+            "project_id": str(project_id),
+            "provider_id": provider_id,
+            "settings_snapshot": settings_snapshot,
+            "workspace_id": str(workspace_id),
         }
     )
 
