@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: AssetVersion 기반 Composition Snapshot, Mix, Export
-> 관련 문서: [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)
+> 관련 문서: [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)
 
 ## 목적
 
@@ -95,3 +95,5 @@ Export는 선택한 Mix AssetVersion을 WAV·MP3·FLAC 같은 전달 형식으�
 ## 현재 호환 경계
 
 현재 `PipelineExecutor`, `pipeline_jobs`, `pipeline_files`와 `AUDIO_STORAGE_ROOT`는 그대로 유지한다. 기존 `final.wav`, Preview 후보와 metadata를 즉시 이동하거나 새 Asset으로 backfill하지 않는다. Catalog·Resolver·trusted ingestion은 구현했지만 실제 파일 전환은 별도 Inventory·backup·rehearsal·승인과 rollback Gate를 통과한 작업으로 수행한다.
+
+Workspace Job 결과는 Provider success만으로 등록하지 않는다. Job type별 필수 output이 모두 검증된 뒤 Artifact·Catalog·필요한 AssetVersion·JobOutput·ModelUsage와 `succeeded`를 completion Unit of Work에서 확정한다. 부분 출력은 staging 제거 또는 quarantine하며 정상 사용자 Artifact로 공개하지 않는다. 이 계약은 [Workspace Job Foundation](workspace-job-foundation.md)에 확정했지만 orchestration 구현과 Runtime 연결은 아직 미구현이다.

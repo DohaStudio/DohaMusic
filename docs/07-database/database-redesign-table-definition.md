@@ -235,7 +235,7 @@ Job은 Provider 또는 Workspace가 수행하는 독립 비동기 실행 단위�
 | `job_id` | UUID | 아니요 | PK | Job 식별자 |
 | `project_id` | UUID | 아니요 | FK, Index | `music_projects.project_id` |
 | `composition_snapshot_id` | UUID | 예 | FK, Index | 실행 문맥 Snapshot |
-| `job_type` | string | 아니요 | Index | Lyrics/Music/Vocal Generation, Mix, Export 등 |
+| `job_type` | string | 아니요 | Index | `lyrics_generation`, `music_generation`, `stem_separation`, `voice_conversion`, `audio_analysis`, `mix`, `export` |
 | `status` | string | 아니요 | Index | `queued`, `running`, `succeeded`, `failed`, `cancelled` |
 | `provider_id` | string | 예 | Index | 실행 Provider 또는 Workspace component |
 | `api_contract_version` | string | 아니요 | Index | 사용한 계약 version |

@@ -1,53 +1,43 @@
 # 작업 상태 모델
 
-> 문서 목적: 독립 AI Job과 통합 Pipeline Job의 유효 상태 전이를 정의한다.
-> 현재 상태: **구현 완료**
+> 문서 상태: [완료: 계약]
+> 최종 수정일: 2026-08-10
+> 문서 목적: Legacy Runtime Job과 Workspace Job의 상태를 분리하고 유효 전이를 정의한다.
+> 관련 문서: [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Job API](../06-api/job-api.md), [ADR-021](../11-decisions/ADR-021-pipeline-job-cancel-retry.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
 
-Lyrics 생성·검증은 로컬 Template·Mock Provider 기준 동기식 경로이므로 이 Job 상태 모델을 사용하지 않는다. 외부 Provider 도입으로 실행 시간이 길어질 때에만 별도 ADR과 migration으로 비동기 전환을 검토한다.
+## Legacy Runtime Job — [구현 완료]
+
+기존 Generation·Stem·Voice·Pipeline Job은 기능별 대문자 상태와 Pipeline 단계를 사용한다. `PENDING`, `VALIDATING`, `GENERATING`, `STEM_SEPARATING`, `VOICE_CONVERTING`, `MIXING`, `EXPORTING`, `COMPLETED`, `FAILED`, `CANCEL_REQUESTED`, `CANCELLED`는 Legacy Runtime vocabulary다.
+
+Pipeline `PENDING` cancel, 실행 단계 cooperative `CANCEL_REQUESTED → CANCELLED`와 실패·취소 원본을 복제한 새 Pipeline Job retry는 구현돼 있다. 이 상태와 기존 ThreadPool Worker는 Workspace `jobs`의 공식 5-state·claim·lease 구현 완료 근거가 아니다.
+
+## Workspace Job — [계약 완료, 실행 제어 미구현]
+
+공개 상태는 다음 5개만 사용한다.
 
 ```mermaid
 stateDiagram-v2
-  [*] --> PENDING
-  PENDING --> VALIDATING
-  PENDING --> FAILED
-  VALIDATING --> GENERATING
-  VALIDATING --> STEM_SEPARATING
-  VALIDATING --> FAILED
-  GENERATING --> COMPLETED
-  GENERATING --> FAILED
-  GENERATING --> STEM_SEPARATING
-  STEM_SEPARATING --> COMPLETED
-  STEM_SEPARATING --> FAILED
-  STEM_SEPARATING --> VOICE_CONVERTING
-  VOICE_CONVERTING --> MIXING
-  VOICE_CONVERTING --> COMPLETED
-  VOICE_CONVERTING --> FAILED
-  MIXING --> EXPORTING
-  MIXING --> FAILED
-  EXPORTING --> COMPLETED
-  EXPORTING --> FAILED
-  PENDING --> CANCELLED
-  COMPLETED --> [*]
-  FAILED --> [*]
-  CANCELLED --> [*]
+  [*] --> queued
+  queued --> running: atomic claim
+  queued --> cancelled: dispatch 전 cancel
+  running --> succeeded: completion UoW commit
+  running --> failed: 실행·검증 실패
+  running --> cancelled: cancel 전파·정리 확인
+  succeeded --> [*]
+  failed --> [*]
+  cancelled --> [*]
 ```
 
-| 상태 | 의미 | `current_step` 예시 |
+| 상태 | 의미 | 허용 후속 상태 |
 |---|---|---|
-| `PENDING` | DB에 저장되어 Worker 실행을 기다림 | `queued` |
-| `VALIDATING` | Worker가 입력과 실행 전제조건 확인 | `validating` |
-| `GENERATING` | `MusicGenerator` 구현 실행 중 | `generating` |
-| `STEM_SEPARATING` | `StemSeparator` 구현 실행 중 | `stem_separation_started` |
-| `VOICE_CONVERTING` | `VoiceConverter` 구현 실행 중 | `voice_started` |
-| `MIXING` | `AudioMixer` 실행 중 | `mixer_started` |
-| `EXPORTING` | WAV·metadata 출력 중 | `export_started` |
-| `COMPLETED` | 파일 메타데이터 저장까지 완료 | `completed` |
-| `FAILED` | 예외와 오류 코드를 기록하고 종료 | `failed` |
-| `CANCELLED` | 취소된 종료 상태로 예약 | 취소 API 미구현 |
+| `queued` | 아직 Provider side effect가 시작되지 않은 대기 상태 | `running`, `cancelled` |
+| `running` | claim·lease를 가진 Worker가 실행 중 | `succeeded`, `failed`, `cancelled` |
+| `succeeded` | Artifact 검증·publish·lineage와 상태 commit 완료 | 없음 |
+| `failed` | 안전한 오류와 retryability를 기록하고 종료 | 없음 |
+| `cancelled` | 실행 중단과 부분 결과 정리를 확인하고 종료 | 없음 |
 
-허용되지 않은 상태 전이는 Repository에서 거부한다. `COMPLETED`, `FAILED`, `CANCELLED`는 종료 상태다. 현재 Worker는 완료·실패에 `completed_at`을 기록하며 취소 실행 경로는 아직 없다.
+`cancel_requested`는 공개 상태가 아니다. 내부 `cancel_requested_at` marker로 관리하고 running 상태에서 Worker·Provider에 전파한 뒤에만 `cancelled`로 확정한다. `progress_percent=100`이나 Provider `success`만으로 `succeeded`가 되지 않는다.
 
-독립 Job은 각자 필요한 상태만 사용한다. Pipeline Job은 전체 순서를 사용하고 `progress_percent`를 20·40·60·80·100으로 갱신한다. 자동 재시도는 같은 단계 내부 attempt로 기록하므로 상태를 되돌리지 않는다. 취소 API, 프로세스 재시작 복구와 수동 재실행은 포함하지 않는다.
-## Pipeline Cancel·Retry
+Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분하며, lease 만료 running Job은 자동으로 queued에 되돌리지 않고 retryable failure로 종료한다.
 
-`PENDING`은 즉시 `CANCELLED`가 될 수 있다. 실행 단계는 `CANCEL_REQUESTED`를 거쳐 단계 경계에서 `CANCELLED`가 된다. `COMPLETED`·`FAILED`는 취소할 수 없고 terminal 상태를 실행 상태로 되돌리지 않는다. Retry는 `FAILED`·`CANCELLED` 원본과 `retry_of_job_id`로 연결된 새 `PENDING` Job이다.
+terminal Job은 상태·입력·출력·ModelUsage·settings를 변경하지 않으며 append-only History audit만 허용한다. 역할 Column, cancellation marker, claim·lease·heartbeat·attempt와 관련 DB·Service 구현은 후속 additive Migration과 Foundation PR 범위다.

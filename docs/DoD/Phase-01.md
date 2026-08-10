@@ -1,13 +1,15 @@
-# Phase 1 Definition of Done — Backend Foundation
+# Phase 1 Definition of Done — Legacy Backend Foundation
 
 > 상태: [완료]
 > 진행률: 15/15, 100%
-> 최종 수정일: 2026-07-29
-> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-1-backend-foundation--완료), [Backend Architecture](../03-architecture/backend-architecture.md)
+> 최종 수정일: 2026-08-10
+> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-1-legacy-backend-foundation--완료), [Backend Architecture](../03-architecture/backend-architecture.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)
 
 ## 목표
 
 실제 AI 모델 없이도 API·DB·비동기 Job·Storage 경계를 검증할 수 있는 Backend Foundation을 구축한다.
+
+이 완료 판정은 `generation_jobs`와 기존 Mock Worker를 사용하는 Legacy Runtime 범위다. Workspace `jobs` Aggregate의 Migration·Cursor·claim/lease·completion Unit of Work와 공식 API 5개는 별도 Foundation Gate이며 아직 미완료다.
 
 ## 구현 범위와 포함 기능
 

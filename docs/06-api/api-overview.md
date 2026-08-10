@@ -1,19 +1,20 @@
 # API 개요
 
 > 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
-> 현재 상태: **Backend Foundation + Stem + Voice Conversion + Guided Voice Enrollment + Pipeline + Lyrics + History·Project API 구현 완료**
+> 현재 상태: **Legacy Backend Foundation 구현 완료 / Workspace Job 계약 완료·API 미구현**
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
 ## Workspace v1 목표 계약 — [진행 중]
 
-DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 Router·응답 Schema·request ID·오류 분기, 명시적 Bootstrap 도구와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개를 구현했다. CompositionSnapshot은 불변 aggregate·Owner/ProjectAsset scope·자동 version·Cursor·Idempotency Service 기반과 목록·생성·상세 Router 3개를 제공한다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 나머지 39개는 `[계획]`이다. 실제 사용자 DB에는 `artifact_storage_locations`를 포함한 revision `20260809_0016`을 적용했지만 Catalog row는 0개다. 아래 현행 API와 payload는 그대로 유지한다.
+DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 Router·응답 Schema·request ID·오류 분기, 명시적 Bootstrap 도구와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개를 구현했다. CompositionSnapshot은 불변 aggregate·Owner/ProjectAsset scope·자동 version·Cursor·Idempotency Service 기반과 목록·생성·상세 Router 3개를 제공한다. Workspace Job은 Aggregate·상태·입출력 role·Provider·claim/lease·completion 경계의 공식 계약만 완료했으며 API 5개는 0/5다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 나머지 39개는 `[계획]`이다. 실제 사용자 DB에는 `artifact_storage_locations`를 포함한 revision `20260809_0016`을 적용했지만 Catalog row는 0개다. 아래 현행 API와 payload는 그대로 유지한다.
 
 - [Workspace REST API 공통 계약](workspace-rest-api-contract.md)
 - [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md)
 - [목표 Endpoint 목록](workspace-rest-api-endpoints.md)
 - [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)
 - [CompositionSnapshot 기반](composition-snapshot-foundation.md)
+- [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)
 - [Provider API 계약](provider-api-contract.md)
 - [API 전환 전략](api-contract-migration-strategy.md)
 - [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)

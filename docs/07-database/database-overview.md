@@ -16,7 +16,7 @@ Pipeline 필드와 보존 규칙은 [Pipeline 테이블](pipeline-tables.md)을 
 
 ## Asset 중심 목표 DB — [진행 중]
 
-DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심의 21개 Workspace Entity와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata와 실제 사용자 DB는 총 36개 Application Table·`20260809_0016`이며 Catalog row는 0개다. 신규 Workspace Table은 비어 있으며 backfill과 Runtime 전환은 미수행이다. 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
+DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심의 21개 Workspace Entity와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata와 실제 사용자 DB는 총 36개 Application Table·`20260809_0016`이며 Catalog row는 0개다. Workspace Job Aggregate의 공식 계약은 완료했지만 role·Workspace scope·cancellation·claim/lease·Index Migration과 API는 미구현이다. 신규 Workspace Table은 비어 있으며 backfill과 Runtime 전환은 미수행이다. 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
 
 - [재설계 개요](database-redesign-overview.md)
 - [목표 ERD](database-redesign-erd.md)
@@ -31,6 +31,6 @@ DohaLM 공동 창작 연동에서 필요한 Project·Version·Generation·Analys
 
 ## Workspace Artifact와 Composition Snapshot [진행 중]
 
-`Asset`, `AssetVersion`, `Artifact`, `CompositionSnapshot`과 공통 `Job`은 목표 ORM과 additive migration으로 실제 사용자 DB에 적용됐지만 row는 아직 없고 Runtime source of truth도 전환하지 않았다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개를 구현했다. CompositionSnapshot은 기존 schema 안에서 불변 aggregate·자동 version·Cursor·Idempotency Service 기반과 공식 목록·생성·상세 API 3개를 제공한다. 목표 모델에서 Snapshot은 최신 Asset ID가 아니라 특정 Lyrics·Music·Vocal·Stem AssetVersion과 processing chain·mix settings·Provider·모델 버전을 불변으로 참조한다.
+`Asset`, `AssetVersion`, `Artifact`, `CompositionSnapshot`과 공통 `Job`은 목표 ORM과 additive migration으로 실제 사용자 DB에 적용됐지만 row는 아직 없고 Runtime source of truth도 전환하지 않았다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개를 구현했다. CompositionSnapshot은 기존 schema 안에서 불변 aggregate·자동 version·Cursor·Idempotency Service 기반과 공식 목록·생성·상세 API 3개를 제공한다. Workspace Job은 [공식 Foundation 계약](../03-architecture/workspace-job-foundation.md)만 완료했고 API는 0/5다. 목표 모델에서 Snapshot은 최신 Asset ID가 아니라 특정 Lyrics·Music·Vocal·Stem AssetVersion과 processing chain·mix settings·Provider·모델 버전을 불변으로 참조한다.
 
 Mix Asset, Export Asset, Preview, Snapshot과 실행 기록의 목표 도메인은 `DohaArtifacts/music`이다. Workspace DB의 Artifact에는 로컬 절대·상대 경로를 저장하지 않고, 내부 논리 URI는 `artifact://<artifact_id>`를 사용한다. 물리 위치는 별도 내부 `artifact_storage_locations` Catalog Table의 backend·domain·canonical storage key가 소유한다. Catalog Entity와 revision `20260809_0016`은 실제 사용자 DB에 적용했고 Catalog 조회·local Resolver·trusted ingestion, owner/retention read Gate·dry-run reconciliation과 Artifact Metadata·content·download·single-byte Range를 구현했다. 실제 Catalog row는 0개이며 destructive reconciliation은 미구현이다. 현재 `pipeline_jobs`, `pipeline_files`, `AUDIO_STORAGE_ROOT`와 Runtime source of truth는 변경하지 않는다. 세부 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따른다.

@@ -1,6 +1,6 @@
 # Backend 아키텍처
 
-> 현재 상태: Phase 6 생성·Stem·Voice·Lyrics Provider, Pipeline Orchestrator와 Audio Quality Engine 경계 구현
+> 현재 상태: Legacy Provider·Pipeline 구현 / Workspace Job 공식 계약 완료·실행 기반 미구현
 
 ```text
 API → Service → Repository → SQLAlchemy Model
@@ -42,7 +42,13 @@ Service는 SQLAlchemy Entity 또는 내부 dataclass 결과를 반환하고 API�
 
 Workspace·Project·ProjectAsset 목록 Service는 App Factory가 주입한 `CursorCodec`으로 Resource별 payload를 검증하고 Repository에 `limit + 1` keyset 조회를 요청한다. `AssetService`도 같은 version 1 codec을 사용하며 effective Owner, 선택적 Workspace·Asset type, Soft Delete와 sort를 fingerprint에 고정한다. ProjectAsset은 `project_id` filter fingerprint와 정확한 정수 `last_display_order`를 사용하며 기존 Resource token을 변경하지 않는다. Resource Router는 App State dependency로 `WorkspaceService` 또는 `AssetService`만 사용하며 Repository·Session·Cursor를 직접 생성하지 않는다. Asset Router는 Bootstrap된 Workspace에서 trusted Owner를 파생하고 공개 DTO에서 내부 소유권 필드를 제외한다. 일반 CRUD·Bootstrap은 codec 없이 계속 사용할 수 있으며 서명 키 누락은 cursor 기능을 호출할 때만 설정 오류가 된다.
 
-`CompositionService`는 effective Owner·활성 Project, 같은 Workspace 또는 Owner 소유 Workspace 미지정 Asset과 활성 ProjectAsset 관계를 검증한다. Snapshot+Item+Idempotency 기록을 한 transaction에서 생성하고 `snapshot_version`·`created_by`를 내부에서 파생한다. 상세는 정렬된 aggregate를, 목록은 version 1 HMAC Cursor keyset page를 반환한다. 공식 Router는 아직 연결하지 않았으며 세부 경계는 [CompositionSnapshot 기반 계약](../06-api/composition-snapshot-foundation.md)을 따른다.
+`CompositionService`는 effective Owner·활성 Project, 같은 Workspace 또는 Owner 소유 Workspace 미지정 Asset과 활성 ProjectAsset 관계를 검증한다. Snapshot+Item+Idempotency 기록을 한 transaction에서 생성하고 `snapshot_version`·`created_by`를 내부에서 파생한다. 상세는 정렬된 aggregate를, 목록은 version 1 HMAC Cursor keyset page를 반환한다. 공식 Router 3개를 연결했으며 세부 경계는 [CompositionSnapshot 기반 계약](../06-api/composition-snapshot-foundation.md)을 따른다.
+
+## Workspace Job Foundation 경계 — [계약 완료, 구현 미완료]
+
+Workspace Job은 `Job`을 실행 root로 하고 `JobInput`, `JobOutput`, `ModelUsage`를 Aggregate 내부에 둔다. CompositionSnapshot·AssetVersion·Artifact는 외부 불변 lineage Resource다. byte-level 입력은 role과 exact Artifact ID로 고정하고 Provider success 뒤 trusted ingestion·Artifact·Catalog·필요한 AssetVersion·JobOutput·ModelUsage와 상태를 completion Unit of Work에서 확정한다.
+
+공개 상태는 5개를 유지하고 cancel 요청은 내부 marker로 분리한다. Worker는 atomic claim·lease·heartbeat로 중복 실행을 막으며 lease 만료 running Job을 같은 row의 queued 상태로 되돌리지 않는다. Workspace 전체 목록은 direct `workspace_id`, 제한된 filter와 Job HMAC Cursor를 사용한다. 역할·실행 제어 Column, Index, Cursor, Worker와 API 5개는 후속 구현이며 세부 계약은 [Workspace Job Foundation](workspace-job-foundation.md)을 따른다.
 
 공개 Workspace·MusicProject DTO는 SQLAlchemy Entity를 직접 직렬화하지 않고 allowlist Pydantic v2 Schema를 사용한다. 내부 `owner_id`·`created_by`, Soft Delete 시각과 ORM relationship은 노출하지 않으며 Project 생성의 감사 식별자는 Workspace 소유자에서 Service 입력으로 파생한다.
 

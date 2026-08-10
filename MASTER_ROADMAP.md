@@ -57,7 +57,7 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 ```text
 Phase 0  프로젝트 문서화             [완료]
   ↓
-Phase 1  Backend Foundation          [완료]
+Phase 1  Legacy Backend Foundation   [완료]
   ↓
 Phase 2  Music Generation            [진행 중]
   ↓
@@ -81,7 +81,7 @@ F6       Guided Voice Enrollment     [진행 중]
   ↓
 K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
-Track    Workspace Artifact Domain   [진행 중]
+Track    Workspace Artifact·Job      [진행 중]
   ↓ 병행
 Phase 9  Production                  [계획]
   ↓ 병행
@@ -91,7 +91,7 @@ Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획
 | Phase | 상태 | 진행률 | 사실 기준 | DoD |
 |---|---|---:|---|---|
 | 0. 프로젝트 문서화 | [완료] | `██████████ 100%` | 초기 문서·정책·ADR 체계 구축 | 이 문서의 Phase 0 기준 |
-| 1. Backend Foundation | [완료] | `██████████ 100%` | FastAPI·SQLite·Alembic·Mock Job 검증 | [Phase-01](docs/DoD/Phase-01.md) |
+| 1. Legacy Backend Foundation | [완료] | `██████████ 100%` | FastAPI·SQLite·Alembic·Mock Runtime Job 검증; Workspace Job과 분리 | [Phase-01](docs/DoD/Phase-01.md) |
 | 2. Music Generation | [진행 중] | `█████████░ 93%` | ACE-Step 조건부 채택, 기본 `mock`, 운영 Provider 미확정·사용자 평가 진행 중 | [Phase-02](docs/DoD/Phase-02.md) |
 | 2.5 Quality Benchmark | [진행 중] | `█████████░ 93%` | 재현성·반복·VRAM·ADR 완료, EVAL-001 사용자 평가 진행 중 | [Phase-02.5](docs/DoD/Phase-02.5.md) |
 | 3. Stem Separation | [완료] | `██████████ 100%` | HTDemucs Adapter·API·Benchmark·평가표 구축 | [Phase-03](docs/DoD/Phase-03.md) |
@@ -103,13 +103,13 @@ Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact Domain | [진행 중] | 독립 체크리스트 | Entity·Repository·Service, 실제 DB 0012~0016, Artifact API와 CompositionSnapshot 불변 생성·Cursor·Idempotency·공식 API 3개 완료; Job API·destructive repair·나머지 39개 API·운영 Artifact 폴더·Runtime 미구현 | [CompositionSnapshot API](docs/06-api/composition-snapshot-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | 실제 DB 0012~0016, Artifact·CompositionSnapshot API와 Workspace Job 공식 계약 완료; Job Migration·Cursor·claim/lease·Service·API 0/5와 나머지 39개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 문서화 진행, 저장소·Runtime 미구현 | [Provider Separation](docs/DoD/Provider-Separation.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
-Workspace Artifact Domain은 Provider Runtime의 `lm`·`audio`·`vocal` 결과와 DohaMusic의 Mix·Export·Preview·Composition Snapshot을 분리하는 진행 중 Track이다. 목표 Workspace Entity 21개와 additive revision `20260806_0012`, keyset Index revision `20260807_0013`~`20260808_0015`, Catalog revision `20260809_0016`을 실제 사용자 DB에 적용했고 Workspace Repository와 Service 소유 transaction 경계를 완료했다. Bootstrap CLI의 fail-closed revision Gate는 현재 source head와 정확히 일치하는 `20260809_0016`으로 동기화했지만 실제 Bootstrap은 실행하지 않았다. `/api/v1` 공통 기반과 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개를 구현했다. CompositionSnapshot은 불변 aggregate·Owner/ProjectAsset scope·자동 version·HMAC Cursor·Idempotency와 공식 목록·생성·상세 API 3개를 제공한다. source metadata와 실제 사용자 DB는 36개 Application Table이며 Catalog row는 0개다. 현행 Runtime Table 14개가 계속 source of truth이고 Job API를 포함한 나머지 39개 Resource Endpoint·backfill·dual write·Frontend·Legacy 제거와 실제 `DohaArtifacts` 폴더·Runtime 전환은 수행하지 않았다.
+Workspace Artifact·Job Domain은 Provider Runtime의 `lm`·`audio`·`vocal` 결과와 DohaMusic의 Mix·Export·Preview·Composition Snapshot·독립 Job을 분리하는 진행 중 Track이다. 목표 Workspace Entity 21개와 additive revision `20260806_0012`, keyset Index revision `20260807_0013`~`20260808_0015`, Catalog revision `20260809_0016`을 실제 사용자 DB에 적용했고 Workspace Repository와 Service 소유 transaction 경계를 완료했다. Bootstrap CLI의 fail-closed revision Gate는 현재 source head와 정확히 일치하는 `20260809_0016`으로 동기화했지만 실제 Bootstrap은 실행하지 않았다. `/api/v1` 공통 기반과 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개를 구현했다. CompositionSnapshot은 불변 aggregate·Owner/ProjectAsset scope·자동 version·HMAC Cursor·Idempotency와 공식 목록·생성·상세 API 3개를 제공한다. Workspace Job Aggregate·type Matrix·exact Artifact·공개 5-state·cancel·retry·Owner scope·claim/lease·completion Unit of Work 계약은 확정했으나 관련 Entity Migration·Cursor·Worker·Service와 공식 API 5개는 미구현이다. source metadata와 실제 사용자 DB는 36개 Application Table이며 Catalog row는 0개다. 현행 Runtime Table 14개가 계속 source of truth이고 Job API를 포함한 나머지 39개 Resource Endpoint·backfill·dual write·Frontend·Legacy 제거와 실제 `DohaArtifacts` 폴더·Runtime 전환은 수행하지 않았다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 
@@ -123,10 +123,11 @@ Workspace Artifact Domain은 Provider Runtime의 `lm`·`audio`·`vocal` 결과�
 - 관련 ADR·실험: [ADR-001~004](docs/11-decisions/README.md), 실험 없음.
 - 예상 다음 단계: Phase 1 Backend Foundation.
 
-## Phase 1. Backend Foundation — [완료]
+## Phase 1. Legacy Backend Foundation — [완료]
 
 - 목표: AI Provider가 없어도 검증 가능한 비동기 Backend 기반을 만든다.
 - 구현 범위·포함 기능: FastAPI 계층, SQLite·SQLAlchemy·Alembic, 생성 Job·파일·음성 프로필, Mock Worker, Storage, 로그·예외·테스트.
+- 범위 구분: 이 완료 판정은 Legacy Runtime Job 기준이다. Workspace Job Backend Foundation은 [별도 공식 계약](docs/03-architecture/workspace-job-foundation.md)의 Migration·Cursor·claim/lease·completion·API Gate를 모두 통과한 뒤 완료로 판정한다.
 - 제외 기능: 실제 AI, 인증, 외부 Queue, Frontend.
 - 선행 조건: Phase 0 문서·아키텍처 기준.
 - 완료 조건: [Phase-01 DoD](docs/DoD/Phase-01.md)의 모든 항목과 Mock E2E 통과.
