@@ -2,11 +2,20 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-10
+> 최종 수정일: 2026-08-11
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Workspace Job Completion Unit of Work
+
+- Provider 결과 DTO와 output role Matrix를 검증하고 trusted ingestion·불변 publish·필요한 AssetVersion·Artifact·Catalog·JobOutput·ModelUsage·최종 무결성·`succeeded` 전이를 하나의 Service 소유 DB transaction으로 확정하는 Workspace Job Completion Unit of Work를 추가했다.
+- 동일 completion replay는 기존 결과를 반환하고 다른 결과는 충돌로 거부한다. cancel marker 우선, 다중 출력 rollback, publish 후 DB 실패의 identity 기반 보상과 staging cleanup을 임시 SQLite·Artifact root에서 검증했다.
+
+### 변경 — Artifact ingestion transaction 경계
+
+- Artifact trusted ingestion을 기존 독립 transaction과 Completion UoW가 함께 사용하는 prepare/register/verify/compensate primitive로 분리했다. Repository의 직접 `commit()`·`rollback()`과 신규 Alembic revision은 추가하지 않았다.
 
 ### 추가
 
@@ -16,7 +25,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 변경
 
-- Job Foundation은 Service state/cancel/retry 기반까지 완료했지만 Worker claim/lease, Completion Unit of Work, Provider 호출과 Job API 5개는 계속 미구현이다. Resource API 25/64, metadata 36개 Table과 Alembic `20260810_0017`은 변경하지 않았다.
+- Job Foundation은 Service state/cancel/retry와 Completion Unit of Work 기반까지 완료했지만 Worker claim/lease runtime, Provider 실제 호출과 Job API 5개는 계속 미구현이다. Resource API 25/64, metadata 36개 Table과 Alembic `20260810_0017`은 변경하지 않았다.
 
 ### 추가 — Workspace Job Cursor와 keyset Repository 기반
 

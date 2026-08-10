@@ -179,6 +179,18 @@ class LocalArtifactPublisher:
             _sync_directory(published.source_path.parent)
         return removed
 
+    def discard_staging(self, temporary_path: Path) -> bool:
+        """실패한 handoff의 staging payload만 identity 확인 후 제거한다."""
+
+        try:
+            source_path, source_identity = self._resolve_staging_payload(temporary_path)
+        except ArtifactPublishError:
+            return False
+        removed = _unlink_if_identity_matches(source_path, source_identity)
+        if removed:
+            _sync_directory(source_path.parent)
+        return removed
+
     def _resolve_staging_payload(
         self, requested_path: Path
     ) -> tuple[Path, tuple[int, int]]:
