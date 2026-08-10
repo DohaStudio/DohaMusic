@@ -15,9 +15,14 @@ from uuid import UUID
 
 from backend.core.exceptions import CursorConfigurationError, InvalidCursorError
 
-CreatedAtCursorResource = Literal["workspace", "project", "asset"]
+CreatedAtCursorResource = Literal["workspace", "project", "asset", "job"]
 CursorResource = Literal[
-    "workspace", "project", "project_asset", "asset", "composition_snapshot"
+    "workspace",
+    "project",
+    "project_asset",
+    "asset",
+    "composition_snapshot",
+    "job",
 ]
 CURSOR_VERSION = 1
 CURSOR_DIRECTION = "next"
@@ -360,7 +365,7 @@ def _parse_datetime(value: object) -> datetime:
 
 
 def _validate_created_at_resource(resource: object) -> None:
-    if resource not in {"workspace", "project", "asset"}:
+    if resource not in {"workspace", "project", "asset", "job"}:
         raise InvalidCursorError("resource")
 
 

@@ -8,7 +8,7 @@
 
 ## 배경
 
-Workspace Job Entity·Repository·Service 기반과 source revision `20260810_0017`의 role·scope·cancel·claim/lease Column 및 Index는 존재하지만 공개 API, Cursor, Worker claim·lease와 Provider 결과를 Workspace 성공으로 확정하는 Unit of Work는 구현되지 않았다. 기존 Pipeline cancel·retry와 ThreadPool Worker는 Legacy·Compatibility Runtime 계약이며 Workspace Job 완료 근거로 사용할 수 없다.
+Workspace Job Entity·Repository·Service 기반과 source revision `20260810_0017`의 role·scope·cancel·claim/lease Column 및 Index가 존재하며 HMAC Cursor와 Owner·Workspace scope Repository keyset page도 구현했다. 공개 API, Service state machine, Worker claim·lease와 Provider 결과를 Workspace 성공으로 확정하는 Unit of Work는 구현되지 않았다. 기존 Pipeline cancel·retry와 ThreadPool Worker는 Legacy·Compatibility Runtime 계약이며 Workspace Job 완료 근거로 사용할 수 없다.
 
 ## 문제
 
@@ -48,7 +48,7 @@ Workspace Job Entity·Repository·Service 기반과 source revision `20260810_00
 
 ## 영향
 
-- Job API는 이 계약의 Cursor·Service·Worker 기반과 공개 Router가 모두 구현되기 전에는 완료로 표시하지 않는다.
+- Job API는 이 계약의 남은 Service state machine·Worker 기반과 공개 Router가 모두 구현되기 전에는 완료로 표시하지 않는다.
 - Resource API는 계속 25/64, Job API는 0/5다.
 - source head와 실제 사용자 DB는 `20260810_0017`이며 metadata는 36개 Table로 유지한다.
 - Legacy Runtime Table 14개와 기존 Worker·Pipeline은 source of truth를 유지한다.

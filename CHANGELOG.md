@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace Job Cursor와 keyset Repository 기반
+
+- HMAC Cursor version 1에 `job` Resource를 추가하고 `(created_at DESC, job_id DESC)` position과 effective Owner·Workspace·선택 `project_id`·`status`·`job_type` fingerprint를 적용했다.
+- 기존 offset 조회는 호환성을 위해 유지하면서 Owner scope를 `workspaces.owner_id`에서 강제하는 `list_jobs_after()`와 `limit + 1` 기반 `JobPage`를 추가했다. 다른 Owner·Workspace·filter의 Cursor 재사용은 `INVALID_CURSOR`로 거부한다.
+- 10,000건 임시 SQLite fixture에서 Workspace·Project·status·type의 첫·다음 page가 revision `20260810_0017`의 keyset Index를 사용하고 `jobs` full scan과 `TEMP B-TREE`가 없음을 검증했다.
+- Job API는 0/5, 전체 Resource API는 25/64를 유지한다. Service state machine·Worker·Provider 호출·Alembic·실제 사용자 DB·Frontend는 변경하지 않았다.
+- 구현과 검증 결과는 [Workspace Job Cursor 기반 검증](reports/validation/VALIDATION-WORKSPACE-JOB-CURSOR-FOUNDATION.md)에 기록했다.
+
 ### 수정 — Bootstrap CLI revision 기준 0017 동기화
 
 - Bootstrap CLI가 정확히 허용하는 revision을 실제 사용자 DB와 Alembic source head에 맞춰 `20260809_0016`에서 `20260810_0017`로 변경했다.
