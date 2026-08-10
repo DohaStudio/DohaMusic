@@ -1,9 +1,9 @@
 # Workspace REST API 공통 계약
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset·AssetVersion·Artifact Resource Endpoint 22개 구현, 나머지 42개·OpenAPI YAML·Idempotency replay 미구현
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·Workspace·Project·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개 구현, 나머지 39개·OpenAPI YAML·Job API 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
@@ -166,7 +166,7 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - 공개 role은 `lyrics`, `music`, `vocal`, `stem`, `mix`이며 Instrumental은 `music`으로 표현합니다.
 - `snapshot_version`과 `created_by`는 공개 입력이 아니라 Service가 각각 Project의 다음 번호와 effective Owner에서 파생합니다.
 - Snapshot과 전체 Item, Idempotency 완료 기록은 한 transaction에서 생성하고 일부만 남기지 않습니다.
-- 현재 Repository·Service·Cursor 기반만 구현했으며 Router와 공식 Endpoint 3개는 `[계획]`입니다. 세부 계약은 [CompositionSnapshot 기반](composition-snapshot-foundation.md)을 따릅니다.
+- Repository·Service·Cursor 기반을 재사용한 공식 목록·생성·상세 Endpoint 3개를 구현했습니다. 생성은 필수 `Idempotency-Key`를 기존 `idempotency_records`에 연결하고 같은 요청을 최초 `201` 응답으로 재생합니다. 세부 계약은 [CompositionSnapshot API](composition-snapshot-foundation.md)을 따릅니다.
 
 ### 6.5 Job
 
@@ -273,7 +273,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - 같은 key와 다른 fingerprint는 `409 IDEMPOTENCY_KEY_REUSED`입니다.
 - Retry replay는 새 Job을 추가 생성하지 않고 처음 만든 retry Job을 반환합니다.
 - 보존 기간은 최소 24시간을 기본안으로 두되 운영 정책 확정이 필요합니다.
-- CompositionSnapshot 기반은 기존 `idempotency_records`를 사용해 effective Owner·Project scope와 정규화된 body fingerprint를 24시간 보존합니다. 같은 key·요청은 aggregate를 재생하고 다른 요청은 conflict로 거부하며 Snapshot·Item과 같은 transaction에 기록합니다. HTTP header 연결은 Router 후속 범위입니다.
+- CompositionSnapshot API는 기존 `idempotency_records`를 사용해 effective Owner·Project scope와 정규화된 body fingerprint를 24시간 보존합니다. 필수 HTTP `Idempotency-Key`가 같은 key·요청이면 최초 `201` aggregate를 재생하고 다른 요청이면 `IDEMPOTENCY_KEY_REUSED`로 거부하며 Snapshot·Item과 같은 transaction에 기록합니다.
 
 ## 10. Pagination, Filter, Sort와 Search
 

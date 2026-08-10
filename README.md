@@ -12,9 +12,9 @@
 
 > 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
-> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog를 포함한 revision `20260806_0012`~`20260809_0016`을 승인된 절차로 실제 사용자 DB에 적용했습니다. source metadata와 실제 사용자 DB는 모두 36개 Application Table·`20260809_0016`이며 Catalog row는 0개입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact Resource API 22개를 구현했으며 나머지 42개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
+> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog를 포함한 revision `20260806_0012`~`20260809_0016`을 승인된 절차로 실제 사용자 DB에 적용했습니다. source metadata와 실제 사용자 DB는 모두 36개 Application Table·`20260809_0016`이며 Catalog row는 0개입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개를 구현했으며 나머지 39개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
 
-> CompositionSnapshot 기반: [공개 계약과 Application 기반](docs/06-api/composition-snapshot-foundation.md)에 effective Owner·ProjectAsset scope, 불변 Snapshot+Item 원자적 생성, Project별 자동 version, `snapshot_version DESC` HMAC Cursor, aggregate 조회, bounded Provider·Manifest 계보와 기존 `idempotency_records` 재사용을 구현했습니다. 공식 Router와 CompositionSnapshot API 3개는 아직 `[계획]`이므로 Resource API는 22/64를 유지합니다.
+> CompositionSnapshot API: [공개 계약과 Application 기반](docs/06-api/composition-snapshot-foundation.md)을 재사용해 목록·생성·상세 Router 3개, effective Owner·ProjectAsset scope, 불변 Snapshot+Item 원자적 생성, Project별 자동 version, `snapshot_version DESC` HMAC Cursor, aggregate 조회, bounded Provider·Manifest 계보와 `Idempotency-Key` replay를 구현했습니다. CompositionSnapshot API는 3/3, Resource API는 25/64입니다.
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
@@ -77,7 +77,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | K3.2 final WAV detected BPM·confidence·요청 BPM 오차·half/double-time 후보와 Result·History·Project UI |
 | [완료] | K3.3 final WAV 에너지·반복 기반 15초 후렴 후보·confidence·중앙 fallback과 Result·History·Project UI |
 | [계획] | K3.4 Preview Export 실제 구현 |
-| [진행 중] | AssetVersion 기반 CompositionSnapshot Application 기반 완료, 공식 API와 `DohaArtifacts/music`의 Mix·Export·Preview 운영 연결 계획 |
+| [진행 중] | AssetVersion 기반 CompositionSnapshot Application 기반과 공식 API 3개 완료, Job API와 `DohaArtifacts/music`의 Mix·Export·Preview 운영 연결 계획 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 

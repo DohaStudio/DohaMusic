@@ -1,9 +1,9 @@
 # Asset 중심 데이터베이스 재설계 개요
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Resource API 22개와 CompositionSnapshot Service 기반 완료; Bootstrap·backfill·dual write 미수행
+> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Resource API 25개와 CompositionSnapshot API 3개 완료; Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -24,7 +24,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260809_0016`은 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table이고 Catalog row는 0개입니다. Repository와 Service 및 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact Resource API 22개는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table은 현재 빈 상태입니다. CompositionSnapshot은 불변 aggregate·Cursor·Idempotency 기반만 완료했고 Router는 미구현입니다. backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
+이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260809_0016`은 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table이고 Catalog row는 0개입니다. Repository와 Service 및 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table은 현재 빈 상태입니다. CompositionSnapshot은 불변 aggregate·Cursor·Idempotency 기반과 공식 목록·생성·상세 API 3개를 완료했습니다. backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
 
 ## 2. Common Specification 기준
 
@@ -158,7 +158,7 @@ Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`, Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`와 `artifact_storage_locations` 하나를 추가한 `20260809_0016`이 적용됐습니다. 신규 Workspace Table과 Catalog row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact v1 Resource API 22개를 구현했고 나머지 42개 Endpoint는 계획입니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`, Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`와 `artifact_storage_locations` 하나를 추가한 `20260809_0016`이 적용됐습니다. 신규 Workspace Table과 Catalog row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot v1 Resource API 25개를 구현했고 나머지 39개 Endpoint는 계획입니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

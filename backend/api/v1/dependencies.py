@@ -12,6 +12,7 @@ from backend.core.exceptions import AppError
 from backend.services.workspace import (
     ArtifactApplicationService,
     AssetService,
+    CompositionService,
     WorkspaceService,
 )
 
@@ -65,6 +66,15 @@ def get_artifact_application_service(request: Request) -> ArtifactApplicationSer
     service = getattr(request.app.state, "artifact_application_service", None)
     if not isinstance(service, ArtifactApplicationService):
         raise RuntimeError("ArtifactApplicationService가 구성되지 않았습니다.")
+    return service
+
+
+def get_composition_service(request: Request) -> CompositionService:
+    """App composition root에서 구성한 CompositionService를 제공한다."""
+
+    service = getattr(request.app.state, "composition_service", None)
+    if not isinstance(service, CompositionService):
+        raise RuntimeError("CompositionService가 구성되지 않았습니다.")
     return service
 
 
