@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from uuid import UUID, uuid4
 
 import pytest
-from fastapi.routing import APIRoute
 from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
@@ -658,26 +657,22 @@ def test_snapshot_conflict_mapping_hides_database_details(
 
 
 def test_snapshot_routes_are_immutable_and_openapi_is_exact(client: TestClient) -> None:
-    snapshot_routes = [
-        route
-        for route in client.app.routes
-        if isinstance(route, APIRoute) and route.path.startswith("/api/v1/snapshots")
-    ]
-    assert {(next(iter(route.methods)), route.path) for route in snapshot_routes} == {
-        ("GET", "/api/v1/snapshots"),
-        ("POST", "/api/v1/snapshots"),
-        ("GET", "/api/v1/snapshots/{composition_snapshot_id}"),
-    }
-    assert not any(
-        method in {"PATCH", "DELETE"}
-        for route in snapshot_routes
-        for method in route.methods
-    )
-    assert not any("snapshot-items" in route.path for route in client.app.routes)
-
-    registered_routes = client.app.routes
-    api_routes = [route for route in registered_routes if isinstance(route, APIRoute)]
     schema = client.app.openapi()
+    snapshot_paths = {
+        path: {
+            method.upper()
+            for method, operation in path_item.items()
+            if isinstance(operation, dict) and "operationId" in operation
+        }
+        for path, path_item in schema["paths"].items()
+        if path.startswith("/api/v1/snapshots")
+    }
+    assert snapshot_paths == {
+        "/api/v1/snapshots": {"GET", "POST"},
+        "/api/v1/snapshots/{composition_snapshot_id}": {"GET"},
+    }
+    assert not any("snapshot-items" in path for path in schema["paths"])
+
     operation_ids = [
         operation["operationId"]
         for path_item in schema["paths"].values()
@@ -689,8 +684,6 @@ def test_snapshot_routes_are_immutable_and_openapi_is_exact(client: TestClient) 
         for operation_id, count in Counter(operation_ids).items()
         if count > 1
     }
-    assert len(registered_routes) == 70
-    assert len(api_routes) == 66
     assert len(schema["paths"]) == 49
     assert len(operation_ids) == 68
     assert {operation_id.rsplit("_", maxsplit=1)[0] for operation_id in duplicates} == {

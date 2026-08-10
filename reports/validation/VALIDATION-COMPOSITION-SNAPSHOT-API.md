@@ -54,7 +54,7 @@
 - 실제 사용자 DB의 Workspace row와 Catalog row는 0개이고 실제 Bootstrap은 실행하지 않았습니다.
 - Bootstrap CLI가 현재 `20260807_0013` revision만 허용하는 기존 제약은 `0016` 운영 기준과 별도 후속 정합성 검토가 필요합니다.
 - CI와 같은 전체 Backend suite를 로컬 Windows에서 재실행했으나 15분 제한으로 최종 요약을 회수하지 못했습니다. 선별 Gate만 로컬 PASS로 기록하고 전체 suite 결과는 GitHub Actions에서 판정합니다.
-- 최초 `backend-ubuntu` 실행은 테스트가 모듈 전역 Router 인스턴스를 참조해 전체 suite import 순서에서 빈 Route 집합을 읽는 문제로 실패했습니다. 실제 앱 Route를 검사하도록 테스트만 수정했으며 해당 재현 테스트는 PASS했습니다.
+- `backend-ubuntu` 재검증 과정에서 Snapshot 불변성 테스트의 FastAPI 내부 Route 객체 탐색이 전체 suite 실행 순서에서 빈 집합을 반환했습니다. 공개 계약 기준인 OpenAPI path·method 집합을 검사하도록 테스트만 수정했으며 제품 Endpoint 호출 검증은 계속 PASS했습니다.
 
 ## 판정
 
