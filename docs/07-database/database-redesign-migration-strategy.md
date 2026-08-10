@@ -10,6 +10,8 @@
 
 Alembic source head와 실제 사용자 DB revision은 내부 Artifact Catalog Table을 추가한 `20260809_0016`입니다. `20260806_0012`는 목표 Workspace Table 21개를 additive로 추가했고 `20260807_0013`은 Workspace·Project keyset Index 세 개, `20260807_0014`는 ProjectAsset partial Index 하나, `20260808_0015`는 Asset full keyset Index 두 개, `20260809_0016`은 Catalog Table 하나를 추가했습니다. 신규 Workspace Table과 Catalog row는 0건이고 backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
+명시적 Bootstrap CLI의 fail-closed revision Gate도 현재 source head와 정확히 일치하는 `20260809_0016`으로 동기화했습니다. 이는 최소 revision 또는 임의의 미래 head를 허용하는 호환성 판정이 아니며, 실제 사용자 DB 접근·Bootstrap·backfill은 수행하지 않았습니다.
+
 | 현재 영역 | 현재 Table |
 |---|---|
 | Music Generation | `generation_jobs`, `generated_files` |

@@ -18,7 +18,7 @@ from backend.db.session import create_database_engine, create_session_factory
 from backend.schemas.workspace.bootstrap import WorkspaceBootstrapResult
 from backend.services.workspace import WorkspaceService
 
-BOOTSTRAP_TARGET_REVISION = "20260807_0013"
+BOOTSTRAP_TARGET_REVISION = "20260809_0016"
 
 
 class WorkspaceBootstrapError(RuntimeError):
@@ -84,9 +84,14 @@ def inspect_bootstrap_target(database_url: str) -> str:
                 raise WorkspaceBootstrapError("Alembic revision Table이 없습니다.")
             if "workspaces" not in table_names:
                 raise WorkspaceBootstrapError("Workspace Table이 없습니다.")
-            revision = connection.scalar(
-                text("SELECT version_num FROM alembic_version")
+            revisions = tuple(
+                connection.scalars(text("SELECT version_num FROM alembic_version"))
             )
+            if len(revisions) != 1:
+                raise WorkspaceBootstrapError(
+                    "Alembic revision row는 정확히 하나여야 합니다."
+                )
+            revision = revisions[0]
             if revision != BOOTSTRAP_TARGET_REVISION:
                 raise WorkspaceBootstrapError(
                     f"대상 DB revision은 {BOOTSTRAP_TARGET_REVISION}이어야 합니다."

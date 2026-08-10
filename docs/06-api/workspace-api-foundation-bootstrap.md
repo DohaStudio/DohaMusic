@@ -103,10 +103,12 @@ Project·Asset·AssetVersion과 Runtime Table row는 생성하거나 변경하�
 - 명시적 SQLite URL
 - 기존 SQLite 파일 또는 명시적 in-memory 테스트 DB
 - `alembic_version` Table 존재
-- revision이 정확히 `20260807_0013`
+- revision row가 정확히 하나이고 그 값이 현재 Alembic source head `20260809_0016`과 정확히 일치
 - `workspaces` Table 존재
 
-Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자동 생성을 수행하지 않습니다. 이번 작업에서는 실제 사용자 DB에 Bootstrap을 실행하지 않습니다.
+Bootstrap은 최소 revision 이상을 허용하지 않습니다. 현재 소스가 검증한 단일 schema와 정확히 일치할 때만 실행하며, 과거·미래·알 수 없는·형식 오류 revision과 revision row 0개 또는 복수를 fail-closed로 거부합니다. 일반 Alembic DAG 비교와 자동 호환 판정은 별도 설계 없이 도입하지 않습니다.
+
+Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자동 생성을 수행하지 않습니다. 이번 작업에서는 실제 사용자 DB에 접근하거나 Bootstrap을 실행하지 않았습니다.
 
 ## 8. Idempotency-Key 후속 판단
 
