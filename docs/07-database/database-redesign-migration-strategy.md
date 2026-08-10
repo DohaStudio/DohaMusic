@@ -3,14 +3,14 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity·0012~0016 실제 적용, Job schema·Index source 0017 구현; 실제 0017 적용·Bootstrap·backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity·0012~0017 실제 적용, Bootstrap target 0017 동기화; 실제 Bootstrap·backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head는 Workspace Job schema·Index를 추가한 `20260810_0017`이고 실제 사용자 DB revision은 `20260809_0016`입니다. `20260806_0012`는 목표 Workspace Table 21개, `20260807_0013`~`0015`는 Workspace Resource keyset Index, `20260809_0016`은 Catalog Table 하나를 추가했습니다. `20260810_0017`은 Job scope·role·cancel·claim/lease Column과 Index 6개를 source에 추가했습니다. backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head와 실제 사용자 DB revision은 Workspace Job schema·Index를 추가한 `20260810_0017`입니다. `20260806_0012`는 목표 Workspace Table 21개, `20260807_0013`~`0015`는 Workspace Resource keyset Index, `20260809_0016`은 Catalog Table 하나, `20260810_0017`은 Job scope·role·cancel·claim/lease Column과 Index 6개를 추가했습니다. backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
-명시적 Bootstrap CLI의 fail-closed revision Gate는 실제 사용자 DB revision `20260809_0016`을 유지합니다. source head `20260810_0017`에서는 Bootstrap을 거부하며, 실제 DB 적용과 Bootstrap 계약 재검증 뒤 별도 변경해야 합니다. 실제 사용자 DB 접근·Bootstrap·backfill은 수행하지 않았습니다.
+명시적 Bootstrap CLI의 fail-closed revision Gate는 source와 실제 사용자 DB에 일치하는 `20260810_0017`을 정확히 요구합니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -82,11 +82,11 @@ Alembic source head는 Workspace Job schema·Index를 추가한 `20260810_0017`�
 - 임시 SQLite에서 `0015 → 0016 → 0015` upgrade·downgrade, 기존 35개 Table·row count·digest·quick/integrity/FK 보존을 검증했습니다.
 - read-only Inventory·backup·restore·migration·downgrade rehearsal과 별도 사용자 승인 Gate를 거쳐 실제 사용자 DB에 적용했습니다. 기존 35개 Table·79개 row·digest와 무결성은 보존됐고 Catalog row는 0개입니다.
 
-### 2.6 Workspace Job Foundation additive revision `20260810_0017` — [source 완료·실제 DB 미적용]
+### 2.6 Workspace Job Foundation additive revision `20260810_0017` — [실제 DB 적용 완료]
 
 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)과 [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)에 따라 `jobs.workspace_id`, 내부 cancellation marker, claim·lease·heartbeat·attempt, `job_inputs.input_role`, `job_outputs.output_role`과 공개 keyset Index 4개·Worker Index 2개를 추가했습니다. ModelUsage Column은 유지합니다.
 
-기존 Job row와 하위 FK를 보존하기 위해 `workspace_id`, `input_role`, `output_role`은 nullable staging입니다. 기존 Job의 Workspace는 Project에서 채우며 해석할 수 없으면 upgrade를 중단합니다. `attempt`는 기본값 0과 음수 금지 Check를 사용합니다. 임시 SQLite 10,000 Job upgrade·downgrade, metadata·reflection과 `EXPLAIN QUERY PLAN`을 통과했습니다. 실제 사용자 DB는 변경하지 않아 `20260809_0016`, Application Table은 36개로 유지합니다.
+기존 Job row와 하위 FK를 보존하기 위해 `workspace_id`, `input_role`, `output_role`은 nullable staging입니다. 기존 Job의 Workspace는 Project에서 채우며 해석할 수 없으면 upgrade를 중단합니다. `attempt`는 기본값 0과 음수 금지 Check를 사용합니다. 임시 SQLite 10,000 Job upgrade·downgrade, metadata·reflection과 `EXPLAIN QUERY PLAN`을 통과했고 Inventory·backup·restore·migration rehearsal과 별도 승인 후 실제 사용자 DB에 적용했습니다. 적용 당시 Job·JobInput·JobOutput row는 0건이었으며 Application Table은 36개로 유지합니다.
 
 ## 3. 현재 Table별 권장 매핑
 
@@ -152,7 +152,7 @@ Alembic source head는 Workspace Job schema·Index를 추가한 `20260810_0017`�
 3. 기본 Workspace를 만들고 기존 `projects`를 `music_projects`로 backfill합니다.
 4. 현행 API 읽기·쓰기는 아직 바꾸지 않습니다.
 
-1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`, Artifact Catalog revision `20260809_0016`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table과 Catalog row는 0건이며 3번 backfill도 수행하지 않았습니다.
+1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`, Artifact Catalog revision `20260809_0016`, Workspace Job schema·Index revision `20260810_0017`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace·Catalog·Job row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
 Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 검증했습니다. Catalog 조회·local Resolver, trusted ingestion의 physical SHA-256·size·MIME 검증, owner-scoped Application Service, retention·integrity read Gate, 승인 namespace batch dry-run reconciliation과 Artifact API 3개의 single-byte Range를 구현했습니다. destructive reconciliation·maintenance repair·실제 운영 Payload 검증·checksum cache·대용량 성능 최적화·non-local backend·Bootstrap·backfill·dual write·Runtime read source 전환·Legacy 정리는 미구현입니다.
 

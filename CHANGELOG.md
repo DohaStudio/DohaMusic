@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Bootstrap CLI revision 기준 0017 동기화
+
+- Bootstrap CLI가 정확히 허용하는 revision을 실제 사용자 DB와 Alembic source head에 맞춰 `20260809_0016`에서 `20260810_0017`로 변경했다.
+- minimum revision이나 일반 Alembic DAG 판정은 도입하지 않았으며 `0016` 이하, 알 수 없는·형식 오류 revision과 revision row 0개 또는 복수를 계속 fail-closed로 거부한다.
+- 임시 SQLite로 revision Gate만 검증하며 실제 사용자 DB 접근·Bootstrap 실행·Alembic·Entity·API를 변경하지 않는다. Metadata 36개 Table, Resource API 25/64, Job API 0/5와 Runtime Table 14개의 source of truth 상태를 유지한다.
+- 구현과 검증 결과는 [Bootstrap CLI revision 0017 검증](reports/validation/VALIDATION-BOOTSTRAP-REVISION-0017.md)에 기록한다.
+
 ### 추가 — Workspace Job schema와 keyset 기반
 
 - `jobs`에 Workspace scope, 내부 취소 요청, claim token·Worker·lease·heartbeat·attempt를 추가하고 `job_inputs`·`job_outputs`에 nullable staging role Column을 추가했다.

@@ -48,15 +48,15 @@ Workspace Job Entity·Repository·Service 기반과 source revision `20260810_00
 
 ## 영향
 
-- Job API는 이 계약의 실제 DB 적용·Cursor·Service·Worker 기반 전에는 구현 완료로 표시하지 않는다.
+- Job API는 이 계약의 Cursor·Service·Worker 기반과 공개 Router가 모두 구현되기 전에는 완료로 표시하지 않는다.
 - Resource API는 계속 25/64, Job API는 0/5다.
-- source head는 `20260810_0017`, 실제 사용자 DB는 `20260809_0016`이며 metadata는 36개 Table로 유지한다.
+- source head와 실제 사용자 DB는 `20260810_0017`이며 metadata는 36개 Table로 유지한다.
 - Legacy Runtime Table 14개와 기존 Worker·Pipeline은 source of truth를 유지한다.
 - Backend Foundation과 Generative AI Track은 아직 완료·OPEN 상태가 아니다.
 
 ## 마이그레이션
 
-source revision `20260810_0017`에서 Workspace scope, input/output role, cancellation marker, claim·lease·heartbeat·attempt와 공개 keyset Index 4개·Worker Index 2개를 additive하게 구현했다. 기존 row 보존을 위해 scope와 role은 nullable staging으로 두며 새 Job 생성은 Workspace scope를 기록한다. 실제 사용자 DB 적용과 의미 기반 role backfill·`NOT NULL` 강화는 Inventory·backup·restore rehearsal·migration rehearsal·명시적 승인 절차를 다시 거친다.
+revision `20260810_0017`에서 Workspace scope, input/output role, cancellation marker, claim·lease·heartbeat·attempt와 공개 keyset Index 4개·Worker Index 2개를 additive하게 구현하고 Inventory·backup·restore·migration rehearsal과 명시적 승인 뒤 실제 사용자 DB에 적용했다. 기존 row 보존을 위해 scope와 role은 nullable staging으로 두며 새 Job 생성은 Workspace scope를 기록한다. 의미 기반 role backfill·`NOT NULL` 강화는 별도 검증과 승인 절차를 다시 거친다.
 
 ## 재검토 조건
 

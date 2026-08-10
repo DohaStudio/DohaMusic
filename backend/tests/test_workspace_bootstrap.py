@@ -28,7 +28,7 @@ from backend.services.workspace import WorkspaceService
 def _database_url(
     path: Path,
     *,
-    revision: str = BOOTSTRAP_TARGET_REVISION,
+    revision: str | None = BOOTSTRAP_TARGET_REVISION,
 ) -> str:
     url = f"sqlite:///{path.as_posix()}"
     engine = create_database_engine(url)
@@ -130,7 +130,7 @@ def test_current_source_head_passes_revision_gate_without_bootstrap(
 ) -> None:
     database_url = _database_url(tmp_path / "current-revision.db")
 
-    assert inspect_bootstrap_target(database_url) == "20260809_0016"
+    assert inspect_bootstrap_target(database_url) == "20260810_0017"
     assert _workspace_count(database_url) == 0
 
 
@@ -140,16 +140,20 @@ def test_current_source_head_passes_revision_gate_without_bootstrap(
         "20260807_0013",
         "20260807_0014",
         "20260808_0015",
+        "20260809_0016",
+        "",
+        None,
         "20999999_9999",
         "not-a-revision",
     ],
 )
 def test_non_target_revision_is_blocked_without_bootstrap(
     tmp_path: Path,
-    revision: str,
+    revision: str | None,
 ) -> None:
+    revision_label = revision or "empty"
     database_url = _database_url(
-        tmp_path / f"non-target-{revision}.db",
+        tmp_path / f"non-target-{revision_label}.db",
         revision=revision,
     )
 

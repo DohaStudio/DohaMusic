@@ -40,4 +40,4 @@ stateDiagram-v2
 
 Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분하며, lease 만료 running Job은 자동으로 queued에 되돌리지 않고 retryable failure로 종료한다.
 
-terminal Job은 상태·입력·출력·ModelUsage·settings를 변경하지 않으며 append-only History audit만 허용한다. cancellation marker, claim·lease·heartbeat·attempt와 nullable staging role Column 및 Index는 source revision `20260810_0017`에 구현했다. 실제 DB 적용과 Service·Worker 상태 전이는 후속 범위다.
+terminal Job은 상태·입력·출력·ModelUsage·settings를 변경하지 않으며 append-only History audit만 허용한다. cancellation marker, claim·lease·heartbeat·attempt와 nullable staging role Column 및 Index는 revision `20260810_0017`로 실제 사용자 DB에 적용했다. Service·Worker 상태 전이는 후속 범위다.
