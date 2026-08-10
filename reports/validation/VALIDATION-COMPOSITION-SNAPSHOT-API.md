@@ -53,7 +53,8 @@
 - 기존 Pipeline file GET·HEAD Route의 OpenAPI operation ID 중복 2종은 이번 범위에서 변경하지 않았습니다.
 - 실제 사용자 DB의 Workspace row와 Catalog row는 0개이고 실제 Bootstrap은 실행하지 않았습니다.
 - Bootstrap CLI가 현재 `20260807_0013` revision만 허용하는 기존 제약은 `0016` 운영 기준과 별도 후속 정합성 검토가 필요합니다.
-- 전체 Backend 단일 suite는 실행하지 않았으며 명시한 선별 Gate만 통과로 기록합니다.
+- CI와 같은 전체 Backend suite를 로컬 Windows에서 재실행했으나 15분 제한으로 최종 요약을 회수하지 못했습니다. 선별 Gate만 로컬 PASS로 기록하고 전체 suite 결과는 GitHub Actions에서 판정합니다.
+- 최초 `backend-ubuntu` 실행은 테스트가 모듈 전역 Router 인스턴스를 참조해 전체 suite import 순서에서 빈 Route 집합을 읽는 문제로 실패했습니다. 실제 앱 Route를 검사하도록 테스트만 수정했으며 해당 재현 테스트는 PASS했습니다.
 
 ## 판정
 

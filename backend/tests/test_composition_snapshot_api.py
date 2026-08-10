@@ -12,7 +12,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select
 
 from backend.api.v1.dependencies import REQUEST_ID_HEADER
-from backend.api.v1.router import router as workspace_v1_router
 from backend.core.exceptions import ResourceConflictError
 from backend.models.idempotency_record import IdempotencyRecord
 from backend.models.workspace import (
@@ -661,22 +660,20 @@ def test_snapshot_conflict_mapping_hides_database_details(
 def test_snapshot_routes_are_immutable_and_openapi_is_exact(client: TestClient) -> None:
     snapshot_routes = [
         route
-        for route in workspace_v1_router.routes
-        if isinstance(route, APIRoute) and route.path.startswith("/snapshots")
+        for route in client.app.routes
+        if isinstance(route, APIRoute) and route.path.startswith("/api/v1/snapshots")
     ]
     assert {(next(iter(route.methods)), route.path) for route in snapshot_routes} == {
-        ("GET", "/snapshots"),
-        ("POST", "/snapshots"),
-        ("GET", "/snapshots/{composition_snapshot_id}"),
+        ("GET", "/api/v1/snapshots"),
+        ("POST", "/api/v1/snapshots"),
+        ("GET", "/api/v1/snapshots/{composition_snapshot_id}"),
     }
     assert not any(
         method in {"PATCH", "DELETE"}
         for route in snapshot_routes
         for method in route.methods
     )
-    assert not any(
-        "snapshot-items" in route.path for route in workspace_v1_router.routes
-    )
+    assert not any("snapshot-items" in route.path for route in client.app.routes)
 
     registered_routes = client.app.routes
     api_routes = [route for route in registered_routes if isinstance(route, APIRoute)]
