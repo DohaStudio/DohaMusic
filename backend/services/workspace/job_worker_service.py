@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -24,6 +25,7 @@ DEFAULT_LEASE_DURATION = timedelta(minutes=5)
 MIN_LEASE_SECONDS = 30
 MAX_LEASE_SECONDS = 3600
 MAX_WORKER_ID_LENGTH = 128
+_SAFE_PUBLIC_ERROR_CODE = re.compile(r"[A-Z][A-Z0-9_]{0,63}\Z")
 
 
 class ProviderDispatchStatus(StrEnum):
@@ -286,7 +288,9 @@ class JobWorkerService:
 
     def _fail(self, job_id: UUID, token: UUID, code: str, retryable: bool) -> Job:
         safe_code = (
-            code if code.isupper() and len(code) <= 64 else "PROVIDER_EXECUTION_FAILED"
+            code
+            if type(code) is str and _SAFE_PUBLIC_ERROR_CODE.fullmatch(code) is not None
+            else "PROVIDER_EXECUTION_FAILED"
         )
         with self._session_factory() as session, session.begin():
             job = JobRepository(session).finish_owned_claim(

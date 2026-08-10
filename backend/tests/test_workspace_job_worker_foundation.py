@@ -8,12 +8,21 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
-from sqlalchemy import text
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import sessionmaker
 
 from backend.db.base import Base
 from backend.db.session import create_database_engine
-from backend.models.workspace import AssetType, Job, JobStatus
+from backend.models.workspace import (
+    Artifact,
+    ArtifactStorageLocation,
+    AssetType,
+    AssetVersion,
+    Job,
+    JobOutput,
+    JobStatus,
+    ModelUsage,
+)
 from backend.repositories.workspace import JobRepository
 from backend.services.workspace import (
     ArtifactIngestionService,
@@ -45,6 +54,26 @@ class FakeDispatcher:
         if isinstance(self.result, Exception):
             raise self.result
         return self.result or ProviderDispatchResult(ProviderDispatchStatus.MALFORMED)
+
+
+class RetryingFakeDispatcher:
+    """동일 요청을 transport retry로 두 번 전송하고 첫 결과를 반환한다."""
+
+    def __init__(self, first, replay) -> None:
+        self.first = first
+        self.replay = replay
+        self.requests = []
+        self.replay_result = None
+
+    def _send(self, request, result):
+        self.requests.append(request)
+        return result
+
+    def execute(self, request, context):
+        first = self._send(request, self.first)
+        replay = self._send(request, self.replay)
+        self.replay_result = replay.provider_result
+        return first
 
 
 class WorkerFixture:
@@ -102,12 +131,15 @@ class WorkerFixture:
             clock=lambda: self.now,
         )
 
-    def success(self):
-        asset = AssetService(self.factory).create_asset(
+    def create_output_asset(self):
+        return AssetService(self.factory).create_asset(
             workspace_id=self.workspace.workspace_id,
             owner_id=self.owner,
             asset_type=AssetType.LYRICS,
         )
+
+    def success(self, *, target_asset_id=None):
+        target_asset_id = target_asset_id or self.create_output_asset().asset_id
         payload = self.staging / f"{uuid4()}.txt"
         payload.write_text("worker output", encoding="utf-8")
         return ProviderDispatchResult(
@@ -123,7 +155,9 @@ class WorkerFixture:
                 license_status="reviewed",
                 commercial_usage_status="allowed",
                 outputs=(
-                    ProviderOutput(0, "lyrics", payload, "lyrics_text", asset.asset_id),
+                    ProviderOutput(
+                        0, "lyrics", payload, "lyrics_text", target_asset_id
+                    ),
                 ),
             ),
         )
@@ -135,6 +169,10 @@ class WorkerFixture:
     def output_count(self, job_id):
         with self.factory() as session:
             return len(JobRepository(session).list_job_outputs(job_id))
+
+    def count(self, entity):
+        with self.factory() as session:
+            return session.scalar(select(func.count()).select_from(entity))
 
 
 @pytest.fixture
@@ -246,6 +284,96 @@ def test_provider_success_calls_completion(worker_fixture):
     assert dispatcher.requests[0].idempotency_key == f"workspace-job:{job.job_id}"
 
 
+def test_duplicate_dispatch_reuses_key_and_completion_lineage(worker_fixture):
+    job = worker_fixture.create_job()
+    target = worker_fixture.create_output_asset()
+    dispatcher = RetryingFakeDispatcher(
+        worker_fixture.success(target_asset_id=target.asset_id),
+        worker_fixture.success(target_asset_id=target.asset_id),
+    )
+    completed = worker_fixture.worker(dispatcher).run_once()
+    assert completed.status is JobStatus.SUCCEEDED
+    assert len(dispatcher.requests) == 2
+    assert {request.idempotency_key for request in dispatcher.requests} == {
+        f"workspace-job:{job.job_id}"
+    }
+
+    counts = tuple(
+        worker_fixture.count(entity)
+        for entity in (
+            AssetVersion,
+            Artifact,
+            ArtifactStorageLocation,
+            JobOutput,
+            ModelUsage,
+        )
+    )
+    replay = worker_fixture.completion.complete_job_with_provider_result(
+        job.job_id,
+        effective_owner_id=worker_fixture.owner,
+        provider_result=dispatcher.replay_result,
+        execution_claim_token=completed.claim_token,
+    )
+    assert replay.replayed is True
+    assert counts == tuple(
+        worker_fixture.count(entity)
+        for entity in (
+            AssetVersion,
+            Artifact,
+            ArtifactStorageLocation,
+            JobOutput,
+            ModelUsage,
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        "PROVIDER_TIMEOUT",
+        "WORKER_LEASE_EXPIRED",
+        "PROVIDER_CANCELLED",
+        "MODEL_2_UNAVAILABLE",
+    ],
+)
+def test_safe_provider_error_codes_are_preserved(worker_fixture, code):
+    worker_fixture.create_job()
+    failed = worker_fixture.worker(
+        FakeDispatcher(
+            ProviderDispatchResult(
+                ProviderDispatchStatus.FAILED,
+                error_code=code,
+            )
+        )
+    ).run_once()
+    assert failed.error_code == code
+
+
+@pytest.mark.parametrize(
+    "code",
+    [
+        r"C:\SECRET",
+        "API_KEY=SECRET",
+        "provider_timeout",
+        "PROVIDER-TIMEOUT",
+        "PROVIDER TIMEOUT",
+        "/path/SECRET",
+        "TRACE:SECRET",
+    ],
+)
+def test_unsafe_provider_error_codes_use_safe_fallback(worker_fixture, code):
+    worker_fixture.create_job()
+    failed = worker_fixture.worker(
+        FakeDispatcher(
+            ProviderDispatchResult(
+                ProviderDispatchStatus.FAILED,
+                error_code=code,
+            )
+        )
+    ).run_once()
+    assert failed.error_code == "PROVIDER_EXECUTION_FAILED"
+
+
 @pytest.mark.parametrize(
     ("result", "code", "retryable"),
     [
@@ -287,6 +415,31 @@ def test_cooperative_cancel_skips_completion(worker_fixture):
     cancelled = worker_fixture.worker(dispatcher).run_once()
     assert cancelled.status is JobStatus.CANCELLED
     assert worker_fixture.output_count(job.job_id) == 0
+
+
+@pytest.mark.parametrize("with_marker", [False, True])
+def test_provider_explicit_cancelled_skips_completion(worker_fixture, with_marker):
+    job = worker_fixture.create_job()
+
+    def request_cancel(context):
+        if with_marker:
+            with worker_fixture.factory() as session, session.begin():
+                session.get(Job, job.job_id).cancel_requested_at = worker_fixture.now
+
+    cancelled = worker_fixture.worker(
+        FakeDispatcher(
+            ProviderDispatchResult(ProviderDispatchStatus.CANCELLED),
+            hook=request_cancel,
+        )
+    ).run_once()
+    assert cancelled.status is JobStatus.CANCELLED
+    assert cancelled.error_code is None
+    assert cancelled.error_message is None
+    assert cancelled.error_retryable is None
+    assert worker_fixture.output_count(job.job_id) == 0
+    assert worker_fixture.count(AssetVersion) == 0
+    assert worker_fixture.count(Artifact) == 0
+    assert worker_fixture.count(ModelUsage) == 0
 
 
 def test_provider_can_heartbeat_during_execution(worker_fixture):

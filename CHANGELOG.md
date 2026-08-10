@@ -10,8 +10,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가 — Workspace Job Completion Unit of Work
 
-- Workspace Job의 atomic claim, bounded Worker ID, opaque claim token, lease·heartbeat, race-safe 만료 recovery와 단일 `run_once()` Provider dispatch 기반을 추가했다.
-- fake dispatcher가 success·failure·timeout·cancel·malformed 결과와 장시간 heartbeat를 재현하며 성공 결과는 Completion UoW에 claim token과 함께 위임한다.
+- Workspace Job의 atomic claim, bounded Worker ID, opaque claim token, lease·heartbeat, race-safe 만료 recovery와 단일 `run_once()` Provider dispatch 기반을 추가했다. 공개 Worker 오류 코드는 64자 이하의 대문자·숫자·underscore machine code만 허용하고 나머지는 안전한 내부 코드로 대체한다.
+- fake dispatcher가 success·failure·timeout·명시적 cancel·malformed 결과와 장시간 heartbeat를 재현하며 성공 결과는 Completion UoW에 claim token과 함께 위임한다. 동일 Job의 transport retry는 canonical idempotency key를 재사용하고 completion replay에서 Workspace lineage를 중복 생성하지 않는다.
 
 - Provider 결과 DTO와 output role Matrix를 검증하고 trusted ingestion·불변 publish·필요한 AssetVersion·Artifact·Catalog·JobOutput·ModelUsage·최종 무결성·`succeeded` 전이를 하나의 Service 소유 DB transaction으로 확정하는 Workspace Job Completion Unit of Work를 추가했다.
 - 동일 completion replay는 기존 결과를 반환하고 다른 결과는 충돌로 거부한다. cancel marker 우선, 다중 출력 rollback, publish 후 DB 실패의 identity 기반 보상과 staging cleanup을 임시 SQLite·Artifact root에서 검증했다.
