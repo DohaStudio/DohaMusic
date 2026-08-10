@@ -12,7 +12,7 @@
 
 > 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
-> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog를 포함한 revision `20260806_0012`~`20260809_0016`을 승인된 절차로 실제 사용자 DB에 적용했습니다. source metadata와 실제 사용자 DB는 모두 36개 Application Table·`20260809_0016`이며 Catalog row는 0개입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개를 구현했으며 나머지 39개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
+> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog를 포함한 revision `20260806_0012`~`20260809_0016`을 승인된 절차로 실제 사용자 DB에 적용했습니다. source metadata와 실제 사용자 DB는 모두 36개 Application Table·`20260809_0016`이며 Catalog row는 0개입니다. Bootstrap CLI의 fail-closed revision Gate도 현재 source head와 정확히 일치하는 `20260809_0016`으로 맞췄지만 실제 Bootstrap은 실행하지 않았습니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개를 구현했으며 나머지 39개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
 
 > CompositionSnapshot API: [공개 계약과 Application 기반](docs/06-api/composition-snapshot-foundation.md)을 재사용해 목록·생성·상세 Router 3개, effective Owner·ProjectAsset scope, 불변 Snapshot+Item 원자적 생성, Project별 자동 version, `snapshot_version DESC` HMAC Cursor, aggregate 조회, bounded Provider·Manifest 계보와 `Idempotency-Key` replay를 구현했습니다. CompositionSnapshot API는 3/3, Resource API는 25/64입니다.
 

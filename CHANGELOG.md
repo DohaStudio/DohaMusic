@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Bootstrap CLI revision 기준 동기화
+
+- Bootstrap CLI가 허용하는 대상 revision을 이전 `20260807_0013`에서 현재 Alembic source head와 정확히 일치하는 `20260809_0016`으로 변경했다.
+- 최소 revision 비교나 일반 Alembic DAG 판정은 도입하지 않고, 과거·미래·알 수 없는·형식 오류 revision과 revision row 0개 또는 복수를 fail-closed로 거부한다.
+- 임시 SQLite에서 현재 revision Gate 통과와 거부 경계를 검증했으며 실제 사용자 DB 접근·Bootstrap·Migration은 수행하지 않았다. Metadata 36개 Table, Resource API 25/64와 Runtime Table 14개의 source of truth 상태는 변경하지 않았다.
+- 구현과 검증 결과는 [Bootstrap CLI revision 0016 검증](reports/validation/VALIDATION-BOOTSTRAP-REVISION-0016.md)에 기록했다.
+
 ### 추가 — CompositionSnapshot Resource API
 
 - `GET /api/v1/snapshots`, `POST /api/v1/snapshots`, `GET /api/v1/snapshots/{composition_snapshot_id}` 공식 Resource API 3개를 추가했다.

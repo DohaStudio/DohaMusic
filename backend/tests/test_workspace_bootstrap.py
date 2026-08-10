@@ -13,6 +13,7 @@ from backend.cli.workspace_bootstrap import (
     BOOTSTRAP_TARGET_REVISION,
     WorkspaceBootstrapError,
     execute_bootstrap,
+    inspect_bootstrap_target,
     resolve_database_url,
 )
 from backend.core.exceptions import InvalidStateError, ResourceConflictError
@@ -120,6 +121,77 @@ def test_wrong_revision_is_blocked_without_workspace_change(tmp_path: Path) -> N
             name="기본 Workspace",
             apply=True,
         )
+
+    assert _workspace_count(database_url) == 0
+
+
+def test_current_source_head_passes_revision_gate_without_bootstrap(
+    tmp_path: Path,
+) -> None:
+    database_url = _database_url(tmp_path / "current-revision.db")
+
+    assert inspect_bootstrap_target(database_url) == "20260809_0016"
+    assert _workspace_count(database_url) == 0
+
+
+@pytest.mark.parametrize(
+    "revision",
+    [
+        "20260807_0013",
+        "20260807_0014",
+        "20260808_0015",
+        "20999999_9999",
+        "not-a-revision",
+    ],
+)
+def test_non_target_revision_is_blocked_without_bootstrap(
+    tmp_path: Path,
+    revision: str,
+) -> None:
+    database_url = _database_url(
+        tmp_path / f"non-target-{revision}.db",
+        revision=revision,
+    )
+
+    with pytest.raises(WorkspaceBootstrapError, match=BOOTSTRAP_TARGET_REVISION):
+        inspect_bootstrap_target(database_url)
+
+    assert _workspace_count(database_url) == 0
+
+
+def test_missing_alembic_revision_table_is_blocked(tmp_path: Path) -> None:
+    path = tmp_path / "missing-alembic-version.db"
+    database_url = f"sqlite:///{path.as_posix()}"
+    engine = create_database_engine(database_url)
+    Base.metadata.create_all(engine)
+    engine.dispose()
+
+    with pytest.raises(WorkspaceBootstrapError, match="Alembic revision Table"):
+        inspect_bootstrap_target(database_url)
+
+
+@pytest.mark.parametrize("revision_count", [0, 2])
+def test_revision_row_count_must_be_exactly_one(
+    tmp_path: Path,
+    revision_count: int,
+) -> None:
+    database_url = _database_url(tmp_path / f"revision-rows-{revision_count}.db")
+    engine = create_database_engine(database_url)
+    with engine.begin() as connection:
+        connection.execute(text("DELETE FROM alembic_version"))
+        for index in range(revision_count):
+            connection.execute(
+                text("INSERT INTO alembic_version (version_num) VALUES (:revision)"),
+                {
+                    "revision": (
+                        BOOTSTRAP_TARGET_REVISION if index == 0 else "20260808_0015"
+                    )
+                },
+            )
+    engine.dispose()
+
+    with pytest.raises(WorkspaceBootstrapError, match="정확히 하나"):
+        inspect_bootstrap_target(database_url)
 
     assert _workspace_count(database_url) == 0
 
