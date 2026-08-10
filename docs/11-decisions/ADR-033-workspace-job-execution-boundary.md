@@ -48,7 +48,7 @@ Workspace Job Entity·Repository 기반과 source revision `20260810_0017`의 ro
 
 ## 영향
 
-- Job API는 이 계약의 남은 Worker·Completion Unit of Work 기반과 공개 Router가 모두 구현되기 전에는 완료로 표시하지 않는다.
+- Job API는 이 계약의 남은 Worker claim·lease runtime과 공개 Router가 모두 구현되기 전에는 완료로 표시하지 않는다. Completion Unit of Work 기반은 trusted ingestion primitive와 단일 Service transaction·filesystem 보상 경계로 구현했다.
 - Resource API는 계속 25/64, Job API는 0/5다.
 - source head와 실제 사용자 DB는 `20260810_0017`이며 metadata는 36개 Table로 유지한다.
 - Legacy Runtime Table 14개와 기존 Worker·Pipeline은 source of truth를 유지한다.

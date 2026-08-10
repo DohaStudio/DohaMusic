@@ -7,6 +7,7 @@ from backend.services.workspace.artifact_ingestion_service import (
     ArtifactIngestionService,
     IngestedArtifact,
     OrphanCandidate,
+    PreparedArtifactIngestion,
 )
 from backend.services.workspace.artifact_application_service import (
     ArtifactAccessError,
@@ -43,6 +44,15 @@ from backend.services.workspace.job_service import (
     JobService,
     ModelUsageInput,
 )
+from backend.services.workspace.job_completion_service import (
+    JobCompletionError,
+    JobCompletionErrorCode,
+    JobCompletionResult,
+    JobCompletionService,
+    ProviderOutput,
+    ProviderResult,
+    ProviderResultStatus,
+)
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
     CursorPage,
@@ -74,6 +84,11 @@ __all__ = [
     "CompositionService",
     "CursorPage",
     "IngestedArtifact",
+    "PreparedArtifactIngestion",
+    "JobCompletionError",
+    "JobCompletionErrorCode",
+    "JobCompletionResult",
+    "JobCompletionService",
     "JobReferenceInput",
     "JobReferenceOutput",
     "JobAggregate",
@@ -83,6 +98,9 @@ __all__ = [
     "JobService",
     "ModelUsageInput",
     "OrphanCandidate",
+    "ProviderOutput",
+    "ProviderResult",
+    "ProviderResultStatus",
     "ProcessingStepInput",
     "SNAPSHOT_ITEM_ROLES",
     "SnapshotItemInput",

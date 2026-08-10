@@ -23,6 +23,7 @@ from backend.storage.artifact_publisher import (
     LocalArtifactPublisher,
     PublishedLocalPayload,
 )
+from backend.storage.artifact_integrity import calculate_artifact_integrity
 from backend.storage.artifact_resolver import (
     APPROVED_STORAGE_DOMAINS,
     SUPPORTED_LOCATOR_VERSION,
@@ -163,6 +164,15 @@ class IngestedArtifact:
     staging_cleanup_pending: bool
 
 
+@dataclass(frozen=True, slots=True)
+class PreparedArtifactIngestion:
+    """외부 공개 없이 DB UoW가 등록·보상할 publish 결과."""
+
+    request: ArtifactIngestionRequest
+    artifact_id: UUID
+    published: PublishedLocalPayload
+
+
 class OrphanReporter(Protocol):
     def __call__(self, candidate: OrphanCandidate) -> None: ...
 
@@ -225,89 +235,26 @@ class ArtifactIngestionService:
         )
 
     def ingest(self, request: ArtifactIngestionRequest) -> IngestedArtifact:
-        normalized = _validate_request(request)
-        artifact_id = self._artifact_id_factory()
-        published: PublishedLocalPayload | None = None
+        prepared: PreparedArtifactIngestion | None = None
 
         try:
+            prepared = self.prepare(request)
             with self._session_factory() as session, session.begin():
-                asset_repository = AssetRepository(session)
-                if (
-                    asset_repository.get_asset_version(normalized.asset_version_id)
-                    is None
-                ):
-                    raise ArtifactIngestionError(
-                        ArtifactIngestionErrorCode.VERSION_NOT_FOUND
-                    )
-                try:
-                    published = self._publisher.publish(
-                        normalized.temporary_path,
-                        artifact_id=artifact_id,
-                        artifact_kind=normalized.artifact_kind,
-                        storage_domain=normalized.storage_domain,
-                        expected_media_type=normalized.expected_media_type,
-                        expected_sha256=normalized.expected_sha256,
-                    )
-                except ArtifactPublishError as error:
-                    raise ArtifactIngestionError(
-                        _PUBLISH_ERROR_MAP[error.code]
-                    ) from error
-
-                artifact = asset_repository.add_artifact(
-                    Artifact(
-                        artifact_id=artifact_id,
-                        asset_version_id=normalized.asset_version_id,
-                        artifact_kind=normalized.artifact_kind,
-                        media_type=published.media.media_type,
-                        size_bytes=published.size_bytes,
-                        checksum_algorithm="sha256",
-                        artifact_checksum=published.checksum,
-                        producer_type=normalized.producer_type,
-                        producer_id=normalized.producer_id,
-                        run_id=normalized.run_id,
-                        retention_status="active",
-                    )
-                )
-                ArtifactStorageRepository(session).add_storage_location(
-                    ArtifactStorageLocation(
-                        artifact_id=artifact_id,
-                        storage_backend=SUPPORTED_STORAGE_BACKEND,
-                        storage_domain=normalized.storage_domain,
-                        storage_key=published.storage_key,
-                        locator_version=SUPPORTED_LOCATOR_VERSION,
-                    )
-                )
-                resolver = ArtifactStorageResolver(
-                    ArtifactStorageRepository(session),
-                    self._publisher.artifact_roots,
-                )
-                resolved = resolver.resolve(artifact_id)
-                if (
-                    resolved.size_bytes != published.size_bytes
-                    or resolved.file_identity != published.file_identity
-                    or artifact.artifact_checksum != published.checksum
-                ):
-                    raise ArtifactIngestionError(
-                        ArtifactIngestionErrorCode.VERIFICATION_FAILED
-                    )
+                artifact = self.register_prepared(session, prepared)
+                self.verify_registered(session, artifact, prepared)
         except ArtifactIngestionError as error:
-            if published is not None:
-                candidate = self._compensate(
-                    artifact_id,
-                    normalized.storage_domain,
-                    published,
-                    reason_code=error.code.value,
+            if prepared is not None:
+                candidate = self.compensate_prepared(
+                    prepared, reason_code=error.code.value
                 )
                 if candidate is not None:
                     error.orphan_candidate = candidate
             raise
         except Exception as error:
             candidate = None
-            if published is not None:
-                candidate = self._compensate(
-                    artifact_id,
-                    normalized.storage_domain,
-                    published,
+            if prepared is not None:
+                candidate = self.compensate_prepared(
+                    prepared,
                     reason_code=ArtifactIngestionErrorCode.REGISTRATION_FAILED.value,
                 )
             raise ArtifactIngestionError(
@@ -315,25 +262,121 @@ class ArtifactIngestionService:
                 orphan_candidate=candidate,
             ) from error
 
-        cleanup_pending = not self._publisher.cleanup_staging(published)
+        cleanup_pending = not self.finalize_prepared(prepared)
         if cleanup_pending:
             self._report_orphan(
                 OrphanCandidate(
-                    artifact_id=artifact_id,
-                    storage_domain=normalized.storage_domain,
+                    artifact_id=prepared.artifact_id,
+                    storage_domain=prepared.request.storage_domain,
                     storage_key=None,
                     category="staging_payload",
                     reason_code="STAGING_CLEANUP_FAILED",
                 )
             )
         return IngestedArtifact(
-            artifact_id=artifact_id,
-            asset_version_id=normalized.asset_version_id,
-            artifact_checksum=published.checksum,
-            size_bytes=published.size_bytes,
-            media_type=published.media.media_type,
+            artifact_id=prepared.artifact_id,
+            asset_version_id=prepared.request.asset_version_id,
+            artifact_checksum=prepared.published.checksum,
+            size_bytes=prepared.published.size_bytes,
+            media_type=prepared.published.media.media_type,
             staging_cleanup_pending=cleanup_pending,
         )
+
+    def prepare(self, request: ArtifactIngestionRequest) -> PreparedArtifactIngestion:
+        normalized = _validate_request(request)
+        artifact_id = self._artifact_id_factory()
+        try:
+            published = self._publisher.publish(
+                normalized.temporary_path,
+                artifact_id=artifact_id,
+                artifact_kind=normalized.artifact_kind,
+                storage_domain=normalized.storage_domain,
+                expected_media_type=normalized.expected_media_type,
+                expected_sha256=normalized.expected_sha256,
+            )
+        except ArtifactPublishError as error:
+            raise ArtifactIngestionError(_PUBLISH_ERROR_MAP[error.code]) from error
+        return PreparedArtifactIngestion(normalized, artifact_id, published)
+
+    def register_prepared(
+        self, session: Session, prepared: PreparedArtifactIngestion
+    ) -> Artifact:
+        asset_repository = AssetRepository(session)
+        request = prepared.request
+        published = prepared.published
+        if asset_repository.get_asset_version(request.asset_version_id) is None:
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERSION_NOT_FOUND)
+        artifact = asset_repository.add_artifact(
+            Artifact(
+                artifact_id=prepared.artifact_id,
+                asset_version_id=request.asset_version_id,
+                artifact_kind=request.artifact_kind,
+                media_type=published.media.media_type,
+                size_bytes=published.size_bytes,
+                checksum_algorithm="sha256",
+                artifact_checksum=published.checksum,
+                producer_type=request.producer_type,
+                producer_id=request.producer_id,
+                run_id=request.run_id,
+                retention_status="active",
+            )
+        )
+        ArtifactStorageRepository(session).add_storage_location(
+            ArtifactStorageLocation(
+                artifact_id=prepared.artifact_id,
+                storage_backend=SUPPORTED_STORAGE_BACKEND,
+                storage_domain=request.storage_domain,
+                storage_key=published.storage_key,
+                locator_version=SUPPORTED_LOCATOR_VERSION,
+            )
+        )
+        return artifact
+
+    def verify_registered(
+        self,
+        session: Session,
+        artifact: Artifact,
+        prepared: PreparedArtifactIngestion,
+    ) -> None:
+        resolver = ArtifactStorageResolver(
+            ArtifactStorageRepository(session), self._publisher.artifact_roots
+        )
+        try:
+            with resolver.open_payload(artifact.artifact_id) as (resolved, stream):
+                integrity = calculate_artifact_integrity(stream)
+        except (ArtifactStorageError, OSError):
+            raise ArtifactIngestionError(
+                ArtifactIngestionErrorCode.VERIFICATION_FAILED
+            ) from None
+        published = prepared.published
+        if (
+            resolved.size_bytes != published.size_bytes
+            or resolved.file_identity != published.file_identity
+            or integrity.size_bytes != artifact.size_bytes
+            or integrity.checksum != artifact.artifact_checksum
+            or artifact.artifact_checksum != published.checksum
+        ):
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERIFICATION_FAILED)
+
+    def compensate_prepared(
+        self, prepared: PreparedArtifactIngestion, *, reason_code: str
+    ) -> OrphanCandidate | None:
+        return self._compensate(
+            prepared.artifact_id,
+            prepared.request.storage_domain,
+            prepared.published,
+            reason_code=reason_code,
+        )
+
+    def finalize_prepared(self, prepared: PreparedArtifactIngestion) -> bool:
+        return self._publisher.cleanup_staging(prepared.published)
+
+    def discard_staging(self, request: ArtifactIngestionRequest) -> bool:
+        normalized = _validate_request(request)
+        return self._publisher.discard_staging(normalized.temporary_path)
+
+    def discard_staging_path(self, temporary_path: Path) -> bool:
+        return self._publisher.discard_staging(temporary_path)
 
     def _compensate(
         self,

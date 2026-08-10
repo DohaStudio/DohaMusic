@@ -48,6 +48,8 @@ Workspace·Project·ProjectAsset 목록 Service는 App Factory가 주입한 `Cur
 
 Workspace Job은 `Job`을 실행 root로 하고 `JobInput`, `JobOutput`, `ModelUsage`를 Aggregate 내부에 둔다. CompositionSnapshot·AssetVersion·Artifact는 외부 불변 lineage Resource다. byte-level 입력은 role과 exact Artifact ID로 고정하고 Provider success 뒤 trusted ingestion·Artifact·Catalog·필요한 AssetVersion·JobOutput·ModelUsage와 상태를 completion Unit of Work에서 확정한다.
 
+현재 Completion Service는 bounded Provider DTO, output Matrix, Owner·Workspace·target Asset scope와 cancel marker를 검증한다. Artifact ingestion의 commitless primitive를 재사용해 새 AssetVersion·Artifact·Catalog·JobOutput·ModelUsage·최종 checksum을 하나의 DB transaction에 등록한 뒤에만 `succeeded`로 전이한다. 파일 publish와 DB 사이 실패는 identity 기반 보상으로 정리하며 Worker claim·lease runtime과 Provider dispatch는 이 Service 바깥의 후속 범위다.
+
 공개 상태는 5개를 유지하고 cancel 요청은 내부 marker로 분리한다. Worker는 atomic claim·lease·heartbeat로 중복 실행을 막으며 lease 만료 running Job을 같은 row의 queued 상태로 되돌리지 않는다. Workspace 전체 목록은 direct `workspace_id`, 제한된 filter와 Job HMAC Cursor를 사용한다. 역할·실행 제어 Column, Index, Cursor, Worker와 API 5개는 후속 구현이며 세부 계약은 [Workspace Job Foundation](workspace-job-foundation.md)을 따른다.
 
 공개 Workspace·MusicProject DTO는 SQLAlchemy Entity를 직접 직렬화하지 않고 allowlist Pydantic v2 Schema를 사용한다. 내부 `owner_id`·`created_by`, Soft Delete 시각과 ORM relationship은 노출하지 않으며 Project 생성의 감사 식별자는 Workspace 소유자에서 Service 입력으로 파생한다.

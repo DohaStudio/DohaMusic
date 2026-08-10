@@ -1,7 +1,7 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약·Entity·Migration·실제 DB 적용·Index·Cursor·Repository keyset·Service state/cancel/retry 기반] / [미구현: Worker·Completion Unit of Work·API]
-> 최종 수정일: 2026-08-10
+> 문서 상태: [완료: 계약·Entity·Migration·실제 DB 적용·Index·Cursor·Repository keyset·Service state/cancel/retry·Completion UoW 기반] / [미구현: Worker runtime·API]
+> 최종 수정일: 2026-08-11
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
 
@@ -9,7 +9,7 @@
 
 이 문서는 Workspace `Job`, `JobInput`, `JobOutput`, `ModelUsage`의 공식 실행 계약을 고정한다. 계약은 DohaStudio Common Specification `0.1.0` / `draft-baseline`을 좁히는 DohaMusic 구현 기준이며 공통 명세의 불변 Job·Artifact·Provider 원칙과 충돌하지 않는다.
 
-현재 `jobs`, `job_inputs`, `job_outputs`, `model_usages` Entity·Repository 기반에 role·Workspace scope·cancellation marker·claim/lease Column과 검증된 Index를 추가하고 revision `20260810_0017`을 실제 사용자 DB에 적용했다. Job HMAC Cursor와 Owner·Workspace scope Repository keyset page, 공식 type·Snapshot·input lineage를 강제하는 생성, 상태·진행률, cancel marker, frozen retry, create/retry 멱등성과 aggregate read Service 기반도 구현했다. 공개 Job API 5개, Worker claim·lease 로직과 completion Unit of Work는 아직 구현하지 않았다. Application Table은 36개이며 현행 Runtime Table 14개가 source of truth다.
+현재 `jobs`, `job_inputs`, `job_outputs`, `model_usages` Entity·Repository 기반에 role·Workspace scope·cancellation marker·claim/lease Column과 검증된 Index를 추가하고 revision `20260810_0017`을 실제 사용자 DB에 적용했다. Job HMAC Cursor와 Owner·Workspace scope Repository keyset page, 공식 type·Snapshot·input lineage를 강제하는 생성, 상태·진행률, cancel marker, frozen retry, create/retry 멱등성, aggregate read와 Completion Unit of Work Service 기반도 구현했다. 공개 Job API 5개와 Worker claim·lease runtime은 아직 구현하지 않았다. Application Table은 36개이며 현행 Runtime Table 14개가 source of truth다.
 
 ## 2. Legacy Runtime Job과 Workspace Job
 
@@ -163,6 +163,8 @@ Filesystem과 DB는 하나의 transaction이 될 수 없으므로 기존 Trusted
 
 필수 output 중 일부만 성공하면 Job은 `failed`다. 부분 Payload는 정상 사용자 Artifact로 공개하지 않고 internal staging에서 제거하거나 `quarantined`로 격리한다. 자동 overwrite·자동 restore·기존 Artifact 삭제는 하지 않는다.
 
+현재 구현은 bounded `ProviderResult`·`ProviderOutput` DTO를 사용하고 raw Provider response와 secret을 받지 않는다. output role별 Artifact kind와 storage domain을 서버가 고정하며 caller checksum·size를 authoritative 값으로 받지 않는다. Trusted ingestion의 prepare/register/verify primitive를 Completion Service의 단일 transaction에 결합하고, publish 뒤 DB rollback·commit 실패에는 이번 실행의 inode만 identity 확인 후 제거한다. 동일 `succeeded` 결과는 실제 staging bytes의 checksum·size·MIME와 기존 Artifact·AssetVersion·ModelUsage를 비교해 replay하며 다른 결과는 fail-closed conflict다.
+
 ## 12. ModelUsage와 재현성
 
 Job의 `model_manifest_id`는 요청값이며 `ModelUsage`는 Provider가 확인한 실제 실행값이다. 실제 Provider, model, version, checkpoint, Manifest, contract version, license와 commercial status를 완료 transaction에 기록한다.
@@ -223,4 +225,4 @@ additive source revision `20260810_0017`에서 다음을 구현했다.
 - 검증된 Workspace·Project·status·job type keyset Index 4개
 - claim queue·lease recovery Index 2개
 
-`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 기존 row 보존을 위한 nullable staging이며 실제 사용자 DB에도 이 계약으로 적용했다. Job Cursor와 Repository keyset page, 생성·상태·진행률·취소·재시도·멱등성 Service 기반은 구현했다. 의미 기반 role backfill, `NOT NULL` 강화, Worker claim/lease·Provider 호출·Completion Unit of Work·공식 API 5개는 아직 구현하지 않았다.
+`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 기존 row 보존을 위한 nullable staging이며 실제 사용자 DB에도 이 계약으로 적용했다. Job Cursor와 Repository keyset page, 생성·상태·진행률·취소·재시도·멱등성 및 Completion Unit of Work Service 기반은 구현했다. 의미 기반 role backfill, `NOT NULL` 강화, Worker claim/lease runtime·Provider 실제 호출·공식 API 5개는 아직 구현하지 않았다.
