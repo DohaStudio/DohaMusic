@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, or_, select, update
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.enums import JobStatus
@@ -115,6 +115,137 @@ class JobRepository:
             job.completed_at = completed_at
         self.session.flush()
         return job
+
+    def claim_next_job(
+        self,
+        *,
+        claimed_by: str,
+        claim_token: UUID,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Job | None:
+        """공식 queue 순서의 queued Job 하나를 조건부 atomic claim한다."""
+
+        candidate = self.session.scalar(
+            select(Job.job_id)
+            .where(
+                Job.status == JobStatus.QUEUED,
+                Job.cancel_requested_at.is_(None),
+                Job.claim_token.is_(None),
+                Job.lease_expires_at.is_(None),
+            )
+            .order_by(Job.created_at, Job.job_id)
+            .limit(1)
+        )
+        if candidate is None:
+            return None
+        statement = (
+            update(Job)
+            .where(
+                Job.job_id == candidate,
+                Job.status == JobStatus.QUEUED,
+                Job.cancel_requested_at.is_(None),
+                Job.claim_token.is_(None),
+                Job.lease_expires_at.is_(None),
+            )
+            .values(
+                status=JobStatus.RUNNING,
+                claim_token=claim_token,
+                claimed_by=claimed_by,
+                heartbeat_at=now,
+                lease_expires_at=lease_expires_at,
+                attempt=Job.attempt + 1,
+                started_at=now,
+            )
+            .returning(Job)
+        )
+        return self.session.scalars(statement).one_or_none()
+
+    def heartbeat_claim(
+        self,
+        job_id: UUID,
+        *,
+        claimed_by: str,
+        claim_token: UUID,
+        now: datetime,
+        lease_expires_at: datetime,
+    ) -> Job | None:
+        statement = (
+            update(Job)
+            .where(
+                Job.job_id == job_id,
+                Job.status == JobStatus.RUNNING,
+                Job.claimed_by == claimed_by,
+                Job.claim_token == claim_token,
+                or_(Job.heartbeat_at.is_(None), Job.heartbeat_at <= now),
+            )
+            .values(heartbeat_at=now, lease_expires_at=lease_expires_at)
+            .returning(Job)
+        )
+        return self.session.scalars(statement).one_or_none()
+
+    def recover_expired_claim(self, *, now: datetime) -> Job | None:
+        candidate = self.session.execute(
+            select(Job.job_id, Job.lease_expires_at)
+            .where(
+                Job.status == JobStatus.RUNNING,
+                Job.lease_expires_at.is_not(None),
+                Job.lease_expires_at < now,
+            )
+            .order_by(Job.lease_expires_at, Job.job_id)
+            .limit(1)
+        ).one_or_none()
+        if candidate is None:
+            return None
+        statement = (
+            update(Job)
+            .where(
+                Job.job_id == candidate.job_id,
+                Job.status == JobStatus.RUNNING,
+                Job.lease_expires_at == candidate.lease_expires_at,
+                Job.lease_expires_at < now,
+            )
+            .values(
+                status=JobStatus.FAILED,
+                completed_at=now,
+                error_code="WORKER_LEASE_EXPIRED",
+                error_message="Workspace Job worker lease expired.",
+                error_retryable=True,
+            )
+            .returning(Job)
+        )
+        return self.session.scalars(statement).one_or_none()
+
+    def finish_owned_claim(
+        self,
+        job_id: UUID,
+        *,
+        claimed_by: str,
+        claim_token: UUID,
+        status: JobStatus,
+        now: datetime,
+        error_code: str | None = None,
+        error_message: str | None = None,
+        error_retryable: bool | None = None,
+    ) -> Job | None:
+        statement = (
+            update(Job)
+            .where(
+                Job.job_id == job_id,
+                Job.status == JobStatus.RUNNING,
+                Job.claimed_by == claimed_by,
+                Job.claim_token == claim_token,
+            )
+            .values(
+                status=status,
+                completed_at=now,
+                error_code=error_code,
+                error_message=error_message,
+                error_retryable=error_retryable,
+            )
+            .returning(Job)
+        )
+        return self.session.scalars(statement).one_or_none()
 
     def add_job_input(self, item: JobInput) -> JobInput:
         self.session.add(item)

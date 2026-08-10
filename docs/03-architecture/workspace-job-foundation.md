@@ -1,6 +1,6 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약·Entity·Migration·실제 DB 적용·Index·Cursor·Repository keyset·Service state/cancel/retry·Completion UoW 기반] / [미구현: Worker runtime·API]
+> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation] / [미구현: 실제 Provider transport·Job API]
 > 최종 수정일: 2026-08-11
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -9,7 +9,7 @@
 
 이 문서는 Workspace `Job`, `JobInput`, `JobOutput`, `ModelUsage`의 공식 실행 계약을 고정한다. 계약은 DohaStudio Common Specification `0.1.0` / `draft-baseline`을 좁히는 DohaMusic 구현 기준이며 공통 명세의 불변 Job·Artifact·Provider 원칙과 충돌하지 않는다.
 
-현재 `jobs`, `job_inputs`, `job_outputs`, `model_usages` Entity·Repository 기반에 role·Workspace scope·cancellation marker·claim/lease Column과 검증된 Index를 추가하고 revision `20260810_0017`을 실제 사용자 DB에 적용했다. Job HMAC Cursor와 Owner·Workspace scope Repository keyset page, 공식 type·Snapshot·input lineage를 강제하는 생성, 상태·진행률, cancel marker, frozen retry, create/retry 멱등성, aggregate read와 Completion Unit of Work Service 기반도 구현했다. 공개 Job API 5개와 Worker claim·lease runtime은 아직 구현하지 않았다. Application Table은 36개이며 현행 Runtime Table 14개가 source of truth다.
+revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic claim·lease·heartbeat·attempt·race-safe 만료 recovery와 단일 `run_once()` 기반을 구현했다. Provider 실행 중 heartbeat callback과 cancel marker 확인을 제공하고 성공 결과는 claim token을 전달해 Completion UoW가 확정한다. 실제 Provider transport와 공개 Job API 5개는 아직 구현하지 않았다.
 
 ## 2. Legacy Runtime Job과 Workspace Job
 
@@ -225,4 +225,4 @@ additive source revision `20260810_0017`에서 다음을 구현했다.
 - 검증된 Workspace·Project·status·job type keyset Index 4개
 - claim queue·lease recovery Index 2개
 
-`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 기존 row 보존을 위한 nullable staging이며 실제 사용자 DB에도 이 계약으로 적용했다. Job Cursor와 Repository keyset page, 생성·상태·진행률·취소·재시도·멱등성 및 Completion Unit of Work Service 기반은 구현했다. 의미 기반 role backfill, `NOT NULL` 강화, Worker claim/lease runtime·Provider 실제 호출·공식 API 5개는 아직 구현하지 않았다.
+`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 nullable staging이다. Worker execution foundation은 구현했지만 실제 DohaLM·DohaAudio·DohaVocal transport, background daemon·scheduler와 공식 API 5개는 아직 구현하지 않았다.

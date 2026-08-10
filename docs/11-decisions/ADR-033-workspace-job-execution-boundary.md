@@ -8,7 +8,7 @@
 
 ## 배경
 
-Workspace Job Entity·Repository 기반과 source revision `20260810_0017`의 role·scope·cancel·claim/lease Column 및 Index가 존재하며 HMAC Cursor와 Owner·Workspace scope Repository keyset page도 구현했다. 공식 7개 type의 생성·lineage, 상태·진행률, queued/running 취소, frozen retry와 create/retry 멱등성 Service 기반까지 구현했다. 공개 API, Worker claim·lease와 Provider 결과를 Workspace 성공으로 확정하는 Unit of Work는 구현되지 않았다. 기존 Pipeline cancel·retry와 ThreadPool Worker는 Legacy·Compatibility Runtime 계약이며 Workspace Job 완료 근거로 사용할 수 없다.
+Workspace Job Service와 Completion UoW에 이어 atomic claim·lease·heartbeat·attempt·만료 recovery와 fake Provider dispatch 경계를 구현했다. claim·heartbeat·recovery는 짧은 독립 transaction이고 Provider 실행 중 DB transaction은 유지하지 않는다. 실제 Provider transport와 공개 API는 미구현이다.
 
 ## 문제
 
