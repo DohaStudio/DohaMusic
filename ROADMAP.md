@@ -55,13 +55,13 @@
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | 실제 DB 0012~0017, Job schema·Index·Cursor·Repository keyset·Service state/cancel/retry·Completion UoW 기반과 Artifact·CompositionSnapshot API 완료; Worker runtime·API 0/5와 나머지 39개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker claim/lease/heartbeat/recovery 기반 완료; 실제 Provider transport·API 0/5와 나머지 39개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | Phase A 문서화 진행, Phase B~D 미착수 | [Provider Separation DoD](docs/DoD/Provider-Separation.md) |
 
 ## 현재 우선 작업
 
-**최우선:** revision `20260810_0017`의 Job schema·Index 실제 DB 적용, Bootstrap exact revision Gate, Job Cursor·Repository keyset, Service 생성·상태·취소·재시도와 Completion Unit of Work 기반을 완료했다. 다음은 Worker claim/lease runtime이며 Job API는 Worker 기반 검증 전 시작하지 않는다.
+**최우선:** Job Service·Completion Unit of Work와 atomic claim·lease·heartbeat·만료 recovery·fake dispatch 기반을 완료했다. 다음은 실제 Provider transport 경계이며 Job API는 아직 시작하지 않는다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
