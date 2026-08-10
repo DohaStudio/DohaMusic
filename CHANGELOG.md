@@ -8,6 +8,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — CompositionSnapshot Resource API
+
+- `GET /api/v1/snapshots`, `POST /api/v1/snapshots`, `GET /api/v1/snapshots/{composition_snapshot_id}` 공식 Resource API 3개를 추가했다.
+- Router는 App Factory가 주입한 `CompositionService`만 호출하며 effective Owner·ProjectAsset scope, exact AssetVersion, 자동 version, 3회 concurrency retry와 Snapshot+Item+Idempotency 단일 transaction을 재사용한다.
+- 목록은 Project 필수 filter와 `snapshot_version DESC, composition_snapshot_id DESC` HMAC Cursor를 사용하고, 생성은 필수 `Idempotency-Key`의 동일 요청을 최초 `201` aggregate로 재생한다.
+- 상세는 불변 Snapshot과 `(item_role, sort_order, snapshot_item_id)` 순서의 Item을 반환하고 `owner_id`·`created_by`·Artifact 선택 필드는 노출하지 않는다. PATCH·DELETE와 독립 SnapshotItem Route는 추가하지 않았다.
+- Resource API는 25/64, CompositionSnapshot API는 3/3이다. Metadata 36개 Table과 Alembic `20260809_0016`을 유지하며 실제 사용자 DB·실제 `DohaArtifacts`에는 접근하지 않았다.
+- 구현과 임시 SQLite 검증 결과는 [CompositionSnapshot API 검증](reports/validation/VALIDATION-COMPOSITION-SNAPSHOT-API.md)에 기록했다.
+
 ### 추가 — CompositionSnapshot 계약과 Cursor 기반
 
 - effective Owner·활성 Project·같은 Workspace 또는 Owner 소유 global Asset·활성 ProjectAsset 관계를 검증하는 CompositionSnapshot Application 기반을 추가했다.

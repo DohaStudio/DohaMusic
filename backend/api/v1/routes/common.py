@@ -7,6 +7,8 @@ from fastapi import Request
 from backend.core.exceptions import (
     AppError,
     ApplicationValidationError,
+    IdempotencyConflictError,
+    IdempotencyInProgressError,
     ResourceConflictError,
     ResourceNotFoundError,
 )
@@ -184,6 +186,45 @@ def map_asset_version_error(exc: Exception) -> AppError:
         "AssetVersion"
     ):
         return asset_version_conflict()
+    if isinstance(exc, ApplicationValidationError):
+        return invalid_input(exc.message)
+    raise exc
+
+
+def map_composition_snapshot_error(exc: Exception) -> AppError:
+    if isinstance(exc, ResourceNotFoundError):
+        if exc.resource_name == "MusicProject":
+            return project_not_found()
+        if exc.resource_name == "AssetVersion":
+            return asset_version_not_found()
+        if exc.resource_name == "ProjectAsset":
+            return project_asset_not_found()
+        if exc.resource_name == "CompositionSnapshot":
+            return AppError(
+                code="COMPOSITION_SNAPSHOT_NOT_FOUND",
+                message="CompositionSnapshot을 찾을 수 없습니다.",
+                status_code=404,
+            )
+        if exc.resource_name == "ProcessingChain":
+            return invalid_input("참조한 ProcessingChain을 찾을 수 없습니다.")
+    if isinstance(exc, ResourceConflictError):
+        return AppError(
+            code="COMPOSITION_SNAPSHOT_CONFLICT",
+            message="CompositionSnapshot 요청이 현재 상태와 충돌합니다.",
+            status_code=409,
+        )
+    if isinstance(exc, IdempotencyConflictError):
+        return AppError(
+            code="IDEMPOTENCY_KEY_REUSED",
+            message="같은 Idempotency-Key가 다른 요청에 사용됐습니다.",
+            status_code=409,
+        )
+    if isinstance(exc, IdempotencyInProgressError):
+        return AppError(
+            code="IDEMPOTENCY_IN_PROGRESS",
+            message="같은 Idempotency-Key 요청이 처리 중입니다.",
+            status_code=409,
+        )
     if isinstance(exc, ApplicationValidationError):
         return invalid_input(exc.message)
     raise exc

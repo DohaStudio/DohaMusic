@@ -212,10 +212,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         if count > 1
     }
 
-    assert len(registered_routes) == 67
-    assert len(api_routes) == 63
-    assert len(openapi_paths) == 47
-    assert len(operation_ids) == 65
+    assert len(registered_routes) == 70
+    assert len(api_routes) == 66
+    assert len(openapi_paths) == 49
+    assert len(operation_ids) == 68
     assert (
         len(
             [
@@ -227,8 +227,8 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         == 33
     )
     assert "/health" in openapi_paths
-    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 22
-    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 13
+    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 25
+    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 15
     v1_operations = {
         (method.upper(), path): operation
         for path, path_item in openapi_paths.items()
@@ -259,8 +259,11 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         ("GET", "/api/v1/artifacts/{artifact_id}"),
         ("GET", "/api/v1/artifacts/{artifact_id}/content"),
         ("GET", "/api/v1/artifacts/{artifact_id}/download"),
+        ("GET", "/api/v1/snapshots"),
+        ("POST", "/api/v1/snapshots"),
+        ("GET", "/api/v1/snapshots/{composition_snapshot_id}"),
     }
-    assert len({item["operationId"] for item in v1_operations.values()}) == 22
+    assert len({item["operationId"] for item in v1_operations.values()}) == 25
     assert all(item.get("summary") for item in v1_operations.values())
     assert all(item.get("tags") for item in v1_operations.values())
     assert len(duplicate_ids) == 2

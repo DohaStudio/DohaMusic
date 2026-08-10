@@ -48,6 +48,7 @@ from backend.services.voice_upload_service import VoiceUploadService
 from backend.services.workspace import (
     ArtifactApplicationService,
     AssetService,
+    CompositionService,
     WorkspaceService,
 )
 from backend.storage import ArtifactStorageRoots
@@ -182,6 +183,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             cursor_codec=cursor_codec,
         )
         app.state.asset_service = AssetService(
+            session_factory,
+            cursor_codec=cursor_codec,
+        )
+        app.state.composition_service = CompositionService(
             session_factory,
             cursor_codec=cursor_codec,
         )

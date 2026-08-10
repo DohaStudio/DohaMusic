@@ -3,7 +3,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-10
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: Workspace·Project·ProjectAsset·Asset Router와 CompositionSnapshot Service Cursor 구현, 실제 DB 0013~0015 적용 완료
+> 구현 상태: Workspace·Project·ProjectAsset·Asset·CompositionSnapshot Router Cursor 구현, 실제 DB 0013~0015 적용 완료
 > 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [CompositionSnapshot 기반](composition-snapshot-foundation.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md), [Asset Index](../07-database/asset-keyset-indexes.md)
 
 ## 1. 목적과 범위
@@ -104,7 +104,7 @@ Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_i
 8. `[완료]` Asset 공개 scope·filter, version 1 Cursor, keyset Repository·Service와 source Index revision `20260808_0015`를 구현했습니다.
 9. `[완료]` 별도 승인 절차로 실제 사용자 DB에 0015를 적용한 뒤 Asset Resource API 5개를 구현했습니다.
 10. `[완료]` CompositionSnapshot 전용 position·Project/Owner fingerprint와 keyset Repository·Service를 구현하고 기존 Unique Index의 Query Plan을 검증했습니다.
-11. `[계획]` CompositionSnapshot Router에서 목록 Cursor를 연결합니다.
+11. `[완료]` CompositionSnapshot Router에서 Project별 `snapshot_version DESC` 목록 Cursor를 연결했습니다.
 12. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
-나머지 42개 Resource Endpoint, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다. CompositionSnapshot Idempotency는 Service 기반만 구현했으며 HTTP header 연결은 Router 후속 범위입니다. AssetVersion 목록은 단일 Asset의 완전한 계보를 최신 번호순으로 반환하므로 Cursor 계약을 사용하지 않습니다. Artifact API는 단건 Metadata·content·download만 제공하므로 Cursor 계약을 사용하지 않습니다.
+나머지 39개 Resource Endpoint, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다. CompositionSnapshot 생성은 필수 HTTP `Idempotency-Key`를 기존 Service transaction에 연결했습니다. AssetVersion 목록은 단일 Asset의 완전한 계보를 최신 번호순으로 반환하므로 Cursor 계약을 사용하지 않습니다. Artifact API는 단건 Metadata·content·download만 제공하므로 Cursor 계약을 사용하지 않습니다.

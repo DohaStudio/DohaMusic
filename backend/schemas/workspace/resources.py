@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any
+from datetime import UTC, datetime
+from typing import Any, Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -177,3 +177,63 @@ class AssetVersionCreateRequest(BaseModel):
     processing_chain_id: UUID | None = None
     provider_id: str | None = Field(default=None, min_length=1, max_length=255)
     model_manifest_id: str | None = Field(default=None, min_length=1, max_length=255)
+
+
+class SnapshotItemCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    asset_version_id: UUID
+    item_role: Literal["lyrics", "music", "vocal", "stem", "mix"]
+    sort_order: int = Field(ge=0, strict=True)
+
+
+class CompositionSnapshotCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    project_id: UUID
+    items: list[SnapshotItemCreateRequest] = Field(min_length=1, max_length=64)
+    processing_chain_id: UUID | None = None
+    mix_settings_snapshot: dict[str, Any] = Field(default_factory=dict)
+    provider_versions: dict[str, str] = Field(default_factory=dict)
+    model_manifest_ids: dict[str, str] = Field(default_factory=dict)
+
+
+class CompositionSnapshotSummary(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    composition_snapshot_id: UUID
+    project_id: UUID
+    snapshot_version: int
+    created_at: datetime
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
+
+
+class SnapshotItemDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    snapshot_item_id: UUID
+    asset_version_id: UUID
+    item_role: Literal["lyrics", "music", "vocal", "stem", "mix"]
+    sort_order: int
+    created_at: datetime
+
+    @field_validator("created_at", mode="before")
+    @classmethod
+    def normalize_created_at(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            return value.replace(tzinfo=UTC)
+        return value.astimezone(UTC)
+
+
+class CompositionSnapshotDetail(CompositionSnapshotSummary):
+    processing_chain_id: UUID | None
+    mix_settings_snapshot: dict[str, Any]
+    provider_versions: dict[str, str]
+    model_manifest_ids: dict[str, str]
+    items: list[SnapshotItemDetail]

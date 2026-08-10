@@ -1,9 +1,9 @@
 # Workspace API 공통 기반과 Bootstrap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-07
+> 최종 수정일: 2026-08-10
 > 관련 기능: Workspace REST API 선행 기반과 단일 사용자 기본 Workspace 준비
-> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource Endpoint 19개 구현, 실제 Bootstrap 미수행
+> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor와 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개 구현, 실제 Bootstrap 미수행
 > 관련 문서: [공통 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [API 전환 전략](api-contract-migration-strategy.md), [DB 전환 전략](../07-database/database-redesign-migration-strategy.md)
 
 ## 1. 범위
@@ -16,11 +16,11 @@
 - 기존 `AppError`·validation·내부 오류의 v1 payload 분기
 - 단일 사용자 기본 Workspace의 명시적 Bootstrap CLI
 
-Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact 22개 Resource Endpoint는 `[완료]`이며 나머지 42개는 `[미구현]`입니다. 임시 상태 Route는 추가하지 않습니다.
+Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot 25개 Resource Endpoint는 `[완료]`이며 나머지 39개는 `[미구현]`입니다. 임시 상태 Route는 추가하지 않습니다.
 
 ## 2. Router와 응답 계약
 
-최상위 Router는 기존 Runtime Route를 `/api`에 그대로 유지하고 `backend.api.v1.router`를 `/api/v1`에 연결합니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion 19개 Operation 추가 후 등록 Route는 64개, `APIRoute`는 60개이며 기존 Runtime 경로 수는 유지됩니다.
+최상위 Router는 기존 Runtime Route를 `/api`에 그대로 유지하고 `backend.api.v1.router`를 `/api/v1`에 연결합니다. CompositionSnapshot을 포함한 25개 Resource Operation 추가 후 등록 Route는 70개, `APIRoute`는 66개이며 기존 Runtime 경로 수는 유지됩니다.
 
 단일 성공 응답은 `data`, `request_id`를 사용합니다. Collection 응답은 `data`, `pagination`, `links`, `request_id`를 사용하며 `pagination`은 `limit`, `next_cursor`, `has_more`를 가집니다. 오류는 다음 구조입니다.
 
@@ -110,7 +110,7 @@ Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자�
 
 ## 8. Idempotency-Key 후속 판단
 
-현행 `idempotency_records`는 Guided Voice Enrollment에서 사용합니다. hash key, request fingerprint, 상태, Resource ID·status와 기본 24시간 만료를 저장하지만 다음 Workspace API 계약이 확정되지 않았습니다.
+현행 `idempotency_records`는 Guided Voice Enrollment와 CompositionSnapshot 생성에서 사용합니다. CompositionSnapshot은 effective Owner·Project scope, canonical body fingerprint, Resource 재조회 replay와 24시간 보존을 구현했지만 다음 일반 Workspace API 계약은 아직 전체 Resource에 확정되지 않았습니다.
 
 - Workspace·actor·HTTP Method·정규화 Path scope
 - canonical request fingerprint
@@ -118,7 +118,7 @@ Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자�
 - Workspace Job과 Legacy Job의 namespace 분리
 - 보존·정리·충돌 정책
 
-따라서 Bootstrap은 owner 기반 조회로 자체 멱등성을 보장하고 기존 Table을 일반 Workspace API에 연결하지 않습니다. Resource POST의 Idempotency-Key는 별도 PR이 필요합니다.
+따라서 Bootstrap은 owner 기반 조회로 자체 멱등성을 보장합니다. CompositionSnapshot POST는 필수 `Idempotency-Key`를 연결했으며 다른 Resource POST의 공통 연결은 별도 PR이 필요합니다.
 
 ## 9. Cursor pagination 후속 판단
 

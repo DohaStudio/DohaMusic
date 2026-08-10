@@ -3,12 +3,12 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-10
 > 관련 기능: CompositionSnapshot scope·불변 생성·Cursor·Idempotency 기반
-> API 상태: 공식 Router와 Endpoint 3개는 [계획]
+> API 상태: 공식 Router와 Endpoint 3개 [완료]
 > 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Cursor Pagination](cursor-pagination.md), [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md), [Common Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/08-composition-snapshot-specification.md)
 
 ## 1. 범위와 상태
 
-이번 기반은 `CompositionRepository`와 `CompositionService`에 공개 API 구현 전 필요한 계약을 고정합니다. `GET /api/v1/snapshots`, `POST /api/v1/snapshots`, `GET /api/v1/snapshots/{composition_snapshot_id}` Router·Pydantic 공개 DTO·OpenAPI operation은 추가하지 않았습니다. 따라서 Resource API는 22/64, CompositionSnapshot API는 0/3입니다.
+`CompositionRepository`와 `CompositionService`의 기반 계약을 재사용해 `GET /api/v1/snapshots`, `POST /api/v1/snapshots`, `GET /api/v1/snapshots/{composition_snapshot_id}` Router·Pydantic v2 공개 DTO·OpenAPI operation을 구현했습니다. Resource API는 25/64, CompositionSnapshot API는 3/3입니다. 목록은 summary만, 생성·상세는 정렬된 전체 Item과 bounded lineage를 반환하며 내부 `owner_id`·`created_by`는 노출하지 않습니다.
 
 Snapshot은 특정 Project의 정확한 `AssetVersion` 조합, Processing Chain, Mix 설정과 Provider·Model 계보를 고정하는 불변 aggregate입니다. 기존 Snapshot이나 SnapshotItem을 수정·삭제·재정렬하는 Repository·Service 경로는 제공하지 않습니다.
 
@@ -99,12 +99,12 @@ NaN·Infinity, 임의 객체와 과도한 중첩·항목 수는 거부합니다.
 
 Claim, Snapshot·Item 생성과 완료 기록은 같은 transaction입니다. Router가 추가될 때 기존 공통 오류 envelope에 매핑하며 raw key, fingerprint와 payload를 외부 오류·로그에 노출하지 않습니다.
 
-## 8. 후속 구현 경계
+## 8. API 연결과 후속 구현 경계
+
+공식 Router는 App Factory가 주입한 `CompositionService`만 호출합니다. `POST`는 필수 `Idempotency-Key`를 전달하고 replay도 최초 `201` aggregate를 반환합니다. Router는 Repository·Session·ORM relationship·CursorCodec과 version 계산을 직접 다루지 않습니다.
 
 다음 작업은 별도 PR입니다.
 
-- 공식 CompositionSnapshot Router·Request/Response DTO와 Endpoint 3개
-- App Factory의 CompositionService 주입과 HTTP `Idempotency-Key` 연결
 - Job 생성·실행과 Artifact 선택
 - Frontend, backfill, dual write와 Runtime source of truth 전환
 

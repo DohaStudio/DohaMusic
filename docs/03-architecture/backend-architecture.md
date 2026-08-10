@@ -30,7 +30,7 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 
 Artifact Storage 경계는 `Router → Artifact Application Service → Storage Resolver·Trusted Ingestion → Artifact·Catalog Repository`다. `ArtifactApplicationService`는 effective Owner 계보, retention matrix와 content 전 full SHA-256 read Gate를 소유한다. `ArtifactIngestionService → LocalArtifactPublisher`는 AssetVersion 확인, Artifact·Catalog 단일 transaction·보상과 staging containment·MIME·exclusive publish를 담당한다. `ArtifactReconciliationService`는 Catalog를 UUID keyset batch로 읽고 승인 namespace만 dry-run scan한다. Repository는 add·flush·조회만 수행하고 commit·rollback·filesystem을 소유하지 않는다. Artifact Router는 Metadata·content·download를 Application Service에만 위임하고 single-byte Range를 처리하며 Repository·Resolver·filesystem에 직접 접근하지 않는다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. `/api/v1` Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact Resource Endpoint는 22개다. Resource API 진행도는 22/64, Artifact API는 3/3이며 Artifact 이후 42개 Endpoint와 destructive reconciliation·backfill·dual write·Legacy 제거는 미구현이다.
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. `/api/v1` Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint는 25개다. Resource API 진행도는 25/64, Artifact API와 CompositionSnapshot API는 각각 3/3이며 Job API를 포함한 나머지 39개 Endpoint와 destructive reconciliation·backfill·dual write·Legacy 제거는 미구현이다.
 
 ## Workspace Application Service 경계
 

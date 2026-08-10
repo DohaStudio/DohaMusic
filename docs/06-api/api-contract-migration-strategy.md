@@ -3,14 +3,14 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: 현행 기능별 API에서 Workspace v1 API로 단계적 전환
-> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·HMAC Cursor와 Resource Endpoint 22개, CompositionSnapshot Service 기반 구현; 나머지 Endpoint·Adapter·Redirect·OpenAPI 파일 미구현
+> 구현 상태: `/api/v1` 공통 기반·명시적 Bootstrap 도구·HMAC Cursor와 Resource Endpoint 25개, CompositionSnapshot API 3개 구현; 나머지 Endpoint·Adapter·Redirect·OpenAPI 파일 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [현재 API 개요](api-overview.md), [목표 공통 계약](workspace-rest-api-contract.md), [목표 Endpoint 목록](workspace-rest-api-endpoints.md), [DB 전환 전략](../07-database/database-redesign-migration-strategy.md)
 
 ## 1. 현재와 목표
 
 현재 API는 `/api/generations`, `/api/stems`, `/api/voice-conversion`, `/api/pipelines`, `/api/lyrics`, `/api/voice-profiles`, `/api/voice-enrollments`, `/api/projects`와 `/api/history`처럼 기능별 Resource를 노출합니다.
 
-목표 API는 `/api/v1` 아래 Workspace·Project·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심으로 통합합니다. 공통 Router·응답·request ID·오류와 HMAC Cursor 기반에 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact Resource Route 22개를 연결했습니다. CompositionSnapshot은 불변 생성·Cursor·Idempotency Service 기반만 구현했고 Router 3개는 미구현이며, 기존 Runtime Endpoint의 동작이나 status는 변경하지 않습니다.
+목표 API는 `/api/v1` 아래 Workspace·Project·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심으로 통합합니다. 공통 Router·응답·request ID·오류와 HMAC Cursor 기반에 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Route 25개를 연결했습니다. CompositionSnapshot은 불변 생성·Cursor·필수 `Idempotency-Key`와 목록·생성·상세 Router 3개를 구현했으며, 기존 Runtime Endpoint의 동작이나 status는 변경하지 않습니다.
 
 ## 2. 현행 경로 매핑
 
