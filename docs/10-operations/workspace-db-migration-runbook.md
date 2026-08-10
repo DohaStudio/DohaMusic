@@ -8,7 +8,7 @@
 
 ## 1. 목적과 강제 중단 조건
 
-이 Runbook 본문은 `20260801_0011`에서 `20260806_0012`로 올린 최초 적용 절차의 역사 기준입니다. 현재 source head와 실제 사용자 DB는 `20260809_0016`이며 아래 revision·checksum 예시는 새 Migration에 그대로 재사용하지 않습니다. 다음 적용은 별도 Inventory·backup·rehearsal·사용자 승인 기록에서 대상 revision과 모든 Gate를 다시 확정합니다.
+이 Runbook 본문은 `20260801_0011`에서 `20260806_0012`로 올린 최초 적용 절차의 역사 기준입니다. 현재 source head는 `20260810_0017`, 실제 사용자 DB는 `20260809_0016`이며 아래 revision·checksum 예시는 새 Migration에 그대로 재사용하지 않습니다. 다음 적용은 별도 Inventory·backup·rehearsal·사용자 승인 기록에서 대상 revision과 모든 Gate를 다시 확정합니다.
 
 다음 중 하나라도 충족하면 적용을 시작하거나 계속하지 않습니다.
 

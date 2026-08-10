@@ -27,6 +27,12 @@ PREVIOUS_REVISION = "20260801_0011"
 KEYSET_INDEX_NAMES = {
     "ix_assets_owner_active_keyset",
     "ix_assets_owner_workspace_active_keyset",
+    "ix_jobs_claim_queue",
+    "ix_jobs_lease_recovery",
+    "ix_jobs_workspace_keyset",
+    "ix_jobs_workspace_project_keyset",
+    "ix_jobs_workspace_status_keyset",
+    "ix_jobs_workspace_type_keyset",
     "ix_music_projects_workspace_active_keyset",
     "ix_project_assets_active_keyset",
     "ix_workspaces_active_keyset",
@@ -118,9 +124,9 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
         if constraint.name
     ]
     assert len(set(index_names) - KEYSET_INDEX_NAMES) == 109
-    assert len(index_names) == 115
+    assert len(index_names) == 121
     assert len(index_names) == len(set(index_names))
-    assert len(constraint_names) == 23
+    assert len(constraint_names) == 24
     assert len(constraint_names) == len(set(constraint_names))
 
 

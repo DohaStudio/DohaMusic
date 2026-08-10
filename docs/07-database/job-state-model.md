@@ -11,7 +11,7 @@
 
 Pipeline `PENDING` cancel, 실행 단계 cooperative `CANCEL_REQUESTED → CANCELLED`와 실패·취소 원본을 복제한 새 Pipeline Job retry는 구현돼 있다. 이 상태와 기존 ThreadPool Worker는 Workspace `jobs`의 공식 5-state·claim·lease 구현 완료 근거가 아니다.
 
-## Workspace Job — [계약 완료, 실행 제어 미구현]
+## Workspace Job — [계약·source Column/Index 완료, 실행 제어 미구현]
 
 공개 상태는 다음 5개만 사용한다.
 
@@ -36,8 +36,8 @@ stateDiagram-v2
 | `failed` | 안전한 오류와 retryability를 기록하고 종료 | 없음 |
 | `cancelled` | 실행 중단과 부분 결과 정리를 확인하고 종료 | 없음 |
 
-`cancel_requested`는 공개 상태가 아니다. 내부 `cancel_requested_at` marker로 관리하고 running 상태에서 Worker·Provider에 전파한 뒤에만 `cancelled`로 확정한다. `progress_percent=100`이나 Provider `success`만으로 `succeeded`가 되지 않는다.
+`cancel_requested`는 공개 상태가 아니다. source revision `20260810_0017`의 내부 `cancel_requested_at` marker로 관리하고 running 상태에서 Worker·Provider에 전파한 뒤에만 `cancelled`로 확정한다. `progress_percent=100`이나 Provider `success`만으로 `succeeded`가 되지 않는다.
 
 Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분하며, lease 만료 running Job은 자동으로 queued에 되돌리지 않고 retryable failure로 종료한다.
 
-terminal Job은 상태·입력·출력·ModelUsage·settings를 변경하지 않으며 append-only History audit만 허용한다. 역할 Column, cancellation marker, claim·lease·heartbeat·attempt와 관련 DB·Service 구현은 후속 additive Migration과 Foundation PR 범위다.
+terminal Job은 상태·입력·출력·ModelUsage·settings를 변경하지 않으며 append-only History audit만 허용한다. cancellation marker, claim·lease·heartbeat·attempt와 nullable staging role Column 및 Index는 source revision `20260810_0017`에 구현했다. 실제 DB 적용과 Service·Worker 상태 전이는 후속 범위다.

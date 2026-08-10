@@ -3,7 +3,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-10
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: Workspace·Project·ProjectAsset·Asset·CompositionSnapshot Router Cursor 구현, Job Cursor 계약 완료·구현 미완료, 실제 DB 0013~0015 적용 완료
+> 구현 상태: Workspace·Project·ProjectAsset·Asset·CompositionSnapshot Router Cursor 구현, Job keyset Index source 0017 구현·Cursor 미구현, 실제 DB 0013~0015 적용 완료
 > 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [CompositionSnapshot 기반](composition-snapshot-foundation.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md), [Asset Index](../07-database/asset-keyset-indexes.md)
 
 ## 1. 목적과 범위
@@ -106,6 +106,7 @@ Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_i
 10. `[완료]` CompositionSnapshot 전용 position·Project/Owner fingerprint와 keyset Repository·Service를 구현하고 기존 Unique Index의 Query Plan을 검증했습니다.
 11. `[완료]` CompositionSnapshot Router에서 Project별 `snapshot_version DESC` 목록 Cursor를 연결했습니다.
 12. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
-13. `[계획]` Job resource, `(created_at DESC, job_id DESC)` position, 제한된 filter fingerprint와 검증된 keyset Index를 구현합니다.
+13. `[완료]` Job Workspace·Project·status·type 목록의 10,000 row Query Plan을 검증하고 source revision `20260810_0017`에 keyset Index 4개를 추가했습니다.
+14. `[계획]` Job resource, `(created_at DESC, job_id DESC)` position, 제한된 filter fingerprint와 Repository·Service keyset page를 구현합니다.
 
 나머지 39개 Resource Endpoint, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다. CompositionSnapshot 생성은 필수 HTTP `Idempotency-Key`를 기존 Service transaction에 연결했습니다. AssetVersion 목록은 단일 Asset의 완전한 계보를 최신 번호순으로 반환하므로 Cursor 계약을 사용하지 않습니다. Artifact API는 단건 Metadata·content·download만 제공하므로 Cursor 계약을 사용하지 않습니다.

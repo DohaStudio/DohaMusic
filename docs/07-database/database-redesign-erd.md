@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Catalog row 0개
+> 구현 상태: Workspace Entity 21개·Catalog `0016` 실제 DB 적용, Job schema·Index source `0017`, 실제 DB `0016`
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 전체 ERD
@@ -154,6 +154,7 @@ erDiagram
   JOBS {
     uuid job_id PK
     uuid project_id FK
+    uuid workspace_id FK
     uuid composition_snapshot_id FK
     uuid retry_of_job_id FK
     string job_type
@@ -161,12 +162,19 @@ erDiagram
     string provider_id
     string api_contract_version
     string model_manifest_id
+    timestamp cancel_requested_at
+    uuid claim_token
+    string claimed_by
+    timestamp lease_expires_at
+    timestamp heartbeat_at
+    integer attempt
   }
   JOB_INPUTS {
     uuid job_input_id PK
     uuid job_id FK
     uuid asset_version_id FK
     uuid artifact_id FK
+    string input_role
     integer input_order
   }
   JOB_OUTPUTS {
@@ -174,6 +182,7 @@ erDiagram
     uuid job_id FK
     uuid asset_version_id FK
     uuid artifact_id FK
+    string output_role
     integer output_order
   }
   MODEL_USAGES {
