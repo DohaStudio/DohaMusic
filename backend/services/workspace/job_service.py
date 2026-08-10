@@ -4,8 +4,11 @@ from __future__ import annotations
 
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime, timezone
 from decimal import Decimal
+import hashlib
+import json
+import re
 from typing import Any
 from uuid import UUID
 
@@ -17,8 +20,11 @@ from backend.core.exceptions import (
     CursorConfigurationError,
     InvalidLimitError,
     InvalidStateError,
+    IdempotencyConflictError,
+    IdempotencyInProgressError,
     ResourceConflictError,
     ResourceNotFoundError,
+    WorkspaceBootstrapRequiredError,
 )
 from backend.core.cursor_pagination import CURSOR_SORT, CursorCodec, filter_fingerprint
 from backend.models.workspace import (
@@ -34,6 +40,11 @@ from backend.repositories.workspace import (
     JobRepository,
     WorkspaceRepository,
 )
+from backend.repositories.idempotency_repository import IdempotencyRepository
+from backend.services.workspace.composition_service import (
+    _normalize_idempotency_key,
+    _validate_json_object,
+)
 
 ALLOWED_TRANSITIONS: dict[JobStatus, frozenset[JobStatus]] = {
     JobStatus.QUEUED: frozenset({JobStatus.RUNNING, JobStatus.CANCELLED}),
@@ -47,6 +58,71 @@ ALLOWED_TRANSITIONS: dict[JobStatus, frozenset[JobStatus]] = {
 TERMINAL_STATUSES = frozenset(
     {JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED}
 )
+OFFICIAL_JOB_TYPES = frozenset(
+    {
+        "lyrics_generation",
+        "music_generation",
+        "stem_separation",
+        "voice_conversion",
+        "audio_analysis",
+        "mix",
+        "export",
+    }
+)
+REQUIRED_SNAPSHOT_JOB_TYPES = frozenset({"mix", "export"})
+JOB_INPUT_ROLES: dict[str, tuple[frozenset[str], frozenset[str]]] = {
+    "lyrics_generation": (frozenset(), frozenset()),
+    "music_generation": (frozenset(), frozenset({"lyrics"})),
+    "stem_separation": (frozenset({"source_audio"}), frozenset({"source_audio"})),
+    "voice_conversion": (
+        frozenset({"source_vocal", "voice_reference"}),
+        frozenset({"source_vocal", "voice_reference"}),
+    ),
+    "audio_analysis": (frozenset({"source_audio"}), frozenset({"source_audio"})),
+    "mix": (
+        frozenset({"vocal", "instrumental"}),
+        frozenset({"vocal", "instrumental", "stem"}),
+    ),
+    "export": (frozenset({"mix"}), frozenset({"mix"})),
+}
+BYTE_INPUT_ROLES = frozenset(
+    {
+        "source_audio",
+        "source_vocal",
+        "voice_reference",
+        "vocal",
+        "instrumental",
+        "stem",
+        "mix",
+    }
+)
+SNAPSHOT_ROLES_BY_INPUT_ROLE: dict[str, frozenset[str]] = {
+    "lyrics": frozenset({"lyrics"}),
+    "source_audio": frozenset({"music", "stem", "mix"}),
+    "source_vocal": frozenset({"vocal"}),
+    "voice_reference": frozenset({"vocal"}),
+    "vocal": frozenset({"vocal"}),
+    "instrumental": frozenset({"music"}),
+    "stem": frozenset({"stem"}),
+    "mix": frozenset({"mix"}),
+}
+MAX_JOB_INPUTS = 16
+MAX_STAGE_LENGTH = 64
+MAX_ERROR_CODE_LENGTH = 64
+MAX_ERROR_MESSAGE_LENGTH = 512
+MAX_ERROR_DETAILS_ID_LENGTH = 128
+MAX_PROVIDER_ID_LENGTH = 128
+MAX_MANIFEST_ID_LENGTH = 256
+JOB_IDEMPOTENCY_TTL_HOURS = 24
+_SENSITIVE_KEYS = frozenset(
+    {"authorization", "credential", "password", "secret", "token", "api_key", "api-key"}
+)
+_UNSAFE_PUBLIC_TEXT = re.compile(
+    r"(?:[A-Za-z]:[\\/]|/(?:home|users?|var|tmp|opt|data|models?)/|"
+    r"traceback|stack trace|authorization|bearer\s+|api[_-]?key|credential|"
+    r"password|secret|\bpid\b|\bcuda\b|dataset path|model path|command(?: line)?)",
+    re.IGNORECASE,
+)
 
 
 @dataclass(frozen=True)
@@ -54,6 +130,7 @@ class JobReferenceInput:
     input_order: int
     asset_version_id: UUID | None = None
     artifact_id: UUID | None = None
+    input_role: str | None = None
 
 
 @dataclass(frozen=True)
@@ -84,6 +161,27 @@ class JobPage:
     limit: int
 
 
+@dataclass(frozen=True, slots=True)
+class JobAggregate:
+    job: Job
+    inputs: tuple[JobInput, ...]
+    outputs: tuple[JobOutput, ...]
+    model_usages: tuple[ModelUsage, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class JobCreation:
+    aggregate: JobAggregate
+    replayed: bool
+    response_status: int
+
+
+@dataclass(frozen=True, slots=True)
+class JobCancelResult:
+    job: Job
+    response_status: int
+
+
 def _required_text(value: str, field_name: str) -> str:
     normalized = value.strip()
     if not normalized:
@@ -102,6 +200,339 @@ class JobService:
     ) -> None:
         self.session_factory = session_factory
         self.cursor_codec = cursor_codec
+
+    def create_job_for_owner(
+        self,
+        *,
+        effective_owner_id: UUID,
+        project_id: UUID,
+        job_type: str,
+        api_contract_version: str,
+        settings_snapshot: dict[str, Any],
+        idempotency_key: str,
+        inputs: Sequence[JobReferenceInput] = (),
+        composition_snapshot_id: UUID | None = None,
+        provider_id: str | None = None,
+        model_manifest_id: str | None = None,
+    ) -> JobCreation:
+        """향후 공개 Router가 사용할 owner-scoped Job 생성 경계다."""
+
+        normalized_type = _normalize_job_type(job_type)
+        normalized_inputs = self._normalize_contract_inputs(normalized_type, inputs)
+        normalized_settings = _validate_job_settings(settings_snapshot)
+        normalized_key = _normalize_idempotency_key(idempotency_key)
+        normalized_provider = _optional_bounded_text(
+            provider_id, "Provider ID", MAX_PROVIDER_ID_LENGTH
+        )
+        normalized_manifest = _optional_bounded_text(
+            model_manifest_id, "Model Manifest ID", MAX_MANIFEST_ID_LENGTH
+        )
+        normalized_contract = _bounded_text(
+            api_contract_version, "API contract version", 64
+        )
+        fingerprint = _job_create_fingerprint(
+            effective_owner_id=effective_owner_id,
+            project_id=project_id,
+            job_type=normalized_type,
+            composition_snapshot_id=composition_snapshot_id,
+            inputs=normalized_inputs,
+            provider_id=normalized_provider,
+            model_manifest_id=normalized_manifest,
+            api_contract_version=normalized_contract,
+            settings_snapshot=normalized_settings,
+        )
+        scope = f"workspace:job:create:{effective_owner_id}:{project_id}"
+        try:
+            with self.session_factory() as session, session.begin():
+                project = self._require_project_scope(
+                    session, project_id, effective_owner_id
+                )
+                idempotency_repository = IdempotencyRepository(session)
+                claim = _claim_idempotency(
+                    idempotency_repository,
+                    scope=scope,
+                    key=normalized_key,
+                    fingerprint=fingerprint,
+                )
+                job_repository = JobRepository(session)
+                if claim.replayed:
+                    return self._replay_creation(job_repository, claim.record)
+                snapshot_versions = self._validate_snapshot(
+                    session,
+                    project_id=project_id,
+                    composition_snapshot_id=composition_snapshot_id,
+                    required=normalized_type in REQUIRED_SNAPSHOT_JOB_TYPES,
+                )
+                asset_repository = AssetRepository(session)
+                for item in normalized_inputs:
+                    version_id = self._validate_contract_reference(
+                        session,
+                        asset_repository,
+                        effective_owner_id=effective_owner_id,
+                        workspace_id=project.workspace_id,
+                        project_id=project_id,
+                        item=item,
+                    )
+                    if snapshot_versions is not None and not _snapshot_has_input(
+                        snapshot_versions, version_id, item.input_role
+                    ):
+                        raise ApplicationValidationError(
+                            "JobInput의 exact AssetVersion이 CompositionSnapshot과 일치하지 않습니다."
+                        )
+                job = job_repository.add_job(
+                    Job(
+                        project_id=project_id,
+                        workspace_id=project.workspace_id,
+                        composition_snapshot_id=composition_snapshot_id,
+                        job_type=normalized_type,
+                        status=JobStatus.QUEUED,
+                        provider_id=normalized_provider,
+                        api_contract_version=normalized_contract,
+                        model_manifest_id=normalized_manifest,
+                        progress_percent=Decimal(0),
+                        stage=None,
+                        settings_snapshot=normalized_settings,
+                        retry_of_job_id=None,
+                        requested_by=effective_owner_id,
+                        cancel_requested_at=None,
+                        claim_token=None,
+                        claimed_by=None,
+                        lease_expires_at=None,
+                        heartbeat_at=None,
+                        attempt=0,
+                    )
+                )
+                for item in normalized_inputs:
+                    job_repository.add_job_input(
+                        JobInput(
+                            job_id=job.job_id,
+                            input_order=item.input_order,
+                            input_role=item.input_role,
+                            asset_version_id=item.asset_version_id,
+                            artifact_id=item.artifact_id,
+                        )
+                    )
+                idempotency_repository.complete(
+                    claim.record,
+                    resource_type="workspace_job",
+                    resource_id=str(job.job_id),
+                    response_status=201,
+                )
+                aggregate = self._load_aggregate(job_repository, job)
+            return JobCreation(aggregate, replayed=False, response_status=201)
+        except IntegrityError:
+            raise ResourceConflictError("Workspace Job") from None
+
+    def get_job_aggregate_for_owner(
+        self, job_id: UUID, *, effective_owner_id: UUID
+    ) -> JobAggregate:
+        with self.session_factory() as session:
+            repository = JobRepository(session)
+            job = repository.get_job_for_owner(job_id, effective_owner_id)
+            if job is None:
+                raise ResourceNotFoundError("Workspace Job")
+            return self._load_aggregate(repository, job)
+
+    def transition_job_for_owner(
+        self,
+        job_id: UUID,
+        *,
+        effective_owner_id: UUID,
+        status: JobStatus,
+        progress_percent: Decimal | None = None,
+        stage: str | None = None,
+        error_code: str | None = None,
+        error_message: str | None = None,
+        error_retryable: bool | None = None,
+        error_details_id: str | None = None,
+    ) -> Job:
+        """Completion UoW의 succeeded를 제외한 명시적 상태 전이를 적용한다."""
+
+        if status is JobStatus.SUCCEEDED:
+            raise ApplicationValidationError(
+                "succeeded 전이는 Completion Unit of Work에서만 허용합니다."
+            )
+        with self.session_factory() as session, session.begin():
+            repository = JobRepository(session)
+            job = self._require_job_owner(repository, job_id, effective_owner_id)
+            self._ensure_mutable(job)
+            self._validate_transition(job.status, status)
+            if progress_percent is not None:
+                self._apply_progress(job, progress_percent)
+            if stage is not None:
+                job.stage = _safe_public_text(stage, "stage", MAX_STAGE_LENGTH)
+            now = datetime.now(UTC)
+            repository.update_job_status(
+                job,
+                status,
+                started_at=now if status is JobStatus.RUNNING else None,
+                completed_at=now if status in TERMINAL_STATUSES else None,
+            )
+            if status is JobStatus.FAILED:
+                job.error_code = _safe_error_code(error_code)
+                job.error_message = _safe_public_text(
+                    error_message or "작업이 실패했습니다.",
+                    "공개 오류 메시지",
+                    MAX_ERROR_MESSAGE_LENGTH,
+                )
+                job.error_retryable = bool(error_retryable)
+                job.error_details_id = _safe_error_details_id(error_details_id)
+                session.flush()
+            return job
+
+    def update_job_progress_for_owner(
+        self,
+        job_id: UUID,
+        *,
+        effective_owner_id: UUID,
+        progress_percent: Decimal,
+        stage: str | None = None,
+    ) -> Job:
+        with self.session_factory() as session, session.begin():
+            repository = JobRepository(session)
+            job = self._require_job_owner(repository, job_id, effective_owner_id)
+            self._ensure_mutable(job)
+            self._apply_progress(job, progress_percent)
+            if stage is not None:
+                job.stage = _safe_public_text(stage, "stage", MAX_STAGE_LENGTH)
+            session.flush()
+            return job
+
+    def cancel_job_for_owner(
+        self, job_id: UUID, *, effective_owner_id: UUID
+    ) -> JobCancelResult:
+        """Cancel action은 상태 자체로 idempotent하며 별도 key를 요구하지 않는다."""
+
+        with self.session_factory() as session, session.begin():
+            repository = JobRepository(session)
+            job = self._require_job_owner(repository, job_id, effective_owner_id)
+            if job.status is JobStatus.CANCELLED:
+                return JobCancelResult(job, 200)
+            if job.status in {JobStatus.SUCCEEDED, JobStatus.FAILED}:
+                raise InvalidStateError("취소할 수 없는 Workspace Job")
+            now = datetime.now(UTC)
+            if job.status is JobStatus.QUEUED and job.claim_token is None:
+                job.cancel_requested_at = now
+                repository.update_job_status(job, JobStatus.CANCELLED, completed_at=now)
+                return JobCancelResult(job, 200)
+            if job.cancel_requested_at is None:
+                job.cancel_requested_at = now
+                session.flush()
+            return JobCancelResult(job, 202)
+
+    def retry_job_for_owner(
+        self,
+        job_id: UUID,
+        *,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> JobCreation:
+        normalized_key = _normalize_idempotency_key(idempotency_key)
+        fingerprint = _canonical_fingerprint(
+            {
+                "effective_owner_id": str(effective_owner_id),
+                "original_job_id": str(job_id),
+            }
+        )
+        scope = f"workspace:job:retry:{effective_owner_id}:{job_id}"
+        try:
+            with self.session_factory() as session, session.begin():
+                repository = JobRepository(session)
+                original = self._require_job_owner(
+                    repository, job_id, effective_owner_id
+                )
+                if original.status not in {JobStatus.FAILED, JobStatus.CANCELLED}:
+                    raise InvalidStateError("재시도 원본 Workspace Job")
+                original_type = _normalize_job_type(original.job_type)
+                project = self._require_project_scope(
+                    session, original.project_id, effective_owner_id
+                )
+                if original.workspace_id != project.workspace_id:
+                    raise InvalidStateError("재시도 원본 Workspace Job")
+                original_rows = repository.list_job_inputs(
+                    original.job_id, limit=MAX_JOB_INPUTS
+                )
+                original_inputs = self._normalize_contract_inputs(
+                    original_type,
+                    tuple(
+                        JobReferenceInput(
+                            input_order=item.input_order,
+                            input_role=item.input_role,
+                            asset_version_id=item.asset_version_id,
+                            artifact_id=item.artifact_id,
+                        )
+                        for item in original_rows
+                    ),
+                )
+                snapshot_versions = self._validate_snapshot(
+                    session,
+                    project_id=original.project_id,
+                    composition_snapshot_id=original.composition_snapshot_id,
+                    required=original_type in REQUIRED_SNAPSHOT_JOB_TYPES,
+                )
+                asset_repository = AssetRepository(session)
+                for item in original_inputs:
+                    version_id = self._validate_contract_reference(
+                        session,
+                        asset_repository,
+                        effective_owner_id=effective_owner_id,
+                        workspace_id=project.workspace_id,
+                        project_id=project.project_id,
+                        item=item,
+                    )
+                    if snapshot_versions is not None and not _snapshot_has_input(
+                        snapshot_versions, version_id, item.input_role
+                    ):
+                        raise ApplicationValidationError(
+                            "재시도 JobInput의 exact AssetVersion이 CompositionSnapshot과 일치하지 않습니다."
+                        )
+                idempotency_repository = IdempotencyRepository(session)
+                claim = _claim_idempotency(
+                    idempotency_repository,
+                    scope=scope,
+                    key=normalized_key,
+                    fingerprint=fingerprint,
+                )
+                if claim.replayed:
+                    return self._replay_creation(repository, claim.record)
+                retried = repository.add_job(
+                    Job(
+                        project_id=original.project_id,
+                        workspace_id=original.workspace_id,
+                        composition_snapshot_id=original.composition_snapshot_id,
+                        job_type=original_type,
+                        status=JobStatus.QUEUED,
+                        provider_id=original.provider_id,
+                        api_contract_version=original.api_contract_version,
+                        model_manifest_id=original.model_manifest_id,
+                        progress_percent=Decimal(0),
+                        stage=None,
+                        settings_snapshot=dict(original.settings_snapshot),
+                        retry_of_job_id=original.job_id,
+                        requested_by=effective_owner_id,
+                        attempt=0,
+                    )
+                )
+                for item in original_inputs:
+                    repository.add_job_input(
+                        JobInput(
+                            job_id=retried.job_id,
+                            input_order=item.input_order,
+                            input_role=item.input_role,
+                            asset_version_id=item.asset_version_id,
+                            artifact_id=item.artifact_id,
+                        )
+                    )
+                idempotency_repository.complete(
+                    claim.record,
+                    resource_type="workspace_job",
+                    resource_id=str(retried.job_id),
+                    response_status=202,
+                )
+                aggregate = self._load_aggregate(repository, retried)
+            return JobCreation(aggregate, replayed=False, response_status=202)
+        except IntegrityError:
+            raise ResourceConflictError("Workspace Job retry") from None
 
     def create_job(
         self,
@@ -471,6 +902,188 @@ class JobService:
             return repository.list_model_usages(job_id, limit=limit, offset=offset)
 
     @staticmethod
+    def _require_project_scope(
+        session: Session, project_id: UUID, effective_owner_id: UUID
+    ):
+        repository = WorkspaceRepository(session)
+        if not repository.list_workspaces(owner_id=effective_owner_id, limit=1):
+            raise WorkspaceBootstrapRequiredError()
+        project = repository.get_project(project_id)
+        if project is None or project.lifecycle_status != "active":
+            raise ResourceNotFoundError("MusicProject")
+        workspace = repository.get_workspace_for_owner(
+            project.workspace_id, effective_owner_id
+        )
+        if workspace is None or workspace.lifecycle_status != "active":
+            raise ResourceNotFoundError("MusicProject")
+        return project
+
+    @staticmethod
+    def _require_job_owner(
+        repository: JobRepository, job_id: UUID, effective_owner_id: UUID
+    ) -> Job:
+        job = repository.get_job_for_owner(job_id, effective_owner_id)
+        if job is None:
+            raise ResourceNotFoundError("Workspace Job")
+        return job
+
+    @staticmethod
+    def _load_aggregate(repository: JobRepository, job: Job) -> JobAggregate:
+        return JobAggregate(
+            job=job,
+            inputs=tuple(repository.list_job_inputs(job.job_id, limit=MAX_JOB_INPUTS)),
+            outputs=tuple(repository.list_job_outputs(job.job_id, limit=100)),
+            model_usages=tuple(repository.list_model_usages(job.job_id, limit=100)),
+        )
+
+    @staticmethod
+    def _replay_creation(repository: JobRepository, record) -> JobCreation:
+        if record.resource_type != "workspace_job" or record.resource_id is None:
+            raise IdempotencyConflictError()
+        try:
+            job_id = UUID(record.resource_id)
+        except ValueError:
+            raise IdempotencyConflictError() from None
+        job = repository.get_job(job_id)
+        if job is None:
+            raise IdempotencyConflictError()
+        return JobCreation(
+            JobService._load_aggregate(repository, job),
+            replayed=True,
+            response_status=record.response_status or 200,
+        )
+
+    @staticmethod
+    def _validate_snapshot(
+        session: Session,
+        *,
+        project_id: UUID,
+        composition_snapshot_id: UUID | None,
+        required: bool,
+    ) -> set[tuple[UUID, str]] | None:
+        if composition_snapshot_id is None:
+            if required:
+                raise ApplicationValidationError(
+                    "이 Job 유형에는 CompositionSnapshot이 필요합니다."
+                )
+            return None
+        repository = CompositionRepository(session)
+        snapshot = repository.get_snapshot(composition_snapshot_id)
+        if snapshot is None or snapshot.project_id != project_id:
+            raise ResourceNotFoundError("CompositionSnapshot")
+        return {
+            (item.asset_version_id, item.item_role)
+            for item in repository.list_snapshot_items(
+                composition_snapshot_id, limit=64
+            )
+        }
+
+    @staticmethod
+    def _normalize_contract_inputs(
+        job_type: str, inputs: Sequence[JobReferenceInput]
+    ) -> list[JobReferenceInput]:
+        if len(inputs) > MAX_JOB_INPUTS:
+            raise ApplicationValidationError(
+                f"JobInput은 최대 {MAX_JOB_INPUTS}개까지 허용합니다."
+            )
+        required_roles, allowed_roles = JOB_INPUT_ROLES[job_type]
+        normalized: list[JobReferenceInput] = []
+        orders: set[int] = set()
+        roles: set[str] = set()
+        for item in inputs:
+            if type(item.input_order) is not int or item.input_order < 0:
+                raise ApplicationValidationError(
+                    "JobInput 순서는 0 이상 정수여야 합니다."
+                )
+            if item.input_order in orders:
+                raise ResourceConflictError("JobInput 순서")
+            role = _bounded_text(item.input_role, "JobInput 역할", 64)
+            if role not in allowed_roles:
+                raise ApplicationValidationError(
+                    "Job 유형에 허용되지 않은 input_role입니다."
+                )
+            if role in roles:
+                raise ApplicationValidationError(
+                    "같은 input_role은 중복할 수 없습니다."
+                )
+            if (item.asset_version_id is None) == (item.artifact_id is None):
+                raise ApplicationValidationError(
+                    "JobInput에는 AssetVersion 또는 Artifact 중 하나만 필요합니다."
+                )
+            if role in BYTE_INPUT_ROLES and item.artifact_id is None:
+                raise ApplicationValidationError(
+                    "byte-level JobInput은 명시적 artifact_id가 필요합니다."
+                )
+            orders.add(item.input_order)
+            roles.add(role)
+            normalized.append(
+                JobReferenceInput(
+                    input_order=item.input_order,
+                    asset_version_id=item.asset_version_id,
+                    artifact_id=item.artifact_id,
+                    input_role=role,
+                )
+            )
+        missing = required_roles - roles
+        if missing:
+            raise ApplicationValidationError(
+                "필수 JobInput 역할이 누락되었습니다: " + ", ".join(sorted(missing))
+            )
+        return sorted(normalized, key=lambda item: item.input_order)
+
+    @staticmethod
+    def _validate_contract_reference(
+        session: Session,
+        repository: AssetRepository,
+        *,
+        effective_owner_id: UUID,
+        workspace_id: UUID,
+        project_id: UUID,
+        item: JobReferenceInput,
+    ) -> UUID:
+        if item.asset_version_id is not None:
+            version = repository.get_asset_version(item.asset_version_id)
+            if version is None:
+                raise ResourceNotFoundError("AssetVersion")
+        else:
+            artifact = repository.get_artifact(item.artifact_id)
+            if artifact is None:
+                raise ResourceNotFoundError("Artifact")
+            version = repository.get_asset_version(artifact.asset_version_id)
+            if version is None:
+                raise ResourceNotFoundError("AssetVersion")
+        asset = repository.get_asset(version.asset_id)
+        if (
+            asset is None
+            or asset.deleted_at is not None
+            or asset.owner_id != effective_owner_id
+            or (asset.workspace_id is not None and asset.workspace_id != workspace_id)
+        ):
+            raise ResourceNotFoundError("JobInput")
+        project_asset = WorkspaceRepository(session).find_project_asset(
+            project_id, asset.asset_id
+        )
+        if project_asset is None:
+            raise ResourceNotFoundError("ProjectAsset")
+        return version.asset_version_id
+
+    @staticmethod
+    def _ensure_mutable(job: Job) -> None:
+        if job.status in TERMINAL_STATUSES:
+            raise InvalidStateError("종료된 Workspace Job")
+
+    @staticmethod
+    def _apply_progress(job: Job, progress_percent: Decimal) -> None:
+        if not isinstance(progress_percent, Decimal):
+            raise ApplicationValidationError("진행률은 Decimal 값이어야 합니다.")
+        if not Decimal(0) <= progress_percent <= Decimal(100):
+            raise ApplicationValidationError("진행률은 0에서 100 사이여야 합니다.")
+        current = job.progress_percent or Decimal(0)
+        if progress_percent < current:
+            raise ApplicationValidationError("진행률은 감소할 수 없습니다.")
+        job.progress_percent = progress_percent
+
+    @staticmethod
     def _validate_transition(current: JobStatus, target: JobStatus) -> None:
         if target not in ALLOWED_TRANSITIONS[current]:
             raise InvalidStateError("Workspace Job")
@@ -589,3 +1202,171 @@ def _optional_filter_text(value: object, field_name: str) -> str | None:
     if not isinstance(value, str):
         raise ApplicationValidationError(f"{field_name}가 유효하지 않습니다.")
     return _required_text(value, field_name)
+
+
+def _normalize_job_type(value: object) -> str:
+    normalized = _bounded_text(value, "Job 유형", 64)
+    if normalized not in OFFICIAL_JOB_TYPES:
+        raise ApplicationValidationError("지원하지 않는 Job 유형입니다.")
+    return normalized
+
+
+def _bounded_text(value: object, field_name: str, maximum: int) -> str:
+    if not isinstance(value, str):
+        raise ApplicationValidationError(f"{field_name} 형식이 유효하지 않습니다.")
+    normalized = value.strip()
+    if not normalized or len(normalized) > maximum:
+        raise ApplicationValidationError(f"{field_name} 길이가 유효하지 않습니다.")
+    return normalized
+
+
+def _optional_bounded_text(value: object, field_name: str, maximum: int) -> str | None:
+    if value is None:
+        return None
+    return _bounded_text(value, field_name, maximum)
+
+
+def _safe_public_text(value: object, field_name: str, maximum: int) -> str:
+    normalized = _bounded_text(value, field_name, maximum)
+    if any(ord(character) < 32 and character not in "\t" for character in normalized):
+        raise ApplicationValidationError(
+            f"{field_name}에 제어 문자를 사용할 수 없습니다."
+        )
+    if _UNSAFE_PUBLIC_TEXT.search(normalized):
+        raise ApplicationValidationError(
+            f"{field_name}에 민감한 실행 정보를 포함할 수 없습니다."
+        )
+    return normalized
+
+
+def _safe_error_code(value: object) -> str:
+    normalized = _bounded_text(
+        value or "JOB_FAILED", "오류 코드", MAX_ERROR_CODE_LENGTH
+    )
+    if re.fullmatch(r"[A-Z][A-Z0-9_]*", normalized) is None:
+        raise ApplicationValidationError("오류 코드는 안전한 대문자 식별자여야 합니다.")
+    return normalized
+
+
+def _safe_error_details_id(value: object) -> str | None:
+    normalized = _optional_bounded_text(
+        value, "오류 상세 참조", MAX_ERROR_DETAILS_ID_LENGTH
+    )
+    if normalized is None:
+        return None
+    if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]*", normalized) is None:
+        raise ApplicationValidationError("오류 상세 참조는 opaque ID여야 합니다.")
+    return normalized
+
+
+def _validate_job_settings(value: object) -> dict[str, Any]:
+    normalized = _validate_json_object(value, "settings_snapshot")
+
+    def inspect(item: object) -> None:
+        if isinstance(item, dict):
+            for key, child in item.items():
+                normalized_key = key.strip().lower().replace("-", "_")
+                if normalized_key in _SENSITIVE_KEYS or any(
+                    normalized_key.endswith(f"_{suffix}")
+                    for suffix in (
+                        "authorization",
+                        "credential",
+                        "password",
+                        "secret",
+                        "token",
+                        "api_key",
+                    )
+                ):
+                    raise ApplicationValidationError(
+                        "settings_snapshot에 비밀정보 필드를 포함할 수 없습니다."
+                    )
+                inspect(child)
+        elif isinstance(item, list):
+            for child in item:
+                inspect(child)
+
+    inspect(normalized)
+    return normalized
+
+
+def _canonical_fingerprint(payload: dict[str, Any]) -> str:
+    serialized = json.dumps(
+        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    )
+    return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
+
+
+def _snapshot_has_input(
+    snapshot_items: set[tuple[UUID, str]],
+    asset_version_id: UUID,
+    input_role: str | None,
+) -> bool:
+    if input_role is None:
+        return False
+    allowed_snapshot_roles = SNAPSHOT_ROLES_BY_INPUT_ROLE.get(input_role, frozenset())
+    return any(
+        (asset_version_id, snapshot_role) in snapshot_items
+        for snapshot_role in allowed_snapshot_roles
+    )
+
+
+def _job_create_fingerprint(
+    *,
+    effective_owner_id: UUID,
+    project_id: UUID,
+    job_type: str,
+    composition_snapshot_id: UUID | None,
+    inputs: Sequence[JobReferenceInput],
+    provider_id: str | None,
+    model_manifest_id: str | None,
+    api_contract_version: str,
+    settings_snapshot: dict[str, Any],
+) -> str:
+    return _canonical_fingerprint(
+        {
+            "api_contract_version": api_contract_version,
+            "composition_snapshot_id": (
+                str(composition_snapshot_id)
+                if composition_snapshot_id is not None
+                else None
+            ),
+            "effective_owner_id": str(effective_owner_id),
+            "inputs": [
+                {
+                    "artifact_id": str(item.artifact_id) if item.artifact_id else None,
+                    "asset_version_id": (
+                        str(item.asset_version_id) if item.asset_version_id else None
+                    ),
+                    "input_order": item.input_order,
+                    "input_role": item.input_role,
+                }
+                for item in inputs
+            ],
+            "job_type": job_type,
+            "model_manifest_id": model_manifest_id,
+            "project_id": str(project_id),
+            "provider_id": provider_id,
+            "settings_snapshot": settings_snapshot,
+        }
+    )
+
+
+def _claim_idempotency(
+    repository: IdempotencyRepository,
+    *,
+    scope: str,
+    key: str,
+    fingerprint: str,
+):
+    try:
+        return repository.claim(
+            scope=scope,
+            key=key,
+            fingerprint=fingerprint,
+            now=datetime.now(UTC),
+            ttl_hours=JOB_IDEMPOTENCY_TTL_HOURS,
+        )
+    except ValueError as error:
+        if str(error) == "IDEMPOTENCY_CONFLICT":
+            raise IdempotencyConflictError() from None
+        raise IdempotencyInProgressError() from None

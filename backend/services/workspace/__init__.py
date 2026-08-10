@@ -34,6 +34,9 @@ from backend.services.workspace.composition_service import (
     SnapshotItemInput,
 )
 from backend.services.workspace.job_service import (
+    JobAggregate,
+    JobCancelResult,
+    JobCreation,
     JobPage,
     JobReferenceInput,
     JobReferenceOutput,
@@ -73,6 +76,9 @@ __all__ = [
     "IngestedArtifact",
     "JobReferenceInput",
     "JobReferenceOutput",
+    "JobAggregate",
+    "JobCancelResult",
+    "JobCreation",
     "JobPage",
     "JobService",
     "ModelUsageInput",

@@ -8,6 +8,16 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가
+
+- Workspace Job 공식 7개 type과 Snapshot·input role Matrix, effective Owner·ProjectAsset·exact Artifact/AssetVersion lineage를 강제하는 owner-scoped 생성 Service를 추가했다.
+- Job·JobInput과 기존 `idempotency_records`를 한 transaction에서 생성하고 동일 create/retry 요청 replay, 충돌 거부와 실패 rollback을 검증했다.
+- progress 단조 증가, bounded stage·안전한 오류, terminal 불변, queued 즉시 취소·running cancel marker, frozen retry와 ordered aggregate read Service를 추가했다.
+
+### 변경
+
+- Job Foundation은 Service state/cancel/retry 기반까지 완료했지만 Worker claim/lease, Completion Unit of Work, Provider 호출과 Job API 5개는 계속 미구현이다. Resource API 25/64, metadata 36개 Table과 Alembic `20260810_0017`은 변경하지 않았다.
+
 ### 추가 — Workspace Job Cursor와 keyset Repository 기반
 
 - HMAC Cursor version 1에 `job` Resource를 추가하고 `(created_at DESC, job_id DESC)` position과 effective Owner·Workspace·선택 `project_id`·`status`·`job_type` fingerprint를 적용했다.

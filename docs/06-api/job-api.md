@@ -25,4 +25,4 @@ JobInput·JobOutput 독립 Endpoint는 제공하지 않는다. 목록은 effecti
 
 생성과 retry는 `Idempotency-Key`가 필수다. cancel은 반복 호출에 같은 결과를 반환하는 idempotent action이며 terminal `succeeded`·`failed`는 `409 JOB_NOT_CANCELLABLE`이다. 상세 상태·입출력·오류·진행률은 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)의 role·Owner·Provider·Artifact 계약을 따른다.
 
-현재 Resource API는 25/64, Workspace Job API는 0/5다. 역할·Workspace scope·cancellation marker·claim/lease Column과 Index는 source revision `20260810_0017`에 구현했다. 실제 DB 적용·Cursor·Repository keyset·Service state machine·Worker와 completion Unit of Work를 구현·검증하기 전에는 이 API를 완료로 표시하지 않는다.
+현재 Resource API는 25/64, Workspace Job API는 0/5다. 역할·Workspace scope·cancellation marker·claim/lease Column과 Index는 source revision `20260810_0017`에 구현해 실제 DB에 적용했고 Cursor·Repository keyset과 생성·상태·취소·재시도 Service 기반도 구현했다. Worker와 completion Unit of Work·Router를 구현·검증하기 전에는 이 API를 완료로 표시하지 않는다.

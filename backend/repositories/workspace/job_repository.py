@@ -27,6 +27,20 @@ class JobRepository:
     def get_job(self, job_id: UUID) -> Job | None:
         return self.session.get(Job, job_id)
 
+    def get_job_for_owner(self, job_id: UUID, owner_id: UUID) -> Job | None:
+        """Owner 범위를 벗어난 Job의 존재를 노출하지 않고 조회한다."""
+
+        statement = (
+            select(Job)
+            .join(Workspace, Workspace.workspace_id == Job.workspace_id)
+            .where(
+                Job.job_id == job_id,
+                Workspace.owner_id == owner_id,
+                Workspace.deleted_at.is_(None),
+            )
+        )
+        return self.session.scalar(statement)
+
     def list_jobs(self, *, limit: int = 100, offset: int = 0) -> list[Job]:
         statement = (
             select(Job)
