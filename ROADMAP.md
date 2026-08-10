@@ -55,13 +55,13 @@
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | 실제 DB 0012~0017, Job schema·Index·Cursor·Repository keyset과 Artifact·CompositionSnapshot API 완료; Worker·Service state machine·API 0/5와 나머지 39개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | 실제 DB 0012~0017, Job schema·Index·Cursor·Repository keyset·Service state/cancel/retry 기반과 Artifact·CompositionSnapshot API 완료; Worker·Completion UoW·API 0/5와 나머지 39개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | Phase A 문서화 진행, Phase B~D 미착수 | [Provider Separation DoD](docs/DoD/Provider-Separation.md) |
 
 ## 현재 우선 작업
 
-**최우선:** revision `20260810_0017`의 Job schema·Index 실제 DB 적용, Bootstrap exact revision Gate와 Job Cursor·Repository keyset 기반을 완료했다. 다음은 Service state machine·Worker claim/lease와 completion Unit of Work를 순차 구현하며 Job API는 이 기반 검증 전 시작하지 않는다.
+**최우선:** revision `20260810_0017`의 Job schema·Index 실제 DB 적용, Bootstrap exact revision Gate, Job Cursor·Repository keyset과 Service 생성·상태·취소·재시도 기반을 완료했다. 다음은 Completion Unit of Work와 Worker claim/lease를 순차 구현하며 Job API는 이 기반 검증 전 시작하지 않는다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
@@ -75,7 +75,7 @@
 10. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 11. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
 12. [Workspace v1 API 계약](docs/06-api/workspace-rest-api-contract.md)은 공통 Router·응답 Schema·request ID·오류 분기, [명시적 Bootstrap 도구](docs/06-api/workspace-api-foundation-bootstrap.md), [HMAC Cursor Pagination](docs/06-api/cursor-pagination.md)과 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint 25개를 구현했다. Bootstrap CLI는 source와 실제 DB에 일치하는 `20260810_0017`만 허용하며 실제 Bootstrap은 실행하지 않았다. [CompositionSnapshot API](docs/06-api/composition-snapshot-foundation.md)는 불변 aggregate·Owner/ProjectAsset scope·자동 version·Cursor·Idempotency와 목록·생성·상세 Router 3개를 완료했다. Resource API 진행도는 25/64다.
-13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 21개 SQLAlchemy 2.0 Workspace Entity, 별도 `ArtifactStorageLocation`, Workspace Repository와 [Service 소유 transaction](docs/03-architecture/workspace-service-transaction.md)을 구현했다. Job scope·role·cancel·claim/lease Column과 Index 6개를 additive revision `20260810_0017`로 추가하고 실제 사용자 DB에 적용했으며 Job Cursor·Owner/Workspace keyset Repository 기반도 구현했다. 36개 Application Table을 유지하며 실제 Bootstrap·backfill·dual write·Job Service state machine·나머지 39개 Resource REST API·Frontend·Legacy 제거는 미구현이고 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
+13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 21개 SQLAlchemy 2.0 Workspace Entity, 별도 `ArtifactStorageLocation`, Workspace Repository와 [Service 소유 transaction](docs/03-architecture/workspace-service-transaction.md)을 구현했다. Job scope·role·cancel·claim/lease Column과 Index 6개를 additive revision `20260810_0017`로 실제 사용자 DB에 적용했고 Job Cursor·Owner/Workspace keyset Repository와 생성·상태·취소·재시도 Service 기반도 구현했다. 36개 Application Table을 유지하며 실제 Bootstrap·backfill·dual write·Worker·Completion UoW·나머지 39개 Resource REST API·Frontend·Legacy 제거는 미구현이고 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
 14. [완료] [Artifact Storage 계약](docs/03-architecture/artifact-storage-contract.md)과 [ADR-032](docs/11-decisions/ADR-032-artifact-storage-resolver-integrity.md)에서 `artifact://<artifact_id>`, 별도 Catalog, trusted ingestion, SHA-256·size·MIME 검증, immutable publish, owner/retention Application Gate와 [dry-run reconciliation](docs/10-operations/artifact-storage-reconciliation.md)을 구현했다. Content read는 매 요청 전체 SHA-256을 검증하며 scanner는 승인 namespace만 batch 조회하고 어떤 row·파일도 변경하지 않는다. Artifact Metadata·content·download API와 single-byte Range도 구현했고 CompositionSnapshot API 완료 후 Resource API는 25/64다. 다음은 별도 승인의 destructive maintenance이며 공개 Artifact 쓰기 API는 계약에 없다.
 15. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
 

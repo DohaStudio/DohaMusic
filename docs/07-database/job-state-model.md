@@ -36,8 +36,8 @@ stateDiagram-v2
 | `failed` | 안전한 오류와 retryability를 기록하고 종료 | 없음 |
 | `cancelled` | 실행 중단과 부분 결과 정리를 확인하고 종료 | 없음 |
 
-`cancel_requested`는 공개 상태가 아니다. source revision `20260810_0017`의 내부 `cancel_requested_at` marker로 관리하고 running 상태에서 Worker·Provider에 전파한 뒤에만 `cancelled`로 확정한다. `progress_percent=100`이나 Provider `success`만으로 `succeeded`가 되지 않는다.
+`cancel_requested`는 공개 상태가 아니다. source revision `20260810_0017`의 내부 `cancel_requested_at` marker로 관리한다. Service는 claim되지 않은 queued Job을 즉시 `cancelled`로 만들고 running Job에는 marker만 기록하며, Worker·Provider에 전파한 뒤에만 `cancelled`로 확정한다. `progress_percent=100`이나 Provider `success`만으로 `succeeded`가 되지 않는다.
 
 Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분하며, lease 만료 running Job은 자동으로 queued에 되돌리지 않고 retryable failure로 종료한다.
 
-terminal Job은 상태·입력·출력·ModelUsage·settings를 변경하지 않으며 append-only History audit만 허용한다. cancellation marker, claim·lease·heartbeat·attempt와 nullable staging role Column 및 Index는 revision `20260810_0017`로 실제 사용자 DB에 적용했다. Service·Worker 상태 전이는 후속 범위다.
+terminal Job은 상태·입력·출력·ModelUsage·settings를 변경하지 않으며 append-only History audit만 허용한다. cancellation marker, claim·lease·heartbeat·attempt와 nullable staging role Column 및 Index는 revision `20260810_0017`로 실제 사용자 DB에 적용했다. Service의 succeeded 제외 상태·진행률·취소·재시도 경계는 구현했고 succeeded Completion Unit of Work와 Worker 상태 전이는 후속 범위다.
