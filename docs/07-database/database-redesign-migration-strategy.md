@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 구현 상태: 목표 Entity·0012~0016 실제 적용, Workspace Repository·Service·Catalog 조회·local Resolver·Resource API 19개 완료; Bootstrap·backfill·dual write·파일 이동 미수행
+> 구현 상태: 목표 Entity·0012~0016 실제 적용, Resource API 22개와 CompositionSnapshot Service 기반 완료; Bootstrap·backfill·dual write·파일 이동 미수행
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
@@ -146,7 +146,7 @@ Alembic source head와 실제 사용자 DB revision은 내부 Artifact Catalog T
 
 1~2번, `20260806_0012`의 additive Table과 후속 Workspace·Project keyset Index revision `20260807_0013`, ProjectAsset keyset Index revision `20260807_0014`, Asset keyset Index revision `20260808_0015`, Artifact Catalog revision `20260809_0016`의 실제 사용자 DB 적용을 완료했습니다. 신규 Workspace Table과 Catalog row는 0건이며 3번 backfill도 수행하지 않았습니다.
 
-Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 검증했습니다. Catalog 조회·local Resolver와 trusted ingestion의 physical SHA-256·size·MIME 검증도 구현했으며 owner/retention·full orphan worker·Range는 다음 단계입니다.
+Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Catalog를 추가하는 revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했습니다. Artifact와 Catalog의 1:1 FK, `(storage_backend, storage_domain, storage_key)` Unique, upgrade·downgrade와 metadata·reflection 일치를 검증했습니다. Catalog 조회·local Resolver, trusted ingestion의 physical SHA-256·size·MIME 검증, owner-scoped Application Service, retention·integrity read Gate, 승인 namespace batch dry-run reconciliation과 Artifact API 3개의 single-byte Range를 구현했습니다. destructive reconciliation·maintenance repair·실제 운영 Payload 검증·checksum cache·대용량 성능 최적화·non-local backend·Bootstrap·backfill·dual write·Runtime read source 전환·Legacy 정리는 미구현입니다.
 
 ### Phase 3 — Asset와 Artifact 계보 Backfill
 

@@ -25,8 +25,12 @@ from backend.services.workspace.artifact_reconciliation_service import (
 from backend.services.workspace.asset_service import AssetCursorPage, AssetService
 from backend.services.workspace.collaboration_service import CollaborationService
 from backend.services.workspace.composition_service import (
+    CompositionSnapshotAggregate,
+    CompositionSnapshotCreation,
+    CompositionSnapshotCursorPage,
     CompositionService,
     ProcessingStepInput,
+    SNAPSHOT_ITEM_ROLES,
     SnapshotItemInput,
 )
 from backend.services.workspace.job_service import (
@@ -60,6 +64,9 @@ __all__ = [
     "AssetService",
     "BootstrapWorkspaceResult",
     "CollaborationService",
+    "CompositionSnapshotAggregate",
+    "CompositionSnapshotCreation",
+    "CompositionSnapshotCursorPage",
     "CompositionService",
     "CursorPage",
     "IngestedArtifact",
@@ -69,6 +76,7 @@ __all__ = [
     "ModelUsageInput",
     "OrphanCandidate",
     "ProcessingStepInput",
+    "SNAPSHOT_ITEM_ROLES",
     "SnapshotItemInput",
     "WorkspaceService",
 ]

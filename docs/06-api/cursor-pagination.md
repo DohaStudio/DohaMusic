@@ -1,14 +1,14 @@
 # HMAC Cursor Pagination 설계
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-10
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: Workspace·Project·ProjectAsset·Asset Cursor와 Resource Router, 실제 DB 0013~0015 적용 완료
-> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md), [Asset Index](../07-database/asset-keyset-indexes.md)
+> 구현 상태: Workspace·Project·ProjectAsset·Asset Router와 CompositionSnapshot Service Cursor 구현, 실제 DB 0013~0015 적용 완료
+> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [CompositionSnapshot 기반](composition-snapshot-foundation.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md), [Asset Index](../07-database/asset-keyset-indexes.md)
 
 ## 1. 목적과 범위
 
-Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project·ProjectAsset·Asset 조회를 Resource Router에 연결했습니다. 인증·Idempotency·backfill은 포함하지 않습니다.
+Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project·ProjectAsset·Asset 조회를 Resource Router에 연결했고 CompositionSnapshot은 Service 기반까지 구현했습니다. 인증·backfill은 포함하지 않습니다.
 
 ## 2. 서명 키
 
@@ -29,26 +29,27 @@ Payload 필드는 다음으로 고정합니다.
 | 필드 | 값 |
 |---|---|
 | `v` | `1` |
-| `resource` | `workspace`, `project`, `project_asset` 또는 `asset` |
+| `resource` | `workspace`, `project`, `project_asset`, `asset` 또는 `composition_snapshot` |
 | `direction` | `next` |
 | `sort` | `created_at_desc` |
 | `last_created_at` | Workspace·Project·Asset 직전 page 마지막 row의 UTC ISO 8601 시각 |
 | `last_display_order` | ProjectAsset 직전 page 마지막 row의 정확한 정수 표시 순서 |
+| `last_snapshot_version` | CompositionSnapshot 직전 page 마지막 row의 정확한 양의 정수 version |
 | `last_id` | 직전 page 마지막 row의 UUID |
 | `filter_hash` | canonical filter JSON의 SHA-256 |
 | `limit` | 1~100의 page 크기 |
 
-Workspace·Project·Asset payload는 `last_created_at`, ProjectAsset payload는 `last_display_order`만 사용하며 두 position field를 한 token에 함께 넣지 않습니다. ProjectAsset은 `sort=display_order_asc`를 사용합니다. Asset은 기존 created-at payload에 새 Resource 값만 추가하므로 version 1을 유지하면서 기존 token 의미와 서명을 바꾸지 않습니다. Payload에 owner·Workspace 이름·Project 제목·DB 경로·Table명·SQL·credential을 넣지 않습니다.
+Workspace·Project·Asset payload는 `last_created_at`, ProjectAsset payload는 `last_display_order`, CompositionSnapshot payload는 `last_snapshot_version`만 사용합니다. 여러 position field를 한 token에 함께 넣지 않습니다. ProjectAsset은 `sort=display_order_asc`, CompositionSnapshot은 `sort=snapshot_version_desc`를 사용합니다. 새 Resource 값과 전용 payload shape를 추가하되 version 1과 기존 token 의미를 바꾸지 않습니다. Payload에 owner·Workspace 이름·Project 제목·DB 경로·Table명·SQL·credential을 넣지 않습니다.
 
 ## 4. 검증과 오류
 
-Decode는 2 KiB 최대 길이를 먼저 확인한 뒤 token 구조와 base64url, `compare_digest` 기반 서명, Resource별 정확한 payload field 집합, version, Resource, 방향, 정렬, UUID, position, filter fingerprint와 limit을 검증합니다. `v`·`limit`·ProjectAsset `last_display_order`는 Boolean·실수·문자열을 허용하지 않는 정확한 정수입니다. 실패 원인은 내부 `reason`으로만 구분하며 외부에는 `422 INVALID_CURSOR`와 고정 메시지만 제공합니다.
+Decode는 2 KiB 최대 길이를 먼저 확인한 뒤 token 구조와 base64url, `compare_digest` 기반 서명, Resource별 정확한 payload field 집합, version, Resource, 방향, 정렬, UUID, position, filter fingerprint와 limit을 검증합니다. `v`·`limit`·ProjectAsset `last_display_order`·CompositionSnapshot `last_snapshot_version`은 Boolean·실수·문자열을 허용하지 않는 정확한 정수입니다. 실패 원인은 내부 `reason`으로만 구분하며 외부에는 `422 INVALID_CURSOR`와 고정 메시지만 제공합니다.
 
 서명 키가 없거나 짧으면 `500 CURSOR_CONFIGURATION_ERROR`, 요청 limit이 범위를 벗어나면 `422 INVALID_LIMIT`입니다. 서명값과 payload 원문을 오류에 포함하지 않습니다.
 
 ## 5. Filter fingerprint
 
-Workspace fingerprint는 `include_deleted=false`, 정렬과 내부 owner filter를 사용합니다. Project fingerprint는 `workspace_id`, ProjectAsset fingerprint는 `project_id`와 `include_deleted=false`·정렬을 사용합니다. Asset fingerprint는 신뢰된 effective Owner, 선택적 `workspace_id`·`asset_type`, `include_deleted=false`와 정렬을 사용합니다. JSON key 정렬과 공백 없는 canonical 직렬화 뒤 SHA-256을 계산하므로 다른 Owner·Workspace·Project·Asset type·정렬 조건에 cursor를 재사용할 수 없습니다.
+Workspace fingerprint는 `include_deleted=false`, 정렬과 내부 owner filter를 사용합니다. Project fingerprint는 `workspace_id`, ProjectAsset fingerprint는 `project_id`와 `include_deleted=false`·정렬을 사용합니다. Asset fingerprint는 신뢰된 effective Owner, 선택적 `workspace_id`·`asset_type`, `include_deleted=false`와 정렬을 사용합니다. CompositionSnapshot fingerprint는 effective Owner, `project_id`, 활성 Project 조건과 정렬을 사용합니다. JSON key 정렬과 공백 없는 canonical 직렬화 뒤 SHA-256을 계산하므로 다른 Owner·Workspace·Project·Asset type·정렬 조건에 cursor를 재사용할 수 없습니다.
 
 ## 6. Keyset 조회
 
@@ -69,6 +70,15 @@ OR (display_order = last_display_order AND project_asset_id > last_id)
 ```
 
 ProjectAsset cursor는 `project_id` filter에 결합되며 다른 Project에서 재사용하면 `INVALID_CURSOR`입니다. 동일 `display_order`는 UUID로 결정적으로 정렬하고 Soft Delete row를 제외합니다.
+
+CompositionSnapshot은 `(snapshot_version DESC, composition_snapshot_id DESC)`로 정렬합니다.
+
+```text
+snapshot_version < last_snapshot_version
+OR (snapshot_version = last_snapshot_version AND composition_snapshot_id < last_id)
+```
+
+Project filter와 effective Owner scope에 token을 결합합니다. 기존 `(project_id, snapshot_version)` Unique Index로 6,000개 임시 SQLite fixture의 첫·다음 page에서 Index를 사용하고 TEMP B-TREE와 전체 Table scan이 발생하지 않아 신규 Index와 Alembic revision은 추가하지 않습니다.
 
 Service는 `limit + 1`개를 조회해 `has_more`를 계산하고 응답 항목은 `limit`개로 자릅니다. 다음 row가 있으면 마지막 반환 row로 서명된 `next_cursor`를 만들고, 마지막 page와 빈 page에서는 `has_more=false`, `next_cursor=null`을 반환합니다.
 
@@ -93,6 +103,8 @@ Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_i
 7. `[완료]` ProjectAsset Resource Router 3개를 연결했습니다.
 8. `[완료]` Asset 공개 scope·filter, version 1 Cursor, keyset Repository·Service와 source Index revision `20260808_0015`를 구현했습니다.
 9. `[완료]` 별도 승인 절차로 실제 사용자 DB에 0015를 적용한 뒤 Asset Resource API 5개를 구현했습니다.
-10. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
+10. `[완료]` CompositionSnapshot 전용 position·Project/Owner fingerprint와 keyset Repository·Service를 구현하고 기존 Unique Index의 Query Plan을 검증했습니다.
+11. `[계획]` CompositionSnapshot Router에서 목록 Cursor를 연결합니다.
+12. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 
-나머지 42개 Resource Endpoint, Idempotency replay, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다. AssetVersion 목록은 단일 Asset의 완전한 계보를 최신 번호순으로 반환하므로 Cursor 계약을 사용하지 않습니다. Artifact API는 단건 Metadata·content·download만 제공하므로 Cursor 계약을 사용하지 않습니다.
+나머지 42개 Resource Endpoint, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다. CompositionSnapshot Idempotency는 Service 기반만 구현했으며 HTTP header 연결은 Router 후속 범위입니다. AssetVersion 목록은 단일 Asset의 완전한 계보를 최신 번호순으로 반환하므로 Cursor 계약을 사용하지 않습니다. Artifact API는 단건 Metadata·content·download만 제공하므로 Cursor 계약을 사용하지 않습니다.

@@ -115,6 +115,8 @@ POST는 선택적 `workspace_id`, 필수 `asset_type`과 초기 `lifecycle_statu
 
 POST는 `project_id`, 역할별 `asset_version_id`, `processing_chain_id`, Mix Settings, Provider version과 Model Manifest ID를 받습니다. Asset 최신 Version을 간접 참조하지 않습니다. PATCH와 DELETE는 없습니다.
 
+세 Endpoint는 아직 `[계획]`이며 CompositionSnapshot API는 0/3, 전체 Resource API는 22/64입니다. 다만 [CompositionSnapshot 기반 계약](composition-snapshot-foundation.md)의 effective Owner·ProjectAsset scope, 불변 aggregate 생성, 자동 version, HMAC Cursor, Idempotency와 bounded lineage는 구현했습니다. Router·공개 DTO·OpenAPI operation은 후속 PR에서 연결합니다.
+
 ## 9. Job API — 5개
 
 | Method | Path | 성공 | 목적 |

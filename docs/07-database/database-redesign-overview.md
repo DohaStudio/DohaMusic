@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Workspace Repository·Service·Catalog 조회·local Resolver와 Resource API 19개 완료; Bootstrap·backfill·dual write 미수행
+> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Resource API 22개와 CompositionSnapshot Service 기반 완료; Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -24,7 +24,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260809_0016`은 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table이고 Catalog row는 0개입니다. Repository와 Service 및 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion Resource API 19개는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table은 현재 빈 상태입니다. Artifact 이하 Resource API·backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
+이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260809_0016`은 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table이고 Catalog row는 0개입니다. Repository와 Service 및 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact Resource API 22개는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table은 현재 빈 상태입니다. CompositionSnapshot은 불변 aggregate·Cursor·Idempotency 기반만 완료했고 Router는 미구현입니다. backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
 
 ## 2. Common Specification 기준
 
@@ -110,7 +110,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - 내부 URI는 `artifact://<artifact_id>`이며 공개 API는 Artifact ID 기반 content·download link를 사용합니다.
 - Export는 `export` 유형 Asset과 불변 AssetVersion이며 WAV·MP3·FLAC 파일은 Artifact입니다.
 
-Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. source metadata와 실제 DB는 36개 Table이고 Catalog row는 0개입니다. Catalog 조회 Repository와 local Resolver는 구현했고 trusted ingestion은 별도 후속 작업이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
+Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. source metadata와 실제 DB는 36개 Table이고 Catalog row는 0개입니다. Catalog 조회 Repository, local Resolver, trusted ingestion의 authoritative SHA-256·size·MIME 검증과 Artifact API 3개를 구현했습니다. destructive reconciliation·maintenance repair·checksum cache·대용량 성능 최적화·non-local backend는 미구현이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
 
 ## 4. 목표 Entity와 Table 수
 

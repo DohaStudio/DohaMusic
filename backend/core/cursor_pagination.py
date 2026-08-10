@@ -16,11 +16,14 @@ from uuid import UUID
 from backend.core.exceptions import CursorConfigurationError, InvalidCursorError
 
 CreatedAtCursorResource = Literal["workspace", "project", "asset"]
-CursorResource = Literal["workspace", "project", "project_asset", "asset"]
+CursorResource = Literal[
+    "workspace", "project", "project_asset", "asset", "composition_snapshot"
+]
 CURSOR_VERSION = 1
 CURSOR_DIRECTION = "next"
 CURSOR_SORT = "created_at_desc"
 PROJECT_ASSET_CURSOR_SORT = "display_order_asc"
+COMPOSITION_SNAPSHOT_CURSOR_SORT = "snapshot_version_desc"
 MIN_CURSOR_SIGNING_KEY_BYTES = 32
 MIN_PAGE_LIMIT = 1
 MAX_PAGE_LIMIT = 100
@@ -46,6 +49,16 @@ _DISPLAY_ORDER_PAYLOAD_FIELDS = {
     "filter_hash",
     "limit",
 }
+_SNAPSHOT_VERSION_PAYLOAD_FIELDS = {
+    "v",
+    "resource",
+    "direction",
+    "sort",
+    "last_snapshot_version",
+    "last_id",
+    "filter_hash",
+    "limit",
+}
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,6 +74,14 @@ class DisplayOrderCursorPosition:
     """ProjectAsset display order keyset 위치."""
 
     last_display_order: int
+    last_id: UUID
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotVersionCursorPosition:
+    """CompositionSnapshot version DESC keyset 위치."""
+
+    last_snapshot_version: int
     last_id: UUID
 
 
@@ -199,6 +220,70 @@ class CursorCodec:
             last_id=last_id,
         )
 
+    def encode_composition_snapshot(
+        self,
+        *,
+        last_snapshot_version: int,
+        last_id: UUID,
+        filter_hash: str,
+        limit: int,
+    ) -> str:
+        """CompositionSnapshot DESC keyset 위치를 서명한다."""
+
+        _validate_snapshot_version(last_snapshot_version)
+        _validate_filter_hash(filter_hash)
+        _validate_limit(limit)
+        payload = {
+            "direction": CURSOR_DIRECTION,
+            "filter_hash": filter_hash,
+            "last_id": str(last_id),
+            "last_snapshot_version": last_snapshot_version,
+            "limit": limit,
+            "resource": "composition_snapshot",
+            "sort": COMPOSITION_SNAPSHOT_CURSOR_SORT,
+            "v": CURSOR_VERSION,
+        }
+        return self._encode_payload(payload)
+
+    def decode_composition_snapshot(
+        self,
+        token: str,
+        *,
+        expected_filter_hash: str,
+        expected_limit: int,
+    ) -> SnapshotVersionCursorPosition:
+        """서명과 CompositionSnapshot 전용 payload를 엄격하게 검증한다."""
+
+        _validate_filter_hash(expected_filter_hash)
+        _validate_limit(expected_limit)
+        payload = self._decode_payload(token)
+        if set(payload) != _SNAPSHOT_VERSION_PAYLOAD_FIELDS:
+            raise InvalidCursorError("payload_shape")
+        payload_version = payload.get("v")
+        if type(payload_version) is not int or payload_version != CURSOR_VERSION:
+            raise InvalidCursorError("version")
+        if payload.get("resource") != "composition_snapshot":
+            raise InvalidCursorError("resource")
+        if payload.get("direction") != CURSOR_DIRECTION:
+            raise InvalidCursorError("direction")
+        if payload.get("sort") != COMPOSITION_SNAPSHOT_CURSOR_SORT:
+            raise InvalidCursorError("sort")
+        if payload.get("filter_hash") != expected_filter_hash:
+            raise InvalidCursorError("filter")
+        payload_limit = payload.get("limit")
+        if type(payload_limit) is not int or payload_limit != expected_limit:
+            raise InvalidCursorError("limit")
+        last_snapshot_version = payload.get("last_snapshot_version")
+        _validate_snapshot_version(last_snapshot_version)
+        try:
+            last_id = UUID(str(payload.get("last_id")))
+        except (TypeError, ValueError):
+            raise InvalidCursorError("position") from None
+        return SnapshotVersionCursorPosition(
+            last_snapshot_version=last_snapshot_version,
+            last_id=last_id,
+        )
+
     def _encode_payload(self, payload: Mapping[str, object]) -> str:
         payload_bytes = _canonical_json(payload)
         signature = hmac.new(self._signing_key, payload_bytes, hashlib.sha256).digest()
@@ -293,4 +378,9 @@ def _validate_limit(limit: object) -> None:
 
 def _validate_display_order(value: object) -> None:
     if type(value) is not int or value < 0:
+        raise InvalidCursorError("position")
+
+
+def _validate_snapshot_version(value: object) -> None:
+    if type(value) is not int or value < 1:
         raise InvalidCursorError("position")
