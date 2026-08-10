@@ -5,11 +5,12 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.enums import JobStatus
 from backend.models.workspace.job import Job, JobInput, JobOutput, ModelUsage
+from backend.models.workspace.workspace import Workspace
 
 
 class JobRepository:
@@ -56,6 +57,32 @@ class JobRepository:
             .order_by(Job.created_at, Job.job_id)
             .limit(limit)
             .offset(offset)
+        )
+        return list(self.session.scalars(statement))
+
+    def list_jobs_after(
+        self,
+        *,
+        owner_id: UUID,
+        workspace_id: UUID,
+        project_id: UUID | None = None,
+        status: JobStatus | None = None,
+        job_type: str | None = None,
+        last_created_at: datetime | None = None,
+        last_id: UUID | None = None,
+        limit: int = 100,
+    ) -> list[Job]:
+        """Owner·Workspace scope의 Job을 DESC keyset으로 조회한다."""
+
+        statement = _build_list_jobs_after_statement(
+            owner_id=owner_id,
+            workspace_id=workspace_id,
+            project_id=project_id,
+            status=status,
+            job_type=job_type,
+            last_created_at=last_created_at,
+            last_id=last_id,
+            limit=limit,
         )
         return list(self.session.scalars(statement))
 
@@ -139,3 +166,53 @@ class JobRepository:
             .offset(offset)
         )
         return list(self.session.scalars(statement))
+
+
+def _build_list_jobs_after_statement(
+    *,
+    owner_id: UUID,
+    workspace_id: UUID,
+    project_id: UUID | None = None,
+    status: JobStatus | None = None,
+    job_type: str | None = None,
+    last_created_at: datetime | None = None,
+    last_id: UUID | None = None,
+    limit: int = 100,
+):
+    """Repository 실행과 Query Plan 검증이 공유하는 단일 statement를 만든다."""
+
+    _validate_keyset_position(last_created_at, last_id)
+    statement = (
+        select(Job)
+        .join(Workspace, Workspace.workspace_id == Job.workspace_id)
+        .where(
+            Workspace.owner_id == owner_id,
+            Workspace.workspace_id == workspace_id,
+            Workspace.deleted_at.is_(None),
+            Job.workspace_id == workspace_id,
+        )
+    )
+    if project_id is not None:
+        statement = statement.where(Job.project_id == project_id)
+    if status is not None:
+        statement = statement.where(Job.status == status)
+    if job_type is not None:
+        statement = statement.where(Job.job_type == job_type)
+    if last_created_at is not None and last_id is not None:
+        statement = statement.where(
+            or_(
+                Job.created_at < last_created_at,
+                and_(
+                    Job.created_at == last_created_at,
+                    Job.job_id < last_id,
+                ),
+            )
+        )
+    return statement.order_by(Job.created_at.desc(), Job.job_id.desc()).limit(limit)
+
+
+def _validate_keyset_position(
+    last_created_at: datetime | None, last_id: UUID | None
+) -> None:
+    if (last_created_at is None) != (last_id is None):
+        raise ValueError("keyset position requires both created_at and id")

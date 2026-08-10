@@ -14,10 +14,13 @@ from sqlalchemy.orm import Session
 
 from backend.core.exceptions import (
     ApplicationValidationError,
+    CursorConfigurationError,
+    InvalidLimitError,
     InvalidStateError,
     ResourceConflictError,
     ResourceNotFoundError,
 )
+from backend.core.cursor_pagination import CURSOR_SORT, CursorCodec, filter_fingerprint
 from backend.models.workspace import (
     Job,
     JobInput,
@@ -73,6 +76,14 @@ class ModelUsageInput:
     checkpoint_version: str | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class JobPage:
+    items: tuple[Job, ...]
+    next_cursor: str | None
+    has_more: bool
+    limit: int
+
+
 def _required_text(value: str, field_name: str) -> str:
     normalized = value.strip()
     if not normalized:
@@ -83,8 +94,14 @@ def _required_text(value: str, field_name: str) -> str:
 class JobService:
     """Job 요청 snapshot과 상태 전이를 transaction 단위로 관리한다."""
 
-    def __init__(self, session_factory: Callable[[], Session]) -> None:
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        *,
+        cursor_codec: CursorCodec | None = None,
+    ) -> None:
         self.session_factory = session_factory
+        self.cursor_codec = cursor_codec
 
     def create_job(
         self,
@@ -203,6 +220,92 @@ class JobService:
                     status, limit=limit, offset=offset
                 )
             return repository.list_jobs(limit=limit, offset=offset)
+
+    def list_job_page(
+        self,
+        *,
+        effective_owner_id: UUID,
+        workspace_id: UUID,
+        project_id: UUID | None = None,
+        status: JobStatus | None = None,
+        job_type: str | None = None,
+        cursor: str | None = None,
+        limit: int = 50,
+    ) -> JobPage:
+        """Owner·Workspace 범위를 고정한 Job DESC cursor page를 반환한다."""
+
+        _validate_page_limit(limit)
+        if status is not None and not isinstance(status, JobStatus):
+            raise ApplicationValidationError("Job 상태 filter가 유효하지 않습니다.")
+        normalized_job_type = _optional_filter_text(job_type, "Job 유형 filter")
+        codec = self._require_cursor_codec()
+        filter_hash = filter_fingerprint(
+            {
+                "effective_owner_id": str(effective_owner_id),
+                "job_type": normalized_job_type,
+                "project_id": str(project_id) if project_id is not None else None,
+                "sort": CURSOR_SORT,
+                "status": status.value if status is not None else None,
+                "workspace_id": str(workspace_id),
+            }
+        )
+        position = (
+            codec.decode(
+                cursor,
+                expected_resource="job",
+                expected_filter_hash=filter_hash,
+                expected_limit=limit,
+            )
+            if cursor is not None
+            else None
+        )
+        with self.session_factory() as session:
+            workspace_repository = WorkspaceRepository(session)
+            if (
+                workspace_repository.get_workspace_for_owner(
+                    workspace_id,
+                    effective_owner_id,
+                )
+                is None
+            ):
+                raise ResourceNotFoundError("Workspace")
+            if project_id is not None:
+                project = workspace_repository.get_project(project_id)
+                if project is None or project.workspace_id != workspace_id:
+                    raise ResourceNotFoundError("MusicProject")
+            rows = JobRepository(session).list_jobs_after(
+                owner_id=effective_owner_id,
+                workspace_id=workspace_id,
+                project_id=project_id,
+                status=status,
+                job_type=normalized_job_type,
+                last_created_at=(position.last_created_at if position else None),
+                last_id=(position.last_id if position else None),
+                limit=limit + 1,
+            )
+        has_more = len(rows) > limit
+        items = tuple(rows[:limit])
+        next_cursor = None
+        if has_more:
+            last_item = items[-1]
+            next_cursor = codec.encode(
+                resource="job",
+                last_created_at=last_item.created_at,
+                last_id=last_item.job_id,
+                filter_hash=filter_hash,
+                limit=limit,
+            )
+        return JobPage(
+            items=items,
+            next_cursor=next_cursor,
+            has_more=has_more,
+            limit=limit,
+        )
+
+    def _require_cursor_codec(self) -> CursorCodec:
+        if self.cursor_codec is None:
+            raise CursorConfigurationError()
+        return self.cursor_codec
 
     def update_job_status(
         self,
@@ -473,3 +576,16 @@ class JobService:
                 value.commercial_usage_status, "상업 이용 상태"
             ),
         )
+
+
+def _validate_page_limit(limit: object) -> None:
+    if type(limit) is not int or not 1 <= limit <= 100:
+        raise InvalidLimitError()
+
+
+def _optional_filter_text(value: object, field_name: str) -> str | None:
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise ApplicationValidationError(f"{field_name}가 유효하지 않습니다.")
+    return _required_text(value, field_name)

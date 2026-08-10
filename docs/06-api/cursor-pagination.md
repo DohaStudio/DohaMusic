@@ -3,12 +3,12 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-10
 > 관련 기능: Workspace v1 목록의 opaque cursor와 keyset 조회 기반
-> 구현 상태: Workspace·Project·ProjectAsset·Asset·CompositionSnapshot Router Cursor 구현, Job keyset Index source 0017 구현·Cursor 미구현, 실제 DB 0013~0015 적용 완료
+> 구현 상태: Workspace·Project·ProjectAsset·Asset·CompositionSnapshot Router Cursor와 Job Cursor·Repository keyset 기반 구현, Job API 미구현, 실제 DB 0013~0017 적용 완료
 > 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [CompositionSnapshot 기반](composition-snapshot-foundation.md), [API 전환 전략](api-contract-migration-strategy.md), [Backend 아키텍처](../03-architecture/backend-architecture.md), [Workspace·Project Index](../07-database/workspace-keyset-indexes.md), [ProjectAsset Index](../07-database/project-asset-keyset-indexes.md), [Asset Index](../07-database/asset-keyset-indexes.md)
 
 ## 1. 목적과 범위
 
-Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project·ProjectAsset·Asset 조회를 Resource Router에 연결했고 CompositionSnapshot은 Service 기반까지 구현했습니다. 인증·backfill은 포함하지 않습니다.
+Workspace v1 목록은 외부에 offset을 노출하지 않고 안정적인 keyset pagination을 사용합니다. Workspace·Project·ProjectAsset·Asset·CompositionSnapshot 조회를 Resource Router에 연결했고 Job은 Cursor·Repository·Service page 기반까지 구현했습니다. Job Router·인증·backfill은 포함하지 않습니다.
 
 ## 2. 서명 키
 
@@ -29,7 +29,7 @@ Payload 필드는 다음으로 고정합니다.
 | 필드 | 값 |
 |---|---|
 | `v` | `1` |
-| `resource` | 구현값 `workspace`, `project`, `project_asset`, `asset`, `composition_snapshot`; 계획값 `job` |
+| `resource` | 구현값 `workspace`, `project`, `project_asset`, `asset`, `composition_snapshot`, `job` |
 | `direction` | `next` |
 | `sort` | `created_at_desc` |
 | `last_created_at` | Workspace·Project·Asset 직전 page 마지막 row의 UTC ISO 8601 시각 |
@@ -39,7 +39,7 @@ Payload 필드는 다음으로 고정합니다.
 | `filter_hash` | canonical filter JSON의 SHA-256 |
 | `limit` | 1~100의 page 크기 |
 
-Workspace·Project·Asset payload는 `last_created_at`, ProjectAsset payload는 `last_display_order`, CompositionSnapshot payload는 `last_snapshot_version`만 사용합니다. 여러 position field를 한 token에 함께 넣지 않습니다. ProjectAsset은 `sort=display_order_asc`, CompositionSnapshot은 `sort=snapshot_version_desc`를 사용합니다. 새 Resource 값과 전용 payload shape를 추가하되 version 1과 기존 token 의미를 바꾸지 않습니다. Payload에 owner·Workspace 이름·Project 제목·DB 경로·Table명·SQL·credential을 넣지 않습니다.
+Workspace·Project·Asset·Job payload는 `last_created_at`, ProjectAsset payload는 `last_display_order`, CompositionSnapshot payload는 `last_snapshot_version`만 사용합니다. 여러 position field를 한 token에 함께 넣지 않습니다. ProjectAsset은 `sort=display_order_asc`, CompositionSnapshot은 `sort=snapshot_version_desc`를 사용합니다. 새 Resource 값과 전용 payload shape를 추가하되 version 1과 기존 token 의미를 바꾸지 않습니다. Payload에 owner·Workspace 이름·Project 제목·DB 경로·Table명·SQL·credential을 넣지 않습니다.
 
 ## 4. 검증과 오류
 
@@ -49,7 +49,7 @@ Decode는 2 KiB 최대 길이를 먼저 확인한 뒤 token 구조와 base64url,
 
 ## 5. Filter fingerprint
 
-Workspace fingerprint는 `include_deleted=false`, 정렬과 내부 owner filter를 사용합니다. Project fingerprint는 `workspace_id`, ProjectAsset fingerprint는 `project_id`와 `include_deleted=false`·정렬을 사용합니다. Asset fingerprint는 신뢰된 effective Owner, 선택적 `workspace_id`·`asset_type`, `include_deleted=false`와 정렬을 사용합니다. CompositionSnapshot fingerprint는 effective Owner, `project_id`, 활성 Project 조건과 정렬을 사용합니다. 계획된 Job fingerprint는 effective Owner·Workspace, 선택적 `project_id`·`status`·`job_type`과 정렬을 사용합니다. JSON key 정렬과 공백 없는 canonical 직렬화 뒤 SHA-256을 계산하므로 다른 Owner·Workspace·Project·Asset type·Job filter·정렬 조건에 cursor를 재사용할 수 없습니다.
+Workspace fingerprint는 `include_deleted=false`, 정렬과 내부 owner filter를 사용합니다. Project fingerprint는 `workspace_id`, ProjectAsset fingerprint는 `project_id`와 `include_deleted=false`·정렬을 사용합니다. Asset fingerprint는 신뢰된 effective Owner, 선택적 `workspace_id`·`asset_type`, `include_deleted=false`와 정렬을 사용합니다. CompositionSnapshot fingerprint는 effective Owner, `project_id`, 활성 Project 조건과 정렬을 사용합니다. Job fingerprint는 effective Owner·Workspace, 선택적 `project_id`·`status`·`job_type`과 정렬을 사용합니다. JSON key 정렬과 공백 없는 canonical 직렬화 뒤 SHA-256을 계산하므로 다른 Owner·Workspace·Project·Asset type·Job filter·정렬 조건에 cursor를 재사용할 수 없습니다.
 
 ## 6. Keyset 조회
 
@@ -82,6 +82,8 @@ Project filter와 effective Owner scope에 token을 결합합니다. 기존 `(pr
 
 Service는 `limit + 1`개를 조회해 `has_more`를 계산하고 응답 항목은 `limit`개로 자릅니다. 다음 row가 있으면 마지막 반환 row로 서명된 `next_cursor`를 만들고, 마지막 page와 빈 page에서는 `has_more=false`, `next_cursor=null`을 반환합니다.
 
+Job은 `(created_at DESC, job_id DESC)`를 사용합니다. Repository는 `workspaces`를 join해 effective Owner와 활성 Workspace를 강제하며 선택 `project_id`·`status`·`job_type`만 허용합니다. Service는 다른 Owner·Workspace·filter의 Cursor 재사용을 `INVALID_CURSOR`로 거부합니다. 기존 offset 메서드는 호환성을 위해 유지하지만 Job page는 `list_jobs_after()`만 사용합니다.
+
 페이지 사이에 row가 생성·삭제될 수 있으므로 이 계약은 전체 목록의 snapshot isolation을 보장하지 않습니다. 새로 생성된 상위 row를 과거 cursor가 다시 탐색하지 않고 Soft Delete된 후속 row는 제외하며, 이미 반환한 row를 재반환하지 않는 forward-only keyset 동작을 보장합니다.
 
 Alembic `20260807_0013`은 전체 활성 Workspace용 `(deleted_at, created_at, workspace_id)`, owner별 활성 Workspace용 `(owner_id, deleted_at, created_at, workspace_id)`, Workspace별 활성 MusicProject용 `(workspace_id, deleted_at, created_at, project_id)` 복합 Index를 추가합니다. 임시 SQLite의 첫·다음 page 여섯 쿼리에서 신규 Index가 선택되고 정렬용 임시 B-Tree가 제거됐습니다. SQLite는 ASC Index를 역방향으로 탐색하므로 metadata와 migration에는 명시적 DESC를 사용하지 않습니다.
@@ -107,6 +109,6 @@ Asset 공개 목록은 Owner를 필수 내부 scope로 고정하고 `workspace_i
 11. `[완료]` CompositionSnapshot Router에서 Project별 `snapshot_version DESC` 목록 Cursor를 연결했습니다.
 12. 운영 전 서명 키 교체와 cursor 만료 정책을 확정합니다.
 13. `[완료]` Job Workspace·Project·status·type 목록의 10,000 row Query Plan을 검증하고 source revision `20260810_0017`에 keyset Index 4개를 추가했습니다.
-14. `[계획]` Job resource, `(created_at DESC, job_id DESC)` position, 제한된 filter fingerprint와 Repository·Service keyset page를 구현합니다.
+14. `[완료]` Job resource, `(created_at DESC, job_id DESC)` position, 제한된 filter fingerprint와 Owner·Workspace scope Repository·Service keyset page를 구현했습니다.
 
 나머지 39개 Resource Endpoint, 인증·권한, Frontend, backfill·dual write는 별도 PR 범위입니다. CompositionSnapshot 생성은 필수 HTTP `Idempotency-Key`를 기존 Service transaction에 연결했습니다. AssetVersion 목록은 단일 Asset의 완전한 계보를 최신 번호순으로 반환하므로 Cursor 계약을 사용하지 않습니다. Artifact API는 단건 Metadata·content·download만 제공하므로 Cursor 계약을 사용하지 않습니다.
