@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 Workspace Entity 21개와 별도 Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Resource API 25개 완료, Workspace Job 계약 완료·API 0/5; Bootstrap·backfill·dual write 미수행
+> 구현 상태: 목표 Workspace Entity 21개와 Catalog `0016` 실제 DB 적용, Job schema·Index source `0017`, Resource API 25개 완료·Job API 0/5; Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -24,7 +24,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260809_0016`은 실제 사용자 DB에 적용됐으며 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table이고 Catalog row는 0개입니다. Repository와 Service 및 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개는 완료했지만 실제 Bootstrap은 실행하지 않아 신규 Workspace Table은 현재 빈 상태입니다. CompositionSnapshot은 불변 aggregate·Cursor·Idempotency 기반과 공식 목록·생성·상세 API 3개를 완료했습니다. backfill·dual write와 Storage 경로·Runtime 전환은 수행하지 않았습니다.
+이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260809_0016`은 실제 사용자 DB에 적용됐고 source revision `20260810_0017`은 Job schema·Index만 additive하게 추가했습니다. 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table입니다. Resource API 25개는 완료했지만 실제 Bootstrap·backfill·dual write와 Runtime 전환은 수행하지 않았습니다.
 
 ## 2. Common Specification 기준
 
@@ -85,7 +85,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - `JobOutput`은 성공 후 등록된 출력 `AssetVersion` 또는 `Artifact`를 연결합니다.
 - 재시도는 기존 Job 상태를 초기화하지 않고 `retry_of_job_id`로 연결된 새 Job을 생성합니다.
 - Provider는 Workspace DB를 직접 수정하지 않습니다. DohaMusic이 검증된 Provider 결과를 `Artifact`와 새 `AssetVersion`으로 등록합니다.
-- role, direct Workspace scope, cancellation marker, Worker claim·lease와 Job keyset Index는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)에 확정했으며 다음 additive Migration에서 구현합니다.
+- role, direct Workspace scope, cancellation marker, Worker claim·lease Column과 Job keyset·Worker Index는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)에 따라 source revision `20260810_0017`에서 구현했습니다. scope·role은 기존 row 보존을 위한 nullable staging이며 실제 DB 적용과 실행 로직은 미구현입니다.
 
 ### 3.6 Processing Chain과 ModelUsage
 

@@ -72,17 +72,20 @@ def _existing_snapshot(engine) -> tuple[dict[str, int], str]:
     with engine.connect() as connection:
         inspector = inspect(connection)
         for table_name in table_names:
-            table = Base.metadata.tables[table_name]
-            counts[table_name] = connection.execute(
-                select(text("count(*)")).select_from(table)
+            columns = [column["name"] for column in inspector.get_columns(table_name)]
+            quoted_columns = ", ".join(f'"{column}"' for column in columns)
+            counts[table_name] = connection.exec_driver_sql(
+                f'SELECT count(*) FROM "{table_name}"'
             ).scalar_one()
             primary_keys = inspector.get_pk_constraint(table_name)[
                 "constrained_columns"
             ]
-            query = select(table)
+            query = f'SELECT {quoted_columns} FROM "{table_name}"'
             if primary_keys:
-                query = query.order_by(*(table.c[column] for column in primary_keys))
-            rows = tuple(tuple(row) for row in connection.execute(query).all())
+                query += " ORDER BY " + ", ".join(
+                    f'"{column}"' for column in primary_keys
+                )
+            rows = tuple(tuple(row) for row in connection.exec_driver_sql(query).all())
             digest_rows.append((table_name, rows))
     digest = hashlib.sha256(repr(digest_rows).encode("utf-8")).hexdigest()
     return counts, digest

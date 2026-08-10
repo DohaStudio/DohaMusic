@@ -138,6 +138,7 @@ class JobService:
                 job = job_repository.add_job(
                     Job(
                         project_id=project_id,
+                        workspace_id=project.workspace_id,
                         composition_snapshot_id=composition_snapshot_id,
                         job_type=_required_text(job_type, "Job 유형"),
                         status=JobStatus.QUEUED,

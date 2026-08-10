@@ -8,7 +8,7 @@
 
 ## 배경
 
-Workspace Job Entity·Repository·Service 기반은 존재하지만 공개 API, role 기반 input/output, Cursor·Index, 실행 중 cancel marker, Worker claim·lease와 Provider 결과를 Workspace 성공으로 확정하는 Unit of Work는 구현되지 않았다. 기존 Pipeline cancel·retry와 ThreadPool Worker는 Legacy·Compatibility Runtime 계약이며 Workspace Job 완료 근거로 사용할 수 없다.
+Workspace Job Entity·Repository·Service 기반과 source revision `20260810_0017`의 role·scope·cancel·claim/lease Column 및 Index는 존재하지만 공개 API, Cursor, Worker claim·lease와 Provider 결과를 Workspace 성공으로 확정하는 Unit of Work는 구현되지 않았다. 기존 Pipeline cancel·retry와 ThreadPool Worker는 Legacy·Compatibility Runtime 계약이며 Workspace Job 완료 근거로 사용할 수 없다.
 
 ## 문제
 
@@ -43,20 +43,20 @@ Workspace Job Entity·Repository·Service 기반은 존재하지만 공개 API, 
 
 - 장점: exact input·output lineage, Owner scope, cancel race, 중복 Worker와 Provider 결과 검증 경계가 명확해진다.
 - 장점: Legacy Runtime을 유지한 채 additive Migration과 단계적 API 구현이 가능하다.
-- 단점: Job Column과 Index Migration, Worker 제어, completion orchestration과 보상 테스트가 필요하다.
+- 단점: 실제 DB Migration 적용과 staging Column 강화, Worker 제어, completion orchestration과 보상 테스트가 필요하다.
 - 단점: filesystem과 DB의 완전한 원자성 대신 orphan reconciliation을 운영해야 한다.
 
 ## 영향
 
-- Job API는 이 계약의 Migration·Cursor·Service·Worker 기반 전에는 구현 완료로 표시하지 않는다.
+- Job API는 이 계약의 실제 DB 적용·Cursor·Service·Worker 기반 전에는 구현 완료로 표시하지 않는다.
 - Resource API는 계속 25/64, Job API는 0/5다.
-- 실제 사용자 DB와 source head는 `20260809_0016`, metadata는 36개 Table로 유지한다.
+- source head는 `20260810_0017`, 실제 사용자 DB는 `20260809_0016`이며 metadata는 36개 Table로 유지한다.
 - Legacy Runtime Table 14개와 기존 Worker·Pipeline은 source of truth를 유지한다.
 - Backend Foundation과 Generative AI Track은 아직 완료·OPEN 상태가 아니다.
 
 ## 마이그레이션
 
-별도 PR에서 Workspace scope, input/output role, cancellation marker, claim·lease·heartbeat·attempt와 keyset Index를 additive revision으로 구현한다. 실제 사용자 DB 적용은 Inventory·backup·restore rehearsal·migration rehearsal·명시적 승인 절차를 다시 거친다.
+source revision `20260810_0017`에서 Workspace scope, input/output role, cancellation marker, claim·lease·heartbeat·attempt와 공개 keyset Index 4개·Worker Index 2개를 additive하게 구현했다. 기존 row 보존을 위해 scope와 role은 nullable staging으로 두며 새 Job 생성은 Workspace scope를 기록한다. 실제 사용자 DB 적용과 의미 기반 role backfill·`NOT NULL` 강화는 Inventory·backup·restore rehearsal·migration rehearsal·명시적 승인 절차를 다시 거친다.
 
 ## 재검토 조건
 
@@ -67,4 +67,5 @@ Workspace Job Entity·Repository·Service 기반은 존재하지만 공개 API, 
 
 ## 관련 PR
 
-- 이 ADR과 Workspace Job Foundation 계약을 추가하는 `develop` 대상 문서 PR
+- Workspace Job Foundation 계약을 추가한 `develop` 대상 문서 PR
+- source revision `20260810_0017`과 Job schema·Index를 추가하는 `develop` 대상 구현 PR

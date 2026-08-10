@@ -348,6 +348,7 @@ def test_job_repository_is_separate_from_pipeline_and_orders_inputs_outputs(
     job = repository.add_job(
         Job(
             project_id=project.project_id,
+            workspace_id=workspace.workspace_id,
             job_type="mix",
             status=JobStatus.QUEUED,
             api_contract_version="0.1.0",

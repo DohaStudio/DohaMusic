@@ -1,6 +1,6 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약] / [미구현: Entity·Migration·Cursor·Worker·API]
+> 문서 상태: [완료: 계약·Entity·source Migration·Index] / [미구현: 실제 DB 적용·Cursor·Worker·API]
 > 최종 수정일: 2026-08-10
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -9,7 +9,7 @@
 
 이 문서는 Workspace `Job`, `JobInput`, `JobOutput`, `ModelUsage`의 공식 실행 계약을 고정한다. 계약은 DohaStudio Common Specification `0.1.0` / `draft-baseline`을 좁히는 DohaMusic 구현 기준이며 공통 명세의 불변 Job·Artifact·Provider 원칙과 충돌하지 않는다.
 
-현재 `jobs`, `job_inputs`, `job_outputs`, `model_usages` Entity·Repository·Service 기반은 존재하지만 공개 Job API 5개, Job Cursor·Index, 역할 Column, cancellation marker, Worker claim·lease와 completion Unit of Work는 구현하지 않았다. 실제 사용자 DB와 Alembic source head는 `20260809_0016`, Application Table은 36개이며 현행 Runtime Table 14개가 source of truth다.
+현재 `jobs`, `job_inputs`, `job_outputs`, `model_usages` Entity·Repository·Service 기반에 role·Workspace scope·cancellation marker·claim/lease Column과 검증된 Index를 추가했다. Alembic source head는 `20260810_0017`이고 실제 사용자 DB는 `20260809_0016`이다. 공개 Job API 5개, Job Cursor, Worker claim·lease 로직과 completion Unit of Work는 아직 구현하지 않았다. Application Table은 36개이며 현행 Runtime Table 14개가 source of truth다.
 
 ## 2. Legacy Runtime Job과 Workspace Job
 
@@ -56,7 +56,7 @@ Artifact ────────────┘
 
 ## 5. JobInput과 Artifact 선택
 
-다음 Migration에서 `job_inputs.input_role`을 필수 Column으로 추가한다. 허용 role은 Job type matrix로 제한하며 자유 문자열을 Provider에 그대로 전달하지 않는다.
+`job_inputs.input_role`을 source revision `20260810_0017`에서 nullable staging Column으로 추가했다. 기존 row에 의미 없는 role을 추측해 채우지 않으며 Job 생성 계약과 향후 명시적 검증·backfill 이후 `NOT NULL` 전환을 별도 검토한다. 허용 role은 Job type matrix로 제한하며 자유 문자열을 Provider에 그대로 전달하지 않는다.
 
 현재 `asset_version_id XOR artifact_id` 규칙은 유지한다.
 
@@ -68,7 +68,7 @@ Artifact ────────────┘
 
 ## 6. JobOutput과 lineage
 
-다음 Migration에서 `job_outputs.output_role`을 필수 Column으로 추가한다. 현재 type의 생성 결과는 직렬화된 분석 결과를 포함해 Artifact를 canonical output으로 사용한다. Artifact가 새 AssetVersion에 속하므로 `Artifact → AssetVersion`으로 두 lineage를 함께 확인한다.
+`job_outputs.output_role`을 source revision `20260810_0017`에서 nullable staging Column으로 추가했다. 기존 row에 의미 없는 role을 추측해 채우지 않으며 Job 완료 계약과 향후 명시적 검증·backfill 이후 `NOT NULL` 전환을 별도 검토한다. 현재 type의 생성 결과는 직렬화된 분석 결과를 포함해 Artifact를 canonical output으로 사용한다. Artifact가 새 AssetVersion에 속하므로 `Artifact → AssetVersion`으로 두 lineage를 함께 확인한다.
 
 `asset_version_id XOR artifact_id` 규칙은 유지하되 현재 Matrix의 물리 출력은 `artifact_id`를 사용한다. 향후 Payload 없는 논리 출력만 `asset_version_id`를 사용할 수 있다. Provider가 Workspace AssetVersion·Artifact·Selection을 직접 만들거나 변경하지 않는다.
 
@@ -89,7 +89,7 @@ stateDiagram-v2
   cancelled --> [*]
 ```
 
-`cancel_requested`는 공개 상태로 추가하지 않는다. 다음 Migration에서 내부 `cancel_requested_at`을 추가한다. 실행 중 cancel 요청 동안 public status는 `running`을 유지하고 Worker·Provider 전파와 결과 정리를 확인한 후에만 `cancelled`로 전이한다.
+`cancel_requested`는 공개 상태로 추가하지 않는다. source revision `20260810_0017`에서 내부 `cancel_requested_at`을 추가했다. 실행 중 cancel 요청 동안 public status는 `running`을 유지하고 Worker·Provider 전파와 결과 정리를 확인한 후에만 `cancelled`로 전이한다.
 
 - `queued` cancel은 claim되지 않았음을 조건부 갱신으로 확인한 경우 즉시 `cancelled`다.
 - 이미 `cancelled`인 Job의 반복 cancel은 같은 결과를 반환한다.
@@ -114,11 +114,11 @@ Retry는 원본 상태를 되돌리지 않고 항상 새 `Job`을 만들며 `ret
 
 Job의 접근 scope는 `Job → Project → Workspace → owner_id`다. 공개 `requested_by`, `owner_id` 입력과 owner filter를 금지하고 effective actor에서 파생한다. 다른 Owner의 Job은 `404 JOB_NOT_FOUND`로 존재를 숨긴다.
 
-Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`, `status`, `job_type`만 선택 filter로 허용한다. `project_id`는 필수가 아니다. 다음 Migration에서 불변·필수 `jobs.workspace_id`를 추가하고 Project의 Workspace와 일치하도록 Service에서 검증한다.
+Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`, `status`, `job_type`만 선택 filter로 허용한다. `project_id`는 필수가 아니다. source revision `20260810_0017`에서 `jobs.workspace_id`를 추가하고 기존 Job은 Project의 Workspace로 안전하게 채웠다. 기존 SQLite row와 하위 FK를 보존하기 위해 DB Column은 nullable staging으로 두지만 새 Job 생성은 항상 값을 기록하며 논리 계약은 필수·불변이다. Project·Workspace 일치는 Service가 검증하고 실제 DB 적용·운영 데이터 검증 뒤 `NOT NULL` 전환을 별도 검토한다.
 
 정렬은 `created_at DESC, job_id DESC`다. HMAC Cursor resource `job`을 추가하며 payload는 `v=1`, resource, direction, sort, last created time, last ID, limit과 filter hash를 포함한다. fingerprint에는 effective owner, Workspace, 선택 Project·status·job type과 sort가 포함된다.
 
-필요한 Index 후보는 다음 Migration의 SQLite fixture `EXPLAIN QUERY PLAN`으로 최종 확정한다.
+임시 SQLite 10,000 Job fixture와 `EXPLAIN QUERY PLAN`으로 다음 공개 목록 Index를 확정했다.
 
 - `(workspace_id, created_at DESC, job_id DESC)`
 - `(workspace_id, project_id, created_at DESC, job_id DESC)`
@@ -126,6 +126,8 @@ Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`
 - `(workspace_id, job_type, created_at DESC, job_id DESC)`
 
 지원 Query에서 full scan과 `TEMP B-TREE`가 없어야 한다. 무제한 복합 filter용 Index를 추측해 추가하지 않는다.
+
+Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at, job_id)`와 `ix_jobs_lease_recovery(status, lease_expires_at, job_id)`를 추가했다. 실제 claim·lease query와 상태 전이는 아직 구현하지 않았다.
 
 ## 10. Provider request와 result
 
@@ -169,7 +171,7 @@ Job의 `model_manifest_id`는 요청값이며 `ModelUsage`는 Provider가 확인
 
 ## 13. Worker claim·lease·heartbeat와 crash recovery
 
-다음 Migration에서 `claim_token`, `claimed_by`, `lease_expires_at`, `heartbeat_at`, `attempt`를 Job에 추가한다.
+source revision `20260810_0017`에서 `claim_token`, 길이 128의 `claimed_by`, `lease_expires_at`, `heartbeat_at`, 음수가 아닌 `attempt`를 Job에 추가했다. Column과 Index만 준비했으며 아래 Worker 동작은 아직 구현하지 않았다.
 
 - Worker는 `queued`이고 취소 요청이 없는 Job 하나를 조건부 atomic update로 claim한다.
 - claim 성공 Worker만 `queued → running`할 수 있다.
@@ -205,9 +207,9 @@ Backend Foundation Complete는 Asset·AssetVersion·Artifact·CompositionSnapsho
 
 그 전에는 Generative AI Track을 OPEN으로 표시하지 않는다. Gate 완료 후 DohaMusic Collaboration·backfill·dual write·Runtime read 전환, DohaLM 상업 계보·Dataset·학습·평가·Provider API, DohaAudio Foundation·Dataset·baseline inference·training을 독립 Track으로 열며 DohaVocal은 후순위로 유지한다.
 
-## 16. 다음 Migration 범위
+## 16. source Migration과 남은 범위
 
-`20260809_0016` 이후 별도 additive Migration에서 다음을 구현한다.
+additive source revision `20260810_0017`에서 다음을 구현했다.
 
 - `jobs.workspace_id`
 - `jobs.cancel_requested_at`
@@ -218,6 +220,7 @@ Backend Foundation Complete는 Asset·AssetVersion·Artifact·CompositionSnapsho
 - `jobs.attempt`
 - `job_inputs.input_role`
 - `job_outputs.output_role`
-- 검증된 Workspace·Project·status·job type keyset Index
+- 검증된 Workspace·Project·status·job type keyset Index 4개
+- claim queue·lease recovery Index 2개
 
-이번 계약 문서는 Entity, Alembic revision과 실제 사용자 DB를 변경하지 않는다.
+`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 기존 row 보존을 위한 nullable staging이다. 실제 사용자 DB 적용, 의미 기반 role backfill, `NOT NULL` 강화, Job Cursor·Repository keyset·Service state machine·Worker·Provider 호출·공식 API 5개는 이번 범위에 포함하지 않는다.

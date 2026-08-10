@@ -8,6 +8,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace Job schema와 keyset 기반
+
+- `jobs`에 Workspace scope, 내부 취소 요청, claim token·Worker·lease·heartbeat·attempt를 추가하고 `job_inputs`·`job_outputs`에 nullable staging role Column을 추가했다.
+- source revision `20260810_0017`은 기존 Job의 Workspace를 Project에서 채우며 해석할 수 없는 row가 있으면 중단한다. 실제 사용자 DB `20260809_0016`에는 적용하지 않았다.
+- Workspace·Project·status·type 목록 keyset Index 4개와 claim queue·lease recovery Index 2개를 추가하고 10,000 Job 임시 SQLite fixture에서 대상 Query의 full scan과 `TEMP B-TREE` 제거를 검증했다.
+- 기존 Runtime Table 14개, 공개 5-state, Metadata 36개 Table과 Resource API 25/64를 유지한다. Job Cursor·Repository keyset·Service state machine·Worker·Provider 호출·API 5개, 실제 DB·Bootstrap·backfill·dual write·Frontend는 변경하지 않았다.
+- 구현과 검증 결과는 [Workspace Job schema·Index Migration 검증](reports/validation/VALIDATION-WORKSPACE-JOB-SCHEMA-MIGRATION.md)에 기록했다.
+
 ### 문서 — Workspace Job Foundation 공식 계약
 
 - Legacy Generation·Stem·Voice·Pipeline Job과 Workspace `jobs` Aggregate를 분리하고 현재 완료 상태가 Workspace Job API 완료를 의미하지 않음을 명시했다.

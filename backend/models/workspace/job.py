@@ -44,8 +44,49 @@ class Job(CreatedAtMixin, Base):
             "(progress_percent >= 0 AND progress_percent <= 100)",
             name="ck_jobs_progress_percent",
         ),
+        CheckConstraint("attempt >= 0", name="ck_jobs_attempt_nonnegative"),
         Index("ix_jobs_project_created", "project_id", "created_at"),
         Index("ix_jobs_status_created", "status", "created_at"),
+        Index(
+            "ix_jobs_workspace_keyset",
+            "workspace_id",
+            "created_at",
+            "job_id",
+        ),
+        Index(
+            "ix_jobs_workspace_project_keyset",
+            "workspace_id",
+            "project_id",
+            "created_at",
+            "job_id",
+        ),
+        Index(
+            "ix_jobs_workspace_status_keyset",
+            "workspace_id",
+            "status",
+            "created_at",
+            "job_id",
+        ),
+        Index(
+            "ix_jobs_workspace_type_keyset",
+            "workspace_id",
+            "job_type",
+            "created_at",
+            "job_id",
+        ),
+        Index(
+            "ix_jobs_claim_queue",
+            "status",
+            "cancel_requested_at",
+            "created_at",
+            "job_id",
+        ),
+        Index(
+            "ix_jobs_lease_recovery",
+            "status",
+            "lease_expires_at",
+            "job_id",
+        ),
     )
 
     job_id: Mapped[UUID] = mapped_column(
@@ -55,6 +96,10 @@ class Job(CreatedAtMixin, Base):
         ForeignKey("music_projects.project_id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
+    )
+    workspace_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("workspaces.workspace_id", ondelete="RESTRICT"),
+        nullable=True,
     )
     composition_snapshot_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(
@@ -105,6 +150,23 @@ class Job(CreatedAtMixin, Base):
     completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    cancel_requested_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    claim_token: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
+    claimed_by: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    heartbeat_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    attempt: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
 
     project: Mapped[MusicProject] = relationship(back_populates="jobs")
     composition_snapshot: Mapped[CompositionSnapshot | None] = relationship(
@@ -150,6 +212,7 @@ class JobInput(CreatedAtMixin, Base):
         nullable=True,
         index=True,
     )
+    input_role: Mapped[str | None] = mapped_column(String(64), nullable=True)
     input_order: Mapped[int] = mapped_column(Integer, nullable=False)
 
     job: Mapped[Job] = relationship(back_populates="inputs")
@@ -186,6 +249,7 @@ class JobOutput(CreatedAtMixin, Base):
         nullable=True,
         index=True,
     )
+    output_role: Mapped[str | None] = mapped_column(String(64), nullable=True)
     output_order: Mapped[int] = mapped_column(Integer, nullable=False)
 
     job: Mapped[Job] = relationship(back_populates="outputs")

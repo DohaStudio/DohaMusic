@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-09
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace Entity 21개와 별도 Artifact Storage Catalog Entity·revision `20260809_0016` 실제 사용자 DB 적용, Catalog row 0개
+> 구현 상태: Workspace Entity 21개·Catalog `0016` 실제 DB 적용, Job schema·Index source `0017`, 실제 DB `0016`
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 표기 기준
@@ -234,6 +234,7 @@ Job은 Provider 또는 Workspace가 수행하는 독립 비동기 실행 단위�
 |---|---|---:|---|---|
 | `job_id` | UUID | 아니요 | PK | Job 식별자 |
 | `project_id` | UUID | 아니요 | FK, Index | `music_projects.project_id` |
+| `workspace_id` | UUID | 예 | FK | nullable staging. 새 Job은 필수로 기록하며 기존 row는 Project에서 backfill |
 | `composition_snapshot_id` | UUID | 예 | FK, Index | 실행 문맥 Snapshot |
 | `job_type` | string | 아니요 | Index | `lyrics_generation`, `music_generation`, `stem_separation`, `voice_conversion`, `audio_analysis`, `mix`, `export` |
 | `status` | string | 아니요 | Index | `queued`, `running`, `succeeded`, `failed`, `cancelled` |
@@ -252,8 +253,14 @@ Job은 Provider 또는 Workspace가 수행하는 독립 비동기 실행 단위�
 | `created_at` | timestamp | 아니요 |  | 생성 시각 |
 | `started_at` | timestamp | 예 |  | 실행 시작 시각 |
 | `completed_at` | timestamp | 예 |  | 종료 시각 |
+| `cancel_requested_at` | timestamp | 예 |  | 공개 상태와 분리한 내부 취소 요청 시각 |
+| `claim_token` | UUID | 예 |  | Worker claim fencing token |
+| `claimed_by` | string(128) | 예 |  | 길이가 제한된 Worker 식별자 |
+| `lease_expires_at` | timestamp | 예 |  | claim lease 만료 시각 |
+| `heartbeat_at` | timestamp | 예 |  | 마지막 heartbeat 시각 |
+| `attempt` | integer | 아니요 | Check | 같은 Job의 실행 시도, 기본 0·음수 금지 |
 
-종료 상태는 다른 상태로 되돌리지 않습니다. Retry는 새 row입니다. `status`, `created_at`과 `(project_id, created_at)`을 복합 Index로 둡니다.
+종료 상태는 다른 상태로 되돌리지 않습니다. Retry는 새 row입니다. 기존 Index 외에 Workspace 목록용 4개 keyset Index와 claim queue·lease recovery Index를 둡니다. `workspace_id`는 실제 DB 검증과 전환 전 nullable staging이지만 논리 계약과 새 Job 생성에서는 필수·불변입니다.
 
 ### 5.2 `job_inputs`
 
@@ -265,6 +272,7 @@ JobInput은 실행 입력 Version 또는 직접 입력 Artifact를 연결합니�
 | `job_id` | UUID | 아니요 | FK, Index | `jobs.job_id` |
 | `asset_version_id` | UUID | 예 | FK, Index | 입력 `asset_versions.asset_version_id` |
 | `artifact_id` | UUID | 예 | FK, Index | 직접 입력 `artifacts.artifact_id` |
+| `input_role` | string(64) | 예 |  | nullable staging. Job type Matrix의 입력 역할 |
 | `input_order` | integer | 아니요 | Unique 조합 | 입력 순서 |
 | `created_at` | timestamp | 아니요 |  | 생성 시각 |
 
@@ -280,6 +288,7 @@ JobOutput은 성공 후 등록된 출력 Version 또는 Artifact를 연결합니
 | `job_id` | UUID | 아니요 | FK, Index | `jobs.job_id` |
 | `asset_version_id` | UUID | 예 | FK, Index | 출력 `asset_versions.asset_version_id` |
 | `artifact_id` | UUID | 예 | FK, Index | 출력 `artifacts.artifact_id` |
+| `output_role` | string(64) | 예 |  | nullable staging. Job type Matrix의 출력 역할 |
 | `output_order` | integer | 아니요 | Unique 조합 | 출력 순서 |
 | `created_at` | timestamp | 아니요 |  | 등록 시각 |
 
@@ -438,7 +447,7 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | `job_outputs` | `(job_id, output_order)` | `asset_version_id`, `artifact_id` |
 | `tags` | `(asset_id, name)` | `name`, `deleted_at` |
 | `favorites` | `(workspace_id, asset_id)` | `workspace_id`, `deleted_at` |
-| `jobs` | 없음 | `(project_id, created_at)`, `(status, created_at)`, `retry_of_job_id` |
+| `jobs` | 없음 | 기존 Index, Workspace keyset 4개, claim queue·lease recovery 2개 |
 | `artifacts` | Artifact ID | checksum 조합, `retention_status`, `run_id` |
 | `artifact_storage_locations` | `artifact_id`, `(storage_backend, storage_domain, storage_key)` | Unique 제약으로 역조회 지원, 별도 Index 없음 |
 
