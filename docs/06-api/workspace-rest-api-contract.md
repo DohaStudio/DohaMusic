@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` Resource Endpoint 25개 구현, Workspace Job 계약·source schema·Index 완료·API 0/5, 나머지 39개 미구현
+> 구현 상태: `/api/v1` Resource Endpoint 30개 구현, Workspace Job API 5/5, 나머지 34개 미구현; develop 병합 전 Gate
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적
@@ -121,7 +121,8 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 ### 5.1 생성 상태 코드
 
 - 동기 Resource 생성: `201 Created`
-- 비동기 Job 접수: `202 Accepted`
+- Workspace Job 생성: `201 Created`로 불변 요청 snapshot을 기록하며 Worker 실행은 시작하지 않음
+- Workspace Job retry와 실행 중 cancel marker 접수: `202 Accepted`
 - 조회·PATCH·action 결과: `200 OK`
 - body 없는 Soft Delete·관계 해제: `204 No Content`
 - Idempotency 재생은 최초 요청과 같은 성공 status를 반환합니다.
@@ -178,7 +179,7 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - 공개 상태는 5개를 유지하고 실행 중 cancel 요청은 내부 marker로 분리합니다.
 - byte-level 입력은 role과 명시적 Artifact ID로 고정하며 latest Artifact 자동 선택을 금지합니다.
 - Workspace 전체 Collection은 `project_id`, `status`, `job_type` filter와 `(created_at DESC, job_id DESC)` HMAC Cursor를 사용합니다.
-- 생성·입력 lineage·상태·진행률·취소·재시도·멱등성과 aggregate read Service 기반은 구현했습니다. Worker claim·lease와 completion Unit of Work는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따르며 아직 미구현입니다.
+- 생성·입력 lineage·상태·진행률·취소·재시도·멱등성, aggregate read, Worker claim·lease와 completion Unit of Work를 구현했습니다. 공식 Router 5개는 Service만 호출하고 내부 claim·lease·Provider raw response를 공개하지 않습니다. 실제 Provider transport와 background daemon·scheduler는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)의 후속 범위입니다.
 
 ## 7. 공통 성공 Response
 

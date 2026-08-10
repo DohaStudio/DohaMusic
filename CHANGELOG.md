@@ -8,6 +8,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace Job Resource API
+
+- effective Workspace의 Job 목록·생성·aggregate 상세·취소·재시도 공식 Endpoint 5개를 `/api/v1/jobs`에 추가했다. Router는 `JobService`만 호출하고 HMAC Cursor, Owner scope, 7개 Job type·Snapshot·input role Matrix와 생성·재시도 멱등성 계약을 재사용한다.
+- 공개 DTO는 정렬된 JobInput·JobOutput·ModelUsage와 안전한 오류만 반환하며 `claim_token`, Worker·lease 정보, 소유자 내부 UUID와 storage path를 노출하지 않는다. Job API는 5/5, Resource API는 30/64다.
+- 실제 Provider transport, background daemon·scheduler, Frontend, Alembic, Entity, 실제 사용자 DB와 `DohaArtifacts`는 변경하지 않았다. 이 Draft PR 병합 전에는 Backend Foundation Complete와 Generative AI Track OPEN을 선언하지 않는다.
+
 ### 추가 — Workspace Job Completion Unit of Work
 
 - Workspace Job의 atomic claim, bounded Worker ID, opaque claim token, lease·heartbeat, race-safe 만료 recovery와 단일 `run_once()` Provider dispatch 기반을 추가했다. 공개 Worker 오류 코드는 64자 이하의 대문자·숫자·underscore machine code만 허용하고 나머지는 안전한 내부 코드로 대체한다.

@@ -109,4 +109,4 @@ DohaStudio Common Specification `0.1.0 / draft-baseline`에는 `(project_id, ass
 3. `[계획]` Asset Cursor·Index와 Resource API 5개를 구현합니다.
 3. `[계획]` API에서 Bootstrap Required, Project·Asset Not Found, 중복·restore·연결 해제 계약을 검증합니다.
 
-Resource API 진행도는 현재 25/64이며 ProjectAsset 3개, Asset 5개, AssetVersion 3개와 Artifact 3개 Endpoint가 완료됐습니다.
+Resource API 진행도는 Job API 5개 추가 후 현재 30/64이며 ProjectAsset 3개, Asset 5개, AssetVersion 3개와 Artifact 3개 Endpoint도 유지합니다.

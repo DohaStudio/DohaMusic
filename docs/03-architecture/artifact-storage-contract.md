@@ -9,7 +9,7 @@
 
 이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 임시 root에서 authoritative SHA-256·size·MIME, immutable publish, Artifact·Catalog transaction과 실패 보상을 검증했다. Owner 계보·retention·integrity read Gate, batch dry-run reconciliation, Artifact Router와 single-byte HTTP Range도 구현했다. destructive reconciliation과 실제 운영 폴더·파일 전환은 구현하지 않았다.
 
-현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. Workspace Resource API는 25/64, Artifact API는 3/3이며 다음 세 공개 Endpoint를 구현했다.
+현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. Workspace Resource API는 Job 5개를 포함해 30/64, Artifact API는 3/3이며 다음 세 공개 Endpoint를 구현했다.
 
 ```text
 GET /api/v1/artifacts/{artifact_id}

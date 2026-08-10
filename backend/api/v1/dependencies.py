@@ -13,8 +13,10 @@ from backend.services.workspace import (
     ArtifactApplicationService,
     AssetService,
     CompositionService,
+    JobService,
     WorkspaceService,
 )
+from backend.models.workspace import Workspace
 
 REQUEST_ID_HEADER = "X-Request-ID"
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")
@@ -78,8 +80,17 @@ def get_composition_service(request: Request) -> CompositionService:
     return service
 
 
-def get_effective_owner_id(request: Request) -> UUID:
-    """단일 사용자 Workspace의 신뢰된 effective owner를 반환한다."""
+def get_job_service(request: Request) -> JobService:
+    """App composition root에서 구성한 JobService를 제공한다."""
+
+    service = getattr(request.app.state, "job_service", None)
+    if not isinstance(service, JobService):
+        raise RuntimeError("JobService가 구성되지 않았습니다.")
+    return service
+
+
+def get_effective_workspace(request: Request) -> Workspace:
+    """단일 사용자 모드의 신뢰된 effective Workspace를 반환한다."""
 
     workspaces = get_workspace_service(request).list_workspaces(limit=1)
     if not workspaces:
@@ -88,7 +99,13 @@ def get_effective_owner_id(request: Request) -> UUID:
             message="기본 Workspace Bootstrap이 필요합니다.",
             status_code=409,
         )
-    return workspaces[0].owner_id
+    return workspaces[0]
+
+
+def get_effective_owner_id(request: Request) -> UUID:
+    """단일 사용자 Workspace의 신뢰된 effective owner를 반환한다."""
+
+    return get_effective_workspace(request).owner_id
 
 
 def register_request_id_middleware(app: FastAPI) -> None:

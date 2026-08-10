@@ -49,6 +49,7 @@ from backend.services.workspace import (
     ArtifactApplicationService,
     AssetService,
     CompositionService,
+    JobService,
     WorkspaceService,
 )
 from backend.storage import ArtifactStorageRoots
@@ -187,6 +188,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             cursor_codec=cursor_codec,
         )
         app.state.composition_service = CompositionService(
+            session_factory,
+            cursor_codec=cursor_codec,
+        )
+        app.state.job_service = JobService(
             session_factory,
             cursor_codec=cursor_codec,
         )

@@ -1,6 +1,6 @@
 # Backend 아키텍처
 
-> 현재 상태: Legacy Provider·Pipeline 구현 / Workspace Job 공식 계약 완료·실행 기반 미구현
+> 현재 상태: Legacy Provider·Pipeline 구현 / Workspace Job 실행 기반·공식 API 5/5 구현, 실제 Provider transport·background daemon 미구현
 
 ```text
 API → Service → Repository → SQLAlchemy Model
@@ -30,7 +30,7 @@ Lyrics는 독립 `LyricsGenerator` Factory를 조립한다. 빠른 로컬 Templa
 
 Artifact Storage 경계는 `Router → Artifact Application Service → Storage Resolver·Trusted Ingestion → Artifact·Catalog Repository`다. `ArtifactApplicationService`는 effective Owner 계보, retention matrix와 content 전 full SHA-256 read Gate를 소유한다. `ArtifactIngestionService → LocalArtifactPublisher`는 AssetVersion 확인, Artifact·Catalog 단일 transaction·보상과 staging containment·MIME·exclusive publish를 담당한다. `ArtifactReconciliationService`는 Catalog를 UUID keyset batch로 읽고 승인 namespace만 dry-run scan한다. Repository는 add·flush·조회만 수행하고 commit·rollback·filesystem을 소유하지 않는다. Artifact Router는 Metadata·content·download를 Application Service에만 위임하고 single-byte Range를 처리하며 Repository·Resolver·filesystem에 직접 접근하지 않는다.
 
-이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. `/api/v1` Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource Endpoint는 25개다. Resource API 진행도는 25/64, Artifact API와 CompositionSnapshot API는 각각 3/3이며 Job API를 포함한 나머지 39개 Endpoint와 destructive reconciliation·backfill·dual write·Legacy 제거는 미구현이다.
+이 계층은 additive 구현이다. 기존 Runtime Entity 14개와 Runtime Repository·Service·API는 변경하지 않았고 계속 운영 source of truth다. `/api/v1` Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job Resource Endpoint는 30개다. Resource API 진행도는 30/64, Job API는 5/5이며 나머지 34개 Endpoint와 destructive reconciliation·backfill·dual write·Legacy 제거는 미구현이다.
 
 ## Workspace Application Service 경계
 
@@ -44,13 +44,13 @@ Workspace·Project·ProjectAsset 목록 Service는 App Factory가 주입한 `Cur
 
 `CompositionService`는 effective Owner·활성 Project, 같은 Workspace 또는 Owner 소유 Workspace 미지정 Asset과 활성 ProjectAsset 관계를 검증한다. Snapshot+Item+Idempotency 기록을 한 transaction에서 생성하고 `snapshot_version`·`created_by`를 내부에서 파생한다. 상세는 정렬된 aggregate를, 목록은 version 1 HMAC Cursor keyset page를 반환한다. 공식 Router 3개를 연결했으며 세부 경계는 [CompositionSnapshot 기반 계약](../06-api/composition-snapshot-foundation.md)을 따른다.
 
-## Workspace Job Foundation 경계 — [계약 완료, 구현 미완료]
+## Workspace Job Foundation 경계 — [실행 기반·공식 API 구현, 외부 실행 미완료]
 
 Workspace Job은 `Job`을 실행 root로 하고 `JobInput`, `JobOutput`, `ModelUsage`를 Aggregate 내부에 둔다. CompositionSnapshot·AssetVersion·Artifact는 외부 불변 lineage Resource다. byte-level 입력은 role과 exact Artifact ID로 고정하고 Provider success 뒤 trusted ingestion·Artifact·Catalog·필요한 AssetVersion·JobOutput·ModelUsage와 상태를 completion Unit of Work에서 확정한다.
 
 Completion Service 앞에 atomic claim·lease·heartbeat·만료 recovery와 fake Provider dispatcher를 가진 단일 `run_once()` Worker 경계를 추가했다. 느린 dispatch 중 heartbeat callback을 허용하고 Worker는 Artifact·Output을 직접 등록하지 않으며 Completion UoW에 claim token과 결과를 위임한다.
 
-공개 상태는 5개를 유지하고 cancel 요청은 내부 marker로 분리한다. Worker는 atomic claim·lease·heartbeat로 중복 실행을 막으며 lease 만료 running Job을 같은 row의 queued 상태로 되돌리지 않는다. Workspace 전체 목록은 direct `workspace_id`, 제한된 filter와 Job HMAC Cursor를 사용한다. 역할·실행 제어 Column, Index, Cursor, Worker와 API 5개는 후속 구현이며 세부 계약은 [Workspace Job Foundation](workspace-job-foundation.md)을 따른다.
+공개 상태는 5개를 유지하고 cancel 요청은 내부 marker로 분리한다. Worker는 atomic claim·lease·heartbeat로 중복 실행을 막으며 lease 만료 running Job을 같은 row의 queued 상태로 되돌리지 않는다. Workspace 전체 목록은 effective Workspace scope, 제한된 filter와 Job HMAC Cursor를 사용한다. 공식 Router 5개는 `JobService`만 호출하며 Repository·Session·Worker·Provider를 직접 사용하지 않고 claim·lease·경로를 공개하지 않는다. 세부 계약은 [Workspace Job Foundation](workspace-job-foundation.md)을 따른다.
 
 공개 Workspace·MusicProject DTO는 SQLAlchemy Entity를 직접 직렬화하지 않고 allowlist Pydantic v2 Schema를 사용한다. 내부 `owner_id`·`created_by`, Soft Delete 시각과 ORM relationship은 노출하지 않으며 Project 생성의 감사 식별자는 Workspace 소유자에서 Service 입력으로 파생한다.
 
