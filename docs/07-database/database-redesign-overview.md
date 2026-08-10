@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 Workspace Entity 21개·Catalog·Job schema·Index `0017` 실제 DB 적용, Job Service state/cancel/retry·Completion UoW 기반과 Resource API 25개 완료·Job API 0/5; 실제 Bootstrap·backfill·dual write 미수행
+> 구현 상태: 목표 Workspace Entity 21개·Catalog·Job schema·Index `0017` 실제 DB 적용, Job Service·Completion UoW·Worker execution foundation·Job API 5/5와 Resource API 30개 구현; 실제 Bootstrap·backfill·dual write 미수행
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -85,7 +85,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - `JobOutput`은 성공 후 등록된 출력 `AssetVersion` 또는 `Artifact`를 연결합니다.
 - 재시도는 기존 Job 상태를 초기화하지 않고 `retry_of_job_id`로 연결된 새 Job을 생성합니다.
 - Provider는 Workspace DB를 직접 수정하지 않습니다. DohaMusic이 검증된 Provider 결과를 `Artifact`와 새 `AssetVersion`으로 등록합니다.
-- role, direct Workspace scope, cancellation marker, Worker claim·lease Column과 Job keyset·Worker Index는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)에 따라 revision `20260810_0017`로 실제 사용자 DB에 적용했습니다. scope·role은 기존 row 보존을 위한 nullable staging이며 생성·상태·취소·재시도와 Completion Unit of Work Service 기반은 구현했지만 Worker claim·lease runtime은 미구현입니다.
+- role, direct Workspace scope, cancellation marker, Worker claim·lease Column과 Job keyset·Worker Index는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)에 따라 revision `20260810_0017`로 실제 사용자 DB에 적용했습니다. scope·role은 기존 row 보존을 위한 nullable staging이며 생성·상태·취소·재시도·Completion Unit of Work·Worker execution foundation과 공식 API 5개를 구현했습니다. 실제 Provider transport와 background daemon은 미구현입니다.
 
 ### 3.6 Processing Chain과 ModelUsage
 
@@ -159,7 +159,7 @@ Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`, Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`, `artifact_storage_locations` 하나를 추가한 `20260809_0016`, Job scope·role·실행 제어 Column과 Index 6개를 추가한 `20260810_0017`이 적용됐습니다. 신규 Workspace·Catalog·Job row는 0건이며 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot v1 Resource API 25개를 구현했고 나머지 39개 Endpoint는 계획입니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`, Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`, `artifact_storage_locations` 하나를 추가한 `20260809_0016`, Job scope·role·실행 제어 Column과 Index 6개를 추가한 `20260810_0017`이 적용됐습니다. 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job v1 Resource API 30개를 구현했고 나머지 34개 Endpoint는 계획입니다. 이번 API 구현은 실제 사용자 DB row를 읽거나 변경하지 않았습니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

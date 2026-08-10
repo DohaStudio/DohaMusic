@@ -676,7 +676,9 @@ class JobService:
         _validate_page_limit(limit)
         if status is not None and not isinstance(status, JobStatus):
             raise ApplicationValidationError("Job 상태 filter가 유효하지 않습니다.")
-        normalized_job_type = _optional_filter_text(job_type, "Job 유형 filter")
+        normalized_job_type = (
+            _normalize_job_type(job_type) if job_type is not None else None
+        )
         codec = self._require_cursor_codec()
         filter_hash = filter_fingerprint(
             {

@@ -8,7 +8,7 @@
 
 ## 1. 범위와 상태
 
-`CompositionRepository`와 `CompositionService`의 기반 계약을 재사용해 `GET /api/v1/snapshots`, `POST /api/v1/snapshots`, `GET /api/v1/snapshots/{composition_snapshot_id}` Router·Pydantic v2 공개 DTO·OpenAPI operation을 구현했습니다. Resource API는 25/64, CompositionSnapshot API는 3/3입니다. 목록은 summary만, 생성·상세는 정렬된 전체 Item과 bounded lineage를 반환하며 내부 `owner_id`·`created_by`는 노출하지 않습니다.
+`CompositionRepository`와 `CompositionService`의 기반 계약을 재사용해 `GET /api/v1/snapshots`, `POST /api/v1/snapshots`, `GET /api/v1/snapshots/{composition_snapshot_id}` Router·Pydantic v2 공개 DTO·OpenAPI operation을 구현했습니다. 전체 Resource API는 Job 5개를 포함해 30/64, CompositionSnapshot API는 3/3입니다. 목록은 summary만, 생성·상세는 정렬된 전체 Item과 bounded lineage를 반환하며 내부 `owner_id`·`created_by`는 노출하지 않습니다.
 
 Snapshot은 특정 Project의 정확한 `AssetVersion` 조합, Processing Chain, Mix 설정과 Provider·Model 계보를 고정하는 불변 aggregate입니다. 기존 Snapshot이나 SnapshotItem을 수정·삭제·재정렬하는 Repository·Service 경로는 제공하지 않습니다.
 

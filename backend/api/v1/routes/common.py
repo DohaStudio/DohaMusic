@@ -9,6 +9,7 @@ from backend.core.exceptions import (
     ApplicationValidationError,
     IdempotencyConflictError,
     IdempotencyInProgressError,
+    InvalidStateError,
     ResourceConflictError,
     ResourceNotFoundError,
 )
@@ -211,6 +212,75 @@ def map_composition_snapshot_error(exc: Exception) -> AppError:
         return AppError(
             code="COMPOSITION_SNAPSHOT_CONFLICT",
             message="CompositionSnapshot 요청이 현재 상태와 충돌합니다.",
+            status_code=409,
+        )
+    if isinstance(exc, IdempotencyConflictError):
+        return AppError(
+            code="IDEMPOTENCY_KEY_REUSED",
+            message="같은 Idempotency-Key가 다른 요청에 사용됐습니다.",
+            status_code=409,
+        )
+    if isinstance(exc, IdempotencyInProgressError):
+        return AppError(
+            code="IDEMPOTENCY_IN_PROGRESS",
+            message="같은 Idempotency-Key 요청이 처리 중입니다.",
+            status_code=409,
+        )
+    if isinstance(exc, ApplicationValidationError):
+        return invalid_input(exc.message)
+    raise exc
+
+
+def map_job_error(exc: Exception, *, action: str | None = None) -> AppError:
+    if isinstance(exc, ResourceNotFoundError):
+        if exc.resource_name == "Workspace Job":
+            return AppError(
+                code="JOB_NOT_FOUND",
+                message="Job을 찾을 수 없습니다.",
+                status_code=404,
+            )
+        if exc.resource_name == "Workspace":
+            return workspace_not_found()
+        if exc.resource_name == "MusicProject":
+            return project_not_found()
+        if exc.resource_name == "CompositionSnapshot":
+            return AppError(
+                code="COMPOSITION_SNAPSHOT_NOT_FOUND",
+                message="CompositionSnapshot을 찾을 수 없습니다.",
+                status_code=404,
+            )
+        if exc.resource_name in {"AssetVersion", "JobInput"}:
+            return asset_version_not_found()
+        if exc.resource_name == "Artifact":
+            return AppError(
+                code="ARTIFACT_NOT_FOUND",
+                message="Artifact를 찾을 수 없습니다.",
+                status_code=404,
+            )
+        if exc.resource_name == "ProjectAsset":
+            return project_asset_not_found()
+    if isinstance(exc, InvalidStateError):
+        if action == "cancel":
+            return AppError(
+                code="JOB_NOT_CANCELLABLE",
+                message="현재 상태의 Job은 취소할 수 없습니다.",
+                status_code=409,
+            )
+        if action == "retry":
+            return AppError(
+                code="JOB_NOT_RETRYABLE",
+                message="현재 상태의 Job은 재시도할 수 없습니다.",
+                status_code=409,
+            )
+        return AppError(
+            code="JOB_CONFLICT",
+            message="Job 요청이 현재 상태와 충돌합니다.",
+            status_code=409,
+        )
+    if isinstance(exc, ResourceConflictError):
+        return AppError(
+            code="JOB_CONFLICT",
+            message="Job 요청이 현재 상태와 충돌합니다.",
             status_code=409,
         )
     if isinstance(exc, IdempotencyConflictError):

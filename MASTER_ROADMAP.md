@@ -103,13 +103,13 @@ Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker claim/lease/heartbeat/recovery 기반 완료; 실제 Provider transport·API 0/5 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5 구현; develop 병합 전 완료 Gate, 실제 Provider transport·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 문서화 진행, 저장소·Runtime 미구현 | [Provider Separation](docs/DoD/Provider-Separation.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW에 이어 atomic claim·lease·heartbeat·만료 recovery와 단일 `run_once()` fake dispatch 기반을 구현했다. Worker는 Provider 실행 중 callback으로 lease를 연장하고 결과 저장은 Completion UoW에 위임한다. 실제 Provider transport와 공식 Job API 5개는 미구현이며 Resource API는 25/64, metadata는 36개 Table, Alembic은 `20260810_0017`을 유지한다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()` fake dispatch 기반에 공식 Job API 5개를 연결했다. Worker는 Provider 실행 중 callback으로 lease를 연장하고 결과 저장은 Completion UoW에 위임한다. Job API는 5/5, Resource API는 30/64지만 이 Draft PR이 develop에 병합되기 전까지 Workspace Backend Foundation은 완료가 아니며 Generative AI Track도 OPEN이 아니다. 실제 Provider transport와 background daemon·scheduler는 미구현이고 metadata 36개 Table, Alembic `20260810_0017`은 유지한다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

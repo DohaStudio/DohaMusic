@@ -1,6 +1,6 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation] / [미구현: 실제 Provider transport·Job API]
+> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5] / [미구현: 실제 Provider transport·background daemon]
 > 최종 수정일: 2026-08-11
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -9,17 +9,17 @@
 
 이 문서는 Workspace `Job`, `JobInput`, `JobOutput`, `ModelUsage`의 공식 실행 계약을 고정한다. 계약은 DohaStudio Common Specification `0.1.0` / `draft-baseline`을 좁히는 DohaMusic 구현 기준이며 공통 명세의 불변 Job·Artifact·Provider 원칙과 충돌하지 않는다.
 
-revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic claim·lease·heartbeat·attempt·race-safe 만료 recovery와 단일 `run_once()` 기반을 구현했다. Provider 실행 중 heartbeat callback과 cancel marker 확인을 제공하고 성공 결과는 claim token을 전달해 Completion UoW가 확정한다. 실제 Provider transport와 공개 Job API 5개는 아직 구현하지 않았다.
+revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic claim·lease·heartbeat·attempt·race-safe 만료 recovery와 단일 `run_once()` 기반을 구현했다. Provider 실행 중 heartbeat callback과 cancel marker 확인을 제공하고 성공 결과는 claim token을 전달해 Completion UoW가 확정한다. 공식 Job Router 5개는 이 Service 경계를 공개 API에 연결했다. 실제 Provider transport와 background daemon·scheduler는 아직 구현하지 않았다.
 
 ## 2. Legacy Runtime Job과 Workspace Job
 
 | 구분 | Legacy Runtime Job | Workspace Job |
 |---|---|---|
 | 저장 | `generation_jobs`, `stem_jobs`, `voice_conversion_jobs`, `pipeline_jobs` | `jobs`, `job_inputs`, `job_outputs`, `model_usages` |
-| 실행 | 기존 ThreadPool Worker와 `PipelineExecutor` | claim·lease 기반 독립 실행 [미구현] |
+| 실행 | 기존 ThreadPool Worker와 `PipelineExecutor` | claim·lease 기반 단일 `run_once()` execution foundation [완료], background daemon [미구현] |
 | 상태 | 기능별 대문자 상태와 Pipeline 단계 | `queued`, `running`, `succeeded`, `failed`, `cancelled` |
-| 취소·재시도 | 기존 Pipeline cooperative cancel·새 Pipeline Job retry | 이 문서의 내부 cancellation marker·새 Job lineage [미구현] |
-| 결과 | Legacy file row와 상대 경로 | Artifact·AssetVersion·JobOutput lineage [미구현] |
+| 취소·재시도 | 기존 Pipeline cooperative cancel·새 Pipeline Job retry | 내부 cancellation marker·새 Job lineage·공식 action API [완료] |
+| 결과 | Legacy file row와 상대 경로 | Completion UoW의 Artifact·AssetVersion·JobOutput lineage 기반 [완료], 실제 Provider transport [미구현] |
 
 Legacy 완료 상태는 Workspace Job 완료를 의미하지 않는다. backfill·dual write·Runtime read 전환 전에는 두 체계를 혼합하거나 같은 API로 가장하지 않는다.
 
@@ -127,7 +127,7 @@ Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`
 
 지원 Query에서 full scan과 `TEMP B-TREE`가 없어야 한다. 무제한 복합 filter용 Index를 추측해 추가하지 않는다.
 
-Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at, job_id)`와 `ix_jobs_lease_recovery(status, lease_expires_at, job_id)`를 추가했다. 실제 claim·lease query와 상태 전이는 아직 구현하지 않았다.
+Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at, job_id)`와 `ix_jobs_lease_recovery(status, lease_expires_at, job_id)`를 추가했다. atomic claim·lease·heartbeat·만료 recovery와 상태 전이는 구현했으며 실제 Provider transport와 지속 실행 daemon은 후속 범위다.
 
 ## 10. Provider request와 result
 
@@ -173,7 +173,7 @@ Job의 `model_manifest_id`는 요청값이며 `ModelUsage`는 Provider가 확인
 
 ## 13. Worker claim·lease·heartbeat와 crash recovery
 
-source revision `20260810_0017`에서 `claim_token`, 길이 128의 `claimed_by`, `lease_expires_at`, `heartbeat_at`, 음수가 아닌 `attempt`를 Job에 추가했다. Column과 Index만 준비했으며 아래 Worker 동작은 아직 구현하지 않았다.
+source revision `20260810_0017`에서 `claim_token`, 길이 128의 `claimed_by`, `lease_expires_at`, `heartbeat_at`, 음수가 아닌 `attempt`를 Job에 추가했다. 아래 Worker execution foundation을 구현했지만 운영 daemon·scheduler는 아직 구현하지 않았다.
 
 - Worker는 `queued`이고 취소 요청이 없는 Job 하나를 조건부 atomic update로 claim한다.
 - claim 성공 Worker만 `queued → running`할 수 있다.
@@ -197,17 +197,17 @@ JobInput·JobOutput 독립 Endpoint는 제공하지 않는다.
 
 | Method | Path | 상태 |
 |---|---|---|
-| `GET` | `/api/v1/jobs` | [미구현] |
-| `POST` | `/api/v1/jobs` | [미구현] |
-| `GET` | `/api/v1/jobs/{job_id}` | [미구현] |
-| `POST` | `/api/v1/jobs/{job_id}/cancel` | [미구현] |
-| `POST` | `/api/v1/jobs/{job_id}/retry` | [미구현] |
+| `GET` | `/api/v1/jobs` | [완료] |
+| `POST` | `/api/v1/jobs` | [완료] |
+| `GET` | `/api/v1/jobs/{job_id}` | [완료] |
+| `POST` | `/api/v1/jobs/{job_id}/cancel` | [완료] |
+| `POST` | `/api/v1/jobs/{job_id}/retry` | [완료] |
 
-현재 Resource API는 25/64이며 다섯 Endpoint 구현·검증·병합 후 30/64다.
+현재 구현·검증 기준 Resource API는 30/64이며 Job API는 5/5다. 이 Draft PR이 develop에 병합되기 전에는 완료 Gate를 통과한 것으로 선언하지 않는다.
 
 Backend Foundation Complete는 Asset·AssetVersion·Artifact·CompositionSnapshot에 더해 이 문서의 role·Artifact 선택·owner scope·Cursor/Index·idempotency·상태·cancel·retry·claim/lease·crash recovery·Provider 경계·completion UoW와 공식 Job API 5개가 모두 구현·검증·병합된 때만 선언한다.
 
-그 전에는 Generative AI Track을 OPEN으로 표시하지 않는다. Gate 완료 후 DohaMusic Collaboration·backfill·dual write·Runtime read 전환, DohaLM 상업 계보·Dataset·학습·평가·Provider API, DohaAudio Foundation·Dataset·baseline inference·training을 독립 Track으로 열며 DohaVocal은 후순위로 유지한다.
+이 Draft PR 병합 전에는 Generative AI Track을 OPEN으로 표시하지 않는다. 병합 뒤 문서·Actions Gate가 유지되면 Backend Foundation Complete와 Generative AI Track OPEN 전환을 별도 확인한다. 실제 Provider transport나 background daemon 완료를 뜻하지 않는다.
 
 ## 16. source Migration과 남은 범위
 
@@ -225,4 +225,4 @@ additive source revision `20260810_0017`에서 다음을 구현했다.
 - 검증된 Workspace·Project·status·job type keyset Index 4개
 - claim queue·lease recovery Index 2개
 
-`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 nullable staging이다. Worker execution foundation은 구현했지만 실제 DohaLM·DohaAudio·DohaVocal transport, background daemon·scheduler와 공식 API 5개는 아직 구현하지 않았다.
+`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 nullable staging이다. Worker execution foundation과 공식 API 5개는 구현했지만 실제 DohaLM·DohaAudio·DohaVocal transport와 background daemon·scheduler는 아직 구현하지 않았다.

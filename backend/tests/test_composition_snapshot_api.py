@@ -684,8 +684,8 @@ def test_snapshot_routes_are_immutable_and_openapi_is_exact(client: TestClient) 
         for operation_id, count in Counter(operation_ids).items()
         if count > 1
     }
-    assert len(schema["paths"]) == 49
-    assert len(operation_ids) == 68
+    assert len(schema["paths"]) == 53
+    assert len(operation_ids) == 73
     assert {operation_id.rsplit("_", maxsplit=1)[0] for operation_id in duplicates} == {
         "get_pipeline_file_content_api_pipelines__job_id__files__file_id__content",
         "download_pipeline_file_api_pipelines__job_id__files__file_id__download",

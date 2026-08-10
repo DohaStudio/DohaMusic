@@ -10,6 +10,15 @@ from backend.schemas.workspace.common import (
     Pagination,
     SuccessResponse,
 )
+from backend.schemas.workspace.jobs import (
+    JobCreateRequest,
+    JobDetail,
+    JobInputCreateRequest,
+    JobInputDetail,
+    JobModelUsageDetail,
+    JobOutputDetail,
+    JobSummary,
+)
 from backend.schemas.workspace.resources import (
     ArtifactDetail,
     AssetCreateRequest,
@@ -52,6 +61,13 @@ __all__ = [
     "ErrorDetail",
     "ErrorEnvelope",
     "ErrorResponse",
+    "JobCreateRequest",
+    "JobDetail",
+    "JobInputCreateRequest",
+    "JobInputDetail",
+    "JobModelUsageDetail",
+    "JobOutputDetail",
+    "JobSummary",
     "Pagination",
     "ProjectAssetCreateRequest",
     "ProjectAssetSummary",

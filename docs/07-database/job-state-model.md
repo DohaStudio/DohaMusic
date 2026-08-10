@@ -11,7 +11,7 @@
 
 Pipeline `PENDING` cancel, 실행 단계 cooperative `CANCEL_REQUESTED → CANCELLED`와 실패·취소 원본을 복제한 새 Pipeline Job retry는 구현돼 있다. 이 상태와 기존 ThreadPool Worker는 Workspace `jobs`의 공식 5-state·claim·lease 구현 완료 근거가 아니다.
 
-## Workspace Job — [계약·source Column/Index 완료, 실행 제어 미구현]
+## Workspace Job — [계약·source Column/Index·실행 제어·공식 API 완료]
 
 공개 상태는 다음 5개만 사용한다.
 
@@ -41,3 +41,5 @@ stateDiagram-v2
 Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분하며, lease 만료 running Job은 자동으로 queued에 되돌리지 않고 retryable failure로 종료한다.
 
 terminal Job은 불변이다. atomic claim은 queued→running과 token·Worker·lease·heartbeat·attempt 증가를 함께 확정하고, lease 만료는 같은 row를 재queue하지 않고 `WORKER_LEASE_EXPIRED` retryable failure로 종료한다. heartbeat와 recovery는 lease 값을 조건에 포함해 stale snapshot 경쟁을 차단한다.
+
+공식 API는 조회·생성·취소·재시도 action만 제공하며 PATCH·DELETE는 없다. queued 취소는 즉시 `cancelled`를 반환하고 running 취소는 marker만 기록한 실제 `running` 상태와 `202`를 반환한다. retry는 terminal 원본을 바꾸지 않고 frozen lineage를 복제한 새 queued Job을 `202`로 반환한다.

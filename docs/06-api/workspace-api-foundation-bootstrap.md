@@ -16,7 +16,7 @@
 - 기존 `AppError`·validation·내부 오류의 v1 payload 분기
 - 단일 사용자 기본 Workspace의 명시적 Bootstrap CLI
 
-Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot 25개 Resource Endpoint는 `[완료]`이며 나머지 39개는 `[미구현]`입니다. 임시 상태 Route는 추가하지 않습니다.
+Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 30개 Resource Endpoint를 구현했으며 나머지 34개는 `[미구현]`입니다. 임시 상태 Route는 추가하지 않습니다.
 
 ## 2. Router와 응답 계약
 

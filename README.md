@@ -12,11 +12,11 @@
 
 > 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
 
-> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog, Job schema·Index를 포함한 revision `20260806_0012`~`20260810_0017`을 승인된 절차로 실제 사용자 DB에 적용했습니다. Alembic source head·실제 사용자 DB·Bootstrap CLI target은 모두 `20260810_0017`이며 source metadata와 실제 DB는 36개 Application Table입니다. Bootstrap은 exact revision Gate만 동기화했고 실제 실행은 하지 않았습니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot Resource API 25개를 구현했으며 나머지 39개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
+> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog, Job schema·Index를 포함한 revision `20260806_0012`~`20260810_0017`을 승인된 절차로 실제 사용자 DB에 적용했습니다. Alembic source head·실제 사용자 DB·Bootstrap CLI target은 모두 `20260810_0017`이며 source metadata와 실제 DB는 36개 Application Table입니다. Bootstrap은 exact revision Gate만 동기화했고 실제 실행은 하지 않았습니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job Resource API 30개를 구현했으며 나머지 34개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
 
-> CompositionSnapshot API: [공개 계약과 Application 기반](docs/06-api/composition-snapshot-foundation.md)을 재사용해 목록·생성·상세 Router 3개, effective Owner·ProjectAsset scope, 불변 Snapshot+Item 원자적 생성, Project별 자동 version, `snapshot_version DESC` HMAC Cursor, aggregate 조회, bounded Provider·Manifest 계보와 `Idempotency-Key` replay를 구현했습니다. CompositionSnapshot API는 3/3, Resource API는 25/64입니다.
+> CompositionSnapshot API: [공개 계약과 Application 기반](docs/06-api/composition-snapshot-foundation.md)을 재사용해 목록·생성·상세 Router 3개, effective Owner·ProjectAsset scope, 불변 Snapshot+Item 원자적 생성, Project별 자동 version, `snapshot_version DESC` HMAC Cursor, aggregate 조회, bounded Provider·Manifest 계보와 `Idempotency-Key` replay를 구현했습니다. CompositionSnapshot API는 3/3이며 Job API를 포함한 전체 Resource API는 30/64입니다.
 
-> Workspace Job Foundation: [공식 계약](docs/03-architecture/workspace-job-foundation.md)과 [ADR-033](docs/11-decisions/ADR-033-workspace-job-execution-boundary.md)에 따라 revision `20260810_0017`의 실행 제어 schema 위에 Job Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()`·fake Provider dispatch 경계를 구현했습니다. Worker는 결과를 직접 등록하지 않고 Completion UoW만 호출하며 실제 Provider transport와 Job API는 미구현입니다. Job API는 0/5, Resource API는 25/64이고 Backend Foundation·Generative AI Track 완료 상태로 승격하지 않습니다.
+> Workspace Job Foundation: [공식 계약](docs/03-architecture/workspace-job-foundation.md)과 [ADR-033](docs/11-decisions/ADR-033-workspace-job-execution-boundary.md)에 따라 revision `20260810_0017`의 실행 제어 schema 위에 Job Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()`·fake Provider dispatch 경계를 구현했습니다. 공식 Job Router는 effective Workspace 목록·생성·aggregate 상세·취소·재시도 5개 Endpoint를 Service 경계에 연결했으며 Job API는 5/5, Resource API는 30/64입니다. 이 Draft PR이 develop에 병합되기 전까지 Workspace Backend Foundation은 `[진행 중]`, Generative AI Track은 `OPEN 전`으로 유지합니다. 실제 Provider transport와 background daemon·scheduler는 여전히 미구현입니다.
 
 > Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
 
@@ -28,7 +28,7 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 
 > 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
 > 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료**
-> 최종 수정일: 2026-08-10
+> 최종 수정일: 2026-08-11
 > 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.
@@ -79,8 +79,8 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | K3.2 final WAV detected BPM·confidence·요청 BPM 오차·half/double-time 후보와 Result·History·Project UI |
 | [완료] | K3.3 final WAV 에너지·반복 기반 15초 후렴 후보·confidence·중앙 fallback과 Result·History·Project UI |
 | [계획] | K3.4 Preview Export 실제 구현 |
-| [진행 중] | AssetVersion 기반 CompositionSnapshot Application 기반과 공식 API 3개 완료, Job API와 `DohaArtifacts/music`의 Mix·Export·Preview 운영 연결 계획 |
-| [완료: 계약] | Workspace Job Aggregate·상태·입출력·Provider·claim/lease·completion 경계 확정, 구현·API 0/5 미완료 |
+| [진행 중] | AssetVersion 기반 CompositionSnapshot Application 기반과 공식 API 3개, Workspace Job 공식 API 5개 구현·검증; develop 병합 전 Backend Foundation Gate 대기 |
+| [진행 중] | Workspace Job Aggregate·상태·입출력·Provider·claim/lease·completion·공식 API 5/5 구현, 실제 Provider transport·background daemon 미구현 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 
