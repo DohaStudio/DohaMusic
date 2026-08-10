@@ -18,7 +18,7 @@ from backend.db.session import create_database_engine, create_session_factory
 from backend.schemas.workspace.bootstrap import WorkspaceBootstrapResult
 from backend.services.workspace import WorkspaceService
 
-BOOTSTRAP_TARGET_REVISION = "20260809_0016"
+BOOTSTRAP_TARGET_REVISION = "20260810_0017"
 
 
 class WorkspaceBootstrapError(RuntimeError):

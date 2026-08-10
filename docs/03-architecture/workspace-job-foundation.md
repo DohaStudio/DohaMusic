@@ -1,6 +1,6 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약·Entity·source Migration·Index] / [미구현: 실제 DB 적용·Cursor·Worker·API]
+> 문서 상태: [완료: 계약·Entity·Migration·실제 DB 적용·Index] / [미구현: Cursor·Worker·API]
 > 최종 수정일: 2026-08-10
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -9,7 +9,7 @@
 
 이 문서는 Workspace `Job`, `JobInput`, `JobOutput`, `ModelUsage`의 공식 실행 계약을 고정한다. 계약은 DohaStudio Common Specification `0.1.0` / `draft-baseline`을 좁히는 DohaMusic 구현 기준이며 공통 명세의 불변 Job·Artifact·Provider 원칙과 충돌하지 않는다.
 
-현재 `jobs`, `job_inputs`, `job_outputs`, `model_usages` Entity·Repository·Service 기반에 role·Workspace scope·cancellation marker·claim/lease Column과 검증된 Index를 추가했다. Alembic source head는 `20260810_0017`이고 실제 사용자 DB는 `20260809_0016`이다. 공개 Job API 5개, Job Cursor, Worker claim·lease 로직과 completion Unit of Work는 아직 구현하지 않았다. Application Table은 36개이며 현행 Runtime Table 14개가 source of truth다.
+현재 `jobs`, `job_inputs`, `job_outputs`, `model_usages` Entity·Repository·Service 기반에 role·Workspace scope·cancellation marker·claim/lease Column과 검증된 Index를 추가하고 revision `20260810_0017`을 실제 사용자 DB에 적용했다. 공개 Job API 5개, Job Cursor, Worker claim·lease 로직과 completion Unit of Work는 아직 구현하지 않았다. Application Table은 36개이며 현행 Runtime Table 14개가 source of truth다.
 
 ## 2. Legacy Runtime Job과 Workspace Job
 
@@ -114,7 +114,7 @@ Retry는 원본 상태를 되돌리지 않고 항상 새 `Job`을 만들며 `ret
 
 Job의 접근 scope는 `Job → Project → Workspace → owner_id`다. 공개 `requested_by`, `owner_id` 입력과 owner filter를 금지하고 effective actor에서 파생한다. 다른 Owner의 Job은 `404 JOB_NOT_FOUND`로 존재를 숨긴다.
 
-Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`, `status`, `job_type`만 선택 filter로 허용한다. `project_id`는 필수가 아니다. source revision `20260810_0017`에서 `jobs.workspace_id`를 추가하고 기존 Job은 Project의 Workspace로 안전하게 채웠다. 기존 SQLite row와 하위 FK를 보존하기 위해 DB Column은 nullable staging으로 두지만 새 Job 생성은 항상 값을 기록하며 논리 계약은 필수·불변이다. Project·Workspace 일치는 Service가 검증하고 실제 DB 적용·운영 데이터 검증 뒤 `NOT NULL` 전환을 별도 검토한다.
+Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`, `status`, `job_type`만 선택 filter로 허용한다. `project_id`는 필수가 아니다. revision `20260810_0017`에서 `jobs.workspace_id`를 추가하고 실제 사용자 DB에 적용했다. 적용 당시 기존 Job은 0건이어서 backfill 영향은 없었다. 기존 SQLite row와 하위 FK를 보존하기 위해 DB Column은 nullable staging으로 두지만 새 Job 생성은 항상 값을 기록하며 논리 계약은 필수·불변이다. Project·Workspace 일치는 Service가 검증하고 의미 기반 운영 검증 뒤 `NOT NULL` 전환을 별도 검토한다.
 
 정렬은 `created_at DESC, job_id DESC`다. HMAC Cursor resource `job`을 추가하며 payload는 `v=1`, resource, direction, sort, last created time, last ID, limit과 filter hash를 포함한다. fingerprint에는 effective owner, Workspace, 선택 Project·status·job type과 sort가 포함된다.
 
@@ -223,4 +223,4 @@ additive source revision `20260810_0017`에서 다음을 구현했다.
 - 검증된 Workspace·Project·status·job type keyset Index 4개
 - claim queue·lease recovery Index 2개
 
-`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 기존 row 보존을 위한 nullable staging이다. 실제 사용자 DB 적용, 의미 기반 role backfill, `NOT NULL` 강화, Job Cursor·Repository keyset·Service state machine·Worker·Provider 호출·공식 API 5개는 이번 범위에 포함하지 않는다.
+`jobs.workspace_id`, `job_inputs.input_role`, `job_outputs.output_role`은 기존 row 보존을 위한 nullable staging이며 실제 사용자 DB에도 이 계약으로 적용했다. 의미 기반 role backfill, `NOT NULL` 강화, Job Cursor·Repository keyset·Service state machine·Worker·Provider 호출·공식 API 5개는 아직 구현하지 않았다.

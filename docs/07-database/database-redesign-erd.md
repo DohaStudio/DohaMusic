@@ -1,9 +1,9 @@
 # Asset 중심 목표 ERD
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace Entity 21개·Catalog `0016` 실제 DB 적용, Job schema·Index source `0017`, 실제 DB `0016`
+> 구현 상태: Workspace Entity 21개·Catalog·Job schema·Index revision `0017` 실제 DB 적용
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
 ## 1. 전체 ERD
