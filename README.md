@@ -10,7 +10,7 @@
 
 > AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지하고, 실제 저장소로 존재하는 DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider 기능으로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
 
-> 공통 명세 기준선: 저장소 간 Asset·Artifact·Job·Provider 계약은 [DohaStudio Common Specification](https://github.com/DohaStudio/.github/tree/main/docs/specifications) `0.1.0` / `draft-baseline`을 따릅니다. 감사·재현 기준 commit은 `1e4b480c8cbd6e51835f8550e685e9b136d8071d`입니다.
+> 공통 AI 계약 기준선: [Common AI Contract 소비자 기반](docs/03-architecture/common-ai-contract-consumer.md)은 `DohaStudio/.github`의 Python 배포물 `0.1.0`, 정책 `1.0.0`, 병합 commit `dd75fc88c16e9ae9a04acfafb72756a905f6365b`을 사용합니다. 현재는 opt-in RightsMetadata 검증 기반이며 Runtime·DB·Provider에는 연결하지 않았습니다.
 
 > Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog, Job schema·Index를 포함한 revision `20260806_0012`~`20260810_0017`을 승인된 절차로 실제 사용자 DB에 적용했습니다. Alembic source head·실제 사용자 DB·Bootstrap CLI target은 모두 `20260810_0017`이며 source metadata와 실제 DB는 36개 Application Table입니다. Bootstrap은 exact revision Gate만 동기화했고 실제 실행은 하지 않았습니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job Resource API 30개를 구현했으며 나머지 34개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
 

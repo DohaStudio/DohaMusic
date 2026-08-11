@@ -40,6 +40,12 @@ Frontend는 `v1`의 권리·Voice Conversion 처리·임시 저장·최종 정�
 
 ## 목적 분리
 
+Common AI Contract Schema v1에는 독립 Consent 또는 Provenance schema가 없다. 현재의
+`consent_confirmed`와 정책 snapshot은 canonical `rights_metadata`가 요구하는 evidence·권리 검토
+정보를 완성하지 못하므로 자동 변환하거나 공통 계약 준수로 승격하지 않는다. Common package의
+opt-in RightsMetadata 검증 경계와 후속 governance 범위는
+[Common AI Contract 소비자 기반](../03-architecture/common-ai-contract-consumer.md)에 기록한다.
+
 F6 참조 음성 등록은 기존 Voice Conversion 입력을 준비하는 목적이다. Phase 7의 장시간 Dataset 수집·전사·split·preprocessing·개인화 학습에 F6 sample을 자동 재사용하지 않는다. 학습 재사용은 별도 opt-in, 목적·보존·lineage·원본·파생·모델 artifact 삭제 계약과 ADR 승인이 필요하다.
 
 ## 공개 운영 선행 조건 [Phase 9 선행]
