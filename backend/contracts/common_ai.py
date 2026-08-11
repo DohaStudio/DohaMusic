@@ -10,35 +10,8 @@ from typing import Any
 COMMON_AI_PACKAGE_VERSION = "0.1.0"
 COMMON_AI_POLICY_VERSION = "1.0.0"
 RIGHTS_METADATA_SCHEMA = "rights_metadata"
-
-_EXPECTED_SCHEMAS = (
-    "common_envelope",
-    "dataset_manifest",
-    "dataset_version",
-    "evaluation_run",
-    "learning_candidate",
-    "model_manifest",
-    "model_version",
-    "music_intent",
-    "provider_capability",
-    "rights_metadata",
-    "training_eligibility",
-    "training_run",
-)
-_EXPECTED_RESOURCES = (
-    "common-envelope.schema.json",
-    "dataset-manifest.schema.json",
-    "dataset-version.schema.json",
-    "evaluation-run.schema.json",
-    "learning-candidate.schema.json",
-    "model-manifest.schema.json",
-    "model-version.schema.json",
-    "music-intent.schema.json",
-    "provider-capability.schema.json",
-    "rights-metadata.schema.json",
-    "training-eligibility.schema.json",
-    "training-run.schema.json",
-    "version-policy.json",
+RIGHTS_METADATA_SCHEMA_ID = (
+    "https://schemas.dohastudio.org/common-ai/v1/rights-metadata.schema.json"
 )
 _REQUIRED_PUBLIC_API = (
     "ContractResourceError",
@@ -89,7 +62,7 @@ def _load_package() -> ModuleType:
 
 
 def common_ai_contract_status() -> CommonAIContractStatus:
-    """Fail closed unless package, policy, schemas, and resources match v1."""
+    """Fail closed unless the package, policy, and consumed schema match v1."""
 
     package = _load_package()
     try:
@@ -97,6 +70,7 @@ def common_ai_contract_status() -> CommonAIContractStatus:
         policy_version = str(package.contract_policy_version())
         schema_names = tuple(package.schema_names())
         resource_names = tuple(package.resource_names())
+        rights_metadata_schema = package.get_schema(RIGHTS_METADATA_SCHEMA)
     except (AttributeError, TypeError, ValueError, package.ContractResourceError):
         raise CommonAIContractCompatibilityError(
             "The Common AI Contract package identity could not be verified."
@@ -104,8 +78,8 @@ def common_ai_contract_status() -> CommonAIContractStatus:
     if (
         package_version != COMMON_AI_PACKAGE_VERSION
         or policy_version != COMMON_AI_POLICY_VERSION
-        or schema_names != _EXPECTED_SCHEMAS
-        or resource_names != _EXPECTED_RESOURCES
+        or not isinstance(rights_metadata_schema, dict)
+        or rights_metadata_schema.get("$id") != RIGHTS_METADATA_SCHEMA_ID
     ):
         raise CommonAIContractCompatibilityError(
             "The Common AI Contract package does not match the supported v1 contract."

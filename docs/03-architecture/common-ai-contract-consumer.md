@@ -29,17 +29,18 @@ Registry resource를 뜻하지 않으며 두 번째 실행 source of truth로 �
 
 `backend.contracts.common_ai`는 package public API만 사용하는 얇은 opt-in 경계다.
 
-- `common_ai_contract_status()`는 package·policy version과 resource 목록을 확인하고 불일치 시
-  fail-closed 한다.
+- `common_ai_contract_status()`는 package·policy version과 소비 대상 `rights_metadata`의 공식
+  `$id`를 확인하고 불일치 시 fail-closed 한다.
 - `load_common_ai_schema()`는 public `get_schema()`를 통해 canonical schema를 읽는다.
 - `validate_common_ai_contract()`는 canonical `ValidationIssue` tuple을 수정하지 않고 반환한다.
 - `validate_rights_metadata()`는 `expected_kind="rights_metadata"`만 고정하며 field를 추가·변환하지
   않는다.
 
 모듈 import는 package 조회, 파일 생성, network 요청을 수행하지 않는다. 호출 시 package가
-없거나 공개 API·버전·resource 집합이 다르면 내부 경로와 stack trace를 포함하지 않는 고정 오류로
-중단한다. 현재 Router, Service, Job, Provider, DB, Migration, 실제 사용자 데이터에는 연결하지
-않았다.
+없거나 공개 API·버전·소비 대상 resource identity가 다르면 내부 경로와 stack trace를 포함하지
+않는 고정 오류로 중단한다. 전체 Registry·resource identity 목록은 로컬에 복제하거나 compatibility
+policy로 관리하지 않는다. 현재 Router, Service, Job, Provider, DB, Migration, 실제 사용자
+데이터에는 연결하지 않았다.
 
 ## 계약 선택과 기존 도메인
 

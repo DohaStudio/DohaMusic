@@ -43,13 +43,15 @@ def _rights_metadata() -> dict[str, object]:
     }
 
 
-def test_status_verifies_pinned_package_and_registry() -> None:
+def test_status_verifies_pinned_package_and_consumed_schema() -> None:
     status = common_ai.common_ai_contract_status()
 
     assert status.package_version == "0.1.0"
     assert status.policy_version == "1.0.0"
     assert len(status.schema_names) == 12
     assert len(status.resource_names) == 13
+    assert not hasattr(common_ai, "_EXPECTED_SCHEMAS")
+    assert not hasattr(common_ai, "_EXPECTED_RESOURCES")
 
 
 def test_schema_is_loaded_from_package_public_api() -> None:
@@ -177,6 +179,28 @@ def test_incompatible_package_has_sanitized_error(
         __version__="9.9.9",
         contract_policy_version=lambda: "1.0.0",
         get_schema=lambda _: {},
+        resource_names=lambda: (),
+        schema_names=lambda: (),
+        validate_contract=lambda *_args, **_kwargs: (),
+    )
+    monkeypatch.setattr(common_ai, "import_module", lambda _: incompatible)
+
+    with pytest.raises(common_ai.CommonAIContractCompatibilityError) as captured:
+        common_ai.common_ai_contract_status()
+
+    assert str(captured.value) == (
+        "The Common AI Contract package does not match the supported v1 contract."
+    )
+
+
+def test_wrong_consumed_schema_id_has_sanitized_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    incompatible = SimpleNamespace(
+        ContractResourceError=LookupError,
+        __version__="0.1.0",
+        contract_policy_version=lambda: "1.0.0",
+        get_schema=lambda _: {"$id": "https://invalid.example/rights-metadata.json"},
         resource_names=lambda: (),
         schema_names=lambda: (),
         validate_contract=lambda *_args, **_kwargs: (),
