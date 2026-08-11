@@ -8,6 +8,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Common AI Contract Python 소비자 기반
+
+- `DohaStudio/.github`의 `dohastudio-common-ai-contracts` `0.1.0`을 병합 commit `dd75fc88c16e9ae9a04acfafb72756a905f6365b`에 불변 고정하고, package·policy·resource identity를 fail-closed로 확인하는 opt-in loader를 추가했다.
+- canonical `rights_metadata` payload를 package public API로 검증하고 `ValidationIssue`를 그대로 반환하는 얇은 adapter를 추가했다. schema 복제, 누락 field 추정, Voice consent 승격, Runtime·DB·Provider 연결은 수행하지 않았다.
+- 설치 후 schema 조회와 검증의 offline 동작, import 무부작용, package 부재·불일치의 안전한 실패를 테스트로 고정했다.
+
 ### 추가 — Workspace Job Resource API
 
 - effective Workspace의 Job 목록·생성·aggregate 상세·취소·재시도 공식 Endpoint 5개를 `/api/v1/jobs`에 추가했다. Router는 `JobService`만 호출하고 HMAC Cursor, Owner scope, 7개 Job type·Snapshot·input role Matrix와 생성·재시도 멱등성 계약을 재사용한다.

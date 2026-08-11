@@ -6,9 +6,10 @@ build-backend = "setuptools.build_meta"
 name = "dohamusic-backend"
 version = "0.1.0"
 description = "DohaMusic Backend Foundation"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 dependencies = [
   "alembic>=1.14,<2.0",
+  "dohastudio-common-ai-contracts @ git+https://github.com/DohaStudio/.github.git@dd75fc88c16e9ae9a04acfafb72756a905f6365b",
   "fastapi>=0.115,<1.0",
   "httpx>=0.28,<1.0",
   "numpy>=1.26,<3.0",
