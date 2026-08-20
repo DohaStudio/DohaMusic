@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Timeline Playback Foundation
+
+- 선택된 CompositionSnapshot의 snapshot-local Track projection을 사용하는 읽기 전용 초 단위 Timeline shell, ruler, lane, Playhead, local Track 선택과 horizontal scroll·zoom 기반을 추가했다.
+- AppShell의 기존 Global Player를 단일 audio authority로 확장해 play/pause·currentTime·duration·seek·ended·loading·error를 Timeline과 동기화했다. duration과 Playhead는 실제 media metadata·event만 사용한다.
+- 단일 `mix` Item과 단일 safe audio Artifact만 canonical source로 해석하고, 없거나 모호하면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다. first/latest fallback과 multi-track audio 조합은 추가하지 않았다.
+- click-to-seek의 viewport offset·scroll·zoom·clamp, keyboard transport, 접근성 label, responsive overflow와 기존 Player·Composition 회귀 테스트를 추가했다. Backend API·DB·Alembic·실제 사용자 DB·Provider·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
+
 ### 추가 — D1 Workspace Composition Frontend
 
 - 기존 Project 상세 Route에서 `CompositionWorkspaceRead` aggregate의 `empty`, `selection_required`, `ready` 상태를 Backend authority 그대로 표시한다.

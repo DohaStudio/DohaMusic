@@ -36,10 +36,11 @@ DohaMusic = AI-native DAW
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
 - Common AI Contract의 `RightsMetadata` opt-in 검증 기반
 - [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 config 기반 HTTP Transport·Mock HTTP 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약. Worker wiring·Provider Job persistence·인증·Artifact payload·실제 Vocal model은 미구현
+- Project 상세의 선택된 CompositionSnapshot에 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
 
 다음은 CURRENT가 아니다.
 
-- 편집 가능한 DAW Timeline·Track·Clip·Mixer·Undo/Redo
+- 편집 가능한 DAW Clip·Waveform·Section·Mixer·Undo/Redo와 range selection
 - 실제 DohaLM·DohaAudio transport, DohaVocal Worker 연결과 운영 Provider
 - ReferenceAnalysis ingestion Workflow와 Reference Panel
 - CompositionEvaluationRun 기반 완성곡 QA
@@ -90,7 +91,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 ## Current Development Track
 
 - AI-native DAW D0 제품 목표 정합화: [완료]
-- 현재 제품 단계: D1 Composition Read Workspace [D1-A 완료 / D1-Transition 완료 / D1-B 구현·Draft 검토]
+- 현재 제품 단계: D1 Composition Read Workspace [완료] / D2 Timeline Playback Foundation [구현·Draft 검토]
 - 병행 Track: AI Provider 저장소 분리, F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
 
 현재 실행 순서와 `NEXT / LATER`는 [ROADMAP](ROADMAP.md), 장기 Phase·Track·Gate는 [MASTER_ROADMAP](MASTER_ROADMAP.md), 완료 판정은 [DoD](docs/DoD/README.md)를 기준으로 한다.
