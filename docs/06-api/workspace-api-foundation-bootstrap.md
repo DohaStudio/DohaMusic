@@ -1,9 +1,9 @@
 # Workspace API 공통 기반과 Bootstrap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 > 관련 기능: Workspace REST API 선행 기반과 단일 사용자 기본 Workspace 준비
-> 구현 상태: 공통 기반·명시적 도구·HMAC Cursor와 Resource Endpoint 30개·D1 product API 2개 구현, 실제 Bootstrap 미수행
+> 구현 상태: 공통 기반·명시적 도구·D1 Transition inventory·HMAC Cursor와 Resource Endpoint 30개·D1 product API 2개 구현, 실제 Bootstrap 미수행
 > 관련 문서: [공통 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [API 전환 전략](api-contract-migration-strategy.md), [DB 전환 전략](../07-database/database-redesign-migration-strategy.md)
 
 ## 1. 범위
@@ -85,7 +85,7 @@ python -m backend.cli.workspace_bootstrap `
 
 인증·로컬 Owner 자동 식별 계약이 아직 없으므로 `--owner-id`는 필수 UUID입니다. 이메일·사용자명에서 UUID를 만들거나 실행마다 임의 값을 생성하지 않습니다.
 
-Bootstrap은 `WorkspaceService.bootstrap_default_workspace()`의 단일 transaction을 사용합니다.
+Bootstrap은 `WorkspaceService.bootstrap_default_workspace()`의 단일 transaction을 사용합니다. Workspace 생성·재사용과 D1 Transition inventory는 같은 transaction에 속하므로 inventory 실패 시 새 Workspace도 rollback됩니다.
 
 1. 삭제되지 않은 Workspace를 최대 2개 조회합니다.
 2. 하나이고 명시한 owner와 일치하면 이름과 무관하게 기존 Workspace를 반환합니다.
@@ -93,6 +93,9 @@ Bootstrap은 `WorkspaceService.bootstrap_default_workspace()`의 단일 transact
 4. 없으면 trim한 이름으로 활성 Workspace 하나를 생성합니다.
 5. 둘 이상이면 임의 선택하지 않고 중단합니다.
 6. Soft Delete된 Workspace는 자동 복구하지 않습니다.
+7. 활성 Project의 Snapshot 수와 기존 canonical selection을 한 번의 batch query로 분류합니다.
+8. 기존 valid selection은 보존하고 dangling·cross-Project selection은 fail-closed로 중단합니다.
+9. pre-D1-A project-level selection authority가 없으므로 Snapshot이 하나여도 자동 선택·backfill하지 않습니다.
 
 Project·Asset·AssetVersion과 Runtime Table row는 생성하거나 변경하지 않습니다. Workspace Table에는 owner 단위 Unique Constraint가 없으므로 동시 CLI 실행의 최종 DB 방어와 재시도 정책은 후속 검토가 필요합니다.
 
@@ -104,11 +107,15 @@ Project·Asset·AssetVersion과 Runtime Table row는 생성하거나 변경하�
 - 기존 SQLite 파일 또는 명시적 in-memory 테스트 DB
 - `alembic_version` Table 존재
 - revision row가 정확히 하나이고 그 값이 Bootstrap이 검증한 target `20260820_0018`과 정확히 일치
-- `workspaces` Table 존재
+- `workspaces`, `music_projects`, `composition_snapshots`, `project_composition_selections` Table 존재
+- selection primary key·selected Snapshot unique·same-Project 복합 FK 존재
+- `(project_id, composition_snapshot_id)` Snapshot identity unique Index 존재
 
 Bootstrap은 최소 revision 이상을 허용하지 않습니다. 현재 target은 Alembic source head `20260820_0018`이며 실제 사용자 DB `20260810_0017`은 migration 승인·적용 전까지 fail-closed로 거부됩니다. 과거 revision, 미래·알 수 없는·형식 오류 revision과 revision row 0개 또는 복수를 거부하며 일반 Alembic DAG 비교와 자동 호환 판정은 별도 설계 없이 도입하지 않습니다. 실제 Bootstrap은 아직 실행하지 않았습니다.
 
 Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자동 생성을 수행하지 않습니다. 이번 작업에서는 실제 사용자 DB에 접근하거나 Bootstrap을 실행하지 않았습니다.
+
+성공한 `--apply` 결과의 `transition`은 Project·`empty`·`selection_required`·already selected 수와 authority, 예상 mutation 수를 구조화해 반환합니다. authority는 `NO_PREEXISTING_SELECTION_AUTHORITY`, authoritative/ambiguous/cross-Project/mutation 수는 정상 상태에서 모두 0입니다. `status=selection_required`는 오류가 아니라 향후 사용자가 PATCH로 선택해야 하는 정상 제품 상태입니다. 계획 모드는 DB를 열지 않는 기존 안전 경계를 유지하므로 운영 backfill preview 확장은 `FOLLOW_UP_CANDIDATE`입니다.
 
 ## 8. Idempotency-Key 후속 판단
 

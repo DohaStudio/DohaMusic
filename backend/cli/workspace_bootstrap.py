@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 from collections.abc import Mapping
+from dataclasses import asdict
 from pathlib import Path
 from uuid import UUID
 
@@ -19,6 +20,12 @@ from backend.schemas.workspace.bootstrap import WorkspaceBootstrapResult
 from backend.services.workspace import WorkspaceService
 
 BOOTSTRAP_TARGET_REVISION = "20260820_0018"
+REQUIRED_TRANSITION_TABLES = {
+    "workspaces",
+    "music_projects",
+    "composition_snapshots",
+    "project_composition_selections",
+}
 
 
 class WorkspaceBootstrapError(RuntimeError):
@@ -73,7 +80,7 @@ def _ensure_existing_sqlite_target(database_url: str) -> None:
 
 
 def inspect_bootstrap_target(database_url: str) -> str:
-    """Schema를 변경하지 않고 revision과 Workspace Table을 확인한다."""
+    """Schema를 변경하지 않고 revision과 D1 Transition schema를 확인한다."""
 
     _ensure_existing_sqlite_target(database_url)
     engine = create_database_engine(database_url)
@@ -82,8 +89,11 @@ def inspect_bootstrap_target(database_url: str) -> str:
             table_names = set(inspect(connection).get_table_names())
             if "alembic_version" not in table_names:
                 raise WorkspaceBootstrapError("Alembic revision Table이 없습니다.")
-            if "workspaces" not in table_names:
-                raise WorkspaceBootstrapError("Workspace Table이 없습니다.")
+            missing_tables = REQUIRED_TRANSITION_TABLES - table_names
+            if missing_tables:
+                if "workspaces" in missing_tables:
+                    raise WorkspaceBootstrapError("Workspace Table이 없습니다.")
+                raise WorkspaceBootstrapError("D1 Transition 필수 Table이 없습니다.")
             revisions = tuple(
                 connection.scalars(text("SELECT version_num FROM alembic_version"))
             )
@@ -96,6 +106,7 @@ def inspect_bootstrap_target(database_url: str) -> str:
                 raise WorkspaceBootstrapError(
                     f"대상 DB revision은 {BOOTSTRAP_TARGET_REVISION}이어야 합니다."
                 )
+            _inspect_transition_constraints(inspect(connection))
             return str(revision)
     except WorkspaceBootstrapError:
         raise
@@ -105,6 +116,45 @@ def inspect_bootstrap_target(database_url: str) -> str:
         ) from error
     finally:
         engine.dispose()
+
+
+def _inspect_transition_constraints(schema_inspector: object) -> None:
+    """0018의 same-Project FK와 identity Index를 이름이 아닌 구조로 검증한다."""
+
+    get_pk_constraint = getattr(schema_inspector, "get_pk_constraint")
+    get_unique_constraints = getattr(schema_inspector, "get_unique_constraints")
+    get_foreign_keys = getattr(schema_inspector, "get_foreign_keys")
+    get_indexes = getattr(schema_inspector, "get_indexes")
+
+    primary_key = get_pk_constraint("project_composition_selections")
+    if primary_key.get("constrained_columns") != ["project_id"]:
+        raise WorkspaceBootstrapError("D1 selection primary key가 유효하지 않습니다.")
+    unique_columns = {
+        tuple(item.get("column_names") or ())
+        for item in get_unique_constraints("project_composition_selections")
+    }
+    if ("selected_composition_snapshot_id",) not in unique_columns:
+        raise WorkspaceBootstrapError("D1 selection unique constraint가 없습니다.")
+    foreign_keys = get_foreign_keys("project_composition_selections")
+    has_same_project_fk = any(
+        tuple(item.get("constrained_columns") or ())
+        == ("project_id", "selected_composition_snapshot_id")
+        and item.get("referred_table") == "composition_snapshots"
+        and tuple(item.get("referred_columns") or ())
+        == ("project_id", "composition_snapshot_id")
+        for item in foreign_keys
+    )
+    if not has_same_project_fk:
+        raise WorkspaceBootstrapError("D1 same-Project foreign key가 없습니다.")
+    indexes = get_indexes("composition_snapshots")
+    has_identity_index = any(
+        item.get("unique")
+        and tuple(item.get("column_names") or ())
+        == ("project_id", "composition_snapshot_id")
+        for item in indexes
+    )
+    if not has_identity_index:
+        raise WorkspaceBootstrapError("D1 Snapshot identity index가 없습니다.")
 
 
 def execute_bootstrap(
@@ -143,6 +193,7 @@ def execute_bootstrap(
             workspace_id=result.workspace.workspace_id,
             name=result.workspace.name,
             migration_revision=revision,
+            transition=asdict(result.transition),
         )
     finally:
         session_factory.kw["bind"].dispose()

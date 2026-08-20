@@ -5,11 +5,18 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — D1 Composition Transition
+
+- Workspace Bootstrap exact revision Gate를 `0018`의 필수 Table, selection PK·unique, same-Project 복합 FK와 Snapshot identity Index까지 확장했다.
+- 기존 persistence에 project-level selected Snapshot 권한이 없음을 확인하고 `NO_PREEXISTING_SELECTION_AUTHORITY`로 고정해 Snapshot 수와 무관하게 selection backfill·latest fallback·dual write를 0건으로 유지한다.
+- Bootstrap transaction 안에서 활성 Project의 `empty`, `selection_required`, 기존 valid selection을 단일 batch inventory로 분류하고 구조화된 결과를 반환한다. invalid·cross-Project selection은 자동 교정 없이 중단한다.
+- 실제 사용자 DB 접근·migration·backfill, Frontend, Provider, Artifact payload, Common Contract, Dataset·Training·GPU는 변경하지 않았다.
 
 ### 추가 — Workspace Job Vocal Capability Contract
 

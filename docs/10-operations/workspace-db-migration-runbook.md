@@ -1,7 +1,7 @@
 # Workspace DB Migration 적용 Runbook
 
 > 문서 상태: [역사 기준 + 재사용 Runbook]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 > 관련 기능: SQLite 사용자 DB additive Migration 승인 절차
 > 구현 상태: `20260801_0011 → 20260806_0012` 원형 절차와 후속 `20260810_0017`까지 실제 적용 완료; 다음 Migration은 대상·checksum·Gate를 새 실행 기록으로 갱신해야 함
 > 관련 문서: [Preflight 체크리스트](workspace-db-preflight-checklist.md), [Backup·Rollback 정책](workspace-db-backup-rollback-policy.md), [Migration 전략](../07-database/database-redesign-migration-strategy.md), [Preflight 검증](../../reports/validation/VALIDATION-WORKSPACE-DB-MIGRATION-PREFLIGHT.md), [SQLite 안전 제어 검증](../../reports/validation/VALIDATION-SQLITE-MIGRATION-SAFETY.md)
@@ -123,3 +123,19 @@ Alembic online 연결은 공통 SQLite helper로 연결마다 `PRAGMA foreign_ke
 - 성공·중단 단계와 안전한 오류 코드
 
 원본 절대 경로, DB 파일, row 내용과 개인정보는 Git에 기록하지 않습니다.
+
+## 9. D1 actual DB Transition 승인 Gate
+
+source `20260820_0018`과 보고된 actual DB `20260810_0017` 사이의 전환은 이번 D1-Transition 구현과 분리합니다. 별도 사용자 승인 전에는 actual DB를 열거나 migration·Bootstrap·backfill을 실행하지 않습니다. 승인 실행은 최소 다음 증거를 한 실행 기록에 고정해야 합니다.
+
+1. 검증 가능한 backup과 restore/recovery rehearsal
+2. actual revision·source revision과 정확한 `0017 → 0018` path
+3. 격리 복제본의 upgrade·downgrade dry validation
+4. 적용 전 Workspace·MusicProject·CompositionSnapshot·selection row count
+5. `NO_PREEXISTING_SELECTION_AUTHORITY` 재확인과 예상 selection mutation 0건
+6. ambiguous authority·dangling·cross-Project selection 0건
+7. 부분 실패 rollback과 재실행 가능성
+8. 적용 후 revision·schema constraint·row count·integrity/foreign key 검사
+9. Project별 Aggregate `empty`·`selection_required`·기존 valid selection의 `ready` 검증
+
+현재 CLI 계획 모드는 DB를 열지 않아 mutation preview를 제공하지 않습니다. write 없는 전체 backfill preview 도구는 운영 범위가 확정될 때 검토할 `FOLLOW_UP_CANDIDATE`입니다. Snapshot 수·최신 version·created/ID 순서는 selection authority로 사용할 수 없습니다.

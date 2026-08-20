@@ -39,7 +39,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md)과 [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md)에 따라 현재 Responsive Studio MVP를 장기 제품 Runtime으로 단계적으로 전환한다.
 
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
-2. D1 `[D1-A Backend 완료 / Transition 계획]`, D2 `[계획]`: Composition Read의 Workspace 권위·selection·projection·aggregate 계약과 Backend read를 구현했으며, 명시적 전환·Frontend 순으로 진행한 뒤 읽기 전용 Timeline Playback을 구축한다.
+2. D1 `[D1-A 완료 / Transition Draft 검토 / D1-B 다음]`, D2 `[계획]`: Composition Read의 Workspace 권위·selection·projection·aggregate와 무선택 Bootstrap transition을 구현·격리 검증했으며, 실제 DB 승인·Frontend 순으로 진행한 뒤 읽기 전용 Timeline Playback을 구축한다.
 3. D3~D4 `[계획]`: 불변 AssetVersion/Snapshot 기반 편집, Mixer와 독립 Export를 구현한다.
 4. D5~D7 `[계획]`: AI Music Director·Candidate A/B, Reference Panel, Composition Evaluation/QA를 연결한다.
 5. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
@@ -47,7 +47,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 현재 코드·API·DB·Provider·Training·Dataset은 변경되지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
 
 > 문서 상태: [운영 중]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 > 현재 상태: **Responsive Studio MVP 완료 / AI-native DAW D0 완료·D1 계약 확정·D1~D9 구현 계획 / 외부 Provider Runtime 보류**
 > 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
 > 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)
@@ -71,7 +71,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | D0와 D1-A Backend Composition aggregate 완료; D1-Transition·D1-B Frontend와 D2~D9 Runtime 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | D0·D1-A 완료, D1-Transition 구현·격리 검증 후 Draft 검토; 실제 DB 전환·D1-B Frontend와 D2~D9 Runtime 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5와 4개 Vocal Job 계약 구현; Provider dispatch wiring·Provider Job persistence·background daemon과 나머지 34개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -79,7 +79,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 
 ## 현재 우선 작업
 
-**최우선 NEXT:** D1-A Backend aggregate read 완료를 전제로 명시적 Workspace bootstrap·최소 backfill인 D1-Transition을 수행한다. 이후 D1-B Frontend 연결을 진행하며, Workspace Job의 Provider dispatch wiring과 background daemon은 별도 Track으로 유지한다.
+**최우선 NEXT:** D1-Transition Draft 검토 후 D1-B Frontend 연결을 진행한다. 실제 사용자 DB `0017 → 0018` 전환은 별도 승인 Gate로 유지하며, Workspace Job의 Provider dispatch wiring과 background daemon은 별도 Track이다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
@@ -92,11 +92,11 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 9. [Frontend Roadmap](planning/frontend-roadmap.md)의 F5와 F6 Frontend Wizard·MediaRecorder·품질·대표 선택·복원, Windows/CI FFmpeg와 cleanup scheduler/crash recovery를 완료했다. F6 전체는 인증·실기기 평가가 남아 `[진행 중]`이며 기존 Phase 8 완료 상태와 분리한다.
 10. Phase 2 후속 평가는 Korean Dance Pop을 대표 시나리오로 삼고 0.6B LM·120~128 BPM·60~90초·동일 Prompt·3개 이상 Seed 조건을 검증한다. Instrumental과 Korean Ballad는 보조 비교군으로 유지한다.
 11. [K-POP Creation Roadmap](planning/kpop-creation-roadmap.md)의 K3.3 Hook Candidate까지 완료했다. 다음은 별도 PR의 K3.4 Preview Export이며 LoRA·Dataset·Voice 학습은 K4 이후로 유지한다.
-12. [Workspace v1 API 계약](docs/06-api/workspace-rest-api-contract.md)은 Resource Endpoint 30개와 D1 product API 2개를 구현했다. Bootstrap CLI는 source `20260820_0018`만 허용하며 실제 사용자 DB는 `20260810_0017`로 유지하고 실제 Bootstrap은 실행하지 않았다. Job API는 5/5이며 Resource API 진행도는 30/64다.
-13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 source Workspace Entity 22개, 별도 `ArtifactStorageLocation`, Workspace Repository와 [Service 소유 transaction](docs/03-architecture/workspace-service-transaction.md)을 구현했다. source metadata는 `20260820_0018`의 37개 Table이고 실제 사용자 DB는 `20260810_0017`의 36개 Table이다. 실제 Bootstrap·backfill·dual write·Provider dispatch wiring·background daemon·나머지 34개 Resource REST API·Frontend·Legacy 제거는 미구현이고 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
+12. [Workspace v1 API 계약](docs/06-api/workspace-rest-api-contract.md)은 Resource Endpoint 30개와 D1 product API 2개를 구현했다. Bootstrap CLI는 source `20260820_0018`의 D1 Table·PK·unique·same-Project FK·identity Index와 transition inventory를 검증하며 실제 사용자 DB는 `20260810_0017`로 유지하고 실제 Bootstrap은 실행하지 않았다. Job API는 5/5이며 Resource API 진행도는 30/64다.
+13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 source Workspace Entity 22개, 별도 `ArtifactStorageLocation`, Workspace Repository와 [Service 소유 transaction](docs/03-architecture/workspace-service-transaction.md)을 구현했다. source metadata는 `20260820_0018`의 37개 Table이고 실제 사용자 DB는 `20260810_0017`의 36개 Table이다. 격리 Bootstrap transition은 선택 authority가 없으므로 backfill 0건을 보장한다. 실제 Bootstrap·DB migration·data backfill·dual write·Provider dispatch wiring·background daemon·나머지 34개 Resource REST API·Frontend·Legacy 제거는 미구현이고 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
 14. [완료] [Artifact Storage 계약](docs/03-architecture/artifact-storage-contract.md)과 [ADR-032](docs/11-decisions/ADR-032-artifact-storage-resolver-integrity.md)에서 `artifact://<artifact_id>`, 별도 Catalog, trusted ingestion, SHA-256·size·MIME 검증, immutable publish, owner/retention Application Gate와 [dry-run reconciliation](docs/10-operations/artifact-storage-reconciliation.md)을 구현했다. Content read는 매 요청 전체 SHA-256을 검증하며 scanner는 승인 namespace만 batch 조회하고 어떤 row·파일도 변경하지 않는다. Artifact Metadata·content·download API와 single-byte Range를 유지하며 Job API 추가 후 전체 Resource API는 30/64다. 다음은 별도 승인의 destructive maintenance이며 공개 Artifact 쓰기 API는 계약에 없다.
 15. [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md)은 4개 capability·9개 operation·Job·Retry·idempotency·lineage·Manifest·오류를 fake transport와 Mock HTTP로 검증한다. 다음은 별도 PR의 인증 계약과 Workspace Worker 조립이며 기존 subprocess Runner는 단계적 이전 전까지 유지한다.
-16. [부분 완료] AI-native DAW D1-A에서 별도 `ProjectCompositionSelection`, `GET /api/v1/projects/{project_id}/composition`, 선택 PATCH, exact AssetVersion·safe Artifact·Snapshot-local Track projection·Section `not_available`·Mix·lineage를 구현했다. D1-Transition·D1-B Frontend, canonical Track·Section·Clip Domain은 미구현이며 신규 `EditIntent`를 만들지 않는다.
+16. [부분 완료] AI-native DAW D1-A에서 별도 `ProjectCompositionSelection`, `GET /api/v1/projects/{project_id}/composition`, 선택 PATCH, exact AssetVersion·safe Artifact·Snapshot-local Track projection·Section `not_available`·Mix·lineage를 구현했다. D1-Transition은 `NO_PREEXISTING_SELECTION_AUTHORITY`에 따라 자동 선택 없이 상태를 분류하고 3회 멱등·rollback·restart를 격리 검증했다. D1-B Frontend와 실제 DB 전환, canonical Track·Section·Clip Domain은 미구현이며 신규 `EditIntent`를 만들지 않는다.
 
 ## F6 Guided Voice Enrollment 실행 순서 [진행 중]
 

@@ -25,7 +25,14 @@ from backend.core.exceptions import (
     ResourceNotFoundError,
 )
 from backend.models.workspace import Asset, MusicProject, ProjectAsset, Workspace
-from backend.repositories.workspace import AssetRepository, WorkspaceRepository
+from backend.repositories.workspace import (
+    AssetRepository,
+    CompositionRepository,
+    WorkspaceRepository,
+)
+from backend.repositories.workspace.composition_repository import (
+    ProjectCompositionTransitionState,
+)
 
 
 def _required_text(value: str, field_name: str) -> str:
@@ -39,6 +46,60 @@ def _required_text(value: str, field_name: str) -> str:
 class BootstrapWorkspaceResult:
     workspace: Workspace
     created: bool
+    transition: CompositionTransitionSummary
+
+
+@dataclass(frozen=True, slots=True)
+class CompositionTransitionSummary:
+    """권한 없는 자동 선택을 만들지 않는 D1 전환 inventory."""
+
+    status: Literal["ready", "selection_required"]
+    authority: Literal["NO_PREEXISTING_SELECTION_AUTHORITY"]
+    project_count: int
+    empty_project_count: int
+    selection_required_project_count: int
+    already_selected_project_count: int
+    authoritative_backfill_project_count: int = 0
+    ambiguous_authority_project_count: int = 0
+    invalid_cross_project_selection_count: int = 0
+    expected_mutation_row_count: int = 0
+
+
+def _inspect_composition_transition(
+    repository: CompositionRepository, workspace_id: UUID
+) -> CompositionTransitionSummary:
+    """명시적 D1 selection만 보존하고 legacy 추론은 수행하지 않는다."""
+
+    return _summarize_composition_transition(
+        repository.list_transition_states(workspace_id)
+    )
+
+
+def _summarize_composition_transition(
+    states: list[ProjectCompositionTransitionState],
+) -> CompositionTransitionSummary:
+    """조회 결과를 mutation 없는 fail-closed 전환 상태로 분류한다."""
+
+    empty_count = 0
+    selection_required_count = 0
+    selected_count = 0
+    for state in states:
+        if state.selected_snapshot_id is not None:
+            if state.selected_snapshot_project_id != state.project_id:
+                raise InvalidStateError("Project Composition selection")
+            selected_count += 1
+        elif not state.has_snapshots:
+            empty_count += 1
+        else:
+            selection_required_count += 1
+    return CompositionTransitionSummary(
+        status=("selection_required" if selection_required_count else "ready"),
+        authority="NO_PREEXISTING_SELECTION_AUTHORITY",
+        project_count=len(states),
+        empty_project_count=empty_count,
+        selection_required_project_count=selection_required_count,
+        already_selected_project_count=selected_count,
+    )
 
 
 PageItemT = TypeVar("PageItemT")
@@ -107,10 +168,8 @@ class WorkspaceService:
                 if active_workspaces:
                     if active_workspaces[0].owner_id != owner_id:
                         raise ResourceConflictError("기본 Workspace owner")
-                    result = BootstrapWorkspaceResult(
-                        workspace=active_workspaces[0],
-                        created=False,
-                    )
+                    workspace = active_workspaces[0]
+                    created = False
                 else:
                     workspace = repository.add_workspace(
                         Workspace(
@@ -119,10 +178,15 @@ class WorkspaceService:
                             lifecycle_status="active",
                         )
                     )
-                    result = BootstrapWorkspaceResult(
-                        workspace=workspace,
-                        created=True,
-                    )
+                    created = True
+                transition = _inspect_composition_transition(
+                    CompositionRepository(session), workspace.workspace_id
+                )
+                result = BootstrapWorkspaceResult(
+                    workspace=workspace,
+                    created=created,
+                    transition=transition,
+                )
             return result
         except IntegrityError:
             raise ResourceConflictError("기본 Workspace") from None

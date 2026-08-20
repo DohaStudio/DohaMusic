@@ -2,8 +2,8 @@
 
 > 문서 역할: AI-native DAW 목표 Runtime·Workflow·Gap의 Canonical Authority
 > 문서 상태: [운영 기준]
-> 구현 상태: [D1-A CURRENT / 장기 TARGET 부분 구현]
-> 최종 수정일: 2026-08-20
+> 구현 상태: [D1-A CURRENT / D1-Transition Draft 검토 / 장기 TARGET 부분 구현]
+> 최종 수정일: 2026-08-21
 > 관련 기능: Project/Composition Runtime, Provider Orchestrator, Composition Evaluation, Continuous Learning
 > 관련 문서: [제품 방향](../02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](system-architecture.md), [Workspace Artifact 모델](workspace-artifact-model.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
@@ -35,7 +35,7 @@ flowchart LR
 
 현재 Frontend는 생성 Wizard와 결과 탐색을 제공한다. 편집 가능한 Track/Clip Timeline, Arrangement, 다중 Track Mixer, AI 후보 선택, Composition QA 화면은 없다.
 
-D1-A Backend read path인 `Project Composition aggregate → CompositionService → Workspace Repository → Workspace DB`를 구현했다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다. Frontend 연결과 실제 데이터 전환은 아직 TARGET이다.
+D1-A Backend read path인 `Project Composition aggregate → CompositionService → Workspace Repository → Workspace DB`를 구현했다. D1-Transition은 기존 persistence에 project-level selected Snapshot authority가 없음을 확인하고 `NO_PREEXISTING_SELECTION_AUTHORITY`로 고정했다. Bootstrap Service transaction에서 active Workspace의 Project·Snapshot·selection을 단일 batch로 검사하지만 selection row를 생성하거나 바꾸지 않는다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다. Frontend 연결과 실제 데이터 전환은 아직 TARGET이다.
 
 ## 3. TARGET — 제품 Runtime
 

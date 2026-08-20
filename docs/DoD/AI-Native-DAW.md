@@ -1,7 +1,7 @@
 # AI-native DAW Product Track Definition of Done
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 이 Track은 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성이 끝나도 DAW Runtime이 구현된 것으로 보지 않는다. 각 단계의 구현·검증·문서·ADR·Git 증거가 모두 있어야 다음 상태로 승격한다.
@@ -18,7 +18,7 @@
 - [x] `develop` 대상 Draft PR 생성·검토
 - [x] PR #94 squash merge와 병합 후 동일 tree 검증
 
-## D1. Composition Read Workspace — [D1-A Backend 완료 / Transition 계획]
+## D1. Composition Read Workspace — [D1-A 완료 / Transition Draft 검토]
 
 ### 계약 Gate — [완료]
 
@@ -39,6 +39,11 @@
 - [x] Snapshot History HMAC Cursor와 aggregate 단건 read 분리
 - [ ] `WORKSPACE_BOOTSTRAP_REQUIRED`, empty, selection-required, error와 recovery UI
 - [x] Legacy silent fallback·GET bootstrap/backfill·write side effect 0건 검증
+- [x] `0017 → 0018 → 0017` isolated migration·historical round-trip와 source `0018` schema Gate
+- [x] `NO_PREEXISTING_SELECTION_AUTHORITY`, Snapshot 수 무관 selection backfill 0건·latest fallback 0건
+- [x] Bootstrap·zero-backfill 3회 멱등, 기존 valid selection 보존, fail-closed·rollback·restart
+- [x] transition 이후 `empty`, `selection_required`, PATCH 후 `ready` Aggregate 계약
+- [ ] D1-Transition Draft PR 검토와 `develop` 병합
 - [ ] 실제 인증 principal 기반 Owner·Workspace·Project privacy와 cross-owner leakage 0건
 - [ ] Frontend Workspace consume와 실제 Snapshot E2E
 

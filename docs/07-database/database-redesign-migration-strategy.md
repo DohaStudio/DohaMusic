@@ -2,17 +2,19 @@
 
 > 문서 상태: [진행 중]
 > 문서 분류: **TRANSITION / PARTIALLY IMPLEMENTED**
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 완료된 전환 기반: source Workspace 도메인 Entity/Table 22개·Catalog 1개, revisions `0012`~`0018`, Bootstrap exact revision Gate
-> 미구현 전환: 실제 Bootstrap·backfill·dual write·Runtime read source 전환·Legacy 제거·파일 이동
+> 완료된 전환 기반: source Workspace 도메인 Entity/Table 22개·Catalog 1개, revisions `0012`~`0018`, Bootstrap exact revision·D1 Transition Gate
+> 미구현 전환: 실제 DB migration·Bootstrap·data backfill·dual write·Runtime read source 전환·Legacy 제거·파일 이동
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
 Alembic source head는 Project Composition selection을 추가한 `20260820_0018`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `0018`은 nullable-safe `project_composition_selections`, same-Project 복합 FK와 aggregate Artifact 정렬 Index를 추가하며 기존 row backfill은 없습니다. backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
-명시적 Bootstrap CLI의 fail-closed revision Gate는 source `20260820_0018`을 정확히 요구합니다. 실제 사용자 DB `20260810_0017`에는 migration을 적용하지 않았으므로 현재 Bootstrap 대상이 아닙니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
+명시적 Bootstrap CLI의 fail-closed revision Gate는 source `20260820_0018`과 D1 selection Table·PK·unique·same-Project FK·Snapshot identity Index를 정확히 요구합니다. 실제 사용자 DB `20260810_0017`에는 migration을 적용하지 않았으므로 현재 Bootstrap 대상이 아닙니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
+
+D1-Transition의 persistence 조사에서는 Legacy `projects`, Workspace, Composition, Job과 bootstrap metadata 어디에도 project-level selected Snapshot을 뜻하는 명시적 권한이 없었습니다. Job의 `composition_snapshot_id`는 개별 작업 입력 고정값이므로 selection authority가 아닙니다. 공식 결과는 `NO_PREEXISTING_SELECTION_AUTHORITY`이며 selection backfill 예상·실행 row는 0입니다. Snapshot 수와 created/version/ID 정렬은 권한으로 승격하지 않습니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|
@@ -184,7 +186,7 @@ Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_stor
 4. 최종 가사, 음성 Consent와 상업 이용 판단을 목적별 Approval 이벤트로 분리합니다.
 5. Voice Profile과 Sample을 Recording Asset·RecordingEnrollment로 backfill합니다.
 
-D1 Composition Read 전환에 필요한 최소 migration input은 Legacy Project identity·제목, Pipeline 입력 snapshot, 결과 파일과 역할, 생성 순서·상태·Provider/Model 근거다. 이를 Workspace → MusicProject → ProjectAsset → Asset → exact AssetVersion → Artifact → CompositionSnapshot 후보 순서로 검증한다. 재현 근거가 없는 Pipeline은 Snapshot으로 승인하지 않으며, Project selected Snapshot은 latest 추정이 아니라 사용자 또는 승인된 migration 규칙으로 명시적으로 설정한다. GET aggregate는 이 migration을 실행하거나 Legacy로 fallback하지 않는다.
+D1 Composition Read 전환에 필요한 최소 migration input은 Legacy Project identity·제목, Pipeline 입력 snapshot, 결과 파일과 역할, 생성 순서·상태·Provider/Model 근거다. 이를 Workspace → MusicProject → ProjectAsset → Asset → exact AssetVersion → Artifact → CompositionSnapshot 후보 순서로 검증한다. 재현 근거가 없는 Pipeline은 Snapshot으로 승인하지 않으며, 현재 selection authority가 없으므로 Project selected Snapshot backfill은 0건이다. 사용자가 D1-A PATCH로 명시적으로 선택하기 전에는 `selection_required`를 유지한다. GET aggregate는 이 migration을 실행하거나 Legacy로 fallback하지 않는다.
 
 ### Phase 6 — Dual Write와 Shadow Read
 
