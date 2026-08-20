@@ -53,7 +53,7 @@ Phase 0은 코드 개발 이전 문서 기반 확립 단계이며 [Master Roadma
 
 Phase 8 후속 [F6 Guided Voice Enrollment](../../planning/frontend-roadmap.md#f6--guided-voice-enrollment-진행-중)은 별도 개선 Track이다. 기존 Phase 8의 `15/15, 100%` 분모와 완료 상태를 변경하지 않으며 F6 체크리스트는 Frontend Roadmap에서 독립적으로 관리한다. Phase 7 개인화 Dataset·학습 DoD와도 분리한다.
 
-[AI Provider 저장소 분리](Provider-Separation.md)도 기존 Phase 진행률을 변경하지 않는 독립 Track이다. DohaVocal Fake Runtime·Consumer Contract Foundation 완료는 Production transport·실제 Vocal model·Artifact 통합 또는 DohaAudio Runtime 완료로 계산하지 않는다.
+[AI Provider 저장소 분리](Provider-Separation.md)도 기존 Phase 진행률을 변경하지 않는 독립 Track이다. DohaVocal Fake Runtime·Consumer Contract·HTTP Transport Foundation 완료는 Worker wiring·인증·실제 Vocal model·Artifact 통합 또는 DohaAudio Runtime 완료로 계산하지 않는다.
 
 [AI-native DAW Product Track](AI-Native-DAW.md)도 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성은 Timeline·Mixer·AI Music Director·Composition QA 또는 Continuous Learning Runtime 완료를 뜻하지 않는다.
 

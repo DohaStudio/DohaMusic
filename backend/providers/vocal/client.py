@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import re
 from typing import TypeVar
+from urllib.parse import quote
 
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
@@ -70,26 +71,28 @@ class VocalProviderClient:
         return job
 
     def get_job_status(self, job_id: str) -> BaseVocalJob:
-        job = self._request_job("GET", f"/v1/jobs/{job_id}")
+        job = self._request_job("GET", f"/v1/jobs/{_path_segment(job_id)}")
         if job.job_id != job_id:
             raise _invalid_response()
         return job
 
     def cancel_job(self, job_id: str) -> BaseVocalJob:
-        job = self._request_job("POST", f"/v1/jobs/{job_id}/cancel")
+        job = self._request_job("POST", f"/v1/jobs/{_path_segment(job_id)}/cancel")
         if job.job_id != job_id:
             raise _invalid_response()
         return job
 
     def retry_job(self, job_id: str) -> BaseVocalJob:
-        job = self._request_job("POST", f"/v1/jobs/{job_id}/retry")
+        job = self._request_job("POST", f"/v1/jobs/{_path_segment(job_id)}/retry")
         if job.job_id == job_id or job.retry_of_job_id != job_id:
             raise _invalid_response()
         return job
 
     def get_result(self, job_id: str) -> VocalProviderResultCandidate:
         result = self._request(
-            "GET", f"/v1/jobs/{job_id}/result", VocalProviderResultCandidate
+            "GET",
+            f"/v1/jobs/{_path_segment(job_id)}/result",
+            VocalProviderResultCandidate,
         )
         if result.run_id != job_id or result.lineage.job_id != job_id:
             raise _invalid_response()
@@ -98,7 +101,7 @@ class VocalProviderClient:
     def get_model_manifest(self, model_manifest_id: str) -> VocalModelManifest:
         manifest = self._request(
             "GET",
-            f"/v1/model-manifests/{model_manifest_id}",
+            f"/v1/model-manifests/{_path_segment(model_manifest_id)}",
             VocalModelManifest,
         )
         if manifest.model_manifest_id != model_manifest_id:
@@ -244,3 +247,10 @@ def _invalid_response() -> VocalProviderInvalidResponseError:
             "not-available",
         )
     )
+
+
+def _path_segment(value: str) -> str:
+    encoded = quote(value, safe="@")
+    if encoded in {".", ".."}:
+        return encoded.replace(".", "%2E")
+    return encoded

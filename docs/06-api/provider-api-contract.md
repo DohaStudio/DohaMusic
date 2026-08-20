@@ -38,7 +38,7 @@ flowchart LR
 |---|---|---|
 | `lm` | Lyrics generation·revision·analysis | DohaLM 계약에 따라 [계획] |
 | `audio` | Music generation·Stem separation·Audio analysis | DohaAudio Runtime API [계획] |
-| `vocal` | Singing voice·Voice conversion·Vocal correction·analysis | Fake Runtime·DohaMusic Consumer Contract Foundation [구현], 실제 model·Production transport [미구현] |
+| `vocal` | Singing voice·Voice conversion·Vocal correction·analysis | Fake Runtime·DohaMusic Consumer Contract·HTTP Transport Foundation [구현], 실제 model·Worker wiring·인증 [미구현] |
 
 Provider는 Workspace Entity가 아닙니다. Provider identity와 capability는 Provider Contract와 Model Manifest에서 관리합니다.
 

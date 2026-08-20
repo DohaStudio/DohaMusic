@@ -87,7 +87,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - `JobOutput`은 성공 후 등록된 출력 `AssetVersion` 또는 `Artifact`를 연결합니다.
 - 재시도는 기존 Job 상태를 초기화하지 않고 `retry_of_job_id`로 연결된 새 Job을 생성합니다.
 - Provider는 Workspace DB를 직접 수정하지 않습니다. DohaMusic이 검증된 Provider 결과를 `Artifact`와 새 `AssetVersion`으로 등록합니다.
-- role, direct Workspace scope, cancellation marker, Worker claim·lease Column과 Job keyset·Worker Index는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)에 따라 revision `20260810_0017`로 실제 사용자 DB에 적용했습니다. scope·role은 기존 row 보존을 위한 nullable staging이며 생성·상태·취소·재시도·Completion Unit of Work·Worker execution foundation과 공식 API 5개를 구현했습니다. 실제 Provider transport와 background daemon은 미구현입니다.
+- role, direct Workspace scope, cancellation marker, Worker claim·lease Column과 Job keyset·Worker Index는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)에 따라 revision `20260810_0017`로 실제 사용자 DB에 적용했습니다. scope·role은 기존 row 보존을 위한 nullable staging이며 생성·상태·취소·재시도·Completion Unit of Work·Worker execution foundation과 공식 API 5개를 구현했습니다. Provider dispatch wiring과 background daemon은 미구현입니다.
 
 ### 3.6 Processing Chain과 ModelUsage
 

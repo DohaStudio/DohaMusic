@@ -61,7 +61,7 @@ Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동
 
 DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 중심의 21개 Workspace 도메인 Entity와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata와 실제 사용자 DB는 `20260810_0017`의 총 36개 Application Table이다. Workspace Resource API 30개, Job Service·Completion UoW·Worker execution foundation과 Job API 5개도 구현했다.
 
-이 구조는 물리 schema와 일부 Application 계층에서는 CURRENT다. 그러나 신규 Workspace Table backfill·dual write·Runtime read 전환과 Legacy 동결·제거는 수행하지 않았으므로 제품 실행의 source of truth라는 의미에서는 여전히 TARGET이다. 실제 Provider transport와 background daemon도 미구현이며 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
+이 구조는 물리 schema와 일부 Application 계층에서는 CURRENT다. 그러나 신규 Workspace Table backfill·dual write·Runtime read 전환과 Legacy 동결·제거는 수행하지 않았으므로 제품 실행의 source of truth라는 의미에서는 여전히 TARGET이다. Provider dispatch wiring과 background daemon도 미구현이며 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
 
 - [재설계 개요](database-redesign-overview.md)
 - [TARGET ERD](database-redesign-erd.md)

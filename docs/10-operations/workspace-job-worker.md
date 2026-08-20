@@ -1,6 +1,6 @@
 # Workspace Job Worker 운영 경계
 
-> 상태: [완료: 실행 기반] / [미구현: background runtime·실제 Provider transport]
+> 상태: [완료: 실행 기반] / [미구현: background runtime·Provider dispatch wiring]
 
 `JobWorkerService.run_once()`는 queued Job 하나를 claim하고 dispatch한 뒤 Completion UoW 또는 안전한 terminal failure로 종료한다. claim·heartbeat·recovery는 각각 짧은 transaction이며 Provider 실행 동안 SQLite write transaction을 열어 두지 않는다.
 

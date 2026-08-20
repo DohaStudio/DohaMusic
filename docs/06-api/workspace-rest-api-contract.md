@@ -179,7 +179,7 @@ DB 기준은 [DohaMusic Asset 중심 데이터베이스 설계](../07-database/d
 - 공개 상태는 5개를 유지하고 실행 중 cancel 요청은 내부 marker로 분리합니다.
 - byte-level 입력은 role과 명시적 Artifact ID로 고정하며 latest Artifact 자동 선택을 금지합니다.
 - Workspace 전체 Collection은 `project_id`, `status`, `job_type` filter와 `(created_at DESC, job_id DESC)` HMAC Cursor를 사용합니다.
-- 생성·입력 lineage·상태·진행률·취소·재시도·멱등성, aggregate read, Worker claim·lease와 completion Unit of Work를 구현했습니다. 공식 Router 5개는 Service만 호출하고 내부 claim·lease·Provider raw response를 공개하지 않습니다. 실제 Provider transport와 background daemon·scheduler는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)의 후속 범위입니다.
+- 생성·입력 lineage·상태·진행률·취소·재시도·멱등성, aggregate read, Worker claim·lease와 completion Unit of Work를 구현했습니다. 공식 Router 5개는 Service만 호출하고 내부 claim·lease·Provider raw response를 공개하지 않습니다. Provider dispatch wiring과 background daemon·scheduler는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)의 후속 범위입니다.
 
 ## 7. 공통 성공 Response
 

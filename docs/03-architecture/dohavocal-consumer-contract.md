@@ -2,8 +2,8 @@
 
 > 문서 역할: Provider Boundary와 System Architecture를 보충하는 SUPPORTING 계약
 > 문서 상태: [구현·검증 완료, Draft PR 병합 전]
-> 최종 수정일: 2026-08-19
-> 적용 범위: DohaVocal Runtime `0.1.0` DTO·mapping·transport port·JSON fixture contract test
+> 최종 수정일: 2026-08-20
+> 적용 범위: DohaVocal Runtime `0.1.0` DTO·mapping·transport port·HTTP transport·Mock HTTP contract test
 > 관련 문서: [Provider API 계약](../06-api/provider-api-contract.md), [Workspace Job Foundation](workspace-job-foundation.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-034](../11-decisions/ADR-034-dohavocal-consumer-contract.md)
 
 ## 1. 기준선과 권위
@@ -23,8 +23,11 @@ DohaMusic authorized application context
   → map_authorized_create_job
   → VocalProviderClient
   → VocalProviderTransport
-  → [후속] 실제 HTTP·subprocess transport
+  → HttpVocalProviderTransport
+  → DohaVocal HTTP wire contract
 ```
+
+`HttpVocalProviderTransport`는 기존 동기 port를 바꾸지 않고 이미 의존 중인 `httpx.Client`를 재사용한다. transport가 client를 만들면 `close()` 또는 context manager가 종료하고, 외부에서 주입한 client의 수명은 호출자가 소유한다. 요청별 client 생성이나 자동 retry는 없다.
 
 `VocalProviderClient`는 다음 9개 의미 operation을 표현한다.
 
@@ -90,11 +93,15 @@ DohaMusic은 Consent와 owner authorization authority다. Consumer는 승인 없
 
 Application error는 허용된 `error_code`, 안전한 message, `retryable`, `stage`, opaque `details_id`만 projection한다. raw body, exception, stack trace, PID, command, 절대 경로와 token은 보존하거나 사용자에게 반사하지 않는다. 의심되는 message와 details ID는 안전한 고정값으로 대체한다. 자동 retry policy, 무한 retry와 Provider fallback은 구현하지 않는다.
 
+Provider endpoint는 `DOHAVOCAL_BASE_URL` 설정만 권위로 사용한다. `http`와 `https`만 허용하고 userinfo·query·fragment 및 `file`, `ftp`, `data`, `javascript` scheme은 거부한다. caller request·Project 입력·settings snapshot은 host나 base URL을 덮어쓸 수 없다. `job_id`와 `model_manifest_id`는 단일 URL path segment로 encode한다. 별도 network allowlist와 인증 protocol은 아직 확정하지 않았다.
+
+connect·read·write·pool timeout은 각각 설정 가능하고 무한 timeout을 사용하지 않는다. JSON endpoint 응답은 `application/json` 또는 `+json` Content-Type과 유효한 JSON을 모두 요구한다. connection failure, timeout, application error, invalid response와 contract version mismatch를 구분하며 mutation을 포함한 모든 operation의 transport 자동 재시도는 비활성이다.
+
 `health`는 process 생존, `readiness`는 새 Job 수락 가능 상태로 별도 DTO와 operation을 사용한다. Health 성공만으로 dispatch 가능하다고 판단하지 않는다.
 
 ## 8. 검증과 미구현
 
-`backend/tests/fixtures/vocal-provider-contract-v0.1.0.json`은 DohaVocal source를 import하지 않는 stable JSON fixture다. canonical Provider ID는 `dohavocal`, 실제 Fake Model Manifest ID는 `dohavocal.fake-model@0.1.0`으로 고정해 Runtime wire identity와 일치시킨다. Fake transport로 4 capability, 9 operation, request·state·retry·idempotency·snapshot·lineage·checksum·Manifest·오류·probe 계약을 검증한다.
+`backend/tests/fixtures/vocal-provider-contract-v0.1.0.json`은 DohaVocal source를 import하지 않는 stable JSON fixture다. canonical Provider ID는 `dohavocal`, 실제 Fake Model Manifest ID는 `dohavocal.fake-model@0.1.0`으로 고정해 Runtime wire identity와 일치시킨다. Fake transport와 `httpx.MockTransport`로 4 capability, 9 operation, request·state·retry·idempotency·snapshot·lineage·checksum·Manifest·오류·probe·timeout·URL 경계를 검증한다. 실제 network 호출은 0건이다.
 
 이번 Foundation에 포함하지 않은 항목은 다음과 같다.
 
@@ -103,4 +110,4 @@ Application error는 허용된 `error_code`, 안전한 message, `retryable`, `st
 - Workspace Worker dispatcher 조립과 polling policy
 - Artifact payload·Catalog·Resolver·AssetVersion commit
 - DB Entity·Alembic·공개 DohaMusic API 변경
-- production authentication, timeout 수치, circuit breaker와 background daemon
+- production authentication, 운영 timeout 정책, circuit breaker와 background daemon

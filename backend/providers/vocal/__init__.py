@@ -32,6 +32,7 @@ from .errors import (
     VocalProviderTimeoutError,
     VocalProviderTransportError,
 )
+from .http_transport import HttpVocalProviderTransport
 from .mapping import AuthorizedVocalJobContext, map_authorized_create_job
 from .transport import (
     VocalProviderTransport,
@@ -46,6 +47,7 @@ __all__ = [
     "AnyVocalJob",
     "AuthorizedVocalJobContext",
     "BaseVocalJob",
+    "HttpVocalProviderTransport",
     "VocalAnalysisInput",
     "VocalAnalysisType",
     "VocalArtifactLineage",

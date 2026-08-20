@@ -1,6 +1,6 @@
 # Backend 아키텍처
 
-> 현재 상태: Legacy Provider·Pipeline 구현 / Workspace Job 실행 기반·공식 API 5/5 구현, 실제 Provider transport·background daemon 미구현
+> 현재 상태: Legacy Provider·Pipeline 구현 / Workspace Job 실행 기반·공식 API 5/5 구현, Provider dispatch wiring·background daemon 미구현
 
 ```text
 API → Service → Repository → SQLAlchemy Model

@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — DohaVocal HTTP Transport Foundation
+
+- 기존 `VocalProviderTransport` port에 재사용 가능한 동기 `HttpVocalProviderTransport`를 추가하고 DohaVocal `0.1.0`의 9개 HTTP operation을 연결했다.
+- config-only base URL, HTTP(S)·no-userinfo 검증, connect/read/write/pool timeout, 동적 path encoding, JSON Content-Type·body fail-closed와 transport 자동 retry 비활성 경계를 구현했다.
+- `httpx.MockTransport`로 wire request·5-state·retry·lineage·Manifest·오류·timeout·계약 drift·secret 비노출을 실제 network 없이 검증했다. Worker wiring·Artifact ingestion·DB·Alembic·공개 API·인증·실제 audio/AI는 변경하지 않았다.
+
 ### 수정 — DohaVocal Manifest fixture 정합화
 
 - DohaVocal stable wire fixture의 Fake Model Manifest ID를 실제 Runtime authority인 `dohavocal.fake-model@0.1.0`으로 정합화하고, canonical Provider ID `dohavocal`과의 분리를 회귀 테스트로 고정했다.

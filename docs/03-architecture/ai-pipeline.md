@@ -59,7 +59,7 @@ flowchart LR
 
 `PipelineExecutor`와 단계 순서는 DohaMusic에 유지한다. 신규 Music Generator와 Stem Separation Runtime은 DohaAudio, 신규 Singing Voice·Voice Conversion Runtime은 DohaVocal에서 구현한다. Provider는 서로 직접 호출하지 않고 DohaMusic이 선택·호출·상태 전이와 GPU admission control을 관리한다.
 
-현재 `PipelineContext`의 로컬 파일 경로와 ACE-Step·Demucs·Seed-VC subprocess 호출은 실제 구현된 호환 계약이다. 이를 즉시 제거하지 않으며 새 Runtime의 Job·취소·재시도·오류·Health와 Artifact ID·URI 계약을 검증한 뒤 Provider별로 순차 전환한다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract Foundation은 구현됐지만 Production transport·Artifact payload·URI와 DohaAudio Runtime은 아직 구현되지 않았다.
+현재 `PipelineContext`의 로컬 파일 경로와 ACE-Step·Demucs·Seed-VC subprocess 호출은 실제 구현된 호환 계약이다. 이를 즉시 제거하지 않으며 새 Runtime의 Job·취소·재시도·오류·Health와 Artifact ID·URI 계약을 검증한 뒤 Provider별로 순차 전환한다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport Foundation은 구현됐지만 Worker wiring·인증·Artifact payload·URI와 DohaAudio Runtime은 아직 구현되지 않았다.
 
 장기 Provider Client는 기존 `MusicGenerator`, `StemSeparator`, `VoiceConverter`의 역할을 유지하되 모델 내부 경로와 의존성을 노출하지 않는다. 출력에는 [Model Manifest](../04-models/provider-model-manifest.md) identity와 Artifact checksum을 포함하는 방향으로 확장한다.
 
