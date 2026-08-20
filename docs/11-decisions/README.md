@@ -39,6 +39,7 @@
 | [ADR-033](ADR-033-workspace-job-execution-boundary.md) | Workspace Job 실행·claim·cancel·Artifact completion 경계 | 승인 |
 | [ADR-034](ADR-034-dohavocal-consumer-contract.md) | DohaVocal strict DTO·transport port·metadata 후보 Consumer 계약 | 승인 |
 | [ADR-035](ADR-035-d1-composition-read-authority.md) | D1 Composition Read 권위·Snapshot selection·Track/Section projection·aggregate endpoint | 승인 |
+| [ADR-036](ADR-036-provider-job-persistence.md) | Workspace Job과 Provider Job의 1:N 불변 identity·retry persistence | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -46,6 +47,7 @@
 
 - [ADR-028 — 외부 Provider Runtime과 Artifact 계약](ADR-028-provider-runtime-artifact-contract.md): 저장소 책임과 Runtime 이전을 분리하고 DohaAudio·DohaVocal 계획 경계, subprocess 호환, versioned Job·Artifact·GPU Orchestration 원칙을 결정한다.
 - [ADR-034 — DohaVocal Consumer Contract Foundation](ADR-034-dohavocal-consumer-contract.md): 실제 network 없이 strict JSON DTO·transport port로 4개 Vocal capability와 9개 operation, Job·lineage·Manifest·오류 경계를 검증한다.
+- [ADR-036 — Provider Job Persistence Contract](ADR-036-provider-job-persistence.md): Provider Job identity와 retry history를 Workspace Job에 1:N으로 영속화하고 Provider Runtime의 상태 권위를 유지한다.
 
 ## Workspace 데이터베이스
 
@@ -63,6 +65,7 @@
 ## Workspace Job
 
 - [ADR-033 — Workspace Job 실행·claim·완료 경계](ADR-033-workspace-job-execution-boundary.md): 공개 5-state와 내부 cancel marker, role 기반 exact Artifact, Workspace scope, claim·lease와 completion 보상 경계를 승인한다.
+- [ADR-036 — Provider Job Persistence Contract](ADR-036-provider-job-persistence.md): restart recovery를 위한 identity binding, uniqueness, retry lineage와 crash window 책임을 승인한다.
 
 ## Phase 6.5
 

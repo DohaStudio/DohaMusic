@@ -25,6 +25,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Bootstrap transaction 안에서 활성 Project의 `empty`, `selection_required`, 기존 valid selection을 단일 batch inventory로 분류하고 구조화된 결과를 반환한다. invalid·cross-Project selection은 자동 교정 없이 중단한다.
 - 실제 사용자 DB 접근·migration·backfill, Frontend, Provider, Artifact payload, Common Contract, Dataset·Training·GPU는 변경하지 않았다.
 
+### 추가 — Provider Job Persistence Contract
+
+- `provider_job_bindings`와 Alembic `20260821_0019`를 추가해 Workspace Job별 Provider 실행 identity와 retry 1:N history를 durable DB authority로 보존한다.
+- `(provider_id, provider_job_id)` uniqueness, Workspace Job `RESTRICT` FK, same-Provider retry self-FK와 self-retry CHECK로 duplicate·cross-provider·unknown parent를 fail-closed한다.
+- Owner-scoped create/history/latest Service와 restart recovery, cross-Workspace retry, 경계 기반 logical ID validation, transaction rollback을 검증한다. composite identity 중복과 다른 DB 무결성 실패를 구분하며 Provider status·Public API·Worker wiring·Provider 호출·Artifact ingestion은 추가하지 않았다.
+
 ### 추가 — Workspace Job Vocal Capability Contract
 
 - Workspace Job 공식 type을 `vocal_generation`, `voice_conversion`, `vocal_correction`, `vocal_analysis` 네 DohaVocal capability로 확장하고 capability별 required/optional input role과 pre-ingestion candidate output role을 고정했다.

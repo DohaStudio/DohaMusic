@@ -40,7 +40,7 @@ REVISION = "20260809_0016"
 PREVIOUS_REVISION = "20260808_0015"
 TABLE = "artifact_storage_locations"
 LEGACY_TABLE_COUNT = 14
-WORKSPACE_TABLE_COUNT = 22
+WORKSPACE_TABLE_COUNT = 23
 
 
 def _config(database_url: str) -> Config:
@@ -159,7 +159,7 @@ def _new_location(
 def test_catalog_entity_contract_and_relationship_are_exact() -> None:
     configure_mappers()
 
-    assert ARTIFACT_STORAGE_ENTITY_CLASSES == (ArtifactStorageLocation,)
+    assert (ArtifactStorageLocation,) == ARTIFACT_STORAGE_ENTITY_CLASSES
     assert len(WORKSPACE_ENTITY_CLASSES) == WORKSPACE_TABLE_COUNT
     assert ArtifactStorageLocation.__tablename__ == TABLE
     assert set(ArtifactStorageLocation.__table__.columns.keys()) == {
@@ -196,7 +196,7 @@ def test_catalog_metadata_constraints_match_contract() -> None:
         if constraint.__class__.__name__ == "CheckConstraint"
     }
 
-    assert len(Base.metadata.tables) == 37
+    assert len(Base.metadata.tables) == 38
     assert foreign_key.target_fullname == "artifacts.artifact_id"
     assert foreign_key.ondelete == "RESTRICT"
     assert unique_constraints == {

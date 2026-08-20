@@ -2,6 +2,10 @@
 
 > 상태: [완료: 실행 기반] / [미구현: background runtime·Provider dispatch wiring]
 
+Provider Job identity DB persistence는 [구현] 상태다. 후속 Dispatcher는 CreateJob 응답 직후 [Provider Job Persistence Contract](../03-architecture/provider-job-persistence.md)의 Service로 binding을 기록하고, 재시작 시 Workspace Job ID로 history/latest를 조회해야 한다. Provider 상태는 binding table이 아니라 Provider Runtime에서 조회한다.
+
+CreateJob 성공과 binding commit 사이 crash window는 남아 있다. Worker wiring은 `workspace-job:<job_id>` stable idempotency key로 Provider 응답을 복구한 뒤 동일 identity를 저장해야 하며, crash 후 무조건 새 Provider Job을 생성해서는 안 된다. 같은 Job의 동시 retry 발급과 active execution 선택도 이 운영 계층에서 직렬화해야 한다.
+
 `JobWorkerService.run_once()`는 queued Job 하나를 claim하고 dispatch한 뒤 Completion UoW 또는 안전한 terminal failure로 종료한다. claim·heartbeat·recovery는 각각 짧은 transaction이며 Provider 실행 동안 SQLite write transaction을 열어 두지 않는다.
 
 - 기본 lease는 5분이며 30초~1시간만 허용한다.

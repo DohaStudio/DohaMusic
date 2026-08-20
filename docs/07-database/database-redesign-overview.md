@@ -4,7 +4,7 @@
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace 도메인 Entity/Table 21개·Catalog 1개·Job schema·Index `0017` 실제 DB 적용, Job Service·Completion UoW·Worker execution foundation·Job API 5/5와 Resource API 30개 구현
+> 구현 상태: Workspace 도메인 Entity/Table 23개·Catalog 1개·Provider Job binding `0019` 적용, Job Service·Completion UoW·Worker execution foundation·Job API 5/5와 Resource API 30개 구현
 > 미구현 전환: 실제 Bootstrap·backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
@@ -26,7 +26,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 TARGET 논리 구조와 현재 구현된 SQLAlchemy Entity mapping을 함께 정의합니다. revision `20260806_0012`~`20260810_0017`은 실제 사용자 DB에 적용됐고 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. source `20260820_0018`은 Project selection을 추가해 metadata 37개 Table이며 실제 사용자 DB는 36개 Table입니다. Resource API 30개와 D1 product API 2개는 완료했지만 실제 Bootstrap·backfill·dual write와 Runtime 전환은 수행하지 않았습니다. 따라서 물리 source schema는 CURRENT이고, 제품 실행의 결과 소유권과 source of truth 전환은 TARGET입니다.
+이 문서는 TARGET 논리 구조와 현재 구현된 SQLAlchemy Entity mapping을 함께 정의합니다. revision `20260806_0012`~`20260810_0017`은 실제 사용자 DB에 적용됐고 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. source `20260820_0018`은 Project selection, `20260821_0019`는 Provider Job binding을 추가해 metadata 38개 Table이며 실제 사용자 DB는 36개 Table입니다. Resource API 30개와 D1 product API 2개는 완료했지만 실제 Bootstrap·backfill·dual write와 Runtime 전환은 수행하지 않았습니다. 따라서 물리 source schema는 CURRENT이고, 제품 실행의 결과 소유권과 source of truth 전환은 TARGET입니다.
 
 ## 2. Common Specification 기준
 
@@ -114,7 +114,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - 내부 URI는 `artifact://<artifact_id>`이며 공개 API는 Artifact ID 기반 content·download link를 사용합니다.
 - Export는 `export` 유형 Asset과 불변 AssetVersion이며 WAV·MP3·FLAC 파일은 Artifact입니다.
 
-Catalog는 최초 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. 현재 source metadata는 D1 selection을 포함해 37개 Table이고 실제 DB는 Catalog를 포함한 36개이며 Catalog row는 0개입니다. Catalog 조회 Repository, local Resolver, trusted ingestion의 authoritative SHA-256·size·MIME 검증과 Artifact API 3개를 구현했습니다. destructive reconciliation·maintenance repair·checksum cache·대용량 성능 최적화·non-local backend는 미구현이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
+Catalog는 최초 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. 현재 source metadata는 D1 selection과 Provider Job binding을 포함해 38개 Table이고 실제 DB는 Catalog를 포함한 36개이며 Catalog row는 0개입니다. Catalog 조회 Repository, local Resolver, trusted ingestion의 authoritative SHA-256·size·MIME 검증과 Artifact API 3개를 구현했습니다. destructive reconciliation·maintenance repair·checksum cache·대용량 성능 최적화·non-local backend는 미구현이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
 
 ## 4. 목표 Entity와 Table 수
 
@@ -123,9 +123,9 @@ Catalog는 최초 목표 21개 Workspace 도메인 Entity에 포함하지 않는
 | Workspace와 Project | 3 | 3 |
 | Asset와 Artifact | 5 | 5 |
 | Snapshot과 Processing | 4 | 4 |
-| Job과 ModelUsage | 4 | 4 |
+| Job·ModelUsage·Provider Job Binding | 5 | 5 |
 | Enrollment와 협업 Metadata | 5 | 5 |
-| 합계 | **21** | **21** |
+| 합계 | **22** | **22** |
 
 전체 목록은 다음과 같습니다.
 
@@ -144,25 +144,26 @@ Catalog는 최초 목표 21개 Workspace 도메인 Entity에 포함하지 않는
 13. `JobInput`
 14. `JobOutput`
 15. `ModelUsage`
-16. `RecordingEnrollment`
-17. `Approval`
-18. `Tag`
-19. `Comment`
-20. `Favorite`
-21. `History`
+16. `ProviderJobBinding`
+17. `RecordingEnrollment`
+18. `Approval`
+19. `Tag`
+20. `Comment`
+21. `Favorite`
+22. `History`
 
 ## 5. 삭제 정책
 
 - 기본 정책은 Soft Delete입니다.
 - `Workspace`, `MusicProject`, `ProjectAsset`, `Asset`, `RecordingEnrollment`, `Tag`, `Comment`와 `Favorite`은 `deleted_at`으로 논리 삭제합니다.
-- `AssetVersion`, `CompositionSnapshot`, `SnapshotItem`, `ProcessingChain`, `ProcessingStep`, `Job`, `JobInput`, `JobOutput`, `ModelUsage`, `Approval`과 `History`는 감사·재현성 근거이므로 직접 삭제하지 않습니다.
+- `AssetVersion`, `CompositionSnapshot`, `SnapshotItem`, `ProcessingChain`, `ProcessingStep`, `Job`, `JobInput`, `JobOutput`, `ModelUsage`, `ProviderJobBinding`, `Approval`과 `History`는 감사·재현성 근거이므로 직접 삭제하지 않습니다.
 - `Artifact`는 DB row 삭제와 Payload 물리 삭제를 분리하고 `retention_status`로 요청·격리·삭제 완료를 추적합니다.
 - Asset Soft Delete가 AssetVersion 또는 Artifact 물리 삭제를 자동 실행하지 않습니다.
 - 개인 음성 삭제는 파생 관계와 Consent 정책을 확인한 별도 lifecycle 처리로 수행합니다.
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`부터 Job scope·role·실행 제어를 추가한 `20260810_0017`까지 적용됐습니다. source head `20260820_0018`의 Project selection Table과 aggregate Artifact 정렬 Index는 임시 DB에서만 검증했으며 실제 사용자 DB에는 적용하지 않았습니다. 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace Resource API 30개와 별도 D1 product API 2개를 구현했지만 실제 DB row·Frontend·Legacy 전환은 변경하지 않았습니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`부터 Job scope·role·실행 제어를 추가한 `20260810_0017`까지 적용됐습니다. source `20260820_0018`의 Project selection과 `20260821_0019`의 Provider Job 1:N identity binding은 임시 DB에서 검증했으며 실제 사용자 DB에는 적용하지 않았습니다. 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace Resource API 30개와 별도 D1 product API 2개를 구현했지만 실제 DB row·Frontend·Legacy 전환은 변경하지 않았습니다. Provider binding은 내부 Service contract이며 공개 Endpoint를 추가하지 않습니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

@@ -66,6 +66,12 @@ from backend.services.workspace.job_worker_service import (
     ProviderExecutionInput,
     ProviderExecutionRequest,
 )
+from backend.services.workspace.provider_job_persistence_service import (
+    ProviderJobPersistenceError,
+    ProviderJobPersistenceErrorReason,
+    ProviderJobPersistenceService,
+    ProviderJobPersistenceStorageError,
+)
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
     CompositionTransitionSummary,
@@ -120,15 +126,19 @@ __all__ = [
     "OrphanCandidate",
     "PreparedArtifactIngestion",
     "ProcessingStepInput",
+    "ProviderOutput",
+    "ProviderJobPersistenceError",
+    "ProviderJobPersistenceErrorReason",
+    "ProviderJobPersistenceService",
+    "ProviderJobPersistenceStorageError",
+    "ProviderResult",
+    "ProviderResultStatus",
+    "ProviderDispatcher",
     "ProviderDispatchResult",
     "ProviderDispatchStatus",
-    "ProviderDispatcher",
     "ProviderExecutionContext",
     "ProviderExecutionInput",
     "ProviderExecutionRequest",
-    "ProviderOutput",
-    "ProviderResult",
-    "ProviderResultStatus",
     "SnapshotItemInput",
     "WorkspaceService",
 ]

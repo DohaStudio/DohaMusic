@@ -4,7 +4,7 @@
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: source Workspace 도메인 Entity/Table 22개·Catalog 1개·revision `0018`; 실제 DB는 `0017`의 21개 Workspace Table
+> 구현 상태: source Workspace 도메인 Entity/Table 23개·Catalog 1개·revisions `0018`~`0019`; 실제 DB는 `0017`의 21개 Workspace Table
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
@@ -274,6 +274,7 @@ erDiagram
 | Job → JobInput | 1:N | 입력 Version 또는 Artifact 연결 |
 | Job → JobOutput | 1:N | 성공 출력 Version 또는 Artifact 연결 |
 | Job → ModelUsage | 1:N | Provider·Model·Manifest·권리 계보 기록 |
+| Job → ProviderJobBinding | 1:N | Provider 실행 identity·retry history를 불변 보존 |
 | Recording AssetVersion → RecordingEnrollment | 1:N | 작품 Recording과 Enrollment를 분리 |
 | AssetVersion·RecordingEnrollment·ModelUsage → Approval | 1:N | 대상별 목적과 승인 근거 분리 |
 | Asset → Tag | 1:N | Asset 내부에서 Tag 이름 유일 |

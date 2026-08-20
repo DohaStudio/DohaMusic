@@ -7,7 +7,7 @@
 
 ## 1. 목적
 
-Workspace Entity 21개를 사용하는 Application Use Case와 transaction 경계를 정의한다. 기존 Runtime Repository·Service·API는 변경하지 않으며 Workspace Table은 아직 비어 있다.
+Workspace Entity 23개를 사용하는 Application Use Case와 transaction 경계를 정의한다. 기존 Runtime Repository·Service·API는 변경하지 않는다.
 
 ## 2. Service 구성
 
@@ -19,7 +19,7 @@ Workspace Entity 21개를 사용하는 Application Use Case와 transaction 경�
 | `JobService` | Job·Workspace·Asset·Composition | 독립 Job 요청, 입출력, 상태와 ModelUsage |
 | `CollaborationService` | Collaboration·Workspace·Asset | Tag·Comment·Favorite·History·Approval·Enrollment |
 
-21개 Entity마다 Service를 만들지 않고 변경의 원자성과 Aggregate 경계를 기준으로 5개 Service를 사용한다.
+23개 Entity마다 Service를 만들지 않고 변경의 원자성과 Aggregate 경계를 기준으로 Service를 구성한다. Provider Job binding은 별도 persistence Service가 transaction을 소유한다.
 
 ## 3. Transaction 정책
 
