@@ -18,7 +18,7 @@
 - [x] `develop` 대상 Draft PR 생성·검토
 - [x] PR #94 squash merge와 병합 후 동일 tree 검증
 
-## D1. Composition Read Workspace — [계약 확정 / 구현 계획]
+## D1. Composition Read Workspace — [D1-A Backend 완료 / Transition 계획]
 
 ### 계약 Gate — [완료]
 
@@ -31,14 +31,14 @@
 - [x] CURRENT single-user owner scope와 TARGET 인증 Gate 분리
 - [x] Common AI Contract schema 변경 없음
 
-### 구현·검증 Gate — [계획]
+### 구현·검증 Gate — [진행 중]
 
-- [ ] Workspace Project와 `CompositionWorkspaceRead` aggregate Backend 구현
-- [ ] explicit selected/current Snapshot persistence와 same-Project 불변식
-- [ ] exact AssetVersion·safe Artifact·Track projection·Section availability·Mix·lineage 응답
-- [ ] Snapshot History HMAC Cursor와 aggregate 단건 read 분리
+- [x] Workspace Project와 `CompositionWorkspaceRead` aggregate Backend 구현
+- [x] explicit selected/current Snapshot persistence와 same-Project 불변식
+- [x] exact AssetVersion·safe Artifact·Track projection·Section availability·Mix·lineage 응답
+- [x] Snapshot History HMAC Cursor와 aggregate 단건 read 분리
 - [ ] `WORKSPACE_BOOTSTRAP_REQUIRED`, empty, selection-required, error와 recovery UI
-- [ ] Legacy silent fallback·GET bootstrap/backfill·write side effect 0건 검증
+- [x] Legacy silent fallback·GET bootstrap/backfill·write side effect 0건 검증
 - [ ] 실제 인증 principal 기반 Owner·Workspace·Project privacy와 cross-owner leakage 0건
 - [ ] Frontend Workspace consume와 실제 Snapshot E2E
 

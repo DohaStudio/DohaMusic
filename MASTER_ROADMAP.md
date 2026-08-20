@@ -130,7 +130,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md)에서 구현 전 Gate를 확정했다. D1 Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()` fake dispatch 기반에 공식 Job API 5개를 연결했다. Worker는 Provider 실행 중 callback으로 lease를 연장하고 결과 저장은 Completion UoW에 위임한다. Job API는 5/5, Resource API는 30/64다. 실제 Provider dispatch wiring과 background daemon·scheduler는 미구현이고 metadata 36개 Table, Alembic `20260810_0017`은 유지한다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()` fake dispatch 기반에 공식 Job API 5개를 연결했다. Worker는 Provider 실행 중 callback으로 lease를 연장하고 결과 저장은 Completion UoW에 위임한다. Job API는 5/5, Resource API는 30/64다. DohaVocal HTTP Transport Foundation과 D1-A product API 2개·Project selection source schema를 구현해 source metadata는 37개 Table·Alembic `20260820_0018`이며, 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, D1 Transition은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 
@@ -301,9 +301,9 @@ Phase 7은 DohaVocal에서 동의된 사용자 음성으로 `VoiceConverter` 후
 ```text
 D1 Composition Read 계약 확정
   ↓
-D1-A Backend Composition aggregate read
+D1-A Backend Composition aggregate read [완료]
   ↓
-D1-Transition 명시적 Workspace bootstrap·최소 backfill
+D1-Transition 명시적 Workspace bootstrap·최소 backfill [다음]
   ↓
 D1-B Frontend Workspace Composition 연결·실제 Snapshot E2E
 ```

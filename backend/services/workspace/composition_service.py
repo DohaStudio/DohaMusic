@@ -8,7 +8,7 @@ import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, Literal
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -30,6 +30,9 @@ from backend.core.exceptions import (
     WorkspaceBootstrapRequiredError,
 )
 from backend.models.workspace import (
+    Artifact,
+    Asset,
+    AssetVersion,
     CompositionSnapshot,
     MusicProject,
     ProcessingChain,
@@ -51,6 +54,7 @@ MAX_JSON_ENTRIES = 64
 MAX_JSON_KEY_LENGTH = 64
 MAX_JSON_STRING_LENGTH = 1_024
 MAX_IDEMPOTENCY_KEY_LENGTH = 128
+MAX_AGGREGATE_ARTIFACTS = 256
 SNAPSHOT_CREATION_ATTEMPTS = 3
 SNAPSHOT_IDEMPOTENCY_TTL_HOURS = 24
 
@@ -81,6 +85,30 @@ class CompositionSnapshotCursorPage:
     next_cursor: str | None
     has_more: bool
     limit: int
+
+
+@dataclass(frozen=True, slots=True)
+class CompositionReadItem:
+    item: SnapshotItem
+    asset_version: AssetVersion
+    asset: Asset
+    artifacts: tuple[Artifact, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CompositionWorkspaceAggregate:
+    state: Literal["ready", "empty", "selection_required"]
+    project: MusicProject
+    selected_snapshot_id: UUID | None
+    resolution: Literal["selected", "requested", "none"]
+    snapshot: CompositionSnapshot | None
+    items: tuple[CompositionReadItem, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CompositionSelectionResult:
+    project_id: UUID
+    selected_snapshot_id: UUID | None
 
 
 @dataclass(frozen=True)
@@ -179,6 +207,105 @@ class CompositionService:
                 session, snapshot.project_id, effective_owner_id
             )
             return self._load_aggregate(repository, snapshot)
+
+    def set_project_selection(
+        self,
+        project_id: UUID,
+        *,
+        selected_snapshot_id: UUID | None,
+        effective_owner_id: UUID,
+    ) -> CompositionSelectionResult:
+        """Project current Snapshot을 자연 멱등 PATCH로 설정하거나 해제한다."""
+
+        _validate_uuid(project_id, "project_id")
+        _validate_uuid(effective_owner_id, "effective_owner_id")
+        if selected_snapshot_id is not None:
+            _validate_uuid(selected_snapshot_id, "selected_snapshot_id")
+        try:
+            with self.session_factory() as session, session.begin():
+                self._require_project_scope(session, project_id, effective_owner_id)
+                repository = CompositionRepository(session)
+                if selected_snapshot_id is None:
+                    repository.clear_project_selection(project_id)
+                else:
+                    snapshot = repository.get_project_snapshot(
+                        project_id, selected_snapshot_id
+                    )
+                    if snapshot is None:
+                        raise ResourceNotFoundError("CompositionSnapshot")
+                    repository.set_project_selection(project_id, selected_snapshot_id)
+            return CompositionSelectionResult(
+                project_id=project_id,
+                selected_snapshot_id=selected_snapshot_id,
+            )
+        except IntegrityError:
+            raise ResourceConflictError("CompositionSelection") from None
+
+    def get_project_composition(
+        self,
+        project_id: UUID,
+        *,
+        effective_owner_id: UUID,
+        composition_snapshot_id: UUID | None = None,
+    ) -> CompositionWorkspaceAggregate:
+        """Workspace authority에서 부작용 없이 Project Composition을 읽는다."""
+
+        _validate_uuid(project_id, "project_id")
+        _validate_uuid(effective_owner_id, "effective_owner_id")
+        if composition_snapshot_id is not None:
+            _validate_uuid(composition_snapshot_id, "composition_snapshot_id")
+        with self.session_factory() as session:
+            project = self._require_project_scope(
+                session, project_id, effective_owner_id
+            )
+            repository = CompositionRepository(session)
+            selection = repository.get_project_selection(project_id)
+            selected_snapshot_id = (
+                selection.selected_composition_snapshot_id
+                if selection is not None
+                else None
+            )
+            if composition_snapshot_id is not None:
+                snapshot = repository.get_project_snapshot(
+                    project_id, composition_snapshot_id
+                )
+                if snapshot is None:
+                    raise ResourceNotFoundError("CompositionSnapshot")
+                resolution: Literal["selected", "requested", "none"] = "requested"
+            elif selected_snapshot_id is not None:
+                snapshot = repository.get_project_snapshot(
+                    project_id, selected_snapshot_id
+                )
+                if snapshot is None:
+                    raise ResourceConflictError("CompositionSelection")
+                resolution = "selected"
+            else:
+                state: Literal["empty", "selection_required"] = (
+                    "selection_required"
+                    if repository.project_has_snapshots(project_id)
+                    else "empty"
+                )
+                return CompositionWorkspaceAggregate(
+                    state=state,
+                    project=project,
+                    selected_snapshot_id=None,
+                    resolution="none",
+                    snapshot=None,
+                    items=(),
+                )
+            return CompositionWorkspaceAggregate(
+                state="ready",
+                project=project,
+                selected_snapshot_id=selected_snapshot_id,
+                resolution=resolution,
+                snapshot=snapshot,
+                items=self._load_read_items(
+                    repository,
+                    snapshot,
+                    effective_owner_id=effective_owner_id,
+                    workspace_id=project.workspace_id,
+                ),
+            )
 
     def list_project_snapshots(
         self,
@@ -403,6 +530,60 @@ class CompositionService:
                 )
             ),
         )
+
+    @staticmethod
+    def _load_read_items(
+        repository: CompositionRepository,
+        snapshot: CompositionSnapshot,
+        *,
+        effective_owner_id: UUID,
+        workspace_id: UUID,
+    ) -> tuple[CompositionReadItem, ...]:
+        items = repository.list_snapshot_items(
+            snapshot.composition_snapshot_id,
+            limit=MAX_SNAPSHOT_ITEMS,
+        )
+        version_ids = [item.asset_version_id for item in items]
+        version_rows = repository.list_asset_versions_with_assets(version_ids)
+        versions = {
+            version.asset_version_id: (version, asset)
+            for version, asset in version_rows
+        }
+        artifacts = repository.list_artifacts_for_versions(
+            version_ids,
+            limit=MAX_AGGREGATE_ARTIFACTS + 1,
+        )
+        if len(artifacts) > MAX_AGGREGATE_ARTIFACTS:
+            raise ResourceConflictError("Composition aggregate Artifact limit")
+        artifacts_by_version: dict[UUID, list[Artifact]] = {}
+        for artifact in artifacts:
+            artifacts_by_version.setdefault(artifact.asset_version_id, []).append(
+                artifact
+            )
+
+        resolved: list[CompositionReadItem] = []
+        for item in items:
+            pair = versions.get(item.asset_version_id)
+            if pair is None:
+                raise ResourceConflictError("CompositionSnapshot lineage")
+            version, asset = pair
+            if (
+                asset.owner_id != effective_owner_id
+                or asset.workspace_id not in {None, workspace_id}
+                or asset.deleted_at is not None
+            ):
+                raise ResourceConflictError("CompositionSnapshot lineage")
+            resolved.append(
+                CompositionReadItem(
+                    item=item,
+                    asset_version=version,
+                    asset=asset,
+                    artifacts=tuple(
+                        artifacts_by_version.get(version.asset_version_id, ())
+                    ),
+                )
+            )
+        return tuple(resolved)
 
     @staticmethod
     def _require_project_scope(

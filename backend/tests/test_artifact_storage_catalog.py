@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 import hashlib
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -20,12 +20,12 @@ from backend.db.base import Base
 from backend.db.session import create_database_engine
 from backend.models.workspace import (
     ARTIFACT_STORAGE_ENTITY_CLASSES,
+    WORKSPACE_ENTITY_CLASSES,
     Artifact,
     ArtifactStorageLocation,
     Asset,
     AssetType,
     AssetVersion,
-    WORKSPACE_ENTITY_CLASSES,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -40,7 +40,7 @@ REVISION = "20260809_0016"
 PREVIOUS_REVISION = "20260808_0015"
 TABLE = "artifact_storage_locations"
 LEGACY_TABLE_COUNT = 14
-WORKSPACE_TABLE_COUNT = 21
+WORKSPACE_TABLE_COUNT = 22
 
 
 def _config(database_url: str) -> Config:
@@ -66,11 +66,13 @@ def _revision_assignment(name: str) -> str:
 
 
 def _existing_snapshot(engine) -> tuple[dict[str, int], str]:
-    table_names = sorted(set(Base.metadata.tables) - {TABLE})
     counts: dict[str, int] = {}
     digest_rows: list[tuple[str, tuple[tuple[object, ...], ...]]] = []
     with engine.connect() as connection:
         inspector = inspect(connection)
+        table_names = sorted(
+            set(inspector.get_table_names()) - {TABLE, "alembic_version"}
+        )
         for table_name in table_names:
             columns = [column["name"] for column in inspector.get_columns(table_name)]
             quoted_columns = ", ".join(f'"{column}"' for column in columns)
@@ -150,7 +152,7 @@ def _new_location(
         storage_domain=storage_domain,
         storage_key=storage_key,
         locator_version=locator_version,
-        published_at=datetime.now(timezone.utc),
+        published_at=datetime.now(UTC),
     )
 
 
@@ -194,7 +196,7 @@ def test_catalog_metadata_constraints_match_contract() -> None:
         if constraint.__class__.__name__ == "CheckConstraint"
     }
 
-    assert len(Base.metadata.tables) == 36
+    assert len(Base.metadata.tables) == 37
     assert foreign_key.target_fullname == "artifacts.artifact_id"
     assert foreign_key.ondelete == "RESTRICT"
     assert unique_constraints == {

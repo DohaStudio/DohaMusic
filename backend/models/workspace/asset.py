@@ -9,12 +9,14 @@ from sqlalchemy import (
     JSON,
     BigInteger,
     CheckConstraint,
-    Enum as SAEnum,
     ForeignKey,
     Index,
     String,
     UniqueConstraint,
     Uuid,
+)
+from sqlalchemy import (
+    Enum as SAEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -202,6 +204,12 @@ class Artifact(CreatedAtMixin, Base):
             "checksum_algorithm",
             "artifact_checksum",
             "size_bytes",
+        ),
+        Index(
+            "ix_artifacts_version_created",
+            "asset_version_id",
+            "created_at",
+            "artifact_id",
         ),
     )
 

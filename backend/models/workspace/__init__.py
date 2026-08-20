@@ -18,6 +18,7 @@ from backend.models.workspace.composition import (
     CompositionSnapshot,
     ProcessingChain,
     ProcessingStep,
+    ProjectCompositionSelection,
     SnapshotItem,
 )
 from backend.models.workspace.enums import AssetType, JobStatus
@@ -37,6 +38,7 @@ WORKSPACE_ENTITY_CLASSES = (
     Artifact,
     AssetRelation,
     CompositionSnapshot,
+    ProjectCompositionSelection,
     SnapshotItem,
     Job,
     JobInput,
@@ -53,8 +55,9 @@ WORKSPACE_ENTITY_CLASSES = (
 )
 
 __all__ = [
-    "Approval",
     "ARTIFACT_STORAGE_ENTITY_CLASSES",
+    "WORKSPACE_ENTITY_CLASSES",
+    "Approval",
     "Artifact",
     "ArtifactStorageLocation",
     "Asset",
@@ -74,9 +77,9 @@ __all__ = [
     "ProcessingChain",
     "ProcessingStep",
     "ProjectAsset",
+    "ProjectCompositionSelection",
     "RecordingEnrollment",
     "SnapshotItem",
     "Tag",
-    "WORKSPACE_ENTITY_CLASSES",
     "Workspace",
 ]

@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime, timedelta
 import hashlib
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+import pytest
 from alembic import command
 from alembic.config import Config
 from alembic.script import ScriptDirectory
-import pytest
 from sqlalchemy import inspect, text
 from sqlalchemy.exc import IntegrityError
 
@@ -20,6 +20,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260810_0017"
 PREVIOUS_REVISION = "20260809_0016"
+SOURCE_HEAD = "20260820_0018"
 PUBLIC_INDEXES = {
     "ix_jobs_workspace_keyset": (
         "workspace_id",
@@ -324,9 +325,9 @@ def _job_digest(database_url: str) -> str:
 
 def test_job_schema_metadata_matches_migration_contract() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert len(Base.metadata.tables) == 36
+    assert len(Base.metadata.tables) == 37
 
     jobs = Base.metadata.tables["jobs"]
     assert NEW_JOB_COLUMNS <= set(jobs.columns.keys())

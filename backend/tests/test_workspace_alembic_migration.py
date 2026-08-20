@@ -38,6 +38,10 @@ KEYSET_INDEX_NAMES = {
     "ix_workspaces_active_keyset",
     "ix_workspaces_owner_active_keyset",
 }
+POST_REVISION_INDEX_NAMES = {
+    "ix_artifacts_version_created",
+    "uq_composition_snapshots_project_identity",
+}
 FORBIDDEN_OPERATIONS = {
     "add_column",
     "alter_column",
@@ -51,7 +55,11 @@ FORBIDDEN_OPERATIONS = {
 
 
 def _workspace_tables() -> set[str]:
-    return {entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES}
+    return {
+        entity.__tablename__
+        for entity in WORKSPACE_ENTITY_CLASSES
+        if entity.__tablename__ != "project_composition_selections"
+    }
 
 
 def _operations(function_name: str) -> list[tuple[str, str | None]]:
@@ -106,7 +114,8 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
 
     assert _revision_assignment("revision") == REVISION
     assert _revision_assignment("down_revision") == PREVIOUS_REVISION
-    assert len(WORKSPACE_ENTITY_CLASSES) == 21
+    assert len(WORKSPACE_ENTITY_CLASSES) == 22
+    assert len(workspace_tables) == 21
     assert created_tables == workspace_tables
     assert dropped_tables == workspace_tables
     assert not used_operations.intersection(FORBIDDEN_OPERATIONS)
@@ -115,7 +124,7 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
         index.name
         for table_name in workspace_tables
         for index in Base.metadata.tables[table_name].indexes
-        if index.name
+        if index.name and index.name not in POST_REVISION_INDEX_NAMES
     ]
     constraint_names = [
         constraint.name
@@ -141,7 +150,9 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
 
     workspace_tables = _workspace_tables()
     legacy_tables = (
-        set(Base.metadata.tables) - workspace_tables - {"artifact_storage_locations"}
+        set(Base.metadata.tables)
+        - workspace_tables
+        - {"artifact_storage_locations", "project_composition_selections"}
     )
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
@@ -161,7 +172,8 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
 
     assert upgraded_revision == REVISION
     assert upgraded_tables - {"alembic_version"} == (
-        set(Base.metadata.tables) - {"artifact_storage_locations"}
+        set(Base.metadata.tables)
+        - {"artifact_storage_locations", "project_composition_selections"}
     )
     assert workspace_foreign_keys == 39
     assert foreign_key_violations == []

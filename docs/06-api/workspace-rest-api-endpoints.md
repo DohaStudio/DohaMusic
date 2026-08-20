@@ -117,13 +117,14 @@ POST는 `project_id`, 역할별 `asset_version_id`, `processing_chain_id`, Mix S
 
 세 Endpoint는 `[완료]`입니다. 목록은 필수 `project_id`와 `snapshot_version DESC, composition_snapshot_id DESC` HMAC Cursor를 사용하며 summary만 반환합니다. 생성은 필수 `Idempotency-Key`, body 안의 Item, exact AssetVersion, effective Owner·ProjectAsset scope, 자동 version과 단일 transaction을 사용해 불변 aggregate를 `201`로 반환합니다. 상세는 정렬된 전체 Item과 bounded lineage를 반환합니다. PATCH·DELETE와 독립 SnapshotItem Route는 제공하지 않습니다. CompositionSnapshot API는 3/3, 전체 Resource API는 Job 5개를 포함해 30/64입니다.
 
-### D1 Project Composition aggregate — 계약 확정 / 미구현
+### D1 Project Composition aggregate — D1-A Backend 완료
 
 | Method | Path | 성공 | 목적 |
 |---|---|---:|---|
 | `GET` | `/api/v1/projects/{project_id}/composition` | 200 | selected/requested Snapshot과 resolved Version·Artifact·projection 통합 조회 |
+| `PATCH` | `/api/v1/projects/{project_id}/composition-selection` | 200 | Project-level selected Snapshot 설정 또는 해제 |
 
-이 GET은 Frontend read optimization용 product aggregate이며 16개 Resource group·64개 Endpoint 분모에 추가하지 않습니다. Snapshot API 3개를 유지하고 History Cursor는 목록 Endpoint를 재사용합니다. Project-level explicit selection, empty/selection-required, no silent fallback·no-write GET 계약은 [D1 Composition Read 문서](composition-read-workspace.md)를 따릅니다.
+두 Endpoint는 Frontend read optimization용 product API이며 16개 Resource group·64개 Endpoint 분모에 추가하지 않습니다. Snapshot API 3개를 유지하고 History Cursor는 목록 Endpoint를 재사용합니다. Project-level explicit selection, empty/selection-required, no silent fallback·no-write GET 계약은 [D1 Composition Read 문서](composition-read-workspace.md)를 따릅니다.
 
 ## 9. Job API — 5개
 

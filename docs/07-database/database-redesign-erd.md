@@ -4,7 +4,7 @@
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace 도메인 Entity/Table 21개·Catalog 1개·Job schema·Index revision `0017` 실제 DB 적용
+> 구현 상태: source Workspace 도메인 Entity/Table 22개·Catalog 1개·revision `0018`; 실제 DB는 `0017`의 21개 Workspace Table
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
@@ -23,6 +23,8 @@ erDiagram
   MUSIC_PROJECTS ||--o{ PROJECT_ASSETS : groups
   ASSETS ||--o{ PROJECT_ASSETS : linked_by
   MUSIC_PROJECTS ||--o{ COMPOSITION_SNAPSHOTS : snapshots
+  MUSIC_PROJECTS ||--o| PROJECT_COMPOSITION_SELECTIONS : selects
+  COMPOSITION_SNAPSHOTS ||--o| PROJECT_COMPOSITION_SELECTIONS : selected_as_current
   MUSIC_PROJECTS ||--o{ JOBS : requests
 
   ASSETS ||--|{ ASSET_VERSIONS : versions
@@ -134,6 +136,12 @@ erDiagram
     json mix_settings_snapshot
     json provider_versions
     json model_manifest_ids
+  }
+  PROJECT_COMPOSITION_SELECTIONS {
+    uuid project_id PK_FK
+    uuid selected_composition_snapshot_id FK
+    timestamp created_at
+    timestamp updated_at
   }
   SNAPSHOT_ITEMS {
     uuid snapshot_item_id PK
@@ -258,6 +266,8 @@ erDiagram
 | Artifact → ArtifactStorageLocation | 1:0..1 | authoritative locator 하나만 허용, FK 삭제 `RESTRICT` |
 | Asset ↔ Asset | N:M | `AssetRelation`으로 부모·파생·Stem·Voice Conversion 관계 표현 |
 | MusicProject → CompositionSnapshot | 1:N | Project별 Snapshot version 증가 |
+| MusicProject → ProjectCompositionSelection | 1:0..1 | row 부재는 선택 없음, Project 삭제 시 selection만 CASCADE |
+| CompositionSnapshot → ProjectCompositionSelection | 1:0..1 | Project ID를 포함한 복합 FK로 same-Project 강제, Snapshot 삭제 `RESTRICT` |
 | CompositionSnapshot → SnapshotItem | 1:N | 최소 한 정확한 AssetVersion 참조 |
 | ProcessingChain → ProcessingStep | 1:N | `step_order`로 고정 순서 보존 |
 | MusicProject → Job | 1:N | Project 문맥에서 독립 실행 단위 생성 |

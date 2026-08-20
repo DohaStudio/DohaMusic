@@ -38,7 +38,7 @@
 | [ADR-032](ADR-032-artifact-storage-resolver-integrity.md) | Artifact Storage Catalog·Resolver·ingestion·무결성 경계 | 승인 |
 | [ADR-033](ADR-033-workspace-job-execution-boundary.md) | Workspace Job 실행·claim·cancel·Artifact completion 경계 | 승인 |
 | [ADR-034](ADR-034-dohavocal-consumer-contract.md) | DohaVocal strict DTO·transport port·metadata 후보 Consumer 계약 | 승인 |
-| [ADR-035](ADR-035-d1-composition-read-authority.md) | D1 Composition Read 권위·Snapshot selection·Track/Section projection·aggregate endpoint | 제안 |
+| [ADR-035](ADR-035-d1-composition-read-authority.md) | D1 Composition Read 권위·Snapshot selection·Track/Section projection·aggregate endpoint | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

@@ -9,6 +9,7 @@ from sqlalchemy import (
     JSON,
     CheckConstraint,
     ForeignKey,
+    ForeignKeyConstraint,
     Index,
     Integer,
     String,
@@ -19,7 +20,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.base import Base
 from backend.models.workspace.identifiers import generate_uuid
-from backend.models.workspace.mixins import CreatedAtMixin
+from backend.models.workspace.mixins import CreatedAtMixin, TimestampMixin
 
 if TYPE_CHECKING:
     from backend.models.workspace.asset import AssetVersion
@@ -37,6 +38,12 @@ class CompositionSnapshot(CreatedAtMixin, Base):
             "project_id", "snapshot_version", name="uq_composition_snapshots_version"
         ),
         Index("ix_composition_snapshots_project_created", "project_id", "created_at"),
+        Index(
+            "uq_composition_snapshots_project_identity",
+            "project_id",
+            "composition_snapshot_id",
+            unique=True,
+        ),
     )
 
     composition_snapshot_id: Mapped[UUID] = mapped_column(
@@ -68,6 +75,34 @@ class CompositionSnapshot(CreatedAtMixin, Base):
         back_populates="composition_snapshot"
     )
     jobs: Mapped[list[Job]] = relationship(back_populates="composition_snapshot")
+
+
+class ProjectCompositionSelection(TimestampMixin, Base):
+    """Project의 명시적 current CompositionSnapshot 선택 상태."""
+
+    __tablename__ = "project_composition_selections"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["project_id"],
+            ["music_projects.project_id"],
+            ondelete="CASCADE",
+            name="fk_project_composition_selections_project",
+        ),
+        ForeignKeyConstraint(
+            ["project_id", "selected_composition_snapshot_id"],
+            [
+                "composition_snapshots.project_id",
+                "composition_snapshots.composition_snapshot_id",
+            ],
+            ondelete="RESTRICT",
+            name="fk_project_composition_selections_same_project_snapshot",
+        ),
+    )
+
+    project_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
+    selected_composition_snapshot_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), nullable=False, unique=True
+    )
 
 
 class SnapshotItem(CreatedAtMixin, Base):
