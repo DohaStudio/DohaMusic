@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-20
-> 기준: `develop@2cd617eff031a1e85d1259f25f3aa58a75bb8360`
+> 기준: `develop@16c16fe0bf6aca673d8dd83a53387dbf2723cf77`
 > 관련 문서: [README](../README.md), [Cleanup Plan](DOCUMENT_CLEANUP_PLAN.md), [Master Roadmap](../MASTER_ROADMAP.md), [실행 로드맵](../ROADMAP.md)
 
 ## 1. 목적과 분류 원칙
@@ -67,8 +67,6 @@
 
 | Document | Classification | Authority Scope | Replaced By | Recommended Action |
 |---|---|---|---|---|
-| [docs/00-overview/goals-and-non-goals.md](00-overview/goals-and-non-goals.md) | SUPPORTING | 프로젝트 개요·용어·시나리오 | — | MERGE |
-| [docs/00-overview/project-overview.md](00-overview/project-overview.md) | SUPPORTING | 프로젝트 개요·용어·시나리오 | — | MERGE |
 | [docs/00-overview/terminology.md](00-overview/terminology.md) | SUPPORTING | 프로젝트 개요·용어·시나리오 | — | KEEP |
 | [docs/00-overview/user-scenarios.md](00-overview/user-scenarios.md) | SUPPORTING | 프로젝트 개요·용어·시나리오 | — | KEEP |
 | [docs/01-research/audio-analysis-library-comparison.md](01-research/audio-analysis-library-comparison.md) | SUPPORTING | 모델·라이선스·기술 조사 | — | KEEP |
@@ -97,14 +95,12 @@
 | [docs/03-architecture/design-reference-policy.md](03-architecture/design-reference-policy.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/dohalm-integration.md](03-architecture/dohalm-integration.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/dohavocal-consumer-contract.md](03-architecture/dohavocal-consumer-contract.md) | SUPPORTING | DohaVocal `0.1.0` Consumer DTO·mapping·transport port 계약 | [docs/03-architecture/system-architecture.md](03-architecture/system-architecture.md) | KEEP |
-| [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | SUPPORTING | 세부 Architecture·계약 | — | MERGE |
-| [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | SUPPORTING | 세부 Architecture·계약 | — | MERGE |
-| [docs/03-architecture/history-management.md](03-architecture/history-management.md) | SUPPORTING | 세부 Architecture·계약 | — | MERGE |
+| [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | SUPPORTING | CURRENT Frontend 구조·state/API·design 구현 경계 | — | KEEP |
+| [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | SUPPORTING | CURRENT Frontend 경험·route·지원 범위 | — | KEEP |
 | [docs/03-architecture/kpop-generation-options.md](03-architecture/kpop-generation-options.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/kpop-prompt-compiler.md](03-architecture/kpop-prompt-compiler.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/lyrics-ai.md](03-architecture/lyrics-ai.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/pipeline-orchestrator.md](03-architecture/pipeline-orchestrator.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
-| [docs/03-architecture/project-management.md](03-architecture/project-management.md) | SUPPORTING | 세부 Architecture·계약 | — | MERGE |
 | [docs/03-architecture/storage-architecture.md](03-architecture/storage-architecture.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/studio-ux-flow.md](03-architecture/studio-ux-flow.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/worker-architecture.md](03-architecture/worker-architecture.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
@@ -201,7 +197,7 @@
 | [docs/DoD/Provider-Separation.md](DoD/Provider-Separation.md) | SUPPORTING | Phase·Track 완료 조건 | — | KEEP |
 | [planning/ai-native-daw-frontend-migration.md](../planning/ai-native-daw-frontend-migration.md) | SUPPORTING | 세부 실행 계획과 Backlog | — | KEEP |
 | [planning/backlog.md](../planning/backlog.md) | SUPPORTING | 세부 실행 계획과 Backlog | — | KEEP |
-| [planning/frontend-roadmap.md](../planning/frontend-roadmap.md) | SUPPORTING | 세부 실행 계획과 Backlog | — | MERGE |
+| [planning/frontend-roadmap.md](../planning/frontend-roadmap.md) | SUPPORTING | F6 Guided Voice Enrollment 현재 실행 기준 | — | KEEP |
 | [planning/kpop-creation-roadmap.md](../planning/kpop-creation-roadmap.md) | SUPPORTING | 세부 실행 계획과 Backlog | — | KEEP |
 | [planning/local-lyrics-llm-roadmap.md](../planning/local-lyrics-llm-roadmap.md) | SUPPORTING | 세부 실행 계획과 Backlog | — | KEEP |
 | [planning/repository-separation-roadmap.md](../planning/repository-separation-roadmap.md) | SUPPORTING | 세부 실행 계획과 Backlog | — | KEEP |
@@ -248,6 +244,17 @@
 | [docs/11-decisions/ADR-032-artifact-storage-resolver-integrity.md](11-decisions/ADR-032-artifact-storage-resolver-integrity.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-033-workspace-job-execution-boundary.md](11-decisions/ADR-033-workspace-job-execution-boundary.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-034-dohavocal-consumer-contract.md](11-decisions/ADR-034-dohavocal-consumer-contract.md) | HISTORICAL | DohaVocal Consumer 계약 결정 이력 | — | KEEP |
+| [docs/archive/frontend/design-system.md](archive/frontend/design-system.md) | HISTORICAL | Phase 8 Frontend design 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |
+| [docs/archive/frontend/navigation-guide.md](archive/frontend/navigation-guide.md) | HISTORICAL | Phase 8 navigation 초안 | [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | ARCHIVED |
+| [docs/archive/frontend/page-structure.md](archive/frontend/page-structure.md) | HISTORICAL | Phase 8 page hierarchy 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |
+| [docs/archive/frontend/responsive-guide.md](archive/frontend/responsive-guide.md) | HISTORICAL | Phase 8 responsive 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |
+| [docs/archive/frontend/ui-component-guide.md](archive/frontend/ui-component-guide.md) | HISTORICAL | Phase 8 component 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |
+| [planning/archive/phase-01-research.md](../planning/archive/phase-01-research.md) | HISTORICAL | 초기 조사·설계 Phase 계획 | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/README.md](DoD/README.md) | ARCHIVED |
+| [planning/archive/phase-02-local-inference.md](../planning/archive/phase-02-local-inference.md) | HISTORICAL | 초기 로컬 추론 Phase 계획 | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/Phase-02.md](DoD/Phase-02.md) | ARCHIVED |
+| [planning/archive/phase-03-ai-pipeline.md](../planning/archive/phase-03-ai-pipeline.md) | HISTORICAL | 초기 AI Pipeline Phase 계획 | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/Phase-05.md](DoD/Phase-05.md) | ARCHIVED |
+| [planning/archive/phase-04-api.md](../planning/archive/phase-04-api.md) | HISTORICAL | 초기 API Phase 계획 | [ROADMAP.md](../ROADMAP.md)<br>[docs/06-api/api-overview.md](06-api/api-overview.md) | ARCHIVED |
+| [planning/archive/phase-05-web-mvp.md](../planning/archive/phase-05-web-mvp.md) | HISTORICAL | 초기 Web MVP Phase 계획 | [planning/frontend-roadmap.md](../planning/frontend-roadmap.md)<br>[docs/DoD/Phase-08.md](DoD/Phase-08.md) | ARCHIVED |
+| [planning/archive/phase-06-personalization.md](../planning/archive/phase-06-personalization.md) | HISTORICAL | 초기 개인화 Phase 계획 | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/Phase-07.md](DoD/Phase-07.md) | ARCHIVED |
 | [reports/evaluations/EVAL-001-ace-step-listening-evaluation.md](../reports/evaluations/EVAL-001-ace-step-listening-evaluation.md) | HISTORICAL | 품질·사용자 평가 이력 | — | KEEP |
 | [reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md](../reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md) | HISTORICAL | 품질·사용자 평가 이력 | — | KEEP |
 | [reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md](../reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md) | HISTORICAL | 품질·사용자 평가 이력 | — | KEEP |
@@ -306,23 +313,15 @@
 
 | Document | Classification | Authority Scope | Replaced By | Recommended Action |
 |---|---|---|---|---|
+| [docs/00-overview/goals-and-non-goals.md](00-overview/goals-and-non-goals.md) | SUPERSEDED | 이전 목표·비목표 안내 | [docs/02-product/ai-native-daw-product-direction.md](02-product/ai-native-daw-product-direction.md) | DEPRECATED |
+| [docs/00-overview/project-overview.md](00-overview/project-overview.md) | SUPERSEDED | 이전 프로젝트 개요 안내 | [docs/02-product/ai-native-daw-product-direction.md](02-product/ai-native-daw-product-direction.md) | DEPRECATED |
 | [docs/02-requirements/mvp-scope.md](02-requirements/mvp-scope.md) | SUPERSEDED | 기능·품질 요구사항 | [docs/02-product/ai-native-daw-product-direction.md](02-product/ai-native-daw-product-direction.md)<br>[docs/DoD/Phase-08.md](DoD/Phase-08.md) | DEPRECATE |
-| [planning/phase-01-research.md](../planning/phase-01-research.md) | SUPERSEDED | 세부 실행 계획과 Backlog | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/README.md](DoD/README.md) | DEPRECATE |
-| [planning/phase-02-local-inference.md](../planning/phase-02-local-inference.md) | SUPERSEDED | 세부 실행 계획과 Backlog | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/Phase-02.md](DoD/Phase-02.md) | DEPRECATE |
-| [planning/phase-03-ai-pipeline.md](../planning/phase-03-ai-pipeline.md) | SUPERSEDED | 세부 실행 계획과 Backlog | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/Phase-05.md](DoD/Phase-05.md) | DEPRECATE |
-| [planning/phase-04-api.md](../planning/phase-04-api.md) | SUPERSEDED | 세부 실행 계획과 Backlog | [ROADMAP.md](../ROADMAP.md)<br>[docs/06-api/api-overview.md](06-api/api-overview.md) | DEPRECATE |
-| [planning/phase-05-web-mvp.md](../planning/phase-05-web-mvp.md) | SUPERSEDED | 세부 실행 계획과 Backlog | [planning/frontend-roadmap.md](../planning/frontend-roadmap.md)<br>[docs/DoD/Phase-08.md](DoD/Phase-08.md) | DEPRECATE |
-| [planning/phase-06-personalization.md](../planning/phase-06-personalization.md) | SUPERSEDED | 세부 실행 계획과 Backlog | [MASTER_ROADMAP.md](../MASTER_ROADMAP.md)<br>[docs/DoD/Phase-07.md](DoD/Phase-07.md) | DEPRECATE |
+| [docs/03-architecture/history-management.md](03-architecture/history-management.md) | SUPERSEDED | 이전 Generation History 안내 | [docs/06-api/history-project-api.md](06-api/history-project-api.md) | DEPRECATED |
+| [docs/03-architecture/project-management.md](03-architecture/project-management.md) | SUPERSEDED | 이전 Project Management 안내 | [docs/06-api/history-project-api.md](06-api/history-project-api.md) | DEPRECATED |
 
 ### STALE
 
-| Document | Classification | Authority Scope | Replaced By | Recommended Action |
-|---|---|---|---|---|
-| [docs/03-architecture/design-system.md](03-architecture/design-system.md) | STALE | 세부 Architecture·계약 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVE |
-| [docs/03-architecture/navigation-guide.md](03-architecture/navigation-guide.md) | STALE | 세부 Architecture·계약 | [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | ARCHIVE |
-| [docs/03-architecture/page-structure.md](03-architecture/page-structure.md) | STALE | 세부 Architecture·계약 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVE |
-| [docs/03-architecture/responsive-guide.md](03-architecture/responsive-guide.md) | STALE | 세부 Architecture·계약 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVE |
-| [docs/03-architecture/ui-component-guide.md](03-architecture/ui-component-guide.md) | STALE | 세부 Architecture·계약 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVE |
+현재 STALE 분류 문서는 **0개**다. 이번 Cleanup에서 기존 5개 Frontend 초안을 구현과 대조한 뒤 `docs/archive/frontend/`로 이동하고 HISTORICAL로 재분류했다.
 
 ## 4. Validation / Reports
 

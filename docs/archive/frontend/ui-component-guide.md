@@ -1,10 +1,10 @@
 # UI Component Guide
 
-> 분류: [STALE / Authority 아님]
-> 현재 기준: [Frontend Architecture](frontend-architecture.md), [실제 Frontend components](../../frontend/components)
-> 안내: 실제 component·feature tree와 재검증 전까지 계획 참고 문서로만 사용한다.
-
-> 문서 상태: [계획]
+> 문서 상태: [보관]
+> 분류: [HISTORICAL / Authority 아님]
+> 보관 사유: 실제 component·feature tree와 다른 Atomic Design 초안을 현재 Navigation에서 분리했다.
+> 대체 문서: [Frontend Architecture](../../03-architecture/frontend-architecture.md#design반응형-구현-기준), [실제 Frontend components](../../../frontend/components)
+> Archived at: 2026-08-20
 > 최종 수정일: 2026-07-31
 > 설계 방식: Atomic Design
 > 관련 문서: [Design System](design-system.md), [Page Structure](page-structure.md)

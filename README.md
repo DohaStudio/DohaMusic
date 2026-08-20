@@ -99,7 +99,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 
 | 알고 싶은 것 | 먼저 읽을 문서 | 상세 문서 |
 |---|---|---|
-| 이 프로젝트가 무엇인가 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [프로젝트 개요](docs/00-overview/project-overview.md) |
+| 이 프로젝트가 무엇인가 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [기능 요구사항](docs/02-requirements/functional-requirements.md) |
 | 지금 실제로 구현된 것과 바로 다음 작업 | [현재 실행 로드맵](ROADMAP.md) | [Master Roadmap](MASTER_ROADMAP.md) |
 | 최종 AI-native DAW의 모습 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md) |
 | 시스템과 Provider 연결 | [시스템 아키텍처](docs/03-architecture/system-architecture.md) | [Provider 경계](docs/03-architecture/repository-provider-boundaries.md) |

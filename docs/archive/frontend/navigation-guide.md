@@ -1,10 +1,10 @@
 # Navigation Guide
 
-> 분류: [STALE / Authority 아님]
-> 현재 기준: [Frontend Overview](frontend-overview.md), [실제 App Router](../../frontend/app)
-> 안내: 계획 navigation은 현재 route tree와 대조하기 전 구현 사실로 사용하지 않는다.
-
-> 문서 상태: [계획]
+> 문서 상태: [보관]
+> 분류: [HISTORICAL / Authority 아님]
+> 보관 사유: 현재 App Router와 다른 Phase 8 navigation 초안을 현재 Navigation에서 분리했다.
+> 대체 문서: [Frontend Overview](../../03-architecture/frontend-overview.md#정보-구조), [실제 App Router](../../../frontend/app)
+> Archived at: 2026-08-20
 > 최종 수정일: 2026-07-31
 > 관련 문서: [Page Structure](page-structure.md), [Responsive Guide](responsive-guide.md)
 

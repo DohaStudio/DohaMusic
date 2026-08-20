@@ -1,14 +1,14 @@
 # Doha Studio Design System
 
-> 분류: [STALE / Authority 아님]
-> 현재 기준: [Frontend Architecture](frontend-architecture.md)
-> 안내: 실제 CSS token·component와 재검증 전까지 계획 참고 문서로만 사용한다.
-
-> 문서 상태: [계획]
+> 문서 상태: [보관]
+> 분류: [HISTORICAL / Authority 아님]
+> 보관 사유: 실제 CSS token·component와 불일치하는 Phase 8 설계 초안을 현재 Navigation에서 분리했다.
+> 대체 문서: [Frontend Architecture](../../03-architecture/frontend-architecture.md#design반응형-구현-기준)
+> Archived at: 2026-08-20
 > 최종 수정일: 2026-07-31
-> 관련 문서: [Frontend Overview](frontend-overview.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [디자인 레퍼런스 정책](design-reference-policy.md)
+> 관련 문서: [Frontend Overview](../../03-architecture/frontend-overview.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [디자인 레퍼런스 정책](../../03-architecture/design-reference-policy.md)
 
-첨부 Vinyl Music Dashboard는 방향 참고 자료이며 원본 UI·브랜드·artwork를 복제하거나 서비스 자산으로 사용하지 않는다. 모든 token과 component는 DohaMusic 고유 체계로 재해석하며 세부 기준은 [디자인 레퍼런스 정책](design-reference-policy.md)을 따른다.
+첨부 Vinyl Music Dashboard는 방향 참고 자료이며 원본 UI·브랜드·artwork를 복제하거나 서비스 자산으로 사용하지 않는다. 모든 token과 component는 DohaMusic 고유 체계로 재해석하며 세부 기준은 [디자인 레퍼런스 정책](../../03-architecture/design-reference-policy.md)을 따른다.
 
 ## Color System
 

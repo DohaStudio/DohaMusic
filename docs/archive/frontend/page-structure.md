@@ -1,14 +1,14 @@
 # Page Structure
 
-> 분류: [STALE / Authority 아님]
-> 현재 기준: [Frontend Architecture](frontend-architecture.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
-> 안내: CURRENT route와 TARGET Workspace 구조를 구분하기 전까지 계획 참고 문서로만 사용한다.
-
-> 문서 상태: [계획]
+> 문서 상태: [보관]
+> 분류: [HISTORICAL / Authority 아님]
+> 보관 사유: CURRENT route와 TARGET Workspace가 혼재된 Phase 8 page 초안을 현재 Navigation에서 분리했다.
+> 대체 문서: [Frontend Architecture](../../03-architecture/frontend-architecture.md), [Frontend Overview](../../03-architecture/frontend-overview.md), [AI-native DAW 전환 계획](../../../planning/ai-native-daw-frontend-migration.md)
+> Archived at: 2026-08-20
 > 최종 수정일: 2026-08-01
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Studio UX Flow](studio-ux-flow.md), [Navigation Guide](navigation-guide.md)
+> 관련 문서: [Frontend Overview](../../03-architecture/frontend-overview.md), [Studio UX Flow](../../03-architecture/studio-ux-flow.md), [Navigation Guide](navigation-guide.md)
 
-페이지 기능 상태는 [Frontend 지원 범위](frontend-overview.md#frontend-지원-범위)의 `Available`, `Partial`, `Backend Required`, `Planned`를 사용한다.
+페이지 기능 상태는 [Frontend 지원 범위](../../03-architecture/frontend-overview.md#frontend-지원-범위)의 `Available`, `Partial`, `Backend Required`, `Planned`를 사용한다.
 
 ## Landing
 
@@ -36,7 +36,7 @@
 - 현재 API: Enrollment 7개 endpoint와 기존 Profile upload·list·get·delete가 로컬 MVP에서 `Available`; 서버 음성 preview content와 인증·소유권은 제공하지 않는다.
 - F6 Frontend `[완료]`: MediaRecorder feature detection, 권한·일시정지·재개·60초 자동 종료, 입력 수준·메모리 preview, 최대 10개 upload, session 복원·취소·만료·멱등 재시도와 Studio 선택을 구현했다. 합성 WebM/Ogg의 Backend FFmpeg 정규화는 Windows/CI에서 검증했고 실제 마이크·기기별 MIME 평가는 남아 있다.
 - Voice Enrollment UI: 정상 안내와 오류를 분리하고 녹음 상태·입력 수준·안내 문장, Sample별 품질·재생·대표 선택·삭제, 우측 Summary, 완료 CTA를 Desktop·Tablet·Mobile 반응형으로 제공한다.
-- 세부 요구사항: [Voice Enrollment](../02-requirements/voice-enrollment-requirements.md).
+- 세부 요구사항: [Voice Enrollment](../../02-requirements/voice-enrollment-requirements.md).
 
 ## Generation Progress
 

@@ -1,13 +1,13 @@
 # DohaMusic Documentation Cleanup Plan
 
-> 문서 상태: [계획]
+> 문서 상태: [진행 기록]
 > 최종 수정일: 2026-08-20
-> 기준: develop@59157f63990e0898e39b51e267502cdc8c1fe974
+> 기준: develop@16c16fe0bf6aca673d8dd83a53387dbf2723cf77
 > 관련 문서: [Authority Map](DOCUMENT_AUTHORITY_MAP.md), [README](../README.md)
 
 ## 1. 목적
 
-이 문서는 Authority Inventory에서 확인한 중복·과거·stale 문서를 후속 PR에서 안전하게 정리하기 위한 제안이다. 이번 문서 구조 리팩터링은 navigation과 분류를 우선하며, 아래 후보를 이동·삭제하거나 역사 증거를 지우지 않는다.
+이 문서는 Authority Inventory에서 확인한 중복·과거·stale 문서의 처리 결과와 남은 후보를 기록한다. 2026-08-20 Cleanup은 Product·Frontend·History/Project 중복을 통합하고, 직접 참조 가능성이 있는 문서는 deprecate하며, 과거 Frontend·Phase 계획은 Git 이력을 보존해 archive했다. 문서 삭제는 수행하지 않았다.
 
 ## 2. 판단 기준
 
@@ -19,42 +19,41 @@
 
 ## 3. Cleanup 후보
 
-| Document | Classification | Problem | Proposed Action | Risk |
+| Document | Classification | Problem | Result / Next Action | Risk |
 |---|---|---|---|---|
-| docs/00-overview/project-overview.md | SUPPORTING | Product Authority와 목표·현재 설명 중복 | MERGE — 고유 개요만 Product Authority에 반영하고 짧은 안내 문서로 축소 | 기존 overview inbound link가 많아 즉시 deprecate 금지 |
-| docs/00-overview/goals-and-non-goals.md | SUPPORTING | CURRENT MVP 비목표와 장기 TARGET 설명이 Product Authority와 겹침 | MERGE — 범위 원칙만 유지하고 Product Authority 링크 중심으로 축소 | 비목표의 역사적 맥락 손실 가능 |
-| docs/02-requirements/mvp-scope.md | SUPERSEDED | 승인 대기 초안이 완료된 Phase 8 MVP와 장기 제품 방향보다 오래됨 | DEPRECATE — Product Authority와 Phase-08 DoD를 대체 기준으로 표시 | 과거 MVP 범위 추적 필요 |
-| docs/03-architecture/frontend-overview.md | SUPPORTING | 지원 범위·페이지·상태가 Frontend Architecture와 반복됨 | MERGE — 상태 분류는 Overview, 구조·계약은 Architecture로 책임 고정 | 여러 README·Roadmap 링크 갱신 필요 |
-| docs/03-architecture/frontend-architecture.md | SUPPORTING | CURRENT 구조와 상세 API 상태가 길고 Overview와 일부 중복 | UPDATE — CURRENT 구조·state/API 책임만 유지하고 TARGET은 전환 계획 링크 | PR #93 이후 최신 상태 재검증 필요 |
-| docs/03-architecture/design-system.md | STALE | [계획] 문서지만 실제 CSS token·component가 이미 존재 | ARCHIVE 또는 UPDATE — 구현 대조 후 현행 design token 문서로 승격 여부 결정 | 실제 UI 회귀 검증 없이 갱신 불가 |
-| docs/03-architecture/navigation-guide.md | STALE | 계획 navigation과 현재 App Router가 불일치할 가능성 | ARCHIVE — 현행 route inventory는 Frontend Overview로 통합 | 접근성 의도 보존 필요 |
-| docs/03-architecture/page-structure.md | STALE | 계획 page hierarchy와 현재 route tree·TARGET Workspace가 혼재 | ARCHIVE — CURRENT route와 TARGET /studio/[projectId]를 분리한 뒤 처리 | 향후 DAW 정보 구조 참고 가치 |
-| docs/03-architecture/responsive-guide.md | STALE | 계획 문서 상태가 완료된 Responsive Studio 구현과 맞지 않음 | UPDATE 또는 ARCHIVE — 실제 breakpoint·E2E 근거 대조 | 모바일 접근성 기준 손실 가능 |
-| docs/03-architecture/ui-component-guide.md | STALE | 계획 component 목록과 실제 frontend/components, features 불일치 가능 | ARCHIVE — 유효 원칙은 Frontend Architecture로 MERGE | 구현 세부 참고 가치 |
-| docs/03-architecture/history-management.md | SUPPORTING | 12줄 요약이 History·Project API 문서와 책임 중복 | MERGE — docs/06-api/history-project-api.md로 통합 | Architecture 관점의 보존 여부 확인 |
-| docs/03-architecture/project-management.md | SUPPORTING | 12줄 요약이 History·Project API·Workspace 문서와 중복 | MERGE — Workspace/History API Authority에 통합 | Legacy Project와 MusicProject 혼동 주의 |
+| docs/00-overview/project-overview.md | SUPERSEDED | Product Authority와 목표·현재 설명 중복 | DONE — 고유 문제·가치·범위를 Product Authority에 MERGE하고 안내 문서로 DEPRECATE | 대체 link 유지 |
+| docs/00-overview/goals-and-non-goals.md | SUPERSEDED | CURRENT MVP 비목표와 장기 TARGET 설명이 Product Authority와 겹침 | DONE — 범위 원칙을 Product Authority에 MERGE하고 안내 문서로 DEPRECATE | 대체 link 유지 |
+| docs/02-requirements/mvp-scope.md | SUPERSEDED | 승인 대기 초안이 완료된 Phase 8 MVP와 장기 제품 방향보다 오래됨 | DONE — Product Authority와 Phase-08 DoD를 대체 기준으로 명시해 DEPRECATE | 과거 MVP 범위 본문 보존 |
+| docs/03-architecture/frontend-overview.md | SUPPORTING | 지원 범위·페이지·상태가 Frontend Architecture와 반복됨 | DONE — CURRENT 경험·route·지원 범위 책임으로 축소 | 현행 App Router 대조 완료 |
+| docs/03-architecture/frontend-architecture.md | SUPPORTING | CURRENT 구조와 상세 API 상태가 길고 Overview와 일부 중복 | DONE — 구조·state/API·design 구현 책임으로 고정하고 TARGET은 전환 계획 링크 | PR #93 이후 code tree 대조 완료 |
+| docs/archive/frontend/design-system.md | HISTORICAL | 계획 token이 실제 CSS token과 불일치 | DONE — 유효 구현 기준을 Frontend Architecture에 MERGE하고 ARCHIVE | 역사적 초안 본문 보존 |
+| docs/archive/frontend/navigation-guide.md | HISTORICAL | 계획 navigation과 현재 App Router 불일치 | DONE — 현행 route inventory를 Frontend Overview에 MERGE하고 ARCHIVE | 접근성 의도 본문 보존 |
+| docs/archive/frontend/page-structure.md | HISTORICAL | 계획 page hierarchy와 CURRENT/TARGET 혼재 | DONE — CURRENT route와 TARGET 전환 기준을 현행 문서에 연결하고 ARCHIVE | 향후 DAW 정보 구조 참고 보존 |
+| docs/archive/frontend/responsive-guide.md | HISTORICAL | 계획 breakpoint와 실제 CSS·E2E 불일치 | DONE — 실제 code/test source를 Frontend Architecture에 명시하고 ARCHIVE | 모바일 접근성 원칙 본문 보존 |
+| docs/archive/frontend/ui-component-guide.md | HISTORICAL | 계획 component 목록과 실제 tree 불일치 | DONE — component 책임 원칙을 Frontend Architecture에 MERGE하고 ARCHIVE | 구현 전 초안 본문 보존 |
+| docs/03-architecture/history-management.md | SUPERSEDED | 짧은 요약이 History·Project API 문서와 책임 중복 | DONE — projection·Frontend·권한 경계를 API 문서에 MERGE하고 DEPRECATE | 대체 link 유지 |
+| docs/03-architecture/project-management.md | SUPERSEDED | 짧은 요약이 History·Project API·Workspace 문서와 중복 | DONE — CRUD·retention·Frontend 경계를 API 문서에 MERGE하고 DEPRECATE | Legacy Project 의미 보존 |
 | docs/07-database/erd.md | SUPPORTING | 현행 ERD와 Asset 중심 목표 ERD가 동시에 노출됨 | UPDATE — CURRENT 표기를 강화하고 목표 ERD와 상호 링크 | 잘못 deprecate하면 실제 Legacy schema 근거 손실 |
 | docs/07-database/table-definition.md | SUPPORTING | 현행 Table과 목표 Table Definition이 병존 | UPDATE — CURRENT/호환/목표 책임을 첫 화면에서 분리 | Migration 단계별 source of truth 확인 필요 |
-| planning/phase-01-research.md | SUPERSEDED | Phase 번호와 상태가 Master Roadmap·DoD와 불일치 | DEPRECATE 후 ARCHIVE | 초기 조사 순서의 역사 가치 |
-| planning/phase-02-local-inference.md | SUPERSEDED | 오래된 실행 계획이 실제 Phase 2 DoD·실험 보고서로 대체됨 | DEPRECATE 후 ARCHIVE | 로컬 실행 계획의 일부 고유 정보 확인 필요 |
-| planning/phase-03-ai-pipeline.md | SUPERSEDED | 현재 Phase·Pipeline 완료 상태와 불일치 | DEPRECATE 후 ARCHIVE | 과거 Pipeline 범위 보존 필요 |
-| planning/phase-04-api.md | SUPERSEDED | 현재 API 개요와 Workspace 전환 문서가 대체 | DEPRECATE 후 ARCHIVE | Legacy API 단계 이력 |
-| planning/phase-05-web-mvp.md | SUPERSEDED | 문서 자체가 [대체됨]이며 Frontend Roadmap·Phase-08 DoD가 Authority | ARCHIVE | 링크 변경 후 inbound 0 재검증 필요 |
-| planning/phase-06-personalization.md | SUPERSEDED | 오래된 Phase 번호가 Phase-07·Provider 분리 정책과 충돌 가능 | DEPRECATE 후 ARCHIVE | Dataset·개인화 안전 원칙 보존 필요 |
-| planning/frontend-roadmap.md | SUPPORTING | F0~F5 완료 이력과 F6 현재 계획이 한 문서에 혼재 | MERGE — F6 종료 후 완료 이력은 Historical section 또는 보고서로 분리 | F6 진행 중에는 Authority 이동 금지 |
+| planning/archive/phase-01-research.md | HISTORICAL | Phase 번호와 상태가 Master Roadmap·DoD와 불일치 | DONE — 대체 기준을 명시하고 ARCHIVE | 초기 조사 순서 보존 |
+| planning/archive/phase-02-local-inference.md | HISTORICAL | 오래된 실행 계획이 실제 Phase 2 DoD·실험 보고서로 대체됨 | DONE — 대체 기준을 명시하고 ARCHIVE | 로컬 실행 계획 보존 |
+| planning/archive/phase-03-ai-pipeline.md | HISTORICAL | 현재 Phase·Pipeline 완료 상태와 불일치 | DONE — 대체 기준을 명시하고 ARCHIVE | 과거 Pipeline 범위 보존 |
+| planning/archive/phase-04-api.md | HISTORICAL | 현재 API 개요와 Workspace 전환 문서가 대체 | DONE — 대체 기준을 명시하고 ARCHIVE | Legacy API 단계 이력 보존 |
+| planning/archive/phase-05-web-mvp.md | HISTORICAL | Frontend Roadmap·Phase-08 DoD가 Authority | DONE — 대체 기준을 명시하고 ARCHIVE | Web MVP 전환 이력 보존 |
+| planning/archive/phase-06-personalization.md | HISTORICAL | 오래된 Phase 번호가 Phase-07·Provider 분리 정책과 충돌 가능 | DONE — 대체 기준을 명시하고 ARCHIVE | Dataset·개인화 안전 원칙 보존 |
+| planning/frontend-roadmap.md | SUPPORTING | F0~F5 완료 이력과 F6 현재 계획이 한 문서에 혼재 | KEEP — F6 종료 뒤 완료 이력 분리를 재검토 | F6 진행 중이므로 Authority 이동 금지 |
 | MASTER_ROADMAP.md / ROADMAP.md | CANONICAL | Phase 상태와 실행 순서 일부 반복 | KEEP — Master=장기 Phase·Track·Gate, Roadmap=현재 NEXT/LATER로 책임 고정 | 자동 상태 동기화가 없어 drift 가능 |
 | reports/validation/* | HISTORICAL | 개별 보고서가 많고 일부 inbound link가 없음 | KEEP — Authority Map에서 탐색하고 파일은 이동·삭제하지 않음 | evidence 손실 절대 금지 |
 | reports/experiments/*, reports/evaluations/* | HISTORICAL | 현재 navigation에서 찾기 어려움 | KEEP — Authority Map에서 유형별 탐색 제공 | 실험 결과를 CURRENT 구현으로 오해하지 않게 상태 유지 |
 | docs/11-decisions/ADR-*.md | HISTORICAL | 결정 수가 많지만 삭제·통합 대상이 아님 | KEEP — ADR Index 상태·대체 링크만 유지 | 결정 이력 재작성 금지 |
 
-## 4. 권장 순서
+## 4. 처리 결과와 다음 순서
 
-1. Frontend stale 문서 5개를 실제 route·component·E2E와 대조한다.
-2. Overview/Product 중복을 줄이고 mvp-scope.md를 명시적으로 deprecate한다.
-3. Legacy Phase 계획 6개에 대체 문서와 역사 상태를 표시한다.
-4. Database CURRENT/목표 문서 쌍의 첫 화면 표기를 통일한다.
-5. 모든 inbound link를 갱신한 뒤에만 선택적 archive 이동을 검토한다.
-6. 이동 후 전체 Markdown link, code reference, ADR·CHANGELOG reference와 Git history 추적성을 재검증한다.
+1. **DONE — MERGE:** Product 개요·목표/비목표, Frontend route·design 구현 기준, History·Project 경계를 각 책임 문서로 통합했다.
+2. **DONE — DEPRECATE:** 직접 참조 가능성이 있는 Overview 2개, `mvp-scope.md`, History·Project 안내 2개에 replacement를 명시했다.
+3. **DONE — ARCHIVE:** Frontend 초안 5개와 Legacy Phase 계획 6개를 `git mv`로 이동하고 replacement·reason·date를 기록했다.
+4. **PENDING:** Database CURRENT/목표 문서 쌍은 schema·migration source of truth를 별도 검증한 뒤 처리한다.
+5. **PENDING:** F6 종료 뒤 `planning/frontend-roadmap.md`의 완료 이력 분리를 재검토한다.
 
 ## 5. DELETE_CANDIDATE
 

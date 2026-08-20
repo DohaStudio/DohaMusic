@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-20
 > 관련 기능: Phase 8 Doha Studio
 > 디자인 기준: 첨부된 Vinyl Music Dashboard 레퍼런스
-> 관련 문서: [Frontend Architecture](frontend-architecture.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [지원 범위](#frontend-지원-범위), [디자인 레퍼런스 정책](design-reference-policy.md)
+> 관련 문서: [Frontend Architecture](frontend-architecture.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [지원 범위](#frontend-지원-범위), [디자인 레퍼런스 정책](design-reference-policy.md)
 
 ## 제품 경험
 
@@ -49,6 +49,8 @@ Landing
 ```
 
 현재 Studio는 Desktop section navigation과 Mobile step navigation을 사용하는 생성 Workflow다. 여기서 `timeline`은 단계 진행 표현이며 Track/Clip 시간축 편집기가 아니다. TARGET DAW Timeline은 Composition read model과 편집 API가 준비된 뒤 별도 단계로 구현한다.
+
+현재 App Router의 사용자 route는 `/`, `/studio`, `/lyrics`, `/voice`, `/generation/{jobId}`, `/result/{jobId}`, `/history`, `/projects`, `/projects/{id}`, `/settings`, `/about`이다. App shell의 주 탐색은 Studio·Lyrics·Voice·Projects·Settings를 제공하고 Mobile에서는 앞의 네 항목을 우선한다. Generation과 Result는 Job context route이며 primary navigation에 고정하지 않는다. 실제 route와 navigation 구현은 `frontend/app/`과 `frontend/components/app-shell.tsx`가 source of truth다.
 
 ## 핵심 원칙
 

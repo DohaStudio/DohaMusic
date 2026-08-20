@@ -1,8 +1,10 @@
 # MVP 범위
 
 > 분류: [SUPERSEDED]
+> 문서 상태: [대체됨]
 > 현재 기준: [AI-native DAW 제품 방향](../02-product/ai-native-daw-product-direction.md), [Phase 8 DoD](../DoD/Phase-08.md)
 > 안내: 초기 MVP 범위 이력으로 보존하며 현재 제품 범위 Authority로 사용하지 않는다.
+> Deprecated at: 2026-08-20
 
 > 문서 목적: 첫 번째 사용자 가치 검증에 필요한 최소 범위를 고정한다.
 > 현재 상태: **승인 대기 초안**

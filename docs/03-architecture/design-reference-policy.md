@@ -3,7 +3,7 @@
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 8 Doha Studio
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [Frontend Architecture](frontend-architecture.md)
 
 ## 목적
 
@@ -27,7 +27,7 @@
 
 ## DohaMusic 재해석 기준
 
-- [Design System](design-system.md)의 DohaMusic token을 사용한다.
+- [Frontend Architecture](frontend-architecture.md#design반응형-구현-기준)와 실제 `frontend/styles/`의 DohaMusic token을 사용한다.
 - 음악 감상 UI가 아니라 Settings → Lyrics → Voice → Review → Generation → Result 제작 흐름을 중심으로 재구성한다.
 - vinyl motion은 생성·재생 상태를 설명하는 기능적 feedback이어야 하며 reduced motion을 지원한다.
 - artwork는 권리 확인된 자체 asset, 사용자 생성 asset 또는 명확히 허용된 placeholder만 사용한다.

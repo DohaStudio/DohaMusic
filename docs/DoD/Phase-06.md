@@ -54,7 +54,7 @@ Lyrics Adapter·API·`lyrics_documents`·Benchmark·안전 평가·ADR-014·EXP-
 ## 예상 다음 단계
 
 Phase 7 Doha Voice와 Phase 8 Studio 우선순위를 재검토한다.
-# Phase 6.5 확장 상태 (2026-08-05)
+## Phase 6.5 확장 상태 (2026-08-05)
 
 - Phase 6 로컬 Lyrics AI의 완료 상태는 유지한다.
 - OpenAI 외부 Adapter·Factory·strict Schema·오류·retry·명시적 fallback·비용 metadata: `[Experimental 구현 완료]`
@@ -63,7 +63,7 @@ Phase 7 Doha Voice와 Phase 8 Studio 우선순위를 재검토한다.
 - `AIHUB-71748` 계열은 `research_only`이며 상업 작업에서 사용할 수 없다. 상업용 release는 전체 모델·데이터 계보가 `commercial_approved`일 때만 후보가 된다.
 - 이 계획 문서화는 기존 Phase 6의 `14/14, 100%` 완료 판정과 OpenAI Experimental 구현 상태를 변경하지 않는다.
 
-# Phase 6.6~6.9 Local Lyrics LLM 확장 상태 (2026-07-31)
+## Phase 6.6~6.9 Local Lyrics LLM 확장 상태 (2026-07-31)
 
 - Phase 6의 Template·Mock API·Validator 완료 상태는 유지한다.
 - Phase 6.6 Dataset, 6.7 Fine-tuning, 6.8 Provider Integration, 6.9 Quality Gate는 모두 `[계획] 0%`다.
