@@ -1,8 +1,10 @@
 # Phase 1: 로컬 추론 검증
 
-> 분류: [SUPERSEDED]
-> 현재 기준: [Master Roadmap](../MASTER_ROADMAP.md), [Phase 2 DoD](../docs/DoD/Phase-02.md)
-> 안내: 초기 실행 계획 이력으로 보존하며 현재 Phase 번호·상태 기준으로 사용하지 않는다.
+> 문서 상태: [보관]
+> 분류: [HISTORICAL / Authority 아님]
+> 보관 사유: 초기 실행 순서와 Phase 번호가 현재 Roadmap·DoD·실험 기록으로 대체됐다.
+> 대체 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [Phase 2 DoD](../../docs/DoD/Phase-02.md)
+> Archived at: 2026-08-20
 
 > 문서 목적: 음악 생성·분리·음색 변환 후보를 로컬에서 독립 검증한다.
 > 현재 상태: **계획**
@@ -10,7 +12,7 @@
 1. 공식 출처, 버전, 라이선스 검토를 완료한다.
 2. 재현 가능한 환경을 기록하고 모델을 개별 실행한다.
 3. 한국어 가사, 추론 시간, 최대 VRAM, 출력 형식과 실패를 측정한다.
-4. 결과를 [모델 테스트](../reports/model-test-template.md)와 [GPU 벤치마크](../reports/gpu-benchmark-template.md)에 기록한다.
+4. 결과를 [모델 테스트](../../reports/model-test-template.md)와 [GPU 벤치마크](../../reports/gpu-benchmark-template.md)에 기록한다.
 5. 선정 게이트 통과 여부를 모델 비교표에 반영한다.
 
 대형 모델 다운로드·패키지 설치·추론은 별도 실행 작업이며 문서 단계에는 포함되지 않는다.

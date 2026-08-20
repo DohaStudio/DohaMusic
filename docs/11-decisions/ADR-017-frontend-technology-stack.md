@@ -4,7 +4,7 @@
 > 작성일: 2026-07-31
 > 최종 수정일: 2026-07-31
 > 관련 기능: Phase 8 Doha Studio MVP
-> 관련 문서: [Frontend Architecture](../03-architecture/frontend-architecture.md), [Responsive Guide](../03-architecture/responsive-guide.md), [Frontend Roadmap](../../planning/frontend-roadmap.md)
+> 관련 문서: [Frontend Architecture](../03-architecture/frontend-architecture.md), [Frontend Roadmap](../../planning/frontend-roadmap.md)
 
 ## 배경
 

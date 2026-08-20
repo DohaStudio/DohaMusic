@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-01
-> 관련 문서: [Frontend Architecture](frontend-architecture.md), [Page Structure](page-structure.md), [Pipeline API](../06-api/pipeline-api.md)
+> 관련 문서: [Frontend Architecture](frontend-architecture.md), [Frontend Overview](frontend-overview.md), [Pipeline API](../06-api/pipeline-api.md)
 
 ## 전체 Flow
 

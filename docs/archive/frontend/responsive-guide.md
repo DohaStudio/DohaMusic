@@ -1,13 +1,13 @@
 # Responsive Guide
 
-> 분류: [STALE / Authority 아님]
-> 현재 기준: [Frontend Architecture](frontend-architecture.md), [Voice Enrollment Validation](../../reports/validation/VALIDATION-VOICE-ENROLLMENT.md)
-> 안내: 실제 breakpoint·접근성·E2E 근거와 재검증 전까지 계획 참고 문서로만 사용한다.
-
-> 문서 상태: [계획]
+> 문서 상태: [보관]
+> 분류: [HISTORICAL / Authority 아님]
+> 보관 사유: 실제 breakpoint·E2E와 다른 Phase 8 responsive 초안을 현재 Navigation에서 분리했다.
+> 대체 문서: [Frontend Architecture](../../03-architecture/frontend-architecture.md#design반응형-구현-기준), [Voice Enrollment Validation](../../../reports/validation/VALIDATION-VOICE-ENROLLMENT.md)
+> Archived at: 2026-08-20
 > 최종 수정일: 2026-07-31
 > 원칙: Mobile First, content priority before breakpoint
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Navigation Guide](navigation-guide.md), [Design System](design-system.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+> 관련 문서: [Frontend Overview](../../03-architecture/frontend-overview.md), [Navigation Guide](navigation-guide.md), [Design System](design-system.md), [ADR-017](../../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## Web와 Native App 경계
 
@@ -15,7 +15,7 @@
 - Mobile UI는 bottom navigation·bottom sheet·full-screen player로 앱처럼 보일 수 있지만 Native App 구현이나 App Store 배포 완료를 의미하지 않는다.
 - Mobile Bottom Navigation은 웹 viewport에 적용하는 navigation pattern이다.
 - iOS·Android Native App은 별도 Phase 또는 WebView/Capacitor 등 wrapper 전략의 검토 대상인 `Planned` 범위다.
-- PWA와 offline 지원 여부는 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md) 또는 별도 ADR에서 결정한다.
+- PWA와 offline 지원 여부는 [ADR-017](../../11-decisions/ADR-017-frontend-technology-stack.md) 또는 별도 ADR에서 결정한다.
 - App Store·Google Play packaging, native media session, background audio와 push notification은 현재 Phase 8 완료 범위로 표현하지 않는다.
 
 ## 기준 구간

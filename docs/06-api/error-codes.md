@@ -97,6 +97,6 @@
 | `VOICE_STORAGE_DELETE_FAILED` | 관리 Voice 파일 삭제 실패 |
 
 기존 `/api` 오류는 `{ "error": { "code", "message" } }` 형식을 유지합니다. `/api/v1`은 `error_code`, `message`, `details`, `request_id`를 사용합니다. Audio Analysis 오류는 기본 API 실패가 아니라 `audio_analysis.analysis_status`와 safe warning으로 표시하며 Pipeline Job을 `FAILED`로 바꾸지 않습니다. 내부 스택·로컬 절대 경로·prompt·lyrics는 응답에 노출하지 않습니다.
-# External Lyrics 오류
+## External Lyrics 오류
 
 `LYRICS_API_KEY_MISSING`, `LYRICS_PROVIDER_NOT_SUPPORTED`, `LYRICS_PROVIDER_UNAVAILABLE`, `LYRICS_RATE_LIMITED`, `LYRICS_TIMEOUT`, `LYRICS_AUTHENTICATION_FAILED`, `LYRICS_REQUEST_REJECTED`, `LYRICS_OUTPUT_INVALID`, `LYRICS_CONTENT_BLOCKED`, `LYRICS_COST_LIMIT_EXCEEDED`, `LYRICS_REVISION_FAILED`를 구분한다. Provider 원문 body·request ID·인증 정보는 응답에 노출하지 않는다.

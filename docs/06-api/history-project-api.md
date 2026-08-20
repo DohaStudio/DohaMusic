@@ -19,6 +19,14 @@
 
 Pipeline 생성 요청의 선택 필드 `project_id`가 없으면 `Default Project`를 자동 연결한다. 삭제된 Project의 Job은 `project_id: null`로 History에 남는다.
 
+## History와 Project의 유지·표시 경계
+
+History는 별도 복제 저장소가 아니라 `pipeline_jobs`와 최종 Pipeline File 존재 여부를 조합한 공개 projection이다. 요청 직후부터 최신순 목록·상태 필터·제목 검색으로 조회하며, Frontend `/history`는 안전한 공개 metadata와 capability URL만 사용한다.
+
+Project는 Pipeline Job을 묶는 로컬 사용자 표시용 컨테이너다. 목록은 `job_count`, 상세는 안전한 History 항목을 제공한다. `/projects`와 `/projects/{id}` 화면은 생성·수정·삭제와 Result 재진입을 지원한다. Project 삭제는 연결만 해제하고 Job·Pipeline File row·Storage 파일은 보존한다.
+
+현재 인증·소유권이 없으므로 History와 Project 모두 로컬 단일 사용자 범위다. 공개 운영 전 사용자별 격리가 필요하다.
+
 History와 Project Job 공개 필드는 기존 필드에 allowlist `generation_options`와 `kpop_prompt_compiler_version`을 추가한다. 화면은 Preset 표시 이름, 목표 BPM, Hook phrase, Vocal Energy, Concept와 Retry 원본 관계를 간단한 설정 요약으로 표시한다. 옵션이 없는 구형 Job은 요약을 생략한다. 내부 Snapshot·compiled prompt·Storage·절대 경로·filesystem·temp·Provider 설정은 반환하지 않는다. `has_audio`는 완료 Job에 최종 파일 row가 있을 때만 `true`다.
 
 취소된 Job은 History와 Project에서 삭제하지 않는다. Retry Job은 원본 Structured Options·Seed·Voice·Project를 복원해 최신순 History에 별도 Job으로 표시한다. 원본 Project가 없으면 기존 Default Project 정책을 적용하고, 구형 Job에는 기존 Snapshot 호환 경로를 사용한다.

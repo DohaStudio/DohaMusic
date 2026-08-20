@@ -51,7 +51,7 @@ Template·Mock은 로컬에서 수 ms 이내에 끝나므로 Job·Worker를 추�
 Phase 6 API는 Pipeline을 호출하지 않으며 Pipeline도 LyricsService를 호출하지 않는다. 향후 승인된 변경에서 `lyrics_id`, `raw_lyrics`, `generate_lyrics`, `lyrics_options` 중 필요한 계약을 선택한다. 현재 MusicGenerator와 Phase 5 Orchestrator 입력은 변경하지 않았다.
 
 `additional_instructions`는 Provider 계약까지 전달하고 metadata에는 존재 여부만 남긴다. Template Provider는 자유 형식 지시의 의미를 이해하는 LLM이 아니므로 의미 기반 가사 재작성 품질을 주장하지 않는다.
-# Phase 6.5 External Provider 확장
+## Phase 6.5 External Provider 확장
 
 `openai` Experimental Adapter는 기존 `LyricsGenerator` 계약 아래 `adapter → prompts → client → mapper`로 격리된다. Responses API strict JSON Schema 결과도 공통 Validator를 다시 통과해야 저장된다. Service·Router는 Provider SDK 형식을 알지 않는다. 기본 Provider는 `template`다.
 

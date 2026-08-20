@@ -1,8 +1,10 @@
 # Phase 0: 조사와 설계
 
-> 분류: [SUPERSEDED]
-> 현재 기준: [Master Roadmap](../MASTER_ROADMAP.md), [DoD Index](../docs/DoD/README.md)
-> 안내: 초기 Phase 계획 이력으로 보존하며 현재 실행 순서 Authority로 사용하지 않는다.
+> 문서 상태: [보관]
+> 분류: [HISTORICAL / Authority 아님]
+> 보관 사유: 초기 Phase 번호와 상태가 현재 Master Roadmap·DoD로 대체됐다.
+> 대체 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [DoD Index](../../docs/DoD/README.md)
+> Archived at: 2026-08-20
 
 > 문서 목적: 구현 전 모델·권리·요구사항 조사 작업을 관리한다.
 > 현재 상태: **진행 중**

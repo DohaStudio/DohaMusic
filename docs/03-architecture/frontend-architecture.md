@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-20
 > 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend [완료]
-> 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Design System](design-system.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
@@ -77,6 +77,16 @@ frontend/
 ```
 
 실제 라이브러리와 버전은 승인된 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)과 `frontend/package-lock.json`으로 고정한다. 위 구조는 현재 checkout을 요약한다. TARGET DAW feature 폴더는 실제 구현 PR에서 책임 경계를 확정하기 전 미리 만들지 않는다.
+
+## Design·반응형 구현 기준
+
+현재 token과 component의 source of truth는 계획 문서가 아니라 `frontend/styles/tokens.css`, `base.css`, `layout.css`, `components.css`, `pages.css`, `responsive.css`와 실제 `frontend/components/`, `frontend/features/`다. breakpoint도 특정 기기 이름이 아니라 이 CSS와 회귀 테스트에서 검증된 content collision 지점을 따른다.
+
+- Desktop·Tablet·Mobile은 같은 정보 우선순위를 sidebar, compact layout, mobile navigation과 단계형 화면으로 표현한다.
+- interactive target, label, focus-visible, keyboard flow, `aria-live`와 reduced motion을 component 책임에 포함한다.
+- loading·empty·error·offline/reconnecting과 비동기 Job 상태를 가짜 성공으로 대체하지 않는다.
+- token이나 component 목록을 문서에 복제하지 않고 실제 code와 test를 변경의 기준으로 삼는다.
+- 과거 Phase 8 Design System·navigation·page·responsive·component 초안은 `docs/archive/frontend/`에 보존한다.
 
 ## 상태 모델
 

@@ -93,6 +93,6 @@ Voice Enrollment scheduler는 Backend process마다 하나씩 실행하는 로�
 | `DOHAMUSIC_AI_ACE_STEP_LM_BACKEND` | 비교 실험용 LM 실행 backend | `pt` |
 
 벤치마크 실행기는 모델을 자동 다운로드하지 않는다. LM 비교는 공식 설치 도구로 사용자가 준비한 로컬 모델만 사용하며, 모델 파일과 실험 WAV는 Git에 포함하지 않는다.
-# External Lyrics 설정
+## External Lyrics 설정
 
 `DOHAMUSIC_LYRICS_PROVIDER` 기본값은 `template`이다. `openai`를 명시 선택할 때만 API Key가 필수다. 모델·base URL·timeout·전체 deadline·retry·temperature·output token·입출력 단가·가격 버전·요청별 비용 한도는 모두 `DOHAMUSIC_LYRICS_*` 환경 변수로 관리한다. 실제 값과 운영 절차는 [External Lyrics Provider 설정](external-lyrics-provider-setup.md)을 따른다.

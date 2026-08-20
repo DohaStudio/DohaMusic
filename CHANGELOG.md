@@ -11,6 +11,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Documentation Cleanup
+
+- 제품 개요와 목표·비목표의 고유 내용을 AI-native DAW Product Authority로 통합하고 기존 안내 문서를 명시적으로 대체 처리했다.
+- Frontend route·design·responsive·component 기준을 실제 code tree 중심 문서로 통합하고 오래된 설계 초안 5개를 `docs/archive/frontend/`로 보존 이동했다.
+- Legacy Phase 계획 6개를 `planning/archive/`로 이동하고 History·Project 중복 설명을 API 문서로 통합했다.
+- 기존 문서의 추가 최상위 제목을 하위 heading으로 정리해 Markdown 문서당 H1 하나 기준을 맞췄다.
+- Authority Map과 Cleanup Plan을 최종 경로·분류·처리 결과에 맞췄으며 코드·DB·Training·Dataset·GPU 변경은 없다.
+
 ### 추가 — DohaVocal Consumer Contract Foundation
 
 - DohaVocal `0.1.0`의 4개 Vocal capability와 9개 Provider operation을 strict DTO로 해석하는 `VocalProviderClient`·transport port·권한 context mapping을 추가했다.

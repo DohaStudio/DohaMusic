@@ -140,7 +140,7 @@ Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·C
 - 선행 조건: 저장소와 프로젝트 목표 확정.
 - 완료 조건: 문서 구조·상대 링크·상태·작업 규칙 검토 완료.
 - 산출물: `README.md`, `AGENTS.md`, `docs/`, `planning/`, `reports/`.
-- 관련 문서: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md).
+- 관련 문서: [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md).
 - 관련 ADR·실험: [ADR-001~004](docs/11-decisions/README.md), 실험 없음.
 - 예상 다음 단계: Phase 1 Backend Foundation.
 

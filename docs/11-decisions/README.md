@@ -41,37 +41,37 @@
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
-# AI Provider 저장소 분리
+## AI Provider 저장소 분리
 
 - [ADR-028 — 외부 Provider Runtime과 Artifact 계약](ADR-028-provider-runtime-artifact-contract.md): 저장소 책임과 Runtime 이전을 분리하고 DohaAudio·DohaVocal 계획 경계, subprocess 호환, versioned Job·Artifact·GPU Orchestration 원칙을 결정한다.
 - [ADR-034 — DohaVocal Consumer Contract Foundation](ADR-034-dohavocal-consumer-contract.md): 실제 network 없이 strict JSON DTO·transport port로 4개 Vocal capability와 9개 operation, Job·lineage·Manifest·오류 경계를 검증한다.
 
-# Workspace 데이터베이스
+## Workspace 데이터베이스
 
 - [ADR-030 — AssetVersion 중심 Workspace 데이터베이스](ADR-030-asset-version-centric-database.md): 현행 Pipeline 중심 결과 소유권을 AssetVersion·Artifact로 옮기고 21개 목표 Table과 단계적 Migration 원칙을 제안한다.
 
-# Workspace API
+## Workspace API
 
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
 
-# Artifact Storage
+## Artifact Storage
 
 - [ADR-032 — Artifact Storage Resolver와 무결성 경계](ADR-032-artifact-storage-resolver-integrity.md): 경로 없는 Artifact와 별도 DB Catalog, `artifact://` URI, trusted ingestion, owner·retention·Range·GC 계약을 승인한다.
 
-# Workspace Job
+## Workspace Job
 
 - [ADR-033 — Workspace Job 실행·claim·완료 경계](ADR-033-workspace-job-execution-boundary.md): 공개 5-state와 내부 cancel marker, role 기반 exact Artifact, Workspace scope, claim·lease와 completion 보상 경계를 승인한다.
 
-# Phase 6.5
+## Phase 6.5
 
 - [ADR-015 — External Lyrics LLM Provider](ADR-015-external-lyrics-llm-provider.md): OpenAI Responses API Adapter를 Experimental로 추가하고 Template 기본값, strict Schema, retry·fallback·비용·데이터 경계를 결정한다.
 - [ADR-027 — DohaLM 가사 Provider와 사용자 승인 경계](ADR-027-dohalm-lyrics-provider-boundary.md): 별도 DohaLM Runtime 연동, 사용자 최종 승인, 직접 작성 fallback과 상업 이용 fail-closed 정책을 제안한다.
 
-# Phase 6.6~6.9
+## Phase 6.6~6.9
 
 - [ADR-016 — Local Lyrics LLM Fine-tuning](ADR-016-local-lyrics-llm-finetuning.md): 공개 Instruct Base와 권리 확보 Dataset의 QLoRA SFT, `LocalLyricsLLMAdapter`, 승인 전 Template 기본값을 결정한다.
 
-# Phase 8
+## Phase 8
 
 - [ADR-017 — Frontend Technology Stack](ADR-017-frontend-technology-stack.md): 구현·검증된 Frontend library·toolchain과 상태 경계를 승인한다.
 - [ADR-018 — Secure Audio File Access](ADR-018-secure-audio-file-access.md): Pipeline 결과 WAV를 내부 경로 없이 검증·stream하고 로컬 단일 사용자와 공개 운영 경계를 분리한다.
@@ -81,12 +81,12 @@
 - [ADR-029 — DohaMusic Workspace 전용 music Artifact 도메인](ADR-029-dohamusic-workspace-artifact-domain.md): Provider Artifact와 Composition Snapshot·Mix·Preview·Export 결과의 Workspace 저장 책임을 분리한다.
 - [ADR-032 — Artifact Storage Resolver와 무결성 경계](ADR-032-artifact-storage-resolver-integrity.md): Workspace와 Provider Artifact의 locator·무결성·공개 delivery 경계를 고정한다.
 
-# K-POP Creation Control
+## K-POP Creation Control
 
 - [ADR-022 — K-POP Generation Control Layer](ADR-022-kpop-generation-control-layer.md): Provider-neutral Preset·Options·Compiler·Capability·Snapshot·평가·권리 경계를 결정한다.
 - [ADR-023 — Audio Analysis와 Preview 아키텍처](ADR-023-audio-analysis-and-preview-architecture.md): 최종 WAV 기반 비차단 분석, versioned metadata, confidence, Preview와 secure access 경계를 결정한다.
 
-# F6 Guided Voice Enrollment
+## F6 Guided Voice Enrollment
 
 - [ADR-024 — 브라우저 음성 녹음 포맷과 서버 정규화 경계](ADR-024-browser-voice-recording-server-normalization.md): Python WAV와 optional FFmpeg 경계를 구현하고 Windows/CI 변환을 검증했으며 운영 build 라이선스·자원 상한·실기기 평가 전까지 제안을 유지한다.
 - [ADR-025 — Voice Profile 다중 Sample과 대표 Reference 모델](ADR-025-voice-profile-multiple-samples-reference.md): Sample 개별 보존과 사용자가 확정한 대표 reference 하나를 Pipeline에 전달하는 구현을 승인했다.

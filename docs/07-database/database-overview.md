@@ -23,7 +23,7 @@ DohaStudio Common Specification을 기준으로 Workspace·MusicProject·Asset·
 - [목표 Table Definition](database-redesign-table-definition.md)
 - [Migration 전략](database-redesign-migration-strategy.md)
 - [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
-# Phase 6.5 변경
+## Phase 6.5 변경
 
 Alembic `20260729_0006`은 `lyrics_documents`에 self-reference parent, version, revision instruction, 전후 SHA-256을 추가한다. Provider 응답은 검증 후 새 row로만 저장되며 기존 버전은 불변이다.
 
