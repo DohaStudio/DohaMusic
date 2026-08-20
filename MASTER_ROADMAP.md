@@ -37,11 +37,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
-| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract Foundation 구현, Production transport·실제 model 미구현 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract·HTTP Transport Foundation 구현, Worker wiring·실제 model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract Foundation은 구현했지만 Production transport·Artifact payload·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport Foundation은 구현했지만 Worker wiring·인증·Artifact payload·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
 
 ## AI-native DAW 제품 전환 상태
 
@@ -122,15 +122,15 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | AI-native DAW Product | [진행 중] | `D0 완료 / D1 계약 확정 / D1~D9 구현 미완료` | D1 읽기 권위·selection·projection·API 계약 확정; Composition aggregate·Frontend·Timeline·Mixer·QA·Learning Runtime 없음 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5 구현; 실제 Provider transport·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5 구현; Provider dispatch wiring·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
-| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract Foundation 구현, Production transport·Artifact 통합 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
+| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract·HTTP Transport Foundation 구현, Worker wiring·Artifact 통합 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md)에서 구현 전 Gate를 확정했다. D1 Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()` fake dispatch 기반에 공식 Job API 5개를 연결했다. Worker는 Provider 실행 중 callback으로 lease를 연장하고 결과 저장은 Completion UoW에 위임한다. Job API는 5/5, Resource API는 30/64다. 실제 Provider transport와 background daemon·scheduler는 미구현이고 metadata 36개 Table, Alembic `20260810_0017`은 유지한다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()` fake dispatch 기반에 공식 Job API 5개를 연결했다. Worker는 Provider 실행 중 callback으로 lease를 연장하고 결과 저장은 Completion UoW에 위임한다. Job API는 5/5, Resource API는 30/64다. 실제 Provider dispatch wiring과 background daemon·scheduler는 미구현이고 metadata 36개 Table, Alembic `20260810_0017`은 유지한다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

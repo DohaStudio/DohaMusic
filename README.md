@@ -35,12 +35,12 @@ DohaMusic = AI-native DAW
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
 - Common AI Contract의 `RightsMetadata` opt-in 검증 기반
-- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 fake transport 검증. Production transport·Artifact payload·실제 Vocal model은 미구현
+- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 config 기반 HTTP Transport·Mock HTTP 검증. Worker wiring·인증·Artifact payload·실제 Vocal model은 미구현
 
 다음은 CURRENT가 아니다.
 
 - 편집 가능한 DAW Timeline·Track·Clip·Mixer·Undo/Redo
-- 실제 DohaLM·DohaAudio·DohaVocal production transport와 운영 Provider
+- 실제 DohaLM·DohaAudio transport, DohaVocal Worker 연결과 운영 Provider
 - ReferenceAnalysis ingestion Workflow와 Reference Panel
 - CompositionEvaluationRun 기반 완성곡 QA
 - LearningCandidate review와 Dataset·Training 연결

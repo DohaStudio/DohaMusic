@@ -1,6 +1,6 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5] / [미구현: 실제 Provider transport·background daemon]
+> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5] / [미구현: Provider dispatch wiring·background daemon]
 > 최종 수정일: 2026-08-11
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -9,7 +9,7 @@
 
 이 문서는 Workspace `Job`, `JobInput`, `JobOutput`, `ModelUsage`의 공식 실행 계약을 고정한다. 계약은 DohaStudio Common Specification `0.1.0` / `draft-baseline`을 좁히는 DohaMusic 구현 기준이며 공통 명세의 불변 Job·Artifact·Provider 원칙과 충돌하지 않는다.
 
-revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic claim·lease·heartbeat·attempt·race-safe 만료 recovery와 단일 `run_once()` 기반을 구현했다. Provider 실행 중 heartbeat callback과 cancel marker 확인을 제공하고 성공 결과는 claim token을 전달해 Completion UoW가 확정한다. 공식 Job Router 5개는 이 Service 경계를 공개 API에 연결했다. 실제 Provider transport와 background daemon·scheduler는 아직 구현하지 않았다.
+revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic claim·lease·heartbeat·attempt·race-safe 만료 recovery와 단일 `run_once()` 기반을 구현했다. Provider 실행 중 heartbeat callback과 cancel marker 확인을 제공하고 성공 결과는 claim token을 전달해 Completion UoW가 확정한다. 공식 Job Router 5개는 이 Service 경계를 공개 API에 연결했다. Provider dispatch wiring과 background daemon·scheduler는 아직 구현하지 않았다.
 
 ## 2. Legacy Runtime Job과 Workspace Job
 
@@ -19,7 +19,7 @@ revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic c
 | 실행 | 기존 ThreadPool Worker와 `PipelineExecutor` | claim·lease 기반 단일 `run_once()` execution foundation [완료], background daemon [미구현] |
 | 상태 | 기능별 대문자 상태와 Pipeline 단계 | `queued`, `running`, `succeeded`, `failed`, `cancelled` |
 | 취소·재시도 | 기존 Pipeline cooperative cancel·새 Pipeline Job retry | 내부 cancellation marker·새 Job lineage·공식 action API [완료] |
-| 결과 | Legacy file row와 상대 경로 | Completion UoW의 Artifact·AssetVersion·JobOutput lineage 기반 [완료], 실제 Provider transport [미구현] |
+| 결과 | Legacy file row와 상대 경로 | Completion UoW의 Artifact·AssetVersion·JobOutput lineage 기반 [완료], Provider dispatch wiring [미구현] |
 
 Legacy 완료 상태는 Workspace Job 완료를 의미하지 않는다. backfill·dual write·Runtime read 전환 전에는 두 체계를 혼합하거나 같은 API로 가장하지 않는다.
 
@@ -127,7 +127,7 @@ Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`
 
 지원 Query에서 full scan과 `TEMP B-TREE`가 없어야 한다. 무제한 복합 filter용 Index를 추측해 추가하지 않는다.
 
-Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at, job_id)`와 `ix_jobs_lease_recovery(status, lease_expires_at, job_id)`를 추가했다. atomic claim·lease·heartbeat·만료 recovery와 상태 전이는 구현했으며 실제 Provider transport와 지속 실행 daemon은 후속 범위다.
+Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at, job_id)`와 `ix_jobs_lease_recovery(status, lease_expires_at, job_id)`를 추가했다. atomic claim·lease·heartbeat·만료 recovery와 상태 전이는 구현했으며 Provider dispatch wiring과 지속 실행 daemon은 후속 범위다.
 
 ## 10. Provider request와 result
 
@@ -203,11 +203,11 @@ JobInput·JobOutput 독립 Endpoint는 제공하지 않는다.
 | `POST` | `/api/v1/jobs/{job_id}/cancel` | [완료] |
 | `POST` | `/api/v1/jobs/{job_id}/retry` | [완료] |
 
-현재 구현·검증 기준 Resource API는 30/64이며 Job API는 5/5다. 실제 Provider transport와 background runtime은 별도 완료 Gate다.
+현재 구현·검증 기준 Resource API는 30/64이며 Job API는 5/5다. Provider dispatch wiring과 background runtime은 별도 완료 Gate다.
 
 Backend Foundation Complete는 Asset·AssetVersion·Artifact·CompositionSnapshot에 더해 이 문서의 role·Artifact 선택·owner scope·Cursor/Index·idempotency·상태·cancel·retry·claim/lease·crash recovery·Provider 경계·completion UoW와 공식 Job API 5개가 모두 구현·검증·병합된 때만 선언한다.
 
-Job Service·Completion UoW·Worker execution foundation·공식 API 5개는 `develop`에 반영됐다. 실제 Provider transport, background daemon·scheduler와 운영 Generative AI Track 승격은 별도 Gate이며 현재 완료가 아니다.
+Job Service·Completion UoW·Worker execution foundation·공식 API 5개는 `develop`에 반영됐다. Provider dispatch wiring, background daemon·scheduler와 운영 Generative AI Track 승격은 별도 Gate이며 현재 완료가 아니다.
 
 ## 16. source Migration과 남은 범위
 

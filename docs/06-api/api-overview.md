@@ -1,13 +1,13 @@
 # API 개요
 
 > 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
-> 현재 상태: **Legacy Backend Foundation 구현 완료 / Workspace Job 계약·schema·Cursor·Service·Completion UoW·Worker execution foundation·공식 API 5/5 구현 / 실제 Provider transport·background daemon 미구현**
+> 현재 상태: **Legacy Backend Foundation 구현 완료 / Workspace Job 계약·schema·Cursor·Service·Completion UoW·Worker execution foundation·공식 API 5/5 구현 / Provider dispatch wiring·background daemon 미구현**
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
 ## Workspace v1 목표 계약 — [진행 중]
 
-DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 기반과 Workspace Resource Endpoint 30개를 구현했다. Workspace Job은 Aggregate·상태·입출력 role·Provider·claim/lease·completion 경계, revision `20260810_0017` schema·Index, Cursor·Repository keyset, Service·Completion UoW·Worker execution foundation과 공식 Router 5개를 구현했다. Job API는 5/5다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 나머지 34개는 `[계획]`이다. 실제 Provider transport와 background daemon·scheduler는 미구현이며 아래 Legacy API와 payload는 그대로 유지한다.
+DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/api/v1` Workspace REST API를 별도로 설계했다. 공통 기반과 Workspace Resource Endpoint 30개를 구현했다. Workspace Job은 Aggregate·상태·입출력 role·Provider·claim/lease·completion 경계, revision `20260810_0017` schema·Index, Cursor·Repository keyset, Service·Completion UoW·Worker execution foundation과 공식 Router 5개를 구현했다. Job API는 5/5다. 목표 계약은 16개 그룹·64개 Method/Path 조합이며 나머지 34개는 `[계획]`이다. Provider dispatch wiring과 background daemon·scheduler는 미구현이며 아래 Legacy API와 payload는 그대로 유지한다.
 
 - [Workspace REST API 공통 계약](workspace-rest-api-contract.md)
 - [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md)

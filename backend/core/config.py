@@ -6,6 +6,7 @@ import os
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
@@ -31,6 +32,11 @@ class Settings(BaseModel):
     mock_stem_delay_seconds: float = Field(default=0.1, ge=0, le=60)
     voice_provider: str = "mock"
     mock_voice_delay_seconds: float = Field(default=0.1, ge=0, le=60)
+    dohavocal_base_url: str = "http://127.0.0.1:8080"
+    dohavocal_connect_timeout_seconds: float = Field(default=2.0, gt=0, le=300)
+    dohavocal_read_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
+    dohavocal_write_timeout_seconds: float = Field(default=10.0, gt=0, le=300)
+    dohavocal_pool_timeout_seconds: float = Field(default=2.0, gt=0, le=300)
     pipeline_version: str = "1"
     pipeline_max_retries: int = Field(default=1, ge=0, le=5)
     pipeline_step_timeout_seconds: float = Field(default=900, ge=0.01, le=7_200)
@@ -110,6 +116,26 @@ class Settings(BaseModel):
     def normalize_log_level(cls, value: str) -> str:
         return value.upper()
 
+    @field_validator("dohavocal_base_url")
+    @classmethod
+    def validate_dohavocal_base_url(cls, value: str) -> str:
+        candidate = value.strip()
+        try:
+            parsed = urlsplit(candidate)
+            _port = parsed.port
+        except ValueError as error:
+            raise ValueError("invalid DohaVocal base URL") from error
+        if (
+            parsed.scheme.lower() not in {"http", "https"}
+            or not parsed.hostname
+            or parsed.username is not None
+            or parsed.password is not None
+            or parsed.query
+            or parsed.fragment
+        ):
+            raise ValueError("DohaVocal base URL must be an HTTP(S) origin")
+        return candidate.rstrip("/")
+
     @field_validator("artifact_root", "artifact_staging_root", mode="before")
     @classmethod
     def normalize_optional_artifact_root(cls, value: object) -> object:
@@ -150,6 +176,11 @@ class Settings(BaseModel):
             "MOCK_STEM_DELAY_SECONDS": "mock_stem_delay_seconds",
             "DOHAMUSIC_VOICE_PROVIDER": "voice_provider",
             "MOCK_VOICE_DELAY_SECONDS": "mock_voice_delay_seconds",
+            "DOHAVOCAL_BASE_URL": "dohavocal_base_url",
+            "DOHAVOCAL_CONNECT_TIMEOUT_SECONDS": "dohavocal_connect_timeout_seconds",
+            "DOHAVOCAL_READ_TIMEOUT_SECONDS": "dohavocal_read_timeout_seconds",
+            "DOHAVOCAL_WRITE_TIMEOUT_SECONDS": "dohavocal_write_timeout_seconds",
+            "DOHAVOCAL_POOL_TIMEOUT_SECONDS": "dohavocal_pool_timeout_seconds",
             "DOHAMUSIC_PIPELINE_VERSION": "pipeline_version",
             "DOHAMUSIC_PIPELINE_MAX_RETRIES": "pipeline_max_retries",
             "DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS": "pipeline_step_timeout_seconds",

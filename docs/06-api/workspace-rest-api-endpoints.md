@@ -149,7 +149,7 @@ POST body는 `job_type`, `project_id`, type Matrix에 따른 선택적 또는 �
 
 Job 생성이 기존 AssetVersion을 수정하지 않습니다. 성공 결과의 `output_asset_version_ids`, `output_artifact_ids`는 DohaMusic이 Provider 결과를 검증·등록한 뒤 공개합니다.
 
-공식 type별 Snapshot·input/output role, Artifact 선택, 5-state·cancel·retry, Owner scope, Job Cursor·Index, claim·lease와 completion Unit of Work는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따릅니다. JobInput·JobOutput 독립 Endpoint는 제공하지 않습니다. 다섯 Router는 Service 경계만 호출하고 effective Workspace·Owner를 내부에서 파생하며 claim·lease와 storage path를 공개하지 않습니다. Job API는 5/5, 전체 Resource API는 30/64입니다. 실제 Provider transport와 background daemon·scheduler는 여전히 `[미구현]`입니다.
+공식 type별 Snapshot·input/output role, Artifact 선택, 5-state·cancel·retry, Owner scope, Job Cursor·Index, claim·lease와 completion Unit of Work는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따릅니다. JobInput·JobOutput 독립 Endpoint는 제공하지 않습니다. 다섯 Router는 Service 경계만 호출하고 effective Workspace·Owner를 내부에서 파생하며 claim·lease와 storage path를 공개하지 않습니다. Job API는 5/5, 전체 Resource API는 30/64입니다. Provider dispatch wiring과 background daemon·scheduler는 여전히 `[미구현]`입니다.
 
 ## 10. Recording API — 3개
 

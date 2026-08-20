@@ -2,7 +2,7 @@
 
 > 상태: [승인]
 > 작성일: 2026-08-19
-> 최종 수정일: 2026-08-19
+> 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic에서 DohaVocal Runtime 계약 소비
 > 관련 문서: [Consumer Contract](../03-architecture/dohavocal-consumer-contract.md), [ADR-028](ADR-028-provider-runtime-artifact-contract.md), [ADR-033](ADR-033-workspace-job-execution-boundary.md)
 > 관련 PR: 이 결정을 구현하는 `develop` 대상 Draft PR
@@ -28,6 +28,8 @@ DohaVocal package, DB 또는 in-memory store를 직접 import하면 저장소·R
 9. Provider application error와 transport·timeout·invalid response·version mismatch를 구분하되 raw body와 내부 예외는 노출하지 않는다.
 10. 첫 검증은 stable JSON fixture와 fake transport만 사용하고 실제 network·localhost·audio·AI·GPU를 사용하지 않는다.
 11. 기존 Workspace Job Worker, 공개 API, DB Entity·Alembic과 기존 Seed-VC 호환 경로는 변경하지 않는다.
+12. HTTP 구현은 config-only base URL, HTTP(S)·no-userinfo 검증, component timeout, JSON fail-closed와 URL path segment encoding을 적용한 재사용 가능 동기 `httpx.Client` adapter로 둔다.
+13. transport 자동 retry와 인증 protocol은 두지 않는다. 특히 mutation 재전송, Worker wiring, Artifact ingestion과 운영 persistence는 후속 결정으로 분리한다.
 
 ## Idempotency 위치 결정
 
@@ -37,7 +39,7 @@ DohaVocal `0.1.0` request schema는 body `idempotency_key`가 필수다. `.githu
 
 - 실제 Provider와 consumer를 독립 배포하면서도 JSON drift를 조기에 검출한다.
 - Workspace 권한·Artifact commit·Worker 실행 변경을 첫 계약 PR에서 분리한다.
-- production transport 없이 request/response 의미와 보안 경계를 반복 검증할 수 있다.
+- 실제 Provider process나 live network 없이 request/response 의미와 보안 경계를 반복 검증할 수 있다.
 - 실제 payload가 없는 Foundation을 운영 Vocal integration 완료로 오인하지 않는다.
 
 ## 대안
@@ -50,11 +52,11 @@ DohaVocal `0.1.0` request schema는 body `idempotency_key`가 필수다. `.githu
 
 ## 영향
 
-내부 Python package와 contract test, 문서만 추가한다. 공개 Route·OpenAPI operation, DB schema, Alembic revision, 실제 사용자 DB, Artifact Catalog와 Frontend는 변하지 않는다. DohaVocal Runtime Foundation과 Consumer Contract Foundation은 구현되지만 Production Vocal Integration, 실제 Voice Conversion·Singing Voice와 audio payload 처리는 완료가 아니다.
+내부 Python package의 HTTP transport와 config, Mock HTTP contract test, 문서만 추가한다. 공개 Route·OpenAPI operation, DB schema, Alembic revision, 실제 사용자 DB, Artifact Catalog와 Frontend는 변하지 않는다. DohaVocal Runtime·Consumer Contract·HTTP Transport Foundation은 구현되지만 Production Vocal Integration, 실제 Voice Conversion·Singing Voice와 audio payload 처리는 완료가 아니다.
 
 ## 후속 작업
 
-1. 인증·deadline·connection policy를 승인한 실제 transport adapter
+1. 인증과 운영 network·timeout policy 확정
 2. Workspace Job `ProviderDispatcher` 조립과 bounded polling/cancel/heartbeat
 3. Provider candidate를 검증·ingestion·AssetVersion commit하는 Completion UoW 확장
 4. production multi-process persistence와 idempotency

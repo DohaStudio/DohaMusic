@@ -17,7 +17,7 @@
 - [x] `develop` 대상 PR #50 검토와 병합
 - [x] PR #50 병합 후 링크·상태·원격 `develop` 검증
 
-Phase A는 문서와 계약 방향을 확정했다. DohaVocal은 이후 Fake Runtime과 DohaMusic Consumer Contract Foundation을 구현했지만 실제 model·Production transport·Artifact 통합과 운영 Provider 승격은 포함하지 않는다.
+Phase A는 문서와 계약 방향을 확정했다. DohaVocal은 이후 Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport Foundation을 구현했지만 실제 model·Worker wiring·인증·Artifact 통합과 운영 Provider 승격은 포함하지 않는다.
 
 ## Phase B — New Implementation Separation [진행 중]
 
