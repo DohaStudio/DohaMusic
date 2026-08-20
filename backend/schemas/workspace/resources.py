@@ -237,3 +237,82 @@ class CompositionSnapshotDetail(CompositionSnapshotSummary):
     provider_versions: dict[str, str]
     model_manifest_ids: dict[str, str]
     items: list[SnapshotItemDetail]
+
+
+class CompositionSelectionUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    selected_snapshot_id: UUID | None
+
+
+class CompositionSelectionDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    project_id: UUID
+    selected_snapshot_id: UUID | None
+
+
+class CompositionReadSelection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    selected_snapshot_id: UUID | None
+    resolved_snapshot_id: UUID | None
+    resolution: Literal["selected", "requested", "none"]
+    is_current: bool
+
+
+class CompositionReadSnapshot(CompositionSnapshotSummary):
+    processing_chain_id: UUID | None
+    provider_versions: dict[str, str]
+    model_manifest_ids: dict[str, str]
+
+
+class CompositionReadItemDetail(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    snapshot_item_id: UUID
+    item_role: Literal["lyrics", "music", "vocal", "stem", "mix"]
+    sort_order: int
+    asset_version: AssetVersionDetail
+    artifacts: list[ArtifactDetail]
+
+
+class CompositionTrackProjection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    projection_id: UUID
+    identity_scope: Literal["snapshot"] = "snapshot"
+    snapshot_item_id: UUID
+    item_role: Literal["music", "vocal", "stem", "mix"]
+    sort_order: int
+    asset_id: UUID
+    asset_version_id: UUID
+
+
+class CompositionSectionProjection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    availability: Literal["not_available"] = "not_available"
+    items: list[dict[str, Any]] = Field(default_factory=list, max_length=0)
+
+
+class CompositionReadLineage(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    processing_chain_id: UUID | None
+    provider_versions: dict[str, str]
+    model_manifest_ids: dict[str, str]
+
+
+class CompositionWorkspaceRead(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    state: Literal["ready", "empty", "selection_required"]
+    project: ProjectSummary
+    selection: CompositionReadSelection
+    snapshot: CompositionReadSnapshot | None
+    items: list[CompositionReadItemDetail]
+    track_projections: list[CompositionTrackProjection]
+    section_projection: CompositionSectionProjection
+    mix_settings_snapshot: dict[str, Any]
+    lineage: CompositionReadLineage

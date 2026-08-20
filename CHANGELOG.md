@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — D1 Composition Aggregate Backend Read
+
+- Project와 선택된 불변 `CompositionSnapshot`의 동일 소속을 DB 복합 FK와 Service에서 함께 강제하는 `project_composition_selections` 1:1 상태와 additive Alembic `20260820_0018`을 추가했다.
+- `GET /api/v1/projects/{project_id}/composition`과 `PATCH /api/v1/projects/{project_id}/composition-selection`을 구현해 `empty`, `selection_required`, `ready`, 명시적 history override를 제공한다.
+- aggregate는 exact AssetVersion, 경로를 노출하지 않는 Artifact 참조, Snapshot-local Track projection, Section `not_available`, Mix JSON과 저장된 lineage만 batch 조회하며 GET은 Legacy fallback·bootstrap·backfill·selection 변경을 수행하지 않는다.
+- 실제 사용자 DB migration, Workspace bootstrap·backfill, Frontend, Provider, Artifact payload, Dataset·Training·GPU와 Common AI Contract는 변경하지 않았다.
+
 ### 문서 — D1 Composition Read 선행 계약
 
 - Workspace v1을 Composition read authority로 정하고 Legacy silent fallback과 GET 자동 bootstrap·backfill·selection 변경을 금지했다.

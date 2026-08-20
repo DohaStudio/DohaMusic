@@ -1,5 +1,12 @@
 """Workspace application service의 명시적 export."""
 
+from backend.services.workspace.artifact_application_service import (
+    ArtifactAccessError,
+    ArtifactAccessErrorCode,
+    ArtifactApplicationService,
+    ArtifactContentHandle,
+    ArtifactMetadata,
+)
 from backend.services.workspace.artifact_ingestion_service import (
     ArtifactIngestionError,
     ArtifactIngestionErrorCode,
@@ -8,13 +15,6 @@ from backend.services.workspace.artifact_ingestion_service import (
     IngestedArtifact,
     OrphanCandidate,
     PreparedArtifactIngestion,
-)
-from backend.services.workspace.artifact_application_service import (
-    ArtifactAccessError,
-    ArtifactAccessErrorCode,
-    ArtifactApplicationService,
-    ArtifactContentHandle,
-    ArtifactMetadata,
 )
 from backend.services.workspace.artifact_reconciliation_service import (
     ArtifactReconciliationError,
@@ -26,13 +26,25 @@ from backend.services.workspace.artifact_reconciliation_service import (
 from backend.services.workspace.asset_service import AssetCursorPage, AssetService
 from backend.services.workspace.collaboration_service import CollaborationService
 from backend.services.workspace.composition_service import (
+    SNAPSHOT_ITEM_ROLES,
+    CompositionReadItem,
+    CompositionSelectionResult,
+    CompositionService,
     CompositionSnapshotAggregate,
     CompositionSnapshotCreation,
     CompositionSnapshotCursorPage,
-    CompositionService,
+    CompositionWorkspaceAggregate,
     ProcessingStepInput,
-    SNAPSHOT_ITEM_ROLES,
     SnapshotItemInput,
+)
+from backend.services.workspace.job_completion_service import (
+    JobCompletionError,
+    JobCompletionErrorCode,
+    JobCompletionResult,
+    JobCompletionService,
+    ProviderOutput,
+    ProviderResult,
+    ProviderResultStatus,
 )
 from backend.services.workspace.job_service import (
     JobAggregate,
@@ -54,15 +66,6 @@ from backend.services.workspace.job_worker_service import (
     ProviderExecutionInput,
     ProviderExecutionRequest,
 )
-from backend.services.workspace.job_completion_service import (
-    JobCompletionError,
-    JobCompletionErrorCode,
-    JobCompletionResult,
-    JobCompletionService,
-    ProviderOutput,
-    ProviderResult,
-    ProviderResultStatus,
-)
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
     CursorPage,
@@ -70,6 +73,7 @@ from backend.services.workspace.workspace_service import (
 )
 
 __all__ = [
+    "SNAPSHOT_ITEM_ROLES",
     "ArtifactAccessError",
     "ArtifactAccessErrorCode",
     "ArtifactApplicationService",
@@ -88,39 +92,41 @@ __all__ = [
     "AssetService",
     "BootstrapWorkspaceResult",
     "CollaborationService",
+    "CompositionReadItem",
+    "CompositionSelectionResult",
+    "CompositionService",
     "CompositionSnapshotAggregate",
     "CompositionSnapshotCreation",
     "CompositionSnapshotCursorPage",
-    "CompositionService",
+    "CompositionWorkspaceAggregate",
     "CursorPage",
     "IngestedArtifact",
-    "PreparedArtifactIngestion",
+    "JobAggregate",
+    "JobCancelResult",
     "JobCompletionError",
     "JobCompletionErrorCode",
     "JobCompletionResult",
     "JobCompletionService",
-    "JobReferenceInput",
-    "JobReferenceOutput",
-    "JobAggregate",
-    "JobCancelResult",
     "JobCreation",
     "JobPage",
+    "JobReferenceInput",
+    "JobReferenceOutput",
     "JobService",
     "JobWorkerError",
     "JobWorkerService",
     "ModelUsageInput",
     "OrphanCandidate",
-    "ProviderOutput",
-    "ProviderResult",
-    "ProviderResultStatus",
-    "ProviderDispatcher",
+    "PreparedArtifactIngestion",
+    "ProcessingStepInput",
     "ProviderDispatchResult",
     "ProviderDispatchStatus",
+    "ProviderDispatcher",
     "ProviderExecutionContext",
     "ProviderExecutionInput",
     "ProviderExecutionRequest",
-    "ProcessingStepInput",
-    "SNAPSHOT_ITEM_ROLES",
+    "ProviderOutput",
+    "ProviderResult",
+    "ProviderResultStatus",
     "SnapshotItemInput",
     "WorkspaceService",
 ]

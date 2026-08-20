@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from uuid import UUID
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.orm import Session
 
-from backend.models.workspace.asset import AssetVersion
+from backend.models.workspace.asset import Artifact, Asset, AssetVersion
 from backend.models.workspace.composition import (
     CompositionSnapshot,
     ProcessingChain,
     ProcessingStep,
+    ProjectCompositionSelection,
     SnapshotItem,
 )
 
@@ -29,6 +31,47 @@ class CompositionRepository:
 
     def get_snapshot(self, snapshot_id: UUID) -> CompositionSnapshot | None:
         return self.session.get(CompositionSnapshot, snapshot_id)
+
+    def get_project_snapshot(
+        self, project_id: UUID, snapshot_id: UUID
+    ) -> CompositionSnapshot | None:
+        statement = select(CompositionSnapshot).where(
+            CompositionSnapshot.project_id == project_id,
+            CompositionSnapshot.composition_snapshot_id == snapshot_id,
+        )
+        return self.session.scalar(statement)
+
+    def project_has_snapshots(self, project_id: UUID) -> bool:
+        statement = select(CompositionSnapshot.composition_snapshot_id).where(
+            CompositionSnapshot.project_id == project_id
+        )
+        return self.session.scalar(statement.limit(1)) is not None
+
+    def get_project_selection(
+        self, project_id: UUID
+    ) -> ProjectCompositionSelection | None:
+        return self.session.get(ProjectCompositionSelection, project_id)
+
+    def set_project_selection(
+        self, project_id: UUID, snapshot_id: UUID
+    ) -> ProjectCompositionSelection:
+        selection = self.get_project_selection(project_id)
+        if selection is None:
+            selection = ProjectCompositionSelection(
+                project_id=project_id,
+                selected_composition_snapshot_id=snapshot_id,
+            )
+            self.session.add(selection)
+        else:
+            selection.selected_composition_snapshot_id = snapshot_id
+        self.session.flush()
+        return selection
+
+    def clear_project_selection(self, project_id: UUID) -> None:
+        selection = self.get_project_selection(project_id)
+        if selection is not None:
+            self.session.delete(selection)
+            self.session.flush()
 
     def get_next_snapshot_version(self, project_id: UUID) -> int:
         """Project 내부의 다음 단조 증가 Snapshot version을 반환한다."""
@@ -117,10 +160,41 @@ class CompositionRepository:
             .order_by(
                 SnapshotItem.item_role,
                 SnapshotItem.sort_order,
-                SnapshotItem.snapshot_item_id,
             )
             .limit(limit)
             .offset(offset)
+        )
+        return list(self.session.scalars(statement))
+
+    def list_asset_versions_with_assets(
+        self, asset_version_ids: Sequence[UUID]
+    ) -> list[tuple[AssetVersion, Asset]]:
+        if not asset_version_ids:
+            return []
+        statement = (
+            select(AssetVersion, Asset)
+            .join(Asset, Asset.asset_id == AssetVersion.asset_id)
+            .where(AssetVersion.asset_version_id.in_(asset_version_ids))
+        )
+        return [(row[0], row[1]) for row in self.session.execute(statement)]
+
+    def list_artifacts_for_versions(
+        self,
+        asset_version_ids: Sequence[UUID],
+        *,
+        limit: int,
+    ) -> list[Artifact]:
+        if not asset_version_ids:
+            return []
+        statement = (
+            select(Artifact)
+            .where(Artifact.asset_version_id.in_(asset_version_ids))
+            .order_by(
+                Artifact.asset_version_id,
+                Artifact.created_at,
+                Artifact.artifact_id,
+            )
+            .limit(limit)
         )
         return list(self.session.scalars(statement))
 

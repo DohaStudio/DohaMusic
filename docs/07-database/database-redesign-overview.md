@@ -26,7 +26,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 TARGET 논리 구조와 현재 구현된 SQLAlchemy Entity mapping을 함께 정의합니다. revision `20260806_0012`~`20260810_0017`은 실제 사용자 DB에 적용됐고 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table입니다. Resource API 30개는 완료했지만 실제 Bootstrap·backfill·dual write와 Runtime 전환은 수행하지 않았습니다. 따라서 물리 schema는 CURRENT이고, 제품 실행의 결과 소유권과 source of truth 전환은 TARGET입니다.
+이 문서는 TARGET 논리 구조와 현재 구현된 SQLAlchemy Entity mapping을 함께 정의합니다. revision `20260806_0012`~`20260810_0017`은 실제 사용자 DB에 적용됐고 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. source `20260820_0018`은 Project selection을 추가해 metadata 37개 Table이며 실제 사용자 DB는 36개 Table입니다. Resource API 30개와 D1 product API 2개는 완료했지만 실제 Bootstrap·backfill·dual write와 Runtime 전환은 수행하지 않았습니다. 따라서 물리 source schema는 CURRENT이고, 제품 실행의 결과 소유권과 source of truth 전환은 TARGET입니다.
 
 ## 2. Common Specification 기준
 
@@ -78,6 +78,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - `SnapshotItem`은 Lyrics, Music, Vocal, Stem과 Mix 등 역할별 `asset_version_id`를 저장합니다.
 - Snapshot은 Processing Chain, Mix Settings, Provider version과 Model version도 생성 시점 값으로 보존합니다.
 - 기존 Asset Selection이 바뀌어도 과거 Snapshot은 변하지 않습니다.
+- source revision `20260820_0018`의 `ProjectCompositionSelection`은 별도 1:1 row로 explicit current Snapshot을 저장하고 복합 FK와 Service 검증으로 same-Project를 강제합니다. 실제 사용자 DB에는 아직 적용하지 않았습니다.
 
 ### 3.5 Job과 결과 소유권
 
@@ -113,7 +114,7 @@ Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`�
 - 내부 URI는 `artifact://<artifact_id>`이며 공개 API는 Artifact ID 기반 content·download link를 사용합니다.
 - Export는 `export` 유형 Asset과 불변 AssetVersion이며 WAV·MP3·FLAC 파일은 Artifact입니다.
 
-Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. source metadata와 실제 DB는 36개 Table이고 Catalog row는 0개입니다. Catalog 조회 Repository, local Resolver, trusted ingestion의 authoritative SHA-256·size·MIME 검증과 Artifact API 3개를 구현했습니다. destructive reconciliation·maintenance repair·checksum cache·대용량 성능 최적화·non-local backend는 미구현이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
+Catalog는 최초 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부 Storage 운영 Entity입니다. 기존 35개 Application Table을 변경하지 않는 `ArtifactStorageLocation`과 additive revision `20260809_0016`을 구현해 실제 사용자 DB에 적용했습니다. 현재 source metadata는 D1 selection을 포함해 37개 Table이고 실제 DB는 Catalog를 포함한 36개이며 Catalog row는 0개입니다. Catalog 조회 Repository, local Resolver, trusted ingestion의 authoritative SHA-256·size·MIME 검증과 Artifact API 3개를 구현했습니다. destructive reconciliation·maintenance repair·checksum cache·대용량 성능 최적화·non-local backend는 미구현이며 상세 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따릅니다.
 
 ## 4. 목표 Entity와 Table 수
 
@@ -161,7 +162,7 @@ Catalog는 목표 21개 Workspace 도메인 Entity에 포함하지 않는 내부
 
 ## 6. 현재 구현과의 관계
 
-실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`, Workspace·Project keyset Index 3개를 추가한 `20260807_0013`, ProjectAsset partial keyset Index 하나를 추가한 `20260807_0014`, Asset Owner·Owner+Workspace full keyset Index 두 개를 추가한 `20260808_0015`, `artifact_storage_locations` 하나를 추가한 `20260809_0016`, Job scope·role·실행 제어 Column과 Index 6개를 추가한 `20260810_0017`이 적용됐습니다. 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job v1 Resource API 30개를 구현했고 나머지 34개 Endpoint는 계획입니다. 이번 API 구현은 실제 사용자 DB row를 읽거나 변경하지 않았습니다.
+실제 사용자 DB에는 Workspace Table 21개를 추가한 `20260806_0012`부터 Job scope·role·실행 제어를 추가한 `20260810_0017`까지 적용됐습니다. source head `20260820_0018`의 Project selection Table과 aggregate Artifact 정렬 Index는 임시 DB에서만 검증했으며 실제 사용자 DB에는 적용하지 않았습니다. 현행 Runtime Table 14개가 계속 source of truth입니다. Workspace Resource API 30개와 별도 D1 product API 2개를 구현했지만 실제 DB row·Frontend·Legacy 전환은 변경하지 않았습니다.
 
 - 초기 Entity 구현: `backend/models/workspace/`
 - metadata 등록: `backend/models/__init__.py`

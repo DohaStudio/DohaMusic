@@ -1,6 +1,6 @@
 # ADR-035 — D1 Composition Read 권위와 Projection 계약
 
-> 상태: 제안
+> 상태: 승인
 > 작성일: 2026-08-20
 > 최종 수정일: 2026-08-20
 > 관련 기능: AI-native DAW D1 Composition Read Workspace
@@ -113,11 +113,17 @@ Clip, Timeline editing, waveform editing, typed Mixer/automation, AI segment edi
 
 ## 영향
 
-이번 결정은 문서·ADR·API 계약만 변경한다. Backend·Frontend·SQLAlchemy·DB·Alembic·실제 사용자 데이터·Provider·Common Contract는 변경하지 않는다. D1 구현은 selection persistence, aggregate projection과 Frontend 전환을 후속 PR로 수행한다.
+D1-A는 Backend·SQLAlchemy·Alembic source와 공개 aggregate API를 구현했다. Frontend·실제 사용자 DB·실제 Workspace 데이터·Provider·Common Contract는 변경하지 않는다. selection persistence와 aggregate projection은 완료됐고 실제 전환과 Frontend 연결은 후속 작업이다.
+
+## D1-A 구현 기록
+
+D1-A는 Project column 대신 별도 `ProjectCompositionSelection` 1:1 Table을 선택했다. Project와 Snapshot 사이의 순환 FK·ORM 관계를 만들지 않고, row 부재로 nullable 초기 상태를 표현하며, `(project_id, selected_composition_snapshot_id)` 복합 FK로 same-Project 불변식을 DB에서 직접 강제할 수 있기 때문이다. Service 검증을 함께 적용하고 Snapshot은 계속 불변으로 유지한다.
+
+additive revision은 `20260820_0018`이며 기존 row backfill은 없다. 선택 mutation은 `PATCH /api/v1/projects/{project_id}/composition-selection`, aggregate read는 `GET /api/v1/projects/{project_id}/composition`으로 구현했다. GET은 selection·bootstrap·backfill을 쓰지 않고 Legacy를 조회하지 않는다. 이 구현 기록은 실제 사용자 DB 적용이나 Frontend read 전환을 승인하지 않는다.
 
 ## 마이그레이션
 
-1. D1-A에서 aggregate read DTO·Service·Repository·Router와 selection persistence를 구현하고 empty/selection/requested Snapshot을 fixture로 검증한다.
+1. `[완료]` D1-A에서 aggregate read DTO·Service·Repository·Router와 selection persistence를 구현하고 empty/selection/requested Snapshot을 fixture로 검증했다.
 2. D1-Transition에서 명시적 Workspace bootstrap과 Legacy Project → MusicProject → relevant Asset/AssetVersion → CompositionSnapshot 후보를 검증·backfill한다.
 3. 재현 가능한 Snapshot만 생성하고 Project selection은 사용자 또는 승인된 migration 규칙으로 명시적으로 설정한다.
 4. D1-B에서 Frontend를 Workspace aggregate에 연결하고 실제 Snapshot E2E와 인증 Gate를 통과한다.
@@ -133,4 +139,5 @@ Clip, Timeline editing, waveform editing, typed Mixer/automation, AI segment edi
 
 ## 관련 PR
 
-- 이 ADR을 제안한 PR: 병합 후 기록
+- 이 ADR을 제안한 PR: #98
+- D1-A 구현 PR: 이 Draft PR 병합 후 기록
