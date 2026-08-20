@@ -25,7 +25,7 @@ JobInput·JobOutput 독립 Endpoint는 제공하지 않는다. 목록은 effecti
 
 생성과 retry는 `Idempotency-Key`가 필수다. cancel은 반복 호출에 같은 결과를 반환하는 idempotent action이며 terminal `succeeded`·`failed`는 `409 JOB_NOT_CANCELLABLE`이다. 상세 상태·입출력·오류·진행률은 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)의 role·Owner·Provider·Artifact 계약을 따른다.
 
-`POST /api/v1/jobs`는 기존 operation을 유지하면서 `vocal_generation`, `voice_conversion`, `vocal_correction`, `vocal_analysis`를 공식 `job_type`으로 허용한다. DohaVocal 실행을 요청할 때는 strict discriminated `job_input`, `provider_id=dohavocal`, 비어 있지 않은 동적 `model_manifest_id`가 필요하다. 잘못된 type별 field·enum·input role·reference lineage·비어 있지 않은 `training_dataset_id`는 `422 INVALID_INPUT`으로 거부한다. 이는 공개 생성 request schema 확장이지만 Path·Method·operation ID 추가는 0건이다.
+`POST /api/v1/jobs`는 기존 operation을 유지하면서 `vocal_generation`, `voice_conversion`, `vocal_correction`, `vocal_analysis`를 공식 `job_type`으로 허용한다. DohaVocal 실행을 요청할 때는 strict discriminated `job_input`, `provider_id=dohavocal`, 비어 있지 않은 동적 `model_manifest_id`가 필요하다. 잘못된 type별 field·enum·input role·reference lineage, source 파생 계보가 아닌 parent Version, 다른 Owner의 Processing Chain과 비어 있지 않은 `training_dataset_id`는 fail-closed로 거부한다. 이는 공개 생성 request schema 확장이지만 Path·Method·operation ID 추가는 0건이다.
 
 Job Router는 effective Workspace와 Owner를 신뢰된 context에서 파생하고 Repository·Session·CursorCodec·Worker·Provider를 직접 사용하지 않는다. 생성은 필수 `Idempotency-Key`와 Service의 원래 `201`을 재생하며 retry는 `202`를 재생한다. 상세는 정렬된 Input·Output·ModelUsage와 안전한 오류만 반환하고 claim·lease·경로·credential은 공개하지 않는다.
 

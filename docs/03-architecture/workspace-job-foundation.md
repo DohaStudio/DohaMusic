@@ -59,7 +59,7 @@ Artifact ────────────┘
 
 네 Vocal Job type의 공개 `job_input`은 `job_type` discriminator를 가진 구조화 입력이다. DohaVocal 요청에는 `provider_id=dohavocal`과 동적 `model_manifest_id`가 필요하다. 검증된 값은 기존 JSON `settings_snapshot`의 서버 예약 키에 불변 snapshot으로 보존하므로 schema·Alembic 변경은 없다. 기존 다른 Provider의 `voice_conversion` 요청은 `job_input` 없이도 기존 계약대로 허용한다.
 
-구조화 입력과 JobInput role은 같은 reference를 가리켜야 한다. Generation reference ID, Conversion의 source AssetVersion·voice reference Artifact, Correction·Analysis의 source AssetVersion lineage가 다르면 생성 단계에서 거부한다. `training_dataset_id`는 `null`만 허용하며 Recording Take와 Enrollment Sample을 Training Dataset으로 승격하지 않는다. Project와 effective Owner는 기존 Service scope에서, `requested_by`는 서버의 effective Owner에서 파생한다. Composition Snapshot은 기존 선택 계약을 유지한다.
+구조화 입력과 JobInput role은 같은 reference를 가리켜야 한다. Generation reference ID, Conversion의 source AssetVersion·voice reference Artifact, Correction·Analysis의 source AssetVersion lineage가 다르면 생성 단계에서 거부한다. 선택 `parent_asset_version_id`는 source와 같은 Asset의 파생 계보여야 하고 `processing_chain_id`는 effective Owner 소유여야 한다. `training_dataset_id`는 `null`만 허용하며 Recording Take와 Enrollment Sample을 Training Dataset으로 승격하지 않는다. Project와 effective Owner는 기존 Service scope에서, `requested_by`는 서버의 effective Owner에서 파생한다. Composition Snapshot은 기존 선택 계약을 유지한다.
 
 표의 Vocal candidate output role은 후속 Provider dispatch가 Completion 경계에 전달할 pre-ingestion 계약이다. 이번 Foundation은 `JobOutput`, Artifact, AssetVersion을 만들거나 Workspace Job을 성공 처리하지 않는다. 기존 legacy `voice_conversion` Completion의 `converted_vocal` role도 변경하지 않는다.
 

@@ -527,6 +527,94 @@ def test_vocal_job_rejects_provider_spoof_and_reserved_settings(
         )
 
 
+def test_vocal_job_validates_parent_lineage_and_processing_chain_owner(
+    session_factory,
+) -> None:
+    graph = _seed_graph(session_factory)
+    asset_service = AssetService(session_factory)
+    workspace_service = WorkspaceService(session_factory)
+    unrelated_asset = asset_service.create_asset(
+        workspace_id=graph.workspace.workspace_id,
+        owner_id=graph.owner_id,
+        asset_type=AssetType.MUSIC,
+    )
+    unrelated_version = asset_service.create_asset_version(
+        asset_id=unrelated_asset.asset_id,
+        version_origin="user_created",
+        settings_snapshot={},
+        created_by=graph.owner_id,
+    )
+    workspace_service.attach_asset(
+        project_id=graph.project.project_id,
+        asset_id=unrelated_asset.asset_id,
+        display_order=1,
+        role="vocal",
+    )
+    foreign_chain = CompositionService(session_factory).create_processing_chain(
+        name="foreign-chain",
+        chain_version="1",
+        chain_checksum="f" * 64,
+        created_by=uuid4(),
+    )
+    common = dict(
+        effective_owner_id=graph.owner_id,
+        project_id=graph.project.project_id,
+        job_type="vocal_correction",
+        api_contract_version="1",
+        settings_snapshot={},
+        inputs=(
+            JobReferenceInput(
+                0,
+                artifact_id=graph.artifact.artifact_id,
+                input_role="source_vocal",
+            ),
+        ),
+        provider_id="dohavocal",
+        model_manifest_id="dynamic@1",
+    )
+    with pytest.raises(ApplicationValidationError):
+        JobService(session_factory).create_job_for_owner(
+            **common,
+            idempotency_key="vocal-unrelated-parent",
+            job_input={
+                "job_type": "vocal_correction",
+                "source_asset_version_id": str(graph.version.asset_version_id),
+                "parent_asset_version_id": str(unrelated_version.asset_version_id),
+                "correction_types": ["pitch_correction"],
+            },
+        )
+    with pytest.raises(ResourceNotFoundError):
+        JobService(session_factory).create_job_for_owner(
+            **common,
+            idempotency_key="vocal-foreign-chain",
+            job_input={
+                "job_type": "vocal_correction",
+                "source_asset_version_id": str(graph.version.asset_version_id),
+                "parent_asset_version_id": str(graph.version.asset_version_id),
+                "correction_types": ["pitch_correction"],
+                "processing_chain_id": str(foreign_chain.processing_chain_id),
+            },
+        )
+    owned_chain = CompositionService(session_factory).create_processing_chain(
+        name="owned-chain",
+        chain_version="1",
+        chain_checksum="e" * 64,
+        created_by=graph.owner_id,
+    )
+    created = JobService(session_factory).create_job_for_owner(
+        **common,
+        idempotency_key="vocal-valid-parent-chain",
+        job_input={
+            "job_type": "vocal_correction",
+            "source_asset_version_id": str(graph.version.asset_version_id),
+            "parent_asset_version_id": str(graph.version.asset_version_id),
+            "correction_types": ["pitch_correction"],
+            "processing_chain_id": str(owned_chain.processing_chain_id),
+        },
+    )
+    assert created.aggregate.job.status is JobStatus.QUEUED
+
+
 @pytest.mark.parametrize(
     "job_input",
     [

@@ -287,6 +287,18 @@ class JobService:
                     required=normalized_type in REQUIRED_SNAPSHOT_JOB_TYPES,
                 )
                 asset_repository = AssetRepository(session)
+                processing_chain_id = getattr(
+                    normalized_vocal_input, "processing_chain_id", None
+                )
+                if processing_chain_id is not None:
+                    processing_chain = CompositionRepository(
+                        session
+                    ).get_processing_chain(processing_chain_id)
+                    if (
+                        processing_chain is None
+                        or processing_chain.created_by != effective_owner_id
+                    ):
+                        raise ResourceNotFoundError("ProcessingChain")
                 resolved_versions: dict[str, UUID] = {}
                 direct_references: dict[str, UUID] = {}
                 for item in normalized_inputs:
@@ -315,7 +327,7 @@ class JobService:
                     normalized_vocal_input, "parent_asset_version_id", None
                 )
                 if parent_version_id is not None:
-                    self._validate_contract_reference(
+                    validated_parent_version_id = self._validate_contract_reference(
                         session,
                         asset_repository,
                         effective_owner_id=effective_owner_id,
@@ -326,6 +338,16 @@ class JobService:
                             input_role="source_vocal",
                             asset_version_id=parent_version_id,
                         ),
+                    )
+                    source_version_id = resolved_versions.get("source_vocal")
+                    if source_version_id is None:
+                        raise ApplicationValidationError(
+                            "Vocal Job parent lineage에는 source_vocal이 필요합니다."
+                        )
+                    _validate_vocal_parent_lineage(
+                        asset_repository,
+                        source_version_id=source_version_id,
+                        parent_version_id=validated_parent_version_id,
                     )
                 _validate_vocal_input_references(
                     normalized_vocal_input,
@@ -1442,6 +1464,38 @@ def _validate_vocal_input_references(
         raise ApplicationValidationError(
             "job_input.voice_reference_artifact_id와 voice_reference가 일치해야 합니다."
         )
+
+
+def _validate_vocal_parent_lineage(
+    repository: AssetRepository,
+    *,
+    source_version_id: UUID,
+    parent_version_id: UUID,
+) -> None:
+    source = repository.get_asset_version(source_version_id)
+    parent = repository.get_asset_version(parent_version_id)
+    if source is None or parent is None or source.asset_id != parent.asset_id:
+        raise ApplicationValidationError(
+            "parent_asset_version_id는 source AssetVersion 계보에 속해야 합니다."
+        )
+
+    visited: set[UUID] = set()
+    current = parent
+    while current.asset_version_id != source_version_id:
+        if (
+            current.asset_version_id in visited
+            or current.parent_asset_version_id is None
+        ):
+            raise ApplicationValidationError(
+                "parent_asset_version_id는 source AssetVersion의 파생본이어야 합니다."
+            )
+        visited.add(current.asset_version_id)
+        ancestor = repository.get_asset_version(current.parent_asset_version_id)
+        if ancestor is None or ancestor.asset_id != source.asset_id:
+            raise ApplicationValidationError(
+                "parent_asset_version_id의 계보가 유효하지 않습니다."
+            )
+        current = ancestor
 
 
 def _canonical_fingerprint(payload: dict[str, Any]) -> str:
