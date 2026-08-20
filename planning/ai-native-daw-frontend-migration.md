@@ -1,13 +1,13 @@
 # AI-native DAW Frontend 전환 계획
 
-> 문서 상태: [계획]
-> 최종 수정일: 2026-08-20
+> 문서 상태: [진행 중]
+> 최종 수정일: 2026-08-21
 > 관련 기능: Responsive Studio MVP에서 AI-native DAW로의 단계적 전환
 > 관련 문서: [제품 방향](../docs/02-product/ai-native-daw-product-direction.md), [목표 아키텍처](../docs/03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../docs/06-api/composition-read-workspace.md), [기존 Frontend Roadmap](frontend-roadmap.md), [DohaLM 연동](../docs/03-architecture/dohalm-integration.md)
 
 ## 1. CURRENT — 유지할 MVP
 
-현재 `frontend/app`에는 Landing과 `studio`, `lyrics`, `voice`, `generation/[jobId]`, `result/[jobId]`, `history`, `projects`, `projects/[id]`, `settings`, `about`가 있다. 이 화면은 다음 기능을 검증한다.
+현재 `frontend/app`에는 Landing과 `studio`, `lyrics`, `voice`, `generation/[jobId]`, `result/[jobId]`, `history`, `projects`, `projects/[id]`, `settings`, `about`가 있다. D1-B는 새 Route 없이 `projects/[id]`에 Backend-authoritative Composition read를 연결한다. 이 화면들은 다음 기능을 검증한다.
 
 - 음악 설정·가사·Voice Profile·Review 기반 Pipeline 제출
 - Lyrics 생성·검증·Revision
@@ -15,6 +15,7 @@
 - Job 진행률·Cancel·Retry
 - 결과 WAV 재생·seek·download와 품질·예상 Tempo·후렴 후보 표시
 - History·Project 탐색과 Result 재진입
+- Project Composition의 `empty`, 명시 Snapshot 선택, `ready` Track projection·exact AssetVersion 조회
 
 현재 화면의 `Studio`, `waveform`, `timeline`, `Mixer` 표현은 편집 가능한 DAW 구현을 의미하지 않는다. 특히 F4의 waveform과 transport는 결과 재생 경험이며 Track/Clip 편집기가 아니다.
 
@@ -62,19 +63,20 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 
 각 단계는 독립 작업 브랜치, 구현·테스트·문서·CHANGELOG·ADR 검토와 `develop` 병합 증거가 있어야 완료된다. 이 문서 작성만으로 어떤 단계도 완료하지 않는다.
 
-### D0 — 제품 언어와 CURRENT/TARGET 기준 [진행 중]
+### D0 — 제품 언어와 CURRENT/TARGET 기준 [완료]
 
 - 현재 Responsive Studio MVP와 장기 DAW 목표를 분리한다.
 - Common Contract 재사용과 product-only 후보를 명시한다.
 - 완료 Gate: 이 문서와 제품·아키텍처 정합성 문서 검증 및 `develop` 병합.
 
-### D1 — Composition Read Workspace [계약 확정 / 구현 계획]
+### D1 — Composition Read Workspace [D1-B 구현 / Draft 검토]
 
 - Workspace v1을 Composition read authority로 사용하고 Legacy는 migration input으로만 유지한다. silent fallback과 GET 자동 backfill은 금지한다.
 - Project-level explicit selected Snapshot을 current로 사용하고 latest history와 분리한다. 특정 history Snapshot query는 selection을 변경하지 않는다.
 - `GET /api/v1/projects/{project_id}/composition`에서 exact AssetVersion·safe Artifact·snapshot-local Track projection, Section `not_available`, Mix JSON과 lineage를 읽는다.
-- D1-A Backend aggregate read → D1-Transition 명시적 bootstrap·최소 backfill → D1-B Frontend consume 순서로 진행한다.
-- Gate: 실제 인증·owner/project privacy, Snapshot History Cursor, bootstrap/empty/selection/error/recovery, no-write GET, 실제 Snapshot E2E.
+- D1-A Backend aggregate read와 D1-Transition 무선택 bootstrap gate를 완료했고, D1-B는 Project 상세에서 aggregate read와 사용자 명시 선택 후 PATCH·refetch·재진입을 구현한다.
+- 현재 완료 증거는 fixture 기반 empty·selection-required·ready 통합, exact AssetVersion·safe Artifact·Mix·lineage, loading·오류·접근성·반응형 검증이다.
+- 남은 Gate는 실제 인증 principal의 owner/project privacy와 실제 사용자 DB 승인 후 Snapshot E2E다.
 
 ### D2 — Timeline Playback Foundation [계획]
 

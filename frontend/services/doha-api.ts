@@ -13,6 +13,9 @@ import type {
   HistoryItemDto,
   ProjectDetailDto,
   ProjectDto,
+  CompositionSelectionDto,
+  CompositionSnapshotSummaryDto,
+  CompositionWorkspaceDto,
 } from "@/types/api";
 import type {
   VoiceEnrollmentCreateRequest,
@@ -181,6 +184,24 @@ export const dohaApi = {
     }),
   deleteProject: (id: string) =>
     apiRequest<void>(`/api/projects/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  getProjectComposition: (projectId: string, signal?: AbortSignal) =>
+    apiRequest<{ data: CompositionWorkspaceDto }>(
+      `/api/v1/projects/${encodeURIComponent(projectId)}/composition`,
+      { signal },
+    ).then((response) => response.data),
+  listProjectCompositionSnapshots: (projectId: string, signal?: AbortSignal) =>
+    apiRequest<{ data: CompositionSnapshotSummaryDto[] }>(
+      `/api/v1/snapshots?project_id=${encodeURIComponent(projectId)}&limit=100`,
+      { signal },
+    ).then((response) => response.data),
+  selectProjectComposition: (projectId: string, snapshotId: string) =>
+    apiRequest<{ data: CompositionSelectionDto }>(
+      `/api/v1/projects/${encodeURIComponent(projectId)}/composition-selection`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ selected_snapshot_id: snapshotId }),
+      },
+    ).then((response) => response.data),
 };
 
 export function getPipelineFileContentUrl(jobId: string, fileId: string) {

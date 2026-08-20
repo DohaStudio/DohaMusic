@@ -1,6 +1,6 @@
 # D1 Composition Read Workspace API 계약
 
-> 문서 상태: [D1-A 완료 / D1-Transition Draft 검토]
+> 문서 상태: [D1-A 완료 / D1-Transition 완료 / D1-B Draft 검토]
 > 최종 수정일: 2026-08-21
 > 관련 기능: AI-native DAW D1 읽기 전용 Composition aggregate
 > 구현 상태: D1-A IMPLEMENTED
@@ -26,7 +26,7 @@
 
 ### NOT IMPLEMENTED
 
-- 실제 Workspace bootstrap·backfill·Frontend consume·인증 사용자 mapping
+- 실제 사용자 DB migration·bootstrap·backfill·인증 사용자 mapping
 - canonical Track·Section·Clip Domain, Timeline·editing·typed Mixer
 - Provider·MusicIntent write·Reference·Evaluation·Learning 실행
 
@@ -205,10 +205,10 @@ Aggregate GET은 다음을 수행하지 않는다.
 기존 Snapshot API 3개는 그대로 유지한다. Aggregate GET은 Frontend read optimization과 Workspace projection이며 Resource API를 대체하지 않는다.
 
 1. **D1-A:** Project selection persistence, aggregate DTO·Repository/Service/Router, empty/requested/selected/privacy 테스트
-2. **D1-Transition:** 명시적 bootstrap과 selection authority 조사·무선택 transition inventory — 구현·격리 검증 완료, Draft 검토
-3. **D1-B:** Frontend consume, recovery UI, 실제 Snapshot E2E와 인증 Gate
+2. **D1-Transition:** 명시적 bootstrap과 selection authority 조사·무선택 transition inventory — PR #104 squash merge 완료
+3. **D1-B:** Project 상세의 Frontend consume·명시 선택·recovery UI — 구현·Draft 검토, 실제 사용자 DB Snapshot E2E와 인증 Gate는 보류
 
-D1-A와 D1-Transition은 임시 DB fixture에서 구현·테스트했다. 실제 Frontend 전환은 Draft 검토와 별도 actual DB 승인 Gate 이후에 수행한다.
+D1-A와 D1-Transition은 임시 DB fixture에서 구현·테스트했다. D1-B Frontend는 같은 공개 계약을 fixture로 소비하며 실제 사용자 DB 전환은 별도 승인 Gate 뒤에 수행한다.
 
 ## 12. D1-A 구현 상태
 
@@ -220,4 +220,4 @@ aggregate Repository는 selection, SnapshotItem, exact AssetVersion·Asset, Arti
 
 D1-Transition 조사 결과 pre-D1-A project-level selected Snapshot persistence는 `NO_PREEXISTING_SELECTION_AUTHORITY`다. 따라서 Snapshot이 하나 이상인 Project도 selection row를 만들지 않고 `selection_required`를 유지하며, 기존 valid `ProjectCompositionSelection`만 보존한다. Bootstrap 3회 재실행·rollback·restart와 `empty → selection_required → PATCH → ready`를 isolated SQLite에서 검증했다.
 
-D1-A 완료와 D1-Transition Draft는 Backend source·격리 전환 범위만 뜻한다. 실제 사용자 DB `0017 → 0018` migration·Bootstrap·data backfill, D1-B Frontend, 실제 인증 principal, 실제 사용자 Workspace Snapshot E2E, canonical Track·Section·Clip과 typed Mixer는 계속 `NOT IMPLEMENTED`다.
+D1-A와 D1-Transition 완료, D1-B Frontend Draft는 source·격리 fixture 범위다. 실제 사용자 DB `0017 → 0018` migration·Bootstrap·data backfill, 실제 인증 principal, 실제 사용자 Workspace Snapshot E2E, canonical Track·Section·Clip과 typed Mixer는 계속 `NOT IMPLEMENTED`다.

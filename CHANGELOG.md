@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — D1 Workspace Composition Frontend
+
+- 기존 Project 상세 Route에서 `CompositionWorkspaceRead` aggregate의 `empty`, `selection_required`, `ready` 상태를 Backend authority 그대로 표시한다.
+- Snapshot 후보를 자동 선택하지 않고 사용자의 명시적 적용에만 selection PATCH를 호출한 뒤 aggregate를 refetch하며, 제출 중 control 비활성화와 재진입 복원을 구현했다.
+- ready 화면은 Snapshot-local Track projection, exact AssetVersion, 경로를 노출하지 않는 Artifact metadata·공개 content/download URL, Section `not_available`, Mix snapshot과 lineage를 표시한다.
+- Frontend fixture 통합·API contract·loading·오류·기존 Studio 회귀 테스트를 추가했다. Backend 공개 API·DB·Alembic·실제 사용자 DB·Provider·Artifact payload·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
+
 ### 추가 — D1 Composition Transition
 
 - Workspace Bootstrap exact revision Gate를 `0018`의 필수 Table, selection PK·unique, same-Project 복합 FK와 Snapshot identity Index까지 확장했다.

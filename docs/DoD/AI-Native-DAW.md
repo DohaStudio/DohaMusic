@@ -18,7 +18,7 @@
 - [x] `develop` 대상 Draft PR 생성·검토
 - [x] PR #94 squash merge와 병합 후 동일 tree 검증
 
-## D1. Composition Read Workspace — [D1-A 완료 / Transition Draft 검토]
+## D1. Composition Read Workspace — [D1-A 완료 / Transition 완료 / D1-B Draft 검토]
 
 ### 계약 Gate — [완료]
 
@@ -37,15 +37,16 @@
 - [x] explicit selected/current Snapshot persistence와 same-Project 불변식
 - [x] exact AssetVersion·safe Artifact·Track projection·Section availability·Mix·lineage 응답
 - [x] Snapshot History HMAC Cursor와 aggregate 단건 read 분리
-- [ ] `WORKSPACE_BOOTSTRAP_REQUIRED`, empty, selection-required, error와 recovery UI
+- [x] `WORKSPACE_BOOTSTRAP_REQUIRED`, empty, selection-required, error와 recovery UI
 - [x] Legacy silent fallback·GET bootstrap/backfill·write side effect 0건 검증
 - [x] `0017 → 0018 → 0017` isolated migration·historical round-trip와 source `0018` schema Gate
 - [x] `NO_PREEXISTING_SELECTION_AUTHORITY`, Snapshot 수 무관 selection backfill 0건·latest fallback 0건
 - [x] Bootstrap·zero-backfill 3회 멱등, 기존 valid selection 보존, fail-closed·rollback·restart
 - [x] transition 이후 `empty`, `selection_required`, PATCH 후 `ready` Aggregate 계약
-- [ ] D1-Transition Draft PR 검토와 `develop` 병합
+- [x] D1-Transition PR #104 검토와 `develop` squash merge
 - [ ] 실제 인증 principal 기반 Owner·Workspace·Project privacy와 cross-owner leakage 0건
-- [ ] Frontend Workspace consume와 실제 Snapshot E2E
+- [x] Frontend Workspace consume와 fixture Snapshot 선택·refetch·재진입 통합
+- [ ] 실제 사용자 DB Snapshot E2E와 인증 Gate
 
 ## D2. Timeline Playback Foundation — [계획]
 
