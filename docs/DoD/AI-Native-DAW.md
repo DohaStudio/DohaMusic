@@ -2,7 +2,7 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-20
-> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
+> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 이 Track은 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성이 끝나도 DAW Runtime이 구현된 것으로 보지 않는다. 각 단계의 구현·검증·문서·ADR·Git 증거가 모두 있어야 다음 상태로 승격한다.
 
@@ -18,11 +18,29 @@
 - [x] `develop` 대상 Draft PR 생성·검토
 - [x] PR #94 squash merge와 병합 후 동일 tree 검증
 
-## D1. Composition Read Workspace — [계획]
+## D1. Composition Read Workspace — [계약 확정 / 구현 계획]
 
-- [ ] Workspace·Project·AssetVersion·CompositionSnapshot Frontend 연결
-- [ ] Owner scope·Cursor·empty/error/recovery 검증
-- [ ] Version History와 Track/Section read model
+### 계약 Gate — [완료]
+
+- [x] Workspace v1 Composition read authority와 Legacy migration input 경계
+- [x] Project-level explicit selected/current Snapshot과 requested history read 분리
+- [x] Snapshot-local Track projection identity와 future canonical Track Domain 분리
+- [x] Section `not_available`·빈 목록 정책과 Clip 제외 범위
+- [x] Project Composition aggregate endpoint·DTO·Artifact 안전·lineage 계약
+- [x] bootstrap/empty/selection-required와 silent fallback·GET mutation 금지
+- [x] CURRENT single-user owner scope와 TARGET 인증 Gate 분리
+- [x] Common AI Contract schema 변경 없음
+
+### 구현·검증 Gate — [계획]
+
+- [ ] Workspace Project와 `CompositionWorkspaceRead` aggregate Backend 구현
+- [ ] explicit selected/current Snapshot persistence와 same-Project 불변식
+- [ ] exact AssetVersion·safe Artifact·Track projection·Section availability·Mix·lineage 응답
+- [ ] Snapshot History HMAC Cursor와 aggregate 단건 read 분리
+- [ ] `WORKSPACE_BOOTSTRAP_REQUIRED`, empty, selection-required, error와 recovery UI
+- [ ] Legacy silent fallback·GET bootstrap/backfill·write side effect 0건 검증
+- [ ] 실제 인증 principal 기반 Owner·Workspace·Project privacy와 cross-owner leakage 0건
+- [ ] Frontend Workspace consume와 실제 Snapshot E2E
 
 ## D2. Timeline Playback Foundation — [계획]
 

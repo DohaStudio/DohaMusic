@@ -14,10 +14,12 @@ DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/ap
 - [목표 Endpoint 목록](workspace-rest-api-endpoints.md)
 - [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)
 - [CompositionSnapshot 기반](composition-snapshot-foundation.md)
+- [D1 Composition Read Workspace 계약](composition-read-workspace.md)
 - [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)
 - [Provider API 계약](provider-api-contract.md)
 - [API 전환 전략](api-contract-migration-strategy.md)
 - [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
+- [ADR-035 D1 Composition Read 권위](../11-decisions/ADR-035-d1-composition-read-authority.md)
 
 | 메서드 | 경로 | 성공 응답 | 설명 |
 |---|---|---:|---|

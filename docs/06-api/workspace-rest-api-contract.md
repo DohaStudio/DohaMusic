@@ -1,10 +1,10 @@
 # Workspace REST API 공통 계약
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-10
+> 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace REST API 재설계
 > 구현 상태: `/api/v1` Resource Endpoint 30개 구현, Workspace Job API 5/5, 나머지 34개 미구현
-> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [D1 Composition Read 계약](composition-read-workspace.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md), [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)
 
 ## 1. 목적
 
@@ -356,3 +356,9 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - Approval API를 별도 group으로 공개할지 AssetVersion·Enrollment action에 포함할지
 - 인증·Owner·Role·Workspace scope 모델
 - Provider API의 network namespace와 서비스 인증 방식
+
+## 14. D1 Project Composition aggregate — [계약 확정 / 미구현]
+
+`GET /api/v1/projects/{project_id}/composition`은 기존 Resource endpoint를 대체하지 않는 Frontend read projection이다. Project explicit selection 또는 선택적 `composition_snapshot_id` query를 resolve해 exact AssetVersion, safe Artifact reference, snapshot-local Track projection, Section availability, Mix JSON과 lineage를 반환한다.
+
+최신 Snapshot을 current로 암묵 지정하지 않으며 GET에서 Legacy fallback·bootstrap·backfill·selection write를 수행하지 않는다. 단일 aggregate에는 Cursor를 넣지 않고 Version History는 기존 Snapshot 목록 Cursor를 재사용한다. 상세 response와 empty/auth/error 계약은 [D1 Composition Read Workspace](composition-read-workspace.md)를 따른다.

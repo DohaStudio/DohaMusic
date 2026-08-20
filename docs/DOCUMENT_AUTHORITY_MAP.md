@@ -2,12 +2,12 @@
 
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-20
-> 기준: `develop@339e547f213dbc969bf9e0deb1c2e7918bf26bea`
+> 기준: `develop@e3bb7c6e5f148745ac85d244dd47c9f4cd0ccc7c`
 > 관련 문서: [README](../README.md), [Cleanup Plan](DOCUMENT_CLEANUP_PLAN.md), [Master Roadmap](../MASTER_ROADMAP.md), [실행 로드맵](../ROADMAP.md)
 
 ## 1. 목적과 분류 원칙
 
-이 문서는 DohaMusic의 추적 중인 Markdown 문서 259개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
+이 문서는 DohaMusic의 추적 중인 Markdown 문서 261개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
 
 | Classification | 의미 |
 |---|---|
@@ -130,6 +130,7 @@
 | [docs/05-data/voice-recording-guide.md](05-data/voice-recording-guide.md) | SUPPORTING | Dataset·전처리·권리 정책 | — | KEEP |
 | [docs/06-api/api-contract-migration-strategy.md](06-api/api-contract-migration-strategy.md) | SUPPORTING | 상세 API 계약 | — | KEEP |
 | [docs/06-api/audio-api.md](06-api/audio-api.md) | SUPPORTING | 상세 API 계약 | — | KEEP |
+| [docs/06-api/composition-read-workspace.md](06-api/composition-read-workspace.md) | SUPPORTING | D1 Composition read authority·selection·projection·aggregate API 계약 | [docs/06-api/api-overview.md](06-api/api-overview.md) | KEEP |
 | [docs/06-api/composition-snapshot-foundation.md](06-api/composition-snapshot-foundation.md) | SUPPORTING | 상세 API 계약 | — | KEEP |
 | [docs/06-api/cursor-pagination.md](06-api/cursor-pagination.md) | SUPPORTING | 상세 API 계약 | — | KEEP |
 | [docs/06-api/error-codes.md](06-api/error-codes.md) | SUPPORTING | 상세 API 계약 | — | KEEP |
@@ -244,6 +245,7 @@
 | [docs/11-decisions/ADR-032-artifact-storage-resolver-integrity.md](11-decisions/ADR-032-artifact-storage-resolver-integrity.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-033-workspace-job-execution-boundary.md](11-decisions/ADR-033-workspace-job-execution-boundary.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-034-dohavocal-consumer-contract.md](11-decisions/ADR-034-dohavocal-consumer-contract.md) | HISTORICAL | DohaVocal Consumer 계약 결정 이력 | — | KEEP |
+| [docs/11-decisions/ADR-035-d1-composition-read-authority.md](11-decisions/ADR-035-d1-composition-read-authority.md) | HISTORICAL | D1 Composition read 권위·selection·projection 결정 이력 | — | KEEP |
 | [docs/archive/frontend/design-system.md](archive/frontend/design-system.md) | HISTORICAL | Phase 8 Frontend design 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |
 | [docs/archive/frontend/navigation-guide.md](archive/frontend/navigation-guide.md) | HISTORICAL | Phase 8 navigation 초안 | [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | ARCHIVED |
 | [docs/archive/frontend/page-structure.md](archive/frontend/page-structure.md) | HISTORICAL | Phase 8 page hierarchy 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |

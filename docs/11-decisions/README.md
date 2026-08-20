@@ -38,6 +38,7 @@
 | [ADR-032](ADR-032-artifact-storage-resolver-integrity.md) | Artifact Storage Catalog·Resolver·ingestion·무결성 경계 | 승인 |
 | [ADR-033](ADR-033-workspace-job-execution-boundary.md) | Workspace Job 실행·claim·cancel·Artifact completion 경계 | 승인 |
 | [ADR-034](ADR-034-dohavocal-consumer-contract.md) | DohaVocal strict DTO·transport port·metadata 후보 Consumer 계약 | 승인 |
+| [ADR-035](ADR-035-d1-composition-read-authority.md) | D1 Composition Read 권위·Snapshot selection·Track/Section projection·aggregate endpoint | 제안 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -53,6 +54,7 @@
 ## Workspace API
 
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
+- [ADR-035 — D1 Composition Read 권위와 Projection 계약](ADR-035-d1-composition-read-authority.md): Workspace read authority, explicit Project selection, snapshot-local Track projection, Section 비가용 상태와 Project aggregate GET을 결정한다.
 
 ## Artifact Storage
 

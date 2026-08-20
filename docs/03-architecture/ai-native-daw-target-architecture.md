@@ -5,7 +5,7 @@
 > 구현 상태: [TARGET / NOT IMPLEMENTED]
 > 최종 수정일: 2026-08-20
 > 관련 기능: Project/Composition Runtime, Provider Orchestrator, Composition Evaluation, Continuous Learning
-> 관련 문서: [제품 방향](../02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](system-architecture.md), [Workspace Artifact 모델](workspace-artifact-model.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
+> 관련 문서: [제품 방향](../02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](system-architecture.md), [Workspace Artifact 모델](workspace-artifact-model.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 ## 1. 상태 표기
 
@@ -34,6 +34,8 @@ flowchart LR
 현재 Pipeline은 로컬 Adapter와 Mock 중심의 Compatibility Workflow다. Workspace AssetVersion·Artifact·CompositionSnapshot·Job 기반과 일부 Resource API가 별도로 구현되어 있으나 기존 Pipeline 전체의 source of truth를 대체하지 않았다. 외부 DohaAudio·DohaVocal 실제 transport와 DohaLM 제품 통합도 미구현이다.
 
 현재 Frontend는 생성 Wizard와 결과 탐색을 제공한다. 편집 가능한 Track/Clip Timeline, Arrangement, 다중 Track Mixer, AI 후보 선택, Composition QA 화면은 없다.
+
+D1의 TARGET read path는 `Frontend → Project Composition aggregate → Workspace Repository → Workspace DB`다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다.
 
 ## 3. TARGET — 제품 Runtime
 
@@ -194,7 +196,7 @@ flowchart LR
 
 구현 전에 별도 ADR 또는 versioned 계약 검토가 필요한 항목이다.
 
-- Track·Clip·Section의 canonical identity와 CompositionSnapshot 표현
+- D2/D3 canonical Track·Clip·Section identity와 CompositionSnapshot 편집 표현. D1의 snapshot-local Track projection과 Section `not_available` 정책은 ADR-035에서 확정했지만 canonical Domain은 미구현
 - Timeline edit command, undo/redo와 concurrent edit 정책
 - `CompositionEvaluationRun`의 제품 수명주기·저장·API 및 Common Contract 승격 필요성
 - QA issue의 Track·Section·time range deep-link 형식

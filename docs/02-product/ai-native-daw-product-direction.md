@@ -5,7 +5,7 @@
 > 제품 구현 상태: [CURRENT MVP 존재 / TARGET DAW 미구현]
 > 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic 장기 제품 목표, Composition Runtime, Composition Evaluation, Continuous Learning
-> 관련 문서: [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Common AI Contract 소비자 기반](../03-architecture/common-ai-contract-consumer.md), [Master Roadmap](../../MASTER_ROADMAP.md)
+> 관련 문서: [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Common AI Contract 소비자 기반](../03-architecture/common-ai-contract-consumer.md), [Master Roadmap](../../MASTER_ROADMAP.md)
 
 ## 1. 제품 정의
 
@@ -66,6 +66,8 @@ Phase 8의 `[완료]`는 위 로컬 Responsive Studio MVP DoD를 충족했다는
 ### 3.2 Project / Composition Runtime
 
 Project는 창작 작업의 소유 범위이고 CompositionSnapshot은 특정 시점의 정확한 AssetVersion 조합과 설정을 가리키는 불변 재현 단위다. 편집과 AI 결과 선택은 기존 Version을 덮어쓰지 않고 새 AssetVersion과 새 CompositionSnapshot을 만든다.
+
+D1 읽기 계약에서 current Composition은 최신 Snapshot이 아니라 Project가 명시적으로 선택한 불변 Snapshot이다. Snapshot-local Track projection은 현재 데이터를 읽기 위한 제품 DTO이며 미래 canonical Track Domain이 아니다. 권위 있는 Section 데이터가 없을 때는 `not_available`로 표시하고 가짜 Section을 생성하지 않는다. 세부 계약은 [D1 Composition Read Workspace](../06-api/composition-read-workspace.md)를 따른다.
 
 ### 3.3 Provider Orchestrator
 
