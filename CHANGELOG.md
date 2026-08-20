@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Timeline Playback Foundation
+
+- 선택된 CompositionSnapshot의 snapshot-local Track projection을 사용하는 읽기 전용 초 단위 Timeline shell, ruler, lane, Playhead, local Track 선택과 horizontal scroll·zoom 기반을 추가했다.
+- AppShell의 기존 Global Player를 단일 audio authority로 확장해 play/pause·currentTime·duration·seek·ended·loading·error를 Timeline과 동기화했다. duration과 Playhead는 실제 media metadata·event만 사용한다.
+- 단일 `mix` Item과 단일 safe audio Artifact만 canonical source로 해석하고, 없거나 모호하면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다. first/latest fallback과 multi-track audio 조합은 추가하지 않았다.
+- click-to-seek의 viewport offset·scroll·zoom·clamp, keyboard transport, 접근성 label, responsive overflow와 기존 Player·Composition 회귀 테스트를 추가했다. Backend API·DB·Alembic·실제 사용자 DB·Provider·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
+
 ### 추가 — Provider Result Artifact Ingestion Contract
 
 - DohaVocal `VocalProviderResultCandidate`와 Workspace Artifact authority 사이에 read-only trust gate를 추가해 durable binding, owner-scoped Job, provider/job identity, output role, dynamic Manifest, settings, source/parent lineage, Processing Chain owner와 checksum scope를 검증한다.
@@ -24,6 +31,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Snapshot 후보를 자동 선택하지 않고 사용자의 명시적 적용에만 selection PATCH를 호출한 뒤 aggregate를 refetch하며, 제출 중 control 비활성화와 재진입 복원을 구현했다.
 - ready 화면은 Snapshot-local Track projection, exact AssetVersion, 경로를 노출하지 않는 Artifact metadata·공개 content/download URL, Section `not_available`, Mix snapshot과 lineage를 표시한다.
 - Frontend fixture 통합·API contract·loading·오류·기존 Studio 회귀 테스트를 추가했다. Backend 공개 API·DB·Alembic·실제 사용자 DB·Provider·Artifact payload·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
+
+### 문서 — Reviewer Authentication과 배포 권위
+
+- CURRENT DohaMusic을 `LOCAL_ONLY`·no-product-login으로 확인하고, product·service identity는 DohaMusic, opaque reviewer mapping·ReviewerAuthority는 DohaAudio가 소유하는 경계를 ADR-037로 기록했다.
+- Frontend·일반 사용자의 DohaAudio 직접 호출을 배제하고 delegated DohaMusic identity를 목표 trust direction으로 정하되, production topology·semantic reviewer population·interaction·실제 authentication provider는 product-owner 결정 전까지 미확정으로 유지했다.
+- OAuth/OIDC/GitHub/local auth, assertion, secret, private identity DB, mapping·authority·approval을 구현하지 않았고 DohaAudio와 Rights·Dataset·Model·Training gate를 변경하지 않았다.
 
 ### 추가 — D1 Composition Transition
 

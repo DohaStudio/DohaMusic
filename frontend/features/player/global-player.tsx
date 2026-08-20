@@ -9,12 +9,17 @@ export function GlobalPlayer() {
   const shouldPlay = usePlayerStore((state) => state.shouldPlay);
   const play = usePlayerStore((state) => state.play);
   const pause = usePlayerStore((state) => state.pause);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const currentTime = usePlayerStore((state) => state.currentTime);
+  const duration = usePlayerStore((state) => state.duration);
+  const loading = usePlayerStore((state) => state.loading);
+  const error = usePlayerStore((state) => state.error);
+  const seekRevision = usePlayerStore((state) => state.seekRevision);
+  const syncCurrentTime = usePlayerStore((state) => state.syncCurrentTime);
+  const syncDuration = usePlayerStore((state) => state.syncDuration);
+  const setLoading = usePlayerStore((state) => state.setLoading);
+  const setError = usePlayerStore((state) => state.setError);
   const [volume, setVolume] = useState(1);
   const [muted, setMuted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -27,7 +32,14 @@ export function GlobalPlayer() {
     } else {
       audio.pause();
     }
-  }, [currentFile, pause, shouldPlay]);
+  }, [currentFile, pause, setError, shouldPlay]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentFile) return;
+    const next = Math.min(Math.max(currentTime, 0), Number.isFinite(audio.duration) ? audio.duration : currentTime);
+    if (Math.abs(audio.currentTime - next) > 0.01) audio.currentTime = next;
+  }, [currentFile, currentTime, seekRevision]);
 
   return (
     <footer className="player-shell" aria-label="Doha Studio Player">
@@ -51,13 +63,16 @@ export function GlobalPlayer() {
           setError("");
         }}
         onLoadedMetadata={(event) => {
-          setDuration(event.currentTarget.duration || 0);
+          syncDuration(Number.isFinite(event.currentTarget.duration) ? event.currentTarget.duration : 0);
           setLoading(false);
         }}
         onTimeUpdate={(event) =>
-          setCurrentTime(event.currentTarget.currentTime)
+          syncCurrentTime(event.currentTarget.currentTime)
         }
-        onEnded={pause}
+        onEnded={(event) => {
+          syncCurrentTime(event.currentTarget.duration || 0);
+          pause();
+        }}
         onError={() => {
           setLoading(false);
           setError("오디오를 불러오지 못했습니다.");
@@ -88,8 +103,7 @@ export function GlobalPlayer() {
           disabled={!currentFile || !duration}
           onChange={(event) => {
             const next = Number(event.target.value);
-            if (audioRef.current) audioRef.current.currentTime = next;
-            setCurrentTime(next);
+            usePlayerStore.getState().seek(next);
           }}
         />
         <small>

@@ -2,14 +2,14 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-21
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1-B Composition Read [진행 중]
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback Foundation [진행 중]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
 Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
-현재 구조는 생성 Workflow용 Responsive Studio이며, D1-B는 기존 Project 상세에 읽기 전용 Composition feature를 추가한다. Backend의 explicit selection이 canonical truth이고 Frontend는 pending 후보·loading·error만 보유한다. TARGET의 편집 가능한 Arrangement·Track·Clip·Mixer, AI Music Director와 Composition QA feature boundary는 아직 구현되지 않았으며 [장기 전환 계획](../../planning/ai-native-daw-frontend-migration.md)의 D2~D9에서 단계적으로 결정한다.
+현재 구조는 생성 Workflow용 Responsive Studio이며, D1은 기존 Project 상세에 읽기 전용 Composition feature를 추가했다. Backend의 explicit selection이 canonical truth이고 Frontend는 pending 후보·loading·error만 보유한다. D2 Foundation은 `composition` feature에 Timeline을 두되 AppShell의 `GlobalPlayer`와 `player-store`를 단일 playback authority로 재사용한다. TARGET의 Clip·Waveform·Section·Mixer, AI Music Director와 Composition QA feature boundary는 아직 구현되지 않았으며 [장기 전환 계획](../../planning/ai-native-daw-frontend-migration.md)의 후속 단계에서 결정한다.
 
 ```mermaid
 flowchart LR
@@ -67,7 +67,7 @@ frontend/
 │  ├─ audio/
 │  ├─ history/
 │  ├─ projects/
-│  ├─ composition/        # aggregate state, explicit Snapshot selection, read projection
+│  ├─ composition/        # aggregate selection, read projection, Timeline Playback Foundation
 │  └─ kpop/
 ├─ hooks/
 ├─ services/
@@ -98,10 +98,18 @@ frontend/
 | Lyrics | API + draft | document, validation, revision, provider 표시 | API 결과 + 편집 draft |
 | Pipeline | API | job ID, status, current step, progress, safe error, files metadata | URL로 복원 |
 | Voice | API + draft | upload·list·get·delete Profile metadata, 선택 ID·이름, consent draft | API 결과 + `sessionStorage` 선택 allowlist; 음성 binary 저장 금지 |
-| Player | client media | queue, current item, position, volume, repeat | session |
+| Player | client media | 단일 active source, play/pause, currentTime, duration, seek, loading/error, volume | session; Backend 저장 금지 |
 | Settings | client | 현재는 reduced motion만 구현 | `localStorage` allowlist |
 
 서버 상태는 client store에 복제해 진실처럼 사용하지 않는다. Job URL을 canonical identity로 사용하고 terminal state에서 polling을 중단한다. 새로고침 시 `GET /api/pipelines/{job}`으로 복원한다.
+
+### Timeline playback authority
+
+- AppShell의 `GlobalPlayer`만 `<audio>`를 소유한다. Timeline은 같은 `player-store`의 source·play/pause·currentTime·duration·seek를 사용하며 별도 audio element나 CSS playhead animation을 만들지 않는다.
+- Composition source는 explicit selected Snapshot의 `mix` Item이 정확히 하나이고 safe `audio/*` Artifact도 정확히 하나일 때만 확정한다. first/latest Item·Artifact·AssetVersion fallback은 금지한다.
+- duration은 `loadedmetadata`, Playhead는 media `timeupdate`를 따른다. 값이 없을 때 가상 3분 길이, BPM·meter·Bar/Beat를 합성하지 않는다.
+- pointer 좌표는 viewport offset과 horizontal scroll, `pixelsPerSecond`를 반영하고 `0...duration`으로 clamp한다. Track 선택과 playhead time은 UI/session 상태이며 Backend에 저장하지 않는다.
+- keyboard는 input·textarea·select·contenteditable 밖에서만 Space play/pause와 좌우 5초 seek를 처리한다.
 
 ## API 연결 원칙
 

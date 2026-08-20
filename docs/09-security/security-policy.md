@@ -3,10 +3,13 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-07-31
 > 관련 기능: Storage·Voice·Frontend public contract 보안
+> 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md)
 
 보호 자산은 계정, 음성 원본·파생물, 가사·프롬프트, 생성 결과, 모델 파일, 비밀 값, 동의 기록이다. 기본 원칙은 최소 권한, 소유권 검사, 입력 불신, 비밀 분리, 감사 가능성, 안전한 삭제다.
 
 API와 Storage 접근은 사용자·자원 소유권을 확인하고 Worker는 필요한 작업 경로만 접근한다. 로그에는 토큰·원본 오디오·전체 민감 입력을 남기지 않는다. 위협 모델과 사고 대응 절차는 운영 전 보강한다.
+
+DohaMusic product identity, Orchestrator service identity와 DohaAudio human reviewer identity·ReviewerAuthority는 별도 경계다. localhost, caller-supplied reviewer ID, OS/GitHub username 또는 service token을 human reviewer proof로 사용하지 않는다. 현재·목표 topology, delegated trust direction과 미확정 Provider 조건은 [Reviewer Authentication 배포 권위](reviewer-authentication-deployment-authority.md)를 단일 기준으로 사용한다.
 
 ## Experimental Voice Provider 통제
 

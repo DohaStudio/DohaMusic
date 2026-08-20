@@ -7,7 +7,7 @@
 
 ## 1. 목적과 분류 원칙
 
-이 문서는 DohaMusic의 추적 중인 Markdown 문서 261개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
+이 문서는 DohaMusic의 추적 중인 Markdown 문서 266개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
 
 | Classification | 의미 |
 |---|---|
@@ -28,6 +28,7 @@
 | 시스템은 어떻게 연결되는가? | [시스템 아키텍처](03-architecture/system-architecture.md) |
 | 목표 Runtime과 미구현 Gap은 무엇인가? | [AI-native DAW 목표 아키텍처](03-architecture/ai-native-daw-target-architecture.md) |
 | DohaMusic·LM·Audio·Vocal의 책임은 무엇인가? | [Provider 책임 경계](03-architecture/repository-provider-boundaries.md) |
+| Product identity와 DohaAudio reviewer 인증의 권위는 무엇인가? | [Reviewer Authentication 배포 권위](09-security/reviewer-authentication-deployment-authority.md) |
 | 지금 무엇을 먼저 하는가? | [실행 로드맵](../ROADMAP.md) |
 | 장기 Phase·Track·Gate는 무엇인가? | [Master Roadmap](../MASTER_ROADMAP.md) |
 | 완료를 언제 선언하는가? | [DoD Index](DoD/README.md) |
@@ -55,6 +56,7 @@
 | [docs/06-api/api-overview.md](06-api/api-overview.md) | CANONICAL | 공개 API 탐색 시작점 | — | KEEP |
 | [docs/07-database/database-overview.md](07-database/database-overview.md) | CANONICAL | CURRENT Runtime·CURRENT Workspace/Domain·TARGET·TRANSITION 탐색 시작점 | — | KEEP |
 | [docs/09-security/security-policy.md](09-security/security-policy.md) | CANONICAL | 보안 정책 탐색 시작점 | — | KEEP |
+| [docs/09-security/reviewer-authentication-deployment-authority.md](09-security/reviewer-authentication-deployment-authority.md) | CANONICAL | Product·service·reviewer identity와 배포·신뢰 권위 | — | KEEP |
 | [docs/10-operations/local-development.md](10-operations/local-development.md) | CANONICAL | 로컬 실행·검증 운영 시작점 | — | KEEP |
 | [docs/11-decisions/README.md](11-decisions/README.md) | CANONICAL | ADR Index | — | KEEP |
 | [docs/DOCUMENT_AUTHORITY_MAP.md](DOCUMENT_AUTHORITY_MAP.md) | CANONICAL | 문서 분류와 탐색 기준 | — | UPDATE |
@@ -246,6 +248,7 @@
 | [docs/11-decisions/ADR-033-workspace-job-execution-boundary.md](11-decisions/ADR-033-workspace-job-execution-boundary.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-034-dohavocal-consumer-contract.md](11-decisions/ADR-034-dohavocal-consumer-contract.md) | HISTORICAL | DohaVocal Consumer 계약 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-035-d1-composition-read-authority.md](11-decisions/ADR-035-d1-composition-read-authority.md) | HISTORICAL | D1 Composition read 권위·selection·projection 결정 이력 | — | KEEP |
+| [docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md](11-decisions/ADR-037-reviewer-authentication-deployment-authority.md) | HISTORICAL | Product identity·배포와 reviewer authentication 권위 결정 이력 | — | KEEP |
 | [docs/archive/frontend/design-system.md](archive/frontend/design-system.md) | HISTORICAL | Phase 8 Frontend design 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |
 | [docs/archive/frontend/navigation-guide.md](archive/frontend/navigation-guide.md) | HISTORICAL | Phase 8 navigation 초안 | [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | ARCHIVED |
 | [docs/archive/frontend/page-structure.md](archive/frontend/page-structure.md) | HISTORICAL | Phase 8 page hierarchy 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |

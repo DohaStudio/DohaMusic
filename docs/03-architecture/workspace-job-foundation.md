@@ -142,7 +142,7 @@ Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at
 
 Provider Job identity persistence의 상세 계약은 [Provider Job Persistence](provider-job-persistence.md)와 [ADR-036](../11-decisions/ADR-036-provider-job-persistence.md)을 따른다. Workspace Job 하나는 retry마다 새 binding을 append하며, `(provider_id, provider_job_id)`가 identity다. binding이 없는 기존·미dispatch Job은 정상이고 latest binding은 polling 대상 후보를 복구할 뿐 Provider 상태 authority가 아니다.
 
-Provider result의 Artifact trust 경계는 [Provider Result Ingestion Contract](provider-result-ingestion-contract.md)와 [ADR-037](../11-decisions/ADR-037-provider-result-ingestion-trust-boundary.md)을 따른다. wire DTO는 Artifact authority가 아니며 `payload_present=false` result는 Provider execution metadata로 검증될 수 있어도 Completion UoW에 진입하거나 Job을 `succeeded`로 만들 수 없다. 검증 실패와 non-eligible 결과 모두 Artifact·AssetVersion·JobOutput·ModelUsage·terminal 상태 mutation 0건이다.
+Provider result의 Artifact trust 경계는 [Provider Result Ingestion Contract](provider-result-ingestion-contract.md)와 [ADR-038](../11-decisions/ADR-038-provider-result-ingestion-trust-boundary.md)을 따른다. wire DTO는 Artifact authority가 아니며 `payload_present=false` result는 Provider execution metadata로 검증될 수 있어도 Completion UoW에 진입하거나 Job을 `succeeded`로 만들 수 없다. 검증 실패와 non-eligible 결과 모두 Artifact·AssetVersion·JobOutput·ModelUsage·terminal 상태 mutation 0건이다.
 
 ```text
 Workspace Job
