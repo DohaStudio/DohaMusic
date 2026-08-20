@@ -357,7 +357,7 @@ Stack trace, SQL, token, API key, 절대·상대 경로, 개인 음성 Metadata�
 - 인증·Owner·Role·Workspace scope 모델
 - Provider API의 network namespace와 서비스 인증 방식
 
-## 14. D1 Project Composition aggregate — [계약 확정 / 미구현]
+## 14. D1 Project Composition aggregate — [D1-A Backend 완료 / Transition 계획]
 
 `GET /api/v1/projects/{project_id}/composition`은 기존 Resource endpoint를 대체하지 않는 Frontend read projection이다. Project explicit selection 또는 선택적 `composition_snapshot_id` query를 resolve해 exact AssetVersion, safe Artifact reference, snapshot-local Track projection, Section availability, Mix JSON과 lineage를 반환한다.
 
