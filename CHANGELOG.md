@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Provider Result Artifact Ingestion Contract
+
+- DohaVocal `VocalProviderResultCandidate`와 Workspace Artifact authority 사이에 read-only trust gate를 추가해 durable binding, owner-scoped Job, provider/job identity, output role, dynamic Manifest, settings, source/parent lineage, Processing Chain owner와 checksum scope를 검증한다.
+- 검증된 Provider Artifact·output AssetVersion identity는 opaque metadata로만 보존하고 `(binding, output role, provider artifact)` idempotency key를 제공한다. path·URI·credential 형식과 lineage spoof는 side effect 없이 fail-closed한다.
+- `payload_present=false`와 `metadata_descriptor` checksum을 binary·structured Artifact로 승격하지 않으며 기존 `ProviderOutput.temporary_path`와 Completion UoW의 payload-backed 불변식을 유지한다. `vocal_analysis` Fake descriptor도 실제 JSON Payload가 아니므로 non-eligible이다.
+- DB·Alembic·Public API·Worker wiring·Provider network·실제 payload ingestion·Artifact/AssetVersion/JobOutput/ModelUsage 생성·Workspace Job terminal 전이는 추가하지 않았다.
+
 ### 추가 — D1 Workspace Composition Frontend
 
 - 기존 Project 상세 Route에서 `CompositionWorkspaceRead` aggregate의 `empty`, `selection_required`, `ready` 상태를 Backend authority 그대로 표시한다.

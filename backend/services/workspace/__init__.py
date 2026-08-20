@@ -72,6 +72,16 @@ from backend.services.workspace.provider_job_persistence_service import (
     ProviderJobPersistenceService,
     ProviderJobPersistenceStorageError,
 )
+from backend.services.workspace.provider_result_ingestion_service import (
+    IngestionDecisionReason,
+    ProviderResultContractError,
+    ProviderResultContractErrorReason,
+    ProviderResultIngestionDecision,
+    ProviderResultIngestionService,
+    ProviderResultNotIngestibleError,
+    TrustedPayloadReference,
+    TrustedProviderResultCandidate,
+)
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
     CompositionTransitionSummary,
@@ -131,6 +141,14 @@ __all__ = [
     "ProviderJobPersistenceErrorReason",
     "ProviderJobPersistenceService",
     "ProviderJobPersistenceStorageError",
+    "ProviderResultContractError",
+    "ProviderResultContractErrorReason",
+    "ProviderResultIngestionDecision",
+    "ProviderResultIngestionService",
+    "ProviderResultNotIngestibleError",
+    "TrustedPayloadReference",
+    "TrustedProviderResultCandidate",
+    "IngestionDecisionReason",
     "ProviderResult",
     "ProviderResultStatus",
     "ProviderDispatcher",

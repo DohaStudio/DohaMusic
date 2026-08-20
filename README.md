@@ -2,7 +2,7 @@
 
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -35,7 +35,7 @@ DohaMusic = AI-native DAW
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
 - Common AI Contract의 `RightsMetadata` opt-in 검증 기반
-- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 config 기반 HTTP Transport·Mock HTTP 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery. Worker wiring·인증·Artifact payload·실제 Vocal model은 미구현
+- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 config 기반 HTTP Transport·Mock HTTP 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 metadata-only trust/eligibility gate. Worker wiring·인증·실제 Artifact payload ingestion·실제 Vocal model은 미구현
 
 다음은 CURRENT가 아니다.
 
