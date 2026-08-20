@@ -69,7 +69,7 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - Common Contract 재사용과 product-only 후보를 명시한다.
 - 완료 Gate: 이 문서와 제품·아키텍처 정합성 문서 검증 및 `develop` 병합.
 
-### D1 — Composition Read Workspace [D1-B 구현 / Draft 검토]
+### D1 — Composition Read Workspace [완료]
 
 - Workspace v1을 Composition read authority로 사용하고 Legacy는 migration input으로만 유지한다. silent fallback과 GET 자동 backfill은 금지한다.
 - Project-level explicit selected Snapshot을 current로 사용하고 latest history와 분리한다. 특정 history Snapshot query는 selection을 변경하지 않는다.
@@ -78,11 +78,13 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - 현재 완료 증거는 fixture 기반 empty·selection-required·ready 통합, exact AssetVersion·safe Artifact·Mix·lineage, loading·오류·접근성·반응형 검증이다.
 - 남은 Gate는 실제 인증 principal의 owner/project privacy와 실제 사용자 DB 승인 후 Snapshot E2E다.
 
-### D2 — Timeline Playback Foundation [계획]
+### D2 — Timeline Playback Foundation [구현 / Draft 검토]
 
-- Arrangement, Section marker, Track/Clip, Waveform, Playhead를 읽기 전용으로 구현한다.
-- playback, pause, stop, seek와 범위 선택을 Composition 시간축에 결속한다.
-- Gate: 긴 오디오 성능, sample/time mapping, keyboard·screen reader, Desktop/Mobile 전략.
+- 선택된 Snapshot의 snapshot-local Track projection을 lane으로 표시하고 초 단위 ruler, 실제 media currentTime 기반 Playhead, play/pause·seek, horizontal scroll·zoom, local Track 선택을 구현했다.
+- 기존 AppShell `GlobalPlayer`와 `player-store`를 단일 playback authority로 사용한다. 단일 `mix` Item·단일 safe audio Artifact만 source로 확정하며 모호하면 `NO_CANONICAL_PLAYBACK_SOURCE`로 비활성화한다.
+- duration은 media metadata에서만 읽고 BPM·meter authority가 없으므로 Bar/Beat를 합성하지 않는다. seek는 viewport offset·scroll·zoom을 반영하고 clamp한다.
+- keyboard·accessible label·focus-visible·Desktop/Mobile horizontal overflow와 media error 상태를 검증했다.
+- NEXT: Waveform / richer Playhead. LATER: Clip Editing Foundation, Mixer, AI Segment Editing. Section marker·range selection·multi-track sync engine은 아직 구현하지 않았다.
 
 ### D3 — Non-destructive DAW Editing [계획]
 
@@ -154,4 +156,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 선행 계약만 확정됐고 D1~D9 Runtime은 모두 현재 미구현이다. 코드, API Runtime, DB, Common Contract, Training 또는 Provider Runtime은 이 계획 문서로 변경되지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime은 구현됐다. Waveform·Clip·Section·Mixer·AI editing·D3~D9 Runtime은 미구현이다. Backend API·DB·Common Contract·Training·Provider Runtime은 D2 Foundation으로 변경되지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.

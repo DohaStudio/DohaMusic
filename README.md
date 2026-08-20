@@ -24,6 +24,7 @@ DohaMusic = AI-native DAW
 
 현재 `develop`에서 확인되는 범위다.
 
+- D1 Composition Read Workspace의 D1-A·D1-Transition·D1-B는 완료됐다. Project 상세의 선택된 CompositionSnapshot에는 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
 - FastAPI Router → Service → Repository → SQLAlchemy 구조와 SQLite·Alembic 기반
 - 생성·Stem·Voice Conversion·Pipeline·Lyrics의 Legacy API와 비동기 작업 흐름
 - Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
@@ -39,7 +40,7 @@ DohaMusic = AI-native DAW
 
 다음은 CURRENT가 아니다.
 
-- 편집 가능한 DAW Timeline·Track·Clip·Mixer·Undo/Redo
+- 편집 가능한 DAW Clip·Waveform·Section·Mixer·Undo/Redo와 range selection
 - 실제 DohaLM·DohaAudio transport, DohaVocal Worker 연결과 운영 Provider
 - ReferenceAnalysis ingestion Workflow와 Reference Panel
 - CompositionEvaluationRun 기반 완성곡 QA

@@ -211,6 +211,8 @@ describe("D1-B Composition Workspace", () => {
     expect(screen.getByText(/master_gain_db/)).toBeVisible();
     expect(screen.getByText(/music: 1.2.0/)).toBeVisible();
     expect(screen.getByText("Section 정보 없음")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Composition Timeline" })).toBeVisible();
+    expect(screen.getByText("NO_CANONICAL_PLAYBACK_SOURCE")).toBeVisible();
     expect(screen.queryByText(/storage key/i)).not.toBeInTheDocument();
   });
 
