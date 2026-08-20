@@ -1,5 +1,9 @@
 # Responsive Guide
 
+> 분류: [STALE / Authority 아님]
+> 현재 기준: [Frontend Architecture](frontend-architecture.md), [Voice Enrollment Validation](../../reports/validation/VALIDATION-VOICE-ENROLLMENT.md)
+> 안내: 실제 breakpoint·접근성·E2E 근거와 재검증 전까지 계획 참고 문서로만 사용한다.
+
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
 > 원칙: Mobile First, content priority before breakpoint

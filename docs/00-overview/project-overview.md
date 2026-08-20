@@ -1,9 +1,9 @@
 # 프로젝트 개요
 
 > 문서 목적: DohaMusic의 문제 정의, 가치, 범위와 성공 방향을 설명한다.
-> 현재 상태: **기존 MVP 구현 완료 / DohaLM 공동 가사 창작 연동 [계획]**
-> 최종 수정일: 2026-08-05
-> 관련 문서: [DohaLM 연동](../03-architecture/dohalm-integration.md), [기능 요구사항](../02-requirements/functional-requirements.md), [생성 콘텐츠 정책](../09-security/generated-content-policy.md)
+> 현재 상태: **Responsive Studio MVP 구현 완료 / AI-native DAW 장기 제품 [계획]**
+> 최종 수정일: 2026-08-20
+> 관련 문서: [AI-native DAW 제품 방향](../02-product/ai-native-daw-product-direction.md), [DohaLM 연동](../03-architecture/dohalm-integration.md), [기능 요구사항](../02-requirements/functional-requirements.md), [생성 콘텐츠 정책](../09-security/generated-content-policy.md)
 
 ## 문제 정의
 
@@ -19,9 +19,11 @@
 - 상업 이용 검토를 통과한 모델과 비상업 연구 전용 모델을 분리한다.
 - 8GB VRAM 환경에서 순차 실행과 오프로딩 가능성을 우선 검증한다.
 
+장기 제품은 `AI-native DAW + Project/Composition Runtime + Provider Orchestrator + Composition Evaluation/QA + Continuous Learning Hub`다. 현재 Responsive Studio MVP와 장기 TARGET을 섞지 않으며, 편집 가능한 Timeline·Track·Clip·Mixer와 Composition QA·Learning Hub는 아직 구현되지 않았다.
+
 ## 현재 범위
 
-기존 Template·Mock 기반 Lyrics AI와 음악 생성 Pipeline은 구현돼 있다. DohaLM은 별도 저장소에서 관리되는 LLM 모델·추론 Provider이며, DohaMusic은 이를 호출하고 UI·가사 편집·버전·승인·음악 비즈니스 로직을 소유하는 Reference Application이다. DohaLM REST/SSE MVP는 구현됐지만 Python SDK와 DohaMusic 전용 Lyrics API는 아직 확정되지 않아 연동은 `[계획]`이다. 첫 제품 범위는 [MVP 범위](../02-requirements/mvp-scope.md), 단계는 [로드맵](../../ROADMAP.md)에 정의한다.
+기존 Template·Mock 기반 Lyrics AI와 음악 생성 Pipeline, 생성·가사·음성·이력·프로젝트·결과 중심 Responsive Studio는 구현돼 있다. DohaLM은 별도 저장소에서 관리되는 LLM 모델·추론 Provider이며, DohaMusic은 이를 호출하고 UI·가사 편집·버전·승인·음악 비즈니스 로직을 소유하는 Reference Application이다. DohaLM REST/SSE MVP는 구현됐지만 DohaMusic 제품 통합은 `[계획]`이다. 첫 제품 범위는 [MVP 범위](../02-requirements/mvp-scope.md), 장기 전환은 [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)에 정의한다.
 
 ## 성공 판단
 

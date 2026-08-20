@@ -1,5 +1,9 @@
 # Phase 6~7: 품질 개선과 개인화
 
+> 분류: [SUPERSEDED]
+> 현재 기준: [Master Roadmap](../MASTER_ROADMAP.md), [Phase 7 DoD](../docs/DoD/Phase-07.md)
+> 안내: 초기 개인화 계획 이력으로 보존하며 Dataset·Training 승인 기준으로 사용하지 않는다.
+
 > 문서 목적: MVP 이후 품질 개선과 개인 가창 모델 검토의 진입 조건을 정의한다.
 > 현재 상태: **장기 계획 / 검증 필요**
 

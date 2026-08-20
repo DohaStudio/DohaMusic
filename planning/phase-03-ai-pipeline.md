@@ -1,5 +1,9 @@
 # Phase 3: 음색 변환 및 AI 파이프라인
 
+> 분류: [SUPERSEDED]
+> 현재 기준: [Master Roadmap](../MASTER_ROADMAP.md), [Phase 5 DoD](../docs/DoD/Phase-05.md)
+> 안내: 초기 Pipeline 계획 이력으로 보존하며 현재 실행 순서 Authority로 사용하지 않는다.
+
 > 문서 목적: 동의된 음성으로 단계별 후보를 종단 간 연결하는 계획을 정의한다.
 > 현재 상태: **계획**
 

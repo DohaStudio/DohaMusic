@@ -107,7 +107,7 @@ Idempotency-Key: job:<workspace-job-id>
 ### 5.1 입력 규칙
 
 - DohaMusic이 먼저 Workspace Job ID를 발급하고 같은 `job_id`로 Provider 실행을 추적합니다.
-- transport idempotency는 HTTP `Idempotency-Key` header만 사용하며 body에 중복 field를 두지 않습니다.
+- transport idempotency 전달 위치는 versioned Provider request schema의 단일 source를 따릅니다. DohaVocal `0.1.0`은 body `idempotency_key`를 사용합니다.
 - Provider가 Workspace DB의 Asset, Version, Snapshot과 Approval을 직접 조회·수정하지 않습니다.
 - 입력 Artifact는 Provider가 허용된 Artifact resolver를 통해 읽을 수 있는 opaque ID 또는 승인된 URI로 전달합니다.
 - byte-level 입력은 role과 exact Artifact ID를 함께 전달하며 AssetVersion에서 latest/first Artifact를 자동 선택하지 않습니다.

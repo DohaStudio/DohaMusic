@@ -1,155 +1,122 @@
 # DohaMusic
 
-> Phase 6.5: OpenAI Responses API Lyrics Adapter가 `Experimental`로 추가되었고 기본 Provider는 계속 `template`입니다. 외부 실측은 `[사용자 승인 필요] [API Key 필요] [유료 실측 미수행]`이며, 실제 유료 API 호출 없음·발생 비용 0원·API Key 사용 없음 상태입니다.
+> 문서 역할: Repository entry point와 현재 상태 요약
+> 문서 상태: [운영 기준]
+> 최종 수정일: 2026-08-20
+> 기준 브랜치: `develop`
+> 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
-> Phase 6.6~6.9: 권리 확보 Dataset으로 공개 Instruct Base Model을 QLoRA SFT하고 `LocalLyricsLLMAdapter`로 연결하는 구조는 `[계획] 0%`입니다. Base Model·Dataset·checkpoint는 없고 학습·Adapter·품질 평가는 미착수이며, 승인 전 `template` 기본값과 Pipeline 비연결을 유지합니다.
+## What is DohaMusic?
 
-> DohaLM Lyrics 연동: 별도 저장소의 LLM 모델·추론 Provider인 [DohaLM](https://github.com/DohaStudio/DohaLM/tree/develop)을 REST/Streaming API 또는 향후 Python SDK로 호출하는 Reference Application 구조는 `[계획]`입니다. DohaLM의 현재 REST/SSE MVP는 일반 Chat 계약이며 Python SDK와 DohaMusic 전용 Lyrics API는 아직 확정되지 않았습니다. `AIHUB-71748` 계열은 비상업 연구 범위이므로 상업용 DohaMusic 작업에서 사용할 수 없습니다.
+DohaMusic은 AI-native DAW를 목표로 하는 DohaStudio의 제품·Workspace·Orchestration Repository다. 사용자가 프롬프트·가사와 동의받은 본인 음성을 이용해 음악을 만들고, 생성 과정·모델·권리·버전 계보를 확인하며 결과를 편집·평가하는 안전한 제작 환경을 지향한다.
 
-> Workspace Artifact 도메인: Provider Runtime 결과의 `DohaArtifacts/lm|audio|vocal`과 별도로 Mix·Export·Preview·Composition Snapshot·실행 기록을 위한 `DohaArtifacts/music` 구조와 [Artifact Storage Resolver·무결성 계약](docs/03-architecture/artifact-storage-contract.md)을 확정했습니다. 내부 Catalog와 revision `20260809_0016`을 실제 사용자 DB에 적용했고, local Resolver와 [Trusted Ingestion 운영 계약](docs/10-operations/artifact-storage-ingestion.md)을 구현했습니다. Ingestion은 승인 staging root의 bytes에서 SHA-256·크기·MIME를 확정하고 overwrite 없는 publish와 Artifact·Catalog 단일 transaction·실패 보상을 수행합니다. Owner 계보·retention·full SHA-256 read Gate와 [dry-run reconciliation](docs/10-operations/artifact-storage-reconciliation.md)도 격리 구현했습니다. Artifact Metadata·content·download API와 single-byte HTTP Range를 구현했으며 실제 Catalog row는 0개입니다. destructive repair·Runtime 연결은 아직 구현하지 않았습니다.
+```text
+DohaMusic = AI-native DAW
+          + Project / Composition Runtime
+          + Provider Orchestrator
+          + Composition Evaluation / QA
+          + Continuous Learning Hub
+```
 
-> AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지합니다. DohaVocal은 single-process metadata-only Fake Runtime Foundation을 구현했고 DohaMusic은 [Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)으로 4개 capability·9개 operation을 network 없이 검증합니다. Production transport·Artifact payload·실제 Vocal model은 `[미구현]`이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
+현재 구현과 장기 목표의 상세 기준은 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md) 한 곳에서 관리한다.
 
-> 공통 AI 계약 기준선: [Common AI Contract 소비자 기반](docs/03-architecture/common-ai-contract-consumer.md)은 `DohaStudio/.github`의 Python 배포물 `0.1.0`, 정책 `1.0.0`, 병합 commit `dd75fc88c16e9ae9a04acfafb72756a905f6365b`을 사용합니다. 현재는 opt-in RightsMetadata 검증 기반이며 Runtime·DB·Provider에는 연결하지 않았습니다.
+## CURRENT
 
-> Workspace Database: AssetVersion 중심 목표 21개 SQLAlchemy 2.0 Entity와 내부 Storage Catalog, Job schema·Index를 포함한 revision `20260806_0012`~`20260810_0017`을 승인된 절차로 실제 사용자 DB에 적용했습니다. Alembic source head·실제 사용자 DB·Bootstrap CLI target은 모두 `20260810_0017`이며 source metadata와 실제 DB는 36개 Application Table입니다. Bootstrap은 exact revision Gate만 동기화했고 실제 실행은 하지 않았습니다. Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job Resource API 30개를 구현했으며 나머지 34개 Endpoint, 실제 Bootstrap·Frontend·backfill·dual write·Legacy 제거는 미구현입니다. 현행 14개 Runtime Table이 계속 source of truth입니다.
+현재 `develop`에서 확인되는 범위다.
 
-> CompositionSnapshot API: [공개 계약과 Application 기반](docs/06-api/composition-snapshot-foundation.md)을 재사용해 목록·생성·상세 Router 3개, effective Owner·ProjectAsset scope, 불변 Snapshot+Item 원자적 생성, Project별 자동 version, `snapshot_version DESC` HMAC Cursor, aggregate 조회, bounded Provider·Manifest 계보와 `Idempotency-Key` replay를 구현했습니다. CompositionSnapshot API는 3/3이며 Job API를 포함한 전체 Resource API는 30/64입니다.
+- FastAPI Router → Service → Repository → SQLAlchemy 구조와 SQLite·Alembic 기반
+- 생성·Stem·Voice Conversion·Pipeline·Lyrics의 Legacy API와 비동기 작업 흐름
+- Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
+- local Artifact Catalog·Resolver·Trusted Ingestion·무결성·reconciliation 기반
+- Next.js Responsive Studio MVP
+  - `/studio`, `/lyrics`, `/voice`, `/generation/[jobId]`, `/result/[jobId]`
+  - `/history`, `/projects`, `/projects/[id]`, `/settings`, `/about`
+- 프로젝트·생성 이력, WAV 재생·다운로드, Pipeline cancel·retry, Guided Voice Enrollment
+- K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
+- 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
+- Common AI Contract의 `RightsMetadata` opt-in 검증 기반
+- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 fake transport 검증. Production transport·Artifact payload·실제 Vocal model은 미구현
 
-> Workspace Job Foundation: [공식 계약](docs/03-architecture/workspace-job-foundation.md)과 [ADR-033](docs/11-decisions/ADR-033-workspace-job-execution-boundary.md)에 따라 revision `20260810_0017`의 실행 제어 schema 위에 Job Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()`·fake Provider dispatch 경계를 구현했습니다. 공식 Job Router는 effective Workspace 목록·생성·aggregate 상세·취소·재시도 5개 Endpoint를 Service 경계에 연결했으며 Job API는 5/5, Resource API는 30/64입니다. 이 Draft PR이 develop에 병합되기 전까지 Workspace Backend Foundation은 `[진행 중]`, Generative AI Track은 `OPEN 전`으로 유지합니다. 실제 Provider transport와 background daemon·scheduler는 여전히 미구현입니다.
+다음은 CURRENT가 아니다.
 
-> Phase 8: Doha Studio 로컬 단일 사용자 Responsive Frontend MVP는 `[완료] 100%`입니다. Voice Profile, History·Project, 전역 WAV Player·Download와 cooperative Cancel·새 Job Retry를 실제 API에 연결했습니다. 인증·소유권·분산 Queue는 Phase 9 공개 운영 차단 조건입니다.
+- 편집 가능한 DAW Timeline·Track·Clip·Mixer·Undo/Redo
+- 실제 DohaLM·DohaAudio·DohaVocal production transport와 운영 Provider
+- ReferenceAnalysis ingestion Workflow와 Reference Panel
+- CompositionEvaluationRun 기반 완성곡 QA
+- LearningCandidate review와 Dataset·Training 연결
+- 인증·소유권이 적용된 공개 운영, 외부 Queue와 다중 프로세스 내구성
 
-> F6 Guided Voice Enrollment는 `[진행 중]`입니다. 구현과 Windows FFmpeg 8.1.2·Ubuntu/Windows CI에 더해 실제 Chrome·Edge 채널, Playwright Firefox, Pixel 7·iPhone 14 에뮬레이션의 자동 Validation을 수행했습니다. 실제 사용자 마이크·실제 Android/iOS/Safari와 인증·소유권은 남아 있습니다. 결과는 [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md)와 [운영·수동 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)를 따르며 Phase 8 완료 상태와 Phase 7 학습 범위는 변경하지 않습니다.
+세부 API와 구현 근거는 [API 개요](docs/06-api/api-overview.md), [Frontend Overview](docs/03-architecture/frontend-overview.md), [Validation 보고서](docs/DOCUMENT_AUTHORITY_MAP.md#validation--reports)에서 확인한다.
 
-> K-POP Creation Control Track: K0·K1·K2·K3.0·K3.1·K3.2·K3.3은 `[완료]`입니다. 완료 Pipeline의 `final.wav`에서 Quality Metrics, 예상 Tempo와 에너지·반복 기반 후렴 후보를 분석하며 K3.4 Preview는 `[계획]`입니다.
+## TARGET
 
-External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시 fallback, 예상 비용 metadata와 원본 보존 Revision API를 제공합니다. 설정은 [External Lyrics Provider](docs/10-operations/external-lyrics-provider-setup.md), 근거는 [Provider 비교](docs/01-research/lyrics-llm-provider-comparison.md), 결정은 [ADR-015](docs/11-decisions/ADR-015-external-lyrics-llm-provider.md)를 참고하세요.
+장기 목표는 Project 중심 AI-native DAW다.
 
-> 문서 목적: 프로젝트의 목표, 현재 상태, 전체 설계 문서로 가는 시작점을 제공한다.
-> 현재 상태: **Phase 8 로컬 단일 사용자 Studio 완료 — K-POP Creation K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료**
-> 최종 수정일: 2026-08-11
-> 관련 문서: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [Codex 작업 지침](AGENTS.md), [실행 로드맵](ROADMAP.md), [변경 이력](CHANGELOG.md)
+- `/studio/[projectId]` 중심 Workspace
+- Arrangement·Section·Track·Clip·Waveform·Playhead
+- Playback·Seek·Range Selection과 Split·Trim·Move·Copy·Delete
+- Fade·Gain·Loop·Undo·Redo와 Volume·Pan·Mute·Solo Mixer
+- AI Music Director, 후보 비교·선택, Reference Panel, Lyrics Revision
+- Composition Evaluation/QA와 불변 CompositionSnapshot 재평가
+- 권리·적격성 검토를 거치는 Continuous Learning Hub
+- WAV·MP3·FLAC Export, 향후 MIDI·Piano Roll·Automation 검토
 
-DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.
+이 목록은 모두 TARGET이며 구현 완료를 뜻하지 않는다. 세부 Workflow와 미구현 Gap은 [제품 방향](docs/02-product/ai-native-daw-product-direction.md)과 [목표 아키텍처](docs/03-architecture/ai-native-daw-target-architecture.md)를 따른다.
 
-장기적으로 DohaMusic은 Next.js·FastAPI·인증·프로젝트·Job·DB·가사 승인·음성 동의·Provider Client·Workspace Workflow·결과 관리에 집중한다. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. DohaVocal Fake Runtime과 DohaMusic Consumer 계약 기반은 구현됐지만 Production Runtime 연동은 `[미구현]`이다. 자세한 책임은 [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md)를 따른다.
-
-## 최종 목표
-
-사용자가 음악적 전문 지식 없이도 자신의 가사와 목소리로 재현 가능한 곡을 만들고, 생성 과정·모델·권리 정보를 확인할 수 있는 안전한 제작 환경을 제공한다.
-
-## 핵심 기능과 현재 상태
-
-| 상태 | 기능 |
-|---|---|
-| [완료] | Legacy FastAPI Router·Service·Repository·SQLAlchemy 기반 Backend Foundation |
-| [완료] | SQLite·Alembic 초기 schema와 로컬 Storage 구성 |
-| [완료] | Mock Worker 기반 비동기 Job 생성·조회·결과 파일 목록 |
-| [완료] | 동의 확인이 필수인 음성 프로필 생성·삭제 API |
-| [완료] | 교체 가능한 `MusicGenerator` 결과 계약과 Provider Factory |
-| [조건부 채택] | ACE-Step 1.5 v0.1.8 2B Turbo 로컬 추론·Backend Adapter 연결. 기본 Provider는 `mock`, 운영 Provider는 미확정 |
-| [완료] | `StemSeparator`·Mock/Demucs Provider와 비동기 Stem API |
-| [실험 완료] | HTDemucs 4.1.0 보컬/반주 분리, 48kHz Stereo 출력, RTX 3060 Ti Benchmark |
-| [실험 완료] | 동일 Seed PCM 재현성, 다른 Seed 파형 다양성, 상주 12회 안정성·0.6B LM 실행 |
-| [진행 중] | Responsive Studio에서 프롬프트·직접 작성/생성 가사 기반 Pipeline 요청 |
-| [완료] | Pipeline 장르·길이·Seed와 K-POP 목표 BPM Prompt 설정 및 final WAV 예상 Tempo 분석 |
-| [완료] | 보컬/반주 분리 Job과 개별 출력 metadata |
-| [실험 완료] | `VoiceConverter`·Mock/Seed-VC Provider와 비동기 Voice Conversion API |
-| [수동 평가 필요] | 동의받은 본인 참조 음성의 음색·발음·노래 자연스러움 |
-| [완료] | Music → Stem → Mock Voice → Default Audio Mixer → WAV Export 비동기 Pipeline |
-| [완료] | 단계별 진행률·재시도·timeout 판정·오류·metadata·Benchmark |
-| [완료] | 변환 보컬·반주 gain, -1dBFS headroom, peak normalization, soft limiter, fade, 48kHz WAV 합성 |
-| [수동 평가 필요] | 최종 Mixer volume·balance·naturalness·noise·clipping 청감 |
-| [완료] | `LyricsGenerator`·Template/Mock Provider와 동기식 가사 생성·조회·검증·삭제 API |
-| [완료] | 한국어·영어 구조화 가사, 섹션 파싱, 입력 정제, 길이·반복·구조 검증과 metadata 저장 |
-| [수동 평가 필요] | EVAL-005 가사 주제 적합성·자연스러움·후렴 기억성·창작 활용성 평가 |
-| [계획] | DohaLM API를 통한 가사 초안 생성·기존 가사 분석·구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안 |
-| [계획] | AI 최초 생성본과 사용자 수정본의 버전 관리, 사용자 최종 승인과 승인본만 Pipeline에 전달하는 게이트 |
-| [계획] | 공개 Instruct Base + 권리 확보 Lyrics Dataset + QLoRA SFT 기반 Local Lyrics LLM |
-| [계획] | MP3 변환 |
-| [완료] | Frontend Pipeline 상태·진행률·오류·cooperative Cancel·새 Job Retry |
-| [완료] | Pipeline 기반 생성 History·Project 관리와 Result 재진입·재생·다운로드 |
-| [완료] | 사용자 안내형 Voice Enrollment Wizard와 브라우저 MediaRecorder·WAV fallback |
-| [완료] | Guided Voice Enrollment 영속 모델·7개 API·다중 sample·정규화·기본 품질 검사·Profile 승격 |
-| [완료] | Guided Voice Enrollment 주기 만료·cleanup 재시도·orphan scan·시작 시 crash recovery |
-| [완료] | K-POP Structured Generation Options 검증·Prompt 컴파일·Snapshot·Retry·공개 설정 요약 |
-| [완료] | K3.0 Audio Analysis 제품·결과·실패·평가·라이브러리·ADR 계약 문서 |
-| [완료] | K3.1 final WAV duration·sample rate·channels·Sample Peak·clipping·Integrated LUFS 분석과 Result·History·Project UI |
-| [완료] | K3.2 final WAV detected BPM·confidence·요청 BPM 오차·half/double-time 후보와 Result·History·Project UI |
-| [완료] | K3.3 final WAV 에너지·반복 기반 15초 후렴 후보·confidence·중앙 fallback과 Result·History·Project UI |
-| [계획] | K3.4 Preview Export 실제 구현 |
-| [진행 중] | AssetVersion 기반 CompositionSnapshot Application 기반과 공식 API 3개, Workspace Job 공식 API 5개 구현·검증; develop 병합 전 Backend Foundation Gate 대기 |
-| [진행 중] | Workspace Job 기반과 DohaVocal Consumer Contract Foundation 구현, 실제 Provider transport·background daemon·Artifact payload 미구현 |
-| [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
-| [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
-
-음악 생성·Stem 분리·Voice Conversion의 기본 Provider는 계속 Mock이다. ACE-Step은 짧은 Instrumental과 0.6B LM의 가능성만 확인한 조건부 채택 상태이며 운영 Provider는 미확정이다. 선택적 ACE-Step, Demucs, Seed-VC Adapter는 격리 subprocess를 실행하며 설치와 모델 경로를 명시한 경우에만 동작한다. Mixer 기본값은 AI와 독립된 `DefaultAudioMixer`이며 Mock은 테스트용으로 유지한다. Lyrics 기본값은 외부 통신이 없는 `TemplateLyricsGenerator`이고, 실제 LLM 품질이나 자유 형식 수정 반영을 주장하지 않는다. Phase 4.6에서 Voice Primary와 Fallback은 미선정됐으므로 실제 음색 변환 품질이나 운영 배포 승인을 의미하지 않는다. Mixer와 가사 품질도 각각 EVAL-004·EVAL-005 사용자 평가 전에는 승인하지 않는다. 모델·가중치·개인 음성·실험 오디오는 저장소에 포함하지 않으며 Frontend 인증·소유권과 Redis/Celery는 구현하지 않았다.
-
-Phase 2의 대표 평가 시나리오는 Instrumental, Korean Ballad, **Korean Dance Pop (Primary)**으로 구성한다. Instrumental과 Ballad는 기존 결과를 보존하는 보조 비교군이고, 제품 대표 시나리오는 한국 여성 댄스팝이다. 최종 목표는 사용자가 입력한 프롬프트로 한국 여성 댄스팝을 생성하고 후속 Voice Conversion을 통해 동의받은 사용자 자신의 목소리로 부를 수 있는 음악을 만드는 것이다. 세부 평가 기준과 계획은 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md)을 따른다.
-
-## 전체 AI 생성 흐름
+## Architecture
 
 ```mermaid
 flowchart LR
-  U[사용자] --> I[가사 프롬프트 또는 기존 가사]
-  I --> D[DohaLM REST·Streaming API 계획]
-  D --> L[가사 생성·분석·수정 제안]
-  I --> E[가사 편집기·직접 작성 fallback]
-  L --> E
-  E --> A{사용자 수정·최종 승인}
-  A -->|미승인| E
-  A -->|승인본| G[DohaAudio 음악 생성 계획]
-  G --> S[DohaAudio Stem 분리 계획]
-  R[동의된 참조 음성] --> V[DohaVocal 계약 기반·실제 음색 변환 미구현]
-  S --> V
-  S --> M[믹싱]
+  U[User] --> M[DohaMusic]
+  M --> L[DohaLM]
+  M --> A[DohaAudio]
+  M --> V[DohaVocal]
+  L --> M
+  A --> M
   V --> M
-  M --> ENC[WAV·MP3 인코딩]
-  ENC --> O[결과·메타데이터 저장]
+  M --> W[Workspace / AssetVersion / CompositionSnapshot]
+  M --> X[Mixer / Export]
 ```
 
-## 예상 기술 스택
+| Repository | 책임 |
+|---|---|
+| DohaMusic | 사용자 UX, 권한, Project·Composition, MusicIntent orchestration, Job, 후보 선택, AssetVersion·Snapshot, Mixer·Export |
+| DohaLM | 창작 계획, 가사 생성·분석, MusicIntent·RevisionPlan 지원 |
+| DohaAudio | Music Generation, Stem, audio/reference feature 분석 |
+| DohaVocal | Singing Voice, Voice Conversion·Correction, vocal/reference feature 분석 |
 
-- Frontend: Next.js 16 App Router + TypeScript + CSS token + Zustand + TanStack Query **[진행 중]**, 결정은 [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
-- Backend/Orchestrator: FastAPI + PipelineExecutor **[완료]**
-- Persistence: SQLAlchemy 2, Alembic, SQLite **[완료]**
-- AI Worker: Provider-neutral 공유 ThreadPool Worker **[완료]**, 격리형 ACE-Step·Demucs·Seed-VC subprocess **[실험 완료]**
-- Database: SQLite **[완료]**, PostgreSQL/MySQL 교체 **[계획]**
-- Task Queue: 프로세스 내부 단일 ThreadPool **[완료]**, 외부 Queue **[계획]**
-- Audio Storage: 로컬 파일 저장소 **[완료]**, S3 호환 객체 저장소 **[계획]**
-- Workspace Artifact: `DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` **[계획]**, 설계는 [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md)
-- Audio DSP: NumPy·SciPy 기반 Default Mixer와 pyloudnorm Integrated LUFS 후처리 **[완료]**, True Peak **[미지원]**
-- Lyrics: Template **[Stable 기본값]**, Mock **[Test]**, OpenAI **[Experimental]**, DohaLM **[Planned]**, `local_llm` **[Planned]**
-- External AI Provider: DohaVocal Fake Runtime·Consumer 계약 **[Foundation 구현]**, Production transport·DohaAudio Runtime **[계획]**, 현재 ACE-Step·Demucs·Seed-VC subprocess 호환 계층 유지
-- AI 모델: 어댑터를 통한 교체 가능한 공개 사전학습 모델
+Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 요청·권한·상태·Artifact 계보와 사용자 최종 선택을 관리한다. 현재/목표 구조는 [시스템 아키텍처](docs/03-architecture/system-architecture.md), 저장소별 경계는 [Provider 책임 경계](docs/03-architecture/repository-provider-boundaries.md)를 따른다.
 
-모델명은 후보일 뿐이며, 라이선스와 로컬 벤치마크를 통과하기 전에는 채택하지 않는다. 자세한 기준은 [모델 비교](docs/01-research/model-comparison.md)와 [모델 선정 정책](docs/04-models/model-selection-policy.md)을 따른다.
+## Current Development Track
 
-## 저장소 구조
+- AI-native DAW D0 제품 목표 정합화: [완료]
+- 다음 제품 단계: D1 Composition Read Workspace [계획]
+- 병행 Track: AI Provider 저장소 분리, F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
 
-```text
-DohaMusic/
-├─ backend/    # FastAPI, DB, Worker, AI interface·adapter, tests
-├─ frontend/   # Next.js Responsive Studio, API client, unit·E2E tests
-├─ ai_worker/  # 선택적 로컬 AI 실행기와 재현용 benchmark 입력
-├─ docs/       # 개요, 조사, 요구사항, 설계, 정책, 운영, ADR, Phase DoD
-├─ planning/   # 단계별 실행 계획과 백로그
-├─ reports/    # 실험 및 벤치마크 기록 템플릿
-├─ MASTER_ROADMAP.md
-├─ README.md
-├─ ROADMAP.md
-├─ CHANGELOG.md
-└─ CONTRIBUTING.md
-```
+현재 실행 순서와 `NEXT / LATER`는 [ROADMAP](ROADMAP.md), 장기 Phase·Track·Gate는 [MASTER_ROADMAP](MASTER_ROADMAP.md), 완료 판정은 [DoD](docs/DoD/README.md)를 기준으로 한다.
 
-위 트리는 현재 실제 DohaMusic checkout이다. 목표 저장소 경계는 [저장소와 AI Provider 책임 경계](docs/03-architecture/repository-provider-boundaries.md)에 정의한다. DohaVocal은 Fake Runtime·Consumer 계약 Foundation까지 구현됐고 DohaAudio 및 Production Provider 연동은 `[계획]`이다.
+## Documentation
 
-## 빠른 시작
+| 알고 싶은 것 | 먼저 읽을 문서 | 상세 문서 |
+|---|---|---|
+| 이 프로젝트가 무엇인가 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [프로젝트 개요](docs/00-overview/project-overview.md) |
+| 지금 실제로 구현된 것과 바로 다음 작업 | [현재 실행 로드맵](ROADMAP.md) | [Master Roadmap](MASTER_ROADMAP.md) |
+| 최종 AI-native DAW의 모습 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md) |
+| 시스템과 Provider 연결 | [시스템 아키텍처](docs/03-architecture/system-architecture.md) | [Provider 경계](docs/03-architecture/repository-provider-boundaries.md) |
+| DohaVocal Consumer 계약 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) | [ADR-034](docs/11-decisions/ADR-034-dohavocal-consumer-contract.md) |
+| Reference 분석 | [목표 아키텍처의 Reference Analysis](docs/03-architecture/ai-native-daw-target-architecture.md#41-reference-analysis) | [Common Contract 소비자 기준](docs/03-architecture/common-ai-contract-consumer.md) |
+| 사용자 수정이 학습 후보가 되는 방식 | [목표 아키텍처의 Continuous Learning](docs/03-architecture/ai-native-daw-target-architecture.md#45-continuous-learning) | [제품 방향](docs/02-product/ai-native-daw-product-direction.md#55-continuous-learning) |
+| 완성곡 품질·유사도 평가 | [목표 아키텍처의 Composition Evaluation](docs/03-architecture/ai-native-daw-target-architecture.md#44-composition-evaluation--qa) | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| API와 데이터 구조 | [API 개요](docs/06-api/api-overview.md) | [데이터베이스 개요](docs/07-database/database-overview.md) |
+| 실행·설정·장애 대응 | [로컬 개발 환경](docs/10-operations/local-development.md) | [문제 해결](docs/10-operations/troubleshooting.md) |
+| 설계 이유 | [ADR Index](docs/11-decisions/README.md) | 개별 ADR |
+| 실제 실험·검증 | [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md#validation--reports) | `reports/experiments`, `reports/evaluations`, `reports/validation` |
+| 변경 시점과 내용 | [CHANGELOG](CHANGELOG.md) | 관련 PR·ADR·Validation |
+| 어떤 문서가 현재 기준인가 | [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md) | [Cleanup Plan](docs/DOCUMENT_CLEANUP_PLAN.md) |
 
-Python 3.11 이상이 필요하다.
+## Quick Start
 
-아래 Alembic 명령은 새 로컬 개발 DB를 명시적으로 구성하는 절차다. 기존 사용자 DB에는 실행하지 않으며, 앱 startup 자동 Migration의 기본값은 `DOHAMUSIC_AUTO_MIGRATE=false`다.
+Python 3.11 이상이 필요하다. 아래 Migration은 새 로컬 개발 DB에만 적용한다.
 
 ```powershell
 python -m venv .venv
@@ -159,56 +126,30 @@ python -m alembic -c backend/alembic.ini upgrade head
 python -m uvicorn backend.main:app --reload
 ```
 
-API 문서는 실행 후 `http://127.0.0.1:8000/docs`, health는 `GET /health`에서 확인한다. 테스트는 `python -m pytest -q`로 실행한다. 자세한 설정은 [로컬 개발 환경](docs/10-operations/local-development.md)을 따른다.
-
-Frontend는 별도 terminal에서 실행한다. `/backend` 요청은 기본적으로 `http://127.0.0.1:8000`에 proxy된다.
-
-`NEXT_PUBLIC_ENABLE_DEV_VOICE_PATH=true`는 로컬 개발에서 이미 `voices/references` 아래에 준비된 참조 파일로 Profile 생성 계약을 확인할 때만 사용한다. 기본값은 `false`이며 공개·운영 환경에서 활성화하지 않는다. Backend는 허용 root, 실재 파일, 확장자, traversal·absolute path·symlink를 다시 검증한다.
-
-`NEXT_PUBLIC_ENABLE_DEVELOPER_INFO=true`는 로컬 개발에서 API 연결과 생성 방식 정보를 확인할 때만 사용한다. 기본값은 `false`이며 일반 사용자 화면에서는 내부 기술 용어를 숨긴다.
+Frontend는 별도 terminal에서 실행한다.
 
 ```powershell
-cd frontend
-npm install
+Set-Location frontend
+npm ci
 npm run dev
 ```
 
-Frontend 검증은 `npm ci`, `npm run lint`, `npm run typecheck`, `npm run test`, `npm run build`, `npm run test:e2e`, `npm audit` 순서로 실행한다.
+- API 문서: `http://127.0.0.1:8000/docs`
+- Health: `GET http://127.0.0.1:8000/health`
+- Frontend: `http://localhost:3000`
+- 상세 설정: [로컬 개발 환경](docs/10-operations/local-development.md), [환경 변수](docs/10-operations/environment-variables.md)
 
-## 개발 로드맵
+## Safety / Rights
 
-전체 Phase·진행률·선행 조건·산출물은 [Master Roadmap](MASTER_ROADMAP.md), 완료 판정은 [Phase별 Definition of Done](docs/DoD/README.md), 현재 실행 우선순위는 [ROADMAP](ROADMAP.md)에서 관리한다. 새 기능 작업은 `MASTER_ROADMAP → 해당 Phase DoD → AGENTS.md` 순서로 확인한다.
+- 본인 음성 또는 명시적 동의를 받은 음성만 사용한다.
+- Reference URL의 존재는 다운로드·분석·학습 권한을 뜻하지 않는다.
+- Reference Audio와 FeatureRecord, Project 저장과 Training Dataset을 동일시하지 않는다.
+- LearningCandidate는 Dataset 포함이나 Training 승인이 아니다.
+- DatasetVersion 생성은 Training 자동 실행이 아니다.
+- `EvaluationRun`은 TrainingRun·checkpoint·model 평가 의미를 유지한다.
+- `SimilarityReport`는 법적 표절 판정이나 법률 의견, 자동 승인 기준이 아니다.
+- 모델·가중치·Dataset의 라이선스와 상업 이용 가능성은 정확한 버전별로 별도 검토한다.
 
-Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-inference.md), Phase 2.5 재현성·운영 판단은 [EXP-002](reports/experiments/EXP-002-ace-step-quality-and-stability.md), Phase 3 Stem 분리 실측은 [EXP-003](reports/experiments/EXP-003-stem-separation.md)에 있다. 생성 품질은 [EVAL-001](reports/evaluations/EVAL-001-ace-step-listening-evaluation.md), Stem 품질은 [EVAL-002](reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md)에 사용자가 직접 기록한다.
+보안·권리 기준은 [보안 정책](docs/09-security/security-policy.md), [음성 동의 정책](docs/09-security/voice-consent-policy.md), [라이선스 검토](docs/01-research/licensing-review.md)를 따른다.
 
-## 문서 안내
-
-- 저장소 작업 규칙: [Codex 작업 지침](AGENTS.md)
-- 전체 일정과 완료 기준: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md)
-- 목표와 범위: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md)
-- 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md), [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md)
-- 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md), [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md), [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md), [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md)
-- Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md), [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
-- API와 데이터: [현재 API 개요](docs/06-api/api-overview.md), [Workspace v1 목표 계약](docs/06-api/workspace-rest-api-contract.md), [현재 ERD](docs/07-database/erd.md), [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md), [가사 버전 데이터 모델](docs/07-database/lyrics-versioning-data-model.md), [Voice Enrollment API](docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](docs/07-database/voice-enrollment-data-model.md)
-- Voice Enrollment 검증과 운영: [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md), [운영·수동 검증 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)
-- 안전과 권리: [음성 동의 정책](docs/09-security/voice-consent-policy.md), [생성 콘텐츠 정책](docs/09-security/generated-content-policy.md)
-- 의사결정: [ADR 목록](docs/11-decisions/README.md)
-- Provider 계약과 데이터: [Model Manifest](docs/04-models/provider-model-manifest.md), [로컬 Dataset·Artifact 정책](docs/05-data/local-dataset-artifact-policy.md), [분리 Roadmap](planning/repository-separation-roadmap.md)
-- Pipeline: [Orchestrator](docs/03-architecture/pipeline-orchestrator.md), [Audio Quality Engine](docs/03-architecture/audio-quality-engine.md), [API](docs/06-api/pipeline-api.md), [EXP-005](reports/experiments/EXP-005-pipeline-execution.md), [EXP-006](reports/experiments/EXP-006-audio-mixing.md), [EVAL-004](reports/evaluations/EVAL-004-audio-mixing-listening-evaluation.md)
-- Lyrics AI: [Architecture](docs/03-architecture/lyrics-ai.md), [API](docs/06-api/lyrics-api.md), [Dataset Policy](docs/05-data/lyrics-dataset-policy.md), [Local LLM Roadmap](planning/local-lyrics-llm-roadmap.md), [ADR-014](docs/11-decisions/ADR-014-lyrics-generator-architecture.md), [ADR-016](docs/11-decisions/ADR-016-local-lyrics-llm-finetuning.md), [EXP-007](reports/experiments/EXP-007-lyrics-generation.md), [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)
-- K-POP 제작 제어: [제품 정의](docs/02-product/kpop-creation-product-definition.md), [Generation Options](docs/03-architecture/kpop-generation-options.md), [Prompt Compiler](docs/03-architecture/kpop-prompt-compiler.md), [Capability Matrix](docs/04-models/kpop-provider-capability-matrix.md), [K3 Audio Analysis](docs/02-product/k3-audio-analysis-product-definition.md), [K3 결과 계약](docs/03-architecture/audio-analysis-result-contract.md), [Roadmap](planning/kpop-creation-roadmap.md), [ADR-023](docs/11-decisions/ADR-023-audio-analysis-and-preview-architecture.md), [EVAL-008](reports/evaluations/EVAL-008-audio-analysis-validation.md)
-
-## 안전 및 음성 사용 정책
-
-본인 음성 또는 명시적으로 사용 동의를 받은 음성만 등록할 수 있다. 동의 증적과 철회 상태를 기록하고, 철회 또는 계정 삭제 시 원본 음성과 파생 음성 데이터를 삭제할 수 있어야 한다. 타인 음성의 무단 복제, 사칭, 권리 침해 목적 사용은 지원하지 않는다. 세부 시스템 요구사항은 [음성 동의 정책](docs/09-security/voice-consent-policy.md)에 정의한다.
-
-## 라이선스 검토 상태
-
-- 저장소 코드와 문서: [Apache License 2.0](LICENSE)
-- Dataset·외부 모델·모델 가중치·Checkpoint·Adapter·생성 결과·개인 음성·동의 증적·제3자 콘텐츠: 저장소의 Apache-2.0 적용 대상이 아니며 권리를 별도로 검토한다.
-- AI 모델·가중치·데이터셋·의존성의 개별 라이선스: **[검증 필요]**
-- 상업적 이용 가능 여부: 모델별로 별도 판정하며 추정하지 않는다.
-
-Seed-VC 기술 실측은 [EXP-004](reports/experiments/EXP-004-seed-vc.md), 사용자 음색 평가는 [EVAL-003](reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md)에 분리한다. Phase 4.5 결정은 [QG-001](reports/quality-gates/QG-001-voice-conversion-operational-readiness.md), Provider 수명주기는 [ADR-010](docs/11-decisions/ADR-010-voice-provider-selection-policy.md), Phase 4.6 비교·점수·선정은 [Provider 비교](docs/01-research/voice-provider-comparison.md), [Provider Score](docs/04-models/voice-provider-score.md), [ADR-011](docs/11-decisions/ADR-011-voice-provider-selection.md)을 따른다.
-
-검토 절차와 승인 기준은 [라이선스 검토](docs/01-research/licensing-review.md)를 따른다.
+기여 절차는 [CONTRIBUTING](CONTRIBUTING.md), 자동화 작업 규칙은 [AGENTS](AGENTS.md)에서 확인한다.

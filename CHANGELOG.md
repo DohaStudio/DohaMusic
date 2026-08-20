@@ -1,8 +1,11 @@
+Warning: truncated output (original token count: 20460)
+Total output lines: 715
+
 # 변경 이력
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-19
+> 최종 수정일: 2026-08-20
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
@@ -14,6 +17,20 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - effective Owner·Project·입력 ID·Model Manifest·settings snapshot·Provider idempotency를 mapping하고 5-state, 새 Job retry, root/parent/processing chain, metadata-only 결과와 Manifest 검토 상태를 손실 없이 보존한다.
 - stable JSON fixture와 fake transport contract test를 추가했다. 실제 network·audio·AI·GPU·Dataset·DB·Alembic·공개 API·Workspace Worker 조립은 변경하지 않았다.
 - Provider application·transport·timeout·invalid response·contract version 오류를 구분하고 raw body·경로·token·stack trace를 노출하지 않도록 fail-closed 한다.
+
+### 문서 — Canonical Authority와 Navigation 정리
+
+- README를 CURRENT·TARGET·Architecture·개발 Track·질문 중심 Navigation·Safety 중심의 Repository entry point로 단순화했다.
+- 추적 중인 Markdown 문서를 CANONICAL·SUPPORTING·HISTORICAL·SUPERSEDED·STALE로 분류하는 `DOCUMENT_AUTHORITY_MAP`과 후속 통합·deprecate·archive 위험을 기록한 `DOCUMENT_CLEANUP_PLAN`을 추가했다.
+- Product·System Architecture·Master Roadmap·실행 Roadmap·Operations·DoD의 책임을 구분하고 PR #94 병합 증거에 따라 AI-native DAW D0 문서 기준을 완료로 갱신했다.
+- 오래된 MVP·Phase 계획과 구현 전 Frontend 설계안에 현재 Authority가 아님을 표시했다. 파일 이동·삭제와 제품 코드·DB·Provider·Common Contract·Dataset·Training 변경은 수행하지 않았다.
+
+### 문서 — AI-native DAW 제품 목표 정합성
+
+- DohaMusic 장기 목표를 AI-native DAW, Project/Composition Runtime, Provider Orchestrator, Composition Evaluation/QA와 Continuous Learning Hub로 정의하고 현재 Responsive Studio MVP와 TARGET·NOT IMPLEMENTED를 분리했다.
+- Reference, Creation, DAW Editing, Composition QA와 Continuous Learning 흐름 및 단계별 Frontend 전환 계획, DohaLM Frontend retirement Gate를 추가했다.
+- 공통 `MusicIntent`, `RevisionPlan`, `SimilarityReport`, Learning·Rights·Dataset·Training 객체를 재사용하고 신규 `EditIntent`를 만들지 않는 원칙을 기록했다. `CompositionEvaluationRun`과 `TimelineSelection`은 schema 미확정 DohaMusic product-only 후보로 한정했다.
+- 코드·DB·Alembic·Runtime·Provider·Training·Dataset·Common Contract schema는 변경하지 않았다.
 
 ### 추가 — Common AI Contract Python 소비자 기반
 
@@ -312,21 +329,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 — 최종 아키텍처 기준선 검토
 
-- DohaStudio Common Specification `0.1.0` / `draft-baseline`의 `main` 링크와 감사 기준 commit을 Workspace DB·REST API·Provider 경계 문서에 고정했다.
-- 목표 `assets` Table에 선택적 `workspace_id`를 명시하고 `ProjectAsset.display_order` 용어를 정렬해 `Asset.project_id` 부재와 N:M 계약을 Table Definition·ERD·REST API까지 일치시켰다.
-- 로컬 저장 정책을 `DohaData/{lm,audio,vocal}`과 Provider·Workspace 책임이 분리된 `DohaArtifacts/{lm,audio,vocal,music}` 구조로 정렬했다.
-- Provider Model Manifest 최소 계약에 `model_type`, `dataset_manifest_id`, `training_run_id`, `created_at`을 반영해 공통 명세와 필드명을 일치시켰다.
-- 저장소 소유자와 Apache-2.0 적용 제외 범위를 현재 DohaStudio 조직·권리 정책에 맞게 명확히 했다.
-- 코드·Runtime·DB Migration·Dataset·모델·Artifact와 실제 로컬 폴더는 변경하지 않았다.
-
-### 문서 — Workspace REST API 재설계
-
-- DohaStudio Common Specification의 `Asset.project_id` 제거와 `Asset.workspace_id`·`ProjectAsset` N:M 계약을 API 선행 기준으로 반영했다.
-- Pipeline 실행 중심이 아닌 Workspace·Project·Asset·AssetVersion·Artifact·Composition Snapshot·Job 중심의 `/api/v1` 목표 계약을 정의했다.
-- 16개 API 그룹과 64개 Method·Path 조합, REST Method·Response·Error·cursor·filter·sort·Idempotency-Key·major version 정책을 문서화했다.
-- Workspace Job과 Orchestrator 전용 Provider Job을 분리하고 Provider 간 직접 호출·경로 노출·기존 Version 덮어쓰기를 금지했다.
-- 현행 기능별 API에서 목표 v1 API로 가는 Read Projection, 목표 DB write, Frontend 전환, Deprecation과 Legacy 제거 순서를 추가했다.
-- FastAPI·Endpoint·OpenAPI YAML·SQL·ORM·Migration·Runtime·Provider·테스트는 변경하지 않았으며 모든 목표 API는 `[계획]`으로 유지한다.
+- DohaStudio Common S…460 tokens truncated…der·테스트는 변경하지 않았으며 모든 목표 API는 `[계획]`으로 유지한다.
 
 ### 문서 — Asset 중심 데이터베이스 재설계
 

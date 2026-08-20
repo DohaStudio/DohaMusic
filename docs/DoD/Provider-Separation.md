@@ -14,10 +14,10 @@
 - [x] Provider 직접 호출 금지와 DohaMusic GPU admission control 원칙이 기록됐다.
 - [x] 단계적 전환 Roadmap과 ADR이 작성됐다.
 - [x] Markdown 상대 링크·Mermaid·fence·ADR 번호 검증이 완료됐다.
-- [ ] CHANGELOG 기록과 한국어 커밋이 완료됐다.
-- [ ] 원격 작업 브랜치 Push와 `develop` 대상 PR 검토가 완료됐다.
-- [ ] `develop` 병합 후 원격 상태가 검증됐다.
-- [ ] `main` 무변경이 확인됐다.
+- [x] CHANGELOG 기록과 한국어 커밋이 완료됐다.
+- [x] 원격 작업 브랜치 Push와 `develop` 대상 PR #50 검토가 완료됐다.
+- [x] PR #50의 `develop` 병합 후 원격 상태가 검증됐다.
+- [x] PR #50 병합 시 `main` 무변경이 확인됐다.
 
 ## Phase B 완료 조건 — [진행 중]
 

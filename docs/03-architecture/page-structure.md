@@ -1,5 +1,9 @@
 # Page Structure
 
+> 분류: [STALE / Authority 아님]
+> 현재 기준: [Frontend Architecture](frontend-architecture.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
+> 안내: CURRENT route와 TARGET Workspace 구조를 구분하기 전까지 계획 참고 문서로만 사용한다.
+
 > 문서 상태: [계획]
 > 최종 수정일: 2026-08-01
 > 관련 문서: [Frontend Overview](frontend-overview.md), [Studio UX Flow](studio-ux-flow.md), [Navigation Guide](navigation-guide.md)

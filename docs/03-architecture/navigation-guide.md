@@ -1,5 +1,9 @@
 # Navigation Guide
 
+> 분류: [STALE / Authority 아님]
+> 현재 기준: [Frontend Overview](frontend-overview.md), [실제 App Router](../../frontend/app)
+> 안내: 계획 navigation은 현재 route tree와 대조하기 전 구현 사실로 사용하지 않는다.
+
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
 > 관련 문서: [Page Structure](page-structure.md), [Responsive Guide](responsive-guide.md)

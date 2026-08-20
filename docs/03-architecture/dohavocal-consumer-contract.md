@@ -1,5 +1,6 @@
 # DohaVocal Consumer Contract Foundation
 
+> 문서 역할: Provider Boundary와 System Architecture를 보충하는 SUPPORTING 계약
 > 문서 상태: [구현·검증 완료, Draft PR 병합 전]
 > 최종 수정일: 2026-08-19
 > 적용 범위: DohaVocal Runtime `0.1.0` DTO·mapping·transport port·JSON fixture contract test
