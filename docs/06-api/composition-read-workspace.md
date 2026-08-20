@@ -1,7 +1,7 @@
 # D1 Composition Read Workspace API 계약
 
-> 문서 상태: [D1-A Backend 완료 / Transition 계획]
-> 최종 수정일: 2026-08-20
+> 문서 상태: [D1-A 완료 / D1-Transition Draft 검토]
+> 최종 수정일: 2026-08-21
 > 관련 기능: AI-native DAW D1 읽기 전용 Composition aggregate
 > 구현 상태: D1-A IMPLEMENTED
 > 관련 문서: [CompositionSnapshot 기반](composition-snapshot-foundation.md), [Workspace REST API 공통 계약](workspace-rest-api-contract.md), [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
@@ -205,10 +205,10 @@ Aggregate GET은 다음을 수행하지 않는다.
 기존 Snapshot API 3개는 그대로 유지한다. Aggregate GET은 Frontend read optimization과 Workspace projection이며 Resource API를 대체하지 않는다.
 
 1. **D1-A:** Project selection persistence, aggregate DTO·Repository/Service/Router, empty/requested/selected/privacy 테스트
-2. **D1-Transition:** 명시적 bootstrap과 검증 가능한 Legacy Project·AssetVersion·Snapshot 최소 backfill
+2. **D1-Transition:** 명시적 bootstrap과 selection authority 조사·무선택 transition inventory — 구현·격리 검증 완료, Draft 검토
 3. **D1-B:** Frontend consume, recovery UI, 실제 Snapshot E2E와 인증 Gate
 
-D1-A는 임시 DB fixture와 빈 Workspace 상태에서 구현·테스트를 완료했다. 실제 Frontend 전환은 D1-Transition 이후에만 수행한다.
+D1-A와 D1-Transition은 임시 DB fixture에서 구현·테스트했다. 실제 Frontend 전환은 Draft 검토와 별도 actual DB 승인 Gate 이후에 수행한다.
 
 ## 12. D1-A 구현 상태
 
@@ -218,4 +218,6 @@ D1-A는 임시 DB fixture와 빈 Workspace 상태에서 구현·테스트를 완
 
 aggregate Repository는 selection, SnapshotItem, exact AssetVersion·Asset, Artifact를 bounded batch query로 읽는다. Artifact는 공개 metadata와 `/api/v1/artifacts/{artifact_id}/content|download`만 반환하며 storage path·key·locator·credential과 payload에는 접근하지 않는다. SQLite fixture의 대표 조회는 예상 Index를 사용하고 full-table scan, 불필요한 `TEMP B-TREE`, item별 N+1이 없음을 검증했다.
 
-D1-A 완료는 Backend와 API 범위만 뜻한다. D1-Transition bootstrap·backfill·read switch, D1-B Frontend, 실제 인증 principal, 실제 사용자 Workspace Snapshot E2E, canonical Track·Section·Clip과 typed Mixer는 계속 `NOT IMPLEMENTED`다.
+D1-Transition 조사 결과 pre-D1-A project-level selected Snapshot persistence는 `NO_PREEXISTING_SELECTION_AUTHORITY`다. 따라서 Snapshot이 하나 이상인 Project도 selection row를 만들지 않고 `selection_required`를 유지하며, 기존 valid `ProjectCompositionSelection`만 보존한다. Bootstrap 3회 재실행·rollback·restart와 `empty → selection_required → PATCH → ready`를 isolated SQLite에서 검증했다.
+
+D1-A 완료와 D1-Transition Draft는 Backend source·격리 전환 범위만 뜻한다. 실제 사용자 DB `0017 → 0018` migration·Bootstrap·data backfill, D1-B Frontend, 실제 인증 principal, 실제 사용자 Workspace Snapshot E2E, canonical Track·Section·Clip과 typed Mixer는 계속 `NOT IMPLEMENTED`다.

@@ -68,6 +68,7 @@ from backend.services.workspace.job_worker_service import (
 )
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
+    CompositionTransitionSummary,
     CursorPage,
     WorkspaceService,
 )
@@ -98,6 +99,7 @@ __all__ = [
     "CompositionSnapshotAggregate",
     "CompositionSnapshotCreation",
     "CompositionSnapshotCursorPage",
+    "CompositionTransitionSummary",
     "CompositionWorkspaceAggregate",
     "CursorPage",
     "IngestedArtifact",

@@ -8,6 +8,21 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 
+class CompositionTransitionResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["ready", "selection_required"]
+    authority: Literal["NO_PREEXISTING_SELECTION_AUTHORITY"]
+    project_count: int
+    empty_project_count: int
+    selection_required_project_count: int
+    already_selected_project_count: int
+    authoritative_backfill_project_count: int
+    ambiguous_authority_project_count: int
+    invalid_cross_project_selection_count: int
+    expected_mutation_row_count: int
+
+
 class WorkspaceBootstrapResult(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -17,3 +32,4 @@ class WorkspaceBootstrapResult(BaseModel):
     workspace_id: UUID | None
     name: str
     migration_revision: str | None
+    transition: CompositionTransitionResult | None = None

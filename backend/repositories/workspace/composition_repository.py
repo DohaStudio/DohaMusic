@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import and_, exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.asset import Artifact, Asset, AssetVersion
@@ -16,6 +17,17 @@ from backend.models.workspace.composition import (
     ProjectCompositionSelection,
     SnapshotItem,
 )
+from backend.models.workspace.workspace import MusicProject
+
+
+@dataclass(frozen=True, slots=True)
+class ProjectCompositionTransitionState:
+    """한 Project의 Snapshot/selection 전환 inventory."""
+
+    project_id: UUID
+    has_snapshots: bool
+    selected_snapshot_id: UUID | None
+    selected_snapshot_project_id: UUID | None
 
 
 class CompositionRepository:
@@ -72,6 +84,47 @@ class CompositionRepository:
         if selection is not None:
             self.session.delete(selection)
             self.session.flush()
+
+    def list_transition_states(
+        self, workspace_id: UUID
+    ) -> list[ProjectCompositionTransitionState]:
+        """Workspace의 D1 전환 상태를 N+1 없이 한 번에 조회한다."""
+
+        selected_snapshot = CompositionSnapshot.__table__.alias("selected_snapshot")
+        statement = (
+            select(
+                MusicProject.project_id,
+                exists(
+                    select(CompositionSnapshot.composition_snapshot_id).where(
+                        CompositionSnapshot.project_id == MusicProject.project_id
+                    )
+                ),
+                ProjectCompositionSelection.selected_composition_snapshot_id,
+                selected_snapshot.c.project_id,
+            )
+            .outerjoin(
+                ProjectCompositionSelection,
+                ProjectCompositionSelection.project_id == MusicProject.project_id,
+            )
+            .outerjoin(
+                selected_snapshot,
+                selected_snapshot.c.composition_snapshot_id
+                == ProjectCompositionSelection.selected_composition_snapshot_id,
+            )
+            .where(
+                MusicProject.workspace_id == workspace_id,
+                MusicProject.deleted_at.is_(None),
+            )
+        )
+        return [
+            ProjectCompositionTransitionState(
+                project_id=row[0],
+                has_snapshots=bool(row[1]),
+                selected_snapshot_id=row[2],
+                selected_snapshot_project_id=row[3],
+            )
+            for row in self.session.execute(statement)
+        ]
 
     def get_next_snapshot_version(self, project_id: UUID) -> int:
         """Project 내부의 다음 단조 증가 Snapshot version을 반환한다."""
