@@ -1,5 +1,9 @@
 # Phase 1: 로컬 추론 검증
 
+> 분류: [SUPERSEDED]
+> 현재 기준: [Master Roadmap](../MASTER_ROADMAP.md), [Phase 2 DoD](../docs/DoD/Phase-02.md)
+> 안내: 초기 실행 계획 이력으로 보존하며 현재 Phase 번호·상태 기준으로 사용하지 않는다.
+
 > 문서 목적: 음악 생성·분리·음색 변환 후보를 로컬에서 독립 검증한다.
 > 현재 상태: **계획**
 

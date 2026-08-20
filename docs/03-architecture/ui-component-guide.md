@@ -1,5 +1,9 @@
 # UI Component Guide
 
+> 분류: [STALE / Authority 아님]
+> 현재 기준: [Frontend Architecture](frontend-architecture.md), [실제 Frontend components](../../frontend/components)
+> 안내: 실제 component·feature tree와 재검증 전까지 계획 참고 문서로만 사용한다.
+
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
 > 설계 방식: Atomic Design

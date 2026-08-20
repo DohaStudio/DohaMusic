@@ -1,9 +1,26 @@
 # 시스템 아키텍처
 
+> 문서 역할: 현재 시스템 연결과 상세 Architecture 탐색의 Canonical Authority
 > 문서 목적: 구현된 구성요소와 향후 확장 경계를 정의한다.
 > 현재 상태: **Legacy·Responsive Studio MVP 구현 / AI-native DAW Product Runtime·외부 Provider 전환 [계획]**
 > 최종 수정일: 2026-08-20
 > 관련 문서: [현재·목표 아키텍처](ai-native-daw-target-architecture.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [Workspace Artifact 모델](workspace-artifact-model.md)
+
+이 문서는 상위 연결과 CURRENT 경계를 설명한다. AI-native DAW의 상세 TARGET Workflow와 NOT IMPLEMENTED 목록은 [목표 아키텍처](ai-native-daw-target-architecture.md), 개별 API·DB·Artifact 계약은 연결된 상세 문서를 Authority로 사용한다.
+
+| 질문 | CURRENT | TARGET·상세 Authority |
+|---|---|---|
+| DohaMusic 책임 | Frontend·FastAPI·Workspace·Job·결과·Mixer | Project/Composition Runtime과 Provider Orchestrator |
+| DohaLM·DohaAudio·DohaVocal 책임 | production 통합 미구현, 로컬 호환 Adapter 유지 | [저장소와 Provider 경계](repository-provider-boundaries.md) |
+| Workspace·AssetVersion·Artifact | Entity·Service·공개 API와 local Storage 기반 존재 | [Workspace Artifact 모델](workspace-artifact-model.md), [Storage 계약](artifact-storage-contract.md) |
+| Job | Legacy ThreadPool과 Workspace Job 실행 기반·API 존재 | 실제 Provider transport·background daemon 미구현 |
+| CompositionSnapshot | 불변 Snapshot Entity·Application·API 기반 존재 | Track·Clip 편집 Runtime과 후보 commit Workflow 미구현 |
+| MusicIntent | 문서상 Common Contract 재사용 기준, Runtime 미연결 | DohaLM 제안 → DohaMusic orchestration → Provider 실행 |
+| ReferenceAnalysis | Runtime·ingestion 미구현 | 허용 Reference → FeatureRecord → planning context |
+| LearningCandidate | review·Dataset 연결 미구현 | RightsMetadata·TrainingEligibility·DatasetVersion Gate |
+| Composition Evaluation | 통합 완성곡 QA 미구현 | product-only CompositionEvaluationRun 후보와 RevisionPlan |
+
+`TimelineSelection`과 `CompositionEvaluationRun`은 DohaMusic product-domain 후보이며 Common Contract schema가 아니다. `EvaluationRun`은 TrainingRun·checkpoint·model 평가 의미를 유지한다.
 
 ```mermaid
 flowchart TB

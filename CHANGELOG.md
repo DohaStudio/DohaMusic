@@ -8,6 +8,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Canonical Authority와 Navigation 정리
+
+- README를 CURRENT·TARGET·Architecture·개발 Track·질문 중심 Navigation·Safety 중심의 Repository entry point로 단순화했다.
+- 추적 중인 Markdown 문서를 CANONICAL·SUPPORTING·HISTORICAL·SUPERSEDED·STALE로 분류하는 `DOCUMENT_AUTHORITY_MAP`과 후속 통합·deprecate·archive 위험을 기록한 `DOCUMENT_CLEANUP_PLAN`을 추가했다.
+- Product·System Architecture·Master Roadmap·실행 Roadmap·Operations·DoD의 책임을 구분하고 PR #94 병합 증거에 따라 AI-native DAW D0 문서 기준을 완료로 갱신했다.
+- 오래된 MVP·Phase 계획과 구현 전 Frontend 설계안에 현재 Authority가 아님을 표시했다. 파일 이동·삭제와 제품 코드·DB·Provider·Common Contract·Dataset·Training 변경은 수행하지 않았다.
+
 ### 문서 — AI-native DAW 제품 목표 정합성
 
 - DohaMusic 장기 목표를 AI-native DAW, Project/Composition Runtime, Provider Orchestrator, Composition Evaluation/QA와 Continuous Learning Hub로 정의하고 현재 Responsive Studio MVP와 TARGET·NOT IMPLEMENTED를 분리했다.

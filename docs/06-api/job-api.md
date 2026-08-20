@@ -9,7 +9,7 @@
 
 `GET /api/generations/{id}`와 생성·Stem·Voice·Pipeline API는 기능별 Legacy Job Table, 기존 Worker와 file row를 사용한다. Pipeline cancel·retry도 Legacy `pipeline_jobs` 계약이다. 이 완료 상태는 Workspace `jobs` Aggregate 또는 `/api/v1/jobs` 구현 완료를 의미하지 않는다.
 
-## Workspace Job — [구현·검증 완료, develop 병합 전]
+## Workspace Job — [구현·검증 완료]
 
 공식 API는 다음 5개다.
 
@@ -27,4 +27,4 @@ JobInput·JobOutput 독립 Endpoint는 제공하지 않는다. 목록은 effecti
 
 Job Router는 effective Workspace와 Owner를 신뢰된 context에서 파생하고 Repository·Session·CursorCodec·Worker·Provider를 직접 사용하지 않는다. 생성은 필수 `Idempotency-Key`와 Service의 원래 `201`을 재생하며 retry는 `202`를 재생한다. 상세는 정렬된 Input·Output·ModelUsage와 안전한 오류만 반환하고 claim·lease·경로·credential은 공개하지 않는다.
 
-현재 Resource API는 30/64, Workspace Job API는 5/5다. 실제 Provider transport와 background daemon·scheduler는 미구현이며 HTTP 생성은 queued Job만 기록한다. 이 Draft PR이 develop에 병합되기 전까지 Backend Foundation Complete와 Generative AI Track OPEN 상태는 선언하지 않는다.
+현재 Resource API는 30/64, Workspace Job API는 5/5다. 실제 Provider transport와 background daemon·scheduler는 미구현이며 HTTP 생성은 queued Job만 기록한다. 운영 Generative AI Track 승격은 실제 Provider·background runtime Gate를 별도로 통과해야 한다.

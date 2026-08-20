@@ -1,6 +1,8 @@
 # AI-native DAW 제품 방향
 
-> 문서 상태: [계획]
+> 문서 역할: DohaMusic 제품 목표와 CURRENT/TARGET/NOT IMPLEMENTED의 Canonical Authority
+> 문서 상태: [운영 기준]
+> 제품 구현 상태: [CURRENT MVP 존재 / TARGET DAW 미구현]
 > 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic 장기 제품 목표, Composition Runtime, Composition Evaluation, Continuous Learning
 > 관련 문서: [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Common AI Contract 소비자 기반](../03-architecture/common-ai-contract-consumer.md), [Master Roadmap](../../MASTER_ROADMAP.md)

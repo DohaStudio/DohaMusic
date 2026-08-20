@@ -1,5 +1,9 @@
 # Web MVP 계획 연결
 
+> 분류: [SUPERSEDED]
+> 현재 기준: [Frontend Roadmap](frontend-roadmap.md), [Phase 8 DoD](../docs/DoD/Phase-08.md)
+> 안내: 대체 전 계획 이력으로 보존하며 현재 Frontend Authority로 사용하지 않는다.
+
 > 문서 상태: [대체됨]
 > 최종 수정일: 2026-08-01
 > 대체 문서: [Doha Studio Frontend Roadmap](frontend-roadmap.md)
