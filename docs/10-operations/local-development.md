@@ -1,5 +1,21 @@
 # 로컬 개발 환경
 
+> 문서 역할: 실행·환경·운영 문서의 Canonical entry point
+
+## 운영 문서 Navigation
+
+| 목적 | 문서 |
+|---|---|
+| 환경 변수와 안전한 기본값 | [환경 변수](environment-variables.md) |
+| 배포 준비 상태 | [배포 가이드](deployment-guide.md) |
+| 일반 장애 대응 | [문제 해결](troubleshooting.md) |
+| 로그와 관측성 | [로깅과 모니터링](logging-and-monitoring.md) |
+| Workspace DB 적용·복구 | [Migration Runbook](workspace-db-migration-runbook.md), [Backup·Rollback](workspace-db-backup-rollback-policy.md) |
+| Artifact ingestion·reconciliation | [Trusted Ingestion](artifact-storage-ingestion.md), [Reconciliation](artifact-storage-reconciliation.md) |
+| Voice Enrollment 운영 검증 | [운영·수동 체크리스트](voice-enrollment-operations-checklist.md) |
+
+Production 배포는 아직 완료되지 않았다. 아래 절차는 로컬 개발·검증 기준이며 공개 운영 승인을 뜻하지 않는다.
+
 > 문서 목적: Backend와 선택적 AI 런타임을 재현 가능하게 분리한다.
 > 현재 상태: **Backend·ACE-Step·Demucs 격리 실행 절차 검증**
 

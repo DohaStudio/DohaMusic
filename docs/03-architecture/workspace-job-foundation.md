@@ -203,11 +203,11 @@ JobInput·JobOutput 독립 Endpoint는 제공하지 않는다.
 | `POST` | `/api/v1/jobs/{job_id}/cancel` | [완료] |
 | `POST` | `/api/v1/jobs/{job_id}/retry` | [완료] |
 
-현재 구현·검증 기준 Resource API는 30/64이며 Job API는 5/5다. 이 Draft PR이 develop에 병합되기 전에는 완료 Gate를 통과한 것으로 선언하지 않는다.
+현재 구현·검증 기준 Resource API는 30/64이며 Job API는 5/5다. 실제 Provider transport와 background runtime은 별도 완료 Gate다.
 
 Backend Foundation Complete는 Asset·AssetVersion·Artifact·CompositionSnapshot에 더해 이 문서의 role·Artifact 선택·owner scope·Cursor/Index·idempotency·상태·cancel·retry·claim/lease·crash recovery·Provider 경계·completion UoW와 공식 Job API 5개가 모두 구현·검증·병합된 때만 선언한다.
 
-이 Draft PR 병합 전에는 Generative AI Track을 OPEN으로 표시하지 않는다. 병합 뒤 문서·Actions Gate가 유지되면 Backend Foundation Complete와 Generative AI Track OPEN 전환을 별도 확인한다. 실제 Provider transport나 background daemon 완료를 뜻하지 않는다.
+Job Service·Completion UoW·Worker execution foundation·공식 API 5개는 `develop`에 반영됐다. 실제 Provider transport, background daemon·scheduler와 운영 Generative AI Track 승격은 별도 Gate이며 현재 완료가 아니다.
 
 ## 16. source Migration과 남은 범위
 

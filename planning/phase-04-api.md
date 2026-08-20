@@ -1,5 +1,9 @@
 # Phase 4: API 구축
 
+> 분류: [SUPERSEDED]
+> 현재 기준: [실행 로드맵](../ROADMAP.md), [API 개요](../docs/06-api/api-overview.md)
+> 안내: 초기 API 계획 이력으로 보존하며 현재 Endpoint·상태 기준으로 사용하지 않는다.
+
 > 문서 목적: 비동기 파이프라인을 안전한 서비스 API로 노출하는 계획을 정의한다.
 > 현재 상태: **계획**
 

@@ -89,9 +89,8 @@ if issues:
 
 ## Rollback과 후속 작업
 
-Draft PR 병합 전에는 PR을 닫고 branch를 보존한다. 향후 병합 뒤에는 dependency 선언,
-loader/adapter, 테스트와 이 문서를 한 개의 새 revert PR로 함께 되돌린다. `reset`, force push,
-`develop`·`main` 직접 수정은 사용하지 않는다.
+Rollback이 필요하면 dependency 선언, loader/adapter, 테스트와 이 문서를 한 개의 새 revert PR로
+함께 되돌린다. `reset`, force push, `develop`·`main` 직접 수정은 사용하지 않는다.
 
 후속 PR은 실제 RightsMetadata DTO와 consent/provenance governance·영속화 기준을 먼저 확정한 뒤
 opt-in 호출자를 연결한다. ProviderCapability·MusicIntent·ModelVersion·ModelManifest와 Runtime,

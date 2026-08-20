@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` Resource Endpoint 30개 구현, Workspace Job API 5/5, 나머지 34개 미구현; develop 병합 전 Gate
+> 구현 상태: `/api/v1` Resource Endpoint 30개 구현, Workspace Job API 5/5, 나머지 34개 미구현
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md)
 
 ## 1. 목적

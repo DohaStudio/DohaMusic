@@ -6,7 +6,7 @@
 
 이 Track은 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성이 끝나도 DAW Runtime이 구현된 것으로 보지 않는다. 각 단계의 구현·검증·문서·ADR·Git 증거가 모두 있어야 다음 상태로 승격한다.
 
-## D0. 제품 목표 문서 정합성 — [진행 중]
+## D0. 제품 목표 문서 정합성 — [완료]
 
 - [x] CURRENT, TARGET, NOT IMPLEMENTED를 분리한 제품 방향 문서
 - [x] 현재·목표 Architecture와 Reference·Creation·Editing·QA·Learning 흐름
@@ -14,9 +14,9 @@
 - [x] Common Contract 재사용·금지·product-only 후보 정합성 표
 - [x] 기존 Phase 8 MVP 완료와 장기 DAW TARGET 분리
 - [x] broken link·Markdown·금칙 표현·`git diff --check` 검증
-- [ ] 한국어 커밋과 원격 작업 브랜치 Push
-- [ ] `develop` 대상 Draft PR 생성·검토
-- [ ] `develop` 병합과 병합 후 검증
+- [x] 한국어 커밋과 원격 작업 브랜치 Push
+- [x] `develop` 대상 Draft PR 생성·검토
+- [x] PR #94 squash merge와 병합 후 동일 tree 검증
 
 ## D1. Composition Read Workspace — [계획]
 

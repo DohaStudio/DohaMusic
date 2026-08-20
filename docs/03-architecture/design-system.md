@@ -1,5 +1,9 @@
 # Doha Studio Design System
 
+> 분류: [STALE / Authority 아님]
+> 현재 기준: [Frontend Architecture](frontend-architecture.md)
+> 안내: 실제 CSS token·component와 재검증 전까지 계획 참고 문서로만 사용한다.
+
 > 문서 상태: [계획]
 > 최종 수정일: 2026-07-31
 > 관련 문서: [Frontend Overview](frontend-overview.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [디자인 레퍼런스 정책](design-reference-policy.md)
