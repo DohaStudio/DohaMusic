@@ -108,7 +108,7 @@ Retry는 원본 상태를 되돌리지 않고 항상 새 `Job`을 만들며 `ret
 - distinct key를 사용한 동일 원본의 여러 수동 retry는 허용한다.
 - cancel은 상태 전이 자체가 idempotent하므로 별도 idempotency record를 요구하지 않는다.
 
-기존 `idempotency_records`를 재사용한다. Provider transport에서는 HTTP `Idempotency-Key` header만 authoritative하게 사용하고 body에는 중복 key를 싣지 않는다. 값은 Workspace `job_id`에서 결정되는 Provider invocation key이며 같은 key·fingerprint는 같은 Provider 실행을 반환해야 한다.
+기존 `idempotency_records`를 재사용한다. Provider invocation key는 Workspace `job_id`에서 결정하며 전달 위치는 versioned Provider schema를 따른다. DohaVocal `0.1.0`은 body `idempotency_key`가 필수이므로 해당 Consumer Adapter가 body에 전달한다. 같은 key·fingerprint는 같은 Provider 실행을 반환해야 하며 Provider별 전달 위치를 동시에 두 곳에 중복하지 않는다.
 
 ## 9. Owner·Workspace·Collection 계약
 

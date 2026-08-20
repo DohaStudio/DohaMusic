@@ -2,7 +2,7 @@
 
 > 상태: [제안]
 > 작성일: 2026-08-05
-> 최종 수정일: 2026-08-08
+> 최종 수정일: 2026-08-19
 > 관련 기능: AI Provider 저장소 분리와 단계적 Runtime 전환
 > 관련 문서: [책임 경계](../03-architecture/repository-provider-boundaries.md), [AI Pipeline](../03-architecture/ai-pipeline.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Dataset·Artifact 정책](../05-data/local-dataset-artifact-policy.md), [Model Manifest](../04-models/provider-model-manifest.md), [전환 로드맵](../../planning/repository-separation-roadmap.md), [DohaStudio 공통 Provider 계약](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md)
 > 관련 PR: 이 문서를 추가한 `develop` 대상 PR
@@ -19,7 +19,7 @@ DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Legacy·Comp
 
 1. 저장소 책임 분리와 Runtime 분리를 별도 단계로 수행한다.
 2. DohaMusic은 제품 서비스와 Workspace·Job Orchestration, Provider 선택·호출, 작업 상태, 결과·Artifact 관리, 상업 이용과 접근 권한을 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow로 유지한다.
-3. DohaLM은 Lyrics, DohaAudio는 Music Generation·Stem Separation, DohaVocal은 Singing Voice·Voice Conversion의 Dataset·학습·평가·Model Manifest·Runtime을 소유한다. DohaAudio와 DohaVocal 저장소는 존재하며 해당 Runtime 기능은 현재 `[계획]`이다.
+3. DohaLM은 Lyrics, DohaAudio는 Music Generation·Stem Separation, DohaVocal은 Singing Voice·Voice Conversion의 Dataset·학습·평가·Model Manifest·Runtime을 소유한다. DohaVocal은 Fake Runtime Foundation과 DohaMusic Consumer Contract Foundation까지 구현됐고 Production Runtime 연동은 `[미구현]`이다.
 4. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다.
 5. ACE-Step·Demucs·Seed-VC의 기존 Adapter·Runner는 새 Runtime 계약이 검증될 때까지 로컬 subprocess 호환 계층으로 유지한다.
 6. 장기 Provider 연동은 versioned HTTP 또는 동등한 독립 Runtime 계약을 사용한다. 구체 protocol과 배포 기술은 구현 전 검증으로 확정한다.
@@ -81,7 +81,7 @@ DohaMusic은 `MusicGenerator`, `StemSeparator`, `VoiceConverter`와 Legacy·Comp
 
 ## 영향
 
-이번 결정은 문서와 향후 구현 위치만 변경한다. 현재 Runtime 코드, API, DB, Adapter 기본값, Pipeline 단계와 파일 계약은 변경하지 않는다. DohaAudio·DohaVocal Runtime API, Singing Voice, HTTP Provider API, Artifact URI와 공통 Model Registry는 구현 완료가 아니다.
+ADR-034에서 이 결정의 Phase B 첫 단계로 DohaVocal Fake Runtime의 4개 capability·9개 operation을 해석하는 DohaMusic Consumer Contract Foundation을 추가했다. 현재 Runtime 기본값, 공개 API, DB, Pipeline 단계와 파일 계약은 변경하지 않는다. 실제 Singing Voice·Voice Conversion, Production HTTP transport, Artifact payload·URI와 공통 Model Registry는 구현 완료가 아니다.
 
 ADR-005의 subprocess 격리, ADR-007의 작업별 ACE-Step 수명주기, ADR-008·009의 Provider 검증과 ADR-012의 Orchestrator 원칙은 호환 기간에 유지한다. 실제 독립 Runtime을 도입할 때 해당 ADR의 재검토 조건을 충족한 것으로 보고 구현 세부 ADR을 추가하거나 상태를 갱신한다.
 

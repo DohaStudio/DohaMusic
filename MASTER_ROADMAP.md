@@ -36,12 +36,12 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
-| Phase A Boundary Definition | [진행 중] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화, 완료 Gate 미충족 |
-| Phase B New Implementation Separation | [계획] | DohaAudio·DohaVocal 저장소 존재, Provider Runtime·Client 미구현 |
+| Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract Foundation 구현, Production transport·실제 model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소는 존재하며 Runtime 기능은 `[계획]`이다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract Foundation은 구현했지만 Production transport·Artifact payload·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
 
 ## AI-native DAW 제품 전환 상태
 
@@ -103,7 +103,7 @@ Track    Workspace Artifact·Job      [진행 중]
   ↓ 병행
 Phase 9  Production                  [계획]
   ↓ 병행
-Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획]
+Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 / Phase C~D 계획]
 ```
 
 | Phase | 상태 | 진행률 | 사실 기준 | DoD |
@@ -124,7 +124,7 @@ Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5 구현; 실제 Provider transport·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
-| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료 Gate 미충족, Phase B~D 미착수 | [Provider Separation](docs/DoD/Provider-Separation.md) |
+| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract Foundation 구현, Production transport·Artifact 통합 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 

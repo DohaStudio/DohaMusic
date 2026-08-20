@@ -1,9 +1,9 @@
 # DohaMusic Provider API 계약
 
-> 문서 상태: [계획]
-> 최종 수정일: 2026-08-05
+> 문서 상태: [부분 구현]
+> 최종 수정일: 2026-08-19
 > 관련 기능: DohaMusic Workspace Job Orchestrator와 DohaLM·DohaAudio·DohaVocal Provider 연결
-> 구현 상태: 의미·REST 계약만 정의, Provider HTTP Runtime·Client·Endpoint 미구현
+> 구현 상태: DohaVocal `0.1.0` Consumer Client·DTO·fake transport contract test 구현, Production HTTP transport 미구현
 > 관련 문서: [Workspace API 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [AI Pipeline](../03-architecture/ai-pipeline.md)
 
 ## 1. 목적
@@ -38,7 +38,7 @@ flowchart LR
 |---|---|---|
 | `lm` | Lyrics generation·revision·analysis | DohaLM 계약에 따라 [계획] |
 | `audio` | Music generation·Stem separation·Audio analysis | DohaAudio Runtime API [계획] |
-| `vocal` | Singing voice·Voice conversion·Vocal correction | DohaVocal Runtime API [계획] |
+| `vocal` | Singing voice·Voice conversion·Vocal correction·analysis | Fake Runtime·DohaMusic Consumer Contract Foundation [구현], 실제 model·Production transport [미구현] |
 
 Provider는 Workspace Entity가 아닙니다. Provider identity와 capability는 Provider Contract와 Model Manifest에서 관리합니다.
 
@@ -107,7 +107,7 @@ Idempotency-Key: job:<workspace-job-id>
 ### 5.1 입력 규칙
 
 - DohaMusic이 먼저 Workspace Job ID를 발급하고 같은 `job_id`로 Provider 실행을 추적합니다.
-- transport idempotency는 HTTP `Idempotency-Key` header만 사용하며 body에 중복 field를 두지 않습니다.
+- transport idempotency 전달 위치는 versioned Provider request schema의 단일 source를 따릅니다. DohaVocal `0.1.0`은 body `idempotency_key`를 사용합니다.
 - Provider가 Workspace DB의 Asset, Version, Snapshot과 Approval을 직접 조회·수정하지 않습니다.
 - 입력 Artifact는 Provider가 허용된 Artifact resolver를 통해 읽을 수 있는 opaque ID 또는 승인된 URI로 전달합니다.
 - byte-level 입력은 role과 exact Artifact ID를 함께 전달하며 AssetVersion에서 latest/first Artifact를 자동 선택하지 않습니다.
@@ -230,7 +230,7 @@ Provider 내부 stack trace, command, PID, CUDA path, model path와 Dataset 내�
 - Provider는 capability response에 지원 contract version을 명시합니다.
 - 호환되지 않는 요청은 `409 PROVIDER_CONTRACT_VERSION_UNSUPPORTED`로 거부합니다.
 - field 삭제·의미 변경은 새 Provider major contract version에서 수행합니다.
-- Provider transport의 canonical idempotency 전달은 HTTP `Idempotency-Key` header 하나로 고정합니다. conceptual Common Specification의 `idempotency_key`는 이 header로 mapping하고 body에는 중복 key를 싣지 않습니다.
+- Idempotency 전달 위치는 versioned Provider request schema를 따릅니다. DohaVocal `0.1.0`은 body `idempotency_key`가 필수이므로 Consumer Adapter가 body에 전달합니다. 새 transport가 header를 사용할 경우 Provider contract version과 schema에서 한 source를 명시하고 drift test를 함께 갱신합니다.
 - Provider는 같은 key·fingerprint에 같은 `job_id`를 반환합니다.
 
 ## 12. 접근 제어

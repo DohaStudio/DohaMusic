@@ -2,12 +2,12 @@
 
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-20
-> 기준: `develop@59157f63990e0898e39b51e267502cdc8c1fe974`
+> 기준: `develop@2cd617eff031a1e85d1259f25f3aa58a75bb8360`
 > 관련 문서: [README](../README.md), [Cleanup Plan](DOCUMENT_CLEANUP_PLAN.md), [Master Roadmap](../MASTER_ROADMAP.md), [실행 로드맵](../ROADMAP.md)
 
 ## 1. 목적과 분류 원칙
 
-이 문서는 DohaMusic의 추적 중인 Markdown 문서 257개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
+이 문서는 DohaMusic의 추적 중인 Markdown 문서 259개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
 
 | Classification | 의미 |
 |---|---|
@@ -96,6 +96,7 @@
 | [docs/03-architecture/deployment-architecture.md](03-architecture/deployment-architecture.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/design-reference-policy.md](03-architecture/design-reference-policy.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/dohalm-integration.md](03-architecture/dohalm-integration.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
+| [docs/03-architecture/dohavocal-consumer-contract.md](03-architecture/dohavocal-consumer-contract.md) | SUPPORTING | DohaVocal `0.1.0` Consumer DTO·mapping·transport port 계약 | [docs/03-architecture/system-architecture.md](03-architecture/system-architecture.md) | KEEP |
 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | SUPPORTING | 세부 Architecture·계약 | — | MERGE |
 | [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | SUPPORTING | 세부 Architecture·계약 | — | MERGE |
 | [docs/03-architecture/history-management.md](03-architecture/history-management.md) | SUPPORTING | 세부 Architecture·계약 | — | MERGE |
@@ -246,6 +247,7 @@
 | [docs/11-decisions/ADR-031-workspace-rest-api-contract.md](11-decisions/ADR-031-workspace-rest-api-contract.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-032-artifact-storage-resolver-integrity.md](11-decisions/ADR-032-artifact-storage-resolver-integrity.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-033-workspace-job-execution-boundary.md](11-decisions/ADR-033-workspace-job-execution-boundary.md) | HISTORICAL | 설계 결정 이력 | — | KEEP |
+| [docs/11-decisions/ADR-034-dohavocal-consumer-contract.md](11-decisions/ADR-034-dohavocal-consumer-contract.md) | HISTORICAL | DohaVocal Consumer 계약 결정 이력 | — | KEEP |
 | [reports/evaluations/EVAL-001-ace-step-listening-evaluation.md](../reports/evaluations/EVAL-001-ace-step-listening-evaluation.md) | HISTORICAL | 품질·사용자 평가 이력 | — | KEEP |
 | [reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md](../reports/evaluations/EVAL-002-stem-separation-listening-evaluation.md) | HISTORICAL | 품질·사용자 평가 이력 | — | KEEP |
 | [reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md](../reports/evaluations/EVAL-003-seed-vc-listening-evaluation.md) | HISTORICAL | 품질·사용자 평가 이력 | — | KEEP |

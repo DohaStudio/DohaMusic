@@ -1,25 +1,25 @@
 # AI Provider 저장소 분리 로드맵
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-19
 > 관련 기능: DohaLM·DohaAudio·DohaVocal 책임 분리와 Runtime 전환
 > 관련 문서: [책임 경계](../docs/03-architecture/repository-provider-boundaries.md), [DoD](../docs/DoD/Provider-Separation.md), [ADR-028](../docs/11-decisions/ADR-028-provider-runtime-artifact-contract.md)
 
 저장소 책임 확정, 신규 구현 분리, 기존 Runtime 이전과 Legacy 제거를 서로 다른 단계로 수행한다. 각 단계는 이전 단계의 계약과 검증 증거를 충족한 뒤 진행하며 Big-bang migration을 하지 않는다.
 
-## Phase A — Boundary Definition [진행 중]
+## Phase A — Boundary Definition [완료]
 
 - [x] 저장소별 책임 경계 정의
 - [x] Provider 계약의 필수 범위 정의
 - [x] 로컬 Dataset·Artifact 정책 정의
 - [x] Model Manifest 최소 계약 정의
 - [x] Provider Runtime과 Artifact 계약 ADR 작성
-- [ ] `develop` 대상 PR 검토와 병합
-- [ ] 병합 후 링크·상태·원격 `develop` 검증
+- [x] `develop` 대상 PR #50 검토와 병합
+- [x] PR #50 병합 후 링크·상태·원격 `develop` 검증
 
-Phase A는 문서와 계약 방향만 제안한다. DohaAudio·DohaVocal 저장소는 이미 존재하며, 코드 이동, Runtime API 구현과 운영 Provider 승격은 포함하지 않는다.
+Phase A는 문서와 계약 방향을 확정했다. DohaVocal은 이후 Fake Runtime과 DohaMusic Consumer Contract Foundation을 구현했지만 실제 model·Production transport·Artifact 통합과 운영 Provider 승격은 포함하지 않는다.
 
-## Phase B — New Implementation Separation [계획]
+## Phase B — New Implementation Separation [진행 중]
 
 - 신규 Music Generator를 DohaAudio에서 구현한다.
 - 신규 Singing Voice·Voice Conversion을 DohaVocal에서 구현한다.
