@@ -5,6 +5,8 @@
 
 운영 배포 전 인증·권한, TLS, 비밀 관리, DB 백업·복구, 객체 저장소, 큐 내구성, GPU 격리, 업로드 제한, 동의·삭제 흐름, 로그 마스킹, 모니터링과 롤백을 검증해야 한다.
 
+CURRENT는 로컬 단일 사용자·no-product-login이고 production topology는 미확정이다. 운영 배포 승격 전에는 [Reviewer Authentication 배포 권위](../09-security/reviewer-authentication-deployment-authority.md)의 semantic reviewer population·interaction, upstream identity issuer, service authentication, delegated assertion, recovery·revocation, secret manager와 private mapping store 결정을 완료해야 한다. 이 결정 전에는 DohaAudio authentication Provider를 활성화하지 않는다.
+
 정확한 인프라와 명령은 구현·위협 모델·부하 테스트 뒤에 작성한다. 자동 배포가 저장소에 추가되더라도 문서 작업만으로 실행하지 않는다.
 
 ## Voice Provider 배포 게이트

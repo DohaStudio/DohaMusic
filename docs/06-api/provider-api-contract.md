@@ -240,6 +240,7 @@ Provider 내부 stack trace, command, PID, CUDA path, model path와 Dataset 내�
 - 단일 사용자 개발 환경에서도 Provider API를 공개 CORS surface로 간주하지 않습니다.
 - Provider 호출 Metadata는 최소화하며 개인 음성·Consent·상업 승인 원문을 전달하지 않습니다.
 - Provider 결과는 DohaMusic의 Workspace 권한과 Approval을 자동 획득하지 않습니다.
+- Orchestrator service identity는 human reviewer identity가 아닙니다. Human semantic review가 필요할 때는 [Reviewer Authentication 배포 권위](../09-security/reviewer-authentication-deployment-authority.md)의 delegated identity 방향과 DohaAudio private mapping·ReviewerAuthority Gate를 별도로 통과합니다.
 
 ## 13. 미확정 사항
 
@@ -251,3 +252,5 @@ Provider 내부 stack trace, command, PID, CUDA path, model path와 Dataset 내�
 - Provider service authentication과 key rotation
 - Health·Readiness timeout, circuit breaker와 retry 정책
 - Provider invocation key의 rotation·retention과 감사 보존 기간
+- Production topology, semantic reviewer population·interaction과 upstream human authentication Provider
+- Delegated DohaMusic reviewer assertion의 signing·freshness·replay·key rotation 계약
