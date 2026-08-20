@@ -11,6 +11,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — DohaVocal Manifest fixture 정합화
+
+- DohaVocal stable wire fixture의 Fake Model Manifest ID를 실제 Runtime authority인 `dohavocal.fake-model@0.1.0`으로 정합화하고, canonical Provider ID `dohavocal`과의 분리를 회귀 테스트로 고정했다.
+
 ### 문서 — D1 Composition Read 선행 계약
 
 - Workspace v1을 Composition read authority로 정하고 Legacy silent fallback과 GET 자동 bootstrap·backfill·selection 변경을 금지했다.
