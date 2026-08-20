@@ -1,7 +1,7 @@
 # Voice Enrollment 데이터 모델
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-02
+> 최종 수정일: 2026-08-20
 > 관련 기능: F6 Guided Voice Enrollment
 > 관련 문서: [현재 ERD](erd.md), [현재 테이블 정의](table-definition.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [ADR-025](../11-decisions/ADR-025-voice-profile-multiple-samples-reference.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)
 > 구현 상태: 기존 Alembic `20260801_0010`·`0011` schema를 변경하지 않고 Enrollment API·Storage·정규화·만료·cleanup scheduler와 crash recovery를 구현했다. retry 횟수와 metric은 process-local이고 기존 lifecycle 상태·실패 코드·갱신 시각이 재시작 복구의 영속 근거다.
@@ -57,7 +57,7 @@ Sample은 `enrollment_id` 또는 `voice_profile_id` 중 하나 이상을 가져�
 
 상태는 `DRAFT`, `READY_TO_SUBMIT`, `SUBMITTING`, `COMPLETED`, `FAILED`, `CANCELLED`, `EXPIRED`, `DELETE_PENDING`, `DELETE_FAILED`다. `COMPLETED → DRAFT`, `CANCELLED → SUBMITTING`, `EXPIRED → READY_TO_SUBMIT` 같은 역전이는 Repository에서 거부한다.
 
-cleanup 상태는 `NOT_REQUESTED`, `PENDING`, `RUNNING`, `FAILED`, `COMPLETED`다. 이번 구현은 상태와 조회 기반만 제공하며 실제 scanner·worker는 실행하지 않는다.
+cleanup 상태는 `NOT_REQUESTED`, `PENDING`, `RUNNING`, `FAILED`, `COMPLETED`다. process-local scheduler가 만료·cleanup retry·orphan scan을 주기적으로 실행하고 startup에서 중단 상태를 복구한다. 분산 scheduler ownership과 retry 횟수·metric 영속화는 Phase 9 후속 범위다.
 
 ## 4. `voice_samples`
 
@@ -116,4 +116,4 @@ Alembic `20260801_0011`도 파일에 접근하지 않는다. `0010`으로 downgr
 
 Enrollment row가 없고 모든 Sample이 `LEGACY_REFERENCE`일 때만 `20260731_0009`로 구조적 downgrade할 수 있다. 신규 Enrollment 또는 비레거시 Sample이 있으면 데이터 유실을 막기 위해 downgrade를 명시적으로 차단한다.
 
-Runtime은 별도 `idempotency_records`에 raw key가 아닌 SHA-256 hash와 request fingerprint·resource 결과·24시간 만료를 기록한다. 24시간 sliding/7일 absolute lazy 만료와 즉시 cleanup은 구현했지만 주기적 scan·retry는 후속이다. F6 Sample은 별도 학습 opt-in·lineage·삭제 계약 없이 Phase 7 Dataset에 편입하지 않는다.
+Runtime은 별도 `idempotency_records`에 raw key가 아닌 SHA-256 hash와 request fingerprint·resource 결과·24시간 만료를 기록한다. 24시간 sliding/7일 absolute 만료, 즉시 cleanup, process-local 주기 scan·bounded retry와 startup crash recovery를 구현했다. 다중 replica scheduler·영속 retry metric은 후속이다. F6 Sample은 별도 학습 opt-in·lineage·삭제 계약 없이 Phase 7 Dataset에 편입하지 않는다.

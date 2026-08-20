@@ -1,10 +1,12 @@
-# ERD
+# CURRENT Runtime ERD
 
-> 현재 Runtime subset: 14개 Table, 운영 source of truth 유지
+> 문서 상태: [완료: CURRENT Runtime]
+> 문서 범위: Workspace schema를 제외한 운영 source of truth 14개 Table
 > Alembic source head·실제 사용자 DB: `20260810_0017`; source metadata·실제 Application Table 36개
-> Asset 중심 목표 구조: [목표 ERD](database-redesign-erd.md) — [진행 중]
+> 최종 수정일: 2026-08-20
+> TARGET 구조: [TARGET ERD](database-redesign-erd.md) — [부분 구현]
 
-이 Mermaid는 전체 Application schema가 아니라 기존 Runtime 14개 Table 관계만 나타냅니다. Workspace 21개 Table과 `artifact_storage_locations` Catalog는 실제 사용자 DB에 additive 적용됐지만 row·backfill·dual write가 없으므로 [목표 ERD](database-redesign-erd.md)에 분리합니다. Runtime 14개 Table은 계속 운영 source of truth입니다.
+이 Mermaid는 전체 36개 Application schema가 아니라 기존 Runtime 14개 Table 관계만 나타냅니다. Workspace 도메인 21개 Table과 `artifact_storage_locations` Catalog 1개는 실제 사용자 DB에 additive 적용됐지만 backfill·dual write·Runtime read 전환이 없으므로 [TARGET ERD](database-redesign-erd.md)에 분리합니다. Runtime 14개 Table은 계속 운영 source of truth입니다.
 
 ```mermaid
 erDiagram

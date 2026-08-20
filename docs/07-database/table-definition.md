@@ -1,11 +1,22 @@
-# 테이블 정의
+# CURRENT Runtime Core Table Definition
 
-> 문서 목적: 현재 실제 테이블의 책임과 필드를 정의한다.
-> 현재 상태: **구현 완료**
-> 최종 수정일: 2026-08-05
-> Asset 중심 목표 구조: [목표 Table Definition](database-redesign-table-definition.md) — [제안], 미구현
+> 문서 상태: [완료: CURRENT Runtime Core]
+> 문서 범위: 운영 source of truth 14개 중 Core·Generation·Stem·Lyrics·Project·Voice Profile/Enrollment 10개 Table
+> 최종 수정일: 2026-08-20
+> 전체 CURRENT 관계: [CURRENT Runtime ERD](erd.md)
+> 별도 CURRENT 상세: [Pipeline Table 2개](pipeline-tables.md), [Voice Conversion Table 2개](voice-conversion-tables.md)
+> TARGET 구조: [TARGET Table Definition](database-redesign-table-definition.md) — [부분 구현]
 
 모든 ID는 애플리케이션에서 생성하는 UUID 문자열이다. 시각은 UTC 기준으로 기록한다.
+
+이 문서는 전체 36개 Application Table의 단일 정의서가 아니다. Runtime 14개 중 아래 10개만 상세 정의하며, Pipeline과 Voice Conversion 4개는 기존 상세 문서를 유지한다. Workspace 도메인 21개와 Storage Catalog 1개는 실제 schema에 추가됐지만 Runtime source of truth가 아니므로 TARGET Table Definition과 Migration 전략에서 다룬다.
+
+| 책임 | 이 문서의 CURRENT Table |
+|---|---|
+| Lyrics·Project | `lyrics_documents`, `projects` |
+| Music Generation | `generation_jobs`, `generated_files` |
+| Voice Profile·Enrollment | `voice_profiles`, `voice_enrollments`, `voice_samples`, `idempotency_records` |
+| Stem Separation | `stem_jobs`, `stem_files` |
 
 ## `lyrics_documents`
 
@@ -113,7 +124,7 @@ Alembic 0009는 `cancel_requested_at`, `cancelled_at`, `retry_of_job_id` self FK
 | `cleanup_status`, `cleanup_requested_at`, `cleanup_completed_at`, `cleanup_failure_code` | 혼합 | cleanup 상태와 evidence |
 | `created_at`, `updated_at` | 아니요 | UTC 시각 |
 
-`status, expires_at`와 `cleanup_status`를 인덱싱한다. API 진입 시 lazy 만료와 즉시 cleanup은 구현했으며 주기적 worker는 아직 구현하지 않았다.
+`status, expires_at`와 `cleanup_status`를 인덱싱한다. API 진입 시 lazy 만료와 즉시 cleanup뿐 아니라 process-local 주기 scheduler·retry·orphan scan·startup crash recovery를 구현했다. 분산 scheduler ownership과 영속 retry metric은 Phase 9 후속 범위다.
 
 ## `voice_samples`
 

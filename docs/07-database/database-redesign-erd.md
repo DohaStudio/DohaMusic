@@ -1,10 +1,14 @@
 # Asset 중심 목표 ERD
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-10
+> 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
+> 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace Entity 21개·Catalog·Job schema·Index revision `0017` 실제 DB 적용
+> 구현 상태: Workspace 도메인 Entity/Table 21개·Catalog 1개·Job schema·Index revision `0017` 실제 DB 적용
+> 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
+
+이 ERD의 Table과 주요 관계는 SQLAlchemy metadata와 additive migration에 구현돼 있다. 다만 Workspace schema가 아직 기존 Runtime 14개를 대체하지 않았으므로, “TARGET”은 Table 존재 여부가 아니라 제품 실행의 결과 소유권과 source of truth 전환 상태를 뜻한다. 현재 운영 관계는 [CURRENT Runtime ERD](erd.md)를 따른다.
 
 ## 1. 전체 ERD
 

@@ -1,10 +1,14 @@
 # Asset 중심 목표 Table Definition
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-10
+> 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
+> 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace Entity 21개·Catalog·Job schema·Index revision `0017` 실제 DB 적용
+> 구현 상태: Workspace 도메인 Entity/Table 21개·Catalog 1개·Job schema·Index revision `0017` 실제 DB 적용
+> 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
+
+이 문서의 Table은 논리 TARGET이면서 현재 SQLAlchemy metadata와 additive schema에 구현된 물리 구조다. 아직 기존 Runtime 14개의 source of truth를 대체하지 않았으며, nullable staging 강화·데이터 backfill·dual write·read 전환은 [Migration 전략](database-redesign-migration-strategy.md)의 후속 단계다.
 
 ## 1. 표기 기준
 
@@ -451,7 +455,7 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | `artifacts` | Artifact ID | checksum 조합, `retention_status`, `run_id` |
 | `artifact_storage_locations` | `artifact_id`, `(storage_backend, storage_domain, storage_key)` | Unique 제약으로 역조회 지원, 별도 Index 없음 |
 
-## 9. 구현 전 검증 항목
+## 9. source of truth 전환 전 남은 검증 항목
 
 - 순환 FK인 Asset Selection 생성 순서와 deferred constraint 지원 여부
 - SQLite와 향후 운영 DB에서 Check·partial unique 동등성
@@ -459,4 +463,4 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 - `json` field의 JSON Schema와 versioning
 - History의 논리 참조 무결성과 개인정보 최소화
 - `[완료]` 실제 사용자 DB `20260808_0015 → 20260809_0016` 안전 적용과 복구 Gate
-- Catalog Resolver 없이 DB에 absolute path를 저장하지 않는 API·Worker 전환 순서
+- 구현된 Catalog Resolver를 사용하는 API·Worker 전환 순서와 Legacy 경로 제거 Gate
