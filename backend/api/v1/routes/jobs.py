@@ -141,6 +141,7 @@ def create_job(
             composition_snapshot_id=payload.composition_snapshot_id,
             provider_id=payload.provider_id,
             model_manifest_id=payload.model_manifest_id,
+            job_input=payload.job_input,
         )
     except Exception as exc:
         raise map_job_error(exc) from exc

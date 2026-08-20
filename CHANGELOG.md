@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Workspace Job Vocal Capability Contract
+
+- Workspace Job 공식 type을 `vocal_generation`, `voice_conversion`, `vocal_correction`, `vocal_analysis` 네 DohaVocal capability로 확장하고 capability별 required/optional input role과 pre-ingestion candidate output role을 고정했다.
+- strict discriminated `job_input`을 추가해 Generation reference, Conversion source·voice reference·entity type, Correction type, Analysis type을 검증하고 `training_dataset_id=null`을 강제한다. 검증된 입력은 기존 JSON settings snapshot의 서버 예약 키에 불변·결정적으로 보존한다.
+- Project·effective Owner·선택 Composition Snapshot·동적 Manifest·idempotency fingerprint와 기존 다른 Provider의 `voice_conversion` 호환성을 유지했다. 선택 parent Version은 source의 동일 Asset 파생 계보로, Processing Chain은 effective Owner 소유로 검증한다. 공개 Job 생성 request contract는 확장되지만 Endpoint·DB·Alembic·Worker·Provider 실행·Artifact ingestion은 변경하지 않았다.
+
 ### 추가 — DohaVocal HTTP Transport Foundation
 
 - 기존 `VocalProviderTransport` port에 재사용 가능한 동기 `HttpVocalProviderTransport`를 추가하고 DohaVocal `0.1.0`의 9개 HTTP operation을 연결했다.

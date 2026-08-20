@@ -2,31 +2,40 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
+import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime, timezone
 from decimal import Decimal
-import hashlib
-import json
-import re
 from typing import Any
 from uuid import UUID
 
+from pydantic import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from backend.contracts.vocal_jobs import (
+    DOHAVOCAL_PROVIDER_ID,
+    VOCAL_JOB_INPUT_ADAPTER,
+    VOCAL_JOB_INPUT_ROLES,
+    VOCAL_JOB_INPUT_SETTINGS_KEY,
+    VOCAL_JOB_TYPES,
+    VocalJobInput,
+)
+from backend.core.cursor_pagination import CURSOR_SORT, CursorCodec, filter_fingerprint
 from backend.core.exceptions import (
     ApplicationValidationError,
     CursorConfigurationError,
-    InvalidLimitError,
-    InvalidStateError,
     IdempotencyConflictError,
     IdempotencyInProgressError,
+    InvalidLimitError,
+    InvalidStateError,
     ResourceConflictError,
     ResourceNotFoundError,
     WorkspaceBootstrapRequiredError,
 )
-from backend.core.cursor_pagination import CURSOR_SORT, CursorCodec, filter_fingerprint
 from backend.models.workspace import (
     Job,
     JobInput,
@@ -34,13 +43,13 @@ from backend.models.workspace import (
     JobStatus,
     ModelUsage,
 )
+from backend.repositories.idempotency_repository import IdempotencyRepository
 from backend.repositories.workspace import (
     AssetRepository,
     CompositionRepository,
     JobRepository,
     WorkspaceRepository,
 )
-from backend.repositories.idempotency_repository import IdempotencyRepository
 from backend.services.workspace.composition_service import (
     _normalize_idempotency_key,
     _validate_json_object,
@@ -64,6 +73,9 @@ OFFICIAL_JOB_TYPES = frozenset(
         "music_generation",
         "stem_separation",
         "voice_conversion",
+        "vocal_generation",
+        "vocal_correction",
+        "vocal_analysis",
         "audio_analysis",
         "mix",
         "export",
@@ -74,10 +86,7 @@ JOB_INPUT_ROLES: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "lyrics_generation": (frozenset(), frozenset()),
     "music_generation": (frozenset(), frozenset({"lyrics"})),
     "stem_separation": (frozenset({"source_audio"}), frozenset({"source_audio"})),
-    "voice_conversion": (
-        frozenset({"source_vocal", "voice_reference"}),
-        frozenset({"source_vocal", "voice_reference"}),
-    ),
+    **VOCAL_JOB_INPUT_ROLES,
     "audio_analysis": (frozenset({"source_audio"}), frozenset({"source_audio"})),
     "mix": (
         frozenset({"vocal", "instrumental"}),
@@ -88,6 +97,8 @@ JOB_INPUT_ROLES: dict[str, tuple[frozenset[str], frozenset[str]]] = {
 BYTE_INPUT_ROLES = frozenset(
     {
         "source_audio",
+        "melody_reference",
+        "timing_reference",
         "source_vocal",
         "voice_reference",
         "vocal",
@@ -98,6 +109,9 @@ BYTE_INPUT_ROLES = frozenset(
 )
 SNAPSHOT_ROLES_BY_INPUT_ROLE: dict[str, frozenset[str]] = {
     "lyrics": frozenset({"lyrics"}),
+    "lyrics_reference": frozenset({"lyrics"}),
+    "melody_reference": frozenset({"music"}),
+    "timing_reference": frozenset({"music", "vocal"}),
     "source_audio": frozenset({"music", "stem", "mix"}),
     "source_vocal": frozenset({"vocal"}),
     "voice_reference": frozenset({"vocal"}),
@@ -214,6 +228,7 @@ class JobService:
         composition_snapshot_id: UUID | None = None,
         provider_id: str | None = None,
         model_manifest_id: str | None = None,
+        job_input: VocalJobInput | dict[str, Any] | None = None,
     ) -> JobCreation:
         """향후 공개 Router가 사용할 owner-scoped Job 생성 경계다."""
 
@@ -226,6 +241,13 @@ class JobService:
         )
         normalized_manifest = _optional_bounded_text(
             model_manifest_id, "Model Manifest ID", MAX_MANIFEST_ID_LENGTH
+        )
+        normalized_settings, normalized_vocal_input = _normalize_vocal_contract(
+            job_type=normalized_type,
+            provider_id=normalized_provider,
+            model_manifest_id=normalized_manifest,
+            settings_snapshot=normalized_settings,
+            job_input=job_input,
         )
         normalized_contract = _bounded_text(
             api_contract_version, "API contract version", 64
@@ -265,6 +287,20 @@ class JobService:
                     required=normalized_type in REQUIRED_SNAPSHOT_JOB_TYPES,
                 )
                 asset_repository = AssetRepository(session)
+                processing_chain_id = getattr(
+                    normalized_vocal_input, "processing_chain_id", None
+                )
+                if processing_chain_id is not None:
+                    processing_chain = CompositionRepository(
+                        session
+                    ).get_processing_chain(processing_chain_id)
+                    if (
+                        processing_chain is None
+                        or processing_chain.created_by != effective_owner_id
+                    ):
+                        raise ResourceNotFoundError("ProcessingChain")
+                resolved_versions: dict[str, UUID] = {}
+                direct_references: dict[str, UUID] = {}
                 for item in normalized_inputs:
                     version_id = self._validate_contract_reference(
                         session,
@@ -274,12 +310,50 @@ class JobService:
                         project_id=project_id,
                         item=item,
                     )
+                    resolved_versions[item.input_role or ""] = version_id
+                    reference_id = item.artifact_id or item.asset_version_id
+                    if reference_id is None:
+                        raise ApplicationValidationError(
+                            "JobInput reference is required."
+                        )
+                    direct_references[item.input_role or ""] = reference_id
                     if snapshot_versions is not None and not _snapshot_has_input(
                         snapshot_versions, version_id, item.input_role
                     ):
                         raise ApplicationValidationError(
                             "JobInput의 exact AssetVersion이 CompositionSnapshot과 일치하지 않습니다."
                         )
+                parent_version_id = getattr(
+                    normalized_vocal_input, "parent_asset_version_id", None
+                )
+                if parent_version_id is not None:
+                    validated_parent_version_id = self._validate_contract_reference(
+                        session,
+                        asset_repository,
+                        effective_owner_id=effective_owner_id,
+                        workspace_id=project.workspace_id,
+                        project_id=project_id,
+                        item=JobReferenceInput(
+                            input_order=0,
+                            input_role="source_vocal",
+                            asset_version_id=parent_version_id,
+                        ),
+                    )
+                    source_version_id = resolved_versions.get("source_vocal")
+                    if source_version_id is None:
+                        raise ApplicationValidationError(
+                            "Vocal Job parent lineage에는 source_vocal이 필요합니다."
+                        )
+                    _validate_vocal_parent_lineage(
+                        asset_repository,
+                        source_version_id=source_version_id,
+                        parent_version_id=validated_parent_version_id,
+                    )
+                _validate_vocal_input_references(
+                    normalized_vocal_input,
+                    direct_references=direct_references,
+                    resolved_versions=resolved_versions,
+                )
                 job = job_repository.add_job(
                     Job(
                         project_id=project_id,
@@ -1297,6 +1371,131 @@ def _validate_job_settings(value: object) -> dict[str, Any]:
 
     inspect(normalized)
     return normalized
+
+
+def _normalize_vocal_contract(
+    *,
+    job_type: str,
+    provider_id: str | None,
+    model_manifest_id: str | None,
+    settings_snapshot: dict[str, Any],
+    job_input: VocalJobInput | dict[str, Any] | None,
+) -> tuple[dict[str, Any], VocalJobInput | None]:
+    if VOCAL_JOB_INPUT_SETTINGS_KEY in settings_snapshot:
+        raise ApplicationValidationError(
+            "settings_snapshot에 예약된 Vocal Job 입력 키를 사용할 수 없습니다."
+        )
+    if job_type not in VOCAL_JOB_TYPES:
+        if job_input is not None:
+            raise ApplicationValidationError(
+                "Vocal Job이 아닌 요청에는 job_input을 사용할 수 없습니다."
+            )
+        return settings_snapshot, None
+
+    structured_contract_required = (
+        job_type != "voice_conversion"
+        or provider_id == DOHAVOCAL_PROVIDER_ID
+        or job_input is not None
+    )
+    if not structured_contract_required:
+        return settings_snapshot, None
+    if provider_id != DOHAVOCAL_PROVIDER_ID:
+        raise ApplicationValidationError(
+            "구조화된 Vocal Job은 dohavocal Provider를 사용해야 합니다."
+        )
+    if model_manifest_id is None:
+        raise ApplicationValidationError(
+            "구조화된 Vocal Job에는 Model Manifest ID가 필요합니다."
+        )
+    if job_input is None:
+        raise ApplicationValidationError(
+            "구조화된 Vocal Job에는 job_input이 필요합니다."
+        )
+    try:
+        normalized_input = VOCAL_JOB_INPUT_ADAPTER.validate_python(job_input)
+    except ValidationError:
+        raise ApplicationValidationError(
+            "Vocal Job의 job_input 계약이 유효하지 않습니다."
+        ) from None
+    if normalized_input.job_type != job_type:
+        raise ApplicationValidationError(
+            "job_type과 job_input.job_type이 일치해야 합니다."
+        )
+    stored_settings = dict(settings_snapshot)
+    stored_settings[VOCAL_JOB_INPUT_SETTINGS_KEY] = normalized_input.model_dump(
+        mode="json"
+    )
+    return stored_settings, normalized_input
+
+
+def _validate_vocal_input_references(
+    job_input: VocalJobInput | None,
+    *,
+    direct_references: dict[str, UUID],
+    resolved_versions: dict[str, UUID],
+) -> None:
+    if job_input is None:
+        return
+    if job_input.job_type == "vocal_generation":
+        for role in (
+            "lyrics_reference",
+            "melody_reference",
+            "timing_reference",
+            "voice_reference",
+        ):
+            expected = getattr(job_input, role)
+            actual = direct_references.get(role)
+            if expected is None and actual is None:
+                continue
+            if expected != actual:
+                raise ApplicationValidationError(
+                    f"job_input.{role}와 JobInput reference가 일치해야 합니다."
+                )
+        return
+    if resolved_versions.get("source_vocal") != job_input.source_asset_version_id:
+        raise ApplicationValidationError(
+            "job_input.source_asset_version_id와 source_vocal lineage가 "
+            "일치해야 합니다."
+        )
+    if job_input.job_type == "voice_conversion" and (
+        direct_references.get("voice_reference")
+        != job_input.voice_reference_artifact_id
+    ):
+        raise ApplicationValidationError(
+            "job_input.voice_reference_artifact_id와 voice_reference가 일치해야 합니다."
+        )
+
+
+def _validate_vocal_parent_lineage(
+    repository: AssetRepository,
+    *,
+    source_version_id: UUID,
+    parent_version_id: UUID,
+) -> None:
+    source = repository.get_asset_version(source_version_id)
+    parent = repository.get_asset_version(parent_version_id)
+    if source is None or parent is None or source.asset_id != parent.asset_id:
+        raise ApplicationValidationError(
+            "parent_asset_version_id는 source AssetVersion 계보에 속해야 합니다."
+        )
+
+    visited: set[UUID] = set()
+    current = parent
+    while current.asset_version_id != source_version_id:
+        if (
+            current.asset_version_id in visited
+            or current.parent_asset_version_id is None
+        ):
+            raise ApplicationValidationError(
+                "parent_asset_version_id는 source AssetVersion의 파생본이어야 합니다."
+            )
+        visited.add(current.asset_version_id)
+        ancestor = repository.get_asset_version(current.parent_asset_version_id)
+        if ancestor is None or ancestor.asset_id != source.asset_id:
+            raise ApplicationValidationError(
+                "parent_asset_version_id의 계보가 유효하지 않습니다."
+            )
+        current = ancestor
 
 
 def _canonical_fingerprint(payload: dict[str, Any]) -> str:

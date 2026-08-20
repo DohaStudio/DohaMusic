@@ -9,6 +9,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from backend.contracts.vocal_jobs import VocalJobInput
 from backend.models.workspace import JobStatus
 
 
@@ -37,6 +38,7 @@ class JobCreateRequest(BaseModel):
     provider_id: str | None = Field(default=None, max_length=128)
     model_manifest_id: str | None = Field(default=None, max_length=256)
     settings_snapshot: dict[str, Any] = Field(default_factory=dict)
+    job_input: VocalJobInput | None = None
 
 
 class JobSummary(BaseModel):
