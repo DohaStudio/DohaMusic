@@ -73,7 +73,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | AI-native DAW Product | [진행 중] | D0 완료, D1 읽기 권위·API·DoD 계약 확정; Composition aggregate·Frontend와 D2~D9 Runtime 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5 구현; Provider dispatch wiring·background daemon과 나머지 34개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5와 4개 Vocal Job 계약 구현; Provider dispatch wiring·Provider Job persistence·background daemon과 나머지 34개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | Phase A 완료; DohaVocal Runtime·Consumer Contract·HTTP Transport Foundation 구현, Worker wiring·Artifact 통합·Phase C~D 미착수 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 

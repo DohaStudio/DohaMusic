@@ -1,7 +1,7 @@
 # Workspace Job Foundation 공식 계약
 
 > 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5] / [미구현: Provider dispatch wiring·background daemon]
-> 최종 수정일: 2026-08-11
+> 최종 수정일: 2026-08-20
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
 
@@ -40,7 +40,7 @@ Artifact ────────────┘
 
 ## 4. 공식 Job type과 입출력 Matrix
 
-현재 제품과 Compatibility Runtime에 근거가 있는 type만 허용한다. 미래 Singing Voice·Lyrics Revision·Vocal Correction type은 Provider capability와 계약이 확정된 뒤 versioned 변경으로 추가한다.
+현재 제품과 Compatibility Runtime에 근거가 있거나 versioned Provider capability 계약이 확정된 type만 허용한다. DohaVocal의 네 capability는 Consumer Contract `0.1.0` 이름을 그대로 사용한다.
 
 | Job type | Snapshot | 필수·선택 Input role | 실행 capability | Output role | 기본 retryable | Cancel 기대 |
 |---|---|---|---|---|---|---|
@@ -48,11 +48,20 @@ Artifact ────────────┘
 | `music_generation` | 선택 | `lyrics` 선택 | `music_generation` | `generated_audio` | `false` | cooperative |
 | `stem_separation` | 선택 | `source_audio` 필수 | `stem_separation` | `vocal_stem`, `instrumental_stem` | `false` | cooperative |
 | `voice_conversion` | 선택 | `source_vocal`, `voice_reference` 필수 | `voice_conversion` | `converted_vocal` | `false` | cooperative |
+| `vocal_generation` | 선택 | `lyrics_reference`, `melody_reference` 필수, `timing_reference`, `voice_reference` 선택 | `vocal_generation` | `generated_vocal_candidate` | `false` | cooperative |
+| `vocal_correction` | 선택 | `source_vocal` 필수 | `vocal_correction` | `corrected_vocal_candidate` | `false` | cooperative |
+| `vocal_analysis` | 선택 | `source_vocal` 필수 | `vocal_analysis` | `vocal_analysis_result` | `false` | cooperative |
 | `audio_analysis` | 선택 | `source_audio` 필수 | DohaMusic `audio_analysis` | `analysis` | `false` | 단계 경계 cooperative |
 | `mix` | 필수 | `vocal`, `instrumental` 필수, `stem` 선택 | DohaMusic `mix` | `mix` | `false` | 단계 경계 cooperative |
 | `export` | 필수 | `mix` 필수 | DohaMusic `export` | `export` | `false` | 단계 경계 cooperative |
 
 `music_generation`은 prompt-only Instrumental을 지원하므로 Snapshot을 강제하지 않는다. Snapshot을 제공한 Job은 입력 role이 가리키는 Asset lineage가 Snapshot의 exact AssetVersion과 일치해야 한다. `mix`와 `export`는 최종 Workspace 조합과 설정을 재현해야 하므로 Snapshot이 필수다.
+
+네 Vocal Job type의 공개 `job_input`은 `job_type` discriminator를 가진 구조화 입력이다. DohaVocal 요청에는 `provider_id=dohavocal`과 동적 `model_manifest_id`가 필요하다. 검증된 값은 기존 JSON `settings_snapshot`의 서버 예약 키에 불변 snapshot으로 보존하므로 schema·Alembic 변경은 없다. 기존 다른 Provider의 `voice_conversion` 요청은 `job_input` 없이도 기존 계약대로 허용한다.
+
+구조화 입력과 JobInput role은 같은 reference를 가리켜야 한다. Generation reference ID, Conversion의 source AssetVersion·voice reference Artifact, Correction·Analysis의 source AssetVersion lineage가 다르면 생성 단계에서 거부한다. `training_dataset_id`는 `null`만 허용하며 Recording Take와 Enrollment Sample을 Training Dataset으로 승격하지 않는다. Project와 effective Owner는 기존 Service scope에서, `requested_by`는 서버의 effective Owner에서 파생한다. Composition Snapshot은 기존 선택 계약을 유지한다.
+
+표의 Vocal candidate output role은 후속 Provider dispatch가 Completion 경계에 전달할 pre-ingestion 계약이다. 이번 Foundation은 `JobOutput`, Artifact, AssetVersion을 만들거나 Workspace Job을 성공 처리하지 않는다. 기존 legacy `voice_conversion` Completion의 `converted_vocal` role도 변경하지 않는다.
 
 ## 5. JobInput과 Artifact 선택
 

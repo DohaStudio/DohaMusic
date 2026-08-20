@@ -11,6 +11,10 @@ import pytest
 from sqlalchemy import func, select
 from sqlalchemy.orm import sessionmaker
 
+from backend.contracts.vocal_jobs import (
+    VOCAL_JOB_INPUT_SETTINGS_KEY,
+    VOCAL_JOB_OUTPUT_ROLES,
+)
 from backend.core.exceptions import (
     ApplicationValidationError,
     IdempotencyConflictError,
@@ -22,6 +26,7 @@ from backend.db.base import Base
 from backend.db.session import create_database_engine
 from backend.models.idempotency_record import IdempotencyRecord
 from backend.models.workspace import (
+    WORKSPACE_ENTITY_CLASSES,
     Artifact,
     Asset,
     AssetType,
@@ -30,7 +35,6 @@ from backend.models.workspace import (
     JobInput,
     JobStatus,
     MusicProject,
-    WORKSPACE_ENTITY_CLASSES,
     Workspace,
 )
 from backend.repositories.workspace import JobRepository
@@ -317,6 +321,307 @@ def test_input_xor_role_byte_lineage_and_owner_scope(session_factory) -> None:
         ),
     )
     assert created.aggregate.inputs[0].artifact_id == graph.artifact.artifact_id
+
+
+@pytest.mark.parametrize(
+    ("job_type", "roles", "job_input", "output_role"),
+    [
+        (
+            "vocal_generation",
+            ("lyrics_reference", "melody_reference"),
+            lambda graph: {
+                "job_type": "vocal_generation",
+                "lyrics_reference": str(graph.version.asset_version_id),
+                "melody_reference": str(graph.artifact.artifact_id),
+            },
+            "generated_vocal_candidate",
+        ),
+        (
+            "voice_conversion",
+            ("source_vocal", "voice_reference"),
+            lambda graph: {
+                "job_type": "voice_conversion",
+                "source_asset_version_id": str(graph.version.asset_version_id),
+                "voice_reference_artifact_id": str(graph.artifact.artifact_id),
+                "source_entity_type": "recording_take",
+                "reference_entity_type": "voice_enrollment_sample",
+                "training_dataset_id": None,
+            },
+            "converted_vocal_candidate",
+        ),
+        (
+            "vocal_correction",
+            ("source_vocal",),
+            lambda graph: {
+                "job_type": "vocal_correction",
+                "source_asset_version_id": str(graph.version.asset_version_id),
+                "correction_types": ["pitch_correction", "normalization"],
+            },
+            "corrected_vocal_candidate",
+        ),
+        (
+            "vocal_analysis",
+            ("source_vocal",),
+            lambda graph: {
+                "job_type": "vocal_analysis",
+                "source_asset_version_id": str(graph.version.asset_version_id),
+                "analysis_types": ["pitch", "audio_quality"],
+            },
+            "vocal_analysis_result",
+        ),
+    ],
+)
+def test_vocal_job_types_preserve_structured_contract(
+    session_factory, job_type, roles, job_input, output_role
+) -> None:
+    graph = _seed_graph(session_factory)
+    inputs = tuple(
+        JobReferenceInput(
+            input_order=index,
+            input_role=role,
+            asset_version_id=(
+                graph.version.asset_version_id if role == "lyrics_reference" else None
+            ),
+            artifact_id=(
+                None if role == "lyrics_reference" else graph.artifact.artifact_id
+            ),
+        )
+        for index, role in enumerate(roles)
+    )
+    requested_input = job_input(graph)
+    created = JobService(session_factory).create_job_for_owner(
+        effective_owner_id=graph.owner_id,
+        project_id=graph.project.project_id,
+        job_type=job_type,
+        api_contract_version="1",
+        settings_snapshot={"nested": {"strength": 0.5}},
+        idempotency_key=f"vocal-{job_type}",
+        inputs=inputs,
+        provider_id="dohavocal",
+        model_manifest_id=f"dynamic-{job_type}@1",
+        job_input=requested_input,
+    )
+
+    stored = created.aggregate.job.settings_snapshot
+    assert stored[VOCAL_JOB_INPUT_SETTINGS_KEY]["job_type"] == job_type
+    assert VOCAL_JOB_OUTPUT_ROLES[job_type] == output_role
+    assert created.aggregate.job.composition_snapshot_id is None
+
+
+def test_legacy_voice_conversion_contract_remains_compatible(session_factory) -> None:
+    graph = _seed_graph(session_factory)
+    created = JobService(session_factory).create_job_for_owner(
+        effective_owner_id=graph.owner_id,
+        project_id=graph.project.project_id,
+        job_type="voice_conversion",
+        api_contract_version="1",
+        settings_snapshot={},
+        idempotency_key="legacy-voice-conversion",
+        inputs=(
+            JobReferenceInput(
+                0,
+                artifact_id=graph.artifact.artifact_id,
+                input_role="source_vocal",
+            ),
+            JobReferenceInput(
+                1,
+                artifact_id=graph.artifact.artifact_id,
+                input_role="voice_reference",
+            ),
+        ),
+        provider_id="legacy-provider",
+    )
+    assert VOCAL_JOB_INPUT_SETTINGS_KEY not in created.aggregate.job.settings_snapshot
+
+
+def test_vocal_job_rejects_missing_role_invalid_role_and_lineage_mismatch(
+    session_factory,
+) -> None:
+    graph = _seed_graph(session_factory)
+    service = JobService(session_factory)
+    common = dict(
+        effective_owner_id=graph.owner_id,
+        project_id=graph.project.project_id,
+        job_type="vocal_analysis",
+        api_contract_version="1",
+        settings_snapshot={},
+        provider_id="dohavocal",
+        model_manifest_id="dynamic@1",
+        job_input={
+            "job_type": "vocal_analysis",
+            "source_asset_version_id": str(graph.version.asset_version_id),
+            "analysis_types": ["pitch"],
+        },
+    )
+    with pytest.raises(ApplicationValidationError):
+        service.create_job_for_owner(
+            **common,
+            idempotency_key="vocal-missing-role",
+            inputs=(),
+        )
+    with pytest.raises(ApplicationValidationError):
+        service.create_job_for_owner(
+            **common,
+            idempotency_key="vocal-invalid-role",
+            inputs=(
+                JobReferenceInput(
+                    0,
+                    artifact_id=graph.artifact.artifact_id,
+                    input_role="source_audio",
+                ),
+            ),
+        )
+    mismatch = dict(common["job_input"])
+    mismatch["source_asset_version_id"] = str(uuid4())
+    with pytest.raises(ApplicationValidationError):
+        service.create_job_for_owner(
+            **{**common, "job_input": mismatch},
+            idempotency_key="vocal-lineage-mismatch",
+            inputs=(
+                JobReferenceInput(
+                    0,
+                    artifact_id=graph.artifact.artifact_id,
+                    input_role="source_vocal",
+                ),
+            ),
+        )
+
+
+def test_vocal_job_rejects_provider_spoof_and_reserved_settings(
+    session_factory,
+) -> None:
+    graph = _seed_graph(session_factory)
+    input_value = {
+        "job_type": "vocal_correction",
+        "source_asset_version_id": str(graph.version.asset_version_id),
+        "correction_types": ["pitch_correction"],
+    }
+    common = dict(
+        effective_owner_id=graph.owner_id,
+        project_id=graph.project.project_id,
+        job_type="vocal_correction",
+        api_contract_version="1",
+        model_manifest_id="dynamic@1",
+        job_input=input_value,
+        inputs=(
+            JobReferenceInput(
+                0,
+                artifact_id=graph.artifact.artifact_id,
+                input_role="source_vocal",
+            ),
+        ),
+    )
+    with pytest.raises(ApplicationValidationError):
+        JobService(session_factory).create_job_for_owner(
+            **common,
+            settings_snapshot={},
+            idempotency_key="vocal-provider-spoof",
+            provider_id="dohavocal.fake",
+        )
+    with pytest.raises(ApplicationValidationError):
+        JobService(session_factory).create_job_for_owner(
+            **common,
+            settings_snapshot={VOCAL_JOB_INPUT_SETTINGS_KEY: input_value},
+            idempotency_key="vocal-reserved-settings",
+            provider_id="dohavocal",
+        )
+
+
+@pytest.mark.parametrize(
+    "job_input",
+    [
+        {
+            "job_type": "vocal_correction",
+            "source_asset_version_id": "00000000-0000-0000-0000-000000000001",
+            "correction_types": ["unknown"],
+        },
+        {
+            "job_type": "vocal_correction",
+            "source_asset_version_id": "00000000-0000-0000-0000-000000000001",
+            "correction_types": ["pitch_correction"],
+            "analysis_types": ["pitch"],
+        },
+        {
+            "job_type": "voice_conversion",
+            "source_asset_version_id": "00000000-0000-0000-0000-000000000001",
+            "voice_reference_artifact_id": "00000000-0000-0000-0000-000000000002",
+            "source_entity_type": "recording_take",
+            "reference_entity_type": "voice_enrollment_sample",
+            "training_dataset_id": "forbidden",
+        },
+    ],
+)
+def test_vocal_job_input_rejects_invalid_enum_cross_type_and_dataset(
+    session_factory, job_input
+) -> None:
+    graph = _seed_graph(session_factory)
+    roles = (
+        ("source_vocal", "voice_reference")
+        if job_input["job_type"] == "voice_conversion"
+        else ("source_vocal",)
+    )
+    with pytest.raises(ApplicationValidationError):
+        JobService(session_factory).create_job_for_owner(
+            effective_owner_id=graph.owner_id,
+            project_id=graph.project.project_id,
+            job_type=job_input["job_type"],
+            api_contract_version="1",
+            settings_snapshot={},
+            idempotency_key=f"invalid-vocal-{uuid4()}",
+            inputs=tuple(
+                JobReferenceInput(
+                    index,
+                    artifact_id=graph.artifact.artifact_id,
+                    input_role=role,
+                )
+                for index, role in enumerate(roles)
+            ),
+            provider_id="dohavocal",
+            model_manifest_id="dynamic@1",
+            job_input=job_input,
+        )
+
+
+def test_vocal_job_input_is_immutable_and_part_of_idempotency(session_factory) -> None:
+    graph = _seed_graph(session_factory)
+    service = JobService(session_factory)
+    settings = {"nested": {"strength": 0.5}}
+    job_input = {
+        "job_type": "vocal_correction",
+        "source_asset_version_id": str(graph.version.asset_version_id),
+        "correction_types": ["pitch_correction"],
+    }
+    inputs = (
+        JobReferenceInput(
+            0,
+            artifact_id=graph.artifact.artifact_id,
+            input_role="source_vocal",
+        ),
+    )
+    common = dict(
+        effective_owner_id=graph.owner_id,
+        project_id=graph.project.project_id,
+        job_type="vocal_correction",
+        api_contract_version="1",
+        settings_snapshot=settings,
+        idempotency_key="vocal-idempotency",
+        inputs=inputs,
+        provider_id="dohavocal",
+        model_manifest_id="dynamic@1",
+    )
+    created = service.create_job_for_owner(**common, job_input=job_input)
+    replayed = service.create_job_for_owner(**common, job_input=job_input)
+    settings["nested"]["strength"] = 1.0
+    job_input["correction_types"].append("normalization")
+
+    assert replayed.replayed is True
+    assert created.aggregate.job.settings_snapshot["nested"]["strength"] == 0.5
+    assert created.aggregate.job.settings_snapshot[VOCAL_JOB_INPUT_SETTINGS_KEY][
+        "correction_types"
+    ] == ["pitch_correction"]
+    common["settings_snapshot"] = {"nested": {"strength": 0.5}}
+    with pytest.raises(IdempotencyConflictError):
+        service.create_job_for_owner(**common, job_input=job_input)
 
 
 def test_snapshot_requires_exact_version(session_factory) -> None:
