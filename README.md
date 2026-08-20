@@ -2,7 +2,7 @@
 
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-21
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -45,6 +45,7 @@ DohaMusic = AI-native DAW
 - CompositionEvaluationRun 기반 완성곡 QA
 - LearningCandidate review와 Dataset·Training 연결
 - 인증·소유권이 적용된 공개 운영, 외부 Queue와 다중 프로세스 내구성
+- DohaAudio semantic reviewer authentication Provider·identity mapping·ReviewerAuthority 활성화
 
 세부 API와 구현 근거는 [API 개요](docs/06-api/api-overview.md), [Frontend Overview](docs/03-architecture/frontend-overview.md), [Validation 보고서](docs/DOCUMENT_AUTHORITY_MAP.md#validation--reports)에서 확인한다.
 
@@ -91,7 +92,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 
 - AI-native DAW D0 제품 목표 정합화: [완료]
 - 현재 제품 단계: D1 Composition Read Workspace [D1-A 완료 / D1-Transition 완료 / D1-B 구현·Draft 검토]
-- 병행 Track: AI Provider 저장소 분리, F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
+- 병행 Track: AI Provider 저장소 분리, [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md), F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
 
 현재 실행 순서와 `NEXT / LATER`는 [ROADMAP](ROADMAP.md), 장기 Phase·Track·Gate는 [MASTER_ROADMAP](MASTER_ROADMAP.md), 완료 판정은 [DoD](docs/DoD/README.md)를 기준으로 한다.
 
@@ -103,6 +104,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 | 지금 실제로 구현된 것과 바로 다음 작업 | [현재 실행 로드맵](ROADMAP.md) | [Master Roadmap](MASTER_ROADMAP.md) |
 | 최종 AI-native DAW의 모습 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md) |
 | 시스템과 Provider 연결 | [시스템 아키텍처](docs/03-architecture/system-architecture.md) | [Provider 경계](docs/03-architecture/repository-provider-boundaries.md) |
+| Product identity와 DohaAudio reviewer 인증 경계 | [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md) | [ADR-037](docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md) |
 | DohaVocal Consumer 계약 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) | [ADR-034](docs/11-decisions/ADR-034-dohavocal-consumer-contract.md) |
 | Reference 분석 | [목표 아키텍처의 Reference Analysis](docs/03-architecture/ai-native-daw-target-architecture.md#41-reference-analysis) | [Common Contract 소비자 기준](docs/03-architecture/common-ai-contract-consumer.md) |
 | 사용자 수정이 학습 후보가 되는 방식 | [목표 아키텍처의 Continuous Learning](docs/03-architecture/ai-native-daw-target-architecture.md#45-continuous-learning) | [제품 방향](docs/02-product/ai-native-daw-product-direction.md#55-continuous-learning) |
@@ -150,6 +152,6 @@ npm run dev
 - `SimilarityReport`는 법적 표절 판정이나 법률 의견, 자동 승인 기준이 아니다.
 - 모델·가중치·Dataset의 라이선스와 상업 이용 가능성은 정확한 버전별로 별도 검토한다.
 
-보안·권리 기준은 [보안 정책](docs/09-security/security-policy.md), [음성 동의 정책](docs/09-security/voice-consent-policy.md), [라이선스 검토](docs/01-research/licensing-review.md)를 따른다.
+보안·권리 기준은 [보안 정책](docs/09-security/security-policy.md), [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md), [음성 동의 정책](docs/09-security/voice-consent-policy.md), [라이선스 검토](docs/01-research/licensing-review.md)를 따른다.
 
 기여 절차는 [CONTRIBUTING](CONTRIBUTING.md), 자동화 작업 규칙은 [AGENTS](AGENTS.md)에서 확인한다.

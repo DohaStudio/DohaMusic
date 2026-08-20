@@ -18,6 +18,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - ready 화면은 Snapshot-local Track projection, exact AssetVersion, 경로를 노출하지 않는 Artifact metadata·공개 content/download URL, Section `not_available`, Mix snapshot과 lineage를 표시한다.
 - Frontend fixture 통합·API contract·loading·오류·기존 Studio 회귀 테스트를 추가했다. Backend 공개 API·DB·Alembic·실제 사용자 DB·Provider·Artifact payload·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
 
+### 문서 — Reviewer Authentication과 배포 권위
+
+- CURRENT DohaMusic을 `LOCAL_ONLY`·no-product-login으로 확인하고, product·service identity는 DohaMusic, opaque reviewer mapping·ReviewerAuthority는 DohaAudio가 소유하는 경계를 ADR-037로 기록했다.
+- Frontend·일반 사용자의 DohaAudio 직접 호출을 배제하고 delegated DohaMusic identity를 목표 trust direction으로 정하되, production topology·semantic reviewer population·interaction·실제 authentication provider는 product-owner 결정 전까지 미확정으로 유지했다.
+- OAuth/OIDC/GitHub/local auth, assertion, secret, private identity DB, mapping·authority·approval을 구현하지 않았고 DohaAudio와 Rights·Dataset·Model·Training gate를 변경하지 않았다.
+
 ### 추가 — D1 Composition Transition
 
 - Workspace Bootstrap exact revision Gate를 `0018`의 필수 Table, selection PK·unique, same-Project 복합 FK와 Snapshot identity Index까지 확장했다.
