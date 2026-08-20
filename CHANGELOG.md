@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — V1 Reviewer Authentication Product Decision 재판정
+
+- CURRENT 로컬 단일 사용자 MVP와 V1 production·미래 topology를 분리하고, 저장소에는 V1 production 배치 승인 근거가 없음을 ADR-038로 기록했다.
+- `SINGLE_OWNER_OPERATOR`, DohaMusic local governance UI와 local authenticated operator 후보는 D8 계획 및 CURRENT 상태만으로 확정하지 않고 product-owner 결정 전까지 미확정으로 유지했다.
+- `AUTH_REQUIREMENTS_RESOLVED=false`, `AUTH_PROVIDER_SELECTION_READY=false`와 Provider no-selection을 유지했으며 authentication, assertion, secret, mapping, ReviewerAuthority, Dataset 또는 Training을 구현하지 않았다.
+
 ### 추가 — D1 Workspace Composition Frontend
 
 - 기존 Project 상세 Route에서 `CompositionWorkspaceRead` aggregate의 `empty`, `selection_required`, `ready` 상태를 Backend authority 그대로 표시한다.

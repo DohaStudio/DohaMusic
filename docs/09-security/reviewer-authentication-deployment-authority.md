@@ -3,7 +3,7 @@
 > 문서 역할: DohaMusic 제품 identity와 DohaAudio reviewer authentication 연결의 Canonical Authority
 > 문서 상태: [운영 기준 / 구현 미착수]
 > 최종 수정일: 2026-08-21
-> 관련 문서: [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Provider API 계약](../06-api/provider-api-contract.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-037](../11-decisions/ADR-037-reviewer-authentication-deployment-authority.md)
+> 관련 문서: [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Provider API 계약](../06-api/provider-api-contract.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-037](../11-decisions/ADR-037-reviewer-authentication-deployment-authority.md), [ADR-038](../11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md)
 
 ## 1. 권위 기준
 
@@ -11,20 +11,32 @@
 
 ```yaml
 CURRENT_DEPLOYMENT_TOPOLOGY: LOCAL_ONLY
-PRODUCTION_DEPLOYMENT_TOPOLOGY: UNRESOLVED
+V1_PRODUCTION_DEPLOYMENT_TOPOLOGY: UNRESOLVED
+FUTURE_DEPLOYMENT_TOPOLOGY: UNRESOLVED
 CURRENT_PRODUCT_AUTH_MODEL: NO_PRODUCT_LOGIN
+V1_PRODUCT_LOGIN_REQUIRED: UNRESOLVED
 PRODUCT_IDENTITY_OWNER: DohaMusic
 REVIEWER_IDENTITY_OWNER: UNRESOLVED
 REVIEWER_AUTHORITY_OWNER: DohaAudio
 SERVICE_IDENTITY_OWNER: DohaMusic
 DIRECT_PROVIDER_USER_ACCESS: false
 REVIEWER_TRUST_DIRECTION: DELEGATED_DOHAMUSIC_IDENTITY
+V1_REVIEWER_POPULATION: UNRESOLVED
+V1_REVIEWER_INTERACTION: UNRESOLVED
+UPSTREAM_HUMAN_IDENTITY_MODEL: UNRESOLVED
+LOCAL_OPERATOR_PROOF_MECHANISM: UNRESOLVED
+DOHAAUDIO_AUTH_PROVIDER_MODEL: UNRESOLVED
+V1_EXTERNAL_AUTH_NETWORK_REQUIRED: UNRESOLVED
+V1_REVIEWER_AUTH_OFFLINE_CAPABLE: UNRESOLVED
+V1_REVIEWER_MFA_REQUIRED: UNRESOLVED
 SELECTED_AUTHENTICATION_PROVIDER: null
 AUTH_REQUIREMENTS_RESOLVED: false
 AUTH_PROVIDER_SELECTION_READY: false
 ```
 
 `REVIEWER_TRUST_DIRECTION`은 제품 사용자가 Provider에 직접 로그인하지 않는 목표 경계다. 실제 local credential, OIDC issuer 또는 assertion protocol을 선택했다는 뜻이 아니다.
+
+ADR-038 재판정은 CURRENT MVP를 V1 production 결정 근거로 승격하지 않는다. CURRENT, V1 production과 future를 분리하며 V1 값은 product-owner가 명시적으로 승인할 때까지 fail-closed한다.
 
 ## 2. CURRENT와 TARGET
 
@@ -43,6 +55,19 @@ AUTH_PROVIDER_SELECTION_READY: false
 - Frontend와 일반 Workspace client는 DohaAudio를 직접 호출하지 않는다.
 - DohaAudio는 DohaMusic Orchestrator가 호출하는 내부 Provider다.
 - 운영 시 API/Worker·Provider를 원격으로 분리할 수 있으나 `REMOTE_SERVICE` 또는 `HYBRID` 배치, public login과 identity issuer는 아직 결정되지 않았다.
+
+### V1 product decision audit
+
+| 후보 | 판정 | 저장소 근거 |
+|---|---|---|
+| `V1_PRODUCTION_DEPLOYMENT_TOPOLOGY=LOCAL_ONLY` | 미확정 | CURRENT Phase 8은 기능 검증 MVP이고 Phase 9 production은 0% 계획 상태다. V1 release topology 승인 문서가 없다. |
+| `V1_REVIEWER_POPULATION=SINGLE_OWNER_OPERATOR` | 미확정 | 제품 방향은 개인 창작 흐름을 설명하지만 DohaAudio semantic governance reviewer를 제품 owner/operator로 지정하지 않는다. |
+| `V1_REVIEWER_INTERACTION=DOHAMUSIC_LOCAL_GOVERNANCE_UI` | 미확정 | D8 Review Hub는 계획 상태이고 DohaAudio Traditional semantic review surface와 동일하다는 계약이 없다. |
+| `REVIEWER_IDENTITY_OWNER=DohaMusic` | 미확정 유지 | DohaMusic은 product identity owner지만 reviewer population·interaction이 정해지지 않아 human proof owner를 확정할 수 없다. |
+| `UPSTREAM_HUMAN_IDENTITY_MODEL=LOCAL_AUTHENTICATED_OPERATOR` | 미확정 | OS session, keychain, application unlock, proxy 또는 provisioning 중 proof authority가 없다. |
+| `DOHAAUDIO_AUTH_PROVIDER_MODEL=DOHAMUSIC_DELEGATED_ASSERTION` | 미확정 | delegated direction은 유지하지만 upstream reviewer와 interaction이 정해지기 전 production adapter model을 selected로 승격하지 않는다. |
+
+따라서 V1 product login, external auth network, offline capability와 MFA도 현재 근거만으로 true/false를 확정하지 않는다. 이 보류는 future remote·hybrid 선택을 막지 않으며, local 환경을 authenticated human으로 간주하지 않는다.
 
 ## 3. 사람 identity와 semantic authority
 

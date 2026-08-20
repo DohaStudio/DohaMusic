@@ -104,7 +104,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 | 지금 실제로 구현된 것과 바로 다음 작업 | [현재 실행 로드맵](ROADMAP.md) | [Master Roadmap](MASTER_ROADMAP.md) |
 | 최종 AI-native DAW의 모습 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md) |
 | 시스템과 Provider 연결 | [시스템 아키텍처](docs/03-architecture/system-architecture.md) | [Provider 경계](docs/03-architecture/repository-provider-boundaries.md) |
-| Product identity와 DohaAudio reviewer 인증 경계 | [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md) | [ADR-037](docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md) |
+| Product identity와 DohaAudio reviewer 인증 경계 | [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md) | [ADR-037](docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md), [ADR-038](docs/11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md) |
 | DohaVocal Consumer 계약 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) | [ADR-034](docs/11-decisions/ADR-034-dohavocal-consumer-contract.md) |
 | Reference 분석 | [목표 아키텍처의 Reference Analysis](docs/03-architecture/ai-native-daw-target-architecture.md#41-reference-analysis) | [Common Contract 소비자 기준](docs/03-architecture/common-ai-contract-consumer.md) |
 | 사용자 수정이 학습 후보가 되는 방식 | [목표 아키텍처의 Continuous Learning](docs/03-architecture/ai-native-daw-target-architecture.md#45-continuous-learning) | [제품 방향](docs/02-product/ai-native-daw-product-direction.md#55-continuous-learning) |
