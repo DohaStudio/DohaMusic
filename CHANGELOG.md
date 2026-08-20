@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — D1 Composition Read 선행 계약
+
+- Workspace v1을 Composition read authority로 정하고 Legacy silent fallback과 GET 자동 bootstrap·backfill·selection 변경을 금지했다.
+- Project-level explicit selected/current Snapshot, requested history read, SnapshotItem 기반 snapshot-local Track projection과 Section `not_available` 정책을 ADR-035로 결정했다.
+- `GET /api/v1/projects/{project_id}/composition`의 `CompositionWorkspaceRead` 응답, exact AssetVersion·safe Artifact·Mix·lineage·empty/auth/error 계약과 D1 DoD를 확정했다.
+- Backend·Frontend·DB·Alembic·실제 데이터·Provider·Common Contract schema·Dataset·Training·GPU는 변경하지 않았다.
+
 ### 문서 — Database 현재·목표 구조 정합화
 
 - Database Overview를 CURRENT Runtime, CURRENT Workspace/Domain, TARGET과 TRANSITION의 Canonical entry point로 정리했다.

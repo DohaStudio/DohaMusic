@@ -1,10 +1,10 @@
 # Workspace REST API Endpoint 목록
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-10
+> 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace REST API 재설계
 > 구현 상태: Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 30개 구현, Job API 5/5, 나머지 34개 Resource Endpoint 계획
-> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [D1 Composition Read 계약](composition-read-workspace.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
 
@@ -116,6 +116,14 @@ POST는 선택적 `workspace_id`, 필수 `asset_type`과 초기 `lifecycle_statu
 POST는 `project_id`, 역할별 `asset_version_id`, `processing_chain_id`, Mix Settings, Provider version과 Model Manifest ID를 받습니다. Asset 최신 Version을 간접 참조하지 않습니다. PATCH와 DELETE는 없습니다.
 
 세 Endpoint는 `[완료]`입니다. 목록은 필수 `project_id`와 `snapshot_version DESC, composition_snapshot_id DESC` HMAC Cursor를 사용하며 summary만 반환합니다. 생성은 필수 `Idempotency-Key`, body 안의 Item, exact AssetVersion, effective Owner·ProjectAsset scope, 자동 version과 단일 transaction을 사용해 불변 aggregate를 `201`로 반환합니다. 상세는 정렬된 전체 Item과 bounded lineage를 반환합니다. PATCH·DELETE와 독립 SnapshotItem Route는 제공하지 않습니다. CompositionSnapshot API는 3/3, 전체 Resource API는 Job 5개를 포함해 30/64입니다.
+
+### D1 Project Composition aggregate — 계약 확정 / 미구현
+
+| Method | Path | 성공 | 목적 |
+|---|---|---:|---|
+| `GET` | `/api/v1/projects/{project_id}/composition` | 200 | selected/requested Snapshot과 resolved Version·Artifact·projection 통합 조회 |
+
+이 GET은 Frontend read optimization용 product aggregate이며 16개 Resource group·64개 Endpoint 분모에 추가하지 않습니다. Snapshot API 3개를 유지하고 History Cursor는 목록 Endpoint를 재사용합니다. Project-level explicit selection, empty/selection-required, no silent fallback·no-write GET 계약은 [D1 Composition Read 문서](composition-read-workspace.md)를 따릅니다.
 
 ## 9. Job API — 5개
 

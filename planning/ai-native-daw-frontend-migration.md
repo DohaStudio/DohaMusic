@@ -3,7 +3,7 @@
 > 문서 상태: [계획]
 > 최종 수정일: 2026-08-20
 > 관련 기능: Responsive Studio MVP에서 AI-native DAW로의 단계적 전환
-> 관련 문서: [제품 방향](../docs/02-product/ai-native-daw-product-direction.md), [목표 아키텍처](../docs/03-architecture/ai-native-daw-target-architecture.md), [기존 Frontend Roadmap](frontend-roadmap.md), [DohaLM 연동](../docs/03-architecture/dohalm-integration.md)
+> 관련 문서: [제품 방향](../docs/02-product/ai-native-daw-product-direction.md), [목표 아키텍처](../docs/03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../docs/06-api/composition-read-workspace.md), [기존 Frontend Roadmap](frontend-roadmap.md), [DohaLM 연동](../docs/03-architecture/dohalm-integration.md)
 
 ## 1. CURRENT — 유지할 MVP
 
@@ -68,12 +68,13 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - Common Contract 재사용과 product-only 후보를 명시한다.
 - 완료 Gate: 이 문서와 제품·아키텍처 정합성 문서 검증 및 `develop` 병합.
 
-### D1 — Composition Read Workspace [계획]
+### D1 — Composition Read Workspace [계약 확정 / 구현 계획]
 
-- Workspace·Project·AssetVersion·CompositionSnapshot API를 Frontend에 연결한다.
-- Version history와 선택된 Snapshot의 Track/Section read model을 정의한다.
-- 기존 Pipeline Project/History와 새 Workspace projection의 차이를 사용자에게 숨기지 않는다.
-- Gate: 인증·owner scope, Cursor, empty/error/recovery, 실제 Snapshot E2E.
+- Workspace v1을 Composition read authority로 사용하고 Legacy는 migration input으로만 유지한다. silent fallback과 GET 자동 backfill은 금지한다.
+- Project-level explicit selected Snapshot을 current로 사용하고 latest history와 분리한다. 특정 history Snapshot query는 selection을 변경하지 않는다.
+- `GET /api/v1/projects/{project_id}/composition`에서 exact AssetVersion·safe Artifact·snapshot-local Track projection, Section `not_available`, Mix JSON과 lineage를 읽는다.
+- D1-A Backend aggregate read → D1-Transition 명시적 bootstrap·최소 backfill → D1-B Frontend consume 순서로 진행한다.
+- Gate: 실제 인증·owner/project privacy, Snapshot History Cursor, bootstrap/empty/selection/error/recovery, no-write GET, 실제 Snapshot E2E.
 
 ### D2 — Timeline Playback Foundation [계획]
 
@@ -151,4 +152,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1~D9는 모두 현재 미구현이다. 코드, API, DB, Common Contract, Training 또는 Provider Runtime은 이 계획 문서로 변경되지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.
+D1 선행 계약만 확정됐고 D1~D9 Runtime은 모두 현재 미구현이다. 코드, API Runtime, DB, Common Contract, Training 또는 Provider Runtime은 이 계획 문서로 변경되지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.

@@ -184,6 +184,8 @@ Artifact Foundation의 내부 `ArtifactStorageLocation` Entity와 `artifact_stor
 4. 최종 가사, 음성 Consent와 상업 이용 판단을 목적별 Approval 이벤트로 분리합니다.
 5. Voice Profile과 Sample을 Recording Asset·RecordingEnrollment로 backfill합니다.
 
+D1 Composition Read 전환에 필요한 최소 migration input은 Legacy Project identity·제목, Pipeline 입력 snapshot, 결과 파일과 역할, 생성 순서·상태·Provider/Model 근거다. 이를 Workspace → MusicProject → ProjectAsset → Asset → exact AssetVersion → Artifact → CompositionSnapshot 후보 순서로 검증한다. 재현 근거가 없는 Pipeline은 Snapshot으로 승인하지 않으며, Project selected Snapshot은 latest 추정이 아니라 사용자 또는 승인된 migration 규칙으로 명시적으로 설정한다. GET aggregate는 이 migration을 실행하거나 Legacy로 fallback하지 않는다.
+
 ### Phase 6 — Dual Write와 Shadow Read
 
 1. 새 쓰기를 현행 Table과 목표 Table에 함께 기록합니다.
