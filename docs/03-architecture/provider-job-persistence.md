@@ -32,6 +32,8 @@ Workspace Job 1
 
 `provider_job_id` 단독 global uniqueness는 가정하지 않는다. 같은 opaque job ID는 서로 다른 Provider namespace에서 존재할 수 있다. `UNIQUE(workspace_job_id)`도 두지 않아 한 Workspace Job의 여러 Provider retry 실행을 보존한다.
 
+Identity 불변성은 Application/Repository surface의 계약이다. SQLAlchemy Session을 직접 보유한 신뢰 내부 코드의 임의 attribute mutation까지 DB가 차단하지는 않으므로, binding은 이 Service와 create/read-only Repository를 통해서만 취급한다.
+
 attempt/sequence는 넣지 않았다. 동시 retry 발급에서 race-safe sequence allocation과 단일 active execution 정책은 Worker orchestration과 함께 결정해야 하기 때문이다. `latest`는 가장 최근에 기록된 identity를 재조회하기 위한 deterministic convenience이며 active/terminal 판정이 아니다.
 
 ## 3. Service와 transaction
@@ -42,7 +44,7 @@ attempt/sequence는 넣지 않았다. 동시 retry 발급에서 race-safe sequen
 2. binding의 `provider_id`가 Job의 `provider_id`와 일치한다.
 3. logical identifier만 허용하고 URL·절대 경로·raw payload 형태는 거부한다.
 4. retry parent가 존재하며 같은 Provider와 같은 Workspace Job에 속한다.
-5. insert를 flush하고 DB UNIQUE/FK/CHECK 충돌을 fail-closed 처리한다.
+5. insert를 flush하고 DB UNIQUE/FK/CHECK 충돌을 fail-closed 처리한다. composite identity UNIQUE 충돌만 `RESOURCE_CONFLICT`로 변환하며, 다른 무결성 실패는 원문을 노출하지 않는 `PROVIDER_JOB_PERSISTENCE_FAILED`로 구분한다.
 
 Owner가 다른 Job은 존재 여부를 노출하지 않고 `Workspace Job not found`로 취급한다. Project scope는 immutable Job의 `project_id`·`workspace_id` 관계를 통해 유지된다. caller가 `provider_job_id`만으로 임의 Owner의 binding을 읽는 Service API는 없다.
 

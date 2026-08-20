@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
@@ -29,6 +30,7 @@ from backend.services.workspace import (
     ProviderJobPersistenceError,
     ProviderJobPersistenceErrorReason,
     ProviderJobPersistenceService,
+    ProviderJobPersistenceStorageError,
 )
 
 
@@ -169,6 +171,32 @@ def test_duplicate_provider_identity_is_fail_closed(persistence) -> None:
     )
 
 
+def test_unrelated_integrity_error_is_not_mapped_as_duplicate(
+    persistence, monkeypatch
+) -> None:
+    owner_id, job_id = _seed_job(persistence)
+
+    def fail_with_unrelated_integrity_error(*_args, **_kwargs):
+        raise IntegrityError("insert", {}, Exception("foreign key failure"))
+
+    monkeypatch.setattr(
+        ProviderJobRepository,
+        "add_binding",
+        fail_with_unrelated_integrity_error,
+    )
+
+    with pytest.raises(ProviderJobPersistenceStorageError) as error:
+        ProviderJobPersistenceService(persistence).create_binding_for_owner(
+            effective_owner_id=owner_id,
+            workspace_job_id=job_id,
+            provider_id="dohavocal",
+            provider_job_id="storage-failure",
+        )
+
+    assert error.value.code == "PROVIDER_JOB_PERSISTENCE_FAILED"
+    assert "foreign key failure" not in error.value.message
+
+
 @pytest.mark.parametrize(
     ("provider_id", "provider_job_id", "reason"),
     [
@@ -218,6 +246,25 @@ def test_identity_validation_rejects_non_logical_values(
         )
 
     assert error.value.reason == reason
+
+
+@pytest.mark.parametrize(
+    "provider_job_id",
+    ["tokenized-job-1", "passwordless-job-1", "secretariat-job-1"],
+)
+def test_identity_validation_allows_non_sensitive_word_substrings(
+    persistence, provider_job_id
+) -> None:
+    owner_id, job_id = _seed_job(persistence)
+
+    binding = ProviderJobPersistenceService(persistence).create_binding_for_owner(
+        effective_owner_id=owner_id,
+        workspace_job_id=job_id,
+        provider_id="dohavocal",
+        provider_job_id=provider_job_id,
+    )
+
+    assert binding.provider_job_id == provider_job_id
 
 
 def test_owner_scope_and_job_provider_are_fail_closed(persistence) -> None:
@@ -346,6 +393,59 @@ def test_repository_identity_lookup_and_database_constraints(persistence) -> Non
 
     with pytest.raises(IntegrityError), persistence.begin() as session:
         session.execute(delete(Job).where(Job.job_id == job_id))
+
+
+def test_provider_identity_namespace_and_latest_order_are_deterministic(
+    persistence,
+) -> None:
+    owner_id, vocal_job_id = _seed_job(persistence)
+    audio_owner_id, audio_job_id = _seed_job(persistence, provider_id="dohaaudio")
+    service = ProviderJobPersistenceService(persistence)
+    shared_provider_job_id = "shared-provider-job-id"
+    vocal = service.create_binding_for_owner(
+        effective_owner_id=owner_id,
+        workspace_job_id=vocal_job_id,
+        provider_id="dohavocal",
+        provider_job_id=shared_provider_job_id,
+    )
+    audio = service.create_binding_for_owner(
+        effective_owner_id=audio_owner_id,
+        workspace_job_id=audio_job_id,
+        provider_id="dohaaudio",
+        provider_job_id=shared_provider_job_id,
+    )
+    assert vocal.provider_job_id == audio.provider_job_id
+    assert vocal.provider_id != audio.provider_id
+
+    shared_created_at = datetime(2099, 8, 21, tzinfo=UTC)
+    lower_id = UUID(int=1)
+    higher_id = UUID(int=2)
+    with persistence.begin() as session:
+        session.add_all(
+            [
+                ProviderJobBinding(
+                    provider_job_binding_id=lower_id,
+                    workspace_job_id=vocal_job_id,
+                    provider_id="dohavocal",
+                    provider_job_id="same-time-lower",
+                    created_at=shared_created_at,
+                ),
+                ProviderJobBinding(
+                    provider_job_binding_id=higher_id,
+                    workspace_job_id=vocal_job_id,
+                    provider_id="dohavocal",
+                    provider_job_id="same-time-higher",
+                    created_at=shared_created_at,
+                ),
+            ]
+        )
+
+    latest = service.get_latest_binding_for_owner(
+        effective_owner_id=owner_id,
+        workspace_job_id=vocal_job_id,
+    )
+    assert latest is not None
+    assert latest.provider_job_binding_id == higher_id
 
 
 def test_list_limit_validation(persistence) -> None:

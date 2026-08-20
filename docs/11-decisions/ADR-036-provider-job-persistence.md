@@ -14,7 +14,7 @@ DohaMusic에 generic `ProviderJobBinding` 1:N table을 추가한다.
 - identity는 `(provider_id, provider_job_id)`이며 pair만 unique다.
 - 각 binding은 `workspace_job_id`를 `RESTRICT` FK로 참조한다.
 - retry는 새 binding이며 `retry_of_provider_job_id`가 같은 Provider identity를 참조한다.
-- binding history는 create/read-only application surface로 취급한다.
+- binding history는 create/read-only application surface로 취급한다. 직접 Session mutation까지 DB가 막는 것은 아니며 신뢰 내부 코드도 persistence Service/Repository 경계를 사용한다.
 - Provider status를 복제하지 않으며 Provider Runtime을 상태 authority로 유지한다.
 - Owner·Project scope는 Workspace Job을 먼저 확인하여 검증한다.
 - attempt 번호와 active flag는 저장하지 않는다.

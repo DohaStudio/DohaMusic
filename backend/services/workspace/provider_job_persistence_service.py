@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from backend.core.exceptions import (
+    AppError,
     ApplicationValidationError,
     ResourceConflictError,
     ResourceNotFoundError,
@@ -24,8 +25,15 @@ _PROVIDER_ID = re.compile(r"[a-z0-9](?:[a-z0-9._-]*[a-z0-9])?")
 _PROVIDER_JOB_ID = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._:-]*[A-Za-z0-9])?")
 _URI_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
 _SENSITIVE_ID_TEXT = re.compile(
-    r"(?:authorization|bearer|api[_-]?key|credential|password|secret|token)",
+    r"(?:^|[._:-])"
+    r"(?:authorization|bearer|api[_-]?key|credential|password|secret|token)"
+    r"(?:$|[._:-])",
     re.IGNORECASE,
+)
+_IDENTITY_CONSTRAINT = "uq_provider_job_bindings_identity"
+_SQLITE_IDENTITY_UNIQUE = (
+    "unique constraint failed: provider_job_bindings.provider_id, "
+    "provider_job_bindings.provider_job_id"
 )
 
 
@@ -45,6 +53,17 @@ class ProviderJobPersistenceError(ApplicationValidationError):
     def __init__(self, reason: ProviderJobPersistenceErrorReason, message: str) -> None:
         super().__init__(message)
         self.reason = reason
+
+
+class ProviderJobPersistenceStorageError(AppError):
+    """중복 identity가 아닌 DB 무결성 실패를 외부 세부 정보 없이 구분한다."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            code="PROVIDER_JOB_PERSISTENCE_FAILED",
+            message="Provider Job binding을 저장할 수 없습니다.",
+            status_code=500,
+        )
 
 
 class ProviderJobPersistenceService:
@@ -105,7 +124,9 @@ class ProviderJobPersistenceService:
                     )
                 )
         except IntegrityError as error:
-            raise ResourceConflictError("Provider Job identity") from error
+            if _is_provider_identity_conflict(error):
+                raise ResourceConflictError("Provider Job identity") from None
+            raise ProviderJobPersistenceStorageError() from None
 
     def list_bindings_for_owner(
         self,
@@ -221,3 +242,12 @@ def _normalize_provider_job_id(value: object) -> str:
 def _validate_limit(limit: object) -> None:
     if type(limit) is not int or not 1 <= limit <= 100:
         raise ApplicationValidationError("limit은 1에서 100 사이의 정수여야 합니다.")
+
+
+def _is_provider_identity_conflict(error: IntegrityError) -> bool:
+    original = error.orig
+    diagnostic = getattr(original, "diag", None)
+    if getattr(diagnostic, "constraint_name", None) == _IDENTITY_CONSTRAINT:
+        return True
+    message = str(original).lower()
+    return _IDENTITY_CONSTRAINT in message or _SQLITE_IDENTITY_UNIQUE in message

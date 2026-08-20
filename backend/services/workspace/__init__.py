@@ -70,6 +70,7 @@ from backend.services.workspace.provider_job_persistence_service import (
     ProviderJobPersistenceError,
     ProviderJobPersistenceErrorReason,
     ProviderJobPersistenceService,
+    ProviderJobPersistenceStorageError,
 )
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
@@ -129,6 +130,7 @@ __all__ = [
     "ProviderJobPersistenceError",
     "ProviderJobPersistenceErrorReason",
     "ProviderJobPersistenceService",
+    "ProviderJobPersistenceStorageError",
     "ProviderResult",
     "ProviderResultStatus",
     "ProviderDispatcher",
