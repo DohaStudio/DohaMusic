@@ -23,6 +23,7 @@ from backend.models.workspace.composition import (
 )
 from backend.models.workspace.enums import AssetType, JobStatus
 from backend.models.workspace.job import Job, JobInput, JobOutput, ModelUsage
+from backend.models.workspace.provider_job import ProviderJobBinding
 from backend.models.workspace.storage import (
     ARTIFACT_STORAGE_ENTITY_CLASSES,
     ArtifactStorageLocation,
@@ -46,6 +47,7 @@ WORKSPACE_ENTITY_CLASSES = (
     ProcessingChain,
     ProcessingStep,
     ModelUsage,
+    ProviderJobBinding,
     RecordingEnrollment,
     Tag,
     Comment,
@@ -76,6 +78,7 @@ __all__ = [
     "MusicProject",
     "ProcessingChain",
     "ProcessingStep",
+    "ProviderJobBinding",
     "ProjectAsset",
     "ProjectCompositionSelection",
     "RecordingEnrollment",

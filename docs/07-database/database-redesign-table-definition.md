@@ -4,7 +4,7 @@
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace 도메인 Entity/Table 21개·Catalog 1개·Job schema·Index revision `0017` 실제 DB 적용
+> 구현 상태: Workspace 도메인 Entity/Table 23개·Catalog 1개·Provider Job binding revision `0019` 적용
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 
@@ -332,6 +332,21 @@ ModelUsage는 실제 실행 Model과 권리 계보를 Job 결과에 연결합니
 
 `(job_id, model_manifest_id, asset_version_id)`는 중복 방지 Unique 후보입니다. ModelUsage는 게시 후 불변입니다.
 
+### 5.5 `provider_job_bindings`
+
+ProviderJobBinding은 Workspace Job과 Provider 실행 identity의 1:N 불변 이력입니다. Provider 상태는 저장하지 않습니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `provider_job_binding_id` | UUID | 아니요 | PK | binding 식별자 |
+| `workspace_job_id` | UUID | 아니요 | FK, Index | `jobs.job_id`, 삭제 `RESTRICT` |
+| `provider_id` | string(128) | 아니요 | Unique 조합 | Provider namespace |
+| `provider_job_id` | string(256) | 아니요 | Unique 조합 | opaque Provider Job ID |
+| `retry_of_provider_job_id` | string(256) | 예 | composite self FK | 같은 Provider의 retry parent |
+| `created_at` | timestamp | 아니요 | history Index | 기록 시각 |
+
+`(provider_id, provider_job_id)`는 Unique이고 self retry는 CHECK로 금지합니다. `(workspace_job_id, created_at, provider_job_binding_id)`는 history/latest recovery Index입니다. identity update·일반 delete API는 제공하지 않습니다.
+
 ## 6. Enrollment, Approval과 Workspace Metadata
 
 ### 6.1 `recording_enrollments`
@@ -444,7 +459,7 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | Asset → AssetVersion | 물리 삭제 제한 |
 | AssetVersion → Artifact·SnapshotItem·JobInput/Output·ModelUsage | 물리 삭제 제한 |
 | Artifact → ArtifactStorageLocation | 1:1, 물리 삭제 제한 |
-| Job → Input·Output·ModelUsage | 물리 삭제 제한 |
+| Job → Input·Output·ModelUsage·ProviderJobBinding | 물리 삭제 제한 |
 | ProcessingChain → Step·Version·Snapshot | 물리 삭제 제한 |
 | RecordingEnrollment·ModelUsage → Approval | 물리 삭제 제한 |
 

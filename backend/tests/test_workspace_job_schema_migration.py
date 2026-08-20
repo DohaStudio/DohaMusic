@@ -20,7 +20,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260810_0017"
 PREVIOUS_REVISION = "20260809_0016"
-SOURCE_HEAD = "20260820_0018"
+SOURCE_HEAD = "20260821_0019"
 PUBLIC_INDEXES = {
     "ix_jobs_workspace_keyset": (
         "workspace_id",
@@ -327,10 +327,10 @@ def test_job_schema_metadata_matches_migration_contract() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
     assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert len(Base.metadata.tables) == 37
+    assert len(Base.metadata.tables) == 38
 
     jobs = Base.metadata.tables["jobs"]
-    assert NEW_JOB_COLUMNS <= set(jobs.columns.keys())
+    assert set(jobs.columns.keys()) >= NEW_JOB_COLUMNS
     assert jobs.c.workspace_id.nullable is True
     assert jobs.c.attempt.nullable is False
     assert jobs.c.attempt.server_default is not None
@@ -400,7 +400,7 @@ def test_job_schema_round_trip_and_query_plans(tmp_path: Path) -> None:
 
     assert revision == REVISION
     assert columns["workspace_id"]["nullable"] is True
-    assert NEW_JOB_COLUMNS <= set(columns)
+    assert set(columns) >= NEW_JOB_COLUMNS
     assert reflected_indexes == PUBLIC_INDEXES | WORKER_INDEXES
     assert any(
         foreign_key[2] == "workspaces"

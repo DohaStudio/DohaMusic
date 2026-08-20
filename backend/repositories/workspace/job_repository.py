@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from backend.models.workspace.enums import JobStatus
 from backend.models.workspace.job import Job, JobInput, JobOutput, ModelUsage
-from backend.models.workspace.workspace import Workspace
+from backend.models.workspace.workspace import MusicProject, Workspace
 
 
 class JobRepository:
@@ -33,10 +33,13 @@ class JobRepository:
         statement = (
             select(Job)
             .join(Workspace, Workspace.workspace_id == Job.workspace_id)
+            .join(MusicProject, MusicProject.project_id == Job.project_id)
             .where(
                 Job.job_id == job_id,
                 Workspace.owner_id == owner_id,
                 Workspace.deleted_at.is_(None),
+                MusicProject.workspace_id == Job.workspace_id,
+                MusicProject.deleted_at.is_(None),
             )
         )
         return self.session.scalar(statement)

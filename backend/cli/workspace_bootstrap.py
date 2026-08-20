@@ -19,7 +19,7 @@ from backend.db.session import create_database_engine, create_session_factory
 from backend.schemas.workspace.bootstrap import WorkspaceBootstrapResult
 from backend.services.workspace import WorkspaceService
 
-BOOTSTRAP_TARGET_REVISION = "20260820_0018"
+BOOTSTRAP_TARGET_REVISION = "20260821_0019"
 REQUIRED_TRANSITION_TABLES = {
     "workspaces",
     "music_projects",
@@ -121,10 +121,10 @@ def inspect_bootstrap_target(database_url: str) -> str:
 def _inspect_transition_constraints(schema_inspector: object) -> None:
     """0018의 same-Project FK와 identity Index를 이름이 아닌 구조로 검증한다."""
 
-    get_pk_constraint = getattr(schema_inspector, "get_pk_constraint")
-    get_unique_constraints = getattr(schema_inspector, "get_unique_constraints")
-    get_foreign_keys = getattr(schema_inspector, "get_foreign_keys")
-    get_indexes = getattr(schema_inspector, "get_indexes")
+    get_pk_constraint = schema_inspector.get_pk_constraint
+    get_unique_constraints = schema_inspector.get_unique_constraints
+    get_foreign_keys = schema_inspector.get_foreign_keys
+    get_indexes = schema_inspector.get_indexes
 
     primary_key = get_pk_constraint("project_composition_selections")
     if primary_key.get("constrained_columns") != ["project_id"]:

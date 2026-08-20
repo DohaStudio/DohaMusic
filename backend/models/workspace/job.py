@@ -12,7 +12,6 @@ from sqlalchemy import (
     Boolean,
     CheckConstraint,
     DateTime,
-    Enum as SAEnum,
     ForeignKey,
     Index,
     Integer,
@@ -21,6 +20,9 @@ from sqlalchemy import (
     Text,
     UniqueConstraint,
     Uuid,
+)
+from sqlalchemy import (
+    Enum as SAEnum,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -33,6 +35,7 @@ if TYPE_CHECKING:
     from backend.models.workspace.asset import Artifact, AssetVersion
     from backend.models.workspace.collaboration import Approval
     from backend.models.workspace.composition import CompositionSnapshot
+    from backend.models.workspace.provider_job import ProviderJobBinding
     from backend.models.workspace.workspace import MusicProject
 
 
@@ -183,6 +186,9 @@ class Job(CreatedAtMixin, Base):
     inputs: Mapped[list[JobInput]] = relationship(back_populates="job")
     outputs: Mapped[list[JobOutput]] = relationship(back_populates="job")
     model_usages: Mapped[list[ModelUsage]] = relationship(back_populates="job")
+    provider_job_bindings: Mapped[list[ProviderJobBinding]] = relationship(
+        back_populates="workspace_job"
+    )
 
 
 class JobInput(CreatedAtMixin, Base):

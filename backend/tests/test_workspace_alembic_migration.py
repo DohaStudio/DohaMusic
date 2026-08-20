@@ -58,7 +58,8 @@ def _workspace_tables() -> set[str]:
     return {
         entity.__tablename__
         for entity in WORKSPACE_ENTITY_CLASSES
-        if entity.__tablename__ != "project_composition_selections"
+        if entity.__tablename__
+        not in {"project_composition_selections", "provider_job_bindings"}
     }
 
 
@@ -114,7 +115,7 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
 
     assert _revision_assignment("revision") == REVISION
     assert _revision_assignment("down_revision") == PREVIOUS_REVISION
-    assert len(WORKSPACE_ENTITY_CLASSES) == 22
+    assert len(WORKSPACE_ENTITY_CLASSES) == 23
     assert len(workspace_tables) == 21
     assert created_tables == workspace_tables
     assert dropped_tables == workspace_tables
@@ -152,7 +153,11 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
     legacy_tables = (
         set(Base.metadata.tables)
         - workspace_tables
-        - {"artifact_storage_locations", "project_composition_selections"}
+        - {
+            "artifact_storage_locations",
+            "project_composition_selections",
+            "provider_job_bindings",
+        }
     )
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
@@ -173,7 +178,11 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
     assert upgraded_revision == REVISION
     assert upgraded_tables - {"alembic_version"} == (
         set(Base.metadata.tables)
-        - {"artifact_storage_locations", "project_composition_selections"}
+        - {
+            "artifact_storage_locations",
+            "project_composition_selections",
+            "provider_job_bindings",
+        }
     )
     assert workspace_foreign_keys == 39
     assert foreign_key_violations == []

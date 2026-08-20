@@ -109,5 +109,5 @@ connect·read·write·pool timeout은 각각 설정 가능하고 무한 timeout�
 - 실제 DohaVocal process·Provider·AI model·GPU 호출
 - Workspace Worker dispatcher 조립과 polling policy
 - Artifact payload·Catalog·Resolver·AssetVersion commit
-- DB Entity·Alembic·공개 DohaMusic API 변경
+- 공개 DohaMusic API 변경. Provider Job DB binding은 별도 [Persistence Contract](provider-job-persistence.md)에서 구현했지만 Consumer transport가 직접 사용하지 않는다.
 - production authentication, 운영 timeout 정책, circuit breaker와 background daemon
