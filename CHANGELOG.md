@@ -2,11 +2,18 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-11
+> 최종 수정일: 2026-08-20
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 — AI-native DAW 제품 목표 정합성
+
+- DohaMusic 장기 목표를 AI-native DAW, Project/Composition Runtime, Provider Orchestrator, Composition Evaluation/QA와 Continuous Learning Hub로 정의하고 현재 Responsive Studio MVP와 TARGET·NOT IMPLEMENTED를 분리했다.
+- Reference, Creation, DAW Editing, Composition QA와 Continuous Learning 흐름 및 단계별 Frontend 전환 계획, DohaLM Frontend retirement Gate를 추가했다.
+- 공통 `MusicIntent`, `RevisionPlan`, `SimilarityReport`, Learning·Rights·Dataset·Training 객체를 재사용하고 신규 `EditIntent`를 만들지 않는 원칙을 기록했다. `CompositionEvaluationRun`과 `TimelineSelection`은 schema 미확정 DohaMusic product-only 후보로 한정했다.
+- 코드·DB·Alembic·Runtime·Provider·Training·Dataset·Common Contract schema는 변경하지 않았다.
 
 ### 추가 — Common AI Contract Python 소비자 기반
 

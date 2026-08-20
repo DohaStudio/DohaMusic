@@ -1,9 +1,9 @@
 # 시스템 아키텍처
 
 > 문서 목적: 구현된 구성요소와 향후 확장 경계를 정의한다.
-> 현재 상태: **Legacy Backend Foundation + 선택적 ACE-Step·Demucs·Seed-VC Adapter 구현 / Workspace Job 실행 기반·외부 Provider 전환 [계획]**
-> 최종 수정일: 2026-08-05
-> 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Lyrics AI](lyrics-ai.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [Workspace Artifact 모델](workspace-artifact-model.md)
+> 현재 상태: **Legacy·Responsive Studio MVP 구현 / AI-native DAW Product Runtime·외부 Provider 전환 [계획]**
+> 최종 수정일: 2026-08-20
+> 관련 문서: [현재·목표 아키텍처](ai-native-daw-target-architecture.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [Workspace Artifact 모델](workspace-artifact-model.md)
 
 ```mermaid
 flowchart TB
@@ -32,7 +32,9 @@ flowchart TB
 
 HTTP 요청은 Router → Service → Repository 계층을 따른다. 생성 요청은 `202 Accepted`로 즉시 반환되고 프로세스 내부 ThreadPool에서 Provider-neutral Worker가 실행된다. Worker는 `MusicGenerator` 인터페이스만 의존하며 설정에 따라 Mock 또는 격리된 ACE-Step Adapter가 동작한다.
 
-현재 영속 계층은 SQLite와 SQLAlchemy, 스키마 관리는 Alembic, 파일 저장소는 로컬 디렉터리다. ACE-Step과 Demucs는 선택적 실험 Provider이며 기본값이 아니다. Stem 분리는 별도 Job·API로 구현했고 음색 변환은 포함하지 않는다. 외부 Queue, 인증과 프론트엔드는 범위 밖이며 다중 프로세스 내구성은 후속 ADR에서 결정한다.
+현재 영속 계층은 SQLite와 SQLAlchemy, 스키마 관리는 Alembic, 파일 저장소는 로컬 디렉터리다. ACE-Step과 Demucs는 선택적 실험 Provider이며 기본값이 아니다. Stem 분리는 별도 Job·API로 구현했다. Next.js Responsive Studio Frontend는 존재하지만 편집 가능한 DAW Timeline·Mixer·Composition QA는 없다. 외부 Queue와 인증은 범위 밖이며 다중 프로세스 내구성은 후속 ADR에서 결정한다.
+
+장기 제품 Runtime의 CURRENT/TARGET/NOT IMPLEMENTED 구분과 Reference·Creation·DAW Editing·Composition QA·Continuous Learning 흐름은 [AI-native DAW 현재·목표 아키텍처](ai-native-daw-target-architecture.md)를 따른다.
 
 ## 외부 AI Provider 목표 경계 — [계획]
 
