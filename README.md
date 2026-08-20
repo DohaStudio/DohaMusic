@@ -8,7 +8,7 @@
 
 > Workspace Artifact 도메인: Provider Runtime 결과의 `DohaArtifacts/lm|audio|vocal`과 별도로 Mix·Export·Preview·Composition Snapshot·실행 기록을 위한 `DohaArtifacts/music` 구조와 [Artifact Storage Resolver·무결성 계약](docs/03-architecture/artifact-storage-contract.md)을 확정했습니다. 내부 Catalog와 revision `20260809_0016`을 실제 사용자 DB에 적용했고, local Resolver와 [Trusted Ingestion 운영 계약](docs/10-operations/artifact-storage-ingestion.md)을 구현했습니다. Ingestion은 승인 staging root의 bytes에서 SHA-256·크기·MIME를 확정하고 overwrite 없는 publish와 Artifact·Catalog 단일 transaction·실패 보상을 수행합니다. Owner 계보·retention·full SHA-256 read Gate와 [dry-run reconciliation](docs/10-operations/artifact-storage-reconciliation.md)도 격리 구현했습니다. Artifact Metadata·content·download API와 single-byte HTTP Range를 구현했으며 실제 Catalog row는 0개입니다. destructive repair·Runtime 연결은 아직 구현하지 않았습니다.
 
-> AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지하고, 실제 저장소로 존재하는 DohaAudio의 Music Generation·Stem Separation과 DohaVocal의 Singing Voice·Voice Conversion은 `[계획]` 외부 Provider 기능으로 분리합니다. 저장소와 Runtime 이전은 별도 단계이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
+> AI Provider 저장소 분리: DohaMusic은 제품 서비스·Workspace·Job Orchestration·Mixer·최종 Export를 유지합니다. DohaVocal은 single-process metadata-only Fake Runtime Foundation을 구현했고 DohaMusic은 [Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)으로 4개 capability·9개 operation을 network 없이 검증합니다. Production transport·Artifact payload·실제 Vocal model은 `[미구현]`이며 기존 ACE-Step·Demucs·Seed-VC subprocess와 `PipelineExecutor`는 호환 계층으로 유지합니다.
 
 > 공통 AI 계약 기준선: [Common AI Contract 소비자 기반](docs/03-architecture/common-ai-contract-consumer.md)은 `DohaStudio/.github`의 Python 배포물 `0.1.0`, 정책 `1.0.0`, 병합 commit `dd75fc88c16e9ae9a04acfafb72756a905f6365b`을 사용합니다. 현재는 opt-in RightsMetadata 검증 기반이며 Runtime·DB·Provider에는 연결하지 않았습니다.
 
@@ -33,7 +33,7 @@ External Lyrics는 strict JSON Schema, 안전한 오류·retry, 요청별 명시
 
 DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바탕으로 노래를 생성하고, 생성된 보컬을 동의받은 사용자의 목소리로 변환해 완성 음원을 만드는 개인 창작용 AI 음악 생성 플랫폼이다. 향후 DohaLM을 외부 LLM Provider로 연결해 가사 초안 생성·기존 가사와 구조·운율·음절·반복 분석·수정안·제목·콘셉트 제안을 제공하되, 사용자가 편집하고 최종 승인한 가사만 음악 생성에 전달한다.
 
-장기적으로 DohaMusic은 Next.js·FastAPI·인증·프로젝트·Job·DB·가사 승인·음성 동의·Provider Client·Workspace Workflow·결과 관리에 집중한다. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소는 존재하며 Runtime API는 아직 `[계획]`이다. 자세한 책임은 [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md)를 따른다.
+장기적으로 DohaMusic은 Next.js·FastAPI·인증·프로젝트·Job·DB·가사 승인·음성 동의·Provider Client·Workspace Workflow·결과 관리에 집중한다. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. DohaVocal Fake Runtime과 DohaMusic Consumer 계약 기반은 구현됐지만 Production Runtime 연동은 `[미구현]`이다. 자세한 책임은 [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md)를 따른다.
 
 ## 최종 목표
 
@@ -80,7 +80,7 @@ DohaMusic은 자연어 프롬프트 또는 사용자가 작성한 가사를 바�
 | [완료] | K3.3 final WAV 에너지·반복 기반 15초 후렴 후보·confidence·중앙 fallback과 Result·History·Project UI |
 | [계획] | K3.4 Preview Export 실제 구현 |
 | [진행 중] | AssetVersion 기반 CompositionSnapshot Application 기반과 공식 API 3개, Workspace Job 공식 API 5개 구현·검증; develop 병합 전 Backend Foundation Gate 대기 |
-| [진행 중] | Workspace Job Aggregate·상태·입출력·Provider·claim/lease·completion·공식 API 5/5 구현, 실제 Provider transport·background daemon 미구현 |
+| [진행 중] | Workspace Job 기반과 DohaVocal Consumer Contract Foundation 구현, 실제 Provider transport·background daemon·Artifact payload 미구현 |
 | [부분 검증] | RTX 3060 Ti 8GB 실행 가능성·유효 WAV 출력 |
 | [사용자 평가 진행 중] | ACE-Step은 조건부 채택. 5개 독립 산출물 평가 완료, 동일 산출물 참조 1개, 2개 미평가 |
 
@@ -101,7 +101,7 @@ flowchart LR
   A -->|미승인| E
   A -->|승인본| G[DohaAudio 음악 생성 계획]
   G --> S[DohaAudio Stem 분리 계획]
-  R[동의된 참조 음성] --> V[DohaVocal 음색 변환 계획]
+  R[동의된 참조 음성] --> V[DohaVocal 계약 기반·실제 음색 변환 미구현]
   S --> V
   S --> M[믹싱]
   V --> M
@@ -121,7 +121,7 @@ flowchart LR
 - Workspace Artifact: `DohaArtifacts/music/{mixes,exports,previews,snapshots,runs}` **[계획]**, 설계는 [Workspace Artifact 모델](docs/03-architecture/workspace-artifact-model.md)
 - Audio DSP: NumPy·SciPy 기반 Default Mixer와 pyloudnorm Integrated LUFS 후처리 **[완료]**, True Peak **[미지원]**
 - Lyrics: Template **[Stable 기본값]**, Mock **[Test]**, OpenAI **[Experimental]**, DohaLM **[Planned]**, `local_llm` **[Planned]**
-- External AI Provider: DohaAudio·DohaVocal Runtime API **[계획]**, 현재 ACE-Step·Demucs·Seed-VC subprocess 호환 계층 유지
+- External AI Provider: DohaVocal Fake Runtime·Consumer 계약 **[Foundation 구현]**, Production transport·DohaAudio Runtime **[계획]**, 현재 ACE-Step·Demucs·Seed-VC subprocess 호환 계층 유지
 - AI 모델: 어댑터를 통한 교체 가능한 공개 사전학습 모델
 
 모델명은 후보일 뿐이며, 라이선스와 로컬 벤치마크를 통과하기 전에는 채택하지 않는다. 자세한 기준은 [모델 비교](docs/01-research/model-comparison.md)와 [모델 선정 정책](docs/04-models/model-selection-policy.md)을 따른다.
@@ -143,7 +143,7 @@ DohaMusic/
 └─ CONTRIBUTING.md
 ```
 
-위 트리는 현재 실제 DohaMusic checkout이다. 목표 저장소 경계는 [저장소와 AI Provider 책임 경계](docs/03-architecture/repository-provider-boundaries.md)에 정의한다. DohaAudio·DohaVocal 저장소는 존재하지만 Runtime 기능은 `[계획]`이다.
+위 트리는 현재 실제 DohaMusic checkout이다. 목표 저장소 경계는 [저장소와 AI Provider 책임 경계](docs/03-architecture/repository-provider-boundaries.md)에 정의한다. DohaVocal은 Fake Runtime·Consumer 계약 Foundation까지 구현됐고 DohaAudio 및 Production Provider 연동은 `[계획]`이다.
 
 ## 빠른 시작
 
@@ -187,7 +187,7 @@ Phase 2 설치·연결은 [EXP-001](reports/experiments/EXP-001-ace-step-local-i
 - 전체 일정과 완료 기준: [Master Roadmap](MASTER_ROADMAP.md), [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md)
 - 목표와 범위: [프로젝트 개요](docs/00-overview/project-overview.md), [목표와 비목표](docs/00-overview/goals-and-non-goals.md)
 - 요구사항: [기능 요구사항](docs/02-requirements/functional-requirements.md), [인수 기준](docs/02-requirements/acceptance-criteria.md), [Voice Enrollment 요구사항](docs/02-requirements/voice-enrollment-requirements.md)
-- 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md), [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md), [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md)
+- 시스템 설계: [시스템 아키텍처](docs/03-architecture/system-architecture.md), [AI 파이프라인](docs/03-architecture/ai-pipeline.md), [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md), [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md), [저장소와 Provider 경계](docs/03-architecture/repository-provider-boundaries.md), [DohaLM 연동](docs/03-architecture/dohalm-integration.md)
 - Frontend 설계: [Overview](docs/03-architecture/frontend-overview.md), [Architecture](docs/03-architecture/frontend-architecture.md), [Design System](docs/03-architecture/design-system.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Components](docs/03-architecture/ui-component-guide.md), [Responsive](docs/03-architecture/responsive-guide.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Navigation](docs/03-architecture/navigation-guide.md), [Pages](docs/03-architecture/page-structure.md), [Roadmap](planning/frontend-roadmap.md), [ADR-017](docs/11-decisions/ADR-017-frontend-technology-stack.md)
 - API와 데이터: [현재 API 개요](docs/06-api/api-overview.md), [Workspace v1 목표 계약](docs/06-api/workspace-rest-api-contract.md), [현재 ERD](docs/07-database/erd.md), [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md), [가사 버전 데이터 모델](docs/07-database/lyrics-versioning-data-model.md), [Voice Enrollment API](docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](docs/07-database/voice-enrollment-data-model.md)
 - Voice Enrollment 검증과 운영: [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md), [운영·수동 검증 체크리스트](docs/10-operations/voice-enrollment-operations-checklist.md)

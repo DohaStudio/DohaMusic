@@ -2,11 +2,18 @@
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-11
+> 최종 수정일: 2026-08-19
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — DohaVocal Consumer Contract Foundation
+
+- DohaVocal `0.1.0`의 4개 Vocal capability와 9개 Provider operation을 strict DTO로 해석하는 `VocalProviderClient`·transport port·권한 context mapping을 추가했다.
+- effective Owner·Project·입력 ID·Model Manifest·settings snapshot·Provider idempotency를 mapping하고 5-state, 새 Job retry, root/parent/processing chain, metadata-only 결과와 Manifest 검토 상태를 손실 없이 보존한다.
+- stable JSON fixture와 fake transport contract test를 추가했다. 실제 network·audio·AI·GPU·Dataset·DB·Alembic·공개 API·Workspace Worker 조립은 변경하지 않았다.
+- Provider application·transport·timeout·invalid response·contract version 오류를 구분하고 raw body·경로·token·stack trace를 노출하지 않도록 fail-closed 한다.
 
 ### 추가 — Common AI Contract Python 소비자 기반
 

@@ -1,8 +1,8 @@
 # 시스템 아키텍처
 
 > 문서 목적: 구현된 구성요소와 향후 확장 경계를 정의한다.
-> 현재 상태: **Legacy Backend Foundation + 선택적 ACE-Step·Demucs·Seed-VC Adapter 구현 / Workspace Job 실행 기반·외부 Provider 전환 [계획]**
-> 최종 수정일: 2026-08-05
+> 현재 상태: **Legacy Backend Foundation + 선택적 ACE-Step·Demucs·Seed-VC Adapter 구현 / Workspace Job 실행 기반·DohaVocal Consumer Contract Foundation 구현**
+> 최종 수정일: 2026-08-19
 > 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Lyrics AI](lyrics-ai.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [Workspace Artifact 모델](workspace-artifact-model.md)
 
 ```mermaid
@@ -34,13 +34,13 @@ HTTP 요청은 Router → Service → Repository 계층을 따른다. 생성 요
 
 현재 영속 계층은 SQLite와 SQLAlchemy, 스키마 관리는 Alembic, 파일 저장소는 로컬 디렉터리다. ACE-Step과 Demucs는 선택적 실험 Provider이며 기본값이 아니다. Stem 분리는 별도 Job·API로 구현했고 음색 변환은 포함하지 않는다. 외부 Queue, 인증과 프론트엔드는 범위 밖이며 다중 프로세스 내구성은 후속 ADR에서 결정한다.
 
-## 외부 AI Provider 목표 경계 — [계획]
+## 외부 AI Provider 목표 경계 — [부분 구현]
 
 DohaMusic은 Frontend·Backend·인증·프로젝트·Job·DB, 가사 편집·승인, Voice Consent, Pipeline Orchestration, Provider Client, 결과·Artifact 관리와 Mixer·최종 Export를 소유한다. 모델 다운로드·로딩, Dataset 전처리, Training·Fine-tuning, Checkpoint, 모델별 Benchmark·평가와 CUDA·PyTorch 환경은 AI Provider 저장소로 분리한다.
 
-DohaAudio는 Music Generation·Stem Separation, DohaVocal은 Singing Voice·Voice Conversion의 기술 책임을 갖는 외부 Provider 저장소다. 두 저장소는 존재하며 Runtime 기능은 `[계획]`이다. 신규 Music Generator는 DohaAudio에서, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. Provider끼리는 직접 호출하지 않으며 반드시 DohaMusic Workspace·Job Orchestrator를 통과한다.
+DohaAudio는 Music Generation·Stem Separation, DohaVocal은 Singing Voice·Voice Conversion의 기술 책임을 갖는 외부 Provider 저장소다. DohaVocal은 metadata-only Fake Runtime과 DohaMusic Consumer Contract Foundation까지 구현했고 실제 model·Production transport·Artifact payload 연결은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서, 실제 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. Provider끼리는 직접 호출하지 않으며 반드시 DohaMusic Workspace·Job Orchestrator를 통과한다.
 
-현재 Runtime과 공개 API는 변경하지 않는다. ACE-Step·Demucs·Seed-VC Adapter·Runner는 새 Provider Job·Artifact 계약이 검증될 때까지 로컬 subprocess 호환 계층으로 유지한다. 세부 책임과 단계는 [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md)을 따른다.
+현재 Runtime 기본값과 공개 API는 변경하지 않는다. DohaVocal strict DTO·mapping·transport port는 [Consumer Contract](dohavocal-consumer-contract.md)에서 검증하며 실제 Worker 조립은 후속 작업이다. ACE-Step·Demucs·Seed-VC Adapter·Runner는 새 Provider Job·Artifact 계약이 검증될 때까지 로컬 subprocess 호환 계층으로 유지한다. 세부 책임과 단계는 [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md), [ADR-034](../11-decisions/ADR-034-dohavocal-consumer-contract.md)을 따른다.
 
 ## DohaLM 가사 연동 경계 — [계획]
 

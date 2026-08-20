@@ -23,11 +23,11 @@
 [저장소 분리 Roadmap](planning/repository-separation-roadmap.md)에 따라 책임 경계와 Runtime 이전을 분리한다.
 
 1. Phase A `[진행 중]`: 책임, Provider 계약 범위, Dataset·Artifact 정책, Model Manifest와 ADR을 문서화하고 `develop` 병합을 검증한다.
-2. Phase B `[계획]`: 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현하고 DohaMusic에는 Provider Client를 둔다.
+2. Phase B `[진행 중]`: DohaVocal Fake Runtime과 DohaMusic Consumer Contract Foundation을 구현했다. 신규 Music Generator와 Production Vocal transport·실제 model·Artifact 통합은 남아 있다.
 3. Phase C `[계획]`: ACE-Step·Demucs·Seed-VC Runner를 순차 이전하고 로컬 `Path`를 Artifact ID·URI 계약으로 전환한다.
 4. Phase D `[계획]`: 전환 검증이 끝난 내부 Runner와 구형 Adapter만 제거하고 운영 계약 version과 DoD를 확정한다.
 
-현재는 문서 경계만 제안한다. DohaAudio·DohaVocal 저장소는 존재하지만 Runtime API, Provider HTTP API, Artifact URI와 공통 Model Registry는 구현하지 않는다.
+DohaVocal `0.1.0` Fake Runtime과 DohaMusic Consumer DTO·mapping·fake transport contract test는 구현했다. 실제 Provider HTTP transport, Artifact payload·AssetVersion commit, DohaAudio Runtime과 공통 Model Registry는 구현하지 않았다.
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-08-10
@@ -57,7 +57,7 @@
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5 구현; develop 병합 전 Gate, 실제 Provider transport·background daemon과 나머지 34개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
-| AI Provider 저장소 분리 | [진행 중] | Phase A 문서화 진행, Phase B~D 미착수 | [Provider Separation DoD](docs/DoD/Provider-Separation.md) |
+| AI Provider 저장소 분리 | [진행 중] | DohaVocal Runtime·Consumer Contract Foundation 구현, Production transport·Artifact 통합·Phase C~D 미착수 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 
 ## 현재 우선 작업
 
@@ -77,7 +77,7 @@
 12. [Workspace v1 API 계약](docs/06-api/workspace-rest-api-contract.md)은 공통 Router·응답 Schema·request ID·오류 분기, [명시적 Bootstrap 도구](docs/06-api/workspace-api-foundation-bootstrap.md), [HMAC Cursor Pagination](docs/06-api/cursor-pagination.md)과 Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job Resource Endpoint 30개를 구현했다. Bootstrap CLI는 source와 실제 DB에 일치하는 `20260810_0017`만 허용하며 실제 Bootstrap은 실행하지 않았다. Job API는 effective Workspace 목록·생성·aggregate 상세·취소·재시도 5/5이며 Resource API 진행도는 30/64다.
 13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 21개 SQLAlchemy 2.0 Workspace Entity, 별도 `ArtifactStorageLocation`, Workspace Repository와 [Service 소유 transaction](docs/03-architecture/workspace-service-transaction.md)을 구현했다. Job scope·role·cancel·claim/lease Column과 Index 6개를 additive revision `20260810_0017`로 실제 사용자 DB에 적용했고 Job Cursor·Owner/Workspace keyset Repository, 생성·상태·취소·재시도·Completion Unit of Work·Worker 실행 기반과 공식 API도 구현했다. 36개 Application Table을 유지하며 실제 Bootstrap·backfill·dual write·실제 Provider transport·background daemon·나머지 34개 Resource REST API·Frontend·Legacy 제거는 미구현이고 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
 14. [완료] [Artifact Storage 계약](docs/03-architecture/artifact-storage-contract.md)과 [ADR-032](docs/11-decisions/ADR-032-artifact-storage-resolver-integrity.md)에서 `artifact://<artifact_id>`, 별도 Catalog, trusted ingestion, SHA-256·size·MIME 검증, immutable publish, owner/retention Application Gate와 [dry-run reconciliation](docs/10-operations/artifact-storage-reconciliation.md)을 구현했다. Content read는 매 요청 전체 SHA-256을 검증하며 scanner는 승인 namespace만 batch 조회하고 어떤 row·파일도 변경하지 않는다. Artifact Metadata·content·download API와 single-byte Range를 유지하며 Job API 추가 후 전체 Resource API는 30/64다. 다음은 별도 승인의 destructive maintenance이며 공개 Artifact 쓰기 API는 계약에 없다.
-15. 신규 Music Generator는 DohaAudio, 신규 Vocal 기능은 DohaVocal에서 시작하고 기존 subprocess Runner는 단계적 이전 전까지 호환 계층으로 유지한다.
+15. [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md)은 4개 capability·9개 operation·Job·Retry·idempotency·lineage·Manifest·오류를 fake transport로 검증한다. 다음은 별도 PR의 실제 인증 transport와 Workspace Worker 조립이며 기존 subprocess Runner는 단계적 이전 전까지 유지한다.
 
 ## F6 Guided Voice Enrollment 실행 순서 [진행 중]
 
