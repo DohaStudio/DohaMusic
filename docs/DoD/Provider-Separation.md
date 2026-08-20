@@ -2,7 +2,7 @@
 
 > 상태: [진행 중]
 > 현재 단계: Phase B — New Implementation Separation 진행 중
-> 최종 수정일: 2026-08-19
+> 최종 수정일: 2026-08-20
 > 관련 문서: [전환 로드맵](../../planning/repository-separation-roadmap.md), [책임 경계](../03-architecture/repository-provider-boundaries.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md)
 
 ## Phase A 완료 조건
@@ -25,6 +25,7 @@
 - [ ] 신규 Music Generator가 DohaAudio에서 구현됐다.
 - [ ] 실제 신규 Vocal model 기능이 DohaVocal에서 구현됐다. Fake Runtime Foundation만 구현됐다.
 - [x] DohaMusic Vocal Provider Client와 JSON fixture 계약 회귀가 검증됐다.
+- [x] Workspace Job ↔ Provider Job 1:N identity·retry persistence와 restart recovery가 검증됐다.
 - [ ] Provider별 Manifest·라이선스·보안·CI가 검증됐다.
 
 ## Phase C 완료 조건 — [계획]

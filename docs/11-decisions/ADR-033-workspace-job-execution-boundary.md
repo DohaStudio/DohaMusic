@@ -50,7 +50,7 @@ Workspace Job Service와 Completion UoW에 이어 atomic claim·lease·heartbeat
 
 - Worker claim·lease execution foundation, Completion Unit of Work와 공개 Router 5개를 구현했다. Completion은 trusted ingestion primitive와 단일 Service transaction·filesystem 보상 경계를 사용한다.
 - 구현·검증 기준 Resource API는 30/64, Job API는 5/5다. 공개 Router 구현만으로 Provider dispatch와 background runtime 완료 Gate 통과를 선언하지 않는다.
-- 이 Job 결정 구현 당시 source head와 실제 사용자 DB는 `20260810_0017`이며 metadata는 36개 Table이었다. D1-A 이후 source는 `20260820_0018`·37개 Table이고 실제 사용자 DB는 계속 `20260810_0017`·36개 Table이다.
+- 이 Job 결정 구현 당시 source head와 실제 사용자 DB는 `20260810_0017`이며 metadata는 36개 Table이었다. D1-A 시점 source는 `20260820_0018`·37개 Table이었고 Provider Job binding 이후 source는 `20260821_0019`·38개 Table이며, 실제 사용자 DB는 계속 `20260810_0017`·36개 Table이다.
 - Legacy Runtime Table 14개와 기존 Worker·Pipeline은 source of truth를 유지한다.
 - Backend Foundation과 Generative AI Track은 아직 완료·OPEN 상태가 아니다. 인증·Workspace Worker dispatch wiring과 background daemon·scheduler는 후속 범위다.
 

@@ -1,6 +1,6 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5] / [미구현: Provider dispatch wiring·background daemon]
+> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5·Provider Job persistence] / [미구현: Provider dispatch wiring·background daemon]
 > 최종 수정일: 2026-08-20
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -9,7 +9,7 @@
 
 이 문서는 Workspace `Job`, `JobInput`, `JobOutput`, `ModelUsage`의 공식 실행 계약을 고정한다. 계약은 DohaStudio Common Specification `0.1.0` / `draft-baseline`을 좁히는 DohaMusic 구현 기준이며 공통 명세의 불변 Job·Artifact·Provider 원칙과 충돌하지 않는다.
 
-revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic claim·lease·heartbeat·attempt·race-safe 만료 recovery와 단일 `run_once()` 기반을 구현했다. Provider 실행 중 heartbeat callback과 cancel marker 확인을 제공하고 성공 결과는 claim token을 전달해 Completion UoW가 확정한다. 공식 Job Router 5개는 이 Service 경계를 공개 API에 연결했다. Provider dispatch wiring과 background daemon·scheduler는 아직 구현하지 않았다.
+revision `20260810_0017`의 Worker Index와 실행 제어 Column 위에 atomic claim·lease·heartbeat·attempt·race-safe 만료 recovery와 단일 `run_once()` 기반을 구현했다. revision `20260821_0019`는 Workspace Job별 Provider Job identity와 retry 1:N history를 별도 binding table에 영속화한다. Provider 실행 중 heartbeat callback과 cancel marker 확인을 제공하고 성공 결과는 claim token을 전달해 Completion UoW가 확정한다. 공식 Job Router 5개는 이 Service 경계를 공개 API에 연결했다. Provider dispatch wiring과 background daemon·scheduler는 아직 구현하지 않았다.
 
 ## 2. Legacy Runtime Job과 Workspace Job
 
@@ -139,6 +139,8 @@ Workspace 전체 Job 목록을 공식 Collection으로 채택하고 `project_id`
 Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at, job_id)`와 `ix_jobs_lease_recovery(status, lease_expires_at, job_id)`를 추가했다. atomic claim·lease·heartbeat·만료 recovery와 상태 전이는 구현했으며 Provider dispatch wiring과 지속 실행 daemon은 후속 범위다.
 
 ## 10. Provider request와 result
+
+Provider Job identity persistence의 상세 계약은 [Provider Job Persistence](provider-job-persistence.md)와 [ADR-036](../11-decisions/ADR-036-provider-job-persistence.md)을 따른다. Workspace Job 하나는 retry마다 새 binding을 append하며, `(provider_id, provider_job_id)`가 identity다. binding이 없는 기존·미dispatch Job은 정상이고 latest binding은 polling 대상 후보를 복구할 뿐 Provider 상태 authority가 아니다.
 
 ```text
 Workspace Job

@@ -84,7 +84,7 @@ Artifact Entity에는 path와 storage key를 추가하지 않는다. 내부 전�
 | `artifact_id`의 deterministic path 변환 | 제외 | domain·backend·파일 형식·Provider별 보존 경계를 표현하기 어렵고 relocation 유연성이 낮음 |
 | 기존 Runtime 상대 경로 재사용 | 제외 | Legacy source of truth와 목표 Artifact 경계를 다시 결합함 |
 
-이 결정에 따라 별도 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Table, additive revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했다. 당시 목표 21개 Workspace Entity와 기존 35개 Table은 변경하지 않았고 Catalog를 포함한 36개 Application Table이었다. D1-A 이후 source metadata는 37개, 실제 사용자 DB는 계속 36개이며 Catalog row 0개와 기존 79개 row의 canonical digest는 보존된다.
+이 결정에 따라 별도 `ArtifactStorageLocation` Entity와 `artifact_storage_locations` Table, additive revision `20260809_0016`을 구현하고 실제 사용자 DB에 적용했다. 당시 목표 21개 Workspace Entity와 기존 35개 Table은 변경하지 않았고 Catalog를 포함한 36개 Application Table이었다. D1-A 시점 source metadata는 37개였고 Provider Job binding 이후에는 38개이며, 실제 사용자 DB는 계속 36개이고 Catalog row 0개와 기존 79개 row의 canonical digest는 보존된다.
 
 ## 5. Storage key 계약
 

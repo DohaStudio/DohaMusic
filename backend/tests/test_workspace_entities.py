@@ -33,6 +33,7 @@ EXPECTED_ENTITY_TABLES = {
     "ProcessingChain": "processing_chains",
     "ProcessingStep": "processing_steps",
     "ModelUsage": "model_usages",
+    "ProviderJobBinding": "provider_job_bindings",
     "RecordingEnrollment": "recording_enrollments",
     "Tag": "tags",
     "Comment": "comments",
@@ -220,6 +221,14 @@ EXPECTED_COLUMNS = {
         "commercial_usage_status",
         "created_at",
     },
+    "provider_job_bindings": {
+        "provider_job_binding_id",
+        "workspace_job_id",
+        "provider_id",
+        "provider_job_id",
+        "retry_of_provider_job_id",
+        "created_at",
+    },
     "recording_enrollments": {
         "recording_enrollment_id",
         "workspace_id",
@@ -304,9 +313,9 @@ def test_workspace_entity_and_table_names_are_exact() -> None:
         entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES
     }
 
-    assert len(WORKSPACE_ENTITY_CLASSES) == 22
+    assert len(WORKSPACE_ENTITY_CLASSES) == 23
     assert actual == EXPECTED_ENTITY_TABLES
-    assert len(set(actual.values())) == 22
+    assert len(set(actual.values())) == 23
 
 
 def test_workspace_table_columns_match_documented_contract() -> None:
@@ -349,7 +358,7 @@ def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     assert target_tables.isdisjoint(LEGACY_TABLES)
     assert storage_tables == {"artifact_storage_locations"}
     assert set(Base.metadata.tables) == target_tables | storage_tables | LEGACY_TABLES
-    assert len(Base.metadata.tables) == 37
+    assert len(Base.metadata.tables) == 38
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

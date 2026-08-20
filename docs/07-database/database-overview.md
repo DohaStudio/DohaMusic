@@ -6,7 +6,7 @@
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
-SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 소스 head는 Project Composition selection을 추가한 `20260820_0018`이고 실제 사용자 DB는 `20260810_0017`이다. 애플리케이션 startup의 자동 Migration은 기본 비활성화이며 `DOHAMUSIC_AUTO_MIGRATE=true`를 명시한 경우에만 기존 `upgrade head`를 실행한다. 사용자 DB에는 opt-in을 사용하지 않고 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
+SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 소스 head는 Provider Job binding을 추가한 `20260821_0019`이고 실제 사용자 DB는 `20260810_0017`이다. 애플리케이션 startup의 자동 Migration은 기본 비활성화이며 `DOHAMUSIC_AUTO_MIGRATE=true`를 명시한 경우에만 기존 `upgrade head`를 실행한다. 사용자 DB에는 opt-in을 사용하지 않고 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
 
 승인 전에는 기본 URL로 `upgrade head`를 실행하지 않습니다. revision 확인과 실제 적용 명령은 Runbook의 경로 확인·backup·FK Gate를 통과한 실행 기록에서만 사용합니다.
 
@@ -23,9 +23,9 @@ Database Documentation
 | 구분 | 실제 범위 | 현재 판정 | 상세 Authority |
 |---|---|---|---|
 | CURRENT Runtime | 기능별 Runtime Table 14개 | 운영 source of truth | [CURRENT Runtime ERD](erd.md), [CURRENT Runtime Core Table Definition](table-definition.md), [Pipeline Table](pipeline-tables.md), [Voice Conversion Table](voice-conversion-tables.md) |
-| CURRENT Workspace/Domain | source Workspace 도메인 Entity/Table 22개와 내부 Storage Catalog 1개 | selection Table을 포함한 ORM·Repository·Service와 additive source schema가 구현됨. 실제 사용자 DB는 21개 Workspace Table이며 기존 Runtime을 대체하지 않음 | [Workspace DB 구현 상태](database-redesign-overview.md), [Workspace Table Definition](database-redesign-table-definition.md) |
+| CURRENT Workspace/Domain | source Workspace 도메인 Entity/Table 23개와 내부 Storage Catalog 1개 | selection·Provider binding Table을 포함한 ORM·Repository·Service와 additive source schema가 구현됨. 실제 사용자 DB는 21개 Workspace Table이며 기존 Runtime을 대체하지 않음 | [Workspace DB 구현 상태](database-redesign-overview.md), [Workspace Table Definition](database-redesign-table-definition.md) |
 | TARGET | Workspace·AssetVersion·Artifact·CompositionSnapshot·공통 Job 중심의 결과 소유권 | 물리 schema는 부분 구현됐지만 backfill·dual write·Runtime read 전환은 미구현 | [TARGET ERD](database-redesign-erd.md), [TARGET 논리 구조](database-redesign-overview.md) |
-| TRANSITION | CURRENT Runtime에서 Workspace 중심 source of truth로 단계적 전환 | source revision `0018`, 실제 DB `0017`; selection migration·데이터·Runtime 전환 미적용 | [Migration 전략](database-redesign-migration-strategy.md) |
+| TRANSITION | CURRENT Runtime에서 Workspace 중심 source of truth로 단계적 전환 | source revision `0019`, 실제 DB `0017`; selection·binding migration과 데이터·Runtime 전환 미적용 | [Migration 전략](database-redesign-migration-strategy.md) |
 
 ## 숫자 계산 기준
 
@@ -34,11 +34,11 @@ Database Documentation
 | 계산 범위 | 수 | 근거 |
 |---|---:|---|
 | Runtime application tables | 14 | `backend/models/`의 Workspace 외 `__tablename__` 14개. 현재 제품 실행 source of truth |
-| Workspace domain entities/tables | source 22 / 실제 DB 21 | 기존 21개와 source revision `20260820_0018`의 `ProjectCompositionSelection` 1개 |
+| Workspace domain entities/tables | source 23 / 실제 DB 21 | 기존 21개와 source revision `20260820_0018`의 `ProjectCompositionSelection`, `20260821_0019`의 `ProviderJobBinding` |
 | Workspace storage catalog | 1 | `ArtifactStorageLocation` / `artifact_storage_locations`, revision `20260809_0016` |
 | Application metadata tables | source 37 / 실제 DB 36 | Runtime 14 + Workspace domain source 22(실제 21) + Catalog 1 |
 
-`20260807_0013`~`0015`는 신규 Table이 아니라 Workspace·Project·ProjectAsset·Asset keyset Index를 추가한다. `20260810_0017`도 신규 Table 없이 기존 Workspace Job Table에 scope·role·cancel·claim/lease Column과 Index 6개를 추가한다. source `20260820_0018`은 `project_composition_selections`와 aggregate Artifact 정렬 Index를 추가하며 실제 사용자 DB에는 적용하지 않았다.
+`20260807_0013`~`0015`는 신규 Table이 아니라 Workspace·Project·ProjectAsset·Asset keyset Index를 추가한다. `20260810_0017`도 신규 Table 없이 기존 Workspace Job Table에 scope·role·cancel·claim/lease Column과 Index 6개를 추가한다. source `20260820_0018`은 `project_composition_selections`와 aggregate Artifact 정렬 Index를, `20260821_0019`는 `provider_job_bindings`를 추가하며 실제 사용자 DB에는 적용하지 않았다.
 
 ## CURRENT Runtime DB — 14개 Table
 
@@ -59,7 +59,7 @@ Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동
 
 ## CURRENT Workspace/Domain DB와 TARGET — [부분 구현]
 
-DohaStudio Common Specification을 기준으로 기존 21개 Workspace 도메인 Entity에 `ProjectCompositionSelection`을 더한 source Entity 22개와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata는 `20260820_0018` 기준 37개 Application Table이고 실제 사용자 DB는 `20260810_0017` 기준 36개다. Workspace Resource API 30개와 별도 D1 product aggregate API 2개, Job Service·Completion UoW·Worker execution foundation과 Job API 5개도 구현했다.
+DohaStudio Common Specification을 기준으로 기존 21개 Workspace 도메인 Entity에 `ProjectCompositionSelection`과 `ProviderJobBinding`을 더한 source Entity 23개와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata는 `20260821_0019` 기준 38개 Application Table이고 실제 사용자 DB는 `20260810_0017` 기준 36개다. Workspace Resource API 30개와 별도 D1 product aggregate API 2개, Job Service·Completion UoW·Worker execution foundation, Provider Job persistence와 Job API 5개도 구현했다.
 
 이 구조는 물리 schema와 일부 Application 계층에서는 CURRENT다. 그러나 신규 Workspace Table backfill·dual write·Runtime read 전환과 Legacy 동결·제거는 수행하지 않았으므로 제품 실행의 source of truth라는 의미에서는 여전히 TARGET이다. Provider dispatch wiring과 background daemon도 미구현이며 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
 
