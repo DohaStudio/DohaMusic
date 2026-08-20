@@ -4,15 +4,15 @@
 > 문서 분류: **TRANSITION / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-20
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 완료된 전환 기반: Workspace 도메인 Entity/Table 21개·Catalog 1개, revisions `0012`~`0017`, Bootstrap exact revision Gate
+> 완료된 전환 기반: source Workspace 도메인 Entity/Table 22개·Catalog 1개, revisions `0012`~`0018`, Bootstrap exact revision Gate
 > 미구현 전환: 실제 Bootstrap·backfill·dual write·Runtime read source 전환·Legacy 제거·파일 이동
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head와 실제 사용자 DB revision은 Workspace Job schema·Index를 추가한 `20260810_0017`입니다. `20260806_0012`는 목표 Workspace Table 21개, `20260807_0013`~`0015`는 Workspace Resource keyset Index, `20260809_0016`은 Catalog Table 하나, `20260810_0017`은 Job scope·role·cancel·claim/lease Column과 Index 6개를 추가했습니다. backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head는 Project Composition selection을 추가한 `20260820_0018`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `0018`은 nullable-safe `project_composition_selections`, same-Project 복합 FK와 aggregate Artifact 정렬 Index를 추가하며 기존 row backfill은 없습니다. backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
-명시적 Bootstrap CLI의 fail-closed revision Gate는 source와 실제 사용자 DB에 일치하는 `20260810_0017`을 정확히 요구합니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
+명시적 Bootstrap CLI의 fail-closed revision Gate는 source `20260820_0018`을 정확히 요구합니다. 실제 사용자 DB `20260810_0017`에는 migration을 적용하지 않았으므로 현재 Bootstrap 대상이 아닙니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
 
 | 현재 영역 | 현재 Table |
 |---|---|

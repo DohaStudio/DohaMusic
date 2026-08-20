@@ -9,11 +9,11 @@ import backend.models  # noqa: F401
 from backend.db.base import Base
 from backend.models.workspace import (
     ARTIFACT_STORAGE_ENTITY_CLASSES,
+    WORKSPACE_ENTITY_CLASSES,
     Artifact,
     Asset,
     AssetType,
     JobStatus,
-    WORKSPACE_ENTITY_CLASSES,
 )
 
 EXPECTED_ENTITY_TABLES = {
@@ -25,6 +25,7 @@ EXPECTED_ENTITY_TABLES = {
     "Artifact": "artifacts",
     "AssetRelation": "asset_relations",
     "CompositionSnapshot": "composition_snapshots",
+    "ProjectCompositionSelection": "project_composition_selections",
     "SnapshotItem": "snapshot_items",
     "Job": "jobs",
     "JobInput": "job_inputs",
@@ -127,6 +128,12 @@ EXPECTED_COLUMNS = {
         "model_manifest_ids",
         "created_by",
         "created_at",
+    },
+    "project_composition_selections": {
+        "project_id",
+        "selected_composition_snapshot_id",
+        "created_at",
+        "updated_at",
     },
     "snapshot_items": {
         "snapshot_item_id",
@@ -297,9 +304,9 @@ def test_workspace_entity_and_table_names_are_exact() -> None:
         entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES
     }
 
-    assert len(WORKSPACE_ENTITY_CLASSES) == 21
+    assert len(WORKSPACE_ENTITY_CLASSES) == 22
     assert actual == EXPECTED_ENTITY_TABLES
-    assert len(set(actual.values())) == 21
+    assert len(set(actual.values())) == 22
 
 
 def test_workspace_table_columns_match_documented_contract() -> None:
@@ -342,7 +349,7 @@ def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     assert target_tables.isdisjoint(LEGACY_TABLES)
     assert storage_tables == {"artifact_storage_locations"}
     assert set(Base.metadata.tables) == target_tables | storage_tables | LEGACY_TABLES
-    assert len(Base.metadata.tables) == 36
+    assert len(Base.metadata.tables) == 37
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

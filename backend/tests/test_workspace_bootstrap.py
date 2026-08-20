@@ -130,7 +130,7 @@ def test_current_source_head_passes_revision_gate_without_bootstrap(
 ) -> None:
     database_url = _database_url(tmp_path / "current-revision.db")
 
-    assert inspect_bootstrap_target(database_url) == "20260810_0017"
+    assert inspect_bootstrap_target(database_url) == "20260820_0018"
     assert _workspace_count(database_url) == 0
 
 

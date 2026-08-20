@@ -183,7 +183,20 @@ CompositionSnapshot은 Project의 정확한 작품 구성을 고정한 불변 �
 
 `(project_id, snapshot_version)`는 Unique입니다. 생성 후 UPDATE와 DELETE를 금지합니다.
 
-### 4.2 `snapshot_items`
+### 4.2 `project_composition_selections`
+
+Project별 명시적 current Snapshot을 저장하는 별도 1:1 상태입니다. row가 없으면 선택이 없는 초기 상태이며 Snapshot 자체는 변경하지 않습니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `project_id` | UUID | 아니요 | PK, FK | `music_projects.project_id` |
+| `selected_composition_snapshot_id` | UUID | 아니요 | Unique, 복합 FK | 선택된 불변 Snapshot |
+| `created_at` | timestamp | 아니요 |  | 최초 선택 시각 |
+| `updated_at` | timestamp | 아니요 |  | 마지막 선택 변경 시각 |
+
+`(project_id, selected_composition_snapshot_id)` 복합 FK는 `composition_snapshots(project_id, composition_snapshot_id)`를 참조해 same-Project 불변식을 강제합니다. Project 삭제는 `CASCADE`, Snapshot 삭제는 `RESTRICT`이며 source revision `20260820_0018`에만 존재하고 실제 사용자 DB에는 아직 적용하지 않았습니다.
+
+### 4.3 `snapshot_items`
 
 SnapshotItem은 Snapshot 안의 역할별 정확한 AssetVersion을 고정합니다.
 
@@ -198,7 +211,7 @@ SnapshotItem은 Snapshot 안의 역할별 정확한 AssetVersion을 고정합니
 
 `(composition_snapshot_id, item_role, sort_order)`와 `(composition_snapshot_id, asset_version_id, item_role)`는 Unique입니다. Snapshot과 함께 불변입니다.
 
-### 4.3 `processing_chains`
+### 4.4 `processing_chains`
 
 ProcessingChain은 순서가 있는 처리 정의입니다.
 
@@ -443,7 +456,8 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 |---|---|---|
 | `project_assets` | `(project_id, asset_id)` | `project_id`, `asset_id`, `deleted_at` |
 | `asset_versions` | `(asset_id, version_number)` | `parent_asset_version_id`, `version_origin` |
-| `composition_snapshots` | `(project_id, snapshot_version)` | `project_id`, `created_at` |
+| `composition_snapshots` | `(project_id, snapshot_version)`, `(project_id, composition_snapshot_id)` | `project_id`, `created_at` |
+| `project_composition_selections` | `selected_composition_snapshot_id` | PK `project_id`, same-Project 복합 FK |
 | `snapshot_items` | `(composition_snapshot_id, item_role, sort_order)` | `asset_version_id` |
 | `processing_chains` | `(name, chain_version)`, `chain_checksum` | `created_by` |
 | `processing_steps` | `(processing_chain_id, step_order)` | `step_type` |

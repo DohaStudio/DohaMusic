@@ -1,9 +1,9 @@
 # D1 Composition Read Workspace API 계약
 
-> 문서 상태: [계약 확정 / 구현 계획]
+> 문서 상태: [D1-A Backend 완료 / Transition 계획]
 > 최종 수정일: 2026-08-20
 > 관련 기능: AI-native DAW D1 읽기 전용 Composition aggregate
-> 구현 상태: NOT IMPLEMENTED
+> 구현 상태: D1-A IMPLEMENTED
 > 관련 문서: [CompositionSnapshot 기반](composition-snapshot-foundation.md), [Workspace REST API 공통 계약](workspace-rest-api-contract.md), [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 ## 1. CURRENT / TARGET / NOT IMPLEMENTED
@@ -26,7 +26,6 @@
 
 ### NOT IMPLEMENTED
 
-- 이 문서의 aggregate Router·DTO·Service·Repository와 Project selection persistence
 - 실제 Workspace bootstrap·backfill·Frontend consume·인증 사용자 mapping
 - canonical Track·Section·Clip Domain, Timeline·editing·typed Mixer
 - Provider·MusicIntent write·Reference·Evaluation·Learning 실행
@@ -36,6 +35,7 @@
 ```http
 GET /api/v1/projects/{project_id}/composition
 GET /api/v1/projects/{project_id}/composition?composition_snapshot_id={uuid}
+PATCH /api/v1/projects/{project_id}/composition-selection
 ```
 
 Project가 aggregate root이므로 Project namespace를 사용한다. `project_id`와 effective Owner가 Workspace scope를 결정하므로 `workspace_id`를 path나 query에 중복하지 않는다.
@@ -208,4 +208,14 @@ Aggregate GET은 다음을 수행하지 않는다.
 2. **D1-Transition:** 명시적 bootstrap과 검증 가능한 Legacy Project·AssetVersion·Snapshot 최소 backfill
 3. **D1-B:** Frontend consume, recovery UI, 실제 Snapshot E2E와 인증 Gate
 
-D1-A는 임시 DB fixture와 빈 Workspace 상태에서 구현·테스트할 수 있으므로 실제 사용자 backfill보다 먼저 진행할 수 있다. 실제 Frontend 전환은 D1-Transition 이후에만 수행한다.
+D1-A는 임시 DB fixture와 빈 Workspace 상태에서 구현·테스트를 완료했다. 실제 Frontend 전환은 D1-Transition 이후에만 수행한다.
+
+## 12. D1-A 구현 상태
+
+`20260820_0018`은 nullable 초기 상태를 유지하는 `project_composition_selections` 1:1 Table을 additive하게 추가한다. `(project_id, selected_composition_snapshot_id)`는 `(composition_snapshots.project_id, composition_snapshot_id)`를 참조하므로 다른 Project의 Snapshot 선택을 DB에서 거부하며 Service도 같은 불변식을 검증한다. 실제 사용자 DB에는 이 revision을 적용하지 않았다.
+
+선택 변경은 `PATCH /api/v1/projects/{project_id}/composition-selection`과 `{ "selected_snapshot_id": "uuid-or-null" }`을 사용한다. 같은 값을 반복 적용해도 동일 상태가 되는 자연 멱등 mutation이며 Snapshot 자체는 변경하지 않는다. `null`은 선택 row를 제거한다.
+
+aggregate Repository는 selection, SnapshotItem, exact AssetVersion·Asset, Artifact를 bounded batch query로 읽는다. Artifact는 공개 metadata와 `/api/v1/artifacts/{artifact_id}/content|download`만 반환하며 storage path·key·locator·credential과 payload에는 접근하지 않는다. SQLite fixture의 대표 조회는 예상 Index를 사용하고 full-table scan, 불필요한 `TEMP B-TREE`, item별 N+1이 없음을 검증했다.
+
+D1-A 완료는 Backend와 API 범위만 뜻한다. D1-Transition bootstrap·backfill·read switch, D1-B Frontend, 실제 인증 principal, 실제 사용자 Workspace Snapshot E2E, canonical Track·Section·Clip과 typed Mixer는 계속 `NOT IMPLEMENTED`다.
