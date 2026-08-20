@@ -68,6 +68,7 @@ class HttpVocalProviderTransport:
         kwargs: dict[str, object] = {
             "headers": headers,
             "timeout": self._timeout,
+            "follow_redirects": False,
         }
         if request.json_body is not None:
             kwargs["json"] = dict(request.json_body)

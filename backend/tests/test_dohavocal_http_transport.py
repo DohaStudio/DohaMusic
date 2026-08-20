@@ -256,6 +256,51 @@ def test_base_url_and_timeouts_load_from_environment(monkeypatch):
     assert settings.dohavocal_pool_timeout_seconds == 1
 
 
+def test_base_url_trailing_slashes_do_not_change_endpoint_path(vocal_fixture):
+    observed: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        observed.append(request)
+        return httpx.Response(200, json=vocal_fixture["health"])
+
+    settings = Settings(dohavocal_base_url="https://trusted.example/runtime///")
+    client, transport, http_client = _client(handler, settings=settings)
+    try:
+        assert client.health()
+    finally:
+        transport.close()
+        http_client.close()
+
+    assert observed[0].url.path == "/runtime/health"
+
+
+def test_injected_client_cannot_enable_cross_origin_redirect():
+    observed: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        observed.append(str(request.url))
+        if len(observed) == 1:
+            return httpx.Response(
+                302, headers={"location": "http://untrusted.example/health"}
+            )
+        return httpx.Response(200, json={"status": "ok", "provider_id": "dohavocal"})
+
+    http_client = httpx.Client(
+        transport=httpx.MockTransport(handler), follow_redirects=True
+    )
+    transport = HttpVocalProviderTransport(
+        base_url="https://trusted.example", client=http_client
+    )
+    try:
+        with pytest.raises(VocalProviderInvalidResponseError):
+            VocalProviderClient(transport).health()
+    finally:
+        transport.close()
+        http_client.close()
+
+    assert observed == ["https://trusted.example/health"]
+
+
 def test_dynamic_path_segments_are_encoded_without_host_override(vocal_fixture):
     job_id = "../job?target=https://other.example/#fragment"
     observed: list[httpx.Request] = []
@@ -304,6 +349,31 @@ def test_manifest_path_segment_is_encoded_without_semantic_override(vocal_fixtur
     assert b"%2F" in request.url.raw_path
     assert b"%3F" in request.url.raw_path
     assert b"%23" in request.url.raw_path
+
+
+@pytest.mark.parametrize(
+    ("job_id", "raw_suffix"),
+    [("%2F", b"%252F"), ("%2E%2E", b"%252E%252E"), ("//", b"%2F%2F")],
+)
+def test_preencoded_and_double_slash_job_ids_remain_one_raw_segment(
+    vocal_fixture, job_id, raw_suffix
+):
+    observed: list[httpx.Request] = []
+    payload = deepcopy(vocal_fixture["running_job"])
+    payload["job_id"] = job_id
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        observed.append(request)
+        return httpx.Response(200, json=payload)
+
+    client, transport, http_client = _client(handler)
+    try:
+        assert client.get_job_status(job_id).job_id == job_id
+    finally:
+        transport.close()
+        http_client.close()
+
+    assert observed[0].url.raw_path.endswith(b"/" + raw_suffix)
 
 
 @pytest.mark.parametrize(
@@ -395,7 +465,13 @@ def test_http_application_error_does_not_leak_raw_sensitive_fields(vocal_fixture
 
 @pytest.mark.parametrize(
     ("content", "content_type"),
-    [(b"<html>secret</html>", "text/html"), (b"{invalid", "application/json")],
+    [
+        (b"<html>secret</html>", "text/html"),
+        (b"plain text", "text/plain"),
+        (b"binary", "application/octet-stream"),
+        (b"", "application/json"),
+        (b"{invalid", "application/json"),
+    ],
 )
 def test_non_json_or_malformed_json_fails_closed(content, content_type):
     def handler(_request: httpx.Request) -> httpx.Response:
@@ -519,5 +595,18 @@ def test_unavailable_injected_client_maps_to_safe_transport_error(vocal_fixture)
 def test_context_manager_closes_owned_client_without_network():
     with HttpVocalProviderTransport(base_url="http://127.0.0.1:8080") as transport:
         assert not transport.is_closed
+        owned_client = transport._client
 
     assert transport.is_closed
+    assert owned_client.is_closed
+
+
+def test_context_manager_closes_owned_client_after_exception():
+    transport = HttpVocalProviderTransport(base_url="http://127.0.0.1:8080")
+    owned_client = transport._client
+
+    with pytest.raises(RuntimeError, match="sentinel"), transport:
+        raise RuntimeError("sentinel")
+
+    assert transport.is_closed
+    assert owned_client.is_closed
