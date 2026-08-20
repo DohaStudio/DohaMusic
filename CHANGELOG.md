@@ -11,13 +11,6 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
-### 추가 — D1 Composition Aggregate Backend Read
-
-- Project와 선택된 불변 `CompositionSnapshot`의 동일 소속을 DB 복합 FK와 Service에서 함께 강제하는 `project_composition_selections` 1:1 상태와 additive Alembic `20260820_0018`을 추가했다.
-- `GET /api/v1/projects/{project_id}/composition`과 `PATCH /api/v1/projects/{project_id}/composition-selection`을 구현해 `empty`, `selection_required`, `ready`, 명시적 history override를 제공한다.
-- aggregate는 exact AssetVersion, 경로를 노출하지 않는 Artifact 참조, Snapshot-local Track projection, Section `not_available`, Mix JSON과 저장된 lineage만 batch 조회하며 GET은 Legacy fallback·bootstrap·backfill·selection 변경을 수행하지 않는다.
-- 실제 사용자 DB migration, Workspace bootstrap·backfill, Frontend, Provider, Artifact payload, Dataset·Training·GPU와 Common AI Contract는 변경하지 않았다.
-
 ### 추가 — Workspace Job Vocal Capability Contract
 
 - Workspace Job 공식 type을 `vocal_generation`, `voice_conversion`, `vocal_correction`, `vocal_analysis` 네 DohaVocal capability로 확장하고 capability별 required/optional input role과 pre-ingestion candidate output role을 고정했다.
@@ -29,6 +22,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 기존 `VocalProviderTransport` port에 재사용 가능한 동기 `HttpVocalProviderTransport`를 추가하고 DohaVocal `0.1.0`의 9개 HTTP operation을 연결했다.
 - config-only base URL, HTTP(S)·no-userinfo 검증, connect/read/write/pool timeout, 동적 path encoding, JSON Content-Type·body fail-closed와 transport 자동 retry 비활성 경계를 구현했다.
 - `httpx.MockTransport`로 wire request·5-state·retry·lineage·Manifest·오류·timeout·계약 drift·secret 비노출을 실제 network 없이 검증했다. Worker wiring·Artifact ingestion·DB·Alembic·공개 API·인증·실제 audio/AI는 변경하지 않았다.
+
+### 추가 — D1 Composition Aggregate Backend Read
+
+- Project와 선택된 불변 `CompositionSnapshot`의 동일 소속을 DB 복합 FK와 Service에서 함께 강제하는 `project_composition_selections` 1:1 상태와 additive Alembic `20260820_0018`을 추가했다.
+- `GET /api/v1/projects/{project_id}/composition`과 `PATCH /api/v1/projects/{project_id}/composition-selection`을 구현해 `empty`, `selection_required`, `ready`, 명시적 history override를 제공한다.
+- aggregate는 exact AssetVersion, 경로를 노출하지 않는 Artifact 참조, Snapshot-local Track projection, Section `not_available`, Mix JSON과 저장된 lineage만 batch 조회하며 GET은 Legacy fallback·bootstrap·backfill·selection 변경을 수행하지 않는다.
+- 실제 사용자 DB migration, Workspace bootstrap·backfill, Frontend, Provider, Artifact payload, Dataset·Training·GPU와 Common AI Contract는 변경하지 않았다.
 
 ### 수정 — DohaVocal Manifest fixture 정합화
 
