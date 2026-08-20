@@ -1,13 +1,15 @@
 # Frontend 아키텍처
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-20
 > 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend [완료]
-> 관련 문서: [Frontend Overview](frontend-overview.md), [Design System](design-system.md), [UI Component Guide](ui-component-guide.md), [Responsive Guide](responsive-guide.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [History](history-management.md), [Project](project-management.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+> 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Design System](design-system.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
 Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
+
+현재 구조는 생성 Workflow용 Responsive Studio다. TARGET의 편집 가능한 Arrangement·Track·Clip·Mixer, AI Music Director와 Composition QA feature boundary는 아직 구현되지 않았으며 [장기 전환 계획](../../planning/ai-native-daw-frontend-migration.md)의 D1~D9에서 단계적으로 결정한다.
 
 ```mermaid
 flowchart LR
@@ -35,35 +37,37 @@ flowchart LR
 | `lib` | formatter, validation helper, constants | feature 전용 비즈니스 로직 |
 | `styles` | token, base, layout, component, page, responsive motion/accessibility 정책 | 페이지별 임의 색상·spacing |
 
-## 구현 기준 폴더 구조
+## CURRENT 구현 폴더 구조
 
 ```text
 frontend/
 ├─ app/
-│  ├─ (marketing)/page
-│  ├─ (studio)/studio/page
-│  ├─ (studio)/lyrics/page
+│  ├─ page.tsx
+│  ├─ studio/page.tsx
+│  ├─ lyrics/page.tsx
 │  ├─ voice/page
-│  ├─ (studio)/generation/[jobId]/page
-│  ├─ (studio)/result/[jobId]/page
+│  ├─ generation/[jobId]/page.tsx
+│  ├─ result/[jobId]/page.tsx
+│  ├─ history/page.tsx
+│  ├─ projects/page.tsx
+│  ├─ projects/[id]/page.tsx
 │  ├─ settings/page
 │  ├─ about/page
-│  ├─ loading
-│  ├─ error
-│  └─ not-found
+│  ├─ loading.tsx
+│  ├─ error.tsx
+│  └─ not-found.tsx
 ├─ components/
-│  ├─ atoms/
-│  ├─ molecules/
-│  ├─ organisms/
-│  ├─ templates/
-│  └─ primitives/
+│  └─ app shell·brand·공통 UI components
 ├─ features/
 │  ├─ studio/             # orchestration, step UI, schema, request mapper
 │  ├─ lyrics/
 │  ├─ voice/
 │  ├─ pipeline/
 │  ├─ player/
-│  └─ settings/
+│  ├─ audio/
+│  ├─ history/
+│  ├─ projects/
+│  └─ kpop/
 ├─ hooks/
 ├─ services/
 ├─ stores/
@@ -72,7 +76,7 @@ frontend/
 └─ styles/                # tokens, base, pages, layout, components, responsive
 ```
 
-실제 라이브러리와 버전은 승인된 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)과 `frontend/package-lock.json`으로 고정한다. 구현은 이 책임 경계를 따르되 작은 공통 component는 역할별 파일로 묶어 불필요한 디렉터리 깊이를 피한다.
+실제 라이브러리와 버전은 승인된 [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)과 `frontend/package-lock.json`으로 고정한다. 위 구조는 현재 checkout을 요약한다. TARGET DAW feature 폴더는 실제 구현 PR에서 책임 경계를 확정하기 전 미리 만들지 않는다.
 
 ## 상태 모델
 

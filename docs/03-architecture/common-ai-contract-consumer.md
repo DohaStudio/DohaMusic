@@ -1,7 +1,7 @@
 # Common AI Contract 소비자 기반
 
 > 문서 상태: [구현]
-> 최종 수정일: 2026-08-11
+> 최종 수정일: 2026-08-20
 > 적용 범위: opt-in loader와 RightsMetadata 검증 adapter
 
 ## 기준선과 설치
@@ -97,3 +97,13 @@ loader/adapter, 테스트와 이 문서를 한 개의 새 revert PR로 함께 �
 opt-in 호출자를 연결한다. ProviderCapability·MusicIntent·ModelVersion·ModelManifest와 Runtime,
 Dataset governance, LearningCandidate, DatasetVersion, Training Readiness Gate는 각각의 소유
 저장소와 승인 절차가 준비되기 전까지 연결하지 않는다.
+
+## 제품 목표의 공통 객체 재사용 — TARGET
+
+[AI-native DAW 제품 방향](../02-product/ai-native-daw-product-direction.md)은 같은 authority의 `MusicIntent`, `RevisionPlan`, `SimilarityReport`, `ReferenceAnalysis`, `FeatureRecord`, `LearningCandidate`, `RightsMetadata`, `TrainingEligibility`, `DatasetVersion`, `TrainingRun`, `EvaluationRun` 정의를 우선 재사용한다. 이는 현재 Python adapter나 Runtime 연결 범위를 넓힌다는 뜻이 아니다. Python package의 실행 schema와 authority의 제안 Specification도 구분한다.
+
+- AI 편집 의도용 신규 공통 `EditIntent`를 만들지 않는다.
+- `MusicIntent.target`의 `project_id`, `asset_version_id`, `track_id`, `section_id`, `time_range`를 우선 사용한다.
+- `clip_id`, `bar_range`, `beat_range`는 실제 DAW 구현에서 필요성이 입증될 때만 Common Contract 최소 확장을 검토한다.
+- 완성곡 QA는 기존 Training용 `EvaluationRun`의 의미를 변경하지 않는다.
+- `CompositionEvaluationRun`과 `TimelineSelection`은 DohaMusic product-domain 후보이며 Common Contract schema로 확정하지 않는다.

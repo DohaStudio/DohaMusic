@@ -37,8 +37,20 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 
 DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. 신규 Music Generator는 DohaAudio, 신규 Singing Voice·Voice Conversion은 DohaVocal에서 구현한다. 두 저장소는 존재하며 Runtime 기능은 `[계획]`이다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
 
+## AI-native DAW 제품 전환 상태
+
+| 범위 | 상태 | 사실 기준 |
+|---|---|---|
+| Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현 |
+| AI-native DAW Product Direction | [진행 중] | CURRENT/TARGET/NOT IMPLEMENTED 문서 Draft PR, `develop` 병합 전 |
+| Composition Runtime UI | [계획] | 편집 가능한 Timeline·Track·Clip·Mixer 미구현 |
+| Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
+| Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
+
+Phase 8 완료는 로컬 Responsive Studio MVP 범위다. 장기 제품은 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md)과 [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md)의 독립 Track으로 관리하며 기존 Phase 8 진행률을 소급 변경하지 않는다.
+
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-09
+> 최종 수정일: 2026-08-20
 > 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.
 > 관련 문서: [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md), [작업 지침](AGENTS.md), [ADR](docs/11-decisions/README.md), [변경 이력](CHANGELOG.md)
 
@@ -78,6 +90,8 @@ Phase 7  Doha Voice                  [계획]
 Phase 8  Doha Studio                 [완료]
   ↓ 후속 개선
 F6       Guided Voice Enrollment     [진행 중]
+  ↓ 독립 장기 전환
+Track    AI-native DAW Product       [D0 문서 진행 중 / D1~D9 계획]
   ↓
 K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
@@ -100,14 +114,17 @@ Track    AI Provider 저장소 분리     [Phase A 진행 중 / Phase B~D 계획
 | 6. Lyrics AI | [완료] | `██████████ 100%` | 로컬 Template·Mock Generator·API·검증·Benchmark 완료 | [Phase-06](docs/DoD/Phase-06.md) |
 | 6.6~6.9 Local Lyrics LLM | [계획] | `░░░░░░░░░░ 0%` | Dataset·학습·Adapter·품질 게이트 미착수 | [Roadmap](planning/local-lyrics-llm-roadmap.md) |
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
-| 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Voice·History·Project·Audio·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
+| 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·Audio·Cancel·Retry 완료; DAW TARGET과 분리 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
+| AI-native DAW Product | [진행 중] | `D0 문서 진행 중 / D1~D9 미구현` | 제품·아키텍처·Frontend 전환 Draft, `develop` 병합 전; Timeline·Mixer·QA·Learning Runtime 없음 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5 구현; develop 병합 전 완료 Gate, 실제 Provider transport·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 문서화 진행, 저장소·Runtime 미구현 | [Provider Separation](docs/DoD/Provider-Separation.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
+
+AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0는 문서 Draft PR이 `develop`에 병합되기 전까지 `[진행 중]`이며, D1 Composition Read Workspace부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
 Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 atomic claim·lease·heartbeat·만료 recovery·단일 `run_once()` fake dispatch 기반에 공식 Job API 5개를 연결했다. Worker는 Provider 실행 중 callback으로 lease를 연장하고 결과 저장은 Completion UoW에 위임한다. Job API는 5/5, Resource API는 30/64지만 이 Draft PR이 develop에 병합되기 전까지 Workspace Backend Foundation은 완료가 아니며 Generative AI Track도 OPEN이 아니다. 실제 Provider transport와 background daemon·scheduler는 미구현이고 metadata 36개 Table, Alembic `20260810_0017`은 유지한다.
 
@@ -242,15 +259,15 @@ Phase 7은 DohaVocal에서 동의된 사용자 음성으로 `VoiceConverter` 후
 
 ## Phase 8. Doha Studio — [완료]
 
-- 목표: 생성·편집·재생·이력·파일 관리를 제공하는 사용자 Studio를 구축한다.
+- 목표: 생성 구성·재생·이력·파일 관리를 제공하는 로컬 사용자 Responsive Studio MVP를 구축한다.
 - 구현 범위·포함 기능: Premium Dark responsive shell, Prompt·Lyrics·Voice·Review, 오류 backoff Pipeline polling, History·Project CRUD와 자동 Default Project, 공개 allowlist 결과 metadata, 완료 Pipeline의 보안 WAV content·download, 전역 Player, cooperative Cancel과 Snapshot 기반 새 Job Retry.
-- 제외 기능: Production 인프라 전환과 공개 운영 승인.
+- 제외 기능: 편집 가능한 DAW Timeline·Track·Clip·Mixer·Composition QA, Production 인프라 전환과 공개 운영 승인.
 - 선행 조건: Phase 5 Pipeline API 충족. 인증·소유권은 Phase 9 공개 운영 차단 조건이며 로컬 MVP 완료와 구분한다.
 - 완료 조건: [Phase-08 DoD](docs/DoD/Phase-08.md), 주요 화면·접근성·빌드·E2E·권한 검증.
 - 산출물: Frontend 애플리케이션, Design System·Component·Responsive·Studio UX 문서, E2E 결과.
 - 관련 문서: [Frontend Overview](docs/03-architecture/frontend-overview.md), [Frontend Architecture](docs/03-architecture/frontend-architecture.md), [Design Reference Policy](docs/03-architecture/design-reference-policy.md), [Studio UX](docs/03-architecture/studio-ux-flow.md), [Frontend Roadmap](planning/frontend-roadmap.md), [User Scenarios](docs/00-overview/user-scenarios.md).
 - 관련 ADR·실험: [ADR-017 Frontend Technology Stack](docs/11-decisions/ADR-017-frontend-technology-stack.md)은 `[승인]`; 파일 전달은 [ADR-018](docs/11-decisions/ADR-018-secure-audio-file-access.md), Voice upload는 [ADR-019](docs/11-decisions/ADR-019-secure-voice-profile-upload.md), History 보존은 [ADR-020](docs/11-decisions/ADR-020-project-history-retention.md)을 따른다.
-- 예상 다음 단계: Phase 9 Production 또는 기존 완료 범위를 바꾸지 않는 F6 Guided Voice Enrollment 후속 개선.
+- 예상 다음 단계: Phase 9 Production, 기존 완료 범위를 바꾸지 않는 F6 Guided Voice Enrollment 또는 독립 AI-native DAW Product Track.
 
 ### F6. Guided Voice Enrollment — [진행 중]
 

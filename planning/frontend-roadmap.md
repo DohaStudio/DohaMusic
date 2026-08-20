@@ -1,13 +1,13 @@
 # Doha Studio Frontend Roadmap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-02
-> 관련 Phase: Phase 8 Doha Studio, Phase 8 후속 F6 Guided Voice Enrollment
-> 관련 문서: [Frontend Overview](../docs/03-architecture/frontend-overview.md), [Frontend Architecture](../docs/03-architecture/frontend-architecture.md), [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API](../docs/06-api/voice-enrollment-api.md), [Voice Enrollment 데이터 모델](../docs/07-database/voice-enrollment-data-model.md), [Phase-08 DoD](../docs/DoD/Phase-08.md)
+> 최종 수정일: 2026-08-20
+> 관련 Phase: Phase 8 Doha Studio, Phase 8 후속 F6 Guided Voice Enrollment, AI-native DAW Product Track
+> 관련 문서: [AI-native DAW 전환 계획](ai-native-daw-frontend-migration.md), [Frontend Overview](../docs/03-architecture/frontend-overview.md), [Frontend Architecture](../docs/03-architecture/frontend-architecture.md), [Voice Enrollment 요구사항](../docs/02-requirements/voice-enrollment-requirements.md), [Phase-08 DoD](../docs/DoD/Phase-08.md)
 
 ## 목표
 
-Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F5의 로컬 MVP는 완료됐고, 사용자 안내형 Voice Enrollment는 기존 완료 범위를 소급 변경하지 않는 F6 후속 Track으로 관리한다.
+Premium AI Music Studio 설계를 실제 Frontend로 단계적으로 전환한다. F0~F5의 로컬 MVP는 완료됐고, 사용자 안내형 Voice Enrollment는 기존 완료 범위를 소급 변경하지 않는 F6 후속 Track으로 관리한다. 편집 가능한 DAW와 Composition QA로의 D0~D9 전환은 [별도 장기 계획](ai-native-daw-frontend-migration.md)이며 F0~F6 완료 상태와 섞지 않는다.
 
 ## 사용자 중심 UX 기준
 

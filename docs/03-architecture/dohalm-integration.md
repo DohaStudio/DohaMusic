@@ -1,7 +1,7 @@
 # DohaLM 가사 생성·분석 연동
 
 > 문서 상태: [계획]
-> 최종 수정일: 2026-08-05
+> 최종 수정일: 2026-08-20
 > 관련 기능: Phase 6.5 External Lyrics LLM 확장
 > 관련 문서: [Lyrics AI](lyrics-ai.md), [시스템 아키텍처](system-architecture.md), [가사 버전 데이터 모델](../07-database/lyrics-versioning-data-model.md), [생성 콘텐츠 정책](../09-security/generated-content-policy.md), [ADR-027](../11-decisions/ADR-027-dohalm-lyrics-provider-boundary.md)
 
@@ -146,3 +146,9 @@ DohaMusic request 생성
 - 한국어 품질·유사성·지연·실패율·8GB 로컬 실행성 평가
 
 검증 전에는 기본 `template` Provider와 직접 작성 경로를 유지하고 DohaLM을 Stable 또는 production으로 표시하지 않는다.
+
+## 9. DohaLM Frontend Retirement Gate — TARGET
+
+DohaLM의 독립 Frontend는 현재 개발·Runtime 검증용이므로 즉시 삭제하지 않는다. 장기적으로 DohaMusic AI Music Director에 UX를 통합하되, DohaMusic에서 `HTTP`, `SSE`, `Cancel`, `Retry`, `Readiness`, 안전한 `Error handling`, 승인된 `real-model E2E` parity를 모두 확인한 뒤에만 retirement를 검토한다.
+
+부분 구현이나 Mock E2E만으로 retirement하지 않는다. 독립 Frontend의 운영·디버그 기능 Inventory, 대체 경로, Runbook, rollback과 사용자·Provider 개발자 승인을 함께 확인한다. 상세 단계는 [AI-native DAW Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md#5-dohalm-frontend-retirement-gate)을 따른다.

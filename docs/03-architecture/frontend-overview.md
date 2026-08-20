@@ -1,14 +1,14 @@
 # Doha Studio Frontend Overview
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-08-20
 > 관련 기능: Phase 8 Doha Studio
 > 디자인 기준: 첨부된 Vinyl Music Dashboard 레퍼런스
-> 관련 문서: [Frontend Architecture](frontend-architecture.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [지원 범위](#frontend-지원-범위), [디자인 레퍼런스 정책](design-reference-policy.md)
+> 관련 문서: [Frontend Architecture](frontend-architecture.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [Page Structure](page-structure.md), [지원 범위](#frontend-지원-범위), [디자인 레퍼런스 정책](design-reference-policy.md)
 
 ## 제품 경험
 
-Doha Studio는 CRUD 폼이 아니라 “음악을 만드는 공간”이다. 사용자는 AI 기능을 호출한다기보다 작업대에서 곡 설정, 가사, 목소리와 결과를 다듬는 경험을 해야 한다.
+Doha Studio는 CRUD 폼이 아니라 “음악을 만드는 공간”이다. 현재 구현은 생성 Workflow를 검증하는 Responsive Studio MVP이고, 장기 TARGET은 편집 가능한 Timeline·Track·Clip·Mixer와 AI Music Director를 갖춘 AI-native DAW다. 두 상태를 [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)에 따라 분리한다.
 
 기본 화면은 일반 사용자의 창작 언어를 우선한다. `Provider`, `Pipeline`, `Polling`, 내부 API 주소와 단계 식별자는 노출하지 않으며 `NEXT_PUBLIC_ENABLE_DEVELOPER_INFO=true`일 때만 설정의 접힌 개발자 정보에서 확인한다. 첫 방문 안내는 브라우저 로컬 상태에 완료 여부만 저장하고 설정에서 다시 열 수 있다.
 
@@ -42,12 +42,13 @@ Landing
    │  └─ Result
    ├─ Lyrics Lab
    ├─ Voice
-   ├─ Projects [Backend 선행 필요]
+   ├─ History
+   ├─ Projects
    ├─ Settings
    └─ About
 ```
 
-Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 sections와 timeline으로, Mobile에서는 step navigation으로 같은 상태를 표현한다.
+현재 Studio는 Desktop section navigation과 Mobile step navigation을 사용하는 생성 Workflow다. 여기서 `timeline`은 단계 진행 표현이며 Track/Clip 시간축 편집기가 아니다. TARGET DAW Timeline은 Composition read model과 편집 API가 준비된 뒤 별도 단계로 구현한다.
 
 ## 핵심 원칙
 
@@ -80,6 +81,8 @@ Studio는 단순 6 Step Wizard가 아니다. Desktop에서는 workspace 안의 s
 | `Partial` | Voice 원본 content 비공개, 개발 플래그에서만 서버 경로 생성, 인증 없는 로컬 단일 사용자 범위 |
 | `Backend Required` | 인증·사용자 소유권, 모델 목록, 즐겨찾기·playlist |
 | `Planned` | iOS·Android native app, PWA offline, 협업, 공유 링크, 공개 gallery, 결제·credit |
+
+편집 가능한 Arrangement·Track·Clip·Waveform·Mixer, AI Candidate A/B, Reference panel, Composition Version/QA와 Re-Evaluation도 `Planned`다. 현재 Player waveform·seek와 Pipeline Mixer는 이 TARGET 기능의 완료 증거가 아니다.
 
 K-POP 3종 Preset과 Prompt Preview에 K2 Structured Options를 연결했다. Frontend는 typed snake_case DTO를 보내고 Backend Compiler가 최종 Prompt 권위가 된다. K3.1·K3.2·K3.3은 allowlist `audio_analysis` DTO를 안전한 camelCase view model로 파싱한다. Result는 Quality·Tempo·후렴 후보 상세, History 목록은 Hook 후보 유무만, Project 상세은 예상 Tempo와 Hook 추정 구간 요약을 표시한다. Preview는 `Planned`다.
 
