@@ -2,13 +2,13 @@
 
 > 상태: 승인
 > 작성일: 2026-08-10
-> 최종 수정일: 2026-08-10
+> 최종 수정일: 2026-08-20
 > 관련 기능: Workspace Job, cancellation, retry, Worker claim·lease와 Artifact completion
 > 관련 문서: [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Provider API 계약](../06-api/provider-api-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [ADR-028](ADR-028-provider-runtime-artifact-contract.md), [ADR-032](ADR-032-artifact-storage-resolver-integrity.md)
 
 ## 배경
 
-Workspace Job Service와 Completion UoW에 이어 atomic claim·lease·heartbeat·attempt·만료 recovery와 fake Provider dispatch 경계를 구현했다. claim·heartbeat·recovery는 짧은 독립 transaction이고 Provider 실행 중 DB transaction은 유지하지 않는다. 실제 Provider transport와 공개 API는 미구현이다.
+Workspace Job Service와 Completion UoW에 이어 atomic claim·lease·heartbeat·attempt·만료 recovery와 fake Provider dispatch 경계를 구현했다. claim·heartbeat·recovery는 짧은 독립 transaction이고 Provider 실행 중 DB transaction은 유지하지 않는다. 공개 Job API 5개와 DohaVocal HTTP Transport Foundation은 구현했으며, 인증·Workspace Worker dispatch wiring과 background runtime은 미구현이다.
 
 ## 문제
 
@@ -49,10 +49,10 @@ Workspace Job Service와 Completion UoW에 이어 atomic claim·lease·heartbeat
 ## 영향
 
 - Worker claim·lease execution foundation, Completion Unit of Work와 공개 Router 5개를 구현했다. Completion은 trusted ingestion primitive와 단일 Service transaction·filesystem 보상 경계를 사용한다.
-- 구현·검증 기준 Resource API는 30/64, Job API는 5/5다. 이 Draft PR이 develop에 병합되기 전에는 완료 Gate 통과를 선언하지 않는다.
+- 구현·검증 기준 Resource API는 30/64, Job API는 5/5다. 공개 Router 구현만으로 Provider dispatch와 background runtime 완료 Gate 통과를 선언하지 않는다.
 - 이 Job 결정 구현 당시 source head와 실제 사용자 DB는 `20260810_0017`이며 metadata는 36개 Table이었다. D1-A 이후 source는 `20260820_0018`·37개 Table이고 실제 사용자 DB는 계속 `20260810_0017`·36개 Table이다.
 - Legacy Runtime Table 14개와 기존 Worker·Pipeline은 source of truth를 유지한다.
-- develop 병합 전 Backend Foundation과 Generative AI Track은 아직 완료·OPEN 상태가 아니다. 실제 Provider transport와 background daemon·scheduler는 후속 범위다.
+- Backend Foundation과 Generative AI Track은 아직 완료·OPEN 상태가 아니다. 인증·Workspace Worker dispatch wiring과 background daemon·scheduler는 후속 범위다.
 
 ## 마이그레이션
 
