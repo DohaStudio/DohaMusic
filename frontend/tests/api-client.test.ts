@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError, apiRequest, normalizeApiError } from "@/services/api-client";
+import { dohaApi } from "@/services/doha-api";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -13,6 +14,16 @@ describe("API client", () => {
     expect(error).toMatchObject({
       status: 404,
       code: "RESOURCE_NOT_FOUND",
+      message: "없습니다.",
+    });
+  });
+  it("Workspace v1 error_code를 보존한다", () => {
+    const error = normalizeApiError(404, {
+      error: { error_code: "PROJECT_NOT_FOUND", message: "없습니다." },
+    });
+    expect(error).toMatchObject({
+      status: 404,
+      code: "PROJECT_NOT_FOUND",
       message: "없습니다.",
     });
   });
@@ -70,5 +81,25 @@ describe("API client", () => {
   });
   it("ApiError 인스턴스를 사용한다", () => {
     expect(normalizeApiError(500, null)).toBeInstanceOf(ApiError);
+  });
+  it("Composition API가 v1 aggregate, 목록, 명시 선택 계약을 사용한다", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: { state: "empty" } }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: [] }), { status: 200 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ data: { selected_snapshot_id: "snapshot-1" } }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await dohaApi.getProjectComposition("project/1");
+    await dohaApi.listProjectCompositionSnapshots("project/1");
+    await dohaApi.selectProjectComposition("project/1", "snapshot-1");
+
+    expect(fetchMock.mock.calls[0][0]).toBe("/backend/api/v1/projects/project%2F1/composition");
+    expect(fetchMock.mock.calls[1][0]).toBe("/backend/api/v1/snapshots?project_id=project%2F1&limit=100");
+    expect(fetchMock.mock.calls[2][0]).toBe("/backend/api/v1/projects/project%2F1/composition-selection");
+    expect(fetchMock.mock.calls[2][1]).toMatchObject({
+      method: "PATCH",
+      body: JSON.stringify({ selected_snapshot_id: "snapshot-1" }),
+    });
   });
 });

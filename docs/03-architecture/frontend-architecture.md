@@ -1,15 +1,15 @@
 # Frontend 아키텍처
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-20
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend [완료]
+> 최종 수정일: 2026-08-21
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1-B Composition Read [진행 중]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
 Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
-현재 구조는 생성 Workflow용 Responsive Studio다. TARGET의 편집 가능한 Arrangement·Track·Clip·Mixer, AI Music Director와 Composition QA feature boundary는 아직 구현되지 않았으며 [장기 전환 계획](../../planning/ai-native-daw-frontend-migration.md)의 D1~D9에서 단계적으로 결정한다.
+현재 구조는 생성 Workflow용 Responsive Studio이며, D1-B는 기존 Project 상세에 읽기 전용 Composition feature를 추가한다. Backend의 explicit selection이 canonical truth이고 Frontend는 pending 후보·loading·error만 보유한다. TARGET의 편집 가능한 Arrangement·Track·Clip·Mixer, AI Music Director와 Composition QA feature boundary는 아직 구현되지 않았으며 [장기 전환 계획](../../planning/ai-native-daw-frontend-migration.md)의 D2~D9에서 단계적으로 결정한다.
 
 ```mermaid
 flowchart LR
@@ -67,6 +67,7 @@ frontend/
 │  ├─ audio/
 │  ├─ history/
 │  ├─ projects/
+│  ├─ composition/        # aggregate state, explicit Snapshot selection, read projection
 │  └─ kpop/
 ├─ hooks/
 ├─ services/

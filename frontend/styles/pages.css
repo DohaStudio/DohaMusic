@@ -184,3 +184,50 @@
 .empty-state { min-height: 260px; display: grid; place-content: center; justify-items: center; gap: 16px; border: 1px dashed #3a3733; border-radius: 18px; color: var(--muted); }
 @keyframes shimmer { to { background-position: -200% 0; } }
 @media (max-width: 800px) { .collection-page { padding: 20px 14px 100px; } .collection-header { align-items: start; } .collection-filters, .collection-editor, .history-row { grid-template-columns: 1fr; } }
+
+.composition-workspace { min-width: 0; display: grid; gap: 22px; }
+.composition-workspace-heading, .composition-summary, .composition-section-heading, .composition-actions, .composition-track header, .composition-track header > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.composition-workspace-heading h2, .composition-summary h3, .composition-section-heading h4, .composition-detail-card h4, .composition-artifacts h5 { margin: 4px 0; }
+.composition-workspace-heading > span, .composition-section-heading > span, .composition-track header small, .composition-muted { color: var(--muted); font-size: .78rem; }
+.composition-loading { min-height: 180px; display: grid; align-content: center; gap: 10px; }
+.composition-loading span { height: 24px; border-radius: 9px; background: linear-gradient(90deg, #222, #34312e, #222); background-size: 200%; animation: shimmer 1.2s infinite; }
+.composition-loading span:nth-child(1) { width: 45%; }
+.composition-loading span:nth-child(2) { width: 75%; }
+.composition-loading span:nth-child(3) { width: 60%; }
+.composition-empty { min-height: 210px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px; border: 1px dashed #49433d; border-radius: 16px; background: #151515; }
+.composition-empty h3, .composition-empty p { margin: 5px 0; }
+.composition-empty p:not(.eyebrow), .composition-selector > div > p:not(.eyebrow), .composition-summary p:not(.eyebrow), .composition-detail-card > p:not(.eyebrow) { color: var(--muted); }
+.composition-selector { display: grid; gap: 18px; }
+.snapshot-options { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin: 0; padding: 0; border: 0; }
+.snapshot-options legend { grid-column: 1 / -1; margin-bottom: 4px; font-weight: 800; }
+.snapshot-options label { min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: #181818; cursor: pointer; }
+.snapshot-options label.selected { border-color: var(--red); background: color-mix(in srgb, var(--red) 12%, #181818); }
+.snapshot-options input { margin-top: 4px; accent-color: var(--red); }
+.snapshot-options label > span { min-width: 0; display: grid; gap: 6px; }
+.snapshot-options small { color: var(--muted); }
+.snapshot-options code, .composition-identity dd { overflow-wrap: anywhere; }
+.snapshot-options:disabled label { cursor: wait; opacity: .72; }
+.composition-actions > span { color: var(--muted); font-size: .82rem; }
+.composition-ready { display: grid; gap: 24px; }
+.composition-identity { display: grid; gap: 8px; margin: 0; }
+.composition-identity > div { min-width: 0; display: grid; grid-template-columns: minmax(120px, .35fr) minmax(0, 1fr); gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.composition-identity dt { color: var(--muted); font-size: .76rem; }
+.composition-identity dd { margin: 0; font: 700 .78rem/1.45 ui-monospace, monospace; }
+.composition-track-list { display: grid; gap: 12px; margin-top: 12px; }
+.composition-track { min-width: 0; display: grid; gap: 14px; padding: 18px; border: 1px solid var(--line); border-left: 4px solid var(--beige); border-radius: 14px; background: #171717; }
+.composition-track header > div { justify-content: flex-start; }
+.composition-artifacts { display: grid; gap: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.composition-artifacts > article { display: grid; gap: 10px; padding: 12px; border-radius: 12px; background: #111; }
+.composition-artifact-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.composition-artifact-actions .button { min-height: 38px; padding: 0 14px; font-size: .78rem; }
+.composition-detail-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.composition-detail-card { min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: #151515; }
+.composition-detail-card pre { max-height: 220px; overflow: auto; margin: 12px 0 0; padding: 12px; border-radius: 10px; background: #0d0d0d; color: var(--text); font: .76rem/1.5 ui-monospace, monospace; }
+
+@media (max-width: 1000px) { .composition-detail-grid { grid-template-columns: 1fr; } }
+@media (max-width: 700px) {
+  .composition-workspace-heading, .composition-summary, .composition-section-heading, .composition-empty, .composition-actions, .composition-track header { align-items: flex-start; flex-direction: column; }
+  .composition-actions .button, .composition-empty .button { width: 100%; }
+  .composition-identity > div { grid-template-columns: 1fr; gap: 3px; }
+  .snapshot-options { grid-template-columns: 1fr; }
+}

@@ -235,3 +235,99 @@ export interface PipelineFileDto {
   content_url: string | null;
   download_url: string | null;
 }
+
+export interface WorkspaceProjectDto {
+  project_id: string;
+  workspace_id: string;
+  title: string;
+  lifecycle_status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CompositionSnapshotSummaryDto {
+  composition_snapshot_id: string;
+  project_id: string;
+  snapshot_version: number;
+  created_at: string;
+  processing_chain_id?: string | null;
+  provider_versions?: Record<string, string>;
+  model_manifest_ids?: Record<string, string>;
+}
+
+export interface CompositionAssetVersionDto {
+  asset_version_id: string;
+  asset_id: string;
+  version_number: number;
+  version_origin: string;
+  parent_asset_version_id: string | null;
+  processing_chain_id: string | null;
+  provider_id: string | null;
+  model_manifest_id: string | null;
+  settings_snapshot: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface CompositionArtifactDto {
+  artifact_id: string;
+  asset_version_id: string;
+  artifact_kind: string;
+  media_type: string;
+  size_bytes: number;
+  checksum_algorithm: string;
+  artifact_checksum: string;
+  producer_type: string;
+  producer_id: string | null;
+  run_id: string | null;
+  retention_status: string;
+  created_at: string;
+  content_url: string | null;
+  download_url: string | null;
+}
+
+export interface CompositionReadItemDto {
+  snapshot_item_id: string;
+  item_role: "lyrics" | "music" | "vocal" | "stem" | "mix";
+  sort_order: number;
+  asset_version: CompositionAssetVersionDto;
+  artifacts: CompositionArtifactDto[];
+}
+
+export interface CompositionTrackProjectionDto {
+  projection_id: string;
+  identity_scope: "snapshot";
+  snapshot_item_id: string;
+  item_role: "music" | "vocal" | "stem" | "mix";
+  sort_order: number;
+  asset_id: string;
+  asset_version_id: string;
+}
+
+export interface CompositionWorkspaceDto {
+  state: "ready" | "empty" | "selection_required";
+  project: WorkspaceProjectDto;
+  selection: {
+    selected_snapshot_id: string | null;
+    resolved_snapshot_id: string | null;
+    resolution: "selected" | "requested" | "none";
+    is_current: boolean;
+  };
+  snapshot: CompositionSnapshotSummaryDto | null;
+  items: CompositionReadItemDto[];
+  track_projections: CompositionTrackProjectionDto[];
+  section_projection: {
+    availability: "not_available";
+    items: [];
+  };
+  mix_settings_snapshot: Record<string, unknown>;
+  lineage: {
+    processing_chain_id: string | null;
+    provider_versions: Record<string, string>;
+    model_manifest_ids: Record<string, string>;
+  };
+}
+
+export interface CompositionSelectionDto {
+  project_id: string;
+  selected_snapshot_id: string | null;
+}

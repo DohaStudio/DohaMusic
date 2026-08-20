@@ -31,6 +31,10 @@ const userMessages: Record<string, string> = {
   INVALID_VOCAL_ENERGY: "보컬 에너지 설정을 확인해 주세요.",
   INVALID_CONCEPT: "곡 콘셉트는 40자 이내로 입력해 주세요.",
   PRESET_GENRE_MISMATCH: "K-POP 스타일과 장르가 일치하지 않습니다.",
+  PROJECT_NOT_FOUND: "Project를 찾을 수 없거나 접근 권한이 없습니다.",
+  COMPOSITION_SNAPSHOT_NOT_FOUND: "선택한 Snapshot을 찾을 수 없습니다. 목록을 새로 확인해 주세요.",
+  COMPOSITION_SNAPSHOT_CONFLICT: "Composition 상태가 변경되었습니다. 새로고침 후 다시 시도해 주세요.",
+  WORKSPACE_BOOTSTRAP_REQUIRED: "작업 공간 준비가 필요합니다. 관리자에게 문의해 주세요.",
 };
 
 export function userErrorMessage(error: unknown): string {
@@ -112,10 +116,18 @@ export function normalizeApiError(status: number, body: unknown): ApiError {
   if (body && typeof body === "object" && "error" in body) {
     const value = (body as { error?: unknown }).error;
     if (value && typeof value === "object") {
-      const error = value as { code?: unknown; message?: unknown };
+      const error = value as {
+        code?: unknown;
+        error_code?: unknown;
+        message?: unknown;
+      };
       return new ApiError(
         status,
-        typeof error.code === "string" ? error.code : "HTTP_ERROR",
+        typeof error.code === "string"
+          ? error.code
+          : typeof error.error_code === "string"
+            ? error.error_code
+            : "HTTP_ERROR",
         typeof error.message === "string" ? error.message : fallback,
       );
     }
