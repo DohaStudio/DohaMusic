@@ -11,7 +11,7 @@
 Consumer는 다음 순서로 계약을 해석한다.
 
 1. `DohaStudio/.github` `origin/main` `1e4b480c8cbd6e51835f8550e685e9b136d8071d`
-2. `DohaStudio/DohaVocal` `origin/develop` `e785ed0e0ece8acd09fad6bf29addafa8fd22002`
+2. `DohaStudio/DohaVocal` `origin/develop` `59de6c7b50f2e1d28a04f13ad649bf99f5737ec2`
 3. DohaMusic 내부 consumer DTO와 mapping
 
 DohaVocal source package를 import하거나 DB·in-memory store에 접근하지 않는다. JSON response와 transport port만 계약으로 사용한다. `.github`, DohaVocal, DohaAudio와 DohaLM 저장소는 이 작업에서 변경하지 않는다.
@@ -94,7 +94,7 @@ Application error는 허용된 `error_code`, 안전한 message, `retryable`, `st
 
 ## 8. 검증과 미구현
 
-`backend/tests/fixtures/vocal-provider-contract-v0.1.0.json`은 DohaVocal source를 import하지 않는 stable JSON fixture다. Fake transport로 4 capability, 9 operation, request·state·retry·idempotency·snapshot·lineage·checksum·Manifest·오류·probe 계약을 검증한다.
+`backend/tests/fixtures/vocal-provider-contract-v0.1.0.json`은 DohaVocal source를 import하지 않는 stable JSON fixture다. canonical Provider ID는 `dohavocal`, 실제 Fake Model Manifest ID는 `dohavocal.fake-model@0.1.0`으로 고정해 Runtime wire identity와 일치시킨다. Fake transport로 4 capability, 9 operation, request·state·retry·idempotency·snapshot·lineage·checksum·Manifest·오류·probe 계약을 검증한다.
 
 이번 Foundation에 포함하지 않은 항목은 다음과 같다.
 

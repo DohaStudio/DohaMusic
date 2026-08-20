@@ -41,6 +41,7 @@ WORKSPACE_ID = UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
 PROJECT_ID = UUID("cccccccc-cccc-4ccc-8ccc-cccccccccccc")
 SOURCE_VERSION_ID = UUID("11111111-1111-4111-8111-111111111111")
 REFERENCE_ARTIFACT_ID = UUID("22222222-2222-4222-8222-222222222222")
+FAKE_MODEL_MANIFEST_ID = "dohavocal.fake-model@0.1.0"
 
 
 @pytest.fixture(scope="module")
@@ -68,7 +69,7 @@ class FixtureTransport:
             ),
             ("POST", "/v1/jobs/provider-job-001/retry"): (200, "retry_job"),
             ("GET", "/v1/jobs/provider-job-001/result"): (200, "result"),
-            ("GET", "/v1/model-manifests/dohavocal.fake.v1"): (
+            ("GET", f"/v1/model-manifests/{FAKE_MODEL_MANIFEST_ID}"): (
                 200,
                 "manifest",
             ),
@@ -168,7 +169,7 @@ def _context(
         idempotency_key=idempotency_key,
         input_asset_version_ids=(SOURCE_VERSION_ID,),
         input_artifact_ids=(REFERENCE_ARTIFACT_ID,),
-        model_manifest_id="dohavocal.fake.v1",
+        model_manifest_id=FAKE_MODEL_MANIFEST_ID,
         settings_snapshot=settings or {"quality": {"mode": "contract"}},
         job_input=job_inputs[capability],
     )
@@ -358,13 +359,27 @@ def test_result_is_metadata_candidate_with_root_parent_chain(vocal_fixture):
 
 def test_manifest_review_and_unknown_vram_are_not_promoted(vocal_fixture):
     manifest = VocalProviderClient(FixtureTransport(vocal_fixture)).get_model_manifest(
-        "dohavocal.fake.v1"
+        FAKE_MODEL_MANIFEST_ID
     )
 
     assert manifest.license_status == "REVIEW_REQUIRED"
     assert manifest.commercial_usage_status == "REVIEW_REQUIRED"
     assert manifest.recommended_vram is None
     assert manifest.artifact_checksum_scope == "fake_manifest_descriptor"
+
+
+def test_fake_model_manifest_id_is_consistent_across_wire_fixture(vocal_fixture):
+    assert vocal_fixture["queued_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
+    assert vocal_fixture["running_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
+    assert vocal_fixture["succeeded_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
+    assert vocal_fixture["failed_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
+    assert vocal_fixture["cancelled_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
+    assert vocal_fixture["retry_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
+    assert vocal_fixture["result"]["lineage"]["model_manifest_id"] == (
+        FAKE_MODEL_MANIFEST_ID
+    )
+    assert vocal_fixture["manifest"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
+    assert vocal_fixture["manifest"]["provider_id"] == "dohavocal"
 
 
 def test_health_and_readiness_use_distinct_operations(vocal_fixture):
