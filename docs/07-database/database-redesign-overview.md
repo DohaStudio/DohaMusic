@@ -1,9 +1,11 @@
 # Asset 중심 데이터베이스 재설계 개요
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-10
+> 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
+> 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: 목표 Workspace Entity 21개·Catalog·Job schema·Index `0017` 실제 DB 적용, Job Service·Completion UoW·Worker execution foundation·Job API 5/5와 Resource API 30개 구현; 실제 Bootstrap·backfill·dual write 미수행
+> 구현 상태: Workspace 도메인 Entity/Table 21개·Catalog 1개·Job schema·Index `0017` 실제 DB 적용, Job Service·Completion UoW·Worker execution foundation·Job API 5/5와 Resource API 30개 구현
+> 미구현 전환: 실제 Bootstrap·backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md), [ADR-030](../11-decisions/ADR-030-asset-version-centric-database.md)
 
 ## 1. 목적
@@ -24,7 +26,7 @@ Workspace
 
 Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않습니다. 생성·편집·처리 결과는 새 `AssetVersion`이 소유하고 실제 파일 또는 직렬화된 Payload는 `Artifact`로 분리합니다.
 
-이 문서는 목표 논리 구조와 SQLAlchemy Entity mapping을 정의합니다. revision `20260806_0012`~`20260810_0017`은 실제 사용자 DB에 적용됐고 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table입니다. Resource API 25개는 완료했지만 실제 Bootstrap·backfill·dual write와 Runtime 전환은 수행하지 않았습니다.
+이 문서는 TARGET 논리 구조와 현재 구현된 SQLAlchemy Entity mapping을 함께 정의합니다. revision `20260806_0012`~`20260810_0017`은 실제 사용자 DB에 적용됐고 기존 Runtime Entity와 Table 14개는 그대로 유지됩니다. 별도 `ArtifactStorageLocation` Entity를 포함한 source metadata와 실제 사용자 DB는 36개 Application Table입니다. Resource API 30개는 완료했지만 실제 Bootstrap·backfill·dual write와 Runtime 전환은 수행하지 않았습니다. 따라서 물리 schema는 CURRENT이고, 제품 실행의 결과 소유권과 source of truth 전환은 TARGET입니다.
 
 ## 2. Common Specification 기준
 
@@ -41,7 +43,7 @@ Pipeline은 실행 순서를 orchestration하지만 결과를 소유하지 않�
 - [Storage 구조 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/09-storage-layout-specification.md)
 - [공통 용어](https://github.com/DohaStudio/.github/blob/main/docs/specifications/10-common-terms.md)
 
-Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`이 아닙니다. 이번 설계는 `[제안]` 상태를 유지하고, 공통 명세가 변경되면 구현 전에 차이를 다시 검토합니다.
+Common Specification은 `draft-baseline`이며 안정 API를 뜻하는 `1.0.0`이 아닙니다. ADR-030의 결정 상태는 `[제안]`으로 보존하지만, 해당 Entity와 additive schema 자체는 이미 부분 구현됐습니다. 공통 명세가 변경되면 backfill·dual write·Runtime 전환 전에 차이를 다시 검토합니다.
 
 ## 3. 설계 원칙
 

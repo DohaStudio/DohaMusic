@@ -1,8 +1,10 @@
 # Pipeline 테이블
 
-> 문서 상태: [완료]
-> 최종 수정일: 2026-07-29
+> 문서 상태: [완료: CURRENT Runtime]
+> 문서 범위: 운영 source of truth인 Pipeline 2개 Table
+> 최종 수정일: 2026-08-20
 > migration: `20260729_0004`, `20260731_0009`
+> 관련 문서: [Database Overview](database-overview.md), [CURRENT Runtime ERD](erd.md), [CURRENT Runtime Core Table Definition](table-definition.md)
 
 ## `pipeline_jobs`
 

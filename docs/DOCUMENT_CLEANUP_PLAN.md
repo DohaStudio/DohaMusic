@@ -2,12 +2,12 @@
 
 > 문서 상태: [진행 기록]
 > 최종 수정일: 2026-08-20
-> 기준: develop@16c16fe0bf6aca673d8dd83a53387dbf2723cf77
+> 기준: develop@339e547f213dbc969bf9e0deb1c2e7918bf26bea
 > 관련 문서: [Authority Map](DOCUMENT_AUTHORITY_MAP.md), [README](../README.md)
 
 ## 1. 목적
 
-이 문서는 Authority Inventory에서 확인한 중복·과거·stale 문서의 처리 결과와 남은 후보를 기록한다. 2026-08-20 Cleanup은 Product·Frontend·History/Project 중복을 통합하고, 직접 참조 가능성이 있는 문서는 deprecate하며, 과거 Frontend·Phase 계획은 Git 이력을 보존해 archive했다. 문서 삭제는 수행하지 않았다.
+이 문서는 Authority Inventory에서 확인한 중복·과거·stale 문서의 처리 결과와 남은 후보를 기록한다. 2026-08-20 Cleanup은 Product·Frontend·History/Project 중복을 통합하고, Database CURRENT/TARGET/TRANSITION 책임을 정합화했다. 직접 참조 가능성이 있는 문서는 deprecate하고 과거 Frontend·Phase 계획은 Git 이력을 보존해 archive했으며, 문서 삭제는 수행하지 않았다.
 
 ## 2. 판단 기준
 
@@ -33,8 +33,8 @@
 | docs/archive/frontend/ui-component-guide.md | HISTORICAL | 계획 component 목록과 실제 tree 불일치 | DONE — component 책임 원칙을 Frontend Architecture에 MERGE하고 ARCHIVE | 구현 전 초안 본문 보존 |
 | docs/03-architecture/history-management.md | SUPERSEDED | 짧은 요약이 History·Project API 문서와 책임 중복 | DONE — projection·Frontend·권한 경계를 API 문서에 MERGE하고 DEPRECATE | 대체 link 유지 |
 | docs/03-architecture/project-management.md | SUPERSEDED | 짧은 요약이 History·Project API·Workspace 문서와 중복 | DONE — CRUD·retention·Frontend 경계를 API 문서에 MERGE하고 DEPRECATE | Legacy Project 의미 보존 |
-| docs/07-database/erd.md | SUPPORTING | 현행 ERD와 Asset 중심 목표 ERD가 동시에 노출됨 | UPDATE — CURRENT 표기를 강화하고 목표 ERD와 상호 링크 | 잘못 deprecate하면 실제 Legacy schema 근거 손실 |
-| docs/07-database/table-definition.md | SUPPORTING | 현행 Table과 목표 Table Definition이 병존 | UPDATE — CURRENT/호환/목표 책임을 첫 화면에서 분리 | Migration 단계별 source of truth 확인 필요 |
+| docs/07-database/erd.md | SUPPORTING | 현행 ERD와 Asset 중심 목표 ERD가 동시에 노출됨 | DONE — CURRENT Runtime 14개 subset과 TARGET ERD를 명시적으로 분리 | 실제 Runtime schema 근거 보존 |
+| docs/07-database/table-definition.md | SUPPORTING | 현행 Table과 목표 Table Definition이 병존 | DONE — CURRENT Runtime Core 10개 책임과 별도 Pipeline·Voice Conversion 4개를 명시 | 상세 문서 병합 없이 Authority 범위 고정 |
 | planning/archive/phase-01-research.md | HISTORICAL | Phase 번호와 상태가 Master Roadmap·DoD와 불일치 | DONE — 대체 기준을 명시하고 ARCHIVE | 초기 조사 순서 보존 |
 | planning/archive/phase-02-local-inference.md | HISTORICAL | 오래된 실행 계획이 실제 Phase 2 DoD·실험 보고서로 대체됨 | DONE — 대체 기준을 명시하고 ARCHIVE | 로컬 실행 계획 보존 |
 | planning/archive/phase-03-ai-pipeline.md | HISTORICAL | 현재 Phase·Pipeline 완료 상태와 불일치 | DONE — 대체 기준을 명시하고 ARCHIVE | 과거 Pipeline 범위 보존 |
@@ -52,8 +52,9 @@
 1. **DONE — MERGE:** Product 개요·목표/비목표, Frontend route·design 구현 기준, History·Project 경계를 각 책임 문서로 통합했다.
 2. **DONE — DEPRECATE:** 직접 참조 가능성이 있는 Overview 2개, `mvp-scope.md`, History·Project 안내 2개에 replacement를 명시했다.
 3. **DONE — ARCHIVE:** Frontend 초안 5개와 Legacy Phase 계획 6개를 `git mv`로 이동하고 replacement·reason·date를 기록했다.
-4. **PENDING:** Database CURRENT/목표 문서 쌍은 schema·migration source of truth를 별도 검증한 뒤 처리한다.
+4. **DONE — Database Alignment:** 모델 `__tablename__`, Alembic `0012`~`0017`과 Migration evidence를 대조해 CURRENT Runtime 14개, CURRENT Workspace 도메인 21개+Catalog 1개, TARGET source-of-truth 전환과 TRANSITION 책임을 분리했다.
 5. **PENDING:** F6 종료 뒤 `planning/frontend-roadmap.md`의 완료 이력 분리를 재검토한다.
+6. **PENDING — Database 설계 결정:** `table-definition.md`, `pipeline-tables.md`, `voice-conversion-tables.md`의 물리 통합 여부와 TARGET 문서 병합은 필요성과 history 보존 방식을 별도 검토한다.
 
 ## 5. DELETE_CANDIDATE
 

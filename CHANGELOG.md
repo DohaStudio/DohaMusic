@@ -11,6 +11,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Database 현재·목표 구조 정합화
+
+- Database Overview를 CURRENT Runtime, CURRENT Workspace/Domain, TARGET과 TRANSITION의 Canonical entry point로 정리했다.
+- 실제 SQLAlchemy와 Alembic 기준으로 Runtime 14개, Workspace 도메인 21개, 별도 Storage Catalog 1개와 전체 Application metadata 36개의 계산 범위와 책임을 구분했다.
+- CURRENT Runtime ERD·Core Table Definition의 범위를 명시하고 Pipeline·Voice Conversion 상세 문서를 유지했다.
+- TARGET 문서를 `PARTIALLY IMPLEMENTED`, Migration 전략을 `TRANSITION`으로 표시해 구현된 additive schema와 미구현 backfill·dual write·Runtime 전환을 분리했다.
+- 코드·DB schema·Alembic·Provider·Runtime·Dataset·Training·GPU·Common Contract는 변경하지 않았다.
+
 ### 문서 — Documentation Cleanup
 
 - 제품 개요와 목표·비목표의 고유 내용을 AI-native DAW Product Authority로 통합하고 기존 안내 문서를 명시적으로 대체 처리했다.

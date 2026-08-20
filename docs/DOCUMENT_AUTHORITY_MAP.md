@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-20
-> 기준: `develop@16c16fe0bf6aca673d8dd83a53387dbf2723cf77`
+> 기준: `develop@339e547f213dbc969bf9e0deb1c2e7918bf26bea`
 > 관련 문서: [README](../README.md), [Cleanup Plan](DOCUMENT_CLEANUP_PLAN.md), [Master Roadmap](../MASTER_ROADMAP.md), [실행 로드맵](../ROADMAP.md)
 
 ## 1. 목적과 분류 원칙
@@ -53,7 +53,7 @@
 | [docs/03-architecture/repository-provider-boundaries.md](03-architecture/repository-provider-boundaries.md) | CANONICAL | DohaMusic·LM·Audio·Vocal 책임 경계 | — | KEEP |
 | [docs/03-architecture/system-architecture.md](03-architecture/system-architecture.md) | CANONICAL | 현재 시스템 연결과 상위 Architecture | — | KEEP |
 | [docs/06-api/api-overview.md](06-api/api-overview.md) | CANONICAL | 공개 API 탐색 시작점 | — | KEEP |
-| [docs/07-database/database-overview.md](07-database/database-overview.md) | CANONICAL | 현재·목표 DB 문서 탐색 시작점 | — | KEEP |
+| [docs/07-database/database-overview.md](07-database/database-overview.md) | CANONICAL | CURRENT Runtime·CURRENT Workspace/Domain·TARGET·TRANSITION 탐색 시작점 | — | KEEP |
 | [docs/09-security/security-policy.md](09-security/security-policy.md) | CANONICAL | 보안 정책 탐색 시작점 | — | KEEP |
 | [docs/10-operations/local-development.md](10-operations/local-development.md) | CANONICAL | 로컬 실행·검증 운영 시작점 | — | KEEP |
 | [docs/11-decisions/README.md](11-decisions/README.md) | CANONICAL | ADR Index | — | KEEP |
@@ -147,18 +147,18 @@
 | [docs/06-api/workspace-rest-api-contract.md](06-api/workspace-rest-api-contract.md) | SUPPORTING | 상세 API 계약 | — | KEEP |
 | [docs/06-api/workspace-rest-api-endpoints.md](06-api/workspace-rest-api-endpoints.md) | SUPPORTING | 상세 API 계약 | — | KEEP |
 | [docs/07-database/asset-keyset-indexes.md](07-database/asset-keyset-indexes.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/database-redesign-erd.md](07-database/database-redesign-erd.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/database-redesign-migration-strategy.md](07-database/database-redesign-migration-strategy.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/database-redesign-overview.md](07-database/database-redesign-overview.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/database-redesign-table-definition.md](07-database/database-redesign-table-definition.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/erd.md](07-database/erd.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
+| [docs/07-database/database-redesign-erd.md](07-database/database-redesign-erd.md) | SUPPORTING | TARGET / PARTIALLY IMPLEMENTED Workspace ERD | — | KEEP |
+| [docs/07-database/database-redesign-migration-strategy.md](07-database/database-redesign-migration-strategy.md) | SUPPORTING | CURRENT→TARGET 전환·rollback Authority | — | KEEP |
+| [docs/07-database/database-redesign-overview.md](07-database/database-redesign-overview.md) | SUPPORTING | TARGET 논리 구조와 부분 구현 상태 | — | KEEP |
+| [docs/07-database/database-redesign-table-definition.md](07-database/database-redesign-table-definition.md) | SUPPORTING | TARGET / PARTIALLY IMPLEMENTED Workspace Table 정의 | — | KEEP |
+| [docs/07-database/erd.md](07-database/erd.md) | SUPPORTING | CURRENT Runtime 14개 Table 관계 | — | KEEP |
 | [docs/07-database/job-state-model.md](07-database/job-state-model.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
 | [docs/07-database/lyrics-versioning-data-model.md](07-database/lyrics-versioning-data-model.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/pipeline-tables.md](07-database/pipeline-tables.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
+| [docs/07-database/pipeline-tables.md](07-database/pipeline-tables.md) | SUPPORTING | CURRENT Runtime Pipeline 2개 Table | — | KEEP |
 | [docs/07-database/project-asset-keyset-indexes.md](07-database/project-asset-keyset-indexes.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/table-definition.md](07-database/table-definition.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/voice-conversion-tables.md](07-database/voice-conversion-tables.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
-| [docs/07-database/voice-enrollment-data-model.md](07-database/voice-enrollment-data-model.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
+| [docs/07-database/table-definition.md](07-database/table-definition.md) | SUPPORTING | CURRENT Runtime Core 10개 Table 정의 | — | KEEP |
+| [docs/07-database/voice-conversion-tables.md](07-database/voice-conversion-tables.md) | SUPPORTING | CURRENT Runtime Voice Conversion 2개 Table | — | KEEP |
+| [docs/07-database/voice-enrollment-data-model.md](07-database/voice-enrollment-data-model.md) | SUPPORTING | CURRENT Runtime Voice Enrollment schema와 lifecycle | — | KEEP |
 | [docs/07-database/workspace-keyset-indexes.md](07-database/workspace-keyset-indexes.md) | SUPPORTING | 상세 DB·Migration·ERD | — | KEEP |
 | [docs/08-evaluation/audio-quality-metrics.md](08-evaluation/audio-quality-metrics.md) | SUPPORTING | 평가 기준과 Benchmark 시나리오 | — | KEEP |
 | [docs/08-evaluation/benchmark-scenarios.md](08-evaluation/benchmark-scenarios.md) | SUPPORTING | 평가 기준과 Benchmark 시나리오 | — | KEEP |
