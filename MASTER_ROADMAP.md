@@ -125,6 +125,7 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현; Provider dispatch wiring·실제 payload ingestion·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract·HTTP Transport·metadata Result trust gate 구현, Worker wiring·실제 Artifact payload 통합 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
+| Reviewer Authentication Authority | [결정 완료 / 구현 미착수] | 독립 authority | V1 local-only·single owner/operator·DohaMusic local governance UI·OS-bound proof와 delegated assertion model 승인; DohaAudio Runtime 미변경 | [ADR-038](docs/11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 

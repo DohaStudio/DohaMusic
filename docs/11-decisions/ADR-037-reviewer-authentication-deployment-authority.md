@@ -1,16 +1,18 @@
 # ADR-037 — Reviewer Authentication과 배포 권위
 
-> 상태: 승인 — 경계 확정, Provider 선택 보류
+> 상태: 승인 — historical no-selection authority, V1 후속 결정은 ADR-038
 > 작성일: 2026-08-21
 > 최종 수정일: 2026-08-21
 > 관련 기능: DohaMusic product identity, DohaAudio human reviewer authentication
-> 관련 문서: [Authentication Authority](../09-security/reviewer-authentication-deployment-authority.md), [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Provider API 계약](../06-api/provider-api-contract.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-028](ADR-028-provider-runtime-artifact-contract.md)
+> 관련 문서: [Authentication Authority](../09-security/reviewer-authentication-deployment-authority.md), [ADR-038](ADR-038-v1-reviewer-authentication-product-decision.md), [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Provider API 계약](../06-api/provider-api-contract.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-028](ADR-028-provider-runtime-artifact-contract.md)
 
 ## 배경
 
 DohaAudio ADR-014는 real reviewer authentication provider를 선택하기 전에 production deployment topology, product identity owner, login interaction, issuer, network, assurance, recovery·revocation, secret과 private mapping store의 권위가 필요하다고 결정했다.
 
 DohaMusic 저장소는 CURRENT 로컬 단일 사용자 Studio와 TARGET 제품 Runtime을 명확히 구분한다. 동시에 DohaMusic이 사용자·인증·권한과 Orchestrator를 소유하고 Frontend·Workspace client가 Provider를 직접 호출하지 않는다고 정한다. 그러나 public production topology와 account/login, semantic reviewer population·interaction은 구현되거나 결정되지 않았다.
+
+이 no-selection 판정은 당시 repository-only evidence에 따른 올바른 historical authority다. 이후 explicit product-owner authority가 V1 요구를 확정해 [ADR-038](ADR-038-v1-reviewer-authentication-product-decision.md)에서 Provider-model selection readiness를 승인했으며, 이는 이 ADR의 당시 판단을 오류로 만들지 않는다.
 
 ## 저장소 근거
 
@@ -80,4 +82,4 @@ Provider selection 전 product owner는 production topology, semantic reviewer p
 
 ## 관련 PR
 
-- 이 ADR을 제안한 PR: Draft PR 생성 후 기록
+- 이 ADR을 제안한 PR: #108

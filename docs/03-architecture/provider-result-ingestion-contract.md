@@ -3,7 +3,7 @@
 > 문서 상태: [완료: metadata-only trust/eligibility 계약] / [미구현: payload transport·실제 ingestion]
 > 최종 수정일: 2026-08-21
 > 기준: DohaMusic `64577d8c5c7d96b11c2ee22aefa5ce79da7725bc`, DohaVocal `59de6c7b50f2e1d28a04f13ad649bf99f5737ec2`, `.github/develop` 공통 명세 `dd75fc88c16e9ae9a04acfafb72756a905f6365b` (기존 고정 검토 SHA `1e4b480c8cbd6e51835f8550e685e9b136d8071d` 대비 호환 확인)
-> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [ADR-038](../11-decisions/ADR-038-provider-result-ingestion-trust-boundary.md)
+> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md)
 
 ## 1. 목적과 경계
 

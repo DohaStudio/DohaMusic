@@ -1,4 +1,4 @@
-# ADR-038: Provider wire result와 Artifact ingestion authority를 분리
+# ADR-039: Provider wire result와 Artifact ingestion authority를 분리
 
 - 상태: 승인
 - 날짜: 2026-08-21
