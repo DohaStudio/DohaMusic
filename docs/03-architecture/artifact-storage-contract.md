@@ -163,6 +163,8 @@ Job은 Artifact의 필수 부모가 아니다. `import`, 사용자·Workspace �
 
 Workspace Job 결과는 단일 Artifact ingestion 성공만으로 Job을 성공 처리하지 않는다. 필수 output 전체를 검증한 뒤 Artifact·Catalog·필요한 AssetVersion·JobOutput·ModelUsage와 상태를 completion Unit of Work에 등록한다. 일부 output만 생성되면 Job은 `failed`이며 partial Payload는 staging 제거 또는 quarantine하고 정상 사용자 Artifact로 공개하지 않는다. 구체적인 cancel race와 보상 순서는 [Workspace Job Foundation](workspace-job-foundation.md)을 따른다.
 
+Provider wire result는 이 trusted ingestion의 입력 authority가 아니다. [Provider Result Ingestion Contract](provider-result-ingestion-contract.md)는 durable binding·Workspace Job·role·Manifest·lineage를 검증한 내부 candidate만 만들며, `payload_present=false`와 `checksum_scope=metadata_descriptor`인 결과는 binary와 structured ingestion 모두 거부한다. Provider-side Artifact·AssetVersion ID는 DohaMusic FK가 아니고 descriptor checksum은 실제 Payload checksum이 아니다. fake `temporary_path` 또는 arbitrary URI를 만들거나 해석하지 않는다.
+
 Completion Unit of Work는 기존 ingestion을 우회하지 않고 prepare·register·verify·compensate primitive를 재사용한다. 독립 ingestion은 기존 자체 transaction을 유지하고 Completion Service는 같은 primitive를 상위 transaction에 주입해 AssetVersion부터 Job 성공까지 원자적으로 묶는다. 성공·replay 뒤 staging payload를 identity 확인 후 정리하며 rollback 시 이번 invocation이 publish한 payload만 보상한다.
 
 현재 구현은 Common Specification의 kind 중 `lyrics_text`, `audio`, `stem`, `manifest`, `evaluation`, `snapshot`만 허용한다. Audio는 WAV·FLAC·MP3 header와 WAV parser, text는 streaming UTF-8 decoder, 구조화 kind는 16MiB 상한의 UTF-8 JSON parser로 검증한다. format validator와 권리 정책이 확정되지 않은 `model`·`checkpoint`는 fail-closed한다. producer는 `user`, `provider`, `workspace`, `import`만 허용하고 새 Artifact의 retention은 caller 입력 없이 `active`로 고정한다.

@@ -37,11 +37,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
-| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract·HTTP Transport Foundation 구현, Worker wiring·실제 model 미구현 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract·HTTP Transport·metadata Result trust gate 구현, Worker wiring·실제 payload/model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport Foundation은 구현했지만 Worker wiring·인증·Artifact payload·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport·metadata-only Result trust/eligibility gate는 구현했지만 Worker wiring·인증·Artifact payload·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
 
 ## AI-native DAW 제품 전환 상태
 
@@ -122,9 +122,9 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | AI-native DAW Product | [진행 중] | `D0·D1·D2 Foundation 완료` | Project 상세에 초 단위 Timeline·Track lane·단일 Mix playback·Playhead·seek·scroll·zoom 기반 구현; 실제 DB 적용·Waveform·Clip·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약과 Provider Job 1:N persistence 구현; Provider dispatch wiring·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현; Provider dispatch wiring·실제 payload ingestion·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
-| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract·HTTP Transport Foundation 구현, Worker wiring·Artifact 통합 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
+| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract·HTTP Transport·metadata Result trust gate 구현, Worker wiring·실제 Artifact payload 통합 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 | Reviewer Authentication Authority | [결정 완료 / 구현 미착수] | 독립 authority | V1 local-only·single owner/operator·DohaMusic local governance UI·OS-bound proof와 delegated assertion model 승인; DohaAudio Runtime 미변경 | [ADR-038](docs/11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
