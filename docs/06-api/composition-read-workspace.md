@@ -1,9 +1,9 @@
 # D1 Composition Read Workspace API 계약
 
-> 문서 상태: [D1-A 완료 / D1-Transition 완료 / D1-B Draft 검토]
+> 문서 상태: [D1-A 완료 / D1-Transition 완료 / D1-B 완료]
 > 최종 수정일: 2026-08-21
 > 관련 기능: AI-native DAW D1 읽기 전용 Composition aggregate
-> 구현 상태: D1-A IMPLEMENTED
+> 구현 상태: D1-A·D1-Transition·D1-B IMPLEMENTED
 > 관련 문서: [CompositionSnapshot 기반](composition-snapshot-foundation.md), [Workspace REST API 공통 계약](workspace-rest-api-contract.md), [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 ## 1. CURRENT / TARGET / NOT IMPLEMENTED
@@ -206,7 +206,7 @@ Aggregate GET은 다음을 수행하지 않는다.
 
 1. **D1-A:** Project selection persistence, aggregate DTO·Repository/Service/Router, empty/requested/selected/privacy 테스트
 2. **D1-Transition:** 명시적 bootstrap과 selection authority 조사·무선택 transition inventory — PR #104 squash merge 완료
-3. **D1-B:** Project 상세의 Frontend consume·명시 선택·recovery UI — 구현·Draft 검토, 실제 사용자 DB Snapshot E2E와 인증 Gate는 보류
+3. **D1-B:** Project 상세의 Frontend consume·명시 선택·recovery UI — 구현·검증·merge 완료, 실제 사용자 DB Snapshot E2E와 인증 Gate는 보류
 
 D1-A와 D1-Transition은 임시 DB fixture에서 구현·테스트했다. D1-B Frontend는 같은 공개 계약을 fixture로 소비하며 실제 사용자 DB 전환은 별도 승인 Gate 뒤에 수행한다.
 
@@ -220,4 +220,4 @@ aggregate Repository는 selection, SnapshotItem, exact AssetVersion·Asset, Arti
 
 D1-Transition 조사 결과 pre-D1-A project-level selected Snapshot persistence는 `NO_PREEXISTING_SELECTION_AUTHORITY`다. 따라서 Snapshot이 하나 이상인 Project도 selection row를 만들지 않고 `selection_required`를 유지하며, 기존 valid `ProjectCompositionSelection`만 보존한다. Bootstrap 3회 재실행·rollback·restart와 `empty → selection_required → PATCH → ready`를 isolated SQLite에서 검증했다.
 
-D1-A와 D1-Transition 완료, D1-B Frontend Draft는 source·격리 fixture 범위다. 실제 사용자 DB `0017 → 0018` migration·Bootstrap·data backfill, 실제 인증 principal, 실제 사용자 Workspace Snapshot E2E, canonical Track·Section·Clip과 typed Mixer는 계속 `NOT IMPLEMENTED`다.
+D1-A·D1-Transition·D1-B Frontend 완료는 source·격리 fixture 범위다. 실제 사용자 DB `0017 → 0018` migration·Bootstrap·data backfill, 실제 인증 principal, 실제 사용자 Workspace Snapshot E2E, canonical Track·Section·Clip과 typed Mixer는 계속 `NOT IMPLEMENTED`다.
