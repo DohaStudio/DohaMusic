@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료: 내부 locator·issuer·resolver Foundation] / [미구현: downloader·Completion adapter·Worker wiring·durable production registry]
 > 최종 수정일: 2026-08-21
-> 관련 결정: [ADR-040](../11-decisions/ADR-040-trusted-payload-locator-authority.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md)
 
 ## 1. 목적과 authority
 

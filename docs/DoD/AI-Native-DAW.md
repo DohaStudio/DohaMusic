@@ -2,7 +2,7 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-21
-> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
+> 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 이 Track은 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성이 끝나도 DAW Runtime이 구현된 것으로 보지 않는다. 각 단계의 구현·검증·문서·ADR·Git 증거가 모두 있어야 다음 상태로 승격한다.
 
@@ -57,7 +57,7 @@
 - [x] click seek·clamp·horizontal scroll·zoom coordinate mapping
 - [x] local Track 선택, Space·좌우 keyboard, accessible label·focus·반응형 overflow
 - [x] empty·selection-required에서 Timeline 미표시, ready에서만 렌더
-### Waveform / Richer Playhead Foundation — [구현·Draft 검토]
+### Waveform / Richer Playhead Foundation — [완료]
 
 - [x] canonical safe Artifact를 재사용한 same-origin client decode와 128 MiB 입력 제한
 - [x] 최대 2,048개 peak·각 channel의 각 peak bucket에서 sample array element 접근 최대 256회·단일 SVG path bounded rendering
@@ -70,9 +70,12 @@
 
 ## D3. Non-destructive DAW Editing — [계획]
 
+- [x] canonical Track·Clip·WorkingComposition authority와 persistence ADR
+- [x] mutable working state와 immutable Snapshot commit·schema extension 경계
+- [x] split identity·revision concurrency·Undo/Redo ownership·overlap·duration 정책
 - [ ] split·trim·move·copy·delete·fade·gain·loop
 - [ ] 원본 불변 AssetVersion·CompositionSnapshot commit
-- [ ] undo/redo·동시 편집·복구 정책과 ADR
+- [ ] ORM·Alembic·API와 undo/redo·동시 편집·복구 구현
 
 ## D4. Mixer와 Export — [계획]
 

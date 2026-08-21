@@ -17,6 +17,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 기존 trusted staging root 안의 regular file만 canonicalize하고 symlink·reparse·traversal을 차단하며 실제 bytes에서 SHA-256·size·media type을 계산한다. resolve 때 expiry, file identity와 metadata를 재검증하고 path 없는 안전한 오류를 반환한다.
 - metadata-only Provider Result는 계속 `payload_present=false`, reference 없음, ingestion non-eligible이다. Public API·Alembic·Worker wiring·Provider network/downloader·Completion adapter·실제 Artifact ingestion은 추가하지 않았다.
 
+### 문서 — Clip Domain / Persistence Authority
+
+- ADR-040에서 Project당 하나의 mutable `WorkingComposition`, Composition lineage 범위의 canonical `track_id`·`clip_id`, exact `source_asset_version_id`와 Service·복합 FK 기반 same-Project 경계를 결정했다.
+- move·trim·delete·split의 비파괴 의미, split 시 원본 tombstone과 left/right 새 identity, same-Track overlap 금지, active Clip end 기반 working duration을 확정했다.
+- 즉시 server persistence와 Snapshot commit을 분리하고 revision optimistic concurrency, 기존 Idempotency 기록 재사용, Frontend memory Undo/Redo와 Service-owned atomic transaction·rollback을 정했다.
+- 현행 `SnapshotItem`은 Timeline을 표현할 수 없어 별도 불변 Snapshot Track/Clip schema가 필요함을 `COMPOSITION_SNAPSHOT_SCHEMA_EXTENSION_REQUIRED`로 기록했다. Backend·Frontend·테스트·Alembic·API·DB·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
+
 ### 문서 — V1 Reviewer Authentication Product Authority
 
 - ADR-038의 initial evidence-only CASE B와 fail-closed 판단을 보존하고, 이후 product owner가 V1 local-only·single owner/operator·DohaMusic local governance UI와 OS-bound local operator proof model을 명시적으로 승인했음을 기록했다.

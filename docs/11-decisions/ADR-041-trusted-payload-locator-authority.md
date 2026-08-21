@@ -1,4 +1,4 @@
-# ADR-040 — Trusted Payload Locator Authority
+# ADR-041 — Trusted Payload Locator Authority
 
 - 상태: Accepted
 - 결정일: 2026-08-21
