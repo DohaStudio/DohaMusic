@@ -5,9 +5,13 @@ import { CompositionTimeline } from "@/features/composition/composition-timeline
 import type { CompositionPlaybackResolution } from "@/features/composition/timeline-playback";
 import {
   clampTimelineTime,
+  formatTimelinePreciseTime,
   resolveCompositionPlayback,
+  timelinePixelsToTime,
+  timelineTimeToPixels,
   timelineTimeFromPointer,
 } from "@/features/composition/timeline-playback";
+import type { WaveformLoader } from "@/features/composition/waveform";
 import { GlobalPlayer } from "@/features/player/global-player";
 import { usePlayerStore } from "@/stores/player-store";
 import type { CompositionWorkspaceDto } from "@/types/api";
@@ -46,17 +50,28 @@ const source: SafePipelineFile = {
   downloadUrl: "/backend/api/v1/artifacts/artifact-mix/download",
 };
 
-const available = { status: "available" as const, source };
+const waveformSource = {
+  cacheKey: "artifact-mix:checksum",
+  contentUrl: source.contentUrl!,
+  mediaType: source.mimeType,
+  sizeBytes: 100,
+};
+const available = { status: "available" as const, source, waveformSource };
 const unavailable = {
   status: "unavailable" as const,
   code: "NO_CANONICAL_PLAYBACK_SOURCE" as const,
   reason: "단일 Mix source가 없습니다.",
 };
 
-function renderTimeline(playback: CompositionPlaybackResolution = available) {
+const waveformLoader = vi.fn<WaveformLoader>();
+
+function renderTimeline(
+  playback: CompositionPlaybackResolution = available,
+  loader: WaveformLoader = waveformLoader,
+) {
   return render(
     <>
-      <CompositionTimeline tracks={tracks} playback={playback} />
+      <CompositionTimeline tracks={tracks} playback={playback} waveformLoader={loader} />
       <GlobalPlayer />
     </>,
   );
@@ -75,6 +90,8 @@ describe("Timeline Playback Foundation", () => {
     vi.restoreAllMocks();
     vi.spyOn(HTMLMediaElement.prototype, "play").mockResolvedValue();
     vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(() => {});
+    waveformLoader.mockReset();
+    waveformLoader.mockResolvedValue([0.25, 0.75, 1, 0.4]);
   });
 
   it("time ruler와 snapshot-local Track lane을 표시한다", () => {
@@ -84,7 +101,8 @@ describe("Timeline Playback Foundation", () => {
     expect(screen.getByRole("list", { name: "Composition Track lanes" })).toBeVisible();
     expect(screen.getByRole("button", { name: /Mix 1에서/ })).toBeVisible();
     expect(screen.getByRole("button", { name: /Vocal 2에서/ })).toBeVisible();
-    expect(screen.queryByText(/Waveform/)).not.toBeInTheDocument();
+    expect(screen.getByText("Master / Mix")).toBeVisible();
+    expect(screen.getByText("Waveform source를 사용할 수 없습니다.")).toBeVisible();
   });
 
   it("canonical source가 없으면 명시적 unavailable 상태로 transport를 비활성화한다", () => {
@@ -116,13 +134,13 @@ describe("Timeline Playback Foundation", () => {
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
   });
 
-  it("media currentTime으로 Playhead와 시간 표시를 갱신하고 ended를 처리한다", () => {
+  it("media currentTime으로 Playhead와 정밀 시간 표시를 갱신하고 ended를 처리한다", () => {
     const { container } = renderTimeline();
     const audio = loadAudio(container);
     act(() => usePlayerStore.getState().play(source));
     Object.defineProperty(audio, "currentTime", { value: 12, writable: true, configurable: true });
     fireEvent.timeUpdate(audio);
-    expect(screen.getByLabelText("현재 재생 시간과 전체 길이")).toHaveTextContent("0:12 / 0:30");
+    expect(screen.getByLabelText("현재 재생 시간과 전체 길이")).toHaveTextContent("0:12.000 / 0:30");
     expect(container.querySelector(".timeline-playhead")).toHaveStyle({ left: "932px" });
     fireEvent.ended(audio);
     expect(usePlayerStore.getState().shouldPlay).toBe(false);
@@ -146,6 +164,7 @@ describe("Timeline Playback Foundation", () => {
     const user = userEvent.setup();
     const { container } = renderTimeline();
     loadAudio(container);
+    const canvas = container.querySelector(".timeline-canvas");
     const viewport = screen.getByTestId("timeline-scroll");
     vi.spyOn(viewport, "getBoundingClientRect").mockReturnValue({
       left: 100, right: 900, top: 0, bottom: 300, width: 800, height: 300,
@@ -153,8 +172,10 @@ describe("Timeline Playback Foundation", () => {
     });
     await user.click(screen.getByRole("button", { name: "Timeline 확대" }));
     expect(screen.getByLabelText("Timeline 배율")).toHaveTextContent("80px/s");
+    expect(canvas).toHaveStyle({ width: "2564px" });
     fireEvent.click(screen.getByLabelText("초 단위 Timeline ruler"), { clientX: 424 });
     expect(usePlayerStore.getState().currentTime).toBe(2);
+    expect(waveformLoader).toHaveBeenCalledTimes(1);
   });
 
   it("seek를 duration 범위로 clamp한다", () => {
@@ -167,6 +188,9 @@ describe("Timeline Playback Foundation", () => {
       pixelsPerSecond: 10,
       duration: 30,
     })).toBe(30);
+    expect(timelineTimeToPixels(2.5, 80)).toBe(200);
+    expect(timelinePixelsToTime(200, 80, 30)).toBe(2.5);
+    expect(formatTimelinePreciseTime(61.234)).toBe("1:01.234");
   });
 
   it("Space와 방향키 transport를 지원하고 입력 중 shortcut은 무시한다", () => {
@@ -182,6 +206,109 @@ describe("Timeline Playback Foundation", () => {
     fireEvent.keyDown(input, { code: "Space" });
     expect(usePlayerStore.getState().shouldPlay).toBe(true);
     input.remove();
+  });
+
+  it("waveform loading과 bounded ready SVG를 순서대로 표시한다", async () => {
+    let resolve!: (peaks: number[]) => void;
+    waveformLoader.mockImplementation(() => new Promise((done) => { resolve = done; }));
+    renderTimeline();
+    expect(screen.getByText("Waveform을 불러오는 중입니다.")).toBeVisible();
+    resolve([0.1, 0.4, 1]);
+    const waveform = await screen.findByTestId("master-waveform");
+    expect(waveform).toHaveAttribute("data-peak-count", "3");
+    expect(waveform.querySelectorAll("path")).toHaveLength(1);
+  });
+
+  it("waveform decode 실패를 격리하고 기존 playback을 유지한다", async () => {
+    waveformLoader.mockRejectedValue(new Error("secret source detail"));
+    const user = userEvent.setup();
+    const { container } = renderTimeline();
+    loadAudio(container);
+    expect(await screen.findByText("Waveform을 표시할 수 없습니다. 재생은 계속 사용할 수 있습니다.")).toBeVisible();
+    expect(screen.queryByText("secret source detail")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Timeline 재생" }));
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(1);
+  });
+
+  it("waveform click이 ruler와 같은 scroll·zoom 좌표계로 seek한다", () => {
+    const { container } = renderTimeline();
+    loadAudio(container);
+    const viewport = screen.getByTestId("timeline-scroll");
+    Object.defineProperty(viewport, "scrollLeft", { value: 128, writable: true });
+    vi.spyOn(viewport, "getBoundingClientRect").mockReturnValue({
+      left: 100, right: 900, top: 0, bottom: 300, width: 800, height: 300,
+      x: 100, y: 0, toJSON: () => ({}),
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Master Mix Waveform에서 재생 위치 선택" }), {
+      clientX: 328,
+    });
+    expect(usePlayerStore.getState().currentTime).toBe(3);
+  });
+
+  it("Playhead drag preview를 player seek와 분리하고 pointer up에서 commit한다", () => {
+    const { container } = renderTimeline();
+    loadAudio(container);
+    const viewport = screen.getByTestId("timeline-scroll");
+    vi.spyOn(viewport, "getBoundingClientRect").mockReturnValue({
+      left: 100, right: 900, top: 0, bottom: 300, width: 800, height: 300,
+      x: 100, y: 0, toJSON: () => ({}),
+    });
+    const handle = screen.getByRole("slider", { name: "Timeline Playhead 재생 위치" });
+    fireEvent.pointerDown(handle, { pointerId: 7, clientX: 264 });
+    fireEvent.pointerMove(handle, { pointerId: 7, clientX: 424 });
+    expect(usePlayerStore.getState().currentTime).toBe(0);
+    expect(screen.getByLabelText("현재 재생 시간과 전체 길이")).toHaveTextContent("0:02.500");
+    fireEvent.pointerUp(handle, { pointerId: 7, clientX: 424 });
+    expect(usePlayerStore.getState().currentTime).toBe(2.5);
+  });
+
+  it("source 변경 시 이전 waveform 결과를 폐기한다", async () => {
+    const pending = new Map<string, (peaks: number[]) => void>();
+    const loader = vi.fn<WaveformLoader>((input) => new Promise((resolve) => {
+      pending.set(input.cacheKey, resolve);
+    }));
+    const view = renderTimeline(available, loader);
+    const nextSource = { ...source, id: "artifact-next", contentUrl: "/backend/api/v1/artifacts/artifact-next/content" };
+    const next = {
+      status: "available" as const,
+      source: nextSource,
+      waveformSource: {
+        ...waveformSource,
+        cacheKey: "artifact-next:checksum",
+        contentUrl: nextSource.contentUrl!,
+      },
+    };
+    view.rerender(
+      <>
+        <CompositionTimeline tracks={tracks} playback={next} waveformLoader={loader} />
+        <GlobalPlayer />
+      </>,
+    );
+    pending.get("artifact-mix:checksum")?.([1]);
+    expect(screen.queryByTestId("master-waveform")).not.toBeInTheDocument();
+    pending.get("artifact-next:checksum")?.([0.2, 0.8]);
+    expect(await screen.findByTestId("master-waveform")).toHaveAttribute("data-peak-count", "2");
+  });
+
+  it("unmount 시 진행 중 waveform fetch를 abort한다", () => {
+    let capturedSignal: AbortSignal | undefined;
+    const loader = vi.fn<WaveformLoader>((_, signal) => {
+      capturedSignal = signal;
+      return new Promise(() => undefined);
+    });
+    const view = renderTimeline(available, loader);
+    expect(capturedSignal?.aborted).toBe(false);
+    view.unmount();
+    expect(capturedSignal?.aborted).toBe(true);
+  });
+
+  it("GlobalPlayer audio element 하나와 접근 가능한 seek controls만 사용한다", () => {
+    const { container } = renderTimeline();
+    loadAudio(container);
+    expect(container.querySelectorAll("audio")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "초 단위 Timeline ruler" })).toBeEnabled();
+    expect(screen.getByRole("slider", { name: "Timeline Playhead 재생 위치" })).toHaveAttribute("tabindex", "0");
+    expect(screen.getByRole("button", { name: "Master Mix Waveform에서 재생 위치 선택" })).toBeEnabled();
   });
 });
 

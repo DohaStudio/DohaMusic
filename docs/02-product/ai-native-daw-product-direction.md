@@ -2,7 +2,7 @@
 
 > 문서 역할: DohaMusic 제품 목표와 CURRENT/TARGET/NOT IMPLEMENTED의 Canonical Authority
 > 문서 상태: [운영 기준]
-> 제품 구현 상태: [CURRENT MVP·Timeline Playback Foundation 존재 / TARGET DAW 편집 미구현]
+> 제품 구현 상태: [CURRENT MVP·Timeline Playback Foundation 존재 / Waveform·Richer Playhead 구현·Draft 검토 / TARGET DAW 편집 미구현]
 > 최종 수정일: 2026-08-21
 > 관련 기능: DohaMusic 장기 제품 목표, Composition Runtime, Composition Evaluation, Continuous Learning
 > 관련 문서: [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Common AI Contract 소비자 기반](../03-architecture/common-ai-contract-consumer.md), [Master Roadmap](../../MASTER_ROADMAP.md)
@@ -42,8 +42,8 @@ DohaMusic
 - Project·History와 AssetVersion 기반 CompositionSnapshot Application/API 기반이 존재한다.
 - 최종 WAV의 품질 지표·예상 Tempo·후렴 후보를 분석한다.
 - 실제 Mixer 엔진은 Pipeline 내부 처리 단계로 존재하지만 다중 Track Mixer UI는 아니다.
-- 화면의 waveform 표현과 Player seek는 결과 재생 보조 기능이며 편집 가능한 DAW Timeline이 아니다.
-- Project Composition ready 화면에는 선택된 Snapshot을 위한 읽기 전용 초 단위 Timeline·snapshot-local Track lane·Playhead·play/pause·seek·horizontal scroll·zoom·Track 선택 기반이 있다. 기존 Global Player의 단일 audio element를 재사용하며 duration과 currentTime은 media metadata·event를 따른다.
+- 화면의 waveform 표현과 Player seek는 결과 재생 보조 기능이며 편집 가능한 Track/Clip Waveform이 아니다.
+- Project Composition ready 화면에는 선택된 Snapshot을 위한 읽기 전용 초 단위 Timeline·snapshot-local Track lane·Playhead·play/pause·seek·horizontal scroll·zoom·Track 선택 기반이 있다. 같은 단일 safe audio Artifact를 Browser에서 제한적으로 decode하는 Master / Mix Waveform overview, 정밀 hover 시간과 draggable Playhead도 구현돼 Draft 검토 중이다. 기존 Global Player의 단일 audio element를 재사용하며 duration과 currentTime은 media metadata·event를 따른다.
 - canonical playback source는 선택된 Snapshot에 `mix` Item이 정확히 하나이고 그 Item에 safe audio Artifact가 정확히 하나일 때만 확정한다. 없거나 모호하면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화하고 first/latest Artifact를 고르지 않는다.
 - Common AI Contract Python 소비는 opt-in `RightsMetadata` 검증에 한정되고 Runtime·DB·Provider에는 연결되지 않았다.
 
@@ -109,7 +109,7 @@ Rights, review, eligibility와 immutable lineage Gate를 모든 단계에서 유
 
 다음은 문서화된 TARGET이며 현재 완료가 아니다.
 
-- 편집 가능한 Arrangement·Track·Clip 데이터와 UI, Waveform, Section marker
+- 편집 가능한 Arrangement·Track·Clip 데이터와 UI, Track/Clip Waveform, Section marker
 - 범위 편집, split·trim·move·copy·delete, fade·loop, undo·redo
 - 다중 Track Volume·Pan·Mute·Solo와 DAW Mixer UI
 - AI Music Director와 Candidate A/B 선택 Workflow

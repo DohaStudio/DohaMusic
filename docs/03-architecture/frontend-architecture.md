@@ -2,14 +2,14 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-21
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback Foundation [진행 중]
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback Foundation [완료], Waveform / Richer Playhead [구현·Draft 검토]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
 Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
-현재 구조는 생성 Workflow용 Responsive Studio이며, D1은 기존 Project 상세에 읽기 전용 Composition feature를 추가했다. Backend의 explicit selection이 canonical truth이고 Frontend는 pending 후보·loading·error만 보유한다. D2 Foundation은 `composition` feature에 Timeline을 두되 AppShell의 `GlobalPlayer`와 `player-store`를 단일 playback authority로 재사용한다. TARGET의 Clip·Waveform·Section·Mixer, AI Music Director와 Composition QA feature boundary는 아직 구현되지 않았으며 [장기 전환 계획](../../planning/ai-native-daw-frontend-migration.md)의 후속 단계에서 결정한다.
+현재 구조는 생성 Workflow용 Responsive Studio이며, D1은 기존 Project 상세에 읽기 전용 Composition feature를 추가했다. Backend의 explicit selection이 canonical truth이고 Frontend는 pending 후보·loading·error만 보유한다. D2 Foundation은 `composition` feature에 Timeline을 두되 AppShell의 `GlobalPlayer`와 `player-store`를 단일 playback authority로 재사용한다. 같은 safe Artifact의 bounded client decode로 Master / Mix Waveform overview와 richer Playhead를 제공하되 TARGET의 편집 가능한 Track/Clip·Section·Mixer, AI Music Director와 Composition QA feature boundary는 아직 구현되지 않았으며 [장기 전환 계획](../../planning/ai-native-daw-frontend-migration.md)의 후속 단계에서 결정한다.
 
 ```mermaid
 flowchart LR
@@ -110,6 +110,8 @@ frontend/
 - duration은 `loadedmetadata`, Playhead는 media `timeupdate`를 따른다. 값이 없을 때 가상 3분 길이, BPM·meter·Bar/Beat를 합성하지 않는다.
 - pointer 좌표는 viewport offset과 horizontal scroll, `pixelsPerSecond`를 반영하고 `0...duration`으로 clamp한다. Track 선택과 playhead time은 UI/session 상태이며 Backend에 저장하지 않는다.
 - keyboard는 input·textarea·select·contenteditable 밖에서만 Space play/pause와 좌우 5초 seek를 처리한다.
+- Waveform은 canonical source와 동일한 same-origin Artifact content만 fetch하며 metadata·response 크기를 128 MiB 이하로 검증한다. 최대 2,048개 peak, 각 channel의 각 peak bucket에서 sample array element 접근 최대 256회로 축약한 단일 SVG path만 상태에 보존하고 `AudioBuffer`는 즉시 해제한다.
+- source 변경·unmount는 진행 요청을 abort하고 stale decode 결과를 폐기한다. decode 실패·크기 초과는 Waveform만 fail-closed하며 기존 Global Player 재생을 차단하거나 원본 URL·오류 세부를 노출하지 않는다.
 
 ## API 연결 원칙
 

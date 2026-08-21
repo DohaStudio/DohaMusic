@@ -2,14 +2,22 @@
 
 import { Pause, Play, ZoomIn, ZoomOut } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent } from "react";
 import { usePlayerStore } from "@/stores/player-store";
 import type { CompositionTrackProjectionDto } from "@/types/api";
 import type { CompositionPlaybackResolution } from "./timeline-playback";
 import {
   clampTimelineTime,
+  formatTimelinePreciseTime,
   formatTimelineTime,
+  timelineTimeToPixels,
   timelineTimeFromPointer,
 } from "./timeline-playback";
+import {
+  buildWaveformPath,
+  loadWaveformPeaks,
+  type WaveformLoader,
+} from "./waveform";
 
 const MIN_PIXELS_PER_SECOND = 32;
 const MAX_PIXELS_PER_SECOND = 128;
@@ -20,13 +28,20 @@ const TRACK_LABEL_WIDTH = 164;
 export function CompositionTimeline({
   tracks,
   playback,
+  waveformLoader = loadWaveformPeaks,
 }: {
   tracks: CompositionTrackProjectionDto[];
   playback: CompositionPlaybackResolution;
+  waveformLoader?: WaveformLoader;
 }) {
   const viewportRef = useRef<HTMLDivElement>(null);
+  const waveformRequestRef = useRef(0);
+  const dragPointerRef = useRef<number | null>(null);
   const [pixelsPerSecond, setPixelsPerSecond] = useState(DEFAULT_PIXELS_PER_SECOND);
   const [selectedTrackId, setSelectedTrackId] = useState<string | null>(tracks[0]?.projection_id ?? null);
+  const [hoverTime, setHoverTime] = useState<number | null>(null);
+  const [dragPreviewTime, setDragPreviewTime] = useState<number | null>(null);
+  const [loadedWaveform, setLoadedWaveform] = useState<LoadedWaveformState | null>(null);
   const currentFile = usePlayerStore((state) => state.currentFile);
   const shouldPlay = usePlayerStore((state) => state.shouldPlay);
   const playerTime = usePlayerStore((state) => state.currentTime);
@@ -38,12 +53,23 @@ export function CompositionTimeline({
   const pause = usePlayerStore((state) => state.pause);
   const seek = usePlayerStore((state) => state.seek);
   const source = playback.status === "available" ? playback.source : undefined;
+  const waveformSource = playback.status === "available" ? playback.waveformSource : undefined;
+  const waveformCacheKey = waveformSource?.cacheKey;
+  const waveformContentUrl = waveformSource?.contentUrl;
+  const waveformMediaType = waveformSource?.mediaType;
+  const waveformSizeBytes = waveformSource?.sizeBytes;
+  const waveform: WaveformState = !waveformSource
+    ? { status: "unavailable" }
+    : loadedWaveform?.sourceKey === waveformSource.cacheKey
+      ? loadedWaveform
+      : { status: "loading" };
   const effectiveSelectedTrackId = tracks.some((track) => track.projection_id === selectedTrackId)
     ? selectedTrackId
     : (tracks[0]?.projection_id ?? null);
   const isActiveSource = Boolean(source && currentFile?.id === source.id);
   const currentTime = isActiveSource ? playerTime : 0;
   const duration = isActiveSource ? playerDuration : 0;
+  const displayedTime = dragPreviewTime ?? currentTime;
   const timelineWidth = duration > 0
     ? TRACK_LABEL_WIDTH + Math.max(duration * pixelsPerSecond, EMPTY_TIMELINE_WIDTH)
     : TRACK_LABEL_WIDTH + EMPTY_TIMELINE_WIDTH;
@@ -51,6 +77,46 @@ export function CompositionTimeline({
   useEffect(() => {
     if (source) select(source);
   }, [select, source]);
+
+  useEffect(() => {
+    const requestId = waveformRequestRef.current + 1;
+    waveformRequestRef.current = requestId;
+    if (
+      !waveformCacheKey
+      || !waveformContentUrl
+      || !waveformMediaType
+      || waveformSizeBytes === undefined
+    ) return;
+
+    const controller = new AbortController();
+    void waveformLoader({
+      cacheKey: waveformCacheKey,
+      contentUrl: waveformContentUrl,
+      mediaType: waveformMediaType,
+      sizeBytes: waveformSizeBytes,
+    }, controller.signal).then((peaks) => {
+      if (controller.signal.aborted || waveformRequestRef.current !== requestId) return;
+      setLoadedWaveform(peaks.length
+        ? { sourceKey: waveformCacheKey, status: "ready", peaks }
+        : { sourceKey: waveformCacheKey, status: "failed" });
+    }).catch((error: unknown) => {
+      if (
+        controller.signal.aborted
+        || waveformRequestRef.current !== requestId
+        || (error instanceof DOMException && error.name === "AbortError")
+      ) return;
+      setLoadedWaveform({ sourceKey: waveformCacheKey, status: "failed" });
+    });
+    return () => {
+      controller.abort();
+    };
+  }, [
+    waveformCacheKey,
+    waveformContentUrl,
+    waveformLoader,
+    waveformMediaType,
+    waveformSizeBytes,
+  ]);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -75,16 +141,71 @@ export function CompositionTimeline({
     [duration, pixelsPerSecond],
   );
 
-  function seekFromPointer(clientX: number) {
+  function timeFromPointer(clientX: number) {
     const viewport = viewportRef.current;
-    if (!viewport || !source || duration <= 0) return;
-    seek(timelineTimeFromPointer({
+    if (!viewport || !source || duration <= 0) return null;
+    return timelineTimeFromPointer({
       clientX: clientX - TRACK_LABEL_WIDTH,
       viewportLeft: viewport.getBoundingClientRect().left,
       scrollLeft: viewport.scrollLeft,
       pixelsPerSecond,
       duration,
-    }));
+    });
+  }
+
+  function seekFromPointer(clientX: number) {
+    const next = timeFromPointer(clientX);
+    if (next === null) return;
+    seek(next);
+  }
+
+  function previewFromPointer(clientX: number) {
+    const next = timeFromPointer(clientX);
+    if (next !== null && dragPointerRef.current === null) setHoverTime(next);
+  }
+
+  function startPlayheadDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    const next = timeFromPointer(event.clientX);
+    if (next === null) return;
+    event.preventDefault();
+    dragPointerRef.current = event.pointerId;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    setHoverTime(null);
+    setDragPreviewTime(next);
+  }
+
+  function movePlayheadDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (dragPointerRef.current !== event.pointerId) return;
+    const next = timeFromPointer(event.clientX);
+    if (next !== null) setDragPreviewTime(next);
+  }
+
+  function finishPlayheadDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (dragPointerRef.current !== event.pointerId) return;
+    const next = timeFromPointer(event.clientX);
+    dragPointerRef.current = null;
+    event.currentTarget.releasePointerCapture?.(event.pointerId);
+    setDragPreviewTime(null);
+    if (next !== null) seek(next);
+  }
+
+  function cancelPlayheadDrag(event: ReactPointerEvent<HTMLDivElement>) {
+    if (dragPointerRef.current !== event.pointerId) return;
+    dragPointerRef.current = null;
+    setDragPreviewTime(null);
+  }
+
+  function onPlayheadKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+    if (!source || duration <= 0) return;
+    let next: number | null = null;
+    if (event.key === "ArrowLeft") next = currentTime - 1;
+    if (event.key === "ArrowRight") next = currentTime + 1;
+    if (event.key === "Home") next = 0;
+    if (event.key === "End") next = duration;
+    if (next === null) return;
+    event.preventDefault();
+    event.stopPropagation();
+    seek(clampTimelineTime(next, duration));
   }
 
   return (
@@ -130,16 +251,50 @@ export function CompositionTimeline({
 
       <div className="timeline-scroll" ref={viewportRef} data-testid="timeline-scroll">
         <div className="timeline-canvas" style={{ width: timelineWidth }}>
-          <div
+          <button
+            type="button"
             className="timeline-ruler"
             aria-label="초 단위 Timeline ruler"
+            disabled={!source || duration <= 0}
             onClick={(event) => seekFromPointer(event.clientX)}
+            onPointerMove={(event) => previewFromPointer(event.clientX)}
+            onPointerLeave={() => setHoverTime(null)}
           >
             {ticks.map((tick) => (
               <span key={tick} style={{ left: TRACK_LABEL_WIDTH + tick * pixelsPerSecond }}>
                 {formatTimelineTime(tick)}
               </span>
             ))}
+          </button>
+          <div className="timeline-waveform-row">
+            <div className="timeline-waveform-label">
+              <strong>Master / Mix</strong>
+              <span>재생 Overview</span>
+            </div>
+            <button
+              type="button"
+              className="timeline-waveform-surface"
+              aria-label="Master Mix Waveform에서 재생 위치 선택"
+              disabled={!source || duration <= 0}
+              onClick={(event) => seekFromPointer(event.clientX)}
+              onPointerMove={(event) => previewFromPointer(event.clientX)}
+              onPointerLeave={() => setHoverTime(null)}
+            >
+              {waveform.status === "loading" && <span role="status">Waveform을 불러오는 중입니다.</span>}
+              {waveform.status === "unavailable" && <span>Waveform source를 사용할 수 없습니다.</span>}
+              {waveform.status === "failed" && <span role="status">Waveform을 표시할 수 없습니다. 재생은 계속 사용할 수 있습니다.</span>}
+              {waveform.status === "ready" && (
+                <svg
+                  aria-hidden="true"
+                  data-testid="master-waveform"
+                  data-peak-count={waveform.peaks.length}
+                  viewBox="0 0 1000 96"
+                  preserveAspectRatio="none"
+                >
+                  <path d={buildWaveformPath(waveform.peaks)} />
+                </svg>
+              )}
+            </button>
           </div>
           <div className="timeline-track-lanes" role="list" aria-label="Composition Track lanes">
             {tracks.map((track) => {
@@ -175,9 +330,36 @@ export function CompositionTimeline({
           </div>
           <div
             className="timeline-playhead"
-            style={{ left: TRACK_LABEL_WIDTH + currentTime * pixelsPerSecond }}
+            style={{ left: TRACK_LABEL_WIDTH + timelineTimeToPixels(displayedTime, pixelsPerSecond) }}
             aria-hidden="true"
           />
+          {source && duration > 0 && (
+            <div
+              className="timeline-playhead-handle"
+              role="slider"
+              tabIndex={0}
+              aria-label="Timeline Playhead 재생 위치"
+              aria-valuemin={0}
+              aria-valuemax={duration}
+              aria-valuenow={displayedTime}
+              aria-valuetext={formatTimelinePreciseTime(displayedTime)}
+              style={{ left: TRACK_LABEL_WIDTH + timelineTimeToPixels(displayedTime, pixelsPerSecond) }}
+              onPointerDown={startPlayheadDrag}
+              onPointerMove={movePlayheadDrag}
+              onPointerUp={finishPlayheadDrag}
+              onPointerCancel={cancelPlayheadDrag}
+              onKeyDown={onPlayheadKeyDown}
+            />
+          )}
+          {hoverTime !== null && dragPreviewTime === null && source && duration > 0 && (
+            <output
+              className="timeline-time-preview"
+              aria-label="Seek 미리보기 시간"
+              style={{ left: TRACK_LABEL_WIDTH + timelineTimeToPixels(hoverTime, pixelsPerSecond) }}
+            >
+              {formatTimelinePreciseTime(hoverTime)}
+            </output>
+          )}
         </div>
       </div>
 
@@ -204,7 +386,7 @@ export function CompositionTimeline({
           −5s
         </button>
         <time aria-label="현재 재생 시간과 전체 길이">
-          {formatTimelineTime(currentTime)} / {duration > 0 ? formatTimelineTime(duration) : "길이 확인 전"}
+          {formatTimelinePreciseTime(displayedTime)} / {duration > 0 ? formatTimelineTime(duration) : "길이 확인 전"}
         </time>
         <button
           type="button"
@@ -219,6 +401,14 @@ export function CompositionTimeline({
     </section>
   );
 }
+
+type WaveformState =
+  | { status: "unavailable" | "loading" | "failed" }
+  | { status: "ready"; peaks: number[] };
+
+type LoadedWaveformState =
+  | { sourceKey: string; status: "failed" }
+  | { sourceKey: string; status: "ready"; peaks: number[] };
 
 function buildTicks(duration: number, pixelsPerSecond: number): number[] {
   if (duration <= 0) return [0];

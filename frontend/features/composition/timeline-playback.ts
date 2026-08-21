@@ -1,9 +1,10 @@
 import { toBackendPublicUrl } from "@/services/doha-api";
 import type { CompositionWorkspaceDto } from "@/types/api";
 import type { SafePipelineFile } from "@/types/domain";
+import type { WaveformSource } from "./waveform";
 
 export type CompositionPlaybackResolution =
-  | { status: "available"; source: SafePipelineFile }
+  | { status: "available"; source: SafePipelineFile; waveformSource: WaveformSource }
   | {
       status: "unavailable";
       code: "NO_CANONICAL_PLAYBACK_SOURCE";
@@ -42,7 +43,27 @@ export function resolveCompositionPlayback(
       contentUrl,
       downloadUrl: toBackendPublicUrl(artifact.download_url),
     },
+    waveformSource: {
+      cacheKey: `${artifact.artifact_id}:${artifact.artifact_checksum}`,
+      contentUrl,
+      mediaType: artifact.media_type,
+      sizeBytes: artifact.size_bytes,
+    },
   };
+}
+
+export function timelineTimeToPixels(time: number, pixelsPerSecond: number): number {
+  if (!Number.isFinite(time) || !Number.isFinite(pixelsPerSecond) || pixelsPerSecond <= 0) return 0;
+  return Math.max(time, 0) * pixelsPerSecond;
+}
+
+export function timelinePixelsToTime(
+  pixels: number,
+  pixelsPerSecond: number,
+  duration: number,
+): number {
+  if (!Number.isFinite(pixels) || pixelsPerSecond <= 0) return 0;
+  return clampTimelineTime(pixels / pixelsPerSecond, duration);
 }
 
 export function timelineTimeFromPointer(input: {
@@ -54,7 +75,7 @@ export function timelineTimeFromPointer(input: {
 }): number {
   if (input.duration <= 0 || input.pixelsPerSecond <= 0) return 0;
   const timelineX = input.clientX - input.viewportLeft + input.scrollLeft;
-  return clamp(timelineX / input.pixelsPerSecond, 0, input.duration);
+  return timelinePixelsToTime(timelineX, input.pixelsPerSecond, input.duration);
 }
 
 export function clampTimelineTime(time: number, duration: number): number {
@@ -67,6 +88,15 @@ export function formatTimelineTime(value: number): string {
   const minutes = Math.floor(value / 60);
   const seconds = Math.floor(value % 60).toString().padStart(2, "0");
   return `${minutes}:${seconds}`;
+}
+
+export function formatTimelinePreciseTime(value: number): string {
+  if (!Number.isFinite(value) || value < 0) return "0:00.000";
+  const totalMilliseconds = Math.round(value * 1000);
+  const minutes = Math.floor(totalMilliseconds / 60_000);
+  const seconds = Math.floor((totalMilliseconds % 60_000) / 1000).toString().padStart(2, "0");
+  const milliseconds = (totalMilliseconds % 1000).toString().padStart(3, "0");
+  return `${minutes}:${seconds}.${milliseconds}`;
 }
 
 function unavailable(reason: string): CompositionPlaybackResolution {

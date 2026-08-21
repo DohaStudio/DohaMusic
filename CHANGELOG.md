@@ -17,6 +17,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Upstream `LOCAL_AUTHENTICATED_OPERATOR`와 downstream `DOHAMUSIC_DELEGATED_ASSERTION`을 분리하고 external auth network 불필요·offline capable·V1 MFA 미필수, local persistent private store 요구를 확정했다.
 - `AUTH_REQUIREMENTS_RESOLVED=true`, `AUTH_PROVIDER_SELECTION_READY=true`와 selected authentication provider model을 기록했지만 실제 OS adapter·assertion·secret·mapping·ReviewerAuthority·approval 및 DohaAudio Runtime은 변경하지 않았다.
 
+### 추가 — Waveform / Richer Playhead Foundation
+
+- 선택된 Snapshot의 단일 `mix` Item·단일 safe audio Artifact를 동일한 playback 권위로 재사용해 읽기 전용 Master / Mix Waveform overview를 추가했다. Browser가 same-origin Artifact content를 decode하며 Backend API·DB·Alembic은 변경하지 않았다.
+- source 크기를 128 MiB 이하로 제한하고 최대 2,048개 peak와 각 channel의 각 peak bucket에서 sample array element를 최대 256회만 접근해 단일 SVG path로 렌더한다. source 변경·unmount 시 진행 요청을 취소하고 stale 결과를 폐기하며 AudioBuffer는 peak 추출 뒤 보존하지 않는다.
+- ruler·Waveform click seek, Playhead drag preview/commit, hover 정밀 시간과 keyboard seek를 동일한 scroll·zoom 좌표계에 연결했다. Waveform 실패는 기존 재생과 분리하며 별도 audio element, `requestAnimationFrame` loop, Track/Clip 편집, Section·range selection·Mixer를 추가하지 않았다.
+
 ### 추가 — Timeline Playback Foundation
 
 - 선택된 CompositionSnapshot의 snapshot-local Track projection을 사용하는 읽기 전용 초 단위 Timeline shell, ruler, lane, Playhead, local Track 선택과 horizontal scroll·zoom 기반을 추가했다.
