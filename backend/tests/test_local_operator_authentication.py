@@ -47,7 +47,9 @@ def _config(**updates: object) -> LocalOperatorAuthenticationConfig:
         "configuration_version": "local-operator-auth-config/test/v1",
         "provider_id": "local-operator/windows-webauthn",
         "proof_model": LocalOperatorProofModel.OS_BOUND_LOCAL_OPERATOR_CREDENTIAL,
-        "mechanism": (LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL),
+        "mechanism": (
+            LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL
+        ),
         "enabled": True,
         "freshness_required": True,
         "expiry_required": True,
@@ -63,9 +65,13 @@ def _selection(**updates: object) -> LocalOperatorAuthenticationSelection:
         "source_authority_reference_id": "dohamusic/adr-038",
         "decision_reference_id": "dohamusic/adr-040",
         "proof_model_selected": True,
-        "selected_proof_model": (LocalOperatorProofModel.OS_BOUND_LOCAL_OPERATOR_CREDENTIAL),
+        "selected_proof_model": (
+            LocalOperatorProofModel.OS_BOUND_LOCAL_OPERATOR_CREDENTIAL
+        ),
         "concrete_os_adapter_selected": True,
-        "selected_mechanism": (LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL),
+        "selected_mechanism": (
+            LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL
+        ),
         "concrete_os_adapter_implemented": False,
     }
     values.update(updates)
@@ -78,7 +84,8 @@ def test_current_selection_records_authority_without_implementation() -> None:
 
     assert selection.proof_model_selected is True
     assert (
-        selection.selected_proof_model is LocalOperatorProofModel.OS_BOUND_LOCAL_OPERATOR_CREDENTIAL
+        selection.selected_proof_model
+        is LocalOperatorProofModel.OS_BOUND_LOCAL_OPERATOR_CREDENTIAL
     )
     assert selection.concrete_os_adapter_selected is True
     assert (
@@ -134,7 +141,9 @@ def test_config_rejects_fail_open_policy(updates: dict[str, object]) -> None:
 
 
 def test_selected_without_config_is_fail_closed() -> None:
-    result = LocalOperatorAuthenticationBootstrapper().bootstrap(_selection(), None, None)
+    result = LocalOperatorAuthenticationBootstrapper().bootstrap(
+        _selection(), None, None
+    )
 
     assert result.provider is None
     assert result.readiness.provider_configured is False
@@ -142,8 +151,12 @@ def test_selected_without_config_is_fail_closed() -> None:
     assert result.readiness.reason_code == "LOCAL_OPERATOR_AUTH_NOT_CONFIGURED"
 
 
-def test_selected_with_config_but_without_adapter_returns_unavailable_provider() -> None:
-    result = LocalOperatorAuthenticationBootstrapper().bootstrap(_selection(), _config(), None)
+def test_selected_with_config_but_without_adapter_returns_unavailable_provider() -> (
+    None
+):
+    result = LocalOperatorAuthenticationBootstrapper().bootstrap(
+        _selection(), _config(), None
+    )
 
     assert isinstance(result.provider, UnavailableLocalOperatorAuthenticationProvider)
     assert result.readiness.provider_configured is True
@@ -170,7 +183,9 @@ def test_fake_provider_is_forbidden_in_production_bootstrap() -> None:
             _config(provider_id="local-operator/test-provider"),
             FakeLocalOperatorAuthenticationProvider(),
         )
-    assert error.value.code is LocalOperatorAuthenticationErrorCode.PROVIDER_FAKE_FORBIDDEN
+    assert (
+        error.value.code is LocalOperatorAuthenticationErrorCode.PROVIDER_FAKE_FORBIDDEN
+    )
 
 
 def test_provider_mismatch_is_blocked() -> None:
@@ -180,7 +195,9 @@ def test_provider_mismatch_is_blocked() -> None:
         mechanism=LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL,
     )
     with pytest.raises(LocalOperatorAuthenticationError) as error:
-        LocalOperatorAuthenticationBootstrapper().bootstrap(_selection(), _config(), provider)
+        LocalOperatorAuthenticationBootstrapper().bootstrap(
+            _selection(), _config(), provider
+        )
     assert error.value.code is LocalOperatorAuthenticationErrorCode.PROVIDER_MISMATCH
 
 
@@ -197,8 +214,12 @@ def test_unimplemented_selected_adapter_cannot_become_operational() -> None:
         mechanism=LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL,
     )
     with pytest.raises(LocalOperatorAuthenticationError) as error:
-        LocalOperatorAuthenticationBootstrapper().bootstrap(_selection(), _config(), provider)
-    assert error.value.code is LocalOperatorAuthenticationErrorCode.ADAPTER_NOT_IMPLEMENTED
+        LocalOperatorAuthenticationBootstrapper().bootstrap(
+            _selection(), _config(), provider
+        )
+    assert (
+        error.value.code is LocalOperatorAuthenticationErrorCode.ADAPTER_NOT_IMPLEMENTED
+    )
 
 
 def test_fake_provider_issues_and_revalidates_test_only_context() -> None:
@@ -208,7 +229,9 @@ def test_fake_provider_issues_and_revalidates_test_only_context() -> None:
 
     assert principal.assurance.value == "TEST_ONLY"
     assert principal.proof_model.value == "OS_BOUND_LOCAL_OPERATOR_CREDENTIAL"
-    assert context.public_summary()["mechanism"] == ("WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL")
+    assert context.public_summary()["mechanism"] == (
+        "WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL"
+    )
 
 
 @pytest.mark.parametrize(
@@ -224,7 +247,9 @@ def test_fake_provider_rejects_invalid_or_stale_credential(
     updates: dict[str, object],
 ) -> None:
     with pytest.raises(LocalOperatorAuthenticationError) as error:
-        FakeLocalOperatorAuthenticationProvider().verify(_credential(**updates), verified_at=NOW)
+        FakeLocalOperatorAuthenticationProvider().verify(
+            _credential(**updates), verified_at=NOW
+        )
     assert error.value.code is LocalOperatorAuthenticationErrorCode.CREDENTIAL_INVALID
 
 
@@ -260,7 +285,10 @@ def test_plain_principal_and_caller_forged_context_are_rejected() -> None:
 
     with pytest.raises(LocalOperatorAuthenticationError) as plain_error:
         provider.revalidate(authentic.principal, at=NOW)  # type: ignore[arg-type]
-    assert plain_error.value.code is LocalOperatorAuthenticationErrorCode.CONTEXT_UNVERIFIED
+    assert (
+        plain_error.value.code
+        is LocalOperatorAuthenticationErrorCode.CONTEXT_UNVERIFIED
+    )
     with pytest.raises(LocalOperatorAuthenticationError) as error:
         provider.revalidate(forged, at=NOW)
     assert error.value.code is LocalOperatorAuthenticationErrorCode.CONTEXT_UNVERIFIED
@@ -270,12 +298,16 @@ def test_context_copy_and_field_mutation_are_rejected() -> None:
     provider = FakeLocalOperatorAuthenticationProvider()
     authentic = provider.verify(_credential(), verified_at=NOW)
     copied = replace(authentic)
-    modified = replace(authentic, expires_at=authentic.expires_at + timedelta(seconds=1))
+    modified = replace(
+        authentic, expires_at=authentic.expires_at + timedelta(seconds=1)
+    )
 
     for context in (copied, modified):
         with pytest.raises(LocalOperatorAuthenticationError) as error:
             provider.revalidate(context, at=NOW)
-        assert error.value.code is LocalOperatorAuthenticationErrorCode.CONTEXT_UNVERIFIED
+        assert (
+            error.value.code is LocalOperatorAuthenticationErrorCode.CONTEXT_UNVERIFIED
+        )
     with pytest.raises(FrozenInstanceError):
         authentic.context_id = "context/mutated"  # type: ignore[misc]
 
@@ -335,7 +367,9 @@ def test_contracts_reject_credential_like_extra_fields() -> None:
             _credential(**{extra_field: "synthetic-do-not-store"})
 
 
-def test_private_identity_and_session_references_are_not_in_repr_or_public_summary() -> None:
+def test_private_identity_and_session_references_are_not_in_repr_or_public_summary() -> (
+    None
+):
     provider = FakeLocalOperatorAuthenticationProvider(
         opaque_subject_reference="subject/private-value"
     )

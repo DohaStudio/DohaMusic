@@ -95,7 +95,9 @@ class UnavailableLocalOperatorAuthenticationProvider:
         verified_at: datetime,
     ) -> VerifiedLocalOperatorContext:
         del credential, verified_at
-        raise LocalOperatorAuthenticationError(LocalOperatorAuthenticationErrorCode.NOT_OPERATIONAL)
+        raise LocalOperatorAuthenticationError(
+            LocalOperatorAuthenticationErrorCode.NOT_OPERATIONAL
+        )
 
     def revalidate(
         self,
@@ -104,7 +106,9 @@ class UnavailableLocalOperatorAuthenticationProvider:
         at: datetime,
     ) -> LocalOperatorPrincipal:
         del context, at
-        raise LocalOperatorAuthenticationError(LocalOperatorAuthenticationErrorCode.NOT_OPERATIONAL)
+        raise LocalOperatorAuthenticationError(
+            LocalOperatorAuthenticationErrorCode.NOT_OPERATIONAL
+        )
 
 
 class FakeLocalOperatorAuthenticationProvider:
@@ -168,7 +172,8 @@ class FakeLocalOperatorAuthenticationProvider:
         require_aware(verified_at, "verified_at")
         if (
             credential.provider_id != self.provider_id
-            or credential.credential_reference_id != self._accepted_credential_reference_id
+            or credential.credential_reference_id
+            != self._accepted_credential_reference_id
             or verified_at < credential.challenge_issued_at
             or verified_at >= credential.challenge_expires_at
         ):

@@ -42,8 +42,13 @@ class LocalOperatorAuthenticationSelection:
         if self.concrete_os_adapter_selected != (self.selected_mechanism is not None):
             raise ValueError("concrete adapter selection state is contradictory")
         if self.concrete_os_adapter_selected and not self.proof_model_selected:
-            raise ValueError("concrete adapter requires an authority-selected proof model")
-        if self.concrete_os_adapter_implemented and not self.concrete_os_adapter_selected:
+            raise ValueError(
+                "concrete adapter requires an authority-selected proof model"
+            )
+        if (
+            self.concrete_os_adapter_implemented
+            and not self.concrete_os_adapter_selected
+        ):
             raise ValueError("implemented adapter must first be selected")
 
 
@@ -62,7 +67,9 @@ class LocalOperatorAuthenticationConfig:
         require_safe_reference(self.configuration_version, "configuration_version")
         require_safe_reference(self.provider_id, "provider_id")
         if not self.freshness_required or not self.expiry_required:
-            raise ValueError("local operator authentication requires freshness and expiry")
+            raise ValueError(
+                "local operator authentication requires freshness and expiry"
+            )
         if not self.session_binding_required:
             raise ValueError("local operator authentication requires session binding")
 
@@ -145,7 +152,9 @@ class LocalOperatorAuthenticationBootstrapper:
             reviewer_authentication_operational=True,
             reason_code="LOCAL_OPERATOR_AUTH_OPERATIONAL",
         )
-        return LocalOperatorAuthenticationBootstrap(readiness=readiness, provider=provider)
+        return LocalOperatorAuthenticationBootstrap(
+            readiness=readiness, provider=provider
+        )
 
 
 def _unavailable(
@@ -189,6 +198,8 @@ CURRENT_LOCAL_OPERATOR_AUTHENTICATION_SELECTION = LocalOperatorAuthenticationSel
     proof_model_selected=True,
     selected_proof_model=LocalOperatorProofModel.OS_BOUND_LOCAL_OPERATOR_CREDENTIAL,
     concrete_os_adapter_selected=True,
-    selected_mechanism=(LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL),
+    selected_mechanism=(
+        LocalOperatorConcreteMechanism.WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL
+    ),
     concrete_os_adapter_implemented=False,
 )
