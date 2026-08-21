@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Local Operator Authentication Foundation
+
+- Windows 공식 API 근거로 V1 concrete proof mechanism을 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택하고 process token, Credential Manager generic credential, DPAPI와 다른 후보의 부적합 경계를 ADR-040에 기록했다.
+- Provider-independent credential reference·principal·verified context 계약, private witness/provenance 검증과 fail-closed bootstrap을 추가했다. Concrete Win32 adapter는 미구현이며 configured·operational 상태는 false다.
+- Deterministic Fake는 test-only로 제한했고 raw secret, 실제 credential, reviewer mapping·authority·approval, DohaAudio Runtime과 Dataset·Training에는 side effect를 만들지 않았다.
+
 ### 문서 — V1 Reviewer Authentication Product Authority
 
 - ADR-038의 initial evidence-only CASE B와 fail-closed 판단을 보존하고, 이후 product owner가 V1 local-only·single owner/operator·DohaMusic local governance UI와 OS-bound local operator proof model을 명시적으로 승인했음을 기록했다.

@@ -1,9 +1,9 @@
 # Reviewer Authentication과 배포 권위
 
 > 문서 역할: DohaMusic 제품 identity와 DohaAudio reviewer authentication 연결의 Canonical Authority
-> 문서 상태: [V1 product authority 승인 / 구현 미착수]
+> 문서 상태: [V1 product authority 승인 / local operator authentication foundation 구현 / OS adapter 미구현]
 > 최종 수정일: 2026-08-21
-> 관련 문서: [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Provider API 계약](../06-api/provider-api-contract.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-037](../11-decisions/ADR-037-reviewer-authentication-deployment-authority.md), [ADR-038](../11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md)
+> 관련 문서: [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Local Operator Authentication](../03-architecture/local-operator-authentication.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-037](../11-decisions/ADR-037-reviewer-authentication-deployment-authority.md), [ADR-038](../11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md), [ADR-040](../11-decisions/ADR-040-v1-local-operator-authentication-foundation.md)
 
 ## 1. 권위 기준
 
@@ -25,6 +25,9 @@ V1_REVIEWER_POPULATION: SINGLE_OWNER_OPERATOR
 V1_REVIEWER_INTERACTION: DOHAMUSIC_LOCAL_GOVERNANCE_UI
 UPSTREAM_HUMAN_IDENTITY_MODEL: LOCAL_AUTHENTICATED_OPERATOR
 LOCAL_OPERATOR_PROOF_MODEL: OS_BOUND_LOCAL_OPERATOR_CREDENTIAL
+LOCAL_OPERATOR_CONCRETE_MECHANISM: WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL
+CONCRETE_OS_ADAPTER_SELECTED: true
+CONCRETE_OS_ADAPTER_IMPLEMENTED: false
 V1_EXTERNAL_AUTH_NETWORK_REQUIRED: false
 V1_REVIEWER_AUTH_OFFLINE_CAPABLE: true
 V1_REVIEWER_MFA_REQUIRED: false
@@ -72,7 +75,7 @@ Remote, hybrid 또는 multi-user topology는 미확정이다. V1 local-only와 M
 | 역할 | Owner | V1 상태 |
 |---|---|---|
 | Product user/account identity | DohaMusic | 일반 product login 불필요, subsystem 없음 |
-| Human reviewer identity proof | DohaMusic | `LOCAL_AUTHENTICATED_OPERATOR`·OS-bound proof model 승인, 구현 없음 |
+| Human reviewer identity proof | DohaMusic | provider-independent foundation과 Windows WebAuthn mechanism 선택, concrete adapter 미구현 |
 | ReviewerAuthority와 semantic scope | DohaAudio | Provider domain governance, 실제 부여 0 |
 | DohaMusic Orchestrator service identity | DohaMusic | `LOCAL_INTERNAL_SERVICE_IDENTITY`, concrete protocol 미선정 |
 
@@ -86,7 +89,7 @@ V1 목표 흐름은 다음과 같다.
 
 ```text
 Single owner/operator
-  → DohaMusic OS-bound local operator proof [adapter 미구현]
+  → DohaMusic OS-bound local operator proof [foundation 구현, Windows WebAuthn adapter 미구현]
   → DohaMusic local governance UI [미구현]
   → short-lived reviewer assertion [protocol 미구현]
   → DohaAudio private identity mapping [store 미구현]
@@ -98,7 +101,9 @@ Single owner/operator
 - credential은 local operator context와 결합한다.
 - caller-supplied username과 복제 가능한 public identifier를 proof로 신뢰하지 않는다.
 - DohaMusic가 verification boundary를 소유한다.
-- concrete Windows Credential Manager, DPAPI, Windows Hello, OS access-token API, keychain 또는 application unlock 기술은 후속 구현에서 선택한다.
+- concrete mechanism은 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택했다. Windows WebAuthn API를 호출하는 adapter, provisioning과 recovery는 아직 구현하지 않았다.
+
+Process access token은 process security context일 뿐 명시적인 human verification transaction이 아니다. Credential Manager generic credential과 DPAPI는 application-defined secret storage·at-rest protection에는 유용하지만 fresh operator action을 독립적으로 증명하지 않는다. Windows WebAuthn platform authenticator는 user-verifying authenticator availability 확인과 scoped assertion 서명 경계를 제공하므로 V1 proof mechanism으로 선택했다. 비교 근거는 [Local Operator Proof Mechanism 비교](../01-research/local-operator-proof-mechanism-comparison.md)를 따른다.
 
 DohaAudio가 external IdP 또는 product user를 직접 인증하는 V1 login surface는 지원하지 않는다. DohaAudio 관점의 selected authentication provider model은 `DOHAMUSIC_DELEGATED_ASSERTION`이다. 이는 OIDC·GitHub 같은 external vendor 선택이 아니다.
 
@@ -123,7 +128,7 @@ DohaMusic→DohaAudio service authentication 방향은 `LOCAL_INTERNAL_SERVICE_I
 
 | 후보 | V1 판정 | 근거 |
 |---|---|---|
-| Local Authenticated Operator | upstream model 선택 | `LOCAL_AUTHENTICATED_OPERATOR`와 OS-bound proof model 승인, concrete adapter 미구현 |
+| Local Authenticated Operator | upstream model 선택 | `LOCAL_AUTHENTICATED_OPERATOR`, OS-bound proof model과 Windows WebAuthn mechanism 승인, concrete adapter 미구현 |
 | Generic OIDC | 선택 안 함 | V1은 external auth network가 필요 없고 local single-owner·offline-capable scope다. Future remote에서 재검토한다. |
 | GitHub Identity | 선택 안 함 | source-control identity와 semantic reviewer identity를 연결하지 않는다. |
 | Self-managed product account | 선택 안 함 | V1 general product login은 필요하지 않다. |
@@ -169,7 +174,7 @@ V1 private mapping·revocation lineage는 restart 후에도 보존되는 `LOCAL_
 
 다음은 product-provider selection blocker가 아니지만 activation 전 반드시 결정·구현해야 한다.
 
-1. OS-bound local operator credential의 concrete OS API, provisioning·recovery와 revoke adapter
+1. Windows WebAuthn platform credential의 concrete OS API adapter, provisioning·recovery와 revoke flow
 2. Local internal service authentication protocol과 credential rotation
 3. Assertion format, signing algorithm, exact TTL, clock policy, nonce/jti 또는 one-time replay contract
 4. Signing·verification key storage, rotation, revocation과 fail-closed resolver
@@ -178,12 +183,19 @@ V1 private mapping·revocation lineage는 restart 후에도 보존되는 `LOCAL_
 
 ## 11. Fail-closed Runtime 상태
 
-DohaMusic product authority는 해결됐지만 이번 결정은 DohaAudio Runtime을 변경하지 않는다.
+DohaMusic product authority와 provider-independent authentication foundation은 해결됐지만 concrete OS adapter와 production activation은 완료되지 않았다. DohaAudio PR #15에서 delegated provider model selection만 완료됐고 configured·operational 상태는 변경되지 않았다.
 
 ```yaml
-AUTH_PROVIDER_SELECTED: false
+DOHAAUDIO_AUTH_PROVIDER_SELECTED: true
+SELECTED_AUTHENTICATION_PROVIDER_MODEL: DOHAMUSIC_DELEGATED_ASSERTION
 AUTH_PROVIDER_CONFIGURED: false
 AUTH_PROVIDER_OPERATIONAL: false
+LOCAL_OPERATOR_PROOF_MODEL_SELECTED: true
+CONCRETE_OS_ADAPTER_SELECTED: true
+LOCAL_OPERATOR_CONCRETE_MECHANISM: WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL
+CONCRETE_OS_ADAPTER_IMPLEMENTED: false
+LOCAL_OPERATOR_AUTH_CONFIGURED: false
+LOCAL_OPERATOR_AUTH_OPERATIONAL: false
 PRIVATE_IDENTITY_STORE_OPERATIONAL: false
 REAL_IDENTITY_MAPPING_COUNT: 0
 REAL_REVIEWER_AUTHORITY_COUNT: 0

@@ -56,4 +56,10 @@ Completion Service 앞에 atomic claim·lease·heartbeat·만료 recovery와 fak
 
 기본 Provider는 모두 Mock이다. ACE-Step, Demucs, Seed-VC는 실제 Job에서만 설정을 검증하고 격리 subprocess를 시작한다. 세 Worker는 `max_workers=1`인 shared executor를 사용해 RTX 3060 Ti GPU 점유를 직렬화한다. 외부 Queue, Redis, Celery는 아직 사용하지 않는다.
 
+## Local Operator Authentication Foundation
+
+`backend.authentication`은 OS-bound local operator credential을 검증하는 provider-independent port, opaque credential reference, verified principal/context와 fail-closed bootstrap을 제공한다. Context는 provider가 발급한 private witness와 instance provenance를 함께 검증하므로 caller-created principal, 복사·변조한 context 또는 다른 provider의 context를 production 신뢰로 승격하지 않는다. deterministic Fake는 test-only이며 production bootstrap에서 거부한다.
+
+Concrete mechanism은 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택했지만 Win32 adapter, 실제 credential·secret, UI, session persistence와 delegated assertion은 구현하지 않았다. 현 상태는 selected이지만 configured·operational이 아니며 자세한 계약은 [Local Operator Authentication](local-operator-authentication.md)을 따른다.
+
 독립 생성·Stem·Voice Job은 유지한다. 별도 `PipelineService`와 `PipelineWorker`가 같은 인터페이스를 재사용해 5단계 Workflow를 실행하며 `pipeline_jobs/files`에 진행률·metadata·결과를 기록한다. 종료 시 SQLAlchemy Engine을 dispose해 SQLite 파일 handle을 해제한다.
