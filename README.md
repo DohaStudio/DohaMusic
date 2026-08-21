@@ -92,7 +92,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 ## Current Development Track
 
 - AI-native DAW D0 제품 목표 정합화: [완료]
-- 현재 제품 단계: D1 Composition Read Workspace [D1-A 완료 / D1-Transition 완료 / D1-B 구현·Draft 검토]
+- 현재 제품 단계: D1 Composition Read Workspace [완료] / Timeline Playback Foundation [완료] / NEXT: Waveform / richer Playhead
 - 병행 Track: AI Provider 저장소 분리, [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md), F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
 
 현재 실행 순서와 `NEXT / LATER`는 [ROADMAP](ROADMAP.md), 장기 Phase·Track·Gate는 [MASTER_ROADMAP](MASTER_ROADMAP.md), 완료 판정은 [DoD](docs/DoD/README.md)를 기준으로 한다.

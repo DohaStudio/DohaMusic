@@ -78,7 +78,7 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - 현재 완료 증거는 fixture 기반 empty·selection-required·ready 통합, exact AssetVersion·safe Artifact·Mix·lineage, loading·오류·접근성·반응형 검증이다.
 - 남은 Gate는 실제 인증 principal의 owner/project privacy와 실제 사용자 DB 승인 후 Snapshot E2E다.
 
-### D2 — Timeline Playback Foundation [구현 / Draft 검토]
+### D2 — Timeline Playback Foundation [완료]
 
 - 선택된 Snapshot의 snapshot-local Track projection을 lane으로 표시하고 초 단위 ruler, 실제 media currentTime 기반 Playhead, play/pause·seek, horizontal scroll·zoom, local Track 선택을 구현했다.
 - 기존 AppShell `GlobalPlayer`와 `player-store`를 단일 playback authority로 사용한다. 단일 `mix` Item·단일 safe audio Artifact만 source로 확정하며 모호하면 `NO_CANONICAL_PLAYBACK_SOURCE`로 비활성화한다.
