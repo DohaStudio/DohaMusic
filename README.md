@@ -48,6 +48,8 @@ DohaMusic = AI-native DAW
 - 인증·소유권이 적용된 공개 운영, 외부 Queue와 다중 프로세스 내구성
 - DohaAudio semantic reviewer authentication Provider·identity mapping·ReviewerAuthority 활성화
 
+V1 product authority는 local-only, 일반 product login 없음과 별도 single owner/operator reviewer authentication을 결정했다. Review는 향후 DohaMusic local governance UI에서 시작하고 DohaMusic identity verification을 거쳐 DohaAudio의 delegated assertion adapter로 연결한다. 이 authority는 구현 완료나 ReviewerAuthority 활성화를 뜻하지 않으며 자세한 기준은 [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md)를 따른다.
+
 세부 API와 구현 근거는 [API 개요](docs/06-api/api-overview.md), [Frontend Overview](docs/03-architecture/frontend-overview.md), [Validation 보고서](docs/DOCUMENT_AUTHORITY_MAP.md#validation--reports)에서 확인한다.
 
 ## TARGET
@@ -105,7 +107,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 | 지금 실제로 구현된 것과 바로 다음 작업 | [현재 실행 로드맵](ROADMAP.md) | [Master Roadmap](MASTER_ROADMAP.md) |
 | 최종 AI-native DAW의 모습 | [제품 방향](docs/02-product/ai-native-daw-product-direction.md) | [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md) |
 | 시스템과 Provider 연결 | [시스템 아키텍처](docs/03-architecture/system-architecture.md) | [Provider 경계](docs/03-architecture/repository-provider-boundaries.md) |
-| Product identity와 DohaAudio reviewer 인증 경계 | [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md) | [ADR-037](docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md) |
+| Product identity와 DohaAudio reviewer 인증 경계 | [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md) | [ADR-037](docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md), [ADR-038](docs/11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md) |
 | DohaVocal Consumer 계약 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) | [ADR-034](docs/11-decisions/ADR-034-dohavocal-consumer-contract.md) |
 | Reference 분석 | [목표 아키텍처의 Reference Analysis](docs/03-architecture/ai-native-daw-target-architecture.md#41-reference-analysis) | [Common Contract 소비자 기준](docs/03-architecture/common-ai-contract-consumer.md) |
 | 사용자 수정이 학습 후보가 되는 방식 | [목표 아키텍처의 Continuous Learning](docs/03-architecture/ai-native-daw-target-architecture.md#45-continuous-learning) | [제품 방향](docs/02-product/ai-native-daw-product-direction.md#55-continuous-learning) |

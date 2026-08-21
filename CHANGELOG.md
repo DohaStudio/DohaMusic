@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — V1 Reviewer Authentication Product Authority
+
+- ADR-038의 initial evidence-only CASE B와 fail-closed 판단을 보존하고, 이후 product owner가 V1 local-only·single owner/operator·DohaMusic local governance UI와 OS-bound local operator proof model을 명시적으로 승인했음을 기록했다.
+- Upstream `LOCAL_AUTHENTICATED_OPERATOR`와 downstream `DOHAMUSIC_DELEGATED_ASSERTION`을 분리하고 external auth network 불필요·offline capable·V1 MFA 미필수, local persistent private store 요구를 확정했다.
+- `AUTH_REQUIREMENTS_RESOLVED=true`, `AUTH_PROVIDER_SELECTION_READY=true`와 selected authentication provider model을 기록했지만 실제 OS adapter·assertion·secret·mapping·ReviewerAuthority·approval 및 DohaAudio Runtime은 변경하지 않았다.
+
 ### 추가 — Timeline Playback Foundation
 
 - 선택된 CompositionSnapshot의 snapshot-local Track projection을 사용하는 읽기 전용 초 단위 Timeline shell, ruler, lane, Playhead, local Track 선택과 horizontal scroll·zoom 기반을 추가했다.
