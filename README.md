@@ -24,6 +24,7 @@ DohaMusic = AI-native DAW
 
 현재 `develop`에서 확인되는 범위다.
 
+- D1 Composition Read Workspace의 D1-A·D1-Transition·D1-B는 완료됐다. Project 상세의 선택된 CompositionSnapshot에는 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
 - FastAPI Router → Service → Repository → SQLAlchemy 구조와 SQLite·Alembic 기반
 - 생성·Stem·Voice Conversion·Pipeline·Lyrics의 Legacy API와 비동기 작업 흐름
 - Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
@@ -39,13 +40,15 @@ DohaMusic = AI-native DAW
 
 다음은 CURRENT가 아니다.
 
-- 편집 가능한 DAW Timeline·Track·Clip·Mixer·Undo/Redo
+- 편집 가능한 DAW Clip·Waveform·Section·Mixer·Undo/Redo와 range selection
 - 실제 DohaLM·DohaAudio transport, DohaVocal Worker 연결과 운영 Provider
 - ReferenceAnalysis ingestion Workflow와 Reference Panel
 - CompositionEvaluationRun 기반 완성곡 QA
 - LearningCandidate review와 Dataset·Training 연결
 - 인증·소유권이 적용된 공개 운영, 외부 Queue와 다중 프로세스 내구성
 - DohaAudio semantic reviewer authentication Provider·identity mapping·ReviewerAuthority 활성화
+
+V1 product authority는 local-only, 일반 product login 없음과 별도 single owner/operator reviewer authentication을 결정했다. Review는 향후 DohaMusic local governance UI에서 시작하고 DohaMusic identity verification을 거쳐 DohaAudio의 delegated assertion adapter로 연결한다. 이 authority는 구현 완료나 ReviewerAuthority 활성화를 뜻하지 않으며 자세한 기준은 [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md)를 따른다.
 
 세부 API와 구현 근거는 [API 개요](docs/06-api/api-overview.md), [Frontend Overview](docs/03-architecture/frontend-overview.md), [Validation 보고서](docs/DOCUMENT_AUTHORITY_MAP.md#validation--reports)에서 확인한다.
 

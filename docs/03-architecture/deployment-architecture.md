@@ -11,4 +11,4 @@
 
 CURRENT 제품 배치는 `LOCAL_ONLY`이고 product login은 없다. 이는 localhost, 같은 OS 사용자 또는 같은 프로세스를 인증 증명으로 인정한다는 뜻이 아니다.
 
-V1 production의 `LOCAL_ONLY`, `REMOTE_SERVICE`, `HYBRID` 선택은 아직 미확정이며 future topology도 별도 미확정이다. CURRENT local MVP를 V1 production 승인으로 사용하지 않는다. DohaMusic Frontend와 일반 Workspace client는 배치와 무관하게 DohaAudio를 직접 호출하지 않고 Orchestrator를 거친다. Orchestrator service identity와 human reviewer identity는 별도 credential·principal이어야 한다. 상세 권위와 선택 차단 조건은 [Reviewer Authentication 배포 권위](../09-security/reviewer-authentication-deployment-authority.md)를 따른다.
+V1 production은 product-owner authority에 따라 `LOCAL_ONLY`이고 future `REMOTE_SERVICE`·`HYBRID` 가능성은 별도 미확정이다. V1은 일반 product login 없이 external identity network에 의존하지 않는 offline-capable reviewer authentication을 요구한다. DohaMusic Frontend와 일반 Workspace client는 배치와 무관하게 DohaAudio를 직접 호출하지 않고 Orchestrator를 거친다. `LOCAL_INTERNAL_SERVICE_IDENTITY`와 OS-bound human reviewer credential·delegated assertion은 별도 principal·credential이어야 한다. 상세 권위와 구현 차단 조건은 [Reviewer Authentication 배포 권위](../09-security/reviewer-authentication-deployment-authority.md)를 따른다.

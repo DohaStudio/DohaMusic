@@ -9,7 +9,7 @@
 
 API와 Storage 접근은 사용자·자원 소유권을 확인하고 Worker는 필요한 작업 경로만 접근한다. 로그에는 토큰·원본 오디오·전체 민감 입력을 남기지 않는다. 위협 모델과 사고 대응 절차는 운영 전 보강한다.
 
-DohaMusic product identity, Orchestrator service identity와 DohaAudio human reviewer identity·ReviewerAuthority는 별도 경계다. localhost, caller-supplied reviewer ID, OS/GitHub username 또는 service token을 human reviewer proof로 사용하지 않는다. 현재·목표 topology, delegated trust direction과 미확정 Provider 조건은 [Reviewer Authentication 배포 권위](reviewer-authentication-deployment-authority.md)를 단일 기준으로 사용한다.
+DohaMusic product identity, Orchestrator service identity와 DohaAudio human reviewer identity·ReviewerAuthority는 별도 경계다. V1은 OS-bound local operator credential proof와 DohaMusic-issued delegated assertion을 요구한다. localhost, caller-supplied reviewer ID, OS/GitHub username, UI 접근 또는 service token을 human reviewer proof로 사용하지 않는다. OS-bound proof model은 concrete OS adapter 구현 완료를 뜻하지 않는다. 현재·V1·future topology와 implementation Gate는 [Reviewer Authentication 배포 권위](reviewer-authentication-deployment-authority.md)를 단일 기준으로 사용한다.
 
 ## Experimental Voice Provider 통제
 

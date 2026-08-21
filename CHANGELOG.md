@@ -11,11 +11,18 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
-### 문서 — V1 Reviewer Authentication Product Decision 재판정
+### 문서 — V1 Reviewer Authentication Product Authority
 
-- CURRENT 로컬 단일 사용자 MVP와 V1 production·미래 topology를 분리하고, 저장소에는 V1 production 배치 승인 근거가 없음을 ADR-038로 기록했다.
-- `SINGLE_OWNER_OPERATOR`, DohaMusic local governance UI와 local authenticated operator 후보는 D8 계획 및 CURRENT 상태만으로 확정하지 않고 product-owner 결정 전까지 미확정으로 유지했다.
-- `AUTH_REQUIREMENTS_RESOLVED=false`, `AUTH_PROVIDER_SELECTION_READY=false`와 Provider no-selection을 유지했으며 authentication, assertion, secret, mapping, ReviewerAuthority, Dataset 또는 Training을 구현하지 않았다.
+- ADR-038의 initial evidence-only CASE B와 fail-closed 판단을 보존하고, 이후 product owner가 V1 local-only·single owner/operator·DohaMusic local governance UI와 OS-bound local operator proof model을 명시적으로 승인했음을 기록했다.
+- Upstream `LOCAL_AUTHENTICATED_OPERATOR`와 downstream `DOHAMUSIC_DELEGATED_ASSERTION`을 분리하고 external auth network 불필요·offline capable·V1 MFA 미필수, local persistent private store 요구를 확정했다.
+- `AUTH_REQUIREMENTS_RESOLVED=true`, `AUTH_PROVIDER_SELECTION_READY=true`와 selected authentication provider model을 기록했지만 실제 OS adapter·assertion·secret·mapping·ReviewerAuthority·approval 및 DohaAudio Runtime은 변경하지 않았다.
+
+### 추가 — Timeline Playback Foundation
+
+- 선택된 CompositionSnapshot의 snapshot-local Track projection을 사용하는 읽기 전용 초 단위 Timeline shell, ruler, lane, Playhead, local Track 선택과 horizontal scroll·zoom 기반을 추가했다.
+- AppShell의 기존 Global Player를 단일 audio authority로 확장해 play/pause·currentTime·duration·seek·ended·loading·error를 Timeline과 동기화했다. duration과 Playhead는 실제 media metadata·event만 사용한다.
+- 단일 `mix` Item과 단일 safe audio Artifact만 canonical source로 해석하고, 없거나 모호하면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다. first/latest fallback과 multi-track audio 조합은 추가하지 않았다.
+- click-to-seek의 viewport offset·scroll·zoom·clamp, keyboard transport, 접근성 label, responsive overflow와 기존 Player·Composition 회귀 테스트를 추가했다. Backend API·DB·Alembic·실제 사용자 DB·Provider·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
 
 ### 추가 — D1 Workspace Composition Frontend
 

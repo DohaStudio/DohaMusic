@@ -5,6 +5,8 @@ import type {
   CompositionReadItemDto,
   CompositionWorkspaceDto,
 } from "@/types/api";
+import { CompositionTimeline } from "./composition-timeline";
+import { resolveCompositionPlayback } from "./timeline-playback";
 
 const roleLabels = {
   music: "Music",
@@ -18,6 +20,7 @@ export function CompositionReadyView({ data }: { data: CompositionWorkspaceDto }
   if (!snapshot) return null;
 
   const itemsById = new Map(data.items.map((item) => [item.snapshot_item_id, item]));
+  const playback = resolveCompositionPlayback(data);
 
   return (
     <div className="composition-ready">
@@ -33,6 +36,8 @@ export function CompositionReadyView({ data }: { data: CompositionWorkspaceDto }
         <Meta label="Snapshot ID" value={snapshot.composition_snapshot_id} />
         <Meta label="생성 시각" value={new Date(snapshot.created_at).toLocaleString("ko-KR")} />
       </dl>
+
+      <CompositionTimeline tracks={data.track_projections} playback={playback} />
 
       <section aria-labelledby="composition-tracks-title">
         <div className="composition-section-heading">

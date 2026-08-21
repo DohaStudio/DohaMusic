@@ -18,7 +18,7 @@
 - [x] `develop` 대상 Draft PR 생성·검토
 - [x] PR #94 squash merge와 병합 후 동일 tree 검증
 
-## D1. Composition Read Workspace — [D1-A 완료 / Transition 완료 / D1-B Draft 검토]
+## D1. Composition Read Workspace — [완료]
 
 ### 계약 Gate — [완료]
 
@@ -48,11 +48,17 @@
 - [x] Frontend Workspace consume와 fixture Snapshot 선택·refetch·재진입 통합
 - [ ] 실제 사용자 DB Snapshot E2E와 인증 Gate
 
-## D2. Timeline Playback Foundation — [계획]
+## D2. Timeline Playback Foundation — [Foundation 구현 / Draft 검토]
 
-- [ ] 읽기 전용 Arrangement·Section·Track·Clip·Waveform
-- [ ] Playhead와 playback·pause·stop·seek·range selection
-- [ ] 시간 mapping·접근성·성능·반응형 검증
+- [x] 읽기 전용 초 단위 ruler와 snapshot-local Track lane
+- [x] 기존 Global Player 단일 audio authority 재사용
+- [x] 단일 Mix·safe audio Artifact source 해석과 unavailable fail-closed
+- [x] 실제 media duration·currentTime 기반 Playhead와 play·pause·ended
+- [x] click seek·clamp·horizontal scroll·zoom coordinate mapping
+- [x] local Track 선택, Space·좌우 keyboard, accessible label·focus·반응형 overflow
+- [x] empty·selection-required에서 Timeline 미표시, ready에서만 렌더
+- [ ] Waveform / richer Playhead
+- [ ] Section marker·Clip·range selection·multi-track sync engine
 
 ## D3. Non-destructive DAW Editing — [계획]
 
