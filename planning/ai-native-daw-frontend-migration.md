@@ -84,7 +84,9 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - 기존 AppShell `GlobalPlayer`와 `player-store`를 단일 playback authority로 사용한다. 단일 `mix` Item·단일 safe audio Artifact만 source로 확정하며 모호하면 `NO_CANONICAL_PLAYBACK_SOURCE`로 비활성화한다.
 - duration은 media metadata에서만 읽고 BPM·meter authority가 없으므로 Bar/Beat를 합성하지 않는다. seek는 viewport offset·scroll·zoom을 반영하고 clamp한다.
 - keyboard·accessible label·focus-visible·Desktop/Mobile horizontal overflow와 media error 상태를 검증했다.
-- NEXT: Waveform / richer Playhead. LATER: Clip Editing Foundation, Mixer, AI Segment Editing. Section marker·range selection·multi-track sync engine은 아직 구현하지 않았다.
+- 같은 canonical safe Artifact를 128 MiB 이하로 제한해 Browser decode하고 최대 2,048개 peak의 단일 SVG path로 Master / Mix Waveform overview를 표시한다. source 변경·unmount abort와 stale 결과 폐기, decode 실패의 playback 격리를 적용했다.
+- Waveform·ruler click seek와 draggable Playhead preview/commit, 정밀 hover 시간을 같은 scroll·zoom 좌표계에 연결했다. 별도 audio element와 animation loop는 추가하지 않았다.
+- NEXT: Clip Editing Foundation. LATER: Mixer, AI Segment Editing. 편집 가능한 Track/Clip Waveform·Section marker·range selection·multi-track sync engine은 아직 구현하지 않았다.
 
 ### D3 — Non-destructive DAW Editing [계획]
 
@@ -156,4 +158,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime은 구현됐다. Waveform·Clip·Section·Mixer·AI editing·D3~D9 Runtime은 미구현이다. Backend API·DB·Common Contract·Training·Provider Runtime은 D2 Foundation으로 변경되지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead는 구현돼 Draft 검토 중이다. 편집 가능한 Track/Clip Waveform·Clip·Section·Mixer·AI editing·D3~D9 Runtime은 미구현이다. Backend API·DB·Common Contract·Training·Provider Runtime은 이번 Foundation으로 변경되지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.

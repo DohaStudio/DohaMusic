@@ -154,6 +154,7 @@ describe("D1-B Composition Workspace", () => {
     expect(await screen.findByText("아직 Composition Snapshot이 없습니다.")).toBeVisible();
     expect(screen.queryByRole("radio")).not.toBeInTheDocument();
     expect(screen.queryByText("현재 선택")).not.toBeInTheDocument();
+    expect(screen.queryByText("Master / Mix")).not.toBeInTheDocument();
   });
 
   it("selection_required에서 자동 선택과 자동 PATCH를 하지 않는다", async () => {
@@ -161,6 +162,7 @@ describe("D1-B Composition Workspace", () => {
     renderComposition();
     const radio = await screen.findByRole("radio", { name: /Snapshot v7/ });
     expect(radio).not.toBeChecked();
+    expect(screen.queryByText("Master / Mix")).not.toBeInTheDocument();
     expect(dohaApi.selectProjectComposition).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "선택 적용" })).toBeDisabled();
   });
