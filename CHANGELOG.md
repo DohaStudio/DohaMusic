@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Trusted Payload Locator / Resolver Contract
+
+- `payloadref:v1:<opaque-id>` 형식의 DohaMusic-owned `TrustedPayloadReference`, 내부 issuer/resolver protocol과 deterministic in-memory Foundation을 추가했다.
+- 기존 trusted staging root 안의 regular file만 canonicalize하고 symlink·reparse·traversal을 차단하며 실제 bytes에서 SHA-256·size·media type을 계산한다. resolve 때 expiry, file identity와 metadata를 재검증하고 path 없는 안전한 오류를 반환한다.
+- metadata-only Provider Result는 계속 `payload_present=false`, reference 없음, ingestion non-eligible이다. Public API·Alembic·Worker wiring·Provider network/downloader·Completion adapter·실제 Artifact ingestion은 추가하지 않았다.
+
 ### 문서 — V1 Reviewer Authentication Product Authority
 
 - ADR-038의 initial evidence-only CASE B와 fail-closed 판단을 보존하고, 이후 product owner가 V1 local-only·single owner/operator·DohaMusic local governance UI와 OS-bound local operator proof model을 명시적으로 승인했음을 기록했다.

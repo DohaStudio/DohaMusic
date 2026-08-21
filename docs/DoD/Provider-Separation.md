@@ -27,6 +27,8 @@
 - [x] DohaMusic Vocal Provider Client와 JSON fixture 계약 회귀가 검증됐다.
 - [x] Workspace Job ↔ Provider Job 1:N identity·retry persistence와 restart recovery가 검증됐다.
 - [x] Metadata-only Provider Result의 binding·role·Manifest·lineage·checksum scope trust gate와 Artifact non-eligibility가 검증됐다.
+- [x] DohaMusic-owned opaque Trusted Payload locator·issuer·resolver Foundation의 root·symlink·expiry·immutability·byte checksum·media 경계가 deterministic fixture로 검증됐다.
+- [ ] Production payload downloader, durable cross-process locator registry와 resolver→Completion adapter가 검증됐다.
 - [ ] 실제 payload-backed Artifact ingestion과 Workspace completion이 검증됐다.
 - [ ] Provider별 Manifest·라이선스·보안·CI가 검증됐다.
 

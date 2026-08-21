@@ -1,6 +1,6 @@
 # Workspace Job Foundation 공식 계약
 
-> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5·Provider Job persistence·metadata Result trust gate] / [미구현: Provider dispatch wiring·실제 payload ingestion·background daemon]
+> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5·Provider Job persistence·metadata Result trust gate·Trusted Payload resolver Foundation] / [미구현: Provider dispatch wiring·downloader·Completion adapter·실제 payload ingestion·background daemon]
 > 최종 수정일: 2026-08-20
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -142,7 +142,7 @@ Worker 기반에는 `ix_jobs_claim_queue(status, cancel_requested_at, created_at
 
 Provider Job identity persistence의 상세 계약은 [Provider Job Persistence](provider-job-persistence.md)와 [ADR-036](../11-decisions/ADR-036-provider-job-persistence.md)을 따른다. Workspace Job 하나는 retry마다 새 binding을 append하며, `(provider_id, provider_job_id)`가 identity다. binding이 없는 기존·미dispatch Job은 정상이고 latest binding은 polling 대상 후보를 복구할 뿐 Provider 상태 authority가 아니다.
 
-Provider result의 Artifact trust 경계는 [Provider Result Ingestion Contract](provider-result-ingestion-contract.md)와 [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md)을 따른다. wire DTO는 Artifact authority가 아니며 `payload_present=false` result는 Provider execution metadata로 검증될 수 있어도 Completion UoW에 진입하거나 Job을 `succeeded`로 만들 수 없다. 검증 실패와 non-eligible 결과 모두 Artifact·AssetVersion·JobOutput·ModelUsage·terminal 상태 mutation 0건이다.
+Provider result의 Artifact trust 경계는 [Provider Result Ingestion Contract](provider-result-ingestion-contract.md)와 [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md)을 따른다. wire DTO는 Artifact authority가 아니며 `payload_present=false` result는 Provider execution metadata로 검증될 수 있어도 Completion UoW에 진입하거나 Job을 `succeeded`로 만들 수 없다. [Trusted Payload Locator / Resolver Contract](trusted-payload-locator-resolver-contract.md)은 DohaMusic-owned staging path를 위한 내부 Foundation일 뿐 이 결과에 reference를 붙이거나 Worker/Completion을 연결하지 않는다. 검증 실패와 non-eligible 결과 모두 Artifact·AssetVersion·JobOutput·ModelUsage·terminal 상태 mutation 0건이다.
 
 ```text
 Workspace Job
