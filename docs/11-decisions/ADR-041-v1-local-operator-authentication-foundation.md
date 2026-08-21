@@ -1,4 +1,4 @@
-# ADR-040 — V1 Local Operator Authentication Foundation
+# ADR-041 — V1 Local Operator Authentication Foundation
 
 > 상태: 승인 — Foundation 구현, concrete adapter 구현 미착수
 > 작성일: 2026-08-21

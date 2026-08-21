@@ -3,7 +3,7 @@
 > 문서 상태: [조사 완료 / adapter 구현 미착수]
 > 최종 수정일: 2026-08-21
 > Repository authority: [Reviewer Authentication 배포 권위](../09-security/reviewer-authentication-deployment-authority.md)
-> 결정: [ADR-040](../11-decisions/ADR-040-v1-local-operator-authentication-foundation.md)
+> 결정: [ADR-041](../11-decisions/ADR-041-v1-local-operator-authentication-foundation.md)
 
 ## Repository runtime evidence
 

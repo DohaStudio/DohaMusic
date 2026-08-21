@@ -194,7 +194,7 @@ def _configured_unavailable(
 CURRENT_LOCAL_OPERATOR_AUTHENTICATION_SELECTION = LocalOperatorAuthenticationSelection(
     decision_version="local-operator-auth-selection/v1",
     source_authority_reference_id="dohamusic/adr-038",
-    decision_reference_id="dohamusic/adr-040",
+    decision_reference_id="dohamusic/adr-041",
     proof_model_selected=True,
     selected_proof_model=LocalOperatorProofModel.OS_BOUND_LOCAL_OPERATOR_CREDENTIAL,
     concrete_os_adapter_selected=True,

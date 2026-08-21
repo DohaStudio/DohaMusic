@@ -39,12 +39,12 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md)과 [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md)에 따라 현재 Responsive Studio MVP를 장기 제품 Runtime으로 단계적으로 전환한다.
 
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
-2. D1 `[완료]`, D2 `[Foundation 완료]`: Composition Read의 Workspace 권위와 Project 상세 연결을 완료했다. 선택된 Snapshot의 읽기 전용 초 단위 Timeline, Track lane, 단일 Mix playback, 실제 media duration·Playhead, seek·scroll·zoom·keyboard·Track 선택 기반을 구현했다. 같은 safe Artifact를 제한적으로 client decode하는 Master / Mix Waveform overview와 richer Playhead는 `[구현·Draft 검토]` 상태다. 실제 DB 승인은 별도 유지한다.
-3. D3~D4 `[계획]`: 불변 AssetVersion/Snapshot 기반 편집, Mixer와 독립 Export를 구현한다.
+2. D1·D2 `[완료]`: Composition Read의 Workspace 권위와 Project 상세 연결, 읽기 전용 Timeline·Track lane·단일 Mix playback·실제 media duration·Playhead·Master/Mix Waveform·seek·scroll·zoom·keyboard 기반을 완료했다. 실제 DB 승인은 별도 유지한다.
+3. D3 `[설계 완료 / 구현 NEXT]`: [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 확정했다. schema·API·Clip UI는 미구현이다. D4 Mixer·독립 Export는 `[계획]`이다.
 4. D5~D7 `[계획]`: AI Music Director·Candidate A/B, Reference Panel, Composition Evaluation/QA를 연결한다.
 5. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
 
-이번 Waveform / Richer Playhead Foundation에서 Frontend 코드·테스트·문서를 변경했다. Backend 공개 API·DB·Provider·Training·Dataset은 변경하지 않았다. 편집 가능한 Track/Clip Waveform·Clip·Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
+이번 Clip Domain / Persistence 작업은 문서 설계만 변경한다. Backend·Frontend source, 테스트, Alembic·API·DB·Provider·Training·Dataset·GPU·Common Contract는 변경하지 않는다. 편집 가능한 Track/Clip Waveform·Clip UI·Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-08-21
@@ -71,7 +71,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | D0·D1·D2 Timeline Playback Foundation 완료, 읽기 전용 Master / Mix Waveform·richer Playhead 구현·Draft 검토; 실제 DB 전환과 편집 가능한 Track/Clip·Section·Mixer·D3~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | D0·D1·D2와 Clip Domain/Persistence 설계 완료; WorkingComposition·Track·Clip schema/API/UI, 실제 DB 전환·Section·Mixer·D3 구현·D4~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata-only Result trust gate 구현; Provider dispatch wiring·실제 payload ingestion·background daemon과 나머지 34개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -80,7 +80,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 
 ## 현재 우선 작업
 
-**최우선 NEXT:** Waveform / Richer Playhead Foundation의 Draft 검토 후 Clip Editing Foundation을 진행한다. 이후 Mixer, AI Segment Editing 순으로 확장한다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다. 실제 사용자 DB `0017 → 0018` 전환은 별도 승인 Gate로 유지하며, Workspace Job의 Provider dispatch wiring과 background daemon은 별도 Track이다.
+**최우선 NEXT:** ADR-040을 기반으로 Clip Editing Implementation을 진행한다. 순서는 Snapshot schema extension·source duration authority, WorkingComposition/Track/Clip persistence, Service/API, Frontend editing이며 이후 Track/Clip Waveform, working preview/render, Mixer, AI Segment Editing으로 확장한다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다. 실제 사용자 DB `0017 → 0018` 전환은 별도 승인 Gate로 유지하며, Workspace Job의 Provider dispatch wiring과 background daemon은 별도 Track이다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
@@ -97,8 +97,8 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 13. [Asset 중심 목표 DB](docs/07-database/database-redesign-overview.md)는 source Workspace Entity 23개, 별도 `ArtifactStorageLocation`, Workspace Repository와 [Service 소유 transaction](docs/03-architecture/workspace-service-transaction.md)을 구현했다. `20260820_0018`은 Project Composition selection, `20260821_0019`는 Provider Job 1:N identity·retry history를 additive하게 추가한다. source metadata는 38개 Table이고 실제 사용자 DB는 `20260810_0017`의 36개 Table이다. 격리 Bootstrap transition은 선택 authority가 없으므로 backfill 0건을 보장한다. 실제 Bootstrap·DB migration·data backfill·dual write·Provider dispatch wiring·background daemon·나머지 34개 Resource REST API·Frontend·Legacy 제거는 미구현이고 현재 14개 Runtime Table과 source of truth는 변경하지 않는다.
 14. [완료] [Artifact Storage 계약](docs/03-architecture/artifact-storage-contract.md)과 [ADR-032](docs/11-decisions/ADR-032-artifact-storage-resolver-integrity.md)에서 `artifact://<artifact_id>`, 별도 Catalog, trusted ingestion, SHA-256·size·MIME 검증, immutable publish, owner/retention Application Gate와 [dry-run reconciliation](docs/10-operations/artifact-storage-reconciliation.md)을 구현했다. Content read는 매 요청 전체 SHA-256을 검증하며 scanner는 승인 namespace만 batch 조회하고 어떤 row·파일도 변경하지 않는다. Artifact Metadata·content·download API와 single-byte Range를 유지하며 Job API 추가 후 전체 Resource API는 30/64다. 다음은 별도 승인의 destructive maintenance이며 공개 Artifact 쓰기 API는 계약에 없다.
 15. [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md)은 4개 capability·9개 operation·Job·Retry·idempotency·lineage·Manifest·오류를 fake transport와 Mock HTTP로 검증한다. [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)은 metadata-only result를 durable binding·Job role·Manifest·lineage·checksum scope로 검증하되 Artifact로 승격하지 않는다. 다음은 실제 payload 계약과 Workspace Worker 조립이며 기존 subprocess Runner는 단계적 이전 전까지 유지한다.
-16. [부분 완료] AI-native DAW D1-A에서 `ProjectCompositionSelection`, Composition aggregate GET과 선택 PATCH를 구현했고, D1-Transition은 `NO_PREEXISTING_SELECTION_AUTHORITY`에 따라 자동 선택 없이 격리 검증했다. D1-B는 Project 상세에서 `empty`, `selection_required`, `ready`, 명시 Snapshot 선택·PATCH 후 refetch, exact AssetVersion·safe Artifact·Mix·lineage 표시를 구현했다. 실제 DB 전환과 canonical Track·Section·Clip Domain은 미구현이며 신규 `EditIntent`를 만들지 않는다.
-17. [Foundation 구현 / OS adapter 미구현] [ADR-037](docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md)의 historical no-selection과 [ADR-038](docs/11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md)의 product authority를 보존했다. [ADR-040](docs/11-decisions/ADR-040-v1-local-operator-authentication-foundation.md)은 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL` mechanism, provider-independent contract, test-only Fake와 fail-closed bootstrap을 추가한다. DohaAudio delegated provider는 selected지만 양쪽 adapter·mapping·authority·approval은 미구현·0이다.
+16. [부분 완료] AI-native DAW D1-A~D2의 Composition read·Timeline·Waveform을 완료했다. ADR-040은 Project당 하나의 mutable WorkingComposition, canonical Track·Clip과 별도 불변 Snapshot Track/Clip commit 경계를 확정했다. schema·API·UI와 canonical Section은 미구현이며 신규 `EditIntent`를 만들지 않는다.
+17. [Foundation 구현 / OS adapter 미구현] [ADR-037](docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md)의 historical no-selection과 [ADR-038](docs/11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md)의 product authority를 보존했다. [ADR-041](docs/11-decisions/ADR-041-v1-local-operator-authentication-foundation.md)은 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL` mechanism, provider-independent contract, test-only Fake와 fail-closed bootstrap을 추가한다. DohaAudio delegated provider는 selected지만 양쪽 adapter·mapping·authority·approval은 미구현·0이다.
 
 ## F6 Guided Voice Enrollment 실행 순서 [진행 중]
 

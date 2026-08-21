@@ -13,9 +13,16 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가 — Local Operator Authentication Foundation
 
-- Windows 공식 API 근거로 V1 concrete proof mechanism을 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택하고 process token, Credential Manager generic credential, DPAPI와 다른 후보의 부적합 경계를 ADR-040에 기록했다.
+- Windows 공식 API 근거로 V1 concrete proof mechanism을 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택하고 process token, Credential Manager generic credential, DPAPI와 다른 후보의 부적합 경계를 ADR-041에 기록했다.
 - Provider-independent credential reference·principal·verified context 계약, private witness/provenance 검증과 fail-closed bootstrap을 추가했다. Concrete Win32 adapter는 미구현이며 configured·operational 상태는 false다.
 - Deterministic Fake는 test-only로 제한했고 raw secret, 실제 credential, reviewer mapping·authority·approval, DohaAudio Runtime과 Dataset·Training에는 side effect를 만들지 않았다.
+
+### 문서 — Clip Domain / Persistence Authority
+
+- ADR-040에서 Project당 하나의 mutable `WorkingComposition`, Composition lineage 범위의 canonical `track_id`·`clip_id`, exact `source_asset_version_id`와 Service·복합 FK 기반 same-Project 경계를 결정했다.
+- move·trim·delete·split의 비파괴 의미, split 시 원본 tombstone과 left/right 새 identity, same-Track overlap 금지, active Clip end 기반 working duration을 확정했다.
+- 즉시 server persistence와 Snapshot commit을 분리하고 revision optimistic concurrency, 기존 Idempotency 기록 재사용, Frontend memory Undo/Redo와 Service-owned atomic transaction·rollback을 정했다.
+- 현행 `SnapshotItem`은 Timeline을 표현할 수 없어 별도 불변 Snapshot Track/Clip schema가 필요함을 `COMPOSITION_SNAPSHOT_SCHEMA_EXTENSION_REQUIRED`로 기록했다. Backend·Frontend·테스트·Alembic·API·DB·Common Contract·Dataset·Training·GPU는 변경하지 않았다.
 
 ### 문서 — V1 Reviewer Authentication Product Authority
 
