@@ -43,6 +43,7 @@
 | [ADR-037](ADR-037-reviewer-authentication-deployment-authority.md) | DohaMusic product identity·배포와 DohaAudio reviewer authentication 권위 | 경계 승인, Provider 선택 보류 |
 | [ADR-038](ADR-038-v1-reviewer-authentication-product-decision.md) | V1 reviewer authentication product authority와 delegated Provider model | 승인, 구현 미착수 |
 | [ADR-039](ADR-039-provider-result-ingestion-trust-boundary.md) | Provider wire result와 Artifact ingestion authority 분리 | 승인 |
+| [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md) | canonical Track·Clip, mutable WorkingComposition과 불변 Snapshot commit 경계 | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -62,6 +63,7 @@
 
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
 - [ADR-035 — D1 Composition Read 권위와 Projection 계약](ADR-035-d1-composition-read-authority.md): Workspace read authority, explicit Project selection, snapshot-local Track projection, Section 비가용 상태와 Project aggregate GET을 결정한다.
+- [ADR-040 — Canonical Track·Clip과 Working Composition 권위](ADR-040-canonical-track-clip-working-composition-authority.md): Project당 하나의 mutable WorkingComposition, canonical Track·Clip identity, exact AssetVersion, revision·atomic edit와 별도 불변 Snapshot Track/Clip commit 경계를 결정한다.
 
 ## Artifact Storage
 
