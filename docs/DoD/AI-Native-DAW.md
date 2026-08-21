@@ -60,7 +60,7 @@
 ### Waveform / Richer Playhead Foundation — [구현·Draft 검토]
 
 - [x] canonical safe Artifact를 재사용한 same-origin client decode와 128 MiB 입력 제한
-- [x] 최대 2,048개 peak·bucket당 최대 256 sample·단일 SVG path bounded rendering
+- [x] 최대 2,048개 peak·각 channel의 각 peak bucket에서 sample array element 접근 최대 256회·단일 SVG path bounded rendering
 - [x] ruler·Waveform·Playhead가 scroll·zoom을 포함한 하나의 시간 좌표계 사용
 - [x] Waveform click seek, Playhead drag preview/commit, 정밀 hover·time feedback
 - [x] source 변경·unmount abort, stale 결과 폐기, decode 실패 시 playback 격리

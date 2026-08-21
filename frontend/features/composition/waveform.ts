@@ -97,12 +97,21 @@ export function buildWaveformPeaks(
     const end = Math.min(start + bucketSize, buffer.length);
     let peak = 0;
     for (const channel of channels) {
+      let sampleAccessCount = 0;
+      let lastSampledIndex = -1;
       for (let sample = start; sample < end; sample += sampleStride) {
         const amplitude = Math.abs(channel[sample] ?? 0);
+        sampleAccessCount += 1;
+        lastSampledIndex = sample;
         if (Number.isFinite(amplitude)) peak = Math.max(peak, amplitude);
       }
-      if (end > start) {
-        const finalAmplitude = Math.abs(channel[end - 1] ?? 0);
+      const finalSampleIndex = end - 1;
+      if (
+        end > start
+        && lastSampledIndex !== finalSampleIndex
+        && sampleAccessCount < MAX_SAMPLES_PER_BUCKET
+      ) {
+        const finalAmplitude = Math.abs(channel[finalSampleIndex] ?? 0);
         if (Number.isFinite(finalAmplitude)) peak = Math.max(peak, finalAmplitude);
       }
     }

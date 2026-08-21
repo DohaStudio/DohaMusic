@@ -20,7 +20,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 ### 추가 — Waveform / Richer Playhead Foundation
 
 - 선택된 Snapshot의 단일 `mix` Item·단일 safe audio Artifact를 동일한 playback 권위로 재사용해 읽기 전용 Master / Mix Waveform overview를 추가했다. Browser가 same-origin Artifact content를 decode하며 Backend API·DB·Alembic은 변경하지 않았다.
-- source 크기를 128 MiB 이하로 제한하고 최대 2,048개 peak와 bucket당 최대 256개 sample만 순회해 단일 SVG path로 렌더한다. source 변경·unmount 시 진행 요청을 취소하고 stale 결과를 폐기하며 AudioBuffer는 peak 추출 뒤 보존하지 않는다.
+- source 크기를 128 MiB 이하로 제한하고 최대 2,048개 peak와 각 channel의 각 peak bucket에서 sample array element를 최대 256회만 접근해 단일 SVG path로 렌더한다. source 변경·unmount 시 진행 요청을 취소하고 stale 결과를 폐기하며 AudioBuffer는 peak 추출 뒤 보존하지 않는다.
 - ruler·Waveform click seek, Playhead drag preview/commit, hover 정밀 시간과 keyboard seek를 동일한 scroll·zoom 좌표계에 연결했다. Waveform 실패는 기존 재생과 분리하며 별도 audio element, `requestAnimationFrame` loop, Track/Clip 편집, Section·range selection·Mixer를 추가하지 않았다.
 
 ### 추가 — Timeline Playback Foundation

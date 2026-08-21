@@ -110,7 +110,7 @@ frontend/
 - duration은 `loadedmetadata`, Playhead는 media `timeupdate`를 따른다. 값이 없을 때 가상 3분 길이, BPM·meter·Bar/Beat를 합성하지 않는다.
 - pointer 좌표는 viewport offset과 horizontal scroll, `pixelsPerSecond`를 반영하고 `0...duration`으로 clamp한다. Track 선택과 playhead time은 UI/session 상태이며 Backend에 저장하지 않는다.
 - keyboard는 input·textarea·select·contenteditable 밖에서만 Space play/pause와 좌우 5초 seek를 처리한다.
-- Waveform은 canonical source와 동일한 same-origin Artifact content만 fetch하며 metadata·response 크기를 128 MiB 이하로 검증한다. 최대 2,048개 peak, bucket당 최대 256개 sample로 축약한 단일 SVG path만 상태에 보존하고 `AudioBuffer`는 즉시 해제한다.
+- Waveform은 canonical source와 동일한 same-origin Artifact content만 fetch하며 metadata·response 크기를 128 MiB 이하로 검증한다. 최대 2,048개 peak, 각 channel의 각 peak bucket에서 sample array element 접근 최대 256회로 축약한 단일 SVG path만 상태에 보존하고 `AudioBuffer`는 즉시 해제한다.
 - source 변경·unmount는 진행 요청을 abort하고 stale decode 결과를 폐기한다. decode 실패·크기 초과는 Waveform만 fail-closed하며 기존 Global Player 재생을 차단하거나 원본 URL·오류 세부를 노출하지 않는다.
 
 ## API 연결 원칙
