@@ -1,6 +1,6 @@
 # Provider Result → Artifact Ingestion Contract
 
-> 문서 상태: [완료: metadata-only trust/eligibility 계약] / [미구현: payload transport·실제 ingestion]
+> 문서 상태: [완료: metadata-only trust/eligibility·Trusted Payload locator/resolver Foundation] / [미구현: payload transport·Completion adapter·실제 ingestion]
 > 최종 수정일: 2026-08-21
 > 기준: DohaMusic `64577d8c5c7d96b11c2ee22aefa5ce79da7725bc`, DohaVocal `59de6c7b50f2e1d28a04f13ad649bf99f5737ec2`, `.github/develop` 공통 명세 `dd75fc88c16e9ae9a04acfafb72756a905f6365b` (기존 고정 검토 SHA `1e4b480c8cbd6e51835f8550e685e9b136d8071d` 대비 호환 확인)
 > 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md)
@@ -55,7 +55,7 @@ payload_reference = null
 
 `metadata_descriptor` checksum은 candidate metadata의 일관성만 증명한다. Artifact ingestion은 DohaMusic이 소유한 trusted staging Payload의 실제 bytes에서 size, MIME과 payload SHA-256을 다시 계산해야 한다. descriptor checksum을 binary 또는 structured Payload checksum으로 변환하거나 재사용하지 않는다.
 
-향후 payload-backed adapter는 DohaMusic runtime이 발급한 opaque locator를 담는 `TrustedPayloadReference`를 별도 resolver로 검증한 뒤에만 기존 `ProviderOutput`으로 변환한다. 이 계약은 Provider path·URI를 저장하지 않는다. 현재 metadata-only trusted candidate의 `require_payload_reference()`는 항상 `payload_absent`로 거부한다. locator 발급·해석, remote download, arbitrary URL fetch, storage resolver 연동과 실제 Provider Payload access는 구현하지 않았다.
+DohaMusic runtime이 발급하는 [Trusted Payload Locator / Resolver Contract](trusted-payload-locator-resolver-contract.md)는 `payloadref:v1:<opaque-id>`를 trusted staging regular file에 immutable하게 결합하고 expiry·identity·실제 byte checksum·media type을 fail-closed 검증한다. Provider path·URI와 wire locator는 authority가 아니다. 현재 metadata-only trusted candidate의 `require_payload_reference()`는 항상 `payload_absent`로 거부하며 locator를 자동 생성하지 않는다. remote download, arbitrary URL fetch, resolver→`ProviderOutput` adapter와 실제 Provider Payload access는 구현하지 않았다.
 
 ## 5. Idempotency와 transaction
 

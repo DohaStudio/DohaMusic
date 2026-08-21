@@ -7,7 +7,6 @@ from copy import deepcopy
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
-from typing import Literal
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -27,6 +26,7 @@ from backend.repositories.workspace import (
     JobRepository,
     ProviderJobRepository,
 )
+from backend.storage.trusted_payload import TrustedPayloadReference
 
 _OPAQUE_ID = re.compile(r"[A-Za-z0-9](?:[A-Za-z0-9._:-]*[A-Za-z0-9])?")
 _URI_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
@@ -63,23 +63,6 @@ class ProviderResultContractError(ApplicationValidationError):
 
 class IngestionDecisionReason(StrEnum):
     PAYLOAD_ABSENT = "payload_absent"
-
-
-@dataclass(frozen=True, slots=True)
-class TrustedPayloadReference:
-    """향후 DohaMusic runtime이 발급·해석할 opaque payload 참조 계약."""
-
-    locator_id: str
-    checksum_algorithm: Literal["sha256"]
-    payload_checksum: str
-
-    def __post_init__(self) -> None:
-        _safe_identifier(self.locator_id)
-        if (
-            self.checksum_algorithm != "sha256"
-            or re.fullmatch(r"[0-9a-f]{64}", self.payload_checksum) is None
-        ):
-            _reject(ProviderResultContractErrorReason.CHECKSUM_MISMATCH)
 
 
 @dataclass(frozen=True, slots=True)

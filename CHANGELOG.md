@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Trusted Payload Locator / Resolver Contract
+
+- `payloadref:v1:<opaque-id>` 형식의 DohaMusic-owned `TrustedPayloadReference`, 내부 issuer/resolver protocol과 deterministic in-memory Foundation을 추가했다.
+- 기존 trusted staging root 안의 regular file만 canonicalize하고 symlink·reparse·traversal을 차단하며 실제 bytes에서 SHA-256·size·media type을 계산한다. resolve 때 expiry, file identity와 metadata를 재검증하고 path 없는 안전한 오류를 반환한다.
+- metadata-only Provider Result는 계속 `payload_present=false`, reference 없음, ingestion non-eligible이다. Public API·Alembic·Worker wiring·Provider network/downloader·Completion adapter·실제 Artifact ingestion은 추가하지 않았다.
+
 ### 문서 — Clip Domain / Persistence Authority
 
 - ADR-040에서 Project당 하나의 mutable `WorkingComposition`, Composition lineage 범위의 canonical `track_id`·`clip_id`, exact `source_asset_version_id`와 Service·복합 FK 기반 same-Project 경계를 결정했다.
