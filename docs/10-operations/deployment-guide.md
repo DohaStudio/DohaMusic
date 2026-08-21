@@ -5,7 +5,9 @@
 
 운영 배포 전 인증·권한, TLS, 비밀 관리, DB 백업·복구, 객체 저장소, 큐 내구성, GPU 격리, 업로드 제한, 동의·삭제 흐름, 로그 마스킹, 모니터링과 롤백을 검증해야 한다.
 
-CURRENT와 V1 production은 `LOCAL_ONLY`이고 future topology는 미확정이다. V1은 일반 product login 없이 explicit single owner/operator reviewer, DohaMusic local governance UI, OS-bound local operator credential, external auth network 불필요·offline capable·MFA 미필수와 `DOHAMUSIC_DELEGATED_ASSERTION` model을 요구한다. 운영 활성화 전에는 [Reviewer Authentication 배포 권위](../09-security/reviewer-authentication-deployment-authority.md)의 concrete OS proof adapter, local internal service authentication, assertion format·key lifecycle과 DohaAudio local persistent private store 기술을 구현·검증해야 한다. Product authority만으로 DohaAudio Runtime을 활성화하지 않는다.
+CURRENT와 V1 production은 `LOCAL_ONLY`이고 future topology는 미확정이다. V1은 일반 product login 없이 explicit single owner/operator reviewer, DohaMusic local governance UI, OS-bound local operator credential, external auth network 불필요·offline capable·MFA 미필수와 `DOHAMUSIC_DELEGATED_ASSERTION` model을 요구한다. Concrete proof mechanism은 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택했지만 Win32 adapter는 미구현이다. 운영 활성화 전에는 [Reviewer Authentication 배포 권위](../09-security/reviewer-authentication-deployment-authority.md)의 concrete adapter, local internal service authentication, assertion format·key lifecycle과 DohaAudio local persistent private store 기술을 구현·검증해야 한다. Product authority와 foundation만으로 Runtime을 활성화하지 않는다.
+
+현재 확인 가능한 운영 결과는 `selected=true`, `implemented=false`, `configured=false`, `operational=false`뿐이다. 실제 credential을 만들거나 기존 Windows credential을 조회하는 명령은 제공하지 않는다. 후속 adapter 구현과 검증 순서는 [Local Operator Authentication 운영 경계](local-operator-authentication.md)를 따른다.
 
 정확한 인프라와 명령은 구현·위협 모델·부하 테스트 뒤에 작성한다. 자동 배포가 저장소에 추가되더라도 문서 작업만으로 실행하지 않는다.
 

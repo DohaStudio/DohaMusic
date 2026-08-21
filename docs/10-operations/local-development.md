@@ -8,6 +8,7 @@
 |---|---|
 | 환경 변수와 안전한 기본값 | [환경 변수](environment-variables.md) |
 | 배포 준비 상태 | [배포 가이드](deployment-guide.md) |
+| Local operator authentication 상태 | [Authentication 운영 경계](local-operator-authentication.md) |
 | 일반 장애 대응 | [문제 해결](troubleshooting.md) |
 | 로그와 관측성 | [로깅과 모니터링](logging-and-monitoring.md) |
 | Workspace DB 적용·복구 | [Migration Runbook](workspace-db-migration-runbook.md), [Backup·Rollback](workspace-db-backup-rollback-policy.md) |
