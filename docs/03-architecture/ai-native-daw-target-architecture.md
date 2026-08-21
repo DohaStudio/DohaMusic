@@ -2,7 +2,7 @@
 
 > 문서 역할: AI-native DAW 목표 Runtime·Workflow·Gap의 Canonical Authority
 > 문서 상태: [운영 기준]
-> 구현 상태: [D1-A·D1-Transition CURRENT / D1-B Draft 검토 / 장기 TARGET 부분 구현]
+> 구현 상태: [D1-A·D1-Transition·D1-B CURRENT / D2 Timeline Playback Foundation CURRENT / 장기 TARGET 부분 구현]
 > 최종 수정일: 2026-08-21
 > 관련 기능: Project/Composition Runtime, Provider Orchestrator, Composition Evaluation, Continuous Learning
 > 관련 문서: [제품 방향](../02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](system-architecture.md), [Workspace Artifact 모델](workspace-artifact-model.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)

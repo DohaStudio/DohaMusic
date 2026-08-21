@@ -39,7 +39,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md)과 [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md)에 따라 현재 Responsive Studio MVP를 장기 제품 Runtime으로 단계적으로 전환한다.
 
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
-2. D1 `[완료]`, D2 `[Foundation 구현·Draft 검토]`: Composition Read의 Workspace 권위와 Project 상세 연결을 완료했다. 선택된 Snapshot의 읽기 전용 초 단위 Timeline, Track lane, 단일 Mix playback, 실제 media duration·Playhead, seek·scroll·zoom·keyboard·Track 선택 기반을 구현했다. 실제 DB 승인은 별도 유지한다.
+2. D1 `[완료]`, D2 `[Foundation 완료]`: Composition Read의 Workspace 권위와 Project 상세 연결을 완료했다. 선택된 Snapshot의 읽기 전용 초 단위 Timeline, Track lane, 단일 Mix playback, 실제 media duration·Playhead, seek·scroll·zoom·keyboard·Track 선택 기반을 구현했다. 실제 DB 승인은 별도 유지한다.
 3. D3~D4 `[계획]`: 불변 AssetVersion/Snapshot 기반 편집, Mixer와 독립 Export를 구현한다.
 4. D5~D7 `[계획]`: AI Music Director·Candidate A/B, Reference Panel, Composition Evaluation/QA를 연결한다.
 5. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
@@ -71,7 +71,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | D0·D1 완료, D2 Timeline Playback Foundation 구현·Draft 검토; 실제 DB 전환과 Waveform·Clip·Section·Mixer·D3~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | D0·D1·D2 Timeline Playback Foundation 완료; 실제 DB 전환과 Waveform·Clip·Section·Mixer·D3~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata-only Result trust gate 구현; Provider dispatch wiring·실제 payload ingestion·background daemon과 나머지 34개 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -80,7 +80,7 @@ DohaVocal은 metadata-only Runtime API와 DohaMusic HTTP adapter 기반을 제�
 
 ## 현재 우선 작업
 
-**최우선 NEXT:** Timeline Playback Foundation Draft를 검토한 뒤 Waveform / richer Playhead를 진행한다. 이후 Clip Editing Foundation, Mixer, AI Segment Editing 순으로 확장한다. 실제 사용자 DB `0017 → 0018` 전환은 별도 승인 Gate로 유지하며, Workspace Job의 Provider dispatch wiring과 background daemon은 별도 Track이다.
+**최우선 NEXT:** Waveform / richer Playhead를 진행한다. 이후 Clip Editing Foundation, Mixer, AI Segment Editing 순으로 확장한다. 실제 사용자 DB `0017 → 0018` 전환은 별도 승인 Gate로 유지하며, Workspace Job의 Provider dispatch wiring과 background daemon은 별도 Track이다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
