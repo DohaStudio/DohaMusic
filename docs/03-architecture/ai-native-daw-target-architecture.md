@@ -2,10 +2,10 @@
 
 > 문서 역할: AI-native DAW 목표 Runtime·Workflow·Gap의 Canonical Authority
 > 문서 상태: [운영 기준]
-> 구현 상태: [D1-A·D1-Transition·D1-B CURRENT / D2 Timeline Playback Foundation CURRENT / Waveform·Richer Playhead CURRENT·Draft 검토 / 장기 TARGET 부분 구현]
+> 구현 상태: [D1·D2 Timeline Playback·Waveform CURRENT / Clip Domain·Persistence 설계 완료·구현 미착수 / 장기 TARGET 부분 구현]
 > 최종 수정일: 2026-08-21
 > 관련 기능: Project/Composition Runtime, Provider Orchestrator, Composition Evaluation, Continuous Learning
-> 관련 문서: [제품 방향](../02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](system-architecture.md), [Workspace Artifact 모델](workspace-artifact-model.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
+> 관련 문서: [제품 방향](../02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](system-architecture.md), [Workspace Artifact 모델](workspace-artifact-model.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 ## 1. 상태 표기
 
@@ -37,6 +37,8 @@ flowchart LR
 
 D1-A Backend read path인 `Project Composition aggregate → CompositionService → Workspace Repository → Workspace DB`를 구현했다. D1-Transition은 기존 persistence에 project-level selected Snapshot authority가 없음을 확인하고 `NO_PREEXISTING_SELECTION_AUTHORITY`로 고정했다. Bootstrap Service transaction에서 active Workspace의 Project·Snapshot·selection을 단일 batch로 검사하지만 selection row를 생성하거나 바꾸지 않는다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다. D1-B Frontend는 이 aggregate와 selection PATCH를 Project 상세에서 소비하며, 실제 사용자 DB 전환은 여전히 별도 승인 TARGET이다.
 
+[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 Project당 하나의 mutable WorkingComposition과 canonical Track·Clip identity, exact AssetVersion, revision concurrency와 새 불변 Snapshot commit 경계를 설계했다. 이는 TARGET 설계 authority이며 `working_compositions`·Track·Clip·Snapshot Track/Clip schema, API와 UI는 아직 구현하지 않았다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
+
 ## 3. TARGET — 제품 Runtime
 
 ```mermaid
@@ -60,6 +62,19 @@ flowchart TB
   PR --> CL[Continuous Learning Review Hub]
   QA --> CL
   CL --> PG[Rights / Eligibility / Dataset Gates]
+```
+
+Composition Runtime의 편집·commit 내부 경계는 다음과 같다.
+
+```mermaid
+flowchart LR
+  P[Project] --> W[WorkingComposition mutable]
+  W --> T[Canonical Track]
+  T --> C[Canonical Clip]
+  C --> V[Exact AssetVersion]
+  W -->|explicit commit| S[CompositionSnapshot N+1 immutable]
+  S --> ST[Snapshot Track frozen]
+  ST --> SC[Snapshot Clip frozen]
 ```
 
 ### 3.1 DohaMusic 소유
@@ -111,6 +126,8 @@ flowchart LR
 ```
 
 ### 4.3 DAW Editing
+
+직접 Clip 편집은 `WorkingComposition → Track → Clip`에 즉시 지속 저장하고, explicit commit에서만 새 불변 Snapshot을 만든다. Save는 mutable state persistence이며 Snapshot commit과 다르다. 현재 GlobalPlayer의 committed Master/Mix playback과 후속 working multi-track preview도 분리한다.
 
 ```mermaid
 sequenceDiagram
@@ -183,7 +200,7 @@ flowchart LR
 
 | 영역 | 현재 Gap |
 |---|---|
-| Composition edit model | Track·Clip·Selection·edit operation Runtime/API 미구현 |
+| Composition edit model | ADR-040 설계 완료; WorkingComposition·Track·Clip·Snapshot extension Runtime/API 미구현 |
 | Provider orchestration | 외부 DohaLM·DohaAudio·DohaVocal 실제 transport 미구현 |
 | Candidate workflow | 다중 후보 저장·비교·선택·commit 미구현 |
 | Composition QA | CompositionEvaluationRun, 통합 Report, RevisionPlan 실행 미구현 |
@@ -196,8 +213,7 @@ flowchart LR
 
 구현 전에 별도 ADR 또는 versioned 계약 검토가 필요한 항목이다.
 
-- D2/D3 canonical Track·Clip·Section identity와 CompositionSnapshot 편집 표현. D1의 snapshot-local Track projection과 Section `not_available` 정책은 ADR-035에서 확정했지만 canonical Domain은 미구현
-- Timeline edit command, undo/redo와 concurrent edit 정책
+- canonical Section identity와 편집 표현. canonical Track·Clip·WorkingComposition, Snapshot extension, Timeline edit·Undo/Redo·concurrency 정책은 ADR-040에서 결정했지만 미구현
 - `CompositionEvaluationRun`의 제품 수명주기·저장·API 및 Common Contract 승격 필요성
 - QA issue의 Track·Section·time range deep-link 형식
 - `MusicIntent.target`에서 실제로 부족함이 입증될 때의 `clip_id`, `bar_range`, `beat_range` 최소 확장

@@ -48,6 +48,7 @@ DoD는 각 Phase를 완료로 선언하기 위한 검증 가능한 체크리스�
 | 9. Production | [Phase-09](Phase-09.md) | [계획] |
 | AI Provider 저장소 분리 Track | [Provider-Separation](Provider-Separation.md) | [진행 중] |
 | AI-native DAW Product Track | [AI-Native-DAW](AI-Native-DAW.md) | [진행 중] |
+| Clip Domain / Persistence Design | [Clip-Domain-Persistence](Clip-Domain-Persistence.md) | [설계 완료 / 구현 미착수] |
 
 Phase 0은 코드 개발 이전 문서 기반 확립 단계이며 [Master Roadmap의 Phase 0](../../MASTER_ROADMAP.md#phase-0-프로젝트-문서화--완료)에서 완료 근거를 관리한다.
 
@@ -56,6 +57,8 @@ Phase 8 후속 [F6 Guided Voice Enrollment](../../planning/frontend-roadmap.md#f
 [AI Provider 저장소 분리](Provider-Separation.md)도 기존 Phase 진행률을 변경하지 않는 독립 Track이다. DohaVocal Fake Runtime·Consumer Contract·HTTP Transport Foundation 완료는 Worker wiring·인증·실제 Vocal model·Artifact 통합 또는 DohaAudio Runtime 완료로 계산하지 않는다.
 
 [AI-native DAW Product Track](AI-Native-DAW.md)도 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성은 Timeline·Mixer·AI Music Director·Composition QA 또는 Continuous Learning Runtime 완료를 뜻하지 않는다.
+
+[Clip Domain / Persistence Design](Clip-Domain-Persistence.md)은 D3 구현의 선행 계약이다. 설계 완료는 ORM·Alembic·API·Clip UI·working playback 구현 완료를 뜻하지 않는다.
 
 ## 완료 선언 규칙
 

@@ -2,8 +2,8 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-21
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback Foundation [완료], Waveform / Richer Playhead [구현·Draft 검토]
-> 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Waveform·Richer Playhead [완료], Clip Editing [설계 완료·미구현]
+> 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
@@ -112,6 +112,13 @@ frontend/
 - keyboard는 input·textarea·select·contenteditable 밖에서만 Space play/pause와 좌우 5초 seek를 처리한다.
 - Waveform은 canonical source와 동일한 same-origin Artifact content만 fetch하며 metadata·response 크기를 128 MiB 이하로 검증한다. 최대 2,048개 peak, 각 channel의 각 peak bucket에서 sample array element 접근 최대 256회로 축약한 단일 SVG path만 상태에 보존하고 `AudioBuffer`는 즉시 해제한다.
 - source 변경·unmount는 진행 요청을 abort하고 stale decode 결과를 폐기한다. decode 실패·크기 초과는 Waveform만 fail-closed하며 기존 Global Player 재생을 차단하거나 원본 URL·오류 세부를 노출하지 않는다.
+
+### Working composition edit authority — [설계 완료 / 미구현]
+
+- canonical Track·Clip과 durable edit state는 [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)의 Backend WorkingComposition이 소유한다. `projection_id`, component UUID, React state와 Web Storage를 canonical ID/persistence로 사용하지 않는다.
+- Frontend drag 중 preview, hover, selection과 Undo/Redo command stack만 memory state다. 성공한 move·trim·split·delete는 `expected_revision`과 함께 서버 mutation으로 반영하며 refresh 뒤 server state를 다시 읽는다.
+- committed GlobalPlayer/Master Waveform과 working Clip preview/Waveform은 서로 다른 source·duration authority다. multi-track preview/render가 구현되기 전 working edit가 재생 결과에 반영됐다고 표시하지 않는다.
+- 이 경계는 설계만 완료됐으며 API client, DTO, Clip component와 command stack은 NOT IMPLEMENTED다.
 
 ## API 연결 원칙
 

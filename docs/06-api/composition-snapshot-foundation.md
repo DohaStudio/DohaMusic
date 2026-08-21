@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-10
 > 관련 기능: CompositionSnapshot scope·불변 생성·Cursor·Idempotency 기반
 > API 상태: 공식 Router와 Endpoint 3개 [완료]
-> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Cursor Pagination](cursor-pagination.md), [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md), [Common Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/08-composition-snapshot-specification.md)
+> 관련 문서: [Workspace REST API 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [Cursor Pagination](cursor-pagination.md), [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Common Composition Snapshot 명세](https://github.com/DohaStudio/.github/blob/main/docs/specifications/08-composition-snapshot-specification.md)
 
 ## 1. 범위와 상태
 
@@ -107,5 +107,8 @@ Claim, Snapshot·Item 생성과 완료 기록은 같은 transaction입니다. Ro
 
 - Job 생성·실행과 Artifact 선택
 - Frontend, backfill, dual write와 Runtime source of truth 전환
+- ADR-040의 mutable WorkingComposition·Track·Clip과 별도 불변 Snapshot Track/Clip schema·versioned read 계약
 
 이번 기반은 Alembic·Entity·Index·실제 사용자 DB·실제 `DohaArtifacts`를 변경하지 않습니다.
+
+현행 `SnapshotItem`은 canonical Track/Clip identity와 timeline/source range가 없고 같은 AssetVersion·role의 반복 Clip 배치를 표현할 수 없습니다. 따라서 Clip arrangement를 `SnapshotItem`에 in-place로 추가하거나 `sort_order`를 Clip 위치로 해석하지 않습니다. ADR-040이 정한 `COMPOSITION_SNAPSHOT_SCHEMA_EXTENSION_REQUIRED`는 TARGET이며 현재 API·DB에는 NOT IMPLEMENTED입니다.
