@@ -48,7 +48,7 @@
 - [x] Frontend Workspace consume와 fixture Snapshot 선택·refetch·재진입 통합
 - [ ] 실제 사용자 DB Snapshot E2E와 인증 Gate
 
-## D2. Timeline Playback Foundation — [Foundation 구현 / Draft 검토]
+## D2. Timeline Playback Foundation — [완료]
 
 - [x] 읽기 전용 초 단위 ruler와 snapshot-local Track lane
 - [x] 기존 Global Player 단일 audio authority 재사용
