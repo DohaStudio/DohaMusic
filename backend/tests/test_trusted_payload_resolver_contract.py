@@ -12,6 +12,11 @@ from uuid import UUID
 import pytest
 
 from backend.services.workspace.job_completion_service import ProviderOutput
+from backend.storage import trusted_payload as trusted_payload_module
+from backend.storage.artifact_resolver import (
+    ArtifactStorageError,
+    ArtifactStorageErrorCode,
+)
 from backend.storage.trusted_payload import (
     InMemoryTrustedPayloadRegistry,
     TrustedPayloadError,
@@ -161,6 +166,53 @@ def test_symlink_escape_is_rejected(staging_root: Path, tmp_path: Path) -> None:
             link, artifact_kind="lyrics_text"
         )
     _assert_code(caught, TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
+
+
+def test_reported_reparse_point_is_rejected_without_path_disclosure(
+    staging_root: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path, _ = _write_payload(staging_root)
+    registry = _registry(staging_root)
+
+    def reject_reparse(_root: Path, _candidate: Path) -> None:
+        raise ArtifactStorageError(ArtifactStorageErrorCode.STORAGE_ESCAPE)
+
+    monkeypatch.setattr(
+        trusted_payload_module, "assert_safe_local_path", reject_reparse
+    )
+    with pytest.raises(TrustedPayloadError) as caught:
+        registry.register_trusted_payload(path, artifact_kind="lyrics_text")
+    _assert_code(caught, TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows path semantics regression")
+@pytest.mark.parametrize(
+    "candidate",
+    [Path(r"Z:\outside\payload.txt"), Path(r"\\server\share\payload.txt")],
+)
+def test_windows_drive_and_unc_paths_outside_root_are_rejected(
+    staging_root: Path, candidate: Path
+) -> None:
+    with pytest.raises(TrustedPayloadError) as caught:
+        _registry(staging_root).register_trusted_payload(
+            candidate, artifact_kind="lyrics_text"
+        )
+    _assert_code(caught, TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows path semantics regression")
+def test_windows_root_containment_is_case_insensitive(staging_root: Path) -> None:
+    path, payload = _write_payload(staging_root)
+    registry = _registry(staging_root)
+
+    reference = registry.register_trusted_payload(
+        Path(str(path).swapcase()), artifact_kind="lyrics_text"
+    )
+
+    assert (
+        registry.resolve(reference).payload_checksum
+        == hashlib.sha256(payload).hexdigest()
+    )
 
 
 def test_expiry_is_explicit_timezone_aware_and_fail_closed(staging_root: Path) -> None:

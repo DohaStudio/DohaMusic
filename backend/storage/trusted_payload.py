@@ -155,13 +155,13 @@ class TrustedPayloadResolver(Protocol):
 @dataclass(frozen=True, slots=True)
 class _PayloadBinding:
     descriptor: ResolvedTrustedPayload
-    file_identity: tuple[int, int]
+    file_identity: tuple[int, int, int, int]
 
 
 @dataclass(frozen=True, slots=True)
 class _InspectedPayload:
     path: Path
-    file_identity: tuple[int, int]
+    file_identity: tuple[int, int, int, int]
     size_bytes: int
     payload_checksum: str
 
@@ -355,7 +355,12 @@ class InMemoryTrustedPayloadRegistry:
                 size_bytes += len(chunk)
         return _InspectedPayload(
             path=resolved,
-            file_identity=(descriptor_stat.st_dev, descriptor_stat.st_ino),
+            file_identity=(
+                descriptor_stat.st_dev,
+                descriptor_stat.st_ino,
+                descriptor_stat.st_ctime_ns,
+                descriptor_stat.st_mtime_ns,
+            ),
             size_bytes=size_bytes,
             payload_checksum=digest.hexdigest(),
         )
