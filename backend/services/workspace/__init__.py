@@ -79,7 +79,6 @@ from backend.services.workspace.provider_result_ingestion_service import (
     ProviderResultIngestionDecision,
     ProviderResultIngestionService,
     ProviderResultNotIngestibleError,
-    TrustedPayloadReference,
     TrustedProviderResultCandidate,
 )
 from backend.services.workspace.workspace_service import (
@@ -87,6 +86,15 @@ from backend.services.workspace.workspace_service import (
     CompositionTransitionSummary,
     CursorPage,
     WorkspaceService,
+)
+from backend.storage.trusted_payload import (
+    InMemoryTrustedPayloadRegistry,
+    ResolvedTrustedPayload,
+    TrustedPayloadError,
+    TrustedPayloadErrorCode,
+    TrustedPayloadIssuer,
+    TrustedPayloadReference,
+    TrustedPayloadResolver,
 )
 
 __all__ = [
@@ -147,6 +155,12 @@ __all__ = [
     "ProviderResultIngestionService",
     "ProviderResultNotIngestibleError",
     "TrustedPayloadReference",
+    "TrustedPayloadResolver",
+    "TrustedPayloadIssuer",
+    "TrustedPayloadError",
+    "TrustedPayloadErrorCode",
+    "ResolvedTrustedPayload",
+    "InMemoryTrustedPayloadRegistry",
     "TrustedProviderResultCandidate",
     "IngestionDecisionReason",
     "ProviderResult",

@@ -13,9 +13,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 추가 — Local Operator Authentication Foundation
 
-- Windows 공식 API 근거로 V1 concrete proof mechanism을 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택하고 process token, Credential Manager generic credential, DPAPI와 다른 후보의 부적합 경계를 ADR-041에 기록했다.
+- Windows 공식 API 근거로 V1 concrete proof mechanism을 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택하고 process token, Credential Manager generic credential, DPAPI와 다른 후보의 부적합 경계를 ADR-042에 기록했다.
 - Provider-independent credential reference·principal·verified context 계약, private witness/provenance 검증과 fail-closed bootstrap을 추가했다. Concrete Win32 adapter는 미구현이며 configured·operational 상태는 false다.
 - Deterministic Fake는 test-only로 제한했고 raw secret, 실제 credential, reviewer mapping·authority·approval, DohaAudio Runtime과 Dataset·Training에는 side effect를 만들지 않았다.
+
+### 추가 — Trusted Payload Locator / Resolver Contract
+
+- `payloadref:v1:<opaque-id>` 형식의 DohaMusic-owned `TrustedPayloadReference`, 내부 issuer/resolver protocol과 deterministic in-memory Foundation을 추가했다.
+- 기존 trusted staging root 안의 regular file만 canonicalize하고 symlink·reparse·traversal을 차단하며 실제 bytes에서 SHA-256·size·media type을 계산한다. resolve 때 expiry, file identity와 metadata를 재검증하고 path 없는 안전한 오류를 반환한다.
+- metadata-only Provider Result는 계속 `payload_present=false`, reference 없음, ingestion non-eligible이다. Public API·Alembic·Worker wiring·Provider network/downloader·Completion adapter·실제 Artifact ingestion은 추가하지 않았다.
 
 ### 문서 — Clip Domain / Persistence Authority
 

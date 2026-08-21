@@ -3,7 +3,7 @@
 > 문서 역할: DohaMusic 제품 identity와 DohaAudio reviewer authentication 연결의 Canonical Authority
 > 문서 상태: [V1 product authority 승인 / local operator authentication foundation 구현 / OS adapter 미구현]
 > 최종 수정일: 2026-08-21
-> 관련 문서: [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Local Operator Authentication](../03-architecture/local-operator-authentication.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-037](../11-decisions/ADR-037-reviewer-authentication-deployment-authority.md), [ADR-038](../11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md), [ADR-041](../11-decisions/ADR-041-v1-local-operator-authentication-foundation.md)
+> 관련 문서: [Provider 책임 경계](../03-architecture/repository-provider-boundaries.md), [Local Operator Authentication](../03-architecture/local-operator-authentication.md), [배포 아키텍처](../03-architecture/deployment-architecture.md), [ADR-037](../11-decisions/ADR-037-reviewer-authentication-deployment-authority.md), [ADR-038](../11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md), [ADR-042](../11-decisions/ADR-042-v1-local-operator-authentication-foundation.md)
 
 ## 1. 권위 기준
 

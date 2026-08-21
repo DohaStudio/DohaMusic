@@ -44,7 +44,8 @@
 | [ADR-038](ADR-038-v1-reviewer-authentication-product-decision.md) | V1 reviewer authentication product authority와 delegated Provider model | 승인, 구현 미착수 |
 | [ADR-039](ADR-039-provider-result-ingestion-trust-boundary.md) | Provider wire result와 Artifact ingestion authority 분리 | 승인 |
 | [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md) | canonical Track·Clip, mutable WorkingComposition과 불변 Snapshot commit 경계 | 승인 |
-| [ADR-041](ADR-041-v1-local-operator-authentication-foundation.md) | V1 local operator proof mechanism과 fail-closed authentication foundation | 승인, concrete OS adapter 미구현 |
+| [ADR-041](ADR-041-trusted-payload-locator-authority.md) | DohaMusic-owned opaque Trusted Payload locator authority | 승인 |
+| [ADR-042](ADR-042-v1-local-operator-authentication-foundation.md) | V1 local operator proof mechanism과 fail-closed authentication foundation | 승인, concrete OS adapter 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -55,7 +56,7 @@
 - [ADR-036 — Provider Job Persistence Contract](ADR-036-provider-job-persistence.md): Provider Job identity와 retry history를 Workspace Job에 1:N으로 영속화하고 Provider Runtime의 상태 권위를 유지한다.
 - [ADR-037 — Reviewer Authentication과 배포 권위](ADR-037-reviewer-authentication-deployment-authority.md): CURRENT local/no-login, DohaMusic-only Provider 호출과 delegated trust direction을 확정하고 production topology·reviewer population·실제 Provider는 보류한다.
 - [ADR-038 — V1 Reviewer Authentication Product Decision](ADR-038-v1-reviewer-authentication-product-decision.md): initial evidence-only CASE B를 보존하고 이후 explicit product-owner authority로 V1 local owner/operator proof와 delegated assertion Provider-model readiness를 승인한다.
-- [ADR-041 — V1 Local Operator Authentication Foundation](ADR-041-v1-local-operator-authentication-foundation.md): Windows WebAuthn platform credential mechanism을 선택하고 provider-independent contract·Fake·fail-closed bootstrap을 승인하되 concrete OS adapter와 production activation은 보류한다.
+- [ADR-042 — V1 Local Operator Authentication Foundation](ADR-042-v1-local-operator-authentication-foundation.md): Windows WebAuthn platform credential mechanism을 선택하고 provider-independent contract·Fake·fail-closed bootstrap을 승인하되 concrete OS adapter와 production activation은 보류한다.
 
 ## Workspace 데이터베이스
 
@@ -76,6 +77,7 @@
 - [ADR-033 — Workspace Job 실행·claim·완료 경계](ADR-033-workspace-job-execution-boundary.md): 공개 5-state와 내부 cancel marker, role 기반 exact Artifact, Workspace scope, claim·lease와 completion 보상 경계를 승인한다.
 - [ADR-036 — Provider Job Persistence Contract](ADR-036-provider-job-persistence.md): restart recovery를 위한 identity binding, uniqueness, retry lineage와 crash window 책임을 승인한다.
 - [ADR-039 — Provider Result Ingestion Trust Boundary](ADR-039-provider-result-ingestion-trust-boundary.md): Provider wire metadata와 Workspace Artifact authority를 분리하고 metadata-only result의 non-eligibility를 승인한다.
+- [ADR-041 — Trusted Payload Locator Authority](ADR-041-trusted-payload-locator-authority.md): Provider path·URI를 배제하고 DohaMusic runtime만 발급하는 opaque locator와 trusted staging resolver 경계를 승인한다.
 
 ## Phase 6.5
 

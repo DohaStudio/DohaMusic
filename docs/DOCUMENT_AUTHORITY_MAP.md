@@ -2,12 +2,12 @@
 
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-21
-> 기준: `develop@1a43703eed621d2991048c8ccb28f1a764012c8d`
+> 기준: `develop@a8e4f74ec21346da217207a9301ac5a99d85e060`
 > 관련 문서: [README](../README.md), [Cleanup Plan](DOCUMENT_CLEANUP_PLAN.md), [Master Roadmap](../MASTER_ROADMAP.md), [실행 로드맵](../ROADMAP.md)
 
 ## 1. 목적과 분류 원칙
 
-이 문서는 DohaMusic의 Markdown 문서 275개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
+이 문서는 DohaMusic의 Markdown 문서 277개를 분류한 탐색 기준이다. 같은 책임의 문서가 여러 개일 때 CANONICAL만 현재 source of truth로 사용하고, SUPPORTING은 세부 계약, HISTORICAL은 결정·실험·검증 증거로 읽는다.
 
 | Classification | 의미 |
 |---|---|
@@ -91,6 +91,7 @@
 | [docs/02-requirements/voice-enrollment-requirements.md](02-requirements/voice-enrollment-requirements.md) | SUPPORTING | 기능·품질 요구사항 | — | KEEP |
 | [docs/03-architecture/ai-pipeline.md](03-architecture/ai-pipeline.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/artifact-storage-contract.md](03-architecture/artifact-storage-contract.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
+| [docs/03-architecture/trusted-payload-locator-resolver-contract.md](03-architecture/trusted-payload-locator-resolver-contract.md) | SUPPORTING | Trusted Payload locator·resolver 경계 계약 | — | KEEP |
 | [docs/03-architecture/audio-analysis-failure-policy.md](03-architecture/audio-analysis-failure-policy.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/audio-analysis-result-contract.md](03-architecture/audio-analysis-result-contract.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/audio-quality-engine.md](03-architecture/audio-quality-engine.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
@@ -254,7 +255,8 @@
 | [docs/11-decisions/ADR-035-d1-composition-read-authority.md](11-decisions/ADR-035-d1-composition-read-authority.md) | HISTORICAL | D1 Composition read 권위·selection·projection 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-037-reviewer-authentication-deployment-authority.md](11-decisions/ADR-037-reviewer-authentication-deployment-authority.md) | HISTORICAL | Product identity·배포와 reviewer authentication 권위 결정 이력 | — | KEEP |
 | [docs/11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md](11-decisions/ADR-038-v1-reviewer-authentication-product-decision.md) | HISTORICAL | V1 reviewer authentication explicit product authority와 Provider-model readiness | — | KEEP |
-| [docs/11-decisions/ADR-041-v1-local-operator-authentication-foundation.md](11-decisions/ADR-041-v1-local-operator-authentication-foundation.md) | HISTORICAL | V1 proof mechanism과 authentication foundation 결정 이력 | — | KEEP |
+| [docs/11-decisions/ADR-041-trusted-payload-locator-authority.md](11-decisions/ADR-041-trusted-payload-locator-authority.md) | HISTORICAL | Trusted Payload locator authority 결정 이력 | — | KEEP |
+| [docs/11-decisions/ADR-042-v1-local-operator-authentication-foundation.md](11-decisions/ADR-042-v1-local-operator-authentication-foundation.md) | HISTORICAL | V1 proof mechanism과 authentication foundation 결정 이력 | — | KEEP |
 | [docs/archive/frontend/design-system.md](archive/frontend/design-system.md) | HISTORICAL | Phase 8 Frontend design 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |
 | [docs/archive/frontend/navigation-guide.md](archive/frontend/navigation-guide.md) | HISTORICAL | Phase 8 navigation 초안 | [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | ARCHIVED |
 | [docs/archive/frontend/page-structure.md](archive/frontend/page-structure.md) | HISTORICAL | Phase 8 page hierarchy 초안 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | ARCHIVED |

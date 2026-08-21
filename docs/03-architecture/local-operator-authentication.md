@@ -2,7 +2,7 @@
 
 > 문서 상태: [Foundation 구현 / concrete adapter 미구현]
 > 최종 수정일: 2026-08-21
-> 관련 문서: [Authority](../09-security/reviewer-authentication-deployment-authority.md), [Mechanism 비교](../01-research/local-operator-proof-mechanism-comparison.md), [ADR-041](../11-decisions/ADR-041-v1-local-operator-authentication-foundation.md)
+> 관련 문서: [Authority](../09-security/reviewer-authentication-deployment-authority.md), [Mechanism 비교](../01-research/local-operator-proof-mechanism-comparison.md), [ADR-042](../11-decisions/ADR-042-v1-local-operator-authentication-foundation.md)
 
 ## 책임과 흐름
 
