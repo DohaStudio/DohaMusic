@@ -17,6 +17,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - same-key Provider Create replay, 1:N binding append, mandatory Result trust gate, DohaMusic-owned payload reconciliation, candidate→Workspace role mapping, Completion eligibility·replay와 12개 crash/restart case를 문서화했다.
 - 장시간 same-Job resume와 production payload 복구는 각각 `DURABLE_EXECUTION_HANDOFF_REQUIRED`, `DURABLE_LOCATOR_REQUIRED`로 구분했다. Python·DB schema·Alembic·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
 
+### 추가 — Clip Domain Persistence Foundation
+
+- Project당 하나의 `WorkingComposition`, V1 audio `CompositionTrack`, exact `AssetVersion` 기반 `CompositionClip`과 불변 `CompositionSnapshotTrack`·`CompositionSnapshotClip` SQLAlchemy 모델을 추가했다.
+- Alembic `20260824_0020`에서 integer microseconds 시간 CHECK, same-Project·same-Working·same-Snapshot 복합 FK, `RESTRICT`, tombstone·split lineage와 canonical query Index를 additive하게 구현했다. 기존 Snapshot/SnapshotItem row backfill·rewrite는 0건이다.
+- Repository의 bounded mix settings, deterministic Track/Clip·Snapshot read, 반개구간 same-Track overlap 검사와 expected revision `+1` 기반을 추가했다. Repository는 `commit()`·`rollback()`을 호출하지 않으며 실패 rollback 0건을 격리 SQLite 회귀로 검증했다.
+- source media duration probe와 Owner·Workspace·ProjectAsset·audio Artifact eligibility, mutation Service/idempotency orchestration, API·Frontend·render·Provider 호출은 구현하지 않았고 실제 사용자 DB `20260810_0017`에는 접근하거나 migration을 적용하지 않았다.
+
 ### 추가 — Local Operator Authentication Foundation
 
 - Windows 공식 API 근거로 V1 concrete proof mechanism을 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택하고 process token, Credential Manager generic credential, DPAPI와 다른 후보의 부적합 경계를 ADR-042에 기록했다.

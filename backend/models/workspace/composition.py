@@ -7,6 +7,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     JSON,
+    BigInteger,
     CheckConstraint,
     ForeignKey,
     ForeignKeyConstraint,
@@ -15,12 +16,17 @@ from sqlalchemy import (
     String,
     UniqueConstraint,
     Uuid,
+    text,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.db.base import Base
 from backend.models.workspace.identifiers import generate_uuid
-from backend.models.workspace.mixins import CreatedAtMixin, TimestampMixin
+from backend.models.workspace.mixins import (
+    CreatedAtMixin,
+    SoftDeleteMixin,
+    TimestampMixin,
+)
 
 if TYPE_CHECKING:
     from backend.models.workspace.asset import AssetVersion
@@ -102,6 +108,300 @@ class ProjectCompositionSelection(TimestampMixin, Base):
     project_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), primary_key=True)
     selected_composition_snapshot_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), nullable=False, unique=True
+    )
+
+
+class WorkingComposition(TimestampMixin, Base):
+    """Project마다 하나인 mutable composition draft authority."""
+
+    __tablename__ = "working_compositions"
+    __table_args__ = (
+        CheckConstraint(
+            "revision >= 0", name="ck_working_compositions_non_negative_revision"
+        ),
+        UniqueConstraint("project_id", name="uq_working_compositions_project"),
+        ForeignKeyConstraint(
+            ["project_id"],
+            ["music_projects.project_id"],
+            ondelete="RESTRICT",
+            name="fk_working_compositions_project",
+        ),
+        ForeignKeyConstraint(
+            ["project_id", "base_composition_snapshot_id"],
+            [
+                "composition_snapshots.project_id",
+                "composition_snapshots.composition_snapshot_id",
+            ],
+            ondelete="RESTRICT",
+            name="fk_working_compositions_same_project_base_snapshot",
+        ),
+        Index(
+            "ix_working_compositions_base_snapshot",
+            "base_composition_snapshot_id",
+        ),
+    )
+
+    working_composition_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=generate_uuid
+    )
+    project_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    base_composition_snapshot_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True), nullable=True
+    )
+    mix_settings: Mapped[dict[str, Any]] = mapped_column(
+        JSON, nullable=False, default=dict
+    )
+    revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+
+class CompositionTrack(TimestampMixin, SoftDeleteMixin, Base):
+    """WorkingComposition 안에서 유지되는 mutable canonical Track."""
+
+    __tablename__ = "composition_tracks"
+    __table_args__ = (
+        CheckConstraint(
+            "track_type = 'audio'", name="ck_composition_tracks_audio_type"
+        ),
+        CheckConstraint(
+            "track_order >= 0", name="ck_composition_tracks_non_negative_order"
+        ),
+        UniqueConstraint(
+            "working_composition_id",
+            "track_id",
+            name="uq_composition_tracks_working_identity",
+        ),
+        Index(
+            "uq_composition_tracks_active_order",
+            "working_composition_id",
+            "track_order",
+            unique=True,
+            sqlite_where=text("deleted_at IS NULL"),
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
+        Index(
+            "ix_composition_tracks_active_order",
+            "working_composition_id",
+            "deleted_at",
+            "track_order",
+            "track_id",
+        ),
+    )
+
+    track_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=generate_uuid
+    )
+    working_composition_id: Mapped[UUID] = mapped_column(
+        ForeignKey("working_compositions.working_composition_id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    track_type: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    track_order: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
+    """Exact AssetVersion 구간을 배치하는 mutable canonical Clip."""
+
+    __tablename__ = "composition_clips"
+    __table_args__ = (
+        CheckConstraint(
+            "timeline_start >= 0", name="ck_composition_clips_non_negative_start"
+        ),
+        CheckConstraint(
+            "source_in >= 0", name="ck_composition_clips_non_negative_source_in"
+        ),
+        CheckConstraint(
+            "source_duration > 0", name="ck_composition_clips_positive_duration"
+        ),
+        CheckConstraint(
+            "source_out > source_in", name="ck_composition_clips_non_empty_range"
+        ),
+        CheckConstraint(
+            "source_out <= source_duration",
+            name="ck_composition_clips_range_within_source",
+        ),
+        UniqueConstraint(
+            "working_composition_id",
+            "clip_id",
+            name="uq_composition_clips_working_identity",
+        ),
+        ForeignKeyConstraint(
+            ["working_composition_id"],
+            ["working_compositions.working_composition_id"],
+            ondelete="RESTRICT",
+            name="fk_composition_clips_working_composition",
+        ),
+        ForeignKeyConstraint(
+            ["working_composition_id", "track_id"],
+            [
+                "composition_tracks.working_composition_id",
+                "composition_tracks.track_id",
+            ],
+            ondelete="RESTRICT",
+            name="fk_composition_clips_same_working_track",
+        ),
+        ForeignKeyConstraint(
+            ["working_composition_id", "split_from_clip_id"],
+            ["composition_clips.working_composition_id", "composition_clips.clip_id"],
+            ondelete="RESTRICT",
+            name="fk_composition_clips_same_working_split_parent",
+        ),
+        Index(
+            "ix_composition_clips_active_timeline",
+            "track_id",
+            "deleted_at",
+            "timeline_start",
+            "clip_id",
+        ),
+        Index(
+            "ix_composition_clips_source_asset_version",
+            "source_asset_version_id",
+        ),
+        Index("ix_composition_clips_split_parent", "split_from_clip_id"),
+    )
+
+    clip_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=generate_uuid
+    )
+    working_composition_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), nullable=False
+    )
+    track_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    source_asset_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("asset_versions.asset_version_id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    timeline_start: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    split_from_clip_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True), nullable=True
+    )
+
+
+class CompositionSnapshotTrack(Base):
+    """Snapshot에 고정한 Track arrangement와 canonical lineage."""
+
+    __tablename__ = "composition_snapshot_tracks"
+    __table_args__ = (
+        CheckConstraint(
+            "track_type = 'audio'", name="ck_composition_snapshot_tracks_audio_type"
+        ),
+        CheckConstraint(
+            "track_order >= 0",
+            name="ck_composition_snapshot_tracks_non_negative_order",
+        ),
+        UniqueConstraint(
+            "composition_snapshot_id",
+            "snapshot_track_id",
+            name="uq_composition_snapshot_tracks_snapshot_identity",
+        ),
+        UniqueConstraint(
+            "composition_snapshot_id",
+            "canonical_track_id",
+            name="uq_composition_snapshot_tracks_canonical_identity",
+        ),
+        UniqueConstraint(
+            "composition_snapshot_id",
+            "track_order",
+            name="uq_composition_snapshot_tracks_order",
+        ),
+        Index(
+            "ix_composition_snapshot_tracks_order",
+            "composition_snapshot_id",
+            "track_order",
+            "snapshot_track_id",
+        ),
+    )
+
+    snapshot_track_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=generate_uuid
+    )
+    composition_snapshot_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"
+        ),
+        nullable=False,
+    )
+    canonical_track_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    track_type: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    track_order: Mapped[int] = mapped_column(Integer, nullable=False)
+
+
+class CompositionSnapshotClip(Base):
+    """Snapshot에 고정한 Clip arrangement와 exact source lineage."""
+
+    __tablename__ = "composition_snapshot_clips"
+    __table_args__ = (
+        CheckConstraint(
+            "timeline_start >= 0",
+            name="ck_composition_snapshot_clips_non_negative_start",
+        ),
+        CheckConstraint(
+            "source_in >= 0",
+            name="ck_composition_snapshot_clips_non_negative_source_in",
+        ),
+        CheckConstraint(
+            "source_duration > 0",
+            name="ck_composition_snapshot_clips_positive_duration",
+        ),
+        CheckConstraint(
+            "source_out > source_in",
+            name="ck_composition_snapshot_clips_non_empty_range",
+        ),
+        CheckConstraint(
+            "source_out <= source_duration",
+            name="ck_composition_snapshot_clips_range_within_source",
+        ),
+        UniqueConstraint(
+            "composition_snapshot_id",
+            "canonical_clip_id",
+            name="uq_composition_snapshot_clips_canonical_identity",
+        ),
+        ForeignKeyConstraint(
+            ["composition_snapshot_id", "snapshot_track_id"],
+            [
+                "composition_snapshot_tracks.composition_snapshot_id",
+                "composition_snapshot_tracks.snapshot_track_id",
+            ],
+            ondelete="RESTRICT",
+            name="fk_composition_snapshot_clips_same_snapshot_track",
+        ),
+        Index(
+            "ix_composition_snapshot_clips_timeline",
+            "snapshot_track_id",
+            "timeline_start",
+            "snapshot_clip_id",
+        ),
+        Index(
+            "ix_composition_snapshot_clips_source_asset_version",
+            "source_asset_version_id",
+        ),
+    )
+
+    snapshot_clip_id: Mapped[UUID] = mapped_column(
+        Uuid(as_uuid=True), primary_key=True, default=generate_uuid
+    )
+    composition_snapshot_id: Mapped[UUID] = mapped_column(
+        ForeignKey(
+            "composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"
+        ),
+        nullable=False,
+    )
+    snapshot_track_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    canonical_clip_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
+    source_asset_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("asset_versions.asset_version_id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    timeline_start: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    split_from_clip_id: Mapped[UUID | None] = mapped_column(
+        Uuid(as_uuid=True), nullable=True
     )
 
 

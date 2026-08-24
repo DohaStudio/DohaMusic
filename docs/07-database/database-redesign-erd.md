@@ -2,9 +2,9 @@
 
 > 문서 상태: [진행 중]
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-24
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: source Workspace 도메인 Entity/Table 23개·Catalog 1개·revisions `0018`~`0019`; 실제 DB는 `0017`의 21개 Workspace Table
+> 구현 상태: source Workspace 도메인 Entity/Table 28개·Catalog 1개·revisions `0018`~`0020`; 실제 DB는 `0017`의 21개 Workspace Table
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 
@@ -24,7 +24,12 @@ erDiagram
   ASSETS ||--o{ PROJECT_ASSETS : linked_by
   MUSIC_PROJECTS ||--o{ COMPOSITION_SNAPSHOTS : snapshots
   MUSIC_PROJECTS ||--o| PROJECT_COMPOSITION_SELECTIONS : selects
+  MUSIC_PROJECTS ||--o| WORKING_COMPOSITIONS : edits
   COMPOSITION_SNAPSHOTS ||--o| PROJECT_COMPOSITION_SELECTIONS : selected_as_current
+  COMPOSITION_SNAPSHOTS o|--o{ WORKING_COMPOSITIONS : base_for
+  WORKING_COMPOSITIONS ||--o{ COMPOSITION_TRACKS : contains
+  WORKING_COMPOSITIONS ||--o{ COMPOSITION_CLIPS : owns
+  COMPOSITION_TRACKS ||--o{ COMPOSITION_CLIPS : places
   MUSIC_PROJECTS ||--o{ JOBS : requests
 
   ASSETS ||--|{ ASSET_VERSIONS : versions
@@ -37,7 +42,12 @@ erDiagram
   ASSET_VERSIONS ||--o{ ASSET_RELATIONS : version_target
 
   COMPOSITION_SNAPSHOTS ||--|{ SNAPSHOT_ITEMS : fixes
+  COMPOSITION_SNAPSHOTS ||--o{ COMPOSITION_SNAPSHOT_TRACKS : freezes
+  COMPOSITION_SNAPSHOTS ||--o{ COMPOSITION_SNAPSHOT_CLIPS : owns
+  COMPOSITION_SNAPSHOT_TRACKS ||--o{ COMPOSITION_SNAPSHOT_CLIPS : places
   ASSET_VERSIONS ||--o{ SNAPSHOT_ITEMS : selected_version
+  ASSET_VERSIONS ||--o{ COMPOSITION_CLIPS : exact_source
+  ASSET_VERSIONS ||--o{ COMPOSITION_SNAPSHOT_CLIPS : frozen_source
   PROCESSING_CHAINS ||--|{ PROCESSING_STEPS : orders
   PROCESSING_CHAINS ||--o{ ASSET_VERSIONS : applied_to
   PROCESSING_CHAINS ||--o{ COMPOSITION_SNAPSHOTS : captured_by
@@ -142,6 +152,53 @@ erDiagram
     uuid selected_composition_snapshot_id FK
     timestamp created_at
     timestamp updated_at
+  }
+  WORKING_COMPOSITIONS {
+    uuid working_composition_id PK
+    uuid project_id FK
+    uuid base_composition_snapshot_id FK
+    json mix_settings
+    integer revision
+  }
+  COMPOSITION_TRACKS {
+    uuid track_id PK
+    uuid working_composition_id FK
+    string track_type
+    string name
+    integer track_order
+    timestamp deleted_at
+  }
+  COMPOSITION_CLIPS {
+    uuid clip_id PK
+    uuid working_composition_id FK
+    uuid track_id FK
+    uuid source_asset_version_id FK
+    bigint timeline_start
+    bigint source_in
+    bigint source_out
+    bigint source_duration
+    uuid split_from_clip_id FK
+    timestamp deleted_at
+  }
+  COMPOSITION_SNAPSHOT_TRACKS {
+    uuid snapshot_track_id PK
+    uuid composition_snapshot_id FK
+    uuid canonical_track_id
+    string track_type
+    string name
+    integer track_order
+  }
+  COMPOSITION_SNAPSHOT_CLIPS {
+    uuid snapshot_clip_id PK
+    uuid composition_snapshot_id FK
+    uuid snapshot_track_id FK
+    uuid canonical_clip_id
+    uuid source_asset_version_id FK
+    bigint timeline_start
+    bigint source_in
+    bigint source_out
+    bigint source_duration
+    uuid split_from_clip_id
   }
   SNAPSHOT_ITEMS {
     uuid snapshot_item_id PK
@@ -269,6 +326,10 @@ erDiagram
 | MusicProject → ProjectCompositionSelection | 1:0..1 | row 부재는 선택 없음, Project 삭제 시 selection만 CASCADE |
 | CompositionSnapshot → ProjectCompositionSelection | 1:0..1 | Project ID를 포함한 복합 FK로 same-Project 강제, Snapshot 삭제 `RESTRICT` |
 | CompositionSnapshot → SnapshotItem | 1:N | 최소 한 정확한 AssetVersion 참조 |
+| MusicProject → WorkingComposition | 1:0..1 | source schema는 Project unique, 자동 생성 없음 |
+| WorkingComposition → CompositionTrack | 1:N | active order unique, tombstone 보존 |
+| CompositionTrack → CompositionClip | 1:N | same-Working composite FK, exact μs·AssetVersion |
+| CompositionSnapshot → SnapshotTrack/SnapshotClip | 1:N | mutable row와 FK를 분리한 frozen arrangement |
 | ProcessingChain → ProcessingStep | 1:N | `step_order`로 고정 순서 보존 |
 | MusicProject → Job | 1:N | Project 문맥에서 독립 실행 단위 생성 |
 | Job → JobInput | 1:N | 입력 Version 또는 Artifact 연결 |

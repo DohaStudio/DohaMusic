@@ -1,7 +1,7 @@
 # Clip Domain / Persistence Design Definition of Done
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-21
+> 최종 수정일: 2026-08-24
 > 관련 기능: AI-native DAW D3 Clip Editing 선행 설계
 > 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [AI-native DAW DoD](AI-Native-DAW.md), [Master Roadmap](../../MASTER_ROADMAP.md)
 
@@ -26,11 +26,13 @@
 - [x] future MIDI/Instrument 확장과 V1 audio-only eligibility 분리
 - [x] path·storage locator·credential 비저장과 기존 rights authority 유지
 
-## 구현 Gate — [미구현]
+## 구현 Gate — [진행 중]
 
-- [ ] mutable·immutable 5개 logical table의 SQLAlchemy/Alembic 구현
-- [ ] exact source duration의 서버 검증 authority 구현
-- [ ] Repository·Service·revision·idempotency·rollback 테스트
+- [x] mutable·immutable 5개 logical table의 SQLAlchemy/Alembic 구현
+- [x] integer microseconds·positive duration·source range·exact AssetVersion persistence와 DB CHECK/FK 구현
+- [x] Repository primitive·deterministic read·same-Track overlap helper·optimistic revision·transaction-owner rollback 테스트
+- [ ] exact source duration의 Artifact media metadata/probe 기반 서버 검증 authority 구현
+- [ ] Service mutation·기존 idempotency record orchestration·atomic split/commit 테스트
 - [ ] WorkingComposition product API와 OpenAPI/error contract
 - [ ] Frontend Clip move·trim·split·delete·Track reorder
 - [ ] memory Undo/Redo command stack과 refresh recovery 검증
@@ -39,4 +41,4 @@
 
 ## 판정
 
-`Clip Domain/Persistence Design`은 COMPLETE다. `Clip Editing Implementation`은 NEXT이며 구현 완료로 표시하지 않는다.
+`Clip Domain/Persistence Design`과 `Clip Persistence Foundation`은 COMPLETE다. 전체 `Clip Editing Implementation`은 진행 중이며 다음 Gate는 `WorkingComposition Service + Product API`다. 실제 사용자 DB migration, API, Frontend와 working preview/render는 완료로 표시하지 않는다.

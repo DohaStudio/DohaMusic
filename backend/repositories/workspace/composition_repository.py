@@ -2,21 +2,28 @@
 
 from __future__ import annotations
 
+import json
 from collections.abc import Sequence
 from dataclasses import dataclass
 from uuid import UUID
 
-from sqlalchemy import and_, exists, func, or_, select
+from sqlalchemy import and_, exists, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.asset import Artifact, Asset, AssetVersion
 from backend.models.workspace.composition import (
+    CompositionClip,
     CompositionSnapshot,
+    CompositionSnapshotClip,
+    CompositionSnapshotTrack,
+    CompositionTrack,
     ProcessingChain,
     ProcessingStep,
     ProjectCompositionSelection,
     SnapshotItem,
+    WorkingComposition,
 )
+from backend.models.workspace.mixins import utc_now
 from backend.models.workspace.workspace import MusicProject
 
 
@@ -35,6 +42,156 @@ class CompositionRepository:
 
     def __init__(self, session: Session) -> None:
         self.session = session
+
+    def add_working_composition(
+        self, working_composition: WorkingComposition
+    ) -> WorkingComposition:
+        _validate_mix_settings(working_composition.mix_settings)
+        self.session.add(working_composition)
+        self.session.flush()
+        return working_composition
+
+    def get_working_composition(
+        self, working_composition_id: UUID
+    ) -> WorkingComposition | None:
+        return self.session.get(WorkingComposition, working_composition_id)
+
+    def get_project_working_composition(
+        self, project_id: UUID
+    ) -> WorkingComposition | None:
+        return self.session.scalar(
+            select(WorkingComposition).where(
+                WorkingComposition.project_id == project_id
+            )
+        )
+
+    def increment_working_revision(
+        self, working_composition_id: UUID, *, expected_revision: int
+    ) -> int | None:
+        """Expected revision이 일치할 때만 정확히 1 증가시킨다."""
+
+        if type(expected_revision) is not int or expected_revision < 0:
+            raise ValueError("expected_revision은 0 이상의 정수여야 합니다.")
+        statement = (
+            update(WorkingComposition)
+            .where(
+                WorkingComposition.working_composition_id == working_composition_id,
+                WorkingComposition.revision == expected_revision,
+            )
+            .values(
+                revision=WorkingComposition.revision + 1,
+                updated_at=utc_now(),
+            )
+            .returning(WorkingComposition.revision)
+        )
+        return self.session.scalar(statement)
+
+    def add_composition_track(self, track: CompositionTrack) -> CompositionTrack:
+        self.session.add(track)
+        self.session.flush()
+        return track
+
+    def list_active_composition_tracks(
+        self, working_composition_id: UUID
+    ) -> list[CompositionTrack]:
+        statement = (
+            select(CompositionTrack)
+            .where(
+                CompositionTrack.working_composition_id == working_composition_id,
+                CompositionTrack.deleted_at.is_(None),
+            )
+            .order_by(CompositionTrack.track_order, CompositionTrack.track_id)
+        )
+        return list(self.session.scalars(statement))
+
+    def add_composition_clip(self, clip: CompositionClip) -> CompositionClip:
+        clip_end = clip.timeline_start + clip.source_out - clip.source_in
+        if self.active_clip_overlap_exists(
+            working_composition_id=clip.working_composition_id,
+            track_id=clip.track_id,
+            timeline_start=clip.timeline_start,
+            timeline_end=clip_end,
+        ):
+            raise ValueError("같은 Track의 active Clip은 겹칠 수 없습니다.")
+        self.session.add(clip)
+        self.session.flush()
+        return clip
+
+    def active_clip_overlap_exists(
+        self,
+        *,
+        working_composition_id: UUID,
+        track_id: UUID,
+        timeline_start: int,
+        timeline_end: int,
+        exclude_clip_id: UUID | None = None,
+    ) -> bool:
+        """반개구간 기준으로 같은 Track의 active Clip 중첩을 확인한다."""
+
+        if timeline_start < 0 or timeline_end <= timeline_start:
+            raise ValueError("검사할 Timeline 구간이 유효하지 않습니다.")
+        existing_end = CompositionClip.timeline_start + (
+            CompositionClip.source_out - CompositionClip.source_in
+        )
+        statement = select(CompositionClip.clip_id).where(
+            CompositionClip.working_composition_id == working_composition_id,
+            CompositionClip.track_id == track_id,
+            CompositionClip.deleted_at.is_(None),
+            CompositionClip.timeline_start < timeline_end,
+            existing_end > timeline_start,
+        )
+        if exclude_clip_id is not None:
+            statement = statement.where(CompositionClip.clip_id != exclude_clip_id)
+        return self.session.scalar(statement.limit(1)) is not None
+
+    def list_active_composition_clips(self, track_id: UUID) -> list[CompositionClip]:
+        statement = (
+            select(CompositionClip)
+            .where(
+                CompositionClip.track_id == track_id,
+                CompositionClip.deleted_at.is_(None),
+            )
+            .order_by(CompositionClip.timeline_start, CompositionClip.clip_id)
+        )
+        return list(self.session.scalars(statement))
+
+    def add_snapshot_track(
+        self, snapshot_track: CompositionSnapshotTrack
+    ) -> CompositionSnapshotTrack:
+        self.session.add(snapshot_track)
+        self.session.flush()
+        return snapshot_track
+
+    def list_snapshot_tracks(self, snapshot_id: UUID) -> list[CompositionSnapshotTrack]:
+        statement = (
+            select(CompositionSnapshotTrack)
+            .where(CompositionSnapshotTrack.composition_snapshot_id == snapshot_id)
+            .order_by(
+                CompositionSnapshotTrack.track_order,
+                CompositionSnapshotTrack.snapshot_track_id,
+            )
+        )
+        return list(self.session.scalars(statement))
+
+    def add_snapshot_clip(
+        self, snapshot_clip: CompositionSnapshotClip
+    ) -> CompositionSnapshotClip:
+        self.session.add(snapshot_clip)
+        self.session.flush()
+        return snapshot_clip
+
+    def list_snapshot_clips(
+        self, snapshot_track_id: UUID
+    ) -> list[CompositionSnapshotClip]:
+        statement = (
+            select(CompositionSnapshotClip)
+            .where(CompositionSnapshotClip.snapshot_track_id == snapshot_track_id)
+            .order_by(
+                CompositionSnapshotClip.timeline_start,
+                CompositionSnapshotClip.snapshot_clip_id,
+            )
+        )
+        return list(self.session.scalars(statement))
 
     def add_snapshot(self, snapshot: CompositionSnapshot) -> CompositionSnapshot:
         self.session.add(snapshot)
@@ -319,3 +476,19 @@ def _validate_snapshot_position(
         type(last_snapshot_version) is not int or last_snapshot_version < 1
     ):
         raise ValueError("Snapshot version 위치가 유효하지 않습니다.")
+
+
+def _validate_mix_settings(value: object) -> None:
+    """후속 Service 전에도 persistence primitive의 JSON 크기를 제한한다."""
+
+    if not isinstance(value, dict):
+        raise TypeError("mix_settings는 JSON object여야 합니다.")
+    serialized = json.dumps(
+        value,
+        ensure_ascii=False,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+    if len(serialized.encode("utf-8")) > 8_192:
+        raise ValueError("mix_settings는 UTF-8 8192 bytes 이하여야 합니다.")

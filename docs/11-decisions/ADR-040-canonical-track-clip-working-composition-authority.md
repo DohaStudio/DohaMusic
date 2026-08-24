@@ -6,6 +6,8 @@
 > 관련 기능: AI-native DAW D3 Non-destructive Clip Editing
 > 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
+> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 이 ADR의 Service/API/UI 결정은 변경하지 않았으며 해당 단계는 후속이다.
+
 ## 1. Context
 
 현재 `CompositionSnapshot`은 Project의 exact `AssetVersion` 조합과 Mix·Provider·Model 계보를 고정하는 불변 aggregate다. `SnapshotItem`도 불변 membership/projection이며, `snapshot_item_id`는 한 Snapshot 안에서만 유효한 D1 Track read projection이다. 따라서 다음 편집을 기존 row의 in-place mutation으로 표현할 수 없다.

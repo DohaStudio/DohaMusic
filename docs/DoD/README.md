@@ -1,7 +1,7 @@
 # Definition of Done 운영 기준
 
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-24
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [작업 지침](../../AGENTS.md), [실행 로드맵](../../ROADMAP.md)
 
 DoD는 각 Phase를 완료로 선언하기 위한 검증 가능한 체크리스트다. `[x]`는 저장소의 구현·테스트·문서·Git 이력으로 확인된 항목, `[ ]`는 미구현·미검증·사용자 입력 대기 항목이다. 새 작업은 해당 Phase 문서의 미완료 항목을 작업 범위로 가져오며, 완료 증거 없이 체크하지 않는다.
@@ -48,7 +48,7 @@ DoD는 각 Phase를 완료로 선언하기 위한 검증 가능한 체크리스�
 | 9. Production | [Phase-09](Phase-09.md) | [계획] |
 | AI Provider 저장소 분리 Track | [Provider-Separation](Provider-Separation.md) | [진행 중] |
 | AI-native DAW Product Track | [AI-Native-DAW](AI-Native-DAW.md) | [진행 중] |
-| Clip Domain / Persistence Design | [Clip-Domain-Persistence](Clip-Domain-Persistence.md) | [설계 완료 / 구현 미착수] |
+| Clip Domain / Persistence Design | [Clip-Domain-Persistence](Clip-Domain-Persistence.md) | [설계·Persistence Foundation 완료 / Service·API 후속] |
 
 Phase 0은 코드 개발 이전 문서 기반 확립 단계이며 [Master Roadmap의 Phase 0](../../MASTER_ROADMAP.md#phase-0-프로젝트-문서화--완료)에서 완료 근거를 관리한다.
 

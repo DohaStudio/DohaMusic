@@ -19,7 +19,7 @@ from backend.db.session import create_database_engine, create_session_factory
 from backend.schemas.workspace.bootstrap import WorkspaceBootstrapResult
 from backend.services.workspace import WorkspaceService
 
-BOOTSTRAP_TARGET_REVISION = "20260821_0019"
+BOOTSTRAP_TARGET_REVISION = "20260824_0020"
 REQUIRED_TRANSITION_TABLES = {
     "workspaces",
     "music_projects",

@@ -25,6 +25,11 @@ EXPECTED_ENTITY_TABLES = {
     "Artifact": "artifacts",
     "AssetRelation": "asset_relations",
     "CompositionSnapshot": "composition_snapshots",
+    "WorkingComposition": "working_compositions",
+    "CompositionTrack": "composition_tracks",
+    "CompositionClip": "composition_clips",
+    "CompositionSnapshotTrack": "composition_snapshot_tracks",
+    "CompositionSnapshotClip": "composition_snapshot_clips",
     "ProjectCompositionSelection": "project_composition_selections",
     "SnapshotItem": "snapshot_items",
     "Job": "jobs",
@@ -129,6 +134,59 @@ EXPECTED_COLUMNS = {
         "model_manifest_ids",
         "created_by",
         "created_at",
+    },
+    "working_compositions": {
+        "working_composition_id",
+        "project_id",
+        "base_composition_snapshot_id",
+        "mix_settings",
+        "revision",
+        "created_at",
+        "updated_at",
+    },
+    "composition_tracks": {
+        "track_id",
+        "working_composition_id",
+        "track_type",
+        "name",
+        "track_order",
+        "created_at",
+        "updated_at",
+        "deleted_at",
+    },
+    "composition_clips": {
+        "clip_id",
+        "working_composition_id",
+        "track_id",
+        "source_asset_version_id",
+        "timeline_start",
+        "source_in",
+        "source_out",
+        "source_duration",
+        "split_from_clip_id",
+        "created_at",
+        "updated_at",
+        "deleted_at",
+    },
+    "composition_snapshot_tracks": {
+        "snapshot_track_id",
+        "composition_snapshot_id",
+        "canonical_track_id",
+        "track_type",
+        "name",
+        "track_order",
+    },
+    "composition_snapshot_clips": {
+        "snapshot_clip_id",
+        "composition_snapshot_id",
+        "snapshot_track_id",
+        "canonical_clip_id",
+        "source_asset_version_id",
+        "timeline_start",
+        "source_in",
+        "source_out",
+        "source_duration",
+        "split_from_clip_id",
     },
     "project_composition_selections": {
         "project_id",
@@ -313,9 +371,9 @@ def test_workspace_entity_and_table_names_are_exact() -> None:
         entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES
     }
 
-    assert len(WORKSPACE_ENTITY_CLASSES) == 23
+    assert len(WORKSPACE_ENTITY_CLASSES) == 28
     assert actual == EXPECTED_ENTITY_TABLES
-    assert len(set(actual.values())) == 23
+    assert len(set(actual.values())) == 28
 
 
 def test_workspace_table_columns_match_documented_contract() -> None:
@@ -358,7 +416,7 @@ def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     assert target_tables.isdisjoint(LEGACY_TABLES)
     assert storage_tables == {"artifact_storage_locations"}
     assert set(Base.metadata.tables) == target_tables | storage_tables | LEGACY_TABLES
-    assert len(Base.metadata.tables) == 38
+    assert len(Base.metadata.tables) == 43
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:
