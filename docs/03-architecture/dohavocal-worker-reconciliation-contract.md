@@ -156,7 +156,7 @@ Provider retry 횟수와 정책은 future configuration dependency다. 자동 Wo
 
 공개 Job, 오류, 로그와 문서 예시에 absolute path, storage/DB root, credential, API key, authorization header, raw Provider response, local model·dataset path 또는 stack trace를 포함하지 않는다. Provider URI/path는 trusted locator boundary를 우회할 수 없다.
 
-Provider network 호출 중 열린 DB transaction은 0개다. Repository가 직접 `commit()` 또는 `rollback()`하는 경우도 0개다. Worker claim/lease Service, Provider Job Persistence Service와 Completion UoW가 각각 자신의 짧은 transaction을 소유한다. cross-system distributed transaction은 도입하지 않는다.
+Provider network 호출 중 열린 DB transaction은 0개다. 이 Workspace reconciliation 경로의 Repository가 직접 `commit()` 또는 `rollback()`하는 경우도 0개다. Worker claim/lease Service, Provider Job Persistence Service와 Completion UoW가 각각 자신의 짧은 transaction을 소유한다. Legacy Runtime Repository의 기존 transaction 방식은 이 계약의 범위가 아니며, cross-system distributed transaction은 도입하지 않는다.
 
 ## 13. 후속 구현 경계
 
