@@ -227,6 +227,57 @@ def test_track_active_order_collision_and_tombstone_reuse(session_factory) -> No
         session.add(_track(working.working_composition_id))
 
 
+def test_track_delete_guard_counts_only_same_working_active_clips(
+    session_factory,
+) -> None:
+    first = _seed_graph(session_factory)
+    second = _seed_graph(session_factory)
+    first_working = _working(first)
+    second_working = _working(second)
+    first_track = _track(first_working.working_composition_id)
+    second_track = _track(second_working.working_composition_id)
+    active = _clip(
+        first_working.working_composition_id,
+        first_track.track_id,
+        first.asset_version_id,
+    )
+    deleted = _clip(
+        first_working.working_composition_id,
+        first_track.track_id,
+        first.asset_version_id,
+        timeline_start=2_000_000,
+        deleted_at=datetime.now(UTC),
+    )
+    foreign = _clip(
+        second_working.working_composition_id,
+        second_track.track_id,
+        second.asset_version_id,
+    )
+    with session_factory.begin() as session:
+        session.add_all([first_working, second_working])
+        session.flush()
+        session.add_all([first_track, second_track])
+        session.flush()
+        session.add_all([active, deleted, foreign])
+
+    with session_factory() as session:
+        repository = CompositionRepository(session)
+        assert (
+            repository.count_active_composition_clips(
+                working_composition_id=first_working.working_composition_id,
+                track_id=first_track.track_id,
+            )
+            == 1
+        )
+        assert (
+            repository.count_active_composition_clips(
+                working_composition_id=second_working.working_composition_id,
+                track_id=first_track.track_id,
+            )
+            == 0
+        )
+
+
 def test_track_type_and_order_checks(session_factory) -> None:
     graph = _seed_graph(session_factory)
     working = _working(graph)

@@ -15,6 +15,7 @@ from backend.db.base import Base
 from backend.db.session import create_database_engine
 from backend.models.pipeline_job import PipelineJob
 from backend.models.workspace import (
+    WORKSPACE_ENTITY_CLASSES,
     Approval,
     Artifact,
     Asset,
@@ -37,7 +38,6 @@ from backend.models.workspace import (
     RecordingEnrollment,
     SnapshotItem,
     Tag,
-    WORKSPACE_ENTITY_CLASSES,
     Workspace,
 )
 from backend.repositories.workspace import (
@@ -232,6 +232,32 @@ def test_asset_repository_versions_artifacts_relations_and_immutability(
             retention_status="active",
         )
     )
+    clip_source = repository.add_artifact(
+        Artifact(
+            asset_version_id=first_version.asset_version_id,
+            artifact_kind="audio",
+            media_type="audio/wav",
+            size_bytes=128,
+            duration_us=2_000,
+            checksum_algorithm="sha256",
+            artifact_checksum="duration-source",
+            producer_type="workspace",
+            retention_status="active",
+        )
+    )
+    inactive_source = repository.add_artifact(
+        Artifact(
+            asset_version_id=first_version.asset_version_id,
+            artifact_kind="audio",
+            media_type="audio/wav",
+            size_bytes=128,
+            duration_us=2_000,
+            checksum_algorithm="sha256",
+            artifact_checksum="inactive-source",
+            producer_type="workspace",
+            retention_status="expired",
+        )
+    )
     relation = repository.add_asset_relation(
         AssetRelation(
             source_asset_id=source_asset.asset_id,
@@ -249,9 +275,17 @@ def test_asset_repository_versions_artifacts_relations_and_immutability(
     ]
     assert repository.get_latest_asset_version(source_asset.asset_id) == second_version
     assert repository.version_number_exists(source_asset.asset_id, 2)
-    assert repository.list_version_artifacts(first_version.asset_version_id) == [
-        artifact
-    ]
+    version_artifacts = repository.list_version_artifacts(
+        first_version.asset_version_id
+    )
+    assert {item.artifact_id for item in version_artifacts} == {
+        artifact.artifact_id,
+        clip_source.artifact_id,
+        inactive_source.artifact_id,
+    }
+    assert repository.list_clip_source_artifact_candidates(
+        first_version.asset_version_id
+    ) == [clip_source]
     assert repository.checksum_exists("sha256", "abc123")
     assert repository.list_asset_relations(asset_id=source_asset.asset_id) == [relation]
     assert repository.relation_exists(

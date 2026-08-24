@@ -199,6 +199,10 @@ class AssetVersion(CreatedAtMixin, Base):
 class Artifact(CreatedAtMixin, Base):
     __tablename__ = "artifacts"
     __table_args__ = (
+        CheckConstraint(
+            "duration_us IS NULL OR duration_us > 0",
+            name="ck_artifacts_positive_duration_us",
+        ),
         Index(
             "ix_artifacts_checksum_size",
             "checksum_algorithm",
@@ -224,6 +228,7 @@ class Artifact(CreatedAtMixin, Base):
     artifact_kind: Mapped[str] = mapped_column(String, nullable=False, index=True)
     media_type: Mapped[str] = mapped_column(String, nullable=False, index=True)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    duration_us: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     checksum_algorithm: Mapped[str] = mapped_column(String, nullable=False)
     artifact_checksum: Mapped[str] = mapped_column(String, nullable=False, index=True)
     producer_type: Mapped[str] = mapped_column(String, nullable=False, index=True)

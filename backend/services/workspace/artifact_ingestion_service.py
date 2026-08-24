@@ -16,14 +16,18 @@ from sqlalchemy.orm import Session
 from backend.models.workspace import Artifact, ArtifactStorageLocation
 from backend.models.workspace.identifiers import generate_uuid
 from backend.repositories.workspace import ArtifactStorageRepository, AssetRepository
-from backend.storage.artifact_media import SUPPORTED_ARTIFACT_KINDS
+from backend.storage.artifact_integrity import calculate_artifact_integrity
+from backend.storage.artifact_media import (
+    SUPPORTED_ARTIFACT_KINDS,
+    ArtifactMediaValidationError,
+    validate_artifact_media,
+)
 from backend.storage.artifact_publisher import (
     ArtifactPublishError,
     ArtifactPublishErrorCode,
     LocalArtifactPublisher,
     PublishedLocalPayload,
 )
-from backend.storage.artifact_integrity import calculate_artifact_integrity
 from backend.storage.artifact_resolver import (
     APPROVED_STORAGE_DOMAINS,
     SUPPORTED_LOCATOR_VERSION,
@@ -161,6 +165,7 @@ class IngestedArtifact:
     artifact_checksum: str
     size_bytes: int
     media_type: str
+    duration_us: int | None
     staging_cleanup_pending: bool
 
 
@@ -279,6 +284,7 @@ class ArtifactIngestionService:
             artifact_checksum=prepared.published.checksum,
             size_bytes=prepared.published.size_bytes,
             media_type=prepared.published.media.media_type,
+            duration_us=prepared.published.media.duration_us,
             staging_cleanup_pending=cleanup_pending,
         )
 
@@ -313,6 +319,7 @@ class ArtifactIngestionService:
                 artifact_kind=request.artifact_kind,
                 media_type=published.media.media_type,
                 size_bytes=published.size_bytes,
+                duration_us=published.media.duration_us,
                 checksum_algorithm="sha256",
                 artifact_checksum=published.checksum,
                 producer_type=request.producer_type,
@@ -344,7 +351,12 @@ class ArtifactIngestionService:
         try:
             with resolver.open_payload(artifact.artifact_id) as (resolved, stream):
                 integrity = calculate_artifact_integrity(stream)
-        except (ArtifactStorageError, OSError):
+            verified_media = validate_artifact_media(
+                resolved.path,
+                artifact_kind=artifact.artifact_kind,
+                size_bytes=resolved.size_bytes,
+            )
+        except (ArtifactMediaValidationError, ArtifactStorageError, OSError):
             raise ArtifactIngestionError(
                 ArtifactIngestionErrorCode.VERIFICATION_FAILED
             ) from None
@@ -355,6 +367,9 @@ class ArtifactIngestionService:
             or integrity.size_bytes != artifact.size_bytes
             or integrity.checksum != artifact.artifact_checksum
             or artifact.artifact_checksum != published.checksum
+            or verified_media.media_type != artifact.media_type
+            or verified_media.duration_us != artifact.duration_us
+            or artifact.duration_us != published.media.duration_us
         ):
             raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERIFICATION_FAILED)
 

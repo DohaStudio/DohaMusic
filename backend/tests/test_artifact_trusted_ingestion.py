@@ -144,6 +144,18 @@ def _wav_payload() -> bytes:
     return output.getvalue()
 
 
+def _flac_payload() -> bytes:
+    streaminfo = bytearray(34)
+    streaminfo[0:2] = (16).to_bytes(2, "big")
+    streaminfo[2:4] = (16).to_bytes(2, "big")
+    streaminfo[10:18] = ((8_000 << 44) | 16).to_bytes(8, "big")
+    return b"fLaC" + b"\x80\x00\x00\x22" + bytes(streaminfo) + b"\xff\xf8"
+
+
+def _mp3_payload() -> bytes:
+    return b"ID3\x04\x00\x00\x00\x00\x00\x00\xff\xfb\x90\x64\x00\x00"
+
+
 def test_ingest_wav_round_trip_uses_authoritative_metadata(
     ingestion: IngestionFixture,
 ) -> None:
@@ -162,12 +174,14 @@ def test_ingest_wav_round_trip_uses_authoritative_metadata(
     assert result.artifact_checksum == hashlib.sha256(payload).hexdigest()
     assert result.size_bytes == len(payload)
     assert result.media_type == "audio/wav"
+    assert result.duration_us == 2_000
     assert result.staging_cleanup_pending is False
     assert not source.exists()
     artifacts, locations = ingestion.rows()
     assert len(artifacts) == len(locations) == 1
     assert artifacts[0].retention_status == "active"
     assert artifacts[0].checksum_algorithm == "sha256"
+    assert artifacts[0].duration_us == 2_000
     assert locations[0].storage_key.endswith(f"{result.artifact_id}.wav")
     assert not locations[0].storage_key.startswith("audio/")
 
@@ -181,14 +195,21 @@ def test_ingest_wav_round_trip_uses_authoritative_metadata(
 
 
 @pytest.mark.parametrize(
-    ("artifact_kind", "storage_domain", "payload", "media_type", "extension"),
+    (
+        "artifact_kind",
+        "storage_domain",
+        "payload",
+        "media_type",
+        "extension",
+        "duration_us",
+    ),
     [
-        ("lyrics_text", "lm", "가사".encode(), "text/plain", "txt"),
-        ("manifest", "lm", b'{"version":1}', "application/json", "json"),
-        ("evaluation", "audio", b'{"score":0.9}', "application/json", "json"),
-        ("snapshot", "music", b'{"items":[]}', "application/json", "json"),
-        ("audio", "audio", b"fLaC\x00\x00\x00\x22", "audio/flac", "flac"),
-        ("stem", "vocal", b"ID3\x04\x00\x00\x00\x00\x00\x00", "audio/mpeg", "mp3"),
+        ("lyrics_text", "lm", "가사".encode(), "text/plain", "txt", None),
+        ("manifest", "lm", b'{"version":1}', "application/json", "json", None),
+        ("evaluation", "audio", b'{"score":0.9}', "application/json", "json", None),
+        ("snapshot", "music", b'{"items":[]}', "application/json", "json", None),
+        ("audio", "audio", _flac_payload(), "audio/flac", "flac", 2_000),
+        ("stem", "vocal", _mp3_payload(), "audio/mpeg", "mp3", None),
     ],
 )
 def test_supported_kind_media_matrix(
@@ -198,6 +219,7 @@ def test_supported_kind_media_matrix(
     payload: bytes,
     media_type: str,
     extension: str,
+    duration_us: int | None,
 ) -> None:
     source = ingestion.write(f"input.{extension}", payload)
     result = ingestion.service().ingest(
@@ -208,6 +230,7 @@ def test_supported_kind_media_matrix(
         )
     )
     assert result.media_type == media_type
+    assert result.duration_us == duration_us
     _, locations = ingestion.rows()
     assert locations[0].storage_key.endswith(f".{extension}")
     if artifact_kind == "snapshot":
