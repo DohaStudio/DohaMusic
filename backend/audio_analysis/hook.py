@@ -10,12 +10,12 @@ import numpy as np
 from scipy.io import wavfile
 
 from backend.audio_analysis.contracts import (
+    PUBLIC_WARNING_MESSAGES,
     AudioAnalysisStatus,
     AudioAnalysisWarning,
     HookAnalysisResult,
     HookCandidate,
     HookSelectionStrategy,
-    PUBLIC_WARNING_MESSAGES,
 )
 
 CANDIDATE_DURATION_SECONDS = 15.0
@@ -94,18 +94,14 @@ class DefaultHookAnalyzer(HookAnalyzer):
         hop_frames = max(1, round(WINDOW_HOP_SECONDS / FEATURE_FRAME_SECONDS))
         if frame_count < window_frames:
             return None
-        frames = samples[: frame_count * frame_length].reshape(
-            frame_count, frame_length
-        )
+        frames = samples[: frame_count * frame_length].reshape(frame_count, frame_length)
         frame_energy = np.sqrt(
             np.einsum("ij,ij->i", frames, frames, dtype=np.float64) / frame_length
         )
         starts = np.arange(0, frame_count - window_frames + 1, hop_frames)
         if starts.size == 0:
             return None
-        windows = np.stack(
-            [frame_energy[start : start + window_frames] for start in starts]
-        )
+        windows = np.stack([frame_energy[start : start + window_frames] for start in starts])
         means = np.mean(windows, axis=1)
         median = float(np.median(means))
         maximum = float(np.max(means))
@@ -116,9 +112,7 @@ class DefaultHookAnalyzer(HookAnalyzer):
             if maximum - median > 1e-12
             else np.zeros_like(means)
         )
-        repetition = DefaultHookAnalyzer._repetition_scores(
-            windows, starts, window_frames
-        )
+        repetition = DefaultHookAnalyzer._repetition_scores(windows, starts, window_frames)
         combined = 0.55 * repetition + 0.45 * prominence
         best = int(np.argmax(combined))
 
@@ -158,9 +152,7 @@ class DefaultHookAnalyzer(HookAnalyzer):
             scores[index] = max(0.0, float(np.max(correlations)))
         return np.clip(scores, 0.0, 1.0)
 
-    def _middle_fallback(
-        self, duration: float, confidence: float
-    ) -> HookAnalysisResult:
+    def _middle_fallback(self, duration: float, confidence: float) -> HookAnalysisResult:
         start = max(0.0, (duration - CANDIDATE_DURATION_SECONDS) / 2.0)
         return HookAnalysisResult(
             status=AudioAnalysisStatus.PARTIAL,

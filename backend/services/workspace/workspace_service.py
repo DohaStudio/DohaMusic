@@ -70,9 +70,7 @@ def _inspect_composition_transition(
 ) -> CompositionTransitionSummary:
     """명시적 D1 selection만 보존하고 legacy 추론은 수행하지 않는다."""
 
-    return _summarize_composition_transition(
-        repository.list_transition_states(workspace_id)
-    )
+    return _summarize_composition_transition(repository.list_transition_states(workspace_id))
 
 
 def _summarize_composition_transition(
@@ -258,9 +256,11 @@ class WorkspaceService:
             workspace = repository.get_workspace(workspace_id)
             if workspace is None:
                 raise ResourceNotFoundError("Workspace")
-            if repository.workspace_name_exists(workspace.owner_id, normalized_name):
-                if workspace.name != normalized_name:
-                    raise ResourceConflictError("Workspace 이름")
+            if (
+                repository.workspace_name_exists(workspace.owner_id, normalized_name)
+                and workspace.name != normalized_name
+            ):
+                raise ResourceConflictError("Workspace 이름")
             workspace.name = normalized_name
             session.flush()
         return workspace
@@ -285,9 +285,7 @@ class WorkspaceService:
     ) -> MusicProject:
         normalized_title = _required_text(title, "Project 제목")
         normalized_status = _required_text(lifecycle_status, "Project 상태")
-        normalized_description = (
-            description.strip() if description is not None else None
-        )
+        normalized_description = description.strip() if description is not None else None
         try:
             with self.session_factory() as session, session.begin():
                 repository = WorkspaceRepository(session)
@@ -388,9 +386,7 @@ class WorkspaceService:
             if title is not None:
                 normalized_title = _required_text(title, "Project 제목")
                 if (
-                    repository.project_title_exists(
-                        project.workspace_id, normalized_title
-                    )
+                    repository.project_title_exists(project.workspace_id, normalized_title)
                     and project.title != normalized_title
                 ):
                     raise ResourceConflictError("Project 제목")
@@ -398,9 +394,7 @@ class WorkspaceService:
             if description is not None:
                 project.description = description.strip()
             if lifecycle_status is not None:
-                project.lifecycle_status = _required_text(
-                    lifecycle_status, "Project 상태"
-                )
+                project.lifecycle_status = _required_text(lifecycle_status, "Project 상태")
             session.flush()
         return project
 
@@ -467,9 +461,7 @@ class WorkspaceService:
                 raise ResourceNotFoundError("MusicProject")
             if asset_repository.get_asset(asset_id) is None:
                 raise ResourceNotFoundError("Asset")
-            project_asset = workspace_repository.find_project_asset(
-                project_id, asset_id
-            )
+            project_asset = workspace_repository.find_project_asset(project_id, asset_id)
             if project_asset is None:
                 raise ResourceNotFoundError("ProjectAsset")
             workspace_repository.remove_project_asset(project_asset)
@@ -495,9 +487,7 @@ class WorkspaceService:
             repository = WorkspaceRepository(session)
             if repository.get_project(project_id) is None:
                 raise ResourceNotFoundError("MusicProject")
-            return repository.list_project_assets(
-                project_id, limit=limit, offset=offset
-            )
+            return repository.list_project_assets(project_id, limit=limit, offset=offset)
 
     def list_project_asset_page(
         self,
@@ -563,7 +553,7 @@ class WorkspaceService:
             last_item = items[-1]
             next_cursor = self._require_cursor_codec().encode(
                 resource=resource,
-                last_created_at=getattr(last_item, "created_at"),
+                last_created_at=last_item.created_at,
                 last_id=getattr(last_item, id_attribute),
                 filter_hash=filter_hash,
                 limit=limit,
@@ -602,10 +592,7 @@ class WorkspaceService:
 
     @staticmethod
     def _validate_asset_scope(project: MusicProject, asset: Asset) -> None:
-        if (
-            asset.workspace_id is not None
-            and asset.workspace_id != project.workspace_id
-        ):
+        if asset.workspace_id is not None and asset.workspace_id != project.workspace_id:
             raise ApplicationValidationError(
                 "Asset과 Project의 Workspace 범위가 일치하지 않습니다."
             )

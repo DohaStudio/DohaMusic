@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 from fastapi import FastAPI, Request, Response
 
 from backend.core.exceptions import AppError
+from backend.models.workspace import Workspace
 from backend.services.workspace import (
     ArtifactApplicationService,
     AssetService,
@@ -16,7 +17,6 @@ from backend.services.workspace import (
     JobService,
     WorkspaceService,
 )
-from backend.models.workspace import Workspace
 
 REQUEST_ID_HEADER = "X-Request-ID"
 _REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:-]{7,127}$")

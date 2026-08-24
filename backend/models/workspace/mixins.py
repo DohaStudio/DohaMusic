@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column
@@ -11,7 +11,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 def utc_now() -> datetime:
     """UTC 기준 현재 시각을 반환한다."""
 
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class CreatedAtMixin:

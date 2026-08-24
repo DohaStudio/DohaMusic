@@ -6,7 +6,7 @@ import base64
 import hashlib
 import hmac
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -36,7 +36,7 @@ from backend.models.workspace import (
 from backend.services.workspace import WorkspaceService
 
 TEST_KEY = "project-asset-cursor-signing-key-with-32-bytes"
-CREATED_AT = datetime(2026, 8, 7, 6, 0, tzinfo=timezone.utc)
+CREATED_AT = datetime(2026, 8, 7, 6, 0, tzinfo=UTC)
 
 
 @pytest.fixture
@@ -146,9 +146,7 @@ def _seed_pages(session_factory):
     second_workspace = _workspace(2)
     first_project = _project(first_workspace.workspace_id, 101)
     second_project = _project(second_workspace.workspace_id, 201)
-    first_assets = [
-        _asset(first_workspace.workspace_id, 1_000 + item) for item in range(7)
-    ]
+    first_assets = [_asset(first_workspace.workspace_id, 1_000 + item) for item in range(7)]
     second_asset = _asset(second_workspace.workspace_id, 2_000)
     links = [
         _link(first_project.project_id, first_assets[0].asset_id, 301, 0),
@@ -236,9 +234,7 @@ def test_project_asset_codec_round_trip_uses_resource_specific_payload() -> None
         ("limit", "25"),
     ],
 )
-def test_project_asset_codec_rejects_invalid_signed_payload(
-    field: str, value: object
-) -> None:
+def test_project_asset_codec_rejects_invalid_signed_payload(field: str, value: object) -> None:
     project_id = uuid4()
     payload = _valid_payload(project_id)
     payload[field] = value
@@ -348,15 +344,9 @@ def test_project_asset_page_is_forward_only_across_insert_detach_and_restore(
         role="restored",
         display_order=1,
     )
-    second = service.list_project_asset_page(
-        project.project_id, limit=2, cursor=first.next_cursor
-    )
-    third = service.list_project_asset_page(
-        project.project_id, limit=2, cursor=second.next_cursor
-    )
-    identifiers = [
-        item.project_asset_id for page in (first, second, third) for item in page.items
-    ]
+    second = service.list_project_asset_page(project.project_id, limit=2, cursor=first.next_cursor)
+    third = service.list_project_asset_page(project.project_id, limit=2, cursor=second.next_cursor)
+    identifiers = [item.project_asset_id for page in (first, second, third) for item in page.items]
 
     assert restored.project_asset_id == links[2].project_asset_id
     assert identifiers == [UUID(int=item) for item in range(301, 306)]

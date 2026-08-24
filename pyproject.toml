@@ -24,7 +24,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0,<9.0",
-  "ruff>=0.12,<1.0",
+  "ruff==0.16.4",
 ]
 
 [tool.setuptools.packages.find]
@@ -41,3 +41,24 @@ markers = [
   "external: requires explicit external service opt-in",
   "paid: may incur external API charges",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# These executable scripts add the repository root to sys.path before importing
+# first-party modules, so their imports must intentionally follow bootstrap code.
+"ai_worker/scripts/compare_audio_outputs.py" = ["E402"]
+"ai_worker/scripts/run_ace_step_benchmark.py" = ["E402"]
+"ai_worker/scripts/run_demucs_benchmark.py" = ["E402"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+skip-magic-trailing-comma = false
+docstring-code-format = false

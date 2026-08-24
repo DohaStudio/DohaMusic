@@ -108,20 +108,17 @@ def _pragma_scalar(connection: sqlite3.Connection, pragma: str) -> Any:
 
 def _table_names(connection: sqlite3.Connection) -> set[str]:
     rows = connection.execute(
-        "SELECT name FROM sqlite_master "
-        "WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
+        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
     ).fetchall()
     return {str(row[0]) for row in rows}
 
 
-def _row_counts(
-    connection: sqlite3.Connection, table_names: set[str]
-) -> dict[str, int]:
+def _row_counts(connection: sqlite3.Connection, table_names: set[str]) -> dict[str, int]:
     return {
         table_name: int(
-            connection.execute(
-                f"SELECT COUNT(*) FROM {_quote_identifier(table_name)}"
-            ).fetchone()[0]
+            connection.execute(f"SELECT COUNT(*) FROM {_quote_identifier(table_name)}").fetchone()[
+                0
+            ]
         )
         for table_name in sorted(table_names)
     }
@@ -130,9 +127,7 @@ def _row_counts(
 def _actual_columns(
     connection: sqlite3.Connection, table_name: str
 ) -> dict[str, dict[str, object]]:
-    rows = connection.execute(
-        f"PRAGMA table_info({_quote_identifier(table_name)})"
-    ).fetchall()
+    rows = connection.execute(f"PRAGMA table_info({_quote_identifier(table_name)})").fetchall()
     return {
         str(row["name"]): {
             "type": str(row["type"]).upper(),
@@ -166,9 +161,7 @@ def _actual_foreign_keys(
         grouped[int(row["id"])].append(row)
     return {
         (
-            tuple(
-                str(row["from"]) for row in sorted(rows, key=lambda item: item["seq"])
-            ),
+            tuple(str(row["from"]) for row in sorted(rows, key=lambda item: item["seq"])),
             str(rows[0]["table"]),
             tuple(str(row["to"]) for row in sorted(rows, key=lambda item: item["seq"])),
             str(rows[0]["on_delete"]).upper(),
@@ -193,18 +186,12 @@ def _expected_foreign_keys(
 
 
 def _actual_index_names(connection: sqlite3.Connection, table_name: str) -> set[str]:
-    rows = connection.execute(
-        f"PRAGMA index_list({_quote_identifier(table_name)})"
-    ).fetchall()
+    rows = connection.execute(f"PRAGMA index_list({_quote_identifier(table_name)})").fetchall()
     return {str(row["name"]) for row in rows if str(row["origin"]).lower() == "c"}
 
 
 def _expected_index_names(table_name: str) -> set[str]:
-    return {
-        str(index.name)
-        for index in Base.metadata.tables[table_name].indexes
-        if index.name
-    }
+    return {str(index.name) for index in Base.metadata.tables[table_name].indexes if index.name}
 
 
 def inspect_schema_drift(
@@ -275,9 +262,7 @@ def inspect_schema_drift(
     }
 
 
-def collect_inventory(
-    database_path: Path, *, read_approved: bool = False
-) -> dict[str, object]:
+def collect_inventory(database_path: Path, *, read_approved: bool = False) -> dict[str, object]:
     """명시적 SQLite 파일을 read-only로 열어 data 내용 없이 상태를 집계한다."""
 
     if not read_approved:
@@ -287,19 +272,11 @@ def collect_inventory(
         table_names = _table_names(connection)
         alembic_revision = None
         if "alembic_version" in table_names:
-            row = connection.execute(
-                "SELECT version_num FROM alembic_version LIMIT 1"
-            ).fetchone()
+            row = connection.execute("SELECT version_num FROM alembic_version LIMIT 1").fetchone()
             alembic_revision = None if row is None else str(row[0])
-        integrity_results = [
-            str(row[0]) for row in connection.execute("PRAGMA integrity_check")
-        ]
-        quick_results = [
-            str(row[0]) for row in connection.execute("PRAGMA quick_check")
-        ]
-        foreign_key_violations = len(
-            connection.execute("PRAGMA foreign_key_check").fetchall()
-        )
+        integrity_results = [str(row[0]) for row in connection.execute("PRAGMA integrity_check")]
+        quick_results = [str(row[0]) for row in connection.execute("PRAGMA quick_check")]
+        foreign_key_violations = len(connection.execute("PRAGMA foreign_key_check").fetchall())
         drift = inspect_schema_drift(connection, table_names)
         pragmas = {
             "application_id": int(_pragma_scalar(connection, "application_id") or 0),
@@ -395,17 +372,14 @@ def create_verified_backup(
     destination = destination.expanduser().resolve()
     if destination.exists():
         raise PreflightError(f"backup 대상이 이미 존재합니다: {mask_path(destination)}")
-    required_free_bytes = max(
-        int(source_inventory["file_size_bytes"]) * 3, MINIMUM_FREE_BYTES
-    )
+    required_free_bytes = max(int(source_inventory["file_size_bytes"]) * 3, MINIMUM_FREE_BYTES)
     free_bytes = shutil.disk_usage(_nearest_existing_parent(destination.parent)).free
     if free_bytes < required_free_bytes:
         raise PreflightError("backup root의 여유 공간이 사전 점검 기준보다 부족합니다.")
     destination.parent.mkdir(parents=True, exist_ok=True)
 
-    with _read_only_connection(source_path) as source:
-        with sqlite3.connect(destination) as target:
-            source.backup(target)
+    with _read_only_connection(source_path) as source, sqlite3.connect(destination) as target:
+        source.backup(target)
 
     inventory = collect_inventory(destination, read_approved=True)
     if inventory["integrity_check"] != ["ok"]:
@@ -415,9 +389,7 @@ def create_verified_backup(
         or inventory["table_count"] != source_inventory["table_count"]
         or inventory["row_counts"] != source_inventory["row_counts"]
     ):
-        raise PreflightError(
-            f"backup schema 또는 row count 불일치: {mask_path(destination)}"
-        )
+        raise PreflightError(f"backup schema 또는 row count 불일치: {mask_path(destination)}")
     return {
         "backup": inventory["database"],
         "created": True,
