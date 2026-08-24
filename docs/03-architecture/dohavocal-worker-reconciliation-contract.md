@@ -3,7 +3,7 @@
 > 문서 상태: [승인: 구현 전 authoritative contract]
 > 기준: DohaMusic `f6a727abddb6df5ca4a46173bd4a04b88ca60c65`
 > 구현 상태: Workspace Worker·HTTP Transport·Provider Job Persistence·Result Ingestion·Trusted Payload process-local Foundation·Completion UoW는 각각 격리 구현, concrete wiring은 [미구현]
-> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md)
+> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-045](../11-decisions/ADR-045-durable-execution-handoff-authority.md)
 
 ## 1. 범위와 핵심 결정
 
@@ -39,7 +39,7 @@ Provider `succeeded`는 Provider 실행 완료만 뜻한다. Workspace `succeede
 - 현재 구현에서 Provider가 전체 polling deadline에도 nonterminal이면 Dispatcher는 `TIMED_OUT`을 반환하고 Worker는 retryable failure로 종료한다. 만료 lease도 `WORKER_LEASE_EXPIRED`로 종료하며 same-Job reclaim은 아직 구현되지 않았다.
 - 목표 lifecycle은 [Workspace Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)의 `LEASE_EXPIRY_RECLAIMABLE`이다. replay-safe Provider-backed Job은 bounded deadline에 실패하지 않고 명시적으로 claim을 yield하며, yielded 또는 expired `running` claim은 새 token으로 atomic reclaim한다.
 - latest binding은 poll 후보를 찾는 수단일 뿐 active/terminal authority가 아니다. binding이 있으면 Provider Runtime을 다시 조회하고 exact binding과 claim ownership을 재검증한다. binding이 없을 때만 동일 key/fingerprint Create replay를 허용한다.
-- 이 결정으로 `DURABLE_EXECUTION_HANDOFF_REQUIRED`의 same-Job lifecycle 선행 blocker는 해소되었고 분석을 재개할 수 있다. reclaim runtime과 production locator가 구현됐다는 뜻은 아니며, 새 handoff storage 불필요 결론도 아직 확정하지 않는다.
+- same-Job lifecycle 선행 blocker는 해소되었고 [Durable Execution Handoff Analysis](durable-execution-handoff-analysis.md)는 locator 전 Provider execution·Result validation에 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`를 확정했다. reclaim Runtime과 production locator가 구현됐다는 뜻은 아니다.
 
 ## 4. Provider Create와 idempotency
 

@@ -48,6 +48,7 @@
 | [ADR-042](ADR-042-v1-local-operator-authentication-foundation.md) | V1 local operator proof mechanism과 fail-closed authentication foundation | 승인, concrete OS adapter 미구현 |
 | [ADR-043](ADR-043-doha-vocal-worker-reconciliation-authority.md) | DohaVocal Worker의 Provider success·lease·payload·retry·Completion reconciliation 권위 | 승인, concrete wiring 미구현 |
 | [ADR-044](ADR-044-workspace-worker-reentry-lifecycle-authority.md) | Workspace Worker same-Job yield·expired reclaim·claim transfer 권위 | 승인, runtime 미구현 |
+| [ADR-045](ADR-045-durable-execution-handoff-authority.md) | locator 전 Durable Execution Handoff storage 불필요 판정 | 승인, runtime 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -61,6 +62,7 @@
 - [ADR-042 — V1 Local Operator Authentication Foundation](ADR-042-v1-local-operator-authentication-foundation.md): Windows WebAuthn platform credential mechanism을 선택하고 provider-independent contract·Fake·fail-closed bootstrap을 승인하되 concrete OS adapter와 production activation은 보류한다.
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): Provider success와 Workspace completion을 분리하고 lease·idempotency·payload·role·retry·crash recovery 권위를 확정한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): replay-safe Provider-backed Job의 `LEASE_EXPIRY_RECLAIMABLE`, claim token transfer와 retry 경계를 확정한다.
+- [ADR-045 — Durable Execution Handoff Authority](ADR-045-durable-execution-handoff-authority.md): 기존 Job·Provider binding·deterministic replay로 locator 전 same-Job resume을 재구성하며 새 handoff storage가 불필요함을 확정한다.
 
 ## Workspace 데이터베이스
 
@@ -84,6 +86,7 @@
 - [ADR-041 — Trusted Payload Locator Authority](ADR-041-trusted-payload-locator-authority.md): Provider path·URI를 배제하고 DohaMusic runtime만 발급하는 opaque locator와 trusted staging resolver 경계를 승인한다.
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): metadata-only success 이후의 `running` 상태, bounded lease ownership, payload reconciliation과 Completion replay를 승인한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): 공개 상태 추가 없이 graceful yield와 expired `running` claim의 atomic same-Job reclaim을 승인한다.
+- [ADR-045 — Durable Execution Handoff Authority](ADR-045-durable-execution-handoff-authority.md): Provider execution·Result validation 복구에는 기존 authority가 충분하고 payload locator는 별도 dependency임을 확정한다.
 
 ## Phase 6.5
 

@@ -5,11 +5,17 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-24
+> 최종 수정일: 2026-08-25
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 — Durable Execution Handoff authority 확정
+
+- 최신 `develop`의 Workspace Job·ProviderJobBinding·Provider replay·Result trust gate·Completion authority를 다시 분류하고 17개 crash/restart case를 판정했다.
+- ADR-045에서 locator 전 Provider execution·Result validation은 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`로 확정했다. 새 entity/field, schema와 Alembic은 필요하지 않으며 다음 dependency는 `DURABLE_LOCATOR_REQUIRED`다.
+- CURRENT reclaim Runtime은 계속 미구현이다. Python·DB·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
 
 ### 문서 — Workspace Worker Re-entry Lifecycle Authority
 
