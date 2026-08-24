@@ -3,7 +3,7 @@
 > 문서 상태: [승인: 구현 전 authoritative contract]
 > 기준: DohaMusic `f6a727abddb6df5ca4a46173bd4a04b88ca60c65`
 > 구현 상태: Workspace Worker·HTTP Transport·Provider Job Persistence·Result Ingestion·Trusted Payload process-local Foundation·Completion UoW는 각각 격리 구현, concrete wiring은 [미구현]
-> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md)
+> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md)
 
 ## 1. 범위와 핵심 결정
 
@@ -36,10 +36,10 @@ Provider `succeeded`는 Provider 실행 완료만 뜻한다. Workspace `succeede
 - claim한 Worker invocation이 Workspace 실행 lease의 유일한 owner다. Provider 호출·polling·payload acquisition 동안에도 활성 실행 소유권은 heartbeat로 연장한다.
 - network 또는 파일 I/O 동안 DB transaction을 열어 두지 않는다. claim, heartbeat, binding persistence와 Completion은 각각 Service가 소유한 짧은 transaction이다.
 - polling은 request timeout, poll interval과 전체 invocation deadline을 분리한 bounded loop여야 한다. 각 외부 호출 전후에 취소와 lease 유효성을 확인한다.
-- Provider가 전체 polling deadline에도 nonterminal이면 Dispatcher는 기존 `TIMED_OUT` 결과를 반환하고 Worker는 Workspace Job을 retryable failure로 종료한다. Provider retry나 새 Workspace Job을 자동 생성하지 않는다.
-- 현재 구현은 만료 lease를 `WORKER_LEASE_EXPIRED` retryable failure로 종료하며 같은 Job을 자동 재queue하지 않는다. 따라서 Worker가 Provider `running` 상태에서 자발적으로 lease를 놓고 나중 invocation이 같은 Job을 안전하게 이어받는다고 가정할 수 없다.
-- 장시간 실행을 lease 사이에서 이어받거나 process restart 뒤 `running` Job을 재개하려면 `DURABLE_EXECUTION_HANDOFF_REQUIRED`다. 그 전 concrete wiring은 한 invocation 안의 bounded polling만 지원한다고 표시해야 한다.
-- 재진입 기능이 도입되면 latest binding은 poll 후보를 찾는 수단일 뿐 active/terminal authority가 아니다. Provider Runtime을 다시 조회하고 exact binding과 claim ownership을 재검증해야 한다.
+- 현재 구현에서 Provider가 전체 polling deadline에도 nonterminal이면 Dispatcher는 `TIMED_OUT`을 반환하고 Worker는 retryable failure로 종료한다. 만료 lease도 `WORKER_LEASE_EXPIRED`로 종료하며 same-Job reclaim은 아직 구현되지 않았다.
+- 목표 lifecycle은 [Workspace Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)의 `LEASE_EXPIRY_RECLAIMABLE`이다. replay-safe Provider-backed Job은 bounded deadline에 실패하지 않고 명시적으로 claim을 yield하며, yielded 또는 expired `running` claim은 새 token으로 atomic reclaim한다.
+- latest binding은 poll 후보를 찾는 수단일 뿐 active/terminal authority가 아니다. binding이 있으면 Provider Runtime을 다시 조회하고 exact binding과 claim ownership을 재검증한다. binding이 없을 때만 동일 key/fingerprint Create replay를 허용한다.
+- 이 결정으로 `DURABLE_EXECUTION_HANDOFF_REQUIRED`의 same-Job lifecycle 선행 blocker는 해소되었고 분석을 재개할 수 있다. reclaim runtime과 production locator가 구현됐다는 뜻은 아니며, 새 handoff storage 불필요 결론도 아직 확정하지 않는다.
 
 ## 4. Provider Create와 idempotency
 
@@ -113,14 +113,14 @@ Artifact prepare 뒤 DB commit 전 crash 또는 DB failure는 commit되지 않�
 |---|---|---|
 | Create 확인 전 transport timeout | Worker + Provider idempotency | 같은 key·fingerprint로 Create replay |
 | Create conflict/replay | Provider idempotency | exact 동일 identity만 재사용, mismatch fail closed |
-| Provider running deadline | Worker | `TIMED_OUT`으로 Workspace Job retryable failure; 자동 inference 재실행 금지, lease 간 resume는 durable handoff 전 미구현 |
+| Provider running deadline | Worker | CURRENT는 `TIMED_OUT` failure; TARGET은 binding 보존·graceful yield 뒤 same-Job reclaim, 자동 inference 재실행 금지 |
 | Provider retryable failure | Worker policy + Provider | 명시적 bounded Provider retry만 새 binding으로 append; Workspace retry와 혼합 금지 |
 | Result trust failure | Workspace trust gate | 비재시도 fail closed |
 | Locator unavailable/expired | Reconciliation | 동일 identity·immutable payload 재검증 가능할 때만 payload retry |
 | Download failure | Payload layer | acquisition만 bounded retry, Provider 재실행 금지 |
 | Checksum mismatch | Security / ingestion | 비재시도 fail closed, staging 격리·정리 |
 | Completion DB failure | Completion UoW | 같은 resolved payload로 replay |
-| Worker crash | Lease / recovery | 현재는 lease expiry failure; durable handoff 구현 뒤에만 same-Job resume |
+| Worker crash | Lease / recovery | CURRENT는 lease expiry failure; TARGET은 replay-safe Job의 expired claim atomic reclaim |
 
 Provider retry 횟수와 정책은 future configuration dependency다. 자동 Workspace Job 생성 또는 무제한 Provider retry는 허용하지 않는다.
 
@@ -139,12 +139,12 @@ Provider retry 횟수와 정책은 future configuration dependency다. 자동 Wo
 
 | Crash point | Persisted authority | Next Worker action | Provider call replay | Duplicate risk / cleanup owner |
 |---|---|---|---|---|
-| claim 직후 | `running`, claim·lease | 현재는 expiry failure; durable handoff 뒤 claim 검증 | binding 없으면 같은-key Create | Provider side effect 없음 / Worker |
+| claim 직후 | `running`, claim·lease | CURRENT는 expiry failure; TARGET은 lease 뒤 atomic reclaim | binding 없으면 같은-key Create replay | Provider side effect 없음 / Worker |
 | Create 요청 전 | binding 없음 | same request dispatch | 허용 | 없음 / Worker |
 | Create 송신 뒤 응답 전 | binding 없음, Provider 결과 불명 | same-key·same-fingerprint Create replay | 필수 | Provider idempotency가 duplicate 방지 / Provider |
 | Create 응답 수신 뒤 binding commit 전 | binding 없음, Provider identity 외부 존재 | replay로 identity 회수 후 binding create | 필수 | 새 Provider Job 금지 / Worker·Provider |
 | binding commit 뒤 | binding history 존재 | latest exact binding status 조회 | Create 금지 | active 선택 직렬화 / Worker |
-| Provider running 중 | binding 존재, Workspace `running` | 현재 expiry failure; handoff 뒤 same binding poll | Create 금지 | inference 재실행 금지 / Worker |
+| Provider running 중 | binding 존재, Workspace `running` | CURRENT는 expiry failure; TARGET은 yield/expiry reclaim 뒤 same binding poll | Create 금지 | inference 재실행 금지 / Worker |
 | Provider success 뒤 Result fetch 전 | Provider terminal, binding 존재 | status와 result 재조회 | Create 금지 | Result read replay / Provider |
 | Result ingestion 뒤 locator 전 | trusted metadata는 비영속 decision | Result trust gate 재실행 | Create 금지 | side effect 없음 / Workspace |
 | locator 발급 뒤 | process-local이면 restart 복구 불가 | durable locator가 있을 때 exact record resolve | Create 금지 | locator 중복 방지 / Reconciliation |

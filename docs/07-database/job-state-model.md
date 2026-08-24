@@ -40,6 +40,6 @@ stateDiagram-v2
 
 Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분하며, lease 만료 running Job은 자동으로 queued에 되돌리지 않고 retryable failure로 종료한다.
 
-terminal Job은 불변이다. atomic claim은 queued→running과 token·Worker·lease·heartbeat·attempt 증가를 함께 확정하고, lease 만료는 같은 row를 재queue하지 않고 `WORKER_LEASE_EXPIRED` retryable failure로 종료한다. heartbeat와 recovery는 lease 값을 조건에 포함해 stale snapshot 경쟁을 차단한다.
+terminal Job은 불변이다. atomic claim은 queued→running과 token·Worker·lease·heartbeat·attempt 증가를 함께 확정한다. CURRENT runtime은 lease 만료를 같은 row의 재queue 없이 `WORKER_LEASE_EXPIRED` retryable failure로 종료한다. TARGET은 [Workspace Worker Re-entry Lifecycle](../03-architecture/workspace-worker-reentry-lifecycle.md)에 등록된 replay-safe Provider Job만 expired `running` claim을 새 token으로 CAS reclaim하며, heartbeat와 recovery는 lease 값을 조건에 포함해 stale snapshot 경쟁을 차단한다.
 
 공식 API는 조회·생성·취소·재시도 action만 제공하며 PATCH·DELETE는 없다. queued 취소는 즉시 `cancelled`를 반환하고 running 취소는 marker만 기록한 실제 `running` 상태와 `202`를 반환한다. retry는 terminal 원본을 바꾸지 않고 frozen lineage를 복제한 새 queued Job을 `202`로 반환한다.

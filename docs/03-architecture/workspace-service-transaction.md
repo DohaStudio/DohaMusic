@@ -93,7 +93,7 @@ stateDiagram-v2
     running --> cancelled
 ```
 
-`succeeded`, `failed`, `cancelled`는 종료 상태다. `succeeded`는 `complete_job_with_outputs`에서 JobOutput 등록과 같은 transaction으로만 확정한다. Provider terminal success와 metadata-only Result는 이 조건을 충족하지 않으며 payload reconciliation 동안 public status는 `running`이다. Retry는 기존 Job 상태를 되돌리지 않고 새 Job을 생성한다. Provider 실행과 Worker dispatch는 이번 계층의 책임이 아니며 상세 경계는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다.
+`succeeded`, `failed`, `cancelled`는 종료 상태다. `succeeded`는 `complete_job_with_outputs`에서 JobOutput 등록과 같은 transaction으로만 확정한다. Provider terminal success와 metadata-only Result는 이 조건을 충족하지 않으며 payload reconciliation 동안 public status는 `running`이다. Retry는 기존 Job 상태를 되돌리지 않고 새 Job을 생성한다. 목표 same-Job reclaim은 공개 상태 변경이 아닌 `running -> running` 내부 ownership transfer이며 Service-owned transaction의 CAS로만 수행한다. Provider network 호출은 그 transaction 밖에 둔다. 상세 경계는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)와 [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)을 따른다.
 
 ## 9. 현재 제외 범위
 

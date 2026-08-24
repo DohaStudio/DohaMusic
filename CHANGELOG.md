@@ -11,11 +11,17 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Workspace Worker Re-entry Lifecycle Authority
+
+- replay-safe Provider-backed Job의 정책을 `LEASE_EXPIRY_RECLAIMABLE`로 정하고 graceful yield, process crash, explicit shutdown, Provider/payload wait를 구분했다.
+- 공개 다섯 상태와 기존 claim·lease·heartbeat·attempt·stage 필드만으로 `running -> running` atomic ownership transfer, old token 무효화, cancel·Completion race와 binding-first resume를 ADR-044에 확정했다.
+- 현재 runtime의 `WORKER_LEASE_EXPIRED` failure는 후속 구현 전까지 유지한다. Python·schema·Alembic·API·Frontend·Provider wiring은 변경하지 않았고 durable execution handoff 분석만 재개 가능 상태로 전환했다.
+
 ### 문서 — DohaVocal Worker Reconciliation Contract
 
 - Provider `succeeded`와 Workspace `succeeded`를 분리하고 metadata-only 결과의 `running` 유지, 내부 `stage`, lease·bounded polling·cancel·retry ownership을 authoritative contract와 ADR-043으로 확정했다.
 - same-key Provider Create replay, 1:N binding append, mandatory Result trust gate, DohaMusic-owned payload reconciliation, candidate→Workspace role mapping, Completion eligibility·replay와 12개 crash/restart case를 문서화했다.
-- 장시간 same-Job resume와 production payload 복구는 각각 `DURABLE_EXECUTION_HANDOFF_REQUIRED`, `DURABLE_LOCATOR_REQUIRED`로 구분했다. Python·DB schema·Alembic·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
+- 당시 장시간 same-Job resume와 production payload 복구를 각각 `DURABLE_EXECUTION_HANDOFF_REQUIRED`, `DURABLE_LOCATOR_REQUIRED`로 구분했다. 전자의 lifecycle 선행 결정은 후속 ADR-044가 확정했으며 실제 reclaim 구현은 남아 있다. Python·DB schema·Alembic·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
 
 ### 추가 — Clip Domain Persistence Foundation
 

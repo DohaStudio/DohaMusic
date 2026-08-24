@@ -37,11 +37,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
-| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract·HTTP Transport·metadata Result trust gate·Trusted Payload resolver Foundation 구현, Worker reconciliation 계약 확정, concrete wiring·downloader·durable locator·Completion adapter·실제 payload/model 미구현 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract·HTTP Transport·metadata Result trust gate·Trusted Payload resolver Foundation 구현, Worker reconciliation·re-entry lifecycle 계약 확정, reclaim runtime·concrete wiring·downloader·durable locator·Completion adapter·실제 payload/model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport·metadata-only Result trust gate, DohaMusic-owned Trusted Payload locator/issuer/resolver Foundation은 구현했고 [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md)을 확정했다. concrete Worker wiring·인증·downloader·durable locator·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport·metadata-only Result trust gate, DohaMusic-owned Trusted Payload locator/issuer/resolver Foundation은 구현했고 [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md)과 [Worker Re-entry Lifecycle](docs/03-architecture/workspace-worker-reentry-lifecycle.md)을 확정했다. atomic reclaim runtime·concrete Worker wiring·인증·downloader·durable locator·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
 
 ## AI-native DAW 제품 전환 상태
 
