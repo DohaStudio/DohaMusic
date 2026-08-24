@@ -2,17 +2,17 @@
 
 > 문서 상태: [진행 중]
 > 문서 분류: **TRANSITION / PARTIALLY IMPLEMENTED**
-> 최종 수정일: 2026-08-21
+> 최종 수정일: 2026-08-24
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 완료된 전환 기반: source Workspace 도메인 Entity/Table 23개·Catalog 1개, revisions `0012`~`0019`, Bootstrap exact revision·D1 Transition Gate
+> 완료된 전환 기반: source Workspace 도메인 Entity/Table 28개·Catalog 1개, revisions `0012`~`0020`, Bootstrap exact revision·D1 Transition Gate
 > 미구현 전환: 실제 DB migration·Bootstrap·data backfill·dual write·Runtime read source 전환·Legacy 제거·파일 이동
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head는 Provider Job binding을 추가한 `20260821_0019`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `20260820_0018`은 nullable-safe `project_composition_selections`, same-Project 복합 FK와 aggregate Artifact 정렬 Index를 추가하고, `0019`는 Provider Job 1:N identity history Table을 추가합니다. 두 revision 모두 기존 row backfill이 없습니다. backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head는 Clip persistence를 추가한 `20260824_0020`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `20260820_0018`은 nullable-safe `project_composition_selections`, `0019`는 Provider Job 1:N identity history, `0020`은 mutable WorkingComposition·Track·Clip과 immutable SnapshotTrack·SnapshotClip Table을 추가합니다. 세 revision 모두 기존 row backfill과 SnapshotItem rewrite가 없습니다. backfill·dual write가 없으므로 Runtime Table 14개가 계속 source of truth입니다.
 
-명시적 Bootstrap CLI의 fail-closed revision Gate는 source `20260821_0019`와 D1 selection Table·PK·unique·same-Project FK·Snapshot identity Index를 정확히 요구합니다. 실제 사용자 DB `20260810_0017`에는 migration을 적용하지 않았으므로 현재 Bootstrap 대상이 아닙니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
+명시적 Bootstrap CLI의 fail-closed revision Gate는 source `20260824_0020`과 D1 selection Table·PK·unique·same-Project FK·Snapshot identity Index를 정확히 요구합니다. 실제 사용자 DB `20260810_0017`에는 migration을 적용하지 않았으므로 현재 Bootstrap 대상이 아닙니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
 
 D1-Transition의 persistence 조사에서는 Legacy `projects`, Workspace, Composition, Job과 bootstrap metadata 어디에도 project-level selected Snapshot을 뜻하는 명시적 권한이 없었습니다. Job의 `composition_snapshot_id`는 개별 작업 입력 고정값이므로 selection authority가 아닙니다. 공식 결과는 `NO_PREEXISTING_SELECTION_AUTHORITY`이며 selection backfill 예상·실행 row는 0입니다. Snapshot 수와 created/version/ID 정렬은 권한으로 승격하지 않습니다.
 

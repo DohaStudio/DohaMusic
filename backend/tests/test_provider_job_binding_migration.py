@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260821_0019"
 PREVIOUS_REVISION = "20260820_0018"
 TABLE = "provider_job_bindings"
+SOURCE_HEAD = "20260824_0020"
 
 
 def _config(database_url: str) -> Config:
@@ -98,9 +99,9 @@ def _seed_existing_job(database_url: str) -> str:
 
 def test_provider_job_binding_metadata_matches_revision() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert len(Base.metadata.tables) == 38
+    assert len(Base.metadata.tables) == 43
 
     table = Base.metadata.tables[TABLE]
     assert {column.name for column in table.columns} == {

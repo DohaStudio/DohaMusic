@@ -7,7 +7,7 @@
 
 ## 1. 목적
 
-Workspace Entity 23개를 사용하는 Application Use Case와 transaction 경계를 정의한다. 기존 Runtime Repository·Service·API는 변경하지 않는다.
+Workspace Entity 28개를 사용하는 Application Use Case와 transaction 경계를 정의한다. Clip persistence Repository도 같은 Service-owned transaction 원칙을 따르며 기존 Runtime Repository·Service·API는 변경하지 않는다.
 
 ## 2. Service 구성
 

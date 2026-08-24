@@ -2,9 +2,9 @@
 
 > 문서 상태: [진행 중]
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-24
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace 도메인 Entity/Table 23개·Catalog 1개·Provider Job binding revision `0019` 적용
+> 구현 상태: Workspace 도메인 Entity/Table 28개·Catalog 1개·Clip persistence revision `0020` 구현
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 
@@ -211,7 +211,89 @@ SnapshotItem은 Snapshot 안의 역할별 정확한 AssetVersion을 고정합니
 
 `(composition_snapshot_id, item_role, sort_order)`와 `(composition_snapshot_id, asset_version_id, item_role)`는 Unique입니다. Snapshot과 함께 불변입니다.
 
-### 4.4 `processing_chains`
+### 4.4 `working_compositions`
+
+Project마다 하나인 mutable draft authority입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `working_composition_id` | UUID | 아니요 | PK | 서버 발급 draft identity |
+| `project_id` | UUID | 아니요 | FK, Unique | `music_projects.project_id` |
+| `base_composition_snapshot_id` | UUID | 예 | 복합 FK, Index | 같은 Project의 base Snapshot |
+| `mix_settings` | json | 아니요 |  | Repository에서 8,192 UTF-8 bytes로 제한한 설정 object |
+| `revision` | integer | 아니요 | Check | 0 이상 optimistic concurrency token |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `updated_at` | timestamp | 아니요 |  | 최종 mutation 시각 |
+
+`(project_id, base_composition_snapshot_id)` 복합 FK가 same-Project를 보장합니다. Repository의 expected revision update는 일치할 때만 정확히 1 증가하며 commit/rollback은 호출하지 않습니다.
+
+### 4.5 `composition_tracks`
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `track_id` | UUID | 아니요 | PK | canonical Track identity |
+| `working_composition_id` | UUID | 아니요 | FK, Unique 조합 | 소유 WorkingComposition |
+| `track_type` | string | 아니요 | Check | V1 allowlist `audio` |
+| `name` | string | 아니요 |  | 표시 이름 |
+| `track_order` | integer | 아니요 | Check, active Unique | 0 이상 Track 순서 |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `updated_at` | timestamp | 아니요 |  | 수정 시각 |
+| `deleted_at` | timestamp | 예 | Index | tombstone 시각 |
+
+active row의 `(working_composition_id, track_order)`는 partial Unique입니다. canonical 조회는 `(track_order, track_id)`입니다.
+
+### 4.6 `composition_clips`
+
+시간값은 모두 exact integer microseconds입니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `clip_id` | UUID | 아니요 | PK | canonical Clip identity |
+| `working_composition_id` | UUID | 아니요 | FK, 복합 FK | 소유·same-composition key |
+| `track_id` | UUID | 아니요 | 복합 FK | 같은 WorkingComposition의 Track |
+| `source_asset_version_id` | UUID | 아니요 | FK, Index | exact source AssetVersion |
+| `timeline_start` | bigint | 아니요 | Check | 0 이상 Timeline 시작 μs |
+| `source_in` | bigint | 아니요 | Check | 0 이상 source 시작 μs |
+| `source_out` | bigint | 아니요 | Check | `source_in`보다 큰 끝 μs |
+| `source_duration` | bigint | 아니요 | Check | 양수이며 `source_out` 이상인 고정 source 길이 μs |
+| `split_from_clip_id` | UUID | 예 | same-composition FK, Index | immediate split parent identity |
+| `created_at` | timestamp | 아니요 |  | 생성 시각 |
+| `updated_at` | timestamp | 아니요 |  | 수정 시각 |
+| `deleted_at` | timestamp | 예 | Index | tombstone 시각 |
+
+같은 Track active overlap은 Repository의 반개구간 helper가 거부하고 인접 `[end == start]`는 허용합니다. 최종 mutation race 방어와 Asset 활성·Owner·Workspace·ProjectAsset·audio eligibility·Artifact duration probe는 후속 Service가 transaction 안에서 강제해야 합니다.
+
+### 4.7 `composition_snapshot_tracks`
+
+불변 Snapshot의 frozen Track arrangement입니다. `(snapshot, canonical_track_id)`와 `(snapshot, track_order)`가 Unique이며 mutable Track을 FK로 참조하지 않습니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `snapshot_track_id` | UUID | 아니요 | PK, snapshot-local Unique | frozen row identity |
+| `composition_snapshot_id` | UUID | 아니요 | FK | 불변 Snapshot |
+| `canonical_track_id` | UUID | 아니요 | Unique 조합 | 복사된 lineage identity |
+| `track_type` | string | 아니요 | Check | frozen `audio` |
+| `name` | string | 아니요 |  | frozen 이름 |
+| `track_order` | integer | 아니요 | Check, Unique 조합 | frozen 순서 |
+
+### 4.8 `composition_snapshot_clips`
+
+불변 Snapshot의 frozen Clip arrangement이며 mutable Clip을 FK로 참조하지 않습니다.
+
+| Field | Type | Null | Key | 설명 |
+|---|---|---:|---|---|
+| `snapshot_clip_id` | UUID | 아니요 | PK | frozen row identity |
+| `composition_snapshot_id` | UUID | 아니요 | FK, 복합 FK | 소유 Snapshot |
+| `snapshot_track_id` | UUID | 아니요 | 복합 FK | 같은 Snapshot의 Track |
+| `canonical_clip_id` | UUID | 아니요 | Unique 조합 | 복사된 Clip lineage |
+| `source_asset_version_id` | UUID | 아니요 | FK, Index | exact source AssetVersion |
+| `timeline_start` | bigint | 아니요 | Check | frozen Timeline μs |
+| `source_in` | bigint | 아니요 | Check | frozen source 시작 μs |
+| `source_out` | bigint | 아니요 | Check | frozen source 끝 μs |
+| `source_duration` | bigint | 아니요 | Check | frozen source 길이 μs |
+| `split_from_clip_id` | UUID | 예 |  | frozen parent lineage 값 |
+
+### 4.9 `processing_chains`
 
 ProcessingChain은 순서가 있는 처리 정의입니다.
 
@@ -226,7 +308,7 @@ ProcessingChain은 순서가 있는 처리 정의입니다.
 
 `(name, chain_version)`은 Unique입니다. 사용된 Chain은 수정하지 않고 새 version을 만듭니다.
 
-### 4.4 `processing_steps`
+### 4.10 `processing_steps`
 
 ProcessingStep은 Chain 안의 개별 처리 단계입니다.
 
@@ -461,6 +543,10 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | Artifact → ArtifactStorageLocation | 1:1, 물리 삭제 제한 |
 | Job → Input·Output·ModelUsage·ProviderJobBinding | 물리 삭제 제한 |
 | ProcessingChain → Step·Version·Snapshot | 물리 삭제 제한 |
+| Project·Snapshot → WorkingComposition | 물리 삭제 제한, same-Project 복합 FK |
+| WorkingComposition → Track·Clip | 물리 삭제 제한, Track·Clip은 tombstone |
+| Track·Clip → Clip ownership·split lineage | 물리 삭제 제한 |
+| Snapshot → SnapshotTrack·SnapshotClip | 물리 삭제 제한, committed history 보존 |
 | RecordingEnrollment·ModelUsage → Approval | 물리 삭제 제한 |
 
 불변·감사 근거에 `CASCADE DELETE`를 사용하지 않습니다. 구현 전에 보존 기간과 개인정보 삭제 의무가 충돌하는 사례를 별도 검증해야 합니다.
@@ -474,6 +560,11 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | `composition_snapshots` | `(project_id, snapshot_version)`, `(project_id, composition_snapshot_id)` | `project_id`, `created_at` |
 | `project_composition_selections` | `selected_composition_snapshot_id` | PK `project_id`, same-Project 복합 FK |
 | `snapshot_items` | `(composition_snapshot_id, item_role, sort_order)` | `asset_version_id` |
+| `working_compositions` | `project_id` | `base_composition_snapshot_id` |
+| `composition_tracks` | `(working_composition_id, track_id)`, active `(working_composition_id, track_order)` | active order composite |
+| `composition_clips` | `(working_composition_id, clip_id)` | active Timeline, source AssetVersion, split parent |
+| `composition_snapshot_tracks` | snapshot-local ID·canonical ID·order | deterministic frozen order |
+| `composition_snapshot_clips` | `(snapshot_id, canonical_clip_id)` | frozen Timeline, source AssetVersion |
 | `processing_chains` | `(name, chain_version)`, `chain_checksum` | `created_by` |
 | `processing_steps` | `(processing_chain_id, step_order)` | `step_type` |
 | `job_inputs` | `(job_id, input_order)` | `asset_version_id`, `artifact_id` |
@@ -493,3 +584,5 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 - History의 논리 참조 무결성과 개인정보 최소화
 - `[완료]` 실제 사용자 DB `20260808_0015 → 20260809_0016` 안전 적용과 복구 Gate
 - 구현된 Catalog Resolver를 사용하는 API·Worker 전환 순서와 Legacy 경로 제거 Gate
+- exact source duration의 Artifact media metadata/probe authority와 Owner·ProjectAsset·audio eligibility Service
+- same-Track overlap의 최종 mutation transaction race 방어와 public API idempotency orchestration

@@ -2,8 +2,8 @@
 
 > 문서 역할: DohaMusic 제품 목표와 CURRENT/TARGET/NOT IMPLEMENTED의 Canonical Authority
 > 문서 상태: [운영 기준]
-> 제품 구현 상태: [CURRENT MVP·Timeline Playback·Waveform·Richer Playhead 완료 / Clip Domain·Persistence 설계 완료·구현 미착수 / TARGET DAW 편집 미구현]
-> 최종 수정일: 2026-08-21
+> 제품 구현 상태: [CURRENT MVP·Timeline Playback·Waveform·Richer Playhead 완료 / D3 Clip Persistence Foundation 구현 / TARGET DAW 편집 미구현]
+> 최종 수정일: 2026-08-24
 > 관련 기능: DohaMusic 장기 제품 목표, Composition Runtime, Composition Evaluation, Continuous Learning
 > 관련 문서: [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Common AI Contract 소비자 기반](../03-architecture/common-ai-contract-consumer.md), [Master Roadmap](../../MASTER_ROADMAP.md)
 
@@ -110,7 +110,7 @@ Rights, review, eligibility와 immutable lineage Gate를 모든 단계에서 유
 
 다음은 문서화된 TARGET이며 현재 완료가 아니다.
 
-- WorkingComposition·Track·Clip schema/API와 편집 가능한 Arrangement UI, Track/Clip Waveform, Section marker
+- WorkingComposition Service/API와 편집 가능한 Arrangement UI, Track/Clip Waveform, Section marker
 - 범위 편집, split·trim·move·copy·delete, fade·loop, undo·redo
 - 다중 Track Volume·Pan·Mute·Solo와 DAW Mixer UI
 - AI Music Director와 Candidate A/B 선택 Workflow

@@ -59,7 +59,15 @@ def _workspace_tables() -> set[str]:
         entity.__tablename__
         for entity in WORKSPACE_ENTITY_CLASSES
         if entity.__tablename__
-        not in {"project_composition_selections", "provider_job_bindings"}
+        not in {
+            "composition_clips",
+            "composition_snapshot_clips",
+            "composition_snapshot_tracks",
+            "composition_tracks",
+            "project_composition_selections",
+            "provider_job_bindings",
+            "working_compositions",
+        }
     }
 
 
@@ -115,7 +123,7 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
 
     assert _revision_assignment("revision") == REVISION
     assert _revision_assignment("down_revision") == PREVIOUS_REVISION
-    assert len(WORKSPACE_ENTITY_CLASSES) == 23
+    assert len(WORKSPACE_ENTITY_CLASSES) == 28
     assert len(workspace_tables) == 21
     assert created_tables == workspace_tables
     assert dropped_tables == workspace_tables
@@ -155,8 +163,13 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
         - workspace_tables
         - {
             "artifact_storage_locations",
+            "composition_clips",
+            "composition_snapshot_clips",
+            "composition_snapshot_tracks",
+            "composition_tracks",
             "project_composition_selections",
             "provider_job_bindings",
+            "working_compositions",
         }
     )
     engine = create_database_engine(database_url)
@@ -180,8 +193,13 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
         set(Base.metadata.tables)
         - {
             "artifact_storage_locations",
+            "composition_clips",
+            "composition_snapshot_clips",
+            "composition_snapshot_tracks",
+            "composition_tracks",
             "project_composition_selections",
             "provider_job_bindings",
+            "working_compositions",
         }
     )
     assert workspace_foreign_keys == 39
