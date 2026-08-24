@@ -14,6 +14,7 @@ from backend.db.session import create_database_engine
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260824_0020"
+SOURCE_HEAD = "20260824_0021"
 PREVIOUS_REVISION = "20260821_0019"
 TABLES = {
     "working_compositions",
@@ -116,7 +117,7 @@ def _seed_legacy_snapshot(database_url: str) -> dict[str, str]:
 
 def test_clip_domain_revision_is_single_head_and_additive() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
 
 
@@ -186,6 +187,6 @@ def test_clip_domain_fresh_database_upgrade_has_exact_schema(tmp_path: Path) -> 
             connection.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one()
-            == REVISION
+            == SOURCE_HEAD
         )
     engine.dispose()

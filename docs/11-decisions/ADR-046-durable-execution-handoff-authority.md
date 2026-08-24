@@ -1,4 +1,4 @@
-# ADR-045: Durable Execution Handoff Authority
+# ADR-046: Durable Execution Handoff Authority
 
 > 상태: 승인, Runtime 미구현
 > 작성일: 2026-08-25

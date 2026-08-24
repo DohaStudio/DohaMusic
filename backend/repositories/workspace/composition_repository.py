@@ -155,6 +155,18 @@ class CompositionRepository:
         )
         return list(self.session.scalars(statement))
 
+    def count_active_composition_clips(
+        self, *, working_composition_id: UUID, track_id: UUID
+    ) -> int:
+        """Track 삭제 guard가 같은 WorkingComposition의 active Clip만 계산한다."""
+
+        statement = select(func.count(CompositionClip.clip_id)).where(
+            CompositionClip.working_composition_id == working_composition_id,
+            CompositionClip.track_id == track_id,
+            CompositionClip.deleted_at.is_(None),
+        )
+        return int(self.session.scalar(statement) or 0)
+
     def add_snapshot_track(
         self, snapshot_track: CompositionSnapshotTrack
     ) -> CompositionSnapshotTrack:

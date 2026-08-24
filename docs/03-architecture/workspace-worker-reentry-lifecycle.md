@@ -2,7 +2,7 @@
 
 > 문서 상태: 승인된 목표 계약, 런타임 미구현
 > 최종 수정일: 2026-08-24
-> 관련 결정: [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-045](../11-decisions/ADR-045-durable-execution-handoff-authority.md)
+> 관련 결정: [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md)
 
 ## 1. 결정
 
@@ -140,6 +140,6 @@ claim token과 Worker ID는 내부 execution identity이며 공개 API, 로그, 
 
 ## 10. 구현 의존성과 handoff 분석
 
-이 결정으로 same-Job re-entry lifecycle blocker는 계약 수준에서 해소되었다. 후속 [Durable Execution Handoff Analysis](durable-execution-handoff-analysis.md)와 ADR-045는 Provider execution부터 Result validation까지 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`를 확정했다. payload locator 이후 복구는 별도 `DURABLE_LOCATOR_REQUIRED`이며 reclaim Runtime은 여전히 미구현이다.
+이 결정으로 same-Job re-entry lifecycle blocker는 계약 수준에서 해소되었다. 후속 [Durable Execution Handoff Analysis](durable-execution-handoff-analysis.md)와 ADR-046은 Provider execution부터 Result validation까지 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`를 확정했다. payload locator 이후 복구는 별도 `DURABLE_LOCATOR_REQUIRED`이며 reclaim Runtime은 여전히 미구현이다.
 
 후속 구현 의존성은 atomic repository operations, eligible dispatcher registry, concrete DohaVocal dispatch/transport, bounded polling과 shutdown yield, cancellation propagation, durable locator/downloader, Completion adapter, daemon/scheduler, production authentication이다. 본 문서 PR은 Python, DB/schema, Alembic, API, Frontend, network 또는 Provider를 변경하지 않는다.

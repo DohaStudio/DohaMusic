@@ -1,4 +1,4 @@
-Warning: truncated output (original token count: 20460)
+﻿Warning: truncated output (original token count: 20460)
 Total output lines: 715
 
 # 변경 이력
@@ -14,8 +14,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 ### 문서 — Durable Execution Handoff authority 확정
 
 - 최신 `develop`의 Workspace Job·ProviderJobBinding·Provider replay·Result trust gate·Completion authority를 다시 분류하고 17개 crash/restart case를 판정했다.
-- ADR-045에서 locator 전 Provider execution·Result validation은 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`로 확정했다. 새 entity/field, schema와 Alembic은 필요하지 않으며 다음 dependency는 `DURABLE_LOCATOR_REQUIRED`다.
+- ADR-046에서 locator 전 Provider execution·Result validation은 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`로 확정했다. 새 entity/field, schema와 Alembic은 필요하지 않으며 다음 dependency는 `DURABLE_LOCATOR_REQUIRED`다.
 - CURRENT reclaim Runtime은 계속 미구현이다. Python·DB·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
+
+### 추가 — Clip Service Authority Foundation
+
+- ADR-045에서 active Clip이 없는 Track만 tombstone하고, 하나라도 있으면 `TRACK_NOT_EMPTY`로 거부하며 cascade 삭제하지 않는 V1 의미를 확정했다.
+- trusted ingestion이 WAV frame 또는 FLAC STREAMINFO에서 계산한 양의 integer microseconds를 `Artifact.duration_us`에 저장하도록 구현했다. MP3는 정확한 현재 의존성이 없어 길이를 추정하지 않고 Clip source에서 fail-closed한다.
+- Alembic `20260824_0021`로 nullable `artifacts.duration_us`와 양수 CHECK를 additive하게 추가했다. 기존 Artifact row의 backfill·Payload rewrite와 실제 사용자 DB 적용은 0건이다.
+- exact AssetVersion의 active audio Artifact 후보가 정확히 하나이고 trusted duration이 있을 때만 Clip source metadata를 반환하는 내부 Service와 active Clip count Repository primitive를 추가했다. WorkingComposition mutation·API·Frontend·Provider·GPU 호출은 추가하지 않았다.
 
 ### 문서 — Workspace Worker Re-entry Lifecycle Authority
 

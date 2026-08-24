@@ -2,7 +2,7 @@
 
 > 문서 상태: 승인된 architecture authority, Runtime 미구현
 > 기준: `develop` `addecaf4b19e5bf9e652e659006236bb7d1c8aac`
-> 관련 결정: [ADR-045](../11-decisions/ADR-045-durable-execution-handoff-authority.md)
+> 관련 결정: [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md)
 
 ## 1. 판정과 범위
 

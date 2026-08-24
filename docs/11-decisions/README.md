@@ -1,4 +1,4 @@
-# 아키텍처 결정 기록
+﻿# 아키텍처 결정 기록
 
 > 문서 목적: 중요한 결정과 근거, 재검토 조건을 추적한다.
 > 현재 상태: **운영 중**
@@ -48,7 +48,8 @@
 | [ADR-042](ADR-042-v1-local-operator-authentication-foundation.md) | V1 local operator proof mechanism과 fail-closed authentication foundation | 승인, concrete OS adapter 미구현 |
 | [ADR-043](ADR-043-doha-vocal-worker-reconciliation-authority.md) | DohaVocal Worker의 Provider success·lease·payload·retry·Completion reconciliation 권위 | 승인, concrete wiring 미구현 |
 | [ADR-044](ADR-044-workspace-worker-reentry-lifecycle-authority.md) | Workspace Worker same-Job yield·expired reclaim·claim transfer 권위 | 승인, runtime 미구현 |
-| [ADR-045](ADR-045-durable-execution-handoff-authority.md) | locator 전 Durable Execution Handoff storage 불필요 판정 | 승인, runtime 미구현 |
+| [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md) | Track 삭제 의미와 trusted Artifact media duration 권위 | 승인 |
+| [ADR-046](ADR-046-durable-execution-handoff-authority.md) | locator 전 Durable Execution Handoff storage 불필요 판정 | 승인, runtime 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -62,7 +63,7 @@
 - [ADR-042 — V1 Local Operator Authentication Foundation](ADR-042-v1-local-operator-authentication-foundation.md): Windows WebAuthn platform credential mechanism을 선택하고 provider-independent contract·Fake·fail-closed bootstrap을 승인하되 concrete OS adapter와 production activation은 보류한다.
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): Provider success와 Workspace completion을 분리하고 lease·idempotency·payload·role·retry·crash recovery 권위를 확정한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): replay-safe Provider-backed Job의 `LEASE_EXPIRY_RECLAIMABLE`, claim token transfer와 retry 경계를 확정한다.
-- [ADR-045 — Durable Execution Handoff Authority](ADR-045-durable-execution-handoff-authority.md): 기존 Job·Provider binding·deterministic replay로 locator 전 same-Job resume을 재구성하며 새 handoff storage가 불필요함을 확정한다.
+- [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): 기존 Job·Provider binding·deterministic replay로 locator 전 same-Job resume을 재구성하며 새 handoff storage가 불필요함을 확정한다.
 
 ## Workspace 데이터베이스
 
@@ -73,6 +74,7 @@
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
 - [ADR-035 — D1 Composition Read 권위와 Projection 계약](ADR-035-d1-composition-read-authority.md): Workspace read authority, explicit Project selection, snapshot-local Track projection, Section 비가용 상태와 Project aggregate GET을 결정한다.
 - [ADR-040 — Canonical Track·Clip과 Working Composition 권위](ADR-040-canonical-track-clip-working-composition-authority.md): Project당 하나의 mutable WorkingComposition, canonical Track·Clip identity, exact AssetVersion, revision·atomic edit와 별도 불변 Snapshot Track/Clip commit 경계를 결정한다.
+- [ADR-045 — Clip Service 삭제 의미와 신뢰된 미디어 길이 권위](ADR-045-clip-service-deletion-media-duration-authority.md): non-empty Track 삭제 거부와 trusted ingestion이 저장한 exact duration, exact-one Artifact fail-closed 경계를 결정한다.
 
 ## Artifact Storage
 
@@ -86,7 +88,7 @@
 - [ADR-041 — Trusted Payload Locator Authority](ADR-041-trusted-payload-locator-authority.md): Provider path·URI를 배제하고 DohaMusic runtime만 발급하는 opaque locator와 trusted staging resolver 경계를 승인한다.
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): metadata-only success 이후의 `running` 상태, bounded lease ownership, payload reconciliation과 Completion replay를 승인한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): 공개 상태 추가 없이 graceful yield와 expired `running` claim의 atomic same-Job reclaim을 승인한다.
-- [ADR-045 — Durable Execution Handoff Authority](ADR-045-durable-execution-handoff-authority.md): Provider execution·Result validation 복구에는 기존 authority가 충분하고 payload locator는 별도 dependency임을 확정한다.
+- [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): Provider execution·Result validation 복구에는 기존 authority가 충분하고 payload locator는 별도 dependency임을 확정한다.
 
 ## Phase 6.5
 

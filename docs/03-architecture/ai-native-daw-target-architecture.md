@@ -1,4 +1,4 @@
-# AI-native DAW 현재·목표 아키텍처
+﻿# AI-native DAW 현재·목표 아키텍처
 
 > 문서 역할: AI-native DAW 목표 Runtime·Workflow·Gap의 Canonical Authority
 > 문서 상태: [운영 기준]
@@ -37,7 +37,7 @@ flowchart LR
 
 D1-A Backend read path인 `Project Composition aggregate → CompositionService → Workspace Repository → Workspace DB`를 구현했다. D1-Transition은 기존 persistence에 project-level selected Snapshot authority가 없음을 확인하고 `NO_PREEXISTING_SELECTION_AUTHORITY`로 고정했다. Bootstrap Service transaction에서 active Workspace의 Project·Snapshot·selection을 단일 batch로 검사하지만 selection row를 생성하거나 바꾸지 않는다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다. D1-B Frontend는 이 aggregate와 selection PATCH를 Project 상세에서 소비하며, 실제 사용자 DB 전환은 여전히 별도 승인 TARGET이다.
 
-[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 Project당 하나의 mutable WorkingComposition과 canonical Track·Clip identity, exact AssetVersion, revision concurrency와 새 불변 Snapshot commit 경계를 설계했다. `working_compositions`·Track·Clip·Snapshot Track/Clip schema와 Repository persistence foundation은 revision `20260824_0020`으로 구현했다. source media duration 실측 Service, mutation orchestration, API와 UI는 아직 구현하지 않았다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
+[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 mutable WorkingComposition과 canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 설계했다. [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)는 non-empty Track 삭제 거부와 trusted ingestion이 저장한 WAV·FLAC duration만 쓰는 authority를 확정했다. schema·Repository persistence와 trusted duration foundation은 revision `20260824_0021`까지 구현했지만 mutation orchestration, API와 UI는 아직 구현하지 않았다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
 
 ## 3. TARGET — 제품 Runtime
 

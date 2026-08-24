@@ -1,12 +1,12 @@
-# ADR-040 — Canonical Track·Clip과 Working Composition 권위
+﻿# ADR-040 — Canonical Track·Clip과 Working Composition 권위
 
 > 상태: 승인
 > 작성일: 2026-08-21
 > 최종 수정일: 2026-08-21
 > 관련 기능: AI-native DAW D3 Non-destructive Clip Editing
-> 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
+> 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
-> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 이 ADR의 Service/API/UI 결정은 변경하지 않았으며 해당 단계는 후속이다.
+> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045에 따라 Track 삭제와 trusted media duration 선행 기반을 `20260824_0021`로 구현했다. 이 ADR의 mutation Service/API/UI 단계는 후속이다.
 
 ## 1. Context
 

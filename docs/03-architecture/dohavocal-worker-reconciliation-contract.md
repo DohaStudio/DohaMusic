@@ -3,7 +3,7 @@
 > 문서 상태: [승인: 구현 전 authoritative contract]
 > 기준: DohaMusic `f6a727abddb6df5ca4a46173bd4a04b88ca60c65`
 > 구현 상태: Workspace Worker·HTTP Transport·Provider Job Persistence·Result Ingestion·Trusted Payload process-local Foundation·Completion UoW는 각각 격리 구현, concrete wiring은 [미구현]
-> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-045](../11-decisions/ADR-045-durable-execution-handoff-authority.md)
+> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md)
 
 ## 1. 범위와 핵심 결정
 

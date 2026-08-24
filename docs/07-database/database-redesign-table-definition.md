@@ -4,7 +4,7 @@
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-24
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace 도메인 Entity/Table 28개·Catalog 1개·Clip persistence revision `0020` 구현
+> 구현 상태: Workspace 도메인 Entity/Table 28개·Catalog 1개·Clip persistence와 trusted Artifact duration revision `0021` 구현
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 
@@ -119,6 +119,7 @@ Artifact는 실제 파일 또는 직렬화된 Payload의 식별·무결성 Metad
 | `asset_version_id` | UUID | 아니요 | FK, Index | 소유 `asset_versions.asset_version_id` |
 | `artifact_kind` | string | 아니요 | Index | Artifact 논리 유형 |
 | `media_type` | string | 아니요 | Index | MIME 또는 직렬화 형식 |
+| `duration_us` | bigint | 예 | Check | trusted ingestion이 Payload에서 계산한 양의 media duration μs; 미검증·미지원은 `NULL` |
 | `size_bytes` | bigint | 아니요 |  | Payload 크기 |
 | `checksum_algorithm` | string | 아니요 |  | 기본 `sha256` |
 | `artifact_checksum` | string | 아니요 | Index | Payload checksum |
@@ -261,7 +262,7 @@ active row의 `(working_composition_id, track_order)`는 partial Unique입니다
 | `updated_at` | timestamp | 아니요 |  | 수정 시각 |
 | `deleted_at` | timestamp | 예 | Index | tombstone 시각 |
 
-같은 Track active overlap은 Repository의 반개구간 helper가 거부하고 인접 `[end == start]`는 허용합니다. 최종 mutation race 방어와 Asset 활성·Owner·Workspace·ProjectAsset·audio eligibility·Artifact duration probe는 후속 Service가 transaction 안에서 강제해야 합니다.
+같은 Track active overlap은 Repository의 반개구간 helper가 거부하고 인접 `[end == start]`는 허용합니다. trusted ingestion duration과 exact-one active audio Artifact 조회 기반은 구현했다. 최종 mutation race 방어와 Asset 활성·Owner·Workspace·ProjectAsset eligibility는 후속 Service가 transaction 안에서 강제해야 합니다.
 
 ### 4.7 `composition_snapshot_tracks`
 
@@ -584,5 +585,5 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 - History의 논리 참조 무결성과 개인정보 최소화
 - `[완료]` 실제 사용자 DB `20260808_0015 → 20260809_0016` 안전 적용과 복구 Gate
 - 구현된 Catalog Resolver를 사용하는 API·Worker 전환 순서와 Legacy 경로 제거 Gate
-- exact source duration의 Artifact media metadata/probe authority와 Owner·ProjectAsset·audio eligibility Service
+- persisted trusted duration을 사용하는 Owner·ProjectAsset·audio eligibility mutation Service
 - same-Track overlap의 최종 mutation transaction race 방어와 public API idempotency orchestration

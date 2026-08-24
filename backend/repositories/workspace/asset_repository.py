@@ -209,6 +209,23 @@ class AssetRepository:
         )
         return list(self.session.scalars(statement))
 
+    def list_clip_source_artifact_candidates(
+        self, asset_version_id: UUID
+    ) -> list[Artifact]:
+        """Clip source 후보를 fallback 없이 deterministic하게 반환한다."""
+
+        statement = (
+            select(Artifact)
+            .where(
+                Artifact.asset_version_id == asset_version_id,
+                Artifact.artifact_kind.in_(("audio", "stem")),
+                Artifact.media_type.in_(("audio/wav", "audio/flac", "audio/mpeg")),
+                Artifact.retention_status == "active",
+            )
+            .order_by(Artifact.created_at, Artifact.artifact_id)
+        )
+        return list(self.session.scalars(statement))
+
     def checksum_exists(self, checksum_algorithm: str, artifact_checksum: str) -> bool:
         statement = select(Artifact.artifact_id).where(
             Artifact.checksum_algorithm == checksum_algorithm,

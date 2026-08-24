@@ -1,13 +1,13 @@
-# Artifact Storage Resolver와 무결성 계약
+﻿# Artifact Storage Resolver와 무결성 계약
 
 > 문서 상태: [승인]
-> 최종 수정일: 2026-08-10
+> 최종 수정일: 2026-08-25
 > 관련 기능: Artifact Catalog, Storage Resolver, 안전한 ingestion과 content·download
 > 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Workspace Job Foundation](workspace-job-foundation.md), [Storage Architecture](storage-architecture.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
 
 ## 1. 목적과 현재 경계
 
-이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 임시 root에서 authoritative SHA-256·size·MIME, immutable publish, Artifact·Catalog transaction과 실패 보상을 검증했다. Owner 계보·retention·integrity read Gate, batch dry-run reconciliation, Artifact Router와 single-byte HTTP Range도 구현했다. destructive reconciliation과 실제 운영 폴더·파일 전환은 구현하지 않았다.
+이 문서는 `Artifact`의 논리 식별자와 물리 Payload를 연결하는 내부 Storage 계약을 확정한다. `ArtifactStorageLocation` Catalog와 revision `20260809_0016`은 실제 사용자 DB 적용을 완료했으며 row는 0개다. Catalog 조회·local Resolver와 trusted ingestion을 구현해 authoritative SHA-256·size·MIME과 immutable publish를 검증했다. source revision `20260824_0021`은 trusted ingestion이 계산한 nullable `Artifact.duration_us`를 추가했으며 실제 사용자 DB에는 적용하지 않았다. destructive reconciliation과 실제 운영 폴더·파일 전환은 구현하지 않았다.
 
 현재 `AUDIO_STORAGE_ROOT`와 기존 Runtime Table 14개는 계속 운영 source of truth다. Workspace Resource API는 Job 5개를 포함해 30/64, Artifact API는 3/3이며 다음 세 공개 Endpoint를 구현했다.
 
@@ -37,6 +37,8 @@ Asset
 - Artifact는 최신 AssetVersion이나 Asset 자체를 자동 참조하지 않는다.
 - Payload, checksum, size, media type 또는 locator의 의미가 달라지면 기존 Artifact를 덮어쓰지 않고 새 Artifact를 발급한다. 논리 내용이나 계보까지 달라지면 새 AssetVersion도 생성한다.
 - `retention_status` 전이는 Payload 변경이 아니라 lifecycle event다.
+- audio `duration_us`는 trusted ingestion이 immutable Payload에서 계산한 nullable metadata다. WAV는 frame/sample rate, FLAC은 STREAMINFO를 사용하며 caller·Provider 값과 파일 크기·bitrate 추정을 신뢰하지 않는다.
+- MP3는 현재 신뢰 가능한 exact parser dependency가 없어 ingestion은 가능해도 `duration_us=NULL`이다. trusted duration이 없는 Artifact는 Clip source로 사용할 수 없다.
 
 ## 3. Storage root와 도메인
 
