@@ -29,7 +29,7 @@ ADR-033의 Workspace Worker는 만료된 `running` claim을 retryable failure로
 - claim token CAS, binding과 Create replay가 중복 owner와 중복 Provider side effect를 제한한다.
 - same-Job reclaim, Provider retry, Workspace retry의 counter와 identity scope가 분리된다.
 - 구현에는 repository CAS, dispatcher eligibility, shutdown yield, cancellation reconciliation과 운영 관측이 필요하다.
-- lifecycle blocker가 해소되어 durable execution handoff 분석은 재개할 수 있지만 새 handoff storage 불필요 결론은 별도 분석 전까지 보류한다.
+- lifecycle blocker가 해소되었다. 후속 [ADR-046](ADR-046-durable-execution-handoff-authority.md)은 locator 전 Provider execution·Result validation에 새 durable handoff storage가 불필요하다고 확정한다.
 
 이 결정은 ADR-033의 "만료 running row 자동 재실행 거부"를 무조건적인 정책에서 미등록/미검증 Job의 기본 안전 정책으로 좁히고, ADR-043의 `DURABLE_EXECUTION_HANDOFF_REQUIRED` 선행 조건을 구체화한다.
 

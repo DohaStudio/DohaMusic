@@ -18,6 +18,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Alembic `20260825_0022`로 nullable `completed_revision`, `result_type`, `result_version`, `result_payload`를 additive하게 추가했다. 기존 `COMPLETED` row는 추측 backfill하지 않았고 실제 사용자 DB에는 적용하지 않았다.
 - ADR-047에 성공 mutation만 같은 transaction에서 결과를 저장하는 replay·legacy·보안 권위를 기록했다. WorkingComposition mutation Service와 Product API는 다음 작업으로 유지한다.
 
+### 문서 — Durable Execution Handoff authority 확정
+
+- 최신 `develop`의 Workspace Job·ProviderJobBinding·Provider replay·Result trust gate·Completion authority를 다시 분류하고 17개 crash/restart case를 판정했다.
+- ADR-046에서 locator 전 Provider execution·Result validation은 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`로 확정했다. 새 entity/field, schema와 Alembic은 필요하지 않으며 다음 dependency는 `DURABLE_LOCATOR_REQUIRED`다.
+- CURRENT reclaim Runtime은 계속 미구현이다. Python·DB·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
+
 ### 추가 — Clip Service Authority Foundation
 
 - ADR-045에서 active Clip이 없는 Track만 tombstone하고, 하나라도 있으면 `TRACK_NOT_EMPTY`로 거부하며 cascade 삭제하지 않는 V1 의미를 확정했다.
