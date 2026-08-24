@@ -11,7 +11,7 @@ DohaMusic에는 Workspace Job Worker, DohaVocal HTTP Consumer, Provider Job Pers
 
 1. Provider `succeeded`와 Workspace Job `succeeded`를 분리한다. Workspace 성공은 trusted payload와 DohaMusic-owned output commit 뒤에만 확정한다.
 2. 공개 5-state는 유지하며 reconciliation 중에는 `running`을 사용한다. 기존 `Job.stage`의 내부 단계 vocabulary만 사용하고 schema/API를 변경하지 않는다.
-3. claim lease는 활성 invocation이 heartbeat로 소유한다. DB transaction은 network/I/O를 감싸지 않는다. 이 ADR 시점에는 현재 lease expiry failure를 resume로 가장하지 않고 lease 간 재진입을 `DURABLE_EXECUTION_HANDOFF_REQUIRED`로 남겼다. 후속 [ADR-044](ADR-044-workspace-worker-reentry-lifecycle-authority.md)는 replay-safe Job의 목표 정책을 `LEASE_EXPIRY_RECLAIMABLE`로 확정하며 runtime 구현 전의 failure 동작은 유지한다.
+3. claim lease는 활성 invocation이 heartbeat로 소유한다. DB transaction은 network/I/O를 감싸지 않는다. 이 ADR 시점에는 현재 lease expiry failure를 resume로 가장하지 않고 lease 간 재진입을 `DURABLE_EXECUTION_HANDOFF_REQUIRED`로 남겼다. 후속 [ADR-044](ADR-044-workspace-worker-reentry-lifecycle-authority.md)는 replay-safe Job의 목표 정책을 `LEASE_EXPIRY_RECLAIMABLE`로, [ADR-046](ADR-046-durable-execution-handoff-authority.md)은 locator 전 새 durable handoff storage 불필요를 확정한다. runtime 구현 전의 failure 동작은 유지한다.
 4. Provider Create 복구는 `workspace-job:<job_id>`와 같은 immutable request fingerprint의 replay로 동일 Provider Job identity를 회수한다. 무조건 새 Provider Job을 만들지 않는다.
 5. Provider retry는 같은 Workspace Job의 새 binding을 append하고 Workspace retry는 새 Workspace Job을 만든다.
 6. 모든 Provider success Result는 기존 trust gate를 통과해야 한다. metadata-only Result는 정상이나 Completion에는 부적격하다.

@@ -113,6 +113,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 | DohaVocal Consumer 계약 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) | [ADR-034](docs/11-decisions/ADR-034-dohavocal-consumer-contract.md) |
 | DohaVocal Worker reconciliation | [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md) | [ADR-043](docs/11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md) |
 | Workspace Worker re-entry | [Worker Re-entry Lifecycle](docs/03-architecture/workspace-worker-reentry-lifecycle.md) | [ADR-044](docs/11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md) |
+| Durable execution handoff | [Handoff Analysis](docs/03-architecture/durable-execution-handoff-analysis.md) | [ADR-046](docs/11-decisions/ADR-046-durable-execution-handoff-authority.md) |
 | Reference 분석 | [목표 아키텍처의 Reference Analysis](docs/03-architecture/ai-native-daw-target-architecture.md#41-reference-analysis) | [Common Contract 소비자 기준](docs/03-architecture/common-ai-contract-consumer.md) |
 | 사용자 수정이 학습 후보가 되는 방식 | [목표 아키텍처의 Continuous Learning](docs/03-architecture/ai-native-daw-target-architecture.md#45-continuous-learning) | [제품 방향](docs/02-product/ai-native-daw-product-direction.md#55-continuous-learning) |
 | 완성곡 품질·유사도 평가 | [목표 아키텍처의 Composition Evaluation](docs/03-architecture/ai-native-daw-target-architecture.md#44-composition-evaluation--qa) | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
