@@ -38,7 +38,7 @@ stateDiagram-v2
 
 `cancel_requested`는 공개 상태가 아니다. source revision `20260810_0017`의 내부 `cancel_requested_at` marker로 관리한다. Service는 claim되지 않은 queued Job을 즉시 `cancelled`로 만들고 running Job에는 marker만 기록하며, Worker·Provider에 전파한 뒤에만 `cancelled`로 확정한다. `progress_percent=100`이나 Provider `success`만으로 `succeeded`가 되지 않는다.
 
-Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분하며, lease 만료 running Job은 자동으로 queued에 되돌리지 않고 retryable failure로 종료한다.
+Retry는 terminal 원본의 상태를 되돌리지 않고 새 Job을 생성한다. 같은 Job 안의 bounded execution attempt와 공개 retry lineage를 구분한다. CURRENT runtime은 lease 만료 running Job을 자동으로 queued에 되돌리지 않고 retryable failure로 종료하며, TARGET reclaim은 아래 별도 계약을 따른다.
 
 terminal Job은 불변이다. atomic claim은 queued→running과 token·Worker·lease·heartbeat·attempt 증가를 함께 확정한다. CURRENT runtime은 lease 만료를 같은 row의 재queue 없이 `WORKER_LEASE_EXPIRED` retryable failure로 종료한다. TARGET은 [Workspace Worker Re-entry Lifecycle](../03-architecture/workspace-worker-reentry-lifecycle.md)에 등록된 replay-safe Provider Job만 expired `running` claim을 새 token으로 CAS reclaim하며, heartbeat와 recovery는 lease 값을 조건에 포함해 stale snapshot 경쟁을 차단한다.
 

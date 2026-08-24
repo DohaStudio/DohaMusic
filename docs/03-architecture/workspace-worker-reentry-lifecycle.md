@@ -32,6 +32,8 @@ Workspace Worker의 lease 정책은 `LEASE_EXPIRY_RECLAIMABLE`이다. replay-saf
 
 graceful bounded wait의 종료는 Worker 실패가 아니다. Provider가 `queued` 또는 `running`이고 invocation budget만 끝났다면 Workspace Job을 실패시키지 않고 claim을 yield한다. 반대로 crash는 명시적 release 없이 heartbeat가 끊긴 경우이며 lease 만료 전에는 다른 Worker가 소유권을 빼앗지 않는다.
 
+graceful yield는 Provider execution cancel, Provider retry 또는 새 Workspace retry Job 생성을 뜻하지 않는다. 기존 Provider execution과 binding을 그대로 보존하고 현재 Worker invocation의 ownership만 반납한다.
+
 Provider가 `succeeded`여도 payload가 준비되지 않았다면 Provider inference를 다시 실행하지 않는다. durable locator가 아직 없다면 process-local locator를 restart authority로 사용할 수 없으며, payload recovery가 완료되었다고 간주할 수도 없다.
 
 ## 3. Durable 표현과 public state
@@ -83,10 +85,10 @@ stage는 durable observability metadata이지만 side-effect proof나 resume cur
 - precondition: `running`, cancel marker 존재, claim이 yielded 또는 expired, terminal 아님.
 - postcondition: cancellation propagation/cleanup만 수행할 새 token을 발급한다. Provider 실행을 정상 resume하거나 새로 Create할 권한은 없다.
 
-### `heartbeat_claim()`, `update_claim_stage()`, `finish_claim()`
+### `heartbeat_claim()`, `update_claim_stage()`, `finish_claim()`, `fail_claim()`
 
 - precondition: `running`, 현재 token/worker와 unexpired lease 일치, terminal 아님. service가 산정한 `now`와 기존 lease도 CAS 조건에 포함한다.
-- postcondition: heartbeat는 lease를 연장하고, stage는 observability만 갱신하며, finish는 Completion/terminal 조건을 검증해 한 번만 전이한다.
+- postcondition: heartbeat는 lease를 연장하고 stage는 observability만 갱신한다. finish는 Completion 조건을 검증해 `succeeded`로 한 번만 전이하고, fail은 안전한 오류·retryability를 기록해 `failed`로 한 번만 전이한다. cancel marker가 있으면 성공 finish와 일반 fail보다 cancellation reconciliation이 우선한다.
 
 ## 6. Resume와 retry 경계
 
@@ -114,18 +116,21 @@ Completion commit과 reclaim이 경쟁하면 다음 순서를 따른다.
 
 ## 8. Crash/restart matrix
 
-| crash point | persisted fact | 다음 owner 동작 | Provider call | 중복 방지 authority |
-|---|---|---|---|---|
-| initial claim 직후 | `running`, binding 없음 | expiry reclaim | same-key Create replay | key + fingerprint |
-| Create 성공, binding commit 전 | binding 없음 | expiry reclaim | same-key Create replay | Provider idempotency |
-| binding commit 뒤 | binding 존재 | reclaim 후 status 조회 | Create 금지 | binding + Provider status |
-| Provider running 중 bounded end | binding 존재, yielded | reclaim 후 status 조회 | Create 금지 | binding |
-| process crash | expired active claim | lease 뒤 reclaim | binding 유무에 따라 조회/replay | CAS + token |
-| Provider success metadata 뒤 | binding/result identity | result 재조회·trust gate | Retry/Create 금지 | result identity |
-| payload staging 중 | locator/checksum durability에 따름 | immutable payload 재검증 | inference 재실행 금지 | locator + checksum |
-| Completion commit 전 | Workspace `running` | current token만 replay | Provider 호출 불필요 | token + UoW idempotency |
-| Completion commit 뒤 | terminal Job/outputs | no-op | 호출 금지 | terminal protection |
-| old Worker late response | 새 token 또는 terminal | reject | 결과 반영 금지 | token mismatch |
+| case | persisted authority | current owner | next action | terminal | same-Job resume | Provider call behavior |
+|---|---|---|---|---|---|---|
+| Create 전 process crash | `running`, expired claim, binding 없음 | 유효 owner 없음 | expired claim CAS reclaim | 아니요 | 예 | 같은 key/fingerprint Create replay |
+| Create response 뒤 binding commit 전 crash | binding 없음, Provider identity는 외부에 존재 가능 | 유효 owner 없음 | CAS reclaim 뒤 identity 회수 | 아니요 | 예 | 같은 key/fingerprint Create replay 필수 |
+| binding commit 뒤 crash | exact binding 존재, expired claim | 유효 owner 없음 | CAS reclaim 뒤 status 조회 | 아니요 | 예 | Create 금지 |
+| Provider wait의 graceful yield | `running`, binding 존재, claim tuple 전체 `NULL` | 없음 | yielded claim CAS reclaim | 아니요 | 예 | 같은 Provider Job status 조회 |
+| clean shutdown | 가능하면 yielded claim, 아니면 기존 claim 보존 | yield 뒤 없음, 실패 시 lease 전 owner만 만료까지 기록상 존재 | yield reclaim 또는 lease expiry 대기 | 아니요 | 예 | cancel/retry/Create 자동 호출 금지 |
+| process crash, lease 만료 전 | `running`, unexpired claim, heartbeat 중단 | 다른 Worker 없음; 이전 process는 소멸 | lease 만료까지 대기 | 아니요 | 아직 아니요 | 호출 금지 |
+| lease expiry | `running`, expired claim | 유효 owner 없음 | eligible expired claim CAS reclaim | 아니요 | 예 | binding 유무에 따라 조회/replay |
+| reclaim commit | 새 token·worker·heartbeat·lease, `attempt + 1` | 새 Worker 하나 | binding 기반 resume | 아니요 | 진행 중 | binding 있으면 조회, 없으면 same-key replay |
+| old Worker late response | 새 active token 또는 terminal status | 새 Worker 또는 없음 | heartbeat/stage/finish/fail/Completion 모두 reject | 상태에 따름 | 영향 없음 | 결과 반영 금지 |
+| Result validation 중 crash | binding/result identity, Workspace `running` | lease 만료 뒤 없음 | reclaim 뒤 result 재조회·trust gate | 아니요 | 예 | Retry/Create 금지 |
+| payload reconciliation 중 crash | binding/result와 durable locator/checksum 범위 | lease 만료 뒤 없음 | immutable payload 재검증 | 아니요 | durable locator 조건부 예 | inference 재실행 금지 |
+| Completion commit 전 crash | Workspace `running`, output commit 미완료 | lease 만료 뒤 없음 | current token으로 Completion replay | 아니요 | 예 | Provider 호출 불필요 |
+| Completion commit 뒤 응답 전 crash | terminal Job과 outputs | 없음 | existing result 반환 또는 no-op | 예 | 아니요 | 모든 Provider mutation 금지 |
 
 ## 9. Security와 운영
 

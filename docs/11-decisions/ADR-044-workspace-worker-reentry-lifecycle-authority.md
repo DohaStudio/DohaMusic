@@ -25,7 +25,7 @@ ADR-033의 Workspace Worker는 만료된 `running` claim을 retryable failure로
 
 ## Consequences
 
-- graceful bounded polling, process crash와 explicit shutdown 모두 새 Workspace retry 없이 같은 Provider execution을 복구할 경로를 갖는다.
+- 목표 lifecycle은 graceful bounded polling, process crash와 explicit shutdown 모두 새 Workspace retry 없이 같은 Provider execution을 복구할 경로를 정의한다. runtime 경로는 아직 구현되지 않았다.
 - claim token CAS, binding과 Create replay가 중복 owner와 중복 Provider side effect를 제한한다.
 - same-Job reclaim, Provider retry, Workspace retry의 counter와 identity scope가 분리된다.
 - 구현에는 repository CAS, dispatcher eligibility, shutdown yield, cancellation reconciliation과 운영 관측이 필요하다.
