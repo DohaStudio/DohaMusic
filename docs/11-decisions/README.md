@@ -46,6 +46,7 @@
 | [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md) | canonical Track·Clip, mutable WorkingComposition과 불변 Snapshot commit 경계 | 승인 |
 | [ADR-041](ADR-041-trusted-payload-locator-authority.md) | DohaMusic-owned opaque Trusted Payload locator authority | 승인 |
 | [ADR-042](ADR-042-v1-local-operator-authentication-foundation.md) | V1 local operator proof mechanism과 fail-closed authentication foundation | 승인, concrete OS adapter 미구현 |
+| [ADR-043](ADR-043-doha-vocal-worker-reconciliation-authority.md) | DohaVocal Worker의 Provider success·lease·payload·retry·Completion reconciliation 권위 | 승인, concrete wiring 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -57,6 +58,7 @@
 - [ADR-037 — Reviewer Authentication과 배포 권위](ADR-037-reviewer-authentication-deployment-authority.md): CURRENT local/no-login, DohaMusic-only Provider 호출과 delegated trust direction을 확정하고 production topology·reviewer population·실제 Provider는 보류한다.
 - [ADR-038 — V1 Reviewer Authentication Product Decision](ADR-038-v1-reviewer-authentication-product-decision.md): initial evidence-only CASE B를 보존하고 이후 explicit product-owner authority로 V1 local owner/operator proof와 delegated assertion Provider-model readiness를 승인한다.
 - [ADR-042 — V1 Local Operator Authentication Foundation](ADR-042-v1-local-operator-authentication-foundation.md): Windows WebAuthn platform credential mechanism을 선택하고 provider-independent contract·Fake·fail-closed bootstrap을 승인하되 concrete OS adapter와 production activation은 보류한다.
+- [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): Provider success와 Workspace completion을 분리하고 lease·idempotency·payload·role·retry·crash recovery 권위를 확정한다.
 
 ## Workspace 데이터베이스
 
@@ -78,6 +80,7 @@
 - [ADR-036 — Provider Job Persistence Contract](ADR-036-provider-job-persistence.md): restart recovery를 위한 identity binding, uniqueness, retry lineage와 crash window 책임을 승인한다.
 - [ADR-039 — Provider Result Ingestion Trust Boundary](ADR-039-provider-result-ingestion-trust-boundary.md): Provider wire metadata와 Workspace Artifact authority를 분리하고 metadata-only result의 non-eligibility를 승인한다.
 - [ADR-041 — Trusted Payload Locator Authority](ADR-041-trusted-payload-locator-authority.md): Provider path·URI를 배제하고 DohaMusic runtime만 발급하는 opaque locator와 trusted staging resolver 경계를 승인한다.
+- [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): metadata-only success 이후의 `running` 상태, bounded lease ownership, payload reconciliation과 Completion replay를 승인한다.
 
 ## Phase 6.5
 

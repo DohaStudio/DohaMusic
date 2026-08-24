@@ -1,8 +1,8 @@
 # DohaVocal Consumer Contract Foundation
 
 > 문서 역할: Provider Boundary와 System Architecture를 보충하는 SUPPORTING 계약
-> 문서 상태: [구현·검증 완료, Draft PR 병합 전]
-> 최종 수정일: 2026-08-20
+> 문서 상태: [구현·검증 완료]
+> 최종 수정일: 2026-08-24
 > 적용 범위: DohaVocal Runtime `0.1.0` DTO·mapping·transport port·HTTP transport·Mock HTTP contract test
 > 관련 문서: [Provider API 계약](../06-api/provider-api-contract.md), [Workspace Job Foundation](workspace-job-foundation.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-034](../11-decisions/ADR-034-dohavocal-consumer-contract.md)
 
@@ -64,6 +64,8 @@ Retry는 기존 Job을 초기화하지 않는다. 새 `job_id`와 `retry_of_job_
 ## 5. Artifact 후보와 계보
 
 현재 DohaVocal Fake Runtime 결과는 실제 audio payload가 아닌 `VocalProviderResultCandidate`다. `output_asset_version_id`가 있어도 DohaMusic DB에 AssetVersion이 생성됐다는 뜻이 아니다. AssetVersion·Artifact 등록과 선택 authority는 계속 DohaMusic에 있고 실제 commit은 후속 Artifact Catalog/Resolver 통합 범위다.
+
+Provider `succeeded`는 Workspace `succeeded`가 아니다. metadata-only 결과의 `running` 유지, trust gate, payload reconciliation, role mapping과 Completion 허용 조건은 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다. Consumer 또는 Provider가 Workspace output role이나 terminal 상태를 직접 결정하지 않는다.
 
 Consumer는 다음 값을 손실 없이 보존한다.
 

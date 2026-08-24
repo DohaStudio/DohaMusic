@@ -1,9 +1,9 @@
 # Workspace Job Foundation 공식 계약
 
 > 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5·Provider Job persistence·metadata Result trust gate·Trusted Payload resolver Foundation] / [미구현: Provider dispatch wiring·downloader·Completion adapter·실제 payload ingestion·background daemon]
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-08-24
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
-> 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
+> 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [DohaVocal Worker Reconciliation](dohavocal-worker-reconciliation-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
 
 ## 1. 목적과 현재 상태
 
@@ -61,7 +61,7 @@ Artifact ────────────┘
 
 구조화 입력과 JobInput role은 같은 reference를 가리켜야 한다. Generation reference ID, Conversion의 source AssetVersion·voice reference Artifact, Correction·Analysis의 source AssetVersion lineage가 다르면 생성 단계에서 거부한다. 선택 `parent_asset_version_id`는 source와 같은 Asset의 파생 계보여야 하고 `processing_chain_id`는 effective Owner 소유여야 한다. `training_dataset_id`는 `null`만 허용하며 Recording Take와 Enrollment Sample을 Training Dataset으로 승격하지 않는다. Project와 effective Owner는 기존 Service scope에서, `requested_by`는 서버의 effective Owner에서 파생한다. Composition Snapshot은 기존 선택 계약을 유지한다.
 
-표의 Vocal candidate output role은 후속 Provider dispatch가 Completion 경계에 전달할 pre-ingestion 계약이다. 이번 Foundation은 `JobOutput`, Artifact, AssetVersion을 만들거나 Workspace Job을 성공 처리하지 않는다. 기존 legacy `voice_conversion` Completion의 `converted_vocal` role도 변경하지 않는다.
+표의 Vocal candidate output role은 후속 Provider dispatch가 trust gate에 전달할 pre-ingestion 계약이다. Candidate role은 [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)의 DohaMusic-owned mapping을 거쳐 `generated_vocal`, `converted_vocal`, `corrected_vocal`, `vocal_analysis` Workspace output role로 정규화한다. 이번 Foundation은 이 adapter를 구현하거나 `JobOutput`, Artifact, AssetVersion을 만들지 않는다.
 
 ## 5. JobInput과 Artifact 선택
 
@@ -158,6 +158,8 @@ Workspace Job
 DohaMusic만 Provider를 호출하고 Provider 간 직접 호출을 금지한다. Provider request는 Workspace Job ID, capability, Provider contract version, exact Artifact ID, Manifest ID와 bounded settings만 전달하며 경로·비밀정보·동의 증적 원문을 포함하지 않는다.
 
 Provider의 `success`는 Provider-side 생성 완료다. Workspace `succeeded`는 DohaMusic의 무결성 검증·publish·lineage 등록과 DB commit까지 완료됐음을 의미한다.
+
+Provider terminal success부터 payload와 Completion까지의 `running` 유지, 내부 `stage`, bounded polling, lease 소유, retry·cancel과 crash 복구는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)가 권위다. 현재 lease expiry는 same-Job resume가 아니라 retryable failure이며, lease 간 재진입과 production payload 복구에는 각각 `DURABLE_EXECUTION_HANDOFF_REQUIRED`, `DURABLE_LOCATOR_REQUIRED`가 필요하다.
 
 ## 11. Completion Unit of Work와 부분 출력
 
