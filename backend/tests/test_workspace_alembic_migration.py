@@ -42,6 +42,7 @@ POST_REVISION_INDEX_NAMES = {
     "ix_artifacts_version_created",
     "uq_composition_snapshots_project_identity",
 }
+POST_REVISION_CONSTRAINT_NAMES = {"ck_artifacts_positive_duration_us"}
 FORBIDDEN_OPERATIONS = {
     "add_column",
     "alter_column",
@@ -139,7 +140,7 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
         constraint.name
         for table_name in workspace_tables
         for constraint in Base.metadata.tables[table_name].constraints
-        if constraint.name
+        if constraint.name and constraint.name not in POST_REVISION_CONSTRAINT_NAMES
     ]
     assert len(set(index_names) - KEYSET_INDEX_NAMES) == 109
     assert len(index_names) == 121
