@@ -2,7 +2,7 @@
 
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-24
+> 최종 수정일: 2026-08-25
 > 현재 실행 순서: [ROADMAP](ROADMAP.md)
 > 완료 판정: [Phase DoD](docs/DoD/README.md)
 
@@ -49,7 +49,7 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 |---|---|---|
 | Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현 |
 | AI-native DAW Product Direction | [완료] | PR #94가 `develop`에 병합되어 CURRENT/TARGET/NOT IMPLEMENTED 기준 확정 |
-| Composition Runtime UI | [진행 중] | D1·D2와 D3 Clip Persistence·Authority Foundation 완료; Service/API와 편집 가능한 Track/Clip·Section·Mixer 미구현 |
+| Composition Runtime UI | [진행 중] | D1·D2와 D3 Clip Persistence·Authority·Revision-safe Idempotency Foundation 완료; Service/API와 편집 가능한 Track/Clip·Section·Mixer 미구현 |
 | Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
 | Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
 
@@ -131,7 +131,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구한다. D1-A product API 2개, D3 Clip Persistence와 Authority Foundation을 구현해 source metadata는 43개 Table·Alembic `20260824_0021`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구한다. D1-A product API 2개, D3 Clip Persistence·Authority와 Revision-safe Idempotency Foundation을 구현해 source metadata는 43개 Table·Alembic `20260825_0022`다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 
@@ -318,7 +318,9 @@ Clip Persistence Foundation [완료]
   ↓
 Clip Service Authority Foundation [완료]
   ↓
+Revision-safe Idempotency Foundation [완료]
+  ↓
 WorkingComposition Service + Product API [다음]
 ```
 
-이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 Clip Persistence·Authority Foundation 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0021` 적용을 뜻하지 않는다.
+이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 Clip Persistence·Authority·Revision-safe Idempotency Foundation 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0022` 적용을 뜻하지 않는다.

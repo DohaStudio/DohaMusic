@@ -4,7 +4,7 @@
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-24
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: source Workspace 도메인 Entity/Table 28개·Catalog 1개·revisions `0018`~`0021`; 실제 DB는 `0017`의 21개 Workspace Table
+> 구현 상태: source Workspace 도메인 Entity/Table 28개·Catalog 1개·revisions `0018`~`0022`; 실제 DB는 `0017`의 21개 Workspace Table
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 Table Definition](database-redesign-table-definition.md), [Migration 전략](database-redesign-migration-strategy.md)
 

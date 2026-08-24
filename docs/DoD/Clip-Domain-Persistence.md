@@ -33,6 +33,7 @@
 - [x] integer microseconds·positive duration·source range·exact AssetVersion persistence와 DB CHECK/FK 구현
 - [x] Repository primitive·deterministic read·same-Track overlap helper·optimistic revision·transaction-owner rollback 테스트
 - [x] exact source duration의 trusted Artifact ingestion·persisted metadata 기반 서버 검증 authority 구현
+- [x] 완료 revision·split/checkout/commit identity를 보존하는 revision-safe idempotency completion result 기반 구현
 - [ ] Service mutation·기존 idempotency record orchestration·atomic split/commit 테스트
 - [ ] WorkingComposition product API와 OpenAPI/error contract
 - [ ] Frontend Clip move·trim·split·delete·Track reorder
@@ -42,4 +43,4 @@
 
 ## 판정
 
-`Clip Domain/Persistence Design`, `Clip Persistence Foundation`과 `Clip Service Authority Foundation`은 COMPLETE다. 전체 `Clip Editing Implementation`은 진행 중이며 다음 Gate는 `WorkingComposition Service + Product API`다. 실제 사용자 DB migration, mutation Service, API, Frontend와 working preview/render는 완료로 표시하지 않는다.
+`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`과 `Revision-safe Idempotency Foundation`은 COMPLETE다. 전체 `Clip Editing Implementation`은 진행 중이며 다음 Gate는 `WorkingComposition Service + Product API`다. 실제 사용자 DB migration, mutation Service, API, Frontend와 working preview/render는 완료로 표시하지 않는다.

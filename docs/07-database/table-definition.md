@@ -146,7 +146,8 @@ Alembic 0009는 `cancel_requested_at`, `cancelled_at`, `retry_of_job_id` self FK
 | 필드 | Null | 설명 |
 |---|---|---|
 | `id`, `scope`, `key_hash`, `request_fingerprint`, `status` | 아니요 | endpoint·Enrollment scope, raw key의 SHA-256, canonical payload fingerprint와 처리 상태 |
-| `resource_type`, `resource_id`, `response_status` | 예 | 완료 결과 재생용 resource와 HTTP status |
+| `resource_type`, `resource_id`, `response_status` | 예 | 기존 완료 결과 재생용 resource와 HTTP status |
+| `completed_revision`, `result_type`, `result_version`, `result_payload` | 예 | revision-safe mutation의 최초 완료 revision과 allowlist/versioned bounded Product identity 결과 |
 | `expires_at`, `created_at`, `updated_at` | 아니요 | 24시간 보존과 UTC 시각 |
 
 `(scope, key_hash)`는 unique이며 `expires_at`을 인덱싱한다. raw `Idempotency-Key`와 upload binary는 저장하지 않는다.

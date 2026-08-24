@@ -4,7 +4,7 @@
 > 문서 분류: **TARGET / PARTIALLY IMPLEMENTED**
 > 최종 수정일: 2026-08-24
 > 관련 기능: DohaMusic Workspace 데이터베이스 재설계
-> 구현 상태: Workspace 도메인 Entity/Table 28개·Catalog 1개·Clip persistence와 trusted Artifact duration revision `0021` 구현
+> 구현 상태: Workspace 도메인 Entity/Table 28개·Catalog 1개·Clip persistence·trusted Artifact duration과 revision-safe idempotency result revision `0022` 구현
 > 미구현 전환: backfill·dual write·Runtime read source 전환·Legacy 제거
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [Migration 전략](database-redesign-migration-strategy.md)
 

@@ -44,6 +44,7 @@
 | [ADR-038](ADR-038-v1-reviewer-authentication-product-decision.md) | V1 reviewer authentication product authority와 delegated Provider model | 승인, 구현 미착수 |
 | [ADR-039](ADR-039-provider-result-ingestion-trust-boundary.md) | Provider wire result와 Artifact ingestion authority 분리 | 승인 |
 | [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md) | canonical Track·Clip, mutable WorkingComposition과 불변 Snapshot commit 경계 | 승인 |
+| [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md) | 완료 revision과 복수 identity를 보존하는 versioned idempotency replay 결과 | 승인 |
 | [ADR-041](ADR-041-trusted-payload-locator-authority.md) | DohaMusic-owned opaque Trusted Payload locator authority | 승인 |
 | [ADR-042](ADR-042-v1-local-operator-authentication-foundation.md) | V1 local operator proof mechanism과 fail-closed authentication foundation | 승인, concrete OS adapter 미구현 |
 | [ADR-043](ADR-043-doha-vocal-worker-reconciliation-authority.md) | DohaVocal Worker의 Provider success·lease·payload·retry·Completion reconciliation 권위 | 승인, concrete wiring 미구현 |
@@ -72,6 +73,7 @@
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
 - [ADR-035 — D1 Composition Read 권위와 Projection 계약](ADR-035-d1-composition-read-authority.md): Workspace read authority, explicit Project selection, snapshot-local Track projection, Section 비가용 상태와 Project aggregate GET을 결정한다.
 - [ADR-040 — Canonical Track·Clip과 Working Composition 권위](ADR-040-canonical-track-clip-working-composition-authority.md): Project당 하나의 mutable WorkingComposition, canonical Track·Clip identity, exact AssetVersion, revision·atomic edit와 별도 불변 Snapshot Track/Clip commit 경계를 결정한다.
+- [ADR-047 — Revision-safe Idempotency Completion Result 권위](ADR-047-revision-safe-idempotency-completion-result.md): 기존 resource replay를 보존하면서 완료 revision과 operation별 복수 identity를 bounded versioned JSON으로 원자 저장한다.
 - [ADR-045 — Clip Service 삭제 의미와 신뢰된 미디어 길이 권위](ADR-045-clip-service-deletion-media-duration-authority.md): non-empty Track 삭제 거부와 trusted ingestion이 저장한 exact duration, exact-one Artifact fail-closed 경계를 결정한다.
 
 ## Artifact Storage

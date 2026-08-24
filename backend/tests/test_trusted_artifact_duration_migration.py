@@ -17,6 +17,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 PREVIOUS_REVISION = "20260824_0020"
 REVISION = "20260824_0021"
+SOURCE_HEAD = "20260825_0022"
 
 
 def _config(database_url: str) -> Config:
@@ -70,7 +71,7 @@ def _seed_artifact(database_url: str) -> str:
 
 def test_duration_revision_is_single_head() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
 
 

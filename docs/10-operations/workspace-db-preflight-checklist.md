@@ -1,14 +1,14 @@
 ﻿# Workspace DB Migration Preflight 체크리스트
 
 > 문서 상태: [역사 기준 + 재사용 체크리스트]
-> 최종 수정일: 2026-08-24
+> 최종 수정일: 2026-08-25
 > 관련 기능: additive SQLite Migration 적용 전 Gate
-> 구현 상태: `20260806_0012` 최초 적용용 원형이며 source는 `20260824_0021`, 실제 사용자 DB는 `20260810_0017`; 다음 Migration은 새 실행 기록에서 재검증 필요
+> 구현 상태: `20260806_0012` 최초 적용용 원형이며 source는 `20260825_0022`, 실제 사용자 DB는 `20260810_0017`; 다음 Migration은 새 실행 기록에서 재검증 필요
 > 관련 문서: [적용 Runbook](workspace-db-migration-runbook.md), [Backup·Rollback 정책](workspace-db-backup-rollback-policy.md)
 
 아래 빈 체크 표시는 현재 DB 상태가 아니라 최초 `20260806_0012` 실행 전 재사용 Template입니다. 실제 증거는 revision별 Validation Report에서 보존하며, 다음 Migration도 새 실행 기록에서만 체크합니다. 문서 생성이나 fixture 테스트만으로 사용자 DB 항목을 완료 처리하지 않습니다.
 
-코드 기준선에서는 Runtime·Alembic online SQLite 연결의 FK 활성화와 startup 자동 Migration 기본 비활성화를 구현했습니다. source head는 `20260824_0021`, 실제 사용자 DB는 `20260810_0017`이며 대상 DB의 actual revision과 backup·rehearsal Gate를 새로 확인해야 합니다. 아래 Template의 체크 표시는 특정 실행 결과를 대신하지 않으므로 비워 둡니다.
+코드 기준선에서는 Runtime·Alembic online SQLite 연결의 FK 활성화와 startup 자동 Migration 기본 비활성화를 구현했습니다. source head는 `20260825_0022`, 실제 사용자 DB는 `20260810_0017`이며 대상 DB의 actual revision과 backup·rehearsal Gate를 새로 확인해야 합니다. 아래 Template의 체크 표시는 특정 실행 결과를 대신하지 않으므로 비워 둡니다.
 
 ## Gate A — 대상과 승인
 
