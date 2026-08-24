@@ -4,7 +4,7 @@
 > 작성일: 2026-08-10
 > 최종 수정일: 2026-08-20
 > 관련 기능: Workspace Job, cancellation, retry, Worker claim·lease와 Artifact completion
-> 관련 문서: [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Provider API 계약](../06-api/provider-api-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [ADR-028](ADR-028-provider-runtime-artifact-contract.md), [ADR-032](ADR-032-artifact-storage-resolver-integrity.md)
+> 관련 문서: [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Worker Re-entry Lifecycle](../03-architecture/workspace-worker-reentry-lifecycle.md), [Provider API 계약](../06-api/provider-api-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [ADR-028](ADR-028-provider-runtime-artifact-contract.md), [ADR-032](ADR-032-artifact-storage-resolver-integrity.md), [ADR-044](ADR-044-workspace-worker-reentry-lifecycle-authority.md)
 
 ## 배경
 
@@ -35,7 +35,7 @@ Workspace Job Service와 Completion UoW에 이어 atomic claim·lease·heartbeat
 
 1. 공개 `cancel_requested` 상태 추가: 공통 5-state vocabulary와 Provider 매핑을 확장해야 하므로 제외한다.
 2. AssetVersion에서 latest Artifact 자동 선택: 실행 재현성과 감사 가능성을 깨므로 제외한다.
-3. 실행 중 Job을 lease 만료 후 같은 row로 자동 재실행: Provider side effect 중복 위험 때문에 제외한다.
+3. 실행 중 Job을 lease 만료 후 같은 row로 무조건 자동 재실행: Provider side effect 중복 위험 때문에 제외한다. 후속 ADR-044는 이 금지를 유지하면서 replay-safe로 등록되고 CAS·binding/Create replay 조건을 만족하는 Job에만 `running -> running` reclaim을 허용한다.
 4. Provider가 Workspace Artifact와 AssetVersion을 직접 등록: 권한·Selection·상업 이용 책임이 Provider로 누출되어 제외한다.
 5. DB commit 후 파일 publish: 성공 row가 Payload 없이 노출될 수 있어 제외한다.
 

@@ -3,7 +3,7 @@
 > 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5·Provider Job persistence·metadata Result trust gate·Trusted Payload resolver Foundation] / [미구현: Provider dispatch wiring·downloader·Completion adapter·실제 payload ingestion·background daemon]
 > 최종 수정일: 2026-08-24
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
-> 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [DohaVocal Worker Reconciliation](dohavocal-worker-reconciliation-contract.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
+> 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [DohaVocal Worker Reconciliation](dohavocal-worker-reconciliation-contract.md), [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
 
 ## 1. 목적과 현재 상태
 
@@ -159,7 +159,7 @@ DohaMusic만 Provider를 호출하고 Provider 간 직접 호출을 금지한다
 
 Provider의 `success`는 Provider-side 생성 완료다. Workspace `succeeded`는 DohaMusic의 무결성 검증·publish·lineage 등록과 DB commit까지 완료됐음을 의미한다.
 
-Provider terminal success부터 payload와 Completion까지의 `running` 유지, 내부 `stage`, bounded polling, lease 소유, retry·cancel과 crash 복구는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)가 권위다. 현재 lease expiry는 same-Job resume가 아니라 retryable failure이며, lease 간 재진입과 production payload 복구에는 각각 `DURABLE_EXECUTION_HANDOFF_REQUIRED`, `DURABLE_LOCATOR_REQUIRED`가 필요하다.
+Provider terminal success부터 payload와 Completion까지의 `running` 유지, 내부 `stage`, bounded polling, lease 소유, retry·cancel과 crash 복구는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)가 권위다. 목표 same-Job ownership transfer는 [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)의 `LEASE_EXPIRY_RECLAIMABLE`을 따르며 현재 runtime은 구현 전까지 lease expiry를 retryable failure로 종료한다. production payload 복구에는 계속 `DURABLE_LOCATOR_REQUIRED`다.
 
 ## 11. Completion Unit of Work와 부분 출력
 
@@ -194,9 +194,9 @@ source revision `20260810_0017`에서 `claim_token`, 길이 128의 `claimed_by`,
 - claim 성공 Worker만 `queued → running`할 수 있다.
 - 실행 Worker는 lease를 소유하고 heartbeat로 연장한다.
 - 같은 Job을 두 Worker가 동시에 실행할 수 없다.
-- `attempt`는 같은 immutable Job의 dispatch·Provider invocation 시도이고 공개 retry와 다르다.
-- 같은 Job attempt는 Provider idempotency가 중복 side effect를 방지할 수 있을 때만 허용한다.
-- running lease가 만료되면 원본을 무조건 queued로 되돌리지 않는다. `WORKER_LEASE_EXPIRED`, retryable `true`로 `failed` 처리하고 새 실행은 명시적 retry Job으로 남긴다.
+- `attempt`는 같은 immutable Job의 Worker ownership generation/claim 횟수다. Provider invocation·Provider retry 횟수나 새 Workspace retry Job 횟수가 아니다.
+- 현재 구현에서 같은 Job attempt는 Provider idempotency가 중복 side effect를 방지할 수 있을 때만 허용하며 running lease 만료는 `WORKER_LEASE_EXPIRED`, retryable `true`의 `failed`로 종료한다.
+- 목표 계약에서 replay-safe로 등록된 Provider-backed Job은 yielded/expired `running` claim을 CAS로 reclaim한다. `attempt`는 Worker ownership generation마다 증가하고 Provider retry·새 Workspace retry와 구분하며, 기존 row의 무조건적인 `queued` 복귀는 계속 금지한다.
 
 ## 14. Progress·오류·감사
 
