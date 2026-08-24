@@ -136,6 +136,6 @@ def test_fresh_head_has_nullable_positive_duration_column(tmp_path: Path) -> Non
             connection.execute(
                 text("SELECT version_num FROM alembic_version")
             ).scalar_one()
-            == REVISION
+            == SOURCE_HEAD
         )
     engine.dispose()

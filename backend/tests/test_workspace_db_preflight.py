@@ -69,6 +69,10 @@ def test_inventory_is_read_only_and_reports_known_drift(tmp_path: Path) -> None:
     assert inventory["foreign_key_violation_count"] == 0
     assert inventory["schema_drift"]["blockers"] == []
     assert any(
+        "idempotency_records post-target nullable columns absent" in item
+        for item in inventory["schema_drift"]["acceptable"]
+    )
+    assert any(
         "pipeline_jobs.input_snapshot nullable drift" in warning
         for warning in inventory["schema_drift"]["warnings"]
     )
