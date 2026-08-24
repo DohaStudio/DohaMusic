@@ -1,9 +1,9 @@
 # Provider Result → Artifact Ingestion Contract
 
 > 문서 상태: [완료: metadata-only trust/eligibility·Trusted Payload locator/resolver Foundation] / [미구현: payload transport·Completion adapter·실제 ingestion]
-> 최종 수정일: 2026-08-21
+> 최종 수정일: 2026-08-24
 > 기준: DohaMusic `64577d8c5c7d96b11c2ee22aefa5ce79da7725bc`, DohaVocal `59de6c7b50f2e1d28a04f13ad649bf99f5737ec2`, `.github/develop` 공통 명세 `dd75fc88c16e9ae9a04acfafb72756a905f6365b` (기존 고정 검토 SHA `1e4b480c8cbd6e51835f8550e685e9b136d8071d` 대비 호환 확인)
-> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md)
+> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md)
 
 ## 1. 목적과 경계
 
@@ -47,7 +47,7 @@ eligible_for_structured_ingestion = false
 payload_reference = null
 ```
 
-따라서 Provider 실행 성공을 Provider failure로 바꾸지 않지만 Workspace Job도 `succeeded`로 만들지 않는다. 현재 상태 machine에 새 상태를 추가하지 않고 Job은 Completion requirements를 충족할 실제 Payload가 생길 때까지 기존 `running` 상태를 유지한다. Worker polling·timeout·terminal reconciliation은 후속 orchestration 책임이다.
+따라서 Provider 실행 성공을 Provider failure로 바꾸지 않지만 Workspace Job도 `succeeded`로 만들지 않는다. 현재 상태 machine에 새 상태를 추가하지 않고 Job은 Completion requirements를 충족할 실제 Payload가 생길 때까지 기존 `running` 상태를 유지한다. 내부 `stage`, bounded polling, lease와 terminal reconciliation은 [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다. trust failure는 비재시도 fail-closed이며 payload 가용성의 일시적 실패와 혼합하지 않는다.
 
 `vocal_analysis.analysis_result`도 현재 Fake metadata descriptor의 일부다. `.github` Artifact 명세의 실제 직렬화 Payload와 크기·checksum을 갖춘 structured Artifact가 아니므로 Artifact로 등록하지 않는다.
 
@@ -62,6 +62,8 @@ DohaMusic runtime이 발급하는 [Trusted Payload Locator / Resolver Contract](
 검증 결과의 논리 idempotency key는 `(provider_job_binding_id, output_role, provider_artifact_id)`다. 같은 candidate를 반복 검증해도 DB·filesystem side effect가 없다. 실제 ingestion retry의 duplicate 방지는 후속 payload 계약에서 이 key와 기존 Completion UoW replay/uniqueness를 함께 사용해 확정한다. 현재 contract만을 위해 table이나 Alembic revision을 추가하지 않는다.
 
 실제 payload ingestion이 도입되면 DB 조회 validation과 Completion write를 일관된 transaction 경계에서 재검증해야 한다. Provider network와 파일 전송은 DB transaction 밖에 둔다.
+
+Candidate role은 Completion에 직접 전달하지 않는다. DohaMusic-owned mapping이 `generated_vocal_candidate`, `converted_vocal_candidate`, `corrected_vocal_candidate`, `vocal_analysis_result`를 각각 `generated_vocal`, `converted_vocal`, `corrected_vocal`, `vocal_analysis`로 변환하며 adapter 구현 전에는 Completion에 진입할 수 없다.
 
 ## 6. 미구현
 

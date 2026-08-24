@@ -1,6 +1,8 @@
 # Workspace Job Worker 운영 경계
 
-> 상태: [완료: 실행 기반·Provider Job persistence·metadata Result trust gate] / [미구현: background runtime·Provider dispatch wiring·실제 payload ingestion]
+> 상태: [완료: 실행 기반·Provider Job persistence·metadata Result trust gate·reconciliation 계약] / [미구현: background runtime·Provider dispatch wiring·durable locator·실제 payload ingestion]
+
+운영 수명주기의 authoritative source는 [DohaVocal Worker Reconciliation Contract](../03-architecture/dohavocal-worker-reconciliation-contract.md)다. Provider `succeeded`만으로 Workspace Job을 성공 처리하지 않으며 trust gate·trusted payload·Completion commit 전까지 `running`을 유지한다.
 
 Provider Job identity DB persistence는 [구현] 상태다. 후속 Dispatcher는 CreateJob 응답 직후 [Provider Job Persistence Contract](../03-architecture/provider-job-persistence.md)의 Service로 binding을 기록하고, 재시작 시 Workspace Job ID로 history/latest를 조회해야 한다. Provider 상태는 binding table이 아니라 Provider Runtime에서 조회한다.
 
@@ -12,8 +14,8 @@ Provider polling이 성공 metadata를 반환하면 [Provider Result Ingestion C
 
 - 기본 lease는 5분이며 30초~1시간만 허용한다.
 - Provider adapter는 `ProviderExecutionContext.heartbeat()`를 장시간 실행 중 호출해야 한다.
-- 만료 lease는 재queue하지 않고 retryable failure로 종료한다.
+- 만료 lease는 재queue하거나 resume으로 가장하지 않고 retryable failure로 종료한다. lease 간 same-Job 재진입에는 `DURABLE_EXECUTION_HANDOFF_REQUIRED`다.
 - Provider 실패의 공개 `error_code`는 64자 이하의 `[A-Z][A-Z0-9_]*` machine code만 허용하며, 그 밖의 값은 `PROVIDER_EXECUTION_FAILED`로 대체한다. 원본 오류·경로·credential·stack trace는 공개 오류에 저장하지 않는다.
 - 동일 Job의 transport retry는 `workspace-job:<job_id>` canonical idempotency key를 재사용한다. 같은 Provider 결과의 Completion UoW replay는 기존 결과를 반환하고 `AssetVersion`·`Artifact`·Catalog·`JobOutput`·`ModelUsage`를 중복 생성하지 않는다.
 - Provider가 `CANCELLED`를 명시적으로 반환하면 cancel marker 유무와 관계없이 Job을 `cancelled`로 종료하며 Completion UoW와 출력 lineage를 생성하지 않는다. 실행 중 marker가 설정된 기존 success race도 cancel 우선이다.
-- 실제 daemon, scheduler, DohaLM·DohaAudio·DohaVocal dispatch 연결·외부 호출과 payload ingestion은 아직 없다.
+- 실제 daemon, scheduler, DohaLM·DohaAudio·DohaVocal dispatch 연결·외부 호출과 payload ingestion은 아직 없다. production crash/restart payload 복구에는 `DURABLE_LOCATOR_REQUIRED`다.

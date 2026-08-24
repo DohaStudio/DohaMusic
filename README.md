@@ -2,7 +2,7 @@
 
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-21
+> 최종 수정일: 2026-08-24
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -37,7 +37,7 @@ DohaMusic = AI-native DAW
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
 - Common AI Contract의 `RightsMetadata` opt-in 검증 기반
-- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 config 기반 HTTP Transport·Mock HTTP 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 metadata-only trust/eligibility gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 DohaMusic-owned opaque locator Foundation. Worker wiring·인증·payload downloader·Completion adapter·실제 Artifact ingestion·실제 Vocal model은 미구현
+- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 config 기반 HTTP Transport·Mock HTTP 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 metadata-only trust/eligibility gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 DohaMusic-owned opaque locator Foundation. [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md)은 Provider 성공과 Workspace 성공, lease·retry·payload·role·crash recovery 권위를 확정한다. Worker wiring·인증·payload downloader·durable locator·Completion adapter·실제 Artifact ingestion·실제 Vocal model은 미구현
 
 다음은 CURRENT가 아니다.
 
@@ -111,6 +111,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 | 시스템과 Provider 연결 | [시스템 아키텍처](docs/03-architecture/system-architecture.md) | [Provider 경계](docs/03-architecture/repository-provider-boundaries.md) |
 | Product identity와 DohaAudio reviewer 인증 경계 | [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md) | [Local Operator Authentication](docs/03-architecture/local-operator-authentication.md), [ADR-042](docs/11-decisions/ADR-042-v1-local-operator-authentication-foundation.md) |
 | DohaVocal Consumer 계약 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) | [ADR-034](docs/11-decisions/ADR-034-dohavocal-consumer-contract.md) |
+| DohaVocal Worker reconciliation | [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md) | [ADR-043](docs/11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md) |
 | Reference 분석 | [목표 아키텍처의 Reference Analysis](docs/03-architecture/ai-native-daw-target-architecture.md#41-reference-analysis) | [Common Contract 소비자 기준](docs/03-architecture/common-ai-contract-consumer.md) |
 | 사용자 수정이 학습 후보가 되는 방식 | [목표 아키텍처의 Continuous Learning](docs/03-architecture/ai-native-daw-target-architecture.md#45-continuous-learning) | [제품 방향](docs/02-product/ai-native-daw-product-direction.md#55-continuous-learning) |
 | 완성곡 품질·유사도 평가 | [목표 아키텍처의 Composition Evaluation](docs/03-architecture/ai-native-daw-target-architecture.md#44-composition-evaluation--qa) | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |

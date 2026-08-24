@@ -1,7 +1,7 @@
 # Workspace Service와 Transaction 경계
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-06
+> 최종 수정일: 2026-08-24
 > 관련 기능: Workspace Application Service
 > 관련 문서: [Backend Architecture](backend-architecture.md), [데이터베이스 재설계](../07-database/database-redesign-overview.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md)
 
@@ -93,7 +93,7 @@ stateDiagram-v2
     running --> cancelled
 ```
 
-`succeeded`, `failed`, `cancelled`는 종료 상태다. `succeeded`는 `complete_job_with_outputs`에서 JobOutput 등록과 같은 transaction으로만 확정한다. Retry는 기존 Job 상태를 되돌리지 않고 새 Job을 생성한다. Provider 실행과 Worker dispatch는 이번 계층의 책임이 아니다.
+`succeeded`, `failed`, `cancelled`는 종료 상태다. `succeeded`는 `complete_job_with_outputs`에서 JobOutput 등록과 같은 transaction으로만 확정한다. Provider terminal success와 metadata-only Result는 이 조건을 충족하지 않으며 payload reconciliation 동안 public status는 `running`이다. Retry는 기존 Job 상태를 되돌리지 않고 새 Job을 생성한다. Provider 실행과 Worker dispatch는 이번 계층의 책임이 아니며 상세 경계는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다.
 
 ## 9. 현재 제외 범위
 

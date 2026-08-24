@@ -1,7 +1,7 @@
 # Trusted Payload Locator / Resolver Contract
 
 > 문서 상태: [완료: 내부 locator·issuer·resolver Foundation] / [미구현: downloader·Completion adapter·Worker wiring·durable production registry]
-> 최종 수정일: 2026-08-21
+> 최종 수정일: 2026-08-24
 > 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md)
 
 ## 1. 목적과 authority
@@ -44,7 +44,7 @@ locator는 `namespace=payloadref`, `version=1`, 추론 불가능한 `opaque_id`�
 
 ## 5. 구현 범위와 process boundary
 
-`InMemoryTrustedPayloadRegistry`는 deterministic clock/ID를 주입할 수 있는 process-local Foundation fake이며 production 구현이 아니다. 현재 Worker service와 Completion foundation의 호출은 같은 application process에서 조립 가능하지만 background daemon, multi-process/host handoff와 restart 후 복구는 아직 구현되지 않았다. 그러므로 durable locator persistence가 필요한 production wiring 전에는 DB schema가 아니라 별도 설계 Gate에서 수명·cleanup·recovery를 확정해야 한다. 이번 변경의 Alembic revision은 0개다.
+`InMemoryTrustedPayloadRegistry`는 deterministic clock/ID를 주입할 수 있는 process-local Foundation fake이며 production 구현이 아니다. 현재 Worker service와 Completion foundation의 호출은 같은 application process에서 조립 가능하지만 background daemon, multi-process/host handoff와 restart 후 복구는 아직 구현되지 않았다. 따라서 production reconciliation에는 `DURABLE_LOCATOR_REQUIRED`가 적용된다. durable record는 Provider Job binding·output role·Provider Artifact identity, trusted byte identity·checksum·size·media, expiry와 cleanup 상태를 immutable하게 결합해야 하며 재발급은 감사 가능해야 한다. schema와 구현은 후속 설계 Gate이고 이번 변경의 Alembic revision은 0개다. 상세 replay 정책은 [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다.
 
 현재 metadata-only DohaVocal 결과는 계속 `payload_present=false`, `payload_reference=None`, binary·structured eligibility false다. 미래 payload-backed 흐름은 DohaMusic runtime이 network transaction 밖에서 payload를 안전하게 내려받아 staging한 뒤 issuer로 reference를 만들고 resolver 결과를 내부 adapter가 Completion에 전달해야 한다. downloader, arbitrary URL fetch, Artifact ingestion, AssetVersion·JobOutput·ModelUsage commit은 모두 `[미구현]`이다.
 

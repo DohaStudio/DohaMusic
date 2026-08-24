@@ -1,8 +1,8 @@
 # Provider Job Persistence Contract
 
 > 문서 상태: [구현]
-> 최종 수정일: 2026-08-20
-> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [DohaVocal Consumer Contract](dohavocal-consumer-contract.md), [ADR-036](../11-decisions/ADR-036-provider-job-persistence.md)
+> 최종 수정일: 2026-08-24
+> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [DohaVocal Consumer Contract](dohavocal-consumer-contract.md), [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md), [ADR-036](../11-decisions/ADR-036-provider-job-persistence.md)
 
 ## 1. 목적과 권위
 
@@ -71,7 +71,7 @@ Provider CreateJob success
   → binding insert 미수행
 ```
 
-외부 HTTP side effect와 DohaMusic DB commit은 하나의 transaction이 아니므로 이 window는 이번 PR만으로 제거할 수 없다. 후속 Worker wiring은 Workspace Job 기반 stable Provider idempotency key로 CreateJob을 재조회/재생하고, 응답 identity를 즉시 `create_binding_for_owner()`에 저장해야 한다. 새 Provider Job을 무조건 다시 생성해서는 안 된다.
+외부 HTTP side effect와 DohaMusic DB commit은 하나의 transaction이 아니므로 이 window는 이번 PR만으로 제거할 수 없다. 후속 Worker wiring은 Workspace Job 기반 stable Provider idempotency key와 동일 request fingerprint로 CreateJob을 replay해 같은 identity를 회수하고, 응답 identity를 즉시 `create_binding_for_owner()`에 저장해야 한다. 새 Provider Job을 무조건 다시 생성해서는 안 된다. Provider retry는 기존 binding 갱신이 아니라 같은 Workspace Job에 새 binding을 append하며 상세 복구·직렬화 정책은 [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다.
 
 이번 구현에는 공개 API, Worker wiring, Provider 호출·polling·cancel/retry 호출, Artifact ingestion, Completion UoW 변경이 없다.
 
