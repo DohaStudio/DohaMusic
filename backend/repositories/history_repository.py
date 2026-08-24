@@ -16,9 +16,7 @@ class HistoryRepository:
         self.session = session
 
     def get_or_create_default_project(self) -> Project:
-        project = self.session.scalar(
-            select(Project).where(Project.is_default.is_(True))
-        )
+        project = self.session.scalar(select(Project).where(Project.is_default.is_(True)))
         if project is None:
             project = Project(title="Default Project", is_default=True)
             self.session.add(project)
@@ -47,9 +45,7 @@ class HistoryRepository:
     def project_job_count(self, project_id: str) -> int:
         return int(
             self.session.scalar(
-                select(func.count(PipelineJob.id)).where(
-                    PipelineJob.project_id == project_id
-                )
+                select(func.count(PipelineJob.id)).where(PipelineJob.project_id == project_id)
             )
             or 0
         )
@@ -72,9 +68,7 @@ class HistoryRepository:
 
     def delete_project(self, project: Project) -> None:
         self.session.execute(
-            update(PipelineJob)
-            .where(PipelineJob.project_id == project.id)
-            .values(project_id=None)
+            update(PipelineJob).where(PipelineJob.project_id == project.id).values(project_id=None)
         )
         self.session.delete(project)
         self.session.commit()
@@ -105,11 +99,7 @@ class HistoryRepository:
             statement = statement.where(PipelineJob.prompt.ilike(f"%{query.strip()}%"))
         if project_id:
             statement = statement.where(PipelineJob.project_id == project_id)
-        statement = (
-            statement.order_by(PipelineJob.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-        )
+        statement = statement.order_by(PipelineJob.created_at.desc()).offset(offset).limit(limit)
         return list(self.session.execute(statement).all())
 
     def history_detail(self, job_id: str) -> tuple[PipelineJob, str, bool] | None:

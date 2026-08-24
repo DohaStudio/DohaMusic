@@ -58,13 +58,9 @@ def test_upload_list_get_and_delete_voice_profile(client: TestClient) -> None:
     assert "reference_file_path" not in profile
     assert not any("path" in key for key in profile)
 
-    stored = (
-        client.app.state.storage.voice_references_dir / profile["id"] / "reference.wav"
-    )
+    stored = client.app.state.storage.voice_references_dir / profile["id"] / "reference.wav"
     assert stored.is_file()
-    assert stored.resolve().is_relative_to(
-        client.app.state.storage.voice_references_dir.resolve()
-    )
+    assert stored.resolve().is_relative_to(client.app.state.storage.voice_references_dir.resolve())
     with client.app.state.session_factory() as session:
         persisted_profile = session.get(VoiceProfile, profile["id"])
         compatibility_sample = session.scalar(
@@ -89,9 +85,7 @@ def test_upload_list_get_and_delete_voice_profile(client: TestClient) -> None:
     with client.app.state.session_factory() as session:
         assert (
             session.scalar(
-                select(VoiceSample.id).where(
-                    VoiceSample.voice_profile_id == profile["id"]
-                )
+                select(VoiceSample.id).where(VoiceSample.voice_profile_id == profile["id"])
             )
             is None
         )
@@ -146,10 +140,7 @@ def test_upload_rejects_empty_short_long_and_corrupt_wav(client: TestClient) -> 
         response = upload(client, content)
         assert response.status_code in {413, 422}
         assert response.json()["error"]["code"] == code
-    assert (
-        list((client.app.state.storage.voice_references_dir / ".uploads").glob("*"))
-        == []
-    )
+    assert list((client.app.state.storage.voice_references_dir / ".uploads").glob("*")) == []
 
 
 def test_upload_rejects_extension_mime_and_traversal_filename(
@@ -161,16 +152,12 @@ def test_upload_rejects_extension_mime_and_traversal_filename(
         ("../voice.wav", "audio/wav"),
     ]
     for filename, content_type in cases:
-        response = upload(
-            client, wav_bytes(), filename=filename, content_type=content_type
-        )
+        response = upload(client, wav_bytes(), filename=filename, content_type=content_type)
         assert response.status_code == 415
         assert response.json()["error"]["code"] == "VOICE_FILE_TYPE_UNSUPPORTED"
 
 
-def test_streaming_upload_enforces_actual_size_limit(
-    client: TestClient, monkeypatch
-) -> None:
+def test_streaming_upload_enforces_actual_size_limit(client: TestClient, monkeypatch) -> None:
     monkeypatch.setattr(voice_upload_service, "MAX_VOICE_UPLOAD_BYTES", 128)
     response = upload(client, wav_bytes())
     assert response.status_code == 413
@@ -198,13 +185,9 @@ def test_profile_in_use_cannot_be_deleted(client: TestClient) -> None:
     assert response.json()["error"]["code"] == "VOICE_PROFILE_IN_USE"
 
 
-def test_storage_delete_failure_preserves_profile_and_file(
-    client: TestClient, monkeypatch
-) -> None:
+def test_storage_delete_failure_preserves_profile_and_file(client: TestClient, monkeypatch) -> None:
     profile = upload(client, wav_bytes()).json()
-    stored = (
-        client.app.state.storage.voice_references_dir / profile["id"] / "reference.wav"
-    )
+    stored = client.app.state.storage.voice_references_dir / profile["id"] / "reference.wav"
     original_unlink = Path.unlink
 
     def fail_tombstone(self: Path, *args, **kwargs):
@@ -220,9 +203,7 @@ def test_storage_delete_failure_preserves_profile_and_file(
     assert client.get(f"/api/voice-profiles/{profile['id']}").status_code == 200
 
 
-def test_storage_write_failure_cleans_temporary_file(
-    client: TestClient, monkeypatch
-) -> None:
+def test_storage_write_failure_cleans_temporary_file(client: TestClient, monkeypatch) -> None:
     upload_dir = client.app.state.storage.voice_references_dir / ".uploads"
     original_replace = Path.replace
 

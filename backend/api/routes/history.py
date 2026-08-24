@@ -40,9 +40,7 @@ def list_projects(service: ServiceDependency) -> list[ProjectRead]:
     return service.list_projects()
 
 
-@router.post(
-    "/projects", response_model=ProjectRead, status_code=status.HTTP_201_CREATED
-)
+@router.post("/projects", response_model=ProjectRead, status_code=status.HTTP_201_CREATED)
 def create_project(request: ProjectCreate, service: ServiceDependency) -> ProjectRead:
     return service.create_project(request)
 

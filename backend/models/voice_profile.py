@@ -28,9 +28,7 @@ if TYPE_CHECKING:
 class VoiceProfile(Base):
     __tablename__ = "voice_profiles"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     reference_file_path: Mapped[str] = mapped_column(String(500), nullable=False)
     consent_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False)
@@ -41,9 +39,7 @@ class VoiceProfile(Base):
     sample_rate: Mapped[int | None] = mapped_column(Integer, nullable=True)
     channels: Mapped[int | None] = mapped_column(Integer, nullable=True)
     status: Mapped[str] = mapped_column(String(20), nullable=False, default="READY")
-    quality_warnings: Mapped[list[str]] = mapped_column(
-        JSON, nullable=False, default=list
-    )
+    quality_warnings: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     consent_text_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
     consent_confirmed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True

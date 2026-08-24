@@ -127,9 +127,7 @@ def _normalize_base_url(value: str) -> str:
         or parsed.query
         or parsed.fragment
     ):
-        raise ValueError(
-            "DohaVocal base URL must be an HTTP(S) origin without userinfo"
-        )
+        raise ValueError("DohaVocal base URL must be an HTTP(S) origin without userinfo")
     if port is not None and not 1 <= port <= 65535:
         raise ValueError("DohaVocal base URL port is invalid")
     return candidate.rstrip("/")

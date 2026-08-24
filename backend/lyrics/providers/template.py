@@ -23,9 +23,7 @@ class TemplateLyricsGenerator:
         sections = tuple(
             LyricsSection(section_type, self._lines(request, section_type, index))
             for index, section_type in enumerate(request.structure, start=1)
-            if not (
-                section_type == "post_chorus" and request.include_post_chorus is False
-            )
+            if not (section_type == "post_chorus" and request.include_post_chorus is False)
         )
         title = self._title(request)
         return LyricsGenerationResult(
@@ -70,9 +68,7 @@ class TemplateLyricsGenerator:
         )
         topic = request.topic[:40]
         keyword = keyword[:30]
-        mood = (request.mood or ("담담한" if request.language == "ko" else "gentle"))[
-            :30
-        ]
+        mood = (request.mood or ("담담한" if request.language == "ko" else "gentle"))[:30]
         genre = (request.genre or ("노래" if request.language == "ko" else "song"))[:30]
         if request.language == "ko":
             if request.genre in KPOP_PRESET_GENRES:

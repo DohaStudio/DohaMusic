@@ -108,9 +108,7 @@ class VoiceEnrollmentMaintenanceService:
         try:
             effective_now = now or datetime.now(UTC)
             with self.session_factory() as session:
-                expired = VoiceEnrollmentRepository(session).list_expired(
-                    now=effective_now
-                )
+                expired = VoiceEnrollmentRepository(session).list_expired(now=effective_now)
                 for enrollment in expired:
                     enrollment.status = VoiceEnrollmentStatus.EXPIRED.value
                     enrollment.cleanup_status = VoiceCleanupStatus.PENDING.value
@@ -118,9 +116,7 @@ class VoiceEnrollmentMaintenanceService:
                 session.commit()
             if expired:
                 self.metrics.increment("expired_enrollment", len(expired))
-                logger.info(
-                    "voice_maintenance_expiration completed count=%d", len(expired)
-                )
+                logger.info("voice_maintenance_expiration completed count=%d", len(expired))
             return len(expired)
         finally:
             self._run_lock.release()
@@ -141,16 +137,15 @@ class VoiceEnrollmentMaintenanceService:
                     retry_before=retry_before
                 )
                 for enrollment in enrollments:
-                    enrollment_samples = VoiceSampleRepository(
-                        session
-                    ).list_by_enrollment(enrollment.id)
+                    enrollment_samples = VoiceSampleRepository(session).list_by_enrollment(
+                        enrollment.id
+                    )
                     handled_samples.update(sample.id for sample in enrollment_samples)
                     if not self._can_attempt("enrollment", enrollment.id):
                         continue
                     is_retry = (
                         enrollment.cleanup_status == VoiceCleanupStatus.FAILED.value
-                        or enrollment.status
-                        == VoiceEnrollmentStatus.DELETE_FAILED.value
+                        or enrollment.status == VoiceEnrollmentStatus.DELETE_FAILED.value
                     )
                     self._start_attempt("enrollment", enrollment.id, is_retry)
                     self._cleanup_enrollment(session, enrollment, effective_now)
@@ -160,9 +155,7 @@ class VoiceEnrollmentMaintenanceService:
                     retry_before=retry_before
                 )
                 for sample in samples:
-                    if sample.id in handled_samples or not self._can_attempt(
-                        "sample", sample.id
-                    ):
+                    if sample.id in handled_samples or not self._can_attempt("sample", sample.id):
                         continue
                     is_retry = sample.status == VoiceSampleStatus.DELETE_FAILED.value
                     self._start_attempt("sample", sample.id, is_retry)
@@ -189,8 +182,7 @@ class VoiceEnrollmentMaintenanceService:
             with self.session_factory() as session:
                 for sample in VoiceSampleRepository(session).list_all_managed():
                     has_enrollment = (
-                        sample.enrollment_id is not None
-                        and sample.enrollment_id in enrollment_ids
+                        sample.enrollment_id is not None and sample.enrollment_id in enrollment_ids
                     )
                     has_profile = (
                         sample.voice_profile_id is not None
@@ -226,9 +218,7 @@ class VoiceEnrollmentMaintenanceService:
                             VoiceEnrollmentStatus.READY_TO_SUBMIT.value
                             if any(
                                 sample.status == VoiceSampleStatus.READY.value
-                                for sample in sample_repository.list_by_enrollment(
-                                    enrollment_id
-                                )
+                                for sample in sample_repository.list_by_enrollment(enrollment_id)
                             )
                             else VoiceEnrollmentStatus.DRAFT.value
                         )
@@ -294,8 +284,7 @@ class VoiceEnrollmentMaintenanceService:
             running = list(
                 session.scalars(
                     select(VoiceEnrollment).where(
-                        VoiceEnrollment.cleanup_status
-                        == VoiceCleanupStatus.RUNNING.value
+                        VoiceEnrollment.cleanup_status == VoiceCleanupStatus.RUNNING.value
                     )
                 )
             )
@@ -372,10 +361,7 @@ class VoiceEnrollmentMaintenanceService:
                     samples = sample_repository.list_by_enrollment(enrollment.id)
                     enrollment.status = (
                         VoiceEnrollmentStatus.READY_TO_SUBMIT.value
-                        if any(
-                            sample.status == VoiceSampleStatus.READY.value
-                            for sample in samples
-                        )
+                        if any(sample.status == VoiceSampleStatus.READY.value for sample in samples)
                         else VoiceEnrollmentStatus.DRAFT.value
                     )
             session.commit()
@@ -393,9 +379,7 @@ class VoiceEnrollmentMaintenanceService:
                 enrollment.status == VoiceEnrollmentStatus.COMPLETED.value
                 and sample.status == VoiceSampleStatus.PROMOTED.value
             ):
-                success = (
-                    self._delete_sample_paths(sample, keep_normalized=True) and success
-                )
+                success = self._delete_sample_paths(sample, keep_normalized=True) and success
                 continue
             if sample.status == VoiceSampleStatus.DELETED.value:
                 continue
@@ -443,9 +427,7 @@ class VoiceEnrollmentMaintenanceService:
             sample.delete_failure_code = "VOICE_STORAGE_DELETE_FAILED"
             self._finish_attempt("sample", sample.id, succeeded=False)
 
-    def _delete_sample_paths(
-        self, sample: VoiceSample, *, keep_normalized: bool
-    ) -> bool:
+    def _delete_sample_paths(self, sample: VoiceSample, *, keep_normalized: bool) -> bool:
         success = self._delete_temporary_sample_paths(sample)
         original_success = self._delete_path(sample.original_storage_path)
         success = original_success and success
@@ -520,9 +502,7 @@ class VoiceEnrollmentMaintenanceService:
                 modified = datetime.fromtimestamp(path.stat().st_mtime, tz=UTC)
             except OSError:
                 return False
-            if (
-                now - modified
-            ).total_seconds() < self.settings.voice_orphan_grace_seconds:
+            if (now - modified).total_seconds() < self.settings.voice_orphan_grace_seconds:
                 return False
         if root == self.storage.storage.voice_enrollments_dir:
             return (
@@ -543,26 +523,18 @@ class VoiceEnrollmentMaintenanceService:
         )
 
     def _submission_can_retry(self, samples: list[VoiceSample]) -> bool:
-        ready = [
-            sample
-            for sample in samples
-            if sample.status == VoiceSampleStatus.READY.value
-        ]
+        ready = [sample for sample in samples if sample.status == VoiceSampleStatus.READY.value]
         return bool(ready) and all(
             sample.normalized_storage_path is not None
             and self._stored_file_exists(sample.normalized_storage_path)
             for sample in ready
         )
 
-    def _profile_files_exist(
-        self, profile: VoiceProfile, samples: list[VoiceSample]
-    ) -> bool:
+    def _profile_files_exist(self, profile: VoiceProfile, samples: list[VoiceSample]) -> bool:
         if profile.status != "READY":
             return False
         promoted = [
-            sample
-            for sample in samples
-            if sample.status == VoiceSampleStatus.PROMOTED.value
+            sample for sample in samples if sample.status == VoiceSampleStatus.PROMOTED.value
         ]
         return (
             bool(promoted)

@@ -105,9 +105,7 @@ class TrustedProviderResultCandidate:
         """metadata-only 결과의 payload-backed Completion 변환을 차단한다."""
 
         if not self.payload_present or self.payload_reference is None:
-            raise ProviderResultNotIngestibleError(
-                IngestionDecisionReason.PAYLOAD_ABSENT
-            )
+            raise ProviderResultNotIngestibleError(IngestionDecisionReason.PAYLOAD_ABSENT)
         return self.payload_reference
 
 
@@ -289,9 +287,7 @@ class ProviderResultIngestionService:
         return source_id, parent_id, chain_id
 
     @staticmethod
-    def _validate_descriptor(
-        candidate: VocalProviderResultCandidate, job_type: str
-    ) -> None:
+    def _validate_descriptor(candidate: VocalProviderResultCandidate, job_type: str) -> None:
         _safe_identifier(candidate.artifact_id)
         _safe_identifier(candidate.output_asset_version_id)
         _safe_text(candidate.media_type)
@@ -307,9 +303,7 @@ class ProviderResultIngestionService:
             _reject(ProviderResultContractErrorReason.INVALID_CANDIDATE)
 
 
-def _validate_parent_lineage(
-    repository: AssetRepository, source_id: UUID, parent_id: UUID
-) -> None:
+def _validate_parent_lineage(repository: AssetRepository, source_id: UUID, parent_id: UUID) -> None:
     source = repository.get_asset_version(source_id)
     parent = repository.get_asset_version(parent_id)
     if source is None or parent is None or source.asset_id != parent.asset_id:
@@ -317,10 +311,7 @@ def _validate_parent_lineage(
     visited: set[UUID] = set()
     current = parent
     while current.asset_version_id != source_id:
-        if (
-            current.asset_version_id in visited
-            or current.parent_asset_version_id is None
-        ):
+        if current.asset_version_id in visited or current.parent_asset_version_id is None:
             _reject(ProviderResultContractErrorReason.LINEAGE_MISMATCH)
         visited.add(current.asset_version_id)
         ancestor = repository.get_asset_version(current.parent_asset_version_id)

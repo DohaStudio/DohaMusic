@@ -183,9 +183,7 @@ def test_resolver_rejects_missing_catalog_row(tmp_path: Path) -> None:
         "unapproved/payload.wav",
     ],
 )
-def test_resolver_rejects_noncanonical_or_unsafe_storage_keys(
-    tmp_path: Path, key: str
-) -> None:
+def test_resolver_rejects_noncanonical_or_unsafe_storage_keys(tmp_path: Path, key: str) -> None:
     artifact_id, _, _, resolver = _resolver(tmp_path, key=key)
 
     with pytest.raises(ArtifactStorageError) as caught:
@@ -194,9 +192,7 @@ def test_resolver_rejects_noncanonical_or_unsafe_storage_keys(
 
 
 @pytest.mark.parametrize("target_kind", ["missing", "directory"])
-def test_resolver_rejects_unavailable_or_non_file_payload(
-    tmp_path: Path, target_kind: str
-) -> None:
+def test_resolver_rejects_unavailable_or_non_file_payload(tmp_path: Path, target_kind: str) -> None:
     artifact_id, root, _, resolver = _resolver(tmp_path)
     target = root / "music" / "mixes" / "project" / "mix.wav"
     if target_kind == "directory":
@@ -259,9 +255,7 @@ def test_resolver_fails_closed_when_a_component_is_reported_as_reparse_point(
     def report_project_as_reparse(path: Path) -> bool:
         return path == payload.parent or original(path)
 
-    monkeypatch.setattr(
-        resolver_module, "_is_link_or_reparse", report_project_as_reparse
-    )
+    monkeypatch.setattr(resolver_module, "_is_link_or_reparse", report_project_as_reparse)
 
     with pytest.raises(ArtifactStorageError) as caught:
         resolver.resolve(artifact_id)

@@ -43,8 +43,7 @@ class Job(CreatedAtMixin, Base):
     __tablename__ = "jobs"
     __table_args__ = (
         CheckConstraint(
-            "progress_percent IS NULL OR "
-            "(progress_percent >= 0 AND progress_percent <= 100)",
+            "progress_percent IS NULL OR (progress_percent >= 0 AND progress_percent <= 100)",
             name="ck_jobs_progress_percent",
         ),
         CheckConstraint("attempt >= 0", name="ck_jobs_attempt_nonnegative"),
@@ -105,9 +104,7 @@ class Job(CreatedAtMixin, Base):
         nullable=True,
     )
     composition_snapshot_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(
-            "composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"
-        ),
+        ForeignKey("composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"),
         nullable=True,
         index=True,
     )
@@ -124,15 +121,9 @@ class Job(CreatedAtMixin, Base):
         index=True,
     )
     provider_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
-    api_contract_version: Mapped[str] = mapped_column(
-        String, nullable=False, index=True
-    )
-    model_manifest_id: Mapped[str | None] = mapped_column(
-        String, nullable=True, index=True
-    )
-    progress_percent: Mapped[Decimal | None] = mapped_column(
-        Numeric(5, 2), nullable=True
-    )
+    api_contract_version: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    model_manifest_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    progress_percent: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
     stage: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     settings_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     retry_of_job_id: Mapped[UUID | None] = mapped_column(
@@ -141,18 +132,10 @@ class Job(CreatedAtMixin, Base):
     error_code: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     error_retryable: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
-    error_details_id: Mapped[str | None] = mapped_column(
-        String, nullable=True, index=True
-    )
-    requested_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    error_details_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    requested_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     cancel_requested_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -161,9 +144,7 @@ class Job(CreatedAtMixin, Base):
     lease_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    heartbeat_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     attempt: Mapped[int] = mapped_column(
         Integer,
         nullable=False,
@@ -172,9 +153,7 @@ class Job(CreatedAtMixin, Base):
     )
 
     project: Mapped[MusicProject] = relationship(back_populates="jobs")
-    composition_snapshot: Mapped[CompositionSnapshot | None] = relationship(
-        back_populates="jobs"
-    )
+    composition_snapshot: Mapped[CompositionSnapshot | None] = relationship(back_populates="jobs")
     retry_of_job: Mapped[Job | None] = relationship(
         back_populates="retry_jobs",
         remote_side=[job_id],
@@ -222,9 +201,7 @@ class JobInput(CreatedAtMixin, Base):
     input_order: Mapped[int] = mapped_column(Integer, nullable=False)
 
     job: Mapped[Job] = relationship(back_populates="inputs")
-    asset_version: Mapped[AssetVersion | None] = relationship(
-        back_populates="job_inputs"
-    )
+    asset_version: Mapped[AssetVersion | None] = relationship(back_populates="job_inputs")
     artifact: Mapped[Artifact | None] = relationship(back_populates="job_inputs")
 
 
@@ -259,9 +236,7 @@ class JobOutput(CreatedAtMixin, Base):
     output_order: Mapped[int] = mapped_column(Integer, nullable=False)
 
     job: Mapped[Job] = relationship(back_populates="outputs")
-    asset_version: Mapped[AssetVersion | None] = relationship(
-        back_populates="job_outputs"
-    )
+    asset_version: Mapped[AssetVersion | None] = relationship(back_populates="job_outputs")
     artifact: Mapped[Artifact | None] = relationship(back_populates="job_outputs")
 
 
@@ -292,16 +267,10 @@ class ModelUsage(CreatedAtMixin, Base):
     model_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     model_version: Mapped[str] = mapped_column(String, nullable=False)
     checkpoint_version: Mapped[str | None] = mapped_column(String, nullable=True)
-    api_contract_version: Mapped[str] = mapped_column(
-        String, nullable=False, index=True
-    )
+    api_contract_version: Mapped[str] = mapped_column(String, nullable=False, index=True)
     license_status: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    commercial_usage_status: Mapped[str] = mapped_column(
-        String, nullable=False, index=True
-    )
+    commercial_usage_status: Mapped[str] = mapped_column(String, nullable=False, index=True)
 
     job: Mapped[Job] = relationship(back_populates="model_usages")
-    asset_version: Mapped[AssetVersion | None] = relationship(
-        back_populates="model_usages"
-    )
+    asset_version: Mapped[AssetVersion | None] = relationship(back_populates="model_usages")
     approvals: Mapped[list[Approval]] = relationship(back_populates="model_usage")

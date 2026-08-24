@@ -50,9 +50,7 @@ from backend.services.workspace import (
 
 @pytest.fixture
 def session_factory(tmp_path: Path):
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'job-service.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'job-service.db').as_posix()}")
     tables = [entity.__table__ for entity in WORKSPACE_ENTITY_CLASSES]
     tables.append(IdempotencyRecord.__table__)
     Base.metadata.create_all(engine, tables=tables)
@@ -382,9 +380,7 @@ def test_vocal_job_types_preserve_structured_contract(
             asset_version_id=(
                 graph.version.asset_version_id if role == "lyrics_reference" else None
             ),
-            artifact_id=(
-                None if role == "lyrics_reference" else graph.artifact.artifact_id
-            ),
+            artifact_id=(None if role == "lyrics_reference" else graph.artifact.artifact_id),
         )
         for index, role in enumerate(roles)
     )
@@ -764,9 +760,7 @@ def test_snapshot_requires_exact_version(session_factory) -> None:
             idempotency_key="snapshot-mismatch",
             composition_snapshot_id=snapshot.composition_snapshot_id,
             inputs=(
-                JobReferenceInput(
-                    0, artifact_id=second_artifact.artifact_id, input_role="mix"
-                ),
+                JobReferenceInput(0, artifact_id=second_artifact.artifact_id, input_role="mix"),
             ),
         )
 
@@ -820,12 +814,8 @@ def test_cancel_is_state_idempotent_and_running_uses_marker(session_factory) -> 
     graph = _seed_graph(session_factory)
     service = JobService(session_factory)
     queued = _create_music_job(service, graph, key="queued").aggregate.job
-    first = service.cancel_job_for_owner(
-        queued.job_id, effective_owner_id=graph.owner_id
-    )
-    repeated = service.cancel_job_for_owner(
-        queued.job_id, effective_owner_id=graph.owner_id
-    )
+    first = service.cancel_job_for_owner(queued.job_id, effective_owner_id=graph.owner_id)
+    repeated = service.cancel_job_for_owner(queued.job_id, effective_owner_id=graph.owner_id)
     assert first.job.status is JobStatus.CANCELLED
     assert first.response_status == repeated.response_status == 200
 
@@ -835,12 +825,8 @@ def test_cancel_is_state_idempotent_and_running_uses_marker(session_factory) -> 
         effective_owner_id=graph.owner_id,
         status=JobStatus.RUNNING,
     )
-    requested = service.cancel_job_for_owner(
-        running.job_id, effective_owner_id=graph.owner_id
-    )
-    again = service.cancel_job_for_owner(
-        running.job_id, effective_owner_id=graph.owner_id
-    )
+    requested = service.cancel_job_for_owner(running.job_id, effective_owner_id=graph.owner_id)
+    again = service.cancel_job_for_owner(running.job_id, effective_owner_id=graph.owner_id)
     assert requested.job.status is JobStatus.RUNNING
     assert requested.job.cancel_requested_at is not None
     assert again.response_status == 202
@@ -876,9 +862,7 @@ def test_retry_creates_new_frozen_job_and_replays_same_key(session_factory) -> N
     assert new_job.job_id != original.job_id
     assert new_job.retry_of_job_id == original.job_id
     assert new_job.settings_snapshot == original.settings_snapshot
-    assert (
-        retried.aggregate.inputs[0].asset_version_id == graph.version.asset_version_id
-    )
+    assert retried.aggregate.inputs[0].asset_version_id == graph.version.asset_version_id
     assert replay.aggregate.job.job_id == new_job.job_id
     assert _count(session_factory, Job) == 2
 
@@ -889,8 +873,7 @@ def test_retry_key_conflicts_across_original_jobs_without_partial_rows(
     graph = _seed_graph(session_factory)
     service = JobService(session_factory)
     originals = [
-        _create_music_job(service, graph, key=f"create-{index}").aggregate.job
-        for index in range(2)
+        _create_music_job(service, graph, key=f"create-{index}").aggregate.job for index in range(2)
     ]
     for original in originals:
         service.transition_job_for_owner(
@@ -929,18 +912,14 @@ def test_owner_aggregate_hides_foreign_job_and_orders_children(session_factory) 
     graph = _seed_graph(session_factory)
     service = JobService(session_factory)
     job = _create_music_job(service, graph).aggregate.job
-    aggregate = service.get_job_aggregate_for_owner(
-        job.job_id, effective_owner_id=graph.owner_id
-    )
+    aggregate = service.get_job_aggregate_for_owner(job.job_id, effective_owner_id=graph.owner_id)
     assert [item.input_order for item in aggregate.inputs] == [0]
     assert aggregate.outputs == () and aggregate.model_usages == ()
     with pytest.raises(ResourceNotFoundError):
         service.get_job_aggregate_for_owner(job.job_id, effective_owner_id=uuid4())
 
 
-def test_input_failure_rolls_back_job_inputs_and_idempotency(
-    session_factory, monkeypatch
-) -> None:
+def test_input_failure_rolls_back_job_inputs_and_idempotency(session_factory, monkeypatch) -> None:
     graph = _seed_graph(session_factory)
 
     def fail_add_input(self, item):

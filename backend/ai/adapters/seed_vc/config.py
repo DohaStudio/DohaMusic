@@ -34,12 +34,8 @@ class SeedVCConfig:
             "Seed-VC project": self.project_root,
             "model cache": self.model_cache_path,
         }
-        missing = [
-            label for label, path in required_files.items() if not path.is_file()
-        ]
-        missing.extend(
-            label for label, path in required_directories.items() if not path.is_dir()
-        )
+        missing = [label for label, path in required_files.items() if not path.is_file()]
+        missing.extend(label for label, path in required_directories.items() if not path.is_dir())
         if missing:
             raise VoiceProviderNotConfiguredError(
                 "Seed-VC 설정이 준비되지 않았습니다: " + ", ".join(missing)

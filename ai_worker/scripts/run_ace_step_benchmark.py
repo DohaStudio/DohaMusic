@@ -98,10 +98,7 @@ def configure_logs(output_dir: Path) -> None:
 
     def safe_log(record: dict[str, Any]) -> bool:
         message = str(record.get("message", ""))
-        return not (
-            record["name"].endswith("conditioning_text")
-            or "conditioning_text" in message
-        )
+        return not (record["name"].endswith("conditioning_text") or "conditioning_text" in message)
 
     logger.remove()
     logger.add(sys.stderr, level="INFO", filter=safe_log)
@@ -113,9 +110,7 @@ def configure_logs(output_dir: Path) -> None:
     )
 
 
-def audio_metrics(
-    path: Path, soundfile_module: Any, numpy_module: Any
-) -> dict[str, Any]:
+def audio_metrics(path: Path, soundfile_module: Any, numpy_module: Any) -> dict[str, Any]:
     audio, sample_rate = soundfile_module.read(path, always_2d=True)
     absolute = numpy_module.abs(audio)
     peak = float(numpy_module.max(absolute)) if audio.size else 0.0
@@ -132,9 +127,7 @@ def audio_metrics(
     }
 
 
-def initialize_handlers(
-    psutil_module: Any, torch_module: Any
-) -> tuple[Any, Any, dict[str, Any]]:
+def initialize_handlers(psutil_module: Any, torch_module: Any) -> tuple[Any, Any, dict[str, Any]]:
     from acestep.handler import AceStepHandler
 
     from ai_worker.scripts.run_ace_step_smoke_test import query_system_vram_mb
@@ -143,9 +136,7 @@ def initialize_handlers(
     checkpoints = Path(required_env("DOHAMUSIC_AI_ACE_STEP_CHECKPOINT_PATH")).resolve()
     variant = required_env("DOHAMUSIC_AI_ACE_STEP_MODEL_VARIANT")
     if not project_root.is_dir() or not checkpoints.is_dir():
-        raise FileNotFoundError(
-            "Configured ACE-Step project or checkpoint path is missing"
-        )
+        raise FileNotFoundError("Configured ACE-Step project or checkpoint path is missing")
     if not (checkpoints / variant).is_dir():
         raise FileNotFoundError("Configured ACE-Step model variant is missing")
 
@@ -321,18 +312,10 @@ def enrich_resources(
         peak_nvidia_smi_mb=sampler.peak_nvidia_smi_mb,
         process_memory_peak_mb=round(sampler.process_memory_peak_mb, 2),
         system_memory_peak_mb=round(sampler.system_memory_peak_mb, 2),
-        process_memory_after_mb=round(
-            psutil_module.Process().memory_info().rss / 1024 / 1024, 2
-        ),
-        system_memory_after_mb=round(
-            psutil_module.virtual_memory().used / 1024 / 1024, 2
-        ),
-        torch_allocated_after_mb=round(
-            torch_module.cuda.memory_allocated() / 1024 / 1024, 2
-        ),
-        torch_reserved_after_mb=round(
-            torch_module.cuda.memory_reserved() / 1024 / 1024, 2
-        ),
+        process_memory_after_mb=round(psutil_module.Process().memory_info().rss / 1024 / 1024, 2),
+        system_memory_after_mb=round(psutil_module.virtual_memory().used / 1024 / 1024, 2),
+        torch_allocated_after_mb=round(torch_module.cuda.memory_allocated() / 1024 / 1024, 2),
+        torch_reserved_after_mb=round(torch_module.cuda.memory_reserved() / 1024 / 1024, 2),
     )
 
 
@@ -429,9 +412,7 @@ def main() -> int:
     args = parser.parse_args()
     metadata_path = args.metadata_path or args.output_dir / "benchmark.json"
     try:
-        return execute(
-            args.suite.resolve(), args.output_dir.resolve(), metadata_path.resolve()
-        )
+        return execute(args.suite.resolve(), args.output_dir.resolve(), metadata_path.resolve())
     except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         print(
             json.dumps(

@@ -44,8 +44,7 @@ class ProviderJobBinding(CreatedAtMixin, Base):
             ondelete="RESTRICT",
         ),
         CheckConstraint(
-            "retry_of_provider_job_id IS NULL "
-            "OR retry_of_provider_job_id <> provider_job_id",
+            "retry_of_provider_job_id IS NULL OR retry_of_provider_job_id <> provider_job_id",
             name="ck_provider_job_bindings_no_self_retry",
         ),
         Index(
@@ -68,8 +67,6 @@ class ProviderJobBinding(CreatedAtMixin, Base):
     )
     provider_id: Mapped[str] = mapped_column(String(128), nullable=False)
     provider_job_id: Mapped[str] = mapped_column(String(256), nullable=False)
-    retry_of_provider_job_id: Mapped[str | None] = mapped_column(
-        String(256), nullable=True
-    )
+    retry_of_provider_job_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     workspace_job: Mapped[Job] = relationship(back_populates="provider_job_bindings")

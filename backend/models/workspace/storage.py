@@ -64,9 +64,7 @@ class ArtifactStorageLocation(CreatedAtMixin, Base):
         ForeignKey("artifacts.artifact_id", ondelete="RESTRICT"),
         nullable=False,
     )
-    storage_backend: Mapped[str] = mapped_column(
-        String, nullable=False, default="local"
-    )
+    storage_backend: Mapped[str] = mapped_column(String, nullable=False, default="local")
     storage_domain: Mapped[str] = mapped_column(String, nullable=False)
     storage_key: Mapped[str] = mapped_column(String, nullable=False)
     locator_version: Mapped[int] = mapped_column(nullable=False, default=1)
@@ -74,9 +72,7 @@ class ArtifactStorageLocation(CreatedAtMixin, Base):
         DateTime(timezone=True), nullable=False, default=utc_now
     )
 
-    artifact: Mapped[Artifact] = relationship(
-        "Artifact", back_populates="storage_location"
-    )
+    artifact: Mapped[Artifact] = relationship("Artifact", back_populates="storage_location")
 
 
 ARTIFACT_STORAGE_ENTITY_CLASSES = (ArtifactStorageLocation,)

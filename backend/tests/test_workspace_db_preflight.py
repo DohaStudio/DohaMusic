@@ -40,9 +40,7 @@ def _create_runtime_fixture(database_path: Path) -> None:
 def _revision_and_tables(database_path: Path) -> tuple[str, set[str]]:
     engine = create_engine(f"sqlite:///{database_path.as_posix()}")
     with engine.connect() as connection:
-        revision = connection.execute(
-            text("SELECT version_num FROM alembic_version")
-        ).scalar_one()
+        revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
         tables = set(inspect(connection).get_table_names()) - {"alembic_version"}
     engine.dispose()
     return revision, tables
@@ -102,9 +100,7 @@ def test_backup_requires_confirmation_and_restore_preserves_runtime_schema(
         writers_stopped=True,
         timestamp=timestamp,
     )
-    backup_path = (
-        backup_root / f"dohamusic-before-{TARGET_REVISION}-20260806-123456.sqlite3"
-    )
+    backup_path = backup_root / f"dohamusic-before-{TARGET_REVISION}-20260806-123456.sqlite3"
 
     assert sha256_file(database_path) == source_checksum
     assert backup_path.is_file()
@@ -126,9 +122,7 @@ def test_backup_requires_confirmation_and_restore_preserves_runtime_schema(
     restored_revision, restored_tables = _revision_and_tables(restored_copy)
     assert restored_revision == PREVIOUS_REVISION
     assert restored_tables == RUNTIME_TABLES
-    assert collect_inventory(restored_copy, read_approved=True)["integrity_check"] == [
-        "ok"
-    ]
+    assert collect_inventory(restored_copy, read_approved=True)["integrity_check"] == ["ok"]
 
 
 def test_mask_path_hides_parent_directories(tmp_path: Path) -> None:

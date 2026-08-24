@@ -62,9 +62,7 @@ def test_schema_is_loaded_from_package_public_api() -> None:
 
 
 def test_schema_is_loaded_by_official_id() -> None:
-    schema_id = (
-        "https://schemas.dohastudio.org/common-ai/v1/rights-metadata.schema.json"
-    )
+    schema_id = "https://schemas.dohastudio.org/common-ai/v1/rights-metadata.schema.json"
 
     assert common_ai.load_common_ai_schema(schema_id)["$id"] == schema_id
 
@@ -108,9 +106,7 @@ def test_invalid_rights_metadata_keeps_canonical_issue(
     issues = common_ai.validate_rights_metadata(payload)
 
     assert expected_code in {issue.code for issue in issues}
-    assert all(
-        isinstance(issue, dohastudio_common_ai.ValidationIssue) for issue in issues
-    )
+    assert all(isinstance(issue, dohastudio_common_ai.ValidationIssue) for issue in issues)
 
 
 def test_rights_adapter_does_not_synthesize_missing_fields() -> None:
@@ -152,9 +148,7 @@ def test_unknown_schema_name_has_sanitized_error() -> None:
     with pytest.raises(common_ai.CommonAIContractError) as captured:
         common_ai.load_common_ai_schema("unknown_contract")
 
-    assert str(captured.value) == (
-        "The requested Common AI Contract schema is unavailable."
-    )
+    assert str(captured.value) == ("The requested Common AI Contract schema is unavailable.")
 
 
 def test_missing_package_has_sanitized_error(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -166,9 +160,7 @@ def test_missing_package_has_sanitized_error(monkeypatch: pytest.MonkeyPatch) ->
     with pytest.raises(common_ai.CommonAIContractUnavailableError) as captured:
         common_ai.common_ai_contract_status()
 
-    assert str(captured.value) == (
-        "The pinned Common AI Contract package is unavailable."
-    )
+    assert str(captured.value) == ("The pinned Common AI Contract package is unavailable.")
 
 
 def test_incompatible_package_has_sanitized_error(

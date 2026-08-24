@@ -28,9 +28,7 @@ def upgrade() -> None:
         sa.Column("revision", sa.Integer(), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint(
-            "revision >= 0", name="ck_working_compositions_non_negative_revision"
-        ),
+        sa.CheckConstraint("revision >= 0", name="ck_working_compositions_non_negative_revision"),
         sa.ForeignKeyConstraint(
             ["project_id"],
             ["music_projects.project_id"],
@@ -46,9 +44,7 @@ def upgrade() -> None:
             name="fk_working_compositions_same_project_base_snapshot",
             ondelete="RESTRICT",
         ),
-        sa.PrimaryKeyConstraint(
-            "working_composition_id", name="pk_working_compositions"
-        ),
+        sa.PrimaryKeyConstraint("working_composition_id", name="pk_working_compositions"),
         sa.UniqueConstraint("project_id", name="uq_working_compositions_project"),
     )
     op.create_index(
@@ -68,12 +64,8 @@ def upgrade() -> None:
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint(
-            "track_type = 'audio'", name="ck_composition_tracks_audio_type"
-        ),
-        sa.CheckConstraint(
-            "track_order >= 0", name="ck_composition_tracks_non_negative_order"
-        ),
+        sa.CheckConstraint("track_type = 'audio'", name="ck_composition_tracks_audio_type"),
+        sa.CheckConstraint("track_order >= 0", name="ck_composition_tracks_non_negative_order"),
         sa.ForeignKeyConstraint(
             ["working_composition_id"],
             ["working_compositions.working_composition_id"],
@@ -122,18 +114,10 @@ def upgrade() -> None:
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint(
-            "timeline_start >= 0", name="ck_composition_clips_non_negative_start"
-        ),
-        sa.CheckConstraint(
-            "source_in >= 0", name="ck_composition_clips_non_negative_source_in"
-        ),
-        sa.CheckConstraint(
-            "source_duration > 0", name="ck_composition_clips_positive_duration"
-        ),
-        sa.CheckConstraint(
-            "source_out > source_in", name="ck_composition_clips_non_empty_range"
-        ),
+        sa.CheckConstraint("timeline_start >= 0", name="ck_composition_clips_non_negative_start"),
+        sa.CheckConstraint("source_in >= 0", name="ck_composition_clips_non_negative_source_in"),
+        sa.CheckConstraint("source_duration > 0", name="ck_composition_clips_positive_duration"),
+        sa.CheckConstraint("source_out > source_in", name="ck_composition_clips_non_empty_range"),
         sa.CheckConstraint(
             "source_out <= source_duration",
             name="ck_composition_clips_range_within_source",
@@ -218,9 +202,7 @@ def upgrade() -> None:
             name="fk_composition_snapshot_tracks_snapshot",
             ondelete="RESTRICT",
         ),
-        sa.PrimaryKeyConstraint(
-            "snapshot_track_id", name="pk_composition_snapshot_tracks"
-        ),
+        sa.PrimaryKeyConstraint("snapshot_track_id", name="pk_composition_snapshot_tracks"),
         sa.UniqueConstraint(
             "composition_snapshot_id",
             "snapshot_track_id",
@@ -297,9 +279,7 @@ def upgrade() -> None:
             name="fk_composition_snapshot_clips_source_asset_version",
             ondelete="RESTRICT",
         ),
-        sa.PrimaryKeyConstraint(
-            "snapshot_clip_id", name="pk_composition_snapshot_clips"
-        ),
+        sa.PrimaryKeyConstraint("snapshot_clip_id", name="pk_composition_snapshot_clips"),
         sa.UniqueConstraint(
             "composition_snapshot_id",
             "canonical_clip_id",
@@ -345,9 +325,7 @@ def downgrade() -> None:
         "ix_composition_clips_source_asset_version",
         table_name="composition_clips",
     )
-    op.drop_index(
-        "ix_composition_clips_active_timeline", table_name="composition_clips"
-    )
+    op.drop_index("ix_composition_clips_active_timeline", table_name="composition_clips")
     op.drop_table("composition_clips")
     op.drop_index("ix_composition_tracks_active_order", table_name="composition_tracks")
     op.drop_index("ix_composition_tracks_deleted_at", table_name="composition_tracks")

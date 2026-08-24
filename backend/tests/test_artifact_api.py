@@ -59,9 +59,7 @@ class ArtifactApiFixture:
         assert isinstance(asset_service, AssetService)
         asset = asset_service.create_asset(
             owner_id=owner_id,
-            workspace_id=(
-                self.workspace.workspace_id if owner_id == self.owner_id else None
-            ),
+            workspace_id=(self.workspace.workspace_id if owner_id == self.owner_id else None),
             asset_type=AssetType.MUSIC,
         )
         version = asset_service.create_asset_version(
@@ -116,9 +114,7 @@ class ArtifactApiFixture:
 
     def payload_path(self, artifact_id: UUID) -> Path:
         with self.session_factory() as session:
-            location = ArtifactStorageRepository(session).get_storage_location(
-                artifact_id
-            )
+            location = ArtifactStorageRepository(session).get_storage_location(artifact_id)
         assert location is not None
         return self.roots.candidate_path(
             location.storage_domain,
@@ -323,9 +319,7 @@ def test_single_range_returns_exact_206_body_and_headers(
     assert response.headers["content-range"] == (
         f"bytes {normalized_start}-{normalized_end}/{len(payload)}"
     )
-    assert response.headers["content-length"] == str(
-        normalized_end - normalized_start + 1
-    )
+    assert response.headers["content-length"] == str(normalized_end - normalized_start + 1)
     assert response.headers["accept-ranges"] == "bytes"
     assert response.headers["content-type"] == "audio/wav"
     if suffix == "/download":

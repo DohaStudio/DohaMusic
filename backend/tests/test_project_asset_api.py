@@ -104,9 +104,7 @@ def test_project_asset_endpoints_require_explicit_bootstrap(
         response = client.request(method, path, json=body)
 
         assert response.status_code == 409
-        assert response.json()["error"]["error_code"] == (
-            "WORKSPACE_BOOTSTRAP_REQUIRED"
-        )
+        assert response.json()["error"]["error_code"] == ("WORKSPACE_BOOTSTRAP_REQUIRED")
         assert response.headers[REQUEST_ID_HEADER]
 
 
@@ -140,9 +138,7 @@ def test_project_asset_list_uses_cursor_without_duplicates_or_omissions(
         body = response.json()
         pages.extend(body["data"])
         assert body["pagination"]["limit"] == 2
-        assert (body["pagination"]["next_cursor"] is not None) == body["pagination"][
-            "has_more"
-        ]
+        assert (body["pagination"]["next_cursor"] is not None) == body["pagination"]["has_more"]
         path = body["links"]["next"]
 
     returned_ids = [UUID(str(item["asset_id"])) for item in pages]
@@ -358,9 +354,7 @@ def test_project_asset_delete_preserves_asset_version_and_other_project_link(
         display_order=0,
     )
 
-    response = client.delete(
-        f"/api/v1/projects/{graph.project_id}/assets/{graph.asset_id}"
-    )
+    response = client.delete(f"/api/v1/projects/{graph.project_id}/assets/{graph.asset_id}")
 
     assert response.status_code == 204
     assert response.content == b""
@@ -379,9 +373,7 @@ def test_project_asset_delete_preserves_asset_version_and_other_project_link(
     listed = client.get(f"/api/v1/projects/{graph.project_id}/assets")
     assert listed.json()["data"] == []
 
-    missing_link = client.delete(
-        f"/api/v1/projects/{graph.project_id}/assets/{graph.asset_id}"
-    )
+    missing_link = client.delete(f"/api/v1/projects/{graph.project_id}/assets/{graph.asset_id}")
     assert missing_link.status_code == 404
     assert missing_link.json()["error"]["error_code"] == "PROJECT_ASSET_NOT_FOUND"
 
@@ -390,12 +382,8 @@ def test_project_asset_delete_maps_project_and_asset_not_found(
     client: TestClient,
 ) -> None:
     graph = _seed_graph(client)
-    missing_project = client.delete(
-        f"/api/v1/projects/{uuid4()}/assets/{graph.asset_id}"
-    )
-    missing_asset = client.delete(
-        f"/api/v1/projects/{graph.project_id}/assets/{uuid4()}"
-    )
+    missing_project = client.delete(f"/api/v1/projects/{uuid4()}/assets/{graph.asset_id}")
+    missing_asset = client.delete(f"/api/v1/projects/{graph.project_id}/assets/{uuid4()}")
 
     assert missing_project.status_code == 404
     assert missing_project.json()["error"]["error_code"] == "PROJECT_NOT_FOUND"
@@ -441,8 +429,7 @@ def test_project_asset_endpoints_reject_soft_deleted_project_and_asset(
     )
     assert all(response.status_code == 404 for response in asset_responses)
     assert all(
-        response.json()["error"]["error_code"] == "ASSET_NOT_FOUND"
-        for response in asset_responses
+        response.json()["error"]["error_code"] == "ASSET_NOT_FOUND" for response in asset_responses
     )
 
 

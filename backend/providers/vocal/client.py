@@ -184,8 +184,7 @@ class VocalProviderClient:
             if (
                 isinstance(response.json_body, dict)
                 and "api_contract_version" in response.json_body
-                and response.json_body["api_contract_version"]
-                != DOHAVOCAL_CONTRACT_VERSION
+                and response.json_body["api_contract_version"] != DOHAVOCAL_CONTRACT_VERSION
             ):
                 raise VocalProviderContractVersionError(
                     VocalProviderErrorDetail(

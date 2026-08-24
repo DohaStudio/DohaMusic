@@ -62,9 +62,7 @@ def _insert_fixtures(database_url: str) -> None:
                 "lifecycle_status": "active",
                 "updated_at": created_at,
                 "created_at": created_at,
-                "deleted_at": (
-                    created_at + timedelta(days=1) if identifier % 7 == 0 else None
-                ),
+                "deleted_at": (created_at + timedelta(days=1) if identifier % 7 == 0 else None),
             }
         )
     project_rows = []
@@ -80,9 +78,7 @@ def _insert_fixtures(database_url: str) -> None:
                 "created_by": _workspace_id(20_000 + identifier),
                 "updated_at": created_at,
                 "created_at": created_at,
-                "deleted_at": (
-                    created_at + timedelta(days=1) if identifier % 9 == 0 else None
-                ),
+                "deleted_at": (created_at + timedelta(days=1) if identifier % 9 == 0 else None),
             }
         )
     with engine.begin() as connection:
@@ -114,8 +110,7 @@ def _insert_fixtures(database_url: str) -> None:
 def _queries() -> dict[str, tuple[str, tuple[object, ...], str]]:
     anchor_time = "2026-08-06 12:00:00.000000"
     workspace_columns = (
-        "workspace_id, owner_id, name, lifecycle_status, updated_at, "
-        "created_at, deleted_at"
+        "workspace_id, owner_id, name, lifecycle_status, updated_at, created_at, deleted_at"
     )
     project_columns = (
         "project_id, workspace_id, title, description, lifecycle_status, "
@@ -190,9 +185,7 @@ def _plans_and_rows(database_url: str):
         for name, (query, parameters, _) in _queries().items():
             plans[name] = " | ".join(
                 row[3]
-                for row in connection.exec_driver_sql(
-                    f"EXPLAIN QUERY PLAN {query}", parameters
-                )
+                for row in connection.exec_driver_sql(f"EXPLAIN QUERY PLAN {query}", parameters)
             )
             rows[name] = list(connection.exec_driver_sql(query, parameters))
     engine.dispose()
@@ -224,9 +217,7 @@ def test_keyset_revision_query_plans_and_round_trip(tmp_path: Path) -> None:
     command.upgrade(config, PREVIOUS_REVISION)
     _insert_fixtures(database_url)
     baseline_plans, baseline_rows = _plans_and_rows(database_url)
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" in plan for plan in baseline_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" in plan for plan in baseline_plans.values())
 
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
@@ -274,9 +265,7 @@ def test_keyset_revision_query_plans_and_round_trip(tmp_path: Path) -> None:
         }
         assert upgraded_indexes == KEYSET_INDEXES
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == REVISION
         )
     engine.dispose()
@@ -297,9 +286,7 @@ def test_keyset_revision_query_plans_and_round_trip(tmp_path: Path) -> None:
             for table_name in ("workspaces", "music_projects")
         }
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == PREVIOUS_REVISION
         )
         assert connection.exec_driver_sql("PRAGMA quick_check").scalar_one() == "ok"

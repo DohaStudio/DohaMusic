@@ -27,9 +27,7 @@ def write_pcm24(path: Path, samples: list[int]) -> Path:
         audio.setnchannels(1)
         audio.setsampwidth(3)
         audio.setframerate(SAMPLE_RATE)
-        audio.writeframes(
-            b"".join(value.to_bytes(3, "little", signed=True) for value in samples)
-        )
+        audio.writeframes(b"".join(value.to_bytes(3, "little", signed=True) for value in samples))
     return path
 
 
@@ -61,9 +59,7 @@ def test_analyzer_reads_mono_and_stereo_sine_with_bs1770_lufs(
 
 def test_analyzer_counts_scalar_clipped_samples_and_ratio(tmp_path: Path) -> None:
     samples = np.array([[32_767, 0], [-32_768, 16_000], [0, 0]], dtype=np.int16)
-    result = DefaultAudioQualityAnalyzer().analyze(
-        write_pcm16(tmp_path / "clipped.wav", samples)
-    )
+    result = DefaultAudioQualityAnalyzer().analyze(write_pcm16(tmp_path / "clipped.wav", samples))
 
     assert result.quality is not None
     assert result.quality.clipping_detected is True
@@ -76,9 +72,7 @@ def test_analyzer_counts_scalar_clipped_samples_and_ratio(tmp_path: Path) -> Non
 
 
 @pytest.mark.parametrize("bit_depth", [24, 32])
-def test_analyzer_normalizes_common_high_bit_depth_pcm(
-    tmp_path: Path, bit_depth: int
-) -> None:
+def test_analyzer_normalizes_common_high_bit_depth_pcm(tmp_path: Path, bit_depth: int) -> None:
     if bit_depth == 24:
         path = write_pcm24(tmp_path / "pcm24.wav", [8_388_607, -8_388_608, 0])
     else:
@@ -105,9 +99,7 @@ def test_silence_and_short_audio_are_partial_without_non_finite_json(
         write_pcm16(tmp_path / "silence.wav", silence)
     )
     short = np.ones((SAMPLE_RATE // 10,), dtype=np.int16)
-    short_result = DefaultAudioQualityAnalyzer().analyze(
-        write_pcm16(tmp_path / "short.wav", short)
-    )
+    short_result = DefaultAudioQualityAnalyzer().analyze(write_pcm16(tmp_path / "short.wav", short))
 
     assert silent_result.analysis_status == AudioAnalysisStatus.PARTIAL
     assert silent_result.quality is not None
@@ -145,10 +137,7 @@ def test_unsupported_extension_and_channel_count_are_explicit(tmp_path: Path) ->
     multichannel_path = write_pcm16(tmp_path / "three-channel.wav", multichannel)
 
     analyzer = DefaultAudioQualityAnalyzer()
-    assert (
-        analyzer.analyze(wrong_extension).analysis_status
-        == AudioAnalysisStatus.UNSUPPORTED
-    )
+    assert analyzer.analyze(wrong_extension).analysis_status == AudioAnalysisStatus.UNSUPPORTED
     result = analyzer.analyze(multichannel_path)
     assert result.analysis_status == AudioAnalysisStatus.UNSUPPORTED
     assert result.warnings[0].code == "UNSUPPORTED_CHANNELS"
@@ -205,9 +194,7 @@ def test_public_metadata_allowlist_removes_analysis_internals() -> None:
                 },
                 "warnings": [{"code": "PRIVATE", "message": "private"}],
             },
-            "warnings": [
-                {"code": "AUDIO_DECODE_FAILED", "message": "조작된 비공개 안내"}
-            ],
+            "warnings": [{"code": "AUDIO_DECODE_FAILED", "message": "조작된 비공개 안내"}],
         },
     }
 

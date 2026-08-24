@@ -170,9 +170,7 @@ def test_snapshot_endpoints_require_bootstrap(client: TestClient) -> None:
     ):
         response = client.request(method, path, json=body, headers=headers)
         assert response.status_code == 409
-        assert response.json()["error"]["error_code"] == (
-            "WORKSPACE_BOOTSTRAP_REQUIRED"
-        )
+        assert response.json()["error"]["error_code"] == ("WORKSPACE_BOOTSTRAP_REQUIRED")
         assert response.headers[REQUEST_ID_HEADER]
 
 
@@ -256,9 +254,7 @@ def test_snapshot_list_uses_project_cursor_and_descending_versions(
         body = response.json()
         collected.extend(body["data"])
         assert body["pagination"]["limit"] == 2
-        assert (body["pagination"]["next_cursor"] is not None) == body["pagination"][
-            "has_more"
-        ]
+        assert (body["pagination"]["next_cursor"] is not None) == body["pagination"]["has_more"]
         path = body["links"]["next"]
         page_count += 1
 
@@ -266,17 +262,14 @@ def test_snapshot_list_uses_project_cursor_and_descending_versions(
     assert [item["snapshot_version"] for item in collected] == [5, 4, 3, 2, 1]
     assert len({item["composition_snapshot_id"] for item in collected}) == 5
     assert all(
-        set(item)
-        == {"composition_snapshot_id", "project_id", "snapshot_version", "created_at"}
+        set(item) == {"composition_snapshot_id", "project_id", "snapshot_version", "created_at"}
         for item in collected
     )
 
 
 def test_snapshot_list_empty_last_page_and_cursor_errors(client: TestClient) -> None:
     graph = _seed_graph(client)
-    empty = client.get(
-        "/api/v1/snapshots", params={"project_id": str(graph.project_id)}
-    )
+    empty = client.get("/api/v1/snapshots", params={"project_id": str(graph.project_id)})
     assert empty.status_code == 200
     assert empty.json()["data"] == []
     assert empty.json()["pagination"]["has_more"] is False
@@ -459,13 +452,9 @@ def test_snapshot_requires_active_project_asset_and_preserves_detached_history(
         project_id=graph.project_id,
         asset_id=graph.asset_id,
     )
-    detail = client.get(
-        f"/api/v1/snapshots/{created.json()['data']['composition_snapshot_id']}"
-    )
+    detail = client.get(f"/api/v1/snapshots/{created.json()['data']['composition_snapshot_id']}")
     assert detail.status_code == 200
-    assert detail.json()["data"]["items"][0]["asset_version_id"] == str(
-        graph.asset_version_id
-    )
+    assert detail.json()["data"]["items"][0]["asset_version_id"] == str(graph.asset_version_id)
 
 
 def test_snapshot_missing_asset_version_is_resource_specific(
@@ -516,9 +505,7 @@ def test_snapshot_rejects_invalid_item_contract(
 
 
 @pytest.mark.parametrize("duplicate_kind", ["role_order", "version_role"])
-def test_snapshot_rejects_duplicate_items(
-    client: TestClient, duplicate_kind: str
-) -> None:
+def test_snapshot_rejects_duplicate_items(client: TestClient, duplicate_kind: str) -> None:
     graph = _seed_graph(client)
     second_version = _asset_service(client).create_asset_version(
         asset_id=graph.asset_id,
@@ -618,8 +605,7 @@ def test_snapshot_not_found_and_cross_owner_are_private(client: TestClient) -> N
         "/api/v1/snapshots", params={"project_id": str(foreign.project_id)}
     )
     foreign_snapshot = client.get(
-        "/api/v1/snapshots/"
-        f"{foreign_created.aggregate.snapshot.composition_snapshot_id}"
+        f"/api/v1/snapshots/{foreign_created.aggregate.snapshot.composition_snapshot_id}"
     )
     assert missing.status_code == 404
     assert missing.json()["error"]["error_code"] == ("COMPOSITION_SNAPSHOT_NOT_FOUND")
@@ -680,9 +666,7 @@ def test_snapshot_routes_are_immutable_and_openapi_is_exact(client: TestClient) 
         if isinstance(operation, dict) and "operationId" in operation
     ]
     duplicates = {
-        operation_id
-        for operation_id, count in Counter(operation_ids).items()
-        if count > 1
+        operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
     assert len(schema["paths"]) == 55
     assert len(operation_ids) == 75

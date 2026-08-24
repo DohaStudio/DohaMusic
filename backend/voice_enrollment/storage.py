@@ -50,11 +50,7 @@ class VoiceEnrollmentStorage:
         self._validate_uuid(profile_id)
         self._validate_uuid(sample_id)
         result = (
-            self.storage.voice_references_dir
-            / profile_id
-            / "samples"
-            / sample_id
-            / "reference.wav"
+            self.storage.voice_references_dir / profile_id / "samples" / sample_id / "reference.wav"
         ).resolve()
         self._require_within(result, self.storage.voice_references_dir)
         return result
@@ -75,9 +71,7 @@ class VoiceEnrollmentStorage:
             return
         source.parent.mkdir(parents=True, exist_ok=True)
         destination.replace(source)
-        self._remove_empty_parents(
-            destination.parent, self.storage.voice_references_dir
-        )
+        self._remove_empty_parents(destination.parent, self.storage.voice_references_dir)
 
     def delete_file(self, relative_path: str | None) -> None:
         if relative_path is None:

@@ -52,9 +52,7 @@ def map_response(
     model = response.get("model")
     warnings = data.get("warnings")
     safe_warnings = (
-        [item for item in warnings if isinstance(item, str)]
-        if isinstance(warnings, list)
-        else []
+        [item for item in warnings if isinstance(item, str)] if isinstance(warnings, list) else []
     )
     return LyricsGenerationResult(
         title=data.get("title") if isinstance(data.get("title"), str) else None,

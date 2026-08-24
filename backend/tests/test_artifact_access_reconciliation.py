@@ -126,9 +126,7 @@ class ArtifactFixture:
         return self.roots.candidate_path(location.storage_domain, location.storage_key)
 
     def application_service(self) -> ArtifactApplicationService:
-        return ArtifactApplicationService(
-            self.session_factory, artifact_roots=self.roots
-        )
+        return ArtifactApplicationService(self.session_factory, artifact_roots=self.roots)
 
     def reconciliation_service(self, **kwargs: object) -> ArtifactReconciliationService:
         return ArtifactReconciliationService(
@@ -185,8 +183,8 @@ def test_different_owner_and_missing_artifact_are_not_found(
     ):
         _assert_access_error(
             ArtifactAccessErrorCode.NOT_FOUND,
-            lambda target_id=target_id, owner_id=owner_id: (
-                service.get_artifact_for_owner(target_id, effective_owner_id=owner_id)
+            lambda target_id=target_id, owner_id=owner_id: service.get_artifact_for_owner(
+                target_id, effective_owner_id=owner_id
             ),
         )
 
@@ -251,9 +249,7 @@ def test_content_retention_matrix_fails_closed(
     service = artifacts.application_service()
 
     def open_content() -> None:
-        with service.open_content_for_owner(
-            artifact_id, effective_owner_id=artifacts.owner_id
-        ):
+        with service.open_content_for_owner(artifact_id, effective_owner_id=artifacts.owner_id):
             pass
 
     _assert_access_error(expected, open_content)
@@ -356,9 +352,7 @@ def test_reconciliation_detects_db_only_missing_payload(
     artifacts.payload_path(artifact_id).unlink()
     report = artifacts.reconciliation_service().scan()
     assert report.missing_payload_count == 1
-    assert (
-        report.issues[0].issue_type == ArtifactReconciliationIssueType.MISSING_PAYLOAD
-    )
+    assert report.issues[0].issue_type == ArtifactReconciliationIssueType.MISSING_PAYLOAD
 
 
 def test_reconciliation_detects_filesystem_only_payload(
@@ -428,9 +422,7 @@ def test_reconciliation_detects_old_pending_but_not_recent(
     now = 10_000.0
     os.utime(old_file, (now - 101, now - 101))
     os.utime(recent_file, (now - 99, now - 99))
-    report = artifacts.reconciliation_service(
-        pending_grace_seconds=100, clock=lambda: now
-    ).scan()
+    report = artifacts.reconciliation_service(pending_grace_seconds=100, clock=lambda: now).scan()
     assert report.pending_candidate_count == 1
     assert report.issues[0].storage_key == ".ingestion/old.pending"
 

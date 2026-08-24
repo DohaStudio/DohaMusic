@@ -39,9 +39,7 @@ router = APIRouter(
     tags=["CompositionSnapshot"],
     dependencies=[Depends(reject_owner_input)],
 )
-CompositionServiceDependency = Annotated[
-    CompositionService, Depends(get_composition_service)
-]
+CompositionServiceDependency = Annotated[CompositionService, Depends(get_composition_service)]
 EffectiveOwnerDependency = Annotated[UUID, Depends(get_effective_owner_id)]
 IdempotencyKeyHeader = Annotated[
     str,

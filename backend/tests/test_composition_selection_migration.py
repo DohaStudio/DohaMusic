@@ -100,20 +100,13 @@ def test_selection_migration_is_nullable_safe_and_enforces_same_project(
             == 0
         )
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == REVISION
         )
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
-        indexes = {
-            item["name"]: item
-            for item in inspector.get_indexes("composition_snapshots")
-        }
+        indexes = {item["name"]: item for item in inspector.get_indexes("composition_snapshots")}
         assert indexes["uq_composition_snapshots_project_identity"]["unique"] == 1
-        artifact_indexes = {
-            item["name"]: item for item in inspector.get_indexes("artifacts")
-        }
+        artifact_indexes = {item["name"]: item for item in inspector.get_indexes("artifacts")}
         assert artifact_indexes["ix_artifacts_version_created"]["column_names"] == [
             "asset_version_id",
             "created_at",
@@ -121,8 +114,7 @@ def test_selection_migration_is_nullable_safe_and_enforces_same_project(
         ]
         foreign_keys = inspector.get_foreign_keys("project_composition_selections")
         assert any(
-            key["constrained_columns"]
-            == ["project_id", "selected_composition_snapshot_id"]
+            key["constrained_columns"] == ["project_id", "selected_composition_snapshot_id"]
             and key["referred_columns"] == ["project_id", "composition_snapshot_id"]
             for key in foreign_keys
         )
@@ -156,18 +148,10 @@ def test_selection_migration_is_nullable_safe_and_enforces_same_project(
         )
     command.downgrade(config, PREVIOUS_REVISION)
     with engine.connect() as connection:
+        assert "project_composition_selections" not in inspect(connection).get_table_names()
+        assert connection.execute(text("SELECT count(*) FROM music_projects")).scalar_one() == 2
         assert (
-            "project_composition_selections"
-            not in inspect(connection).get_table_names()
-        )
-        assert (
-            connection.execute(text("SELECT count(*) FROM music_projects")).scalar_one()
-            == 2
-        )
-        assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == PREVIOUS_REVISION
         )
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []

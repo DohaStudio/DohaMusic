@@ -109,15 +109,9 @@ def validate_enrollment_transition(
     current: VoiceEnrollmentStatus, target: VoiceEnrollmentStatus
 ) -> None:
     if target != current and target not in ENROLLMENT_TRANSITIONS[current]:
-        raise ValueError(
-            f"Invalid voice enrollment transition: {current.value} -> {target.value}"
-        )
+        raise ValueError(f"Invalid voice enrollment transition: {current.value} -> {target.value}")
 
 
-def validate_sample_transition(
-    current: VoiceSampleStatus, target: VoiceSampleStatus
-) -> None:
+def validate_sample_transition(current: VoiceSampleStatus, target: VoiceSampleStatus) -> None:
     if target != current and target not in SAMPLE_TRANSITIONS[current]:
-        raise ValueError(
-            f"Invalid voice sample transition: {current.value} -> {target.value}"
-        )
+        raise ValueError(f"Invalid voice sample transition: {current.value} -> {target.value}")

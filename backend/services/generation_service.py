@@ -39,9 +39,7 @@ class GenerationService:
             logger.info("generation_job_created job_id=%s", job.id)
         self.dispatcher.submit(job.id)
         elapsed_ms = round((time.perf_counter() - started_at) * 1_000, 2)
-        logger.info(
-            "generation_request_finished job_id=%s duration_ms=%s", job.id, elapsed_ms
-        )
+        logger.info("generation_request_finished job_id=%s duration_ms=%s", job.id, elapsed_ms)
         return job
 
     def get(self, job_id: str) -> GenerationJob:

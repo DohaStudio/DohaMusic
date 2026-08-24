@@ -53,31 +53,21 @@ class TrustedPayloadErrorCode(StrEnum):
 
 
 _SAFE_ERROR_MESSAGES = {
-    TrustedPayloadErrorCode.CONFIGURATION_ERROR: (
-        "Trusted payload configuration is invalid."
-    ),
-    TrustedPayloadErrorCode.MALFORMED_REFERENCE: (
-        "Trusted payload reference is malformed."
-    ),
+    TrustedPayloadErrorCode.CONFIGURATION_ERROR: ("Trusted payload configuration is invalid."),
+    TrustedPayloadErrorCode.MALFORMED_REFERENCE: ("Trusted payload reference is malformed."),
     TrustedPayloadErrorCode.UNKNOWN_REFERENCE: "Trusted payload reference is unknown.",
     TrustedPayloadErrorCode.EXPIRED_REFERENCE: "Trusted payload reference has expired.",
     TrustedPayloadErrorCode.PAYLOAD_MISSING: "Trusted payload is unavailable.",
     TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT: (
         "Trusted payload boundary was rejected."
     ),
-    TrustedPayloadErrorCode.PAYLOAD_NOT_REGULAR_FILE: (
-        "Trusted payload is not a regular file."
-    ),
+    TrustedPayloadErrorCode.PAYLOAD_NOT_REGULAR_FILE: ("Trusted payload is not a regular file."),
     TrustedPayloadErrorCode.PAYLOAD_METADATA_MISMATCH: (
         "Trusted payload integrity verification failed."
     ),
-    TrustedPayloadErrorCode.DUPLICATE_REFERENCE: (
-        "Trusted payload reference already exists."
-    ),
+    TrustedPayloadErrorCode.DUPLICATE_REFERENCE: ("Trusted payload reference already exists."),
     TrustedPayloadErrorCode.INVALID_EXPIRY: "Trusted payload expiry is invalid.",
-    TrustedPayloadErrorCode.INVALID_ARTIFACT_KIND: (
-        "Trusted payload artifact kind is invalid."
-    ),
+    TrustedPayloadErrorCode.INVALID_ARTIFACT_KIND: ("Trusted payload artifact kind is invalid."),
 }
 
 
@@ -185,9 +175,7 @@ class InMemoryTrustedPayloadRegistry:
         try:
             self._staging_root = validate_local_root(staging_root)
         except ArtifactStorageError:
-            raise TrustedPayloadError(
-                TrustedPayloadErrorCode.CONFIGURATION_ERROR
-            ) from None
+            raise TrustedPayloadError(TrustedPayloadErrorCode.CONFIGURATION_ERROR) from None
         self._clock = clock or _utc_now
         self._id_factory = id_factory or uuid4
         self._bindings: dict[str, _PayloadBinding] = {}
@@ -214,9 +202,7 @@ class InMemoryTrustedPayloadRegistry:
                 size_bytes=inspected.size_bytes,
             )
         except (ArtifactMediaValidationError, OSError):
-            raise TrustedPayloadError(
-                TrustedPayloadErrorCode.PAYLOAD_METADATA_MISMATCH
-            ) from None
+            raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_METADATA_MISMATCH) from None
         verified = self._inspect(inspected.path)
         if verified != inspected:
             raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_METADATA_MISMATCH)
@@ -226,9 +212,7 @@ class InMemoryTrustedPayloadRegistry:
             if not isinstance(opaque_id, UUID):
                 raise TypeError
         except Exception:
-            raise TrustedPayloadError(
-                TrustedPayloadErrorCode.CONFIGURATION_ERROR
-            ) from None
+            raise TrustedPayloadError(TrustedPayloadErrorCode.CONFIGURATION_ERROR) from None
         locator_id = (
             f"{TRUSTED_PAYLOAD_LOCATOR_NAMESPACE}:"
             f"v{TRUSTED_PAYLOAD_LOCATOR_VERSION}:{opaque_id.hex}"
@@ -285,9 +269,7 @@ class InMemoryTrustedPayloadRegistry:
                 size_bytes=inspected.size_bytes,
             )
         except (ArtifactMediaValidationError, OSError):
-            raise TrustedPayloadError(
-                TrustedPayloadErrorCode.PAYLOAD_METADATA_MISMATCH
-            ) from None
+            raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_METADATA_MISMATCH) from None
         verified = self._inspect(inspected.path)
         if verified != inspected or media.media_type != binding.descriptor.media_type:
             raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_METADATA_MISMATCH)
@@ -297,24 +279,18 @@ class InMemoryTrustedPayloadRegistry:
         try:
             value = _normalize_expiry(self._clock())
         except TrustedPayloadError:
-            raise TrustedPayloadError(
-                TrustedPayloadErrorCode.CONFIGURATION_ERROR
-            ) from None
+            raise TrustedPayloadError(TrustedPayloadErrorCode.CONFIGURATION_ERROR) from None
         if value is None:
             raise TrustedPayloadError(TrustedPayloadErrorCode.CONFIGURATION_ERROR)
         return value
 
     def _inspect(self, requested_path: Path) -> _InspectedPayload:
         if not isinstance(requested_path, Path) or not requested_path.is_absolute():
-            raise TrustedPayloadError(
-                TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT
-            )
-        if any(
-            part in {".", ".."} for part in requested_path.parts
-        ) or _CREDENTIAL_LIKE.search(str(requested_path)):
-            raise TrustedPayloadError(
-                TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT
-            )
+            raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
+        if any(part in {".", ".."} for part in requested_path.parts) or _CREDENTIAL_LIKE.search(
+            str(requested_path)
+        ):
+            raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
         try:
             requested_path.relative_to(self._staging_root)
             assert_safe_local_path(self._staging_root, requested_path)
@@ -329,17 +305,13 @@ class InMemoryTrustedPayloadRegistry:
             ) from None
         try:
             if not stat.S_ISREG(resolved.stat(follow_symlinks=False).st_mode):
-                raise TrustedPayloadError(
-                    TrustedPayloadErrorCode.PAYLOAD_NOT_REGULAR_FILE
-                )
+                raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_NOT_REGULAR_FILE)
         except TrustedPayloadError:
             raise
         except OSError:
             raise TrustedPayloadError(TrustedPayloadErrorCode.PAYLOAD_MISSING) from None
         try:
-            descriptor, descriptor_stat = open_regular_local_file(
-                self._staging_root, resolved
-            )
+            descriptor, descriptor_stat = open_regular_local_file(self._staging_root, resolved)
         except ArtifactStorageError:
             if not resolved.exists():
                 code = TrustedPayloadErrorCode.PAYLOAD_MISSING
@@ -369,11 +341,7 @@ class InMemoryTrustedPayloadRegistry:
 def _normalize_expiry(value: datetime | None) -> datetime | None:
     if value is None:
         return None
-    if (
-        not isinstance(value, datetime)
-        or value.tzinfo is None
-        or value.utcoffset() is None
-    ):
+    if not isinstance(value, datetime) or value.tzinfo is None or value.utcoffset() is None:
         raise TrustedPayloadError(TrustedPayloadErrorCode.INVALID_EXPIRY)
     return value.astimezone(UTC)
 

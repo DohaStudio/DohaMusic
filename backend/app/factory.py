@@ -240,9 +240,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         voice_maintenance_scheduler = VoiceEnrollmentScheduler(
             maintenance=voice_maintenance_service,
-            expiration_interval_seconds=(
-                resolved_settings.voice_expiration_scan_interval_seconds
-            ),
+            expiration_interval_seconds=(resolved_settings.voice_expiration_scan_interval_seconds),
             cleanup_interval_seconds=resolved_settings.voice_cleanup_interval_seconds,
             orphan_interval_seconds=resolved_settings.voice_orphan_scan_interval_seconds,
         )

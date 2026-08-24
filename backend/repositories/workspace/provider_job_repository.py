@@ -59,9 +59,7 @@ class ProviderJobRepository:
         )
         return list(self.session.scalars(statement))
 
-    def get_latest_for_workspace_job(
-        self, workspace_job_id: UUID
-    ) -> ProviderJobBinding | None:
+    def get_latest_for_workspace_job(self, workspace_job_id: UUID) -> ProviderJobBinding | None:
         statement = (
             select(ProviderJobBinding)
             .where(ProviderJobBinding.workspace_job_id == workspace_job_id)

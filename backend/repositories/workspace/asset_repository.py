@@ -29,9 +29,7 @@ class AssetRepository:
         self.session.flush()
         return asset
 
-    def get_asset(
-        self, asset_id: UUID, *, include_deleted: bool = False
-    ) -> Asset | None:
+    def get_asset(self, asset_id: UUID, *, include_deleted: bool = False) -> Asset | None:
         statement = select(Asset).where(Asset.asset_id == asset_id)
         if not include_deleted:
             statement = statement.where(Asset.deleted_at.is_(None))
@@ -54,9 +52,7 @@ class AssetRepository:
         if not include_deleted:
             statement = statement.where(Asset.deleted_at.is_(None))
         statement = (
-            statement.order_by(Asset.created_at.desc(), Asset.asset_id)
-            .limit(limit)
-            .offset(offset)
+            statement.order_by(Asset.created_at.desc(), Asset.asset_id).limit(limit).offset(offset)
         )
         return list(self.session.scalars(statement))
 
@@ -75,9 +71,7 @@ class AssetRepository:
         if not include_deleted:
             statement = statement.where(Asset.deleted_at.is_(None))
         statement = (
-            statement.order_by(Asset.created_at.desc(), Asset.asset_id)
-            .limit(limit)
-            .offset(offset)
+            statement.order_by(Asset.created_at.desc(), Asset.asset_id).limit(limit).offset(offset)
         )
         return list(self.session.scalars(statement))
 
@@ -112,9 +106,7 @@ class AssetRepository:
                     ),
                 )
             )
-        statement = statement.order_by(
-            Asset.created_at.desc(), Asset.asset_id.desc()
-        ).limit(limit)
+        statement = statement.order_by(Asset.created_at.desc(), Asset.asset_id.desc()).limit(limit)
         return list(self.session.scalars(statement))
 
     def soft_delete_asset(self, asset: Asset) -> Asset:
@@ -209,9 +201,7 @@ class AssetRepository:
         )
         return list(self.session.scalars(statement))
 
-    def list_clip_source_artifact_candidates(
-        self, asset_version_id: UUID
-    ) -> list[Artifact]:
+    def list_clip_source_artifact_candidates(self, asset_version_id: UUID) -> list[Artifact]:
         """Clip source 후보를 fallback 없이 deterministic하게 반환한다."""
 
         statement = (
@@ -293,8 +283,6 @@ class AssetRepository:
         return self.session.scalar(statement.limit(1)) is not None
 
 
-def _validate_keyset_position(
-    last_created_at: datetime | None, last_id: UUID | None
-) -> None:
+def _validate_keyset_position(last_created_at: datetime | None, last_id: UUID | None) -> None:
     if (last_created_at is None) != (last_id is None):
         raise ValueError("keyset position requires both created_at and id")

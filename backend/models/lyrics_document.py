@@ -19,9 +19,7 @@ def utc_now() -> datetime:
 class LyricsDocument(Base):
     __tablename__ = "lyrics_documents"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     parent_id: Mapped[str | None] = mapped_column(
         String(36), ForeignKey("lyrics_documents.id", ondelete="RESTRICT"), index=True
     )

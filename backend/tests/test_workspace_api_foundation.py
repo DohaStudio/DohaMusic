@@ -48,9 +48,7 @@ def _test_app() -> FastAPI:
 
     @app.get("/api/v1/_test/success")
     def v1_success(request: Request) -> dict[str, object]:
-        return success_response(
-            data={"status": "ok"}, request_id=get_request_id(request)
-        )
+        return success_response(data={"status": "ok"}, request_id=get_request_id(request))
 
     @app.get("/api/v1/_test/not-found")
     def v1_not_found() -> None:
@@ -129,9 +127,7 @@ def test_v1_validation_error_has_safe_details() -> None:
 
 
 def test_v1_internal_error_does_not_expose_exception_or_path() -> None:
-    response = TestClient(_test_app(), raise_server_exceptions=False).get(
-        "/api/v1/_test/internal"
-    )
+    response = TestClient(_test_app(), raise_server_exceptions=False).get("/api/v1/_test/internal")
 
     assert response.status_code == 500
     body = response.text
@@ -207,9 +203,7 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         if isinstance(operation, dict) and "operationId" in operation
     ]
     duplicate_ids = {
-        operation_id
-        for operation_id, count in Counter(operation_ids).items()
-        if count > 1
+        operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
 
     assert len(registered_routes) == 77

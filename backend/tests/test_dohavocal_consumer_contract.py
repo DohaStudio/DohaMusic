@@ -33,9 +33,7 @@ from backend.providers.vocal import (
     map_authorized_create_job,
 )
 
-FIXTURE_PATH = (
-    Path(__file__).parent / "fixtures" / "vocal-provider-contract-v0.1.0.json"
-)
+FIXTURE_PATH = Path(__file__).parent / "fixtures" / "vocal-provider-contract-v0.1.0.json"
 OWNER_ID = UUID("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa")
 WORKSPACE_ID = UUID("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb")
 PROJECT_ID = UUID("cccccccc-cccc-4ccc-8ccc-cccccccccccc")
@@ -81,9 +79,7 @@ class FixtureTransport:
 class IdempotentFixtureTransport:
     def __init__(self, fixture: dict[str, Any]) -> None:
         self.fixture = fixture
-        self.records: dict[
-            tuple[str, str, str, str, str], tuple[str, dict[str, Any]]
-        ] = {}
+        self.records: dict[tuple[str, str, str, str, str], tuple[str, dict[str, Any]]] = {}
 
     def send(self, request: VocalTransportRequest) -> VocalTransportResponse:
         assert request.method == "POST" and request.path == "/v1/jobs"
@@ -108,9 +104,7 @@ class IdempotentFixtureTransport:
         existing = self.records.get(scope)
         if existing is not None:
             if existing[0] != fingerprint:
-                return VocalTransportResponse(
-                    409, deepcopy(self.fixture["application_error"])
-                )
+                return VocalTransportResponse(409, deepcopy(self.fixture["application_error"]))
             return VocalTransportResponse(201, deepcopy(existing[1]))
         response = deepcopy(self.fixture["queued_job"])
         response.update(
@@ -262,25 +256,19 @@ def test_idempotency_replay_conflict_and_scope_separation(vocal_fixture):
     replay = client.create_job(base)
     assert replay.job_id == first.job_id
 
-    changed = map_authorized_create_job(
-        _context(settings={"quality": {"mode": "changed"}})
-    )
+    changed = map_authorized_create_job(_context(settings={"quality": {"mode": "changed"}}))
     with pytest.raises(VocalProviderApplicationError) as conflict:
         client.create_job(changed)
     assert conflict.value.detail.error_code == "IDEMPOTENCY_CONFLICT"
 
     other_project = client.create_job(
-        map_authorized_create_job(
-            _context(project_id=UUID("dddddddd-dddd-4ddd-8ddd-dddddddddddd"))
-        )
+        map_authorized_create_job(_context(project_id=UUID("dddddddd-dddd-4ddd-8ddd-dddddddddddd")))
     )
     other_capability = client.create_job(
         map_authorized_create_job(_context(capability=VocalCapability.VOCAL_CORRECTION))
     )
     other_requester = client.create_job(
-        map_authorized_create_job(
-            _context(owner_id=UUID("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"))
-        )
+        map_authorized_create_job(_context(owner_id=UUID("eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee")))
     )
     assert (
         len(
@@ -334,25 +322,17 @@ def test_job_path_identity_mismatch_is_rejected(vocal_fixture):
     fixture["running_job"]["job_id"] = "provider-job-other"
 
     with pytest.raises(VocalProviderInvalidResponseError):
-        VocalProviderClient(FixtureTransport(fixture)).get_job_status(
-            "provider-job-001"
-        )
+        VocalProviderClient(FixtureTransport(fixture)).get_job_status("provider-job-001")
 
 
 def test_result_is_metadata_candidate_with_root_parent_chain(vocal_fixture):
-    result = VocalProviderClient(FixtureTransport(vocal_fixture)).get_result(
-        "provider-job-001"
-    )
+    result = VocalProviderClient(FixtureTransport(vocal_fixture)).get_result("provider-job-001")
 
     assert result.payload_present is False
     assert result.retention_status == "candidate"
-    assert result.lineage.source_asset_version_id == (
-        "00000000-0000-4000-8000-000000000001"
-    )
+    assert result.lineage.source_asset_version_id == ("00000000-0000-4000-8000-000000000001")
     assert result.lineage.parent_asset_version_id == str(SOURCE_VERSION_ID)
-    assert result.lineage.processing_chain_id == (
-        "55555555-5555-4555-8555-555555555555"
-    )
+    assert result.lineage.processing_chain_id == ("55555555-5555-4555-8555-555555555555")
     assert result.checksum_scope == "metadata_descriptor"
     assert result.lineage.checksum_scope == "metadata_descriptor"
 
@@ -375,9 +355,7 @@ def test_fake_model_manifest_id_is_consistent_across_wire_fixture(vocal_fixture)
     assert vocal_fixture["failed_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
     assert vocal_fixture["cancelled_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
     assert vocal_fixture["retry_job"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
-    assert vocal_fixture["result"]["lineage"]["model_manifest_id"] == (
-        FAKE_MODEL_MANIFEST_ID
-    )
+    assert vocal_fixture["result"]["lineage"]["model_manifest_id"] == (FAKE_MODEL_MANIFEST_ID)
     assert vocal_fixture["manifest"]["model_manifest_id"] == FAKE_MODEL_MANIFEST_ID
     assert vocal_fixture["manifest"]["provider_id"] == "dohavocal"
 
@@ -433,9 +411,7 @@ def test_unsafe_provider_error_fields_are_sanitized(vocal_fixture):
             "details_id": "C:\\private\\details",
         }
     )
-    client = VocalProviderClient(
-        SingleResponseTransport(VocalTransportResponse(500, payload))
-    )
+    client = VocalProviderClient(SingleResponseTransport(VocalTransportResponse(500, payload)))
 
     with pytest.raises(VocalProviderApplicationError) as captured:
         client.health()
@@ -447,9 +423,7 @@ def test_unsafe_provider_error_fields_are_sanitized(vocal_fixture):
 def test_contract_version_mismatch_is_distinct(vocal_fixture):
     payload = deepcopy(vocal_fixture["application_error"])
     payload["error"]["error_code"] = "CONTRACT_VERSION_UNSUPPORTED"
-    client = VocalProviderClient(
-        SingleResponseTransport(VocalTransportResponse(409, payload))
-    )
+    client = VocalProviderClient(SingleResponseTransport(VocalTransportResponse(409, payload)))
 
     with pytest.raises(VocalProviderContractVersionError):
         client.get_capabilities()
@@ -458,9 +432,7 @@ def test_contract_version_mismatch_is_distinct(vocal_fixture):
 def test_success_response_contract_version_mismatch_is_distinct(vocal_fixture):
     payload = deepcopy(vocal_fixture["capabilities"])
     payload["api_contract_version"] = "9.0.0"
-    client = VocalProviderClient(
-        SingleResponseTransport(VocalTransportResponse(200, payload))
-    )
+    client = VocalProviderClient(SingleResponseTransport(VocalTransportResponse(200, payload)))
 
     with pytest.raises(VocalProviderContractVersionError):
         client.get_capabilities()

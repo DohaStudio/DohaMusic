@@ -116,9 +116,7 @@ class ArtifactReconciliationService:
             or type(pending_grace_seconds) is not int
             or pending_grace_seconds < 0
         ):
-            raise ArtifactReconciliationError(
-                "Reconciliation configuration is invalid."
-            )
+            raise ArtifactReconciliationError("Reconciliation configuration is invalid.")
         self._session_factory = session_factory
         self._artifact_roots = artifact_roots
         self._batch_size = batch_size
@@ -140,28 +138,18 @@ class ArtifactReconciliationService:
             scanned_catalog_count=scanned_catalog,
             scanned_file_count=scanned_files,
             healthy_count=healthy,
-            missing_payload_count=counts[
-                ArtifactReconciliationIssueType.MISSING_PAYLOAD
-            ],
-            unreferenced_payload_count=counts[
-                ArtifactReconciliationIssueType.UNREFERENCED_PAYLOAD
-            ],
+            missing_payload_count=counts[ArtifactReconciliationIssueType.MISSING_PAYLOAD],
+            unreferenced_payload_count=counts[ArtifactReconciliationIssueType.UNREFERENCED_PAYLOAD],
             integrity_mismatch_count=(
                 counts[ArtifactReconciliationIssueType.SIZE_MISMATCH]
                 + counts[ArtifactReconciliationIssueType.CHECKSUM_MISMATCH]
             ),
-            invalid_locator_count=counts[
-                ArtifactReconciliationIssueType.INVALID_LOCATOR
-            ],
+            invalid_locator_count=counts[ArtifactReconciliationIssueType.INVALID_LOCATOR],
             catalog_without_artifact_count=counts[
                 ArtifactReconciliationIssueType.CATALOG_WITHOUT_ARTIFACT
             ],
-            pending_candidate_count=counts[
-                ArtifactReconciliationIssueType.PENDING_PAYLOAD
-            ],
-            unsafe_entry_count=counts[
-                ArtifactReconciliationIssueType.UNSAFE_FILESYSTEM_ENTRY
-            ],
+            pending_candidate_count=counts[ArtifactReconciliationIssueType.PENDING_PAYLOAD],
+            unsafe_entry_count=counts[ArtifactReconciliationIssueType.UNSAFE_FILESYSTEM_ENTRY],
             issues=tuple(collector.issues),
             issues_truncated=collector.truncated,
         )
@@ -287,9 +275,7 @@ class ArtifactReconciliationService:
                 scanned_files += self._scan_pending(root, domain, collector)
                 for namespace in _DOMAIN_NAMESPACES[domain]:
                     namespace_path = root / namespace
-                    for storage_key, payload, safe in _walk_namespace(
-                        root, namespace_path
-                    ):
+                    for storage_key, payload, safe in _walk_namespace(root, namespace_path):
                         scanned_files += 1
                         if not safe:
                             collector.add(
@@ -457,9 +443,7 @@ def _safe_report_key(storage_key: object) -> str | None:
         "\\" in storage_key
         or ":" in storage_key
         or storage_key.startswith("/")
-        or any(
-            ord(character) < 32 or ord(character) == 127 for character in storage_key
-        )
+        or any(ord(character) < 32 or ord(character) == 127 for character in storage_key)
     ):
         return None
     parts = storage_key.split("/")

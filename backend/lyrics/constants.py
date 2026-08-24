@@ -35,9 +35,7 @@ KPOP_STRUCTURE = (
     "bridge",
     "final_chorus",
 )
-KPOP_PRESET_GENRES = frozenset(
-    {"kpop_dance", "kpop_easy_listening", "kpop_performance"}
-)
+KPOP_PRESET_GENRES = frozenset({"kpop_dance", "kpop_easy_listening", "kpop_performance"})
 MAX_TOPIC_LENGTH = 500
 MAX_KEYWORDS = 10
 MAX_KEYWORD_LENGTH = 50

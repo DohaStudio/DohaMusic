@@ -13,14 +13,10 @@ from backend.schemas.voice_conversion import (
 from backend.services.voice_conversion_service import VoiceConversionService
 
 router = APIRouter(prefix="/voice-conversion", tags=["voice-conversion"])
-ServiceDependency = Annotated[
-    VoiceConversionService, Depends(get_voice_conversion_service)
-]
+ServiceDependency = Annotated[VoiceConversionService, Depends(get_voice_conversion_service)]
 
 
-@router.post(
-    "", response_model=VoiceConversionJobRead, status_code=status.HTTP_202_ACCEPTED
-)
+@router.post("", response_model=VoiceConversionJobRead, status_code=status.HTTP_202_ACCEPTED)
 def create_voice_conversion(
     request: VoiceConversionCreate, service: ServiceDependency
 ) -> VoiceConversionJobRead:
@@ -28,9 +24,7 @@ def create_voice_conversion(
 
 
 @router.get("/{job_id}", response_model=VoiceConversionJobRead)
-def get_voice_conversion(
-    job_id: str, service: ServiceDependency
-) -> VoiceConversionJobRead:
+def get_voice_conversion(job_id: str, service: ServiceDependency) -> VoiceConversionJobRead:
     return VoiceConversionJobRead.model_validate(service.get(job_id))
 
 
@@ -38,7 +32,4 @@ def get_voice_conversion(
 def list_voice_conversion_files(
     job_id: str, service: ServiceDependency
 ) -> list[VoiceConversionFileRead]:
-    return [
-        VoiceConversionFileRead.model_validate(item)
-        for item in service.list_files(job_id)
-    ]
+    return [VoiceConversionFileRead.model_validate(item) for item in service.list_files(job_id)]

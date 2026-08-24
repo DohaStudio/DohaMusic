@@ -61,9 +61,7 @@ def completed_response(
                 "content": [
                     {
                         "type": "output_text",
-                        "text": raw_text
-                        if raw_text is not None
-                        else json.dumps(payload),
+                        "text": raw_text if raw_text is not None else json.dumps(payload),
                     }
                 ],
             }
@@ -113,9 +111,7 @@ def config(**overrides: object) -> OpenAILyricsConfig:
 
 def test_openai_adapter_maps_strict_response_and_request_policy() -> None:
     transport = FakeTransport(completed_response())
-    result = OpenAILyricsGenerator(config(), transport=transport).generate(
-        generation_request()
-    )
+    result = OpenAILyricsGenerator(config(), transport=transport).generate(generation_request())
     assert result.provider == "openai"
     assert [section.section_type for section in result.sections] == [
         "verse",
@@ -165,9 +161,7 @@ def test_openai_adapter_retries_retryable_errors() -> None:
     transport = FakeTransport(
         OpenAIProviderError("rate_limited", retryable=True), completed_response()
     )
-    result = OpenAILyricsGenerator(config(), transport=transport).generate(
-        generation_request()
-    )
+    result = OpenAILyricsGenerator(config(), transport=transport).generate(generation_request())
     assert result.metadata["request_count"] == 2
     assert len(transport.calls) == 2
 

@@ -103,10 +103,7 @@ class VocalAnalysisInput(StrictFrozenModel):
 
 
 VocalJobInput = Annotated[
-    VocalGenerationInput
-    | VoiceConversionInput
-    | VocalCorrectionInput
-    | VocalAnalysisInput,
+    VocalGenerationInput | VoiceConversionInput | VocalCorrectionInput | VocalAnalysisInput,
     Field(discriminator="job_type"),
 ]
 
@@ -114,9 +111,7 @@ VocalJobInput = Annotated[
 class VocalCreateJobRequest(StrictFrozenModel):
     provider_id: Literal[DOHAVOCAL_PROVIDER_ID] = DOHAVOCAL_PROVIDER_ID
     capability: VocalCapability
-    api_contract_version: Literal[DOHAVOCAL_CONTRACT_VERSION] = (
-        DOHAVOCAL_CONTRACT_VERSION
-    )
+    api_contract_version: Literal[DOHAVOCAL_CONTRACT_VERSION] = DOHAVOCAL_CONTRACT_VERSION
     idempotency_key: str = Field(min_length=1, max_length=200)
     project_id: str
     input_asset_version_ids: tuple[str, ...] = ()

@@ -89,9 +89,7 @@ def _seed_contract(
     owner = owner_id or uuid4()
     provider_job_id = f"provider-job-{uuid4()}"
     with factory.begin() as session:
-        workspace = Workspace(
-            owner_id=owner, name="Trusted result", lifecycle_status="active"
-        )
+        workspace = Workspace(owner_id=owner, name="Trusted result", lifecycle_status="active")
         session.add(workspace)
         session.flush()
         project = MusicProject(
@@ -330,9 +328,7 @@ def test_revalidation_is_idempotent_and_has_no_side_effects(session_factory) -> 
         ),
     ],
 )
-def test_binding_and_execution_identity_mismatch_fail_closed(
-    session_factory, case, reason
-) -> None:
+def test_binding_and_execution_identity_mismatch_fail_closed(session_factory, case, reason) -> None:
     graph = _seed_contract(session_factory)
     candidate = _candidate(graph)
     kwargs = {
@@ -347,9 +343,7 @@ def test_binding_and_execution_identity_mismatch_fail_closed(
     elif case == "missing_binding":
         kwargs["provider_job_binding_id"] = uuid4()
     elif case == "wrong_provider":
-        kwargs["wire_candidate"] = candidate.model_copy(
-            update={"producer_id": "dohaaudio"}
-        )
+        kwargs["wire_candidate"] = candidate.model_copy(update={"producer_id": "dohaaudio"})
     else:
         kwargs["wire_candidate"] = candidate.model_copy(update={"run_id": "wrong-job"})
 
@@ -423,27 +417,20 @@ def test_processing_chain_must_match_job_and_effective_owner(session_factory) ->
         foreign_id = foreign.processing_chain_id
     candidate = candidate.model_copy(
         update={
-            "lineage": candidate.lineage.model_copy(
-                update={"processing_chain_id": str(foreign_id)}
-            )
+            "lineage": candidate.lineage.model_copy(update={"processing_chain_id": str(foreign_id)})
         }
     )
 
     with pytest.raises(ProviderResultContractError) as error:
         _validate(session_factory, graph, candidate)
-    assert (
-        error.value.reason
-        is ProviderResultContractErrorReason.PROCESSING_CHAIN_MISMATCH
-    )
+    assert error.value.reason is ProviderResultContractErrorReason.PROCESSING_CHAIN_MISMATCH
 
 
 def test_provider_identifiers_and_paths_never_become_workspace_authority(
     session_factory,
 ) -> None:
     graph = _seed_contract(session_factory)
-    candidate = _candidate(graph).model_copy(
-        update={"artifact_id": "file:///tmp/fake.wav"}
-    )
+    candidate = _candidate(graph).model_copy(update={"artifact_id": "file:///tmp/fake.wav"})
     before = _counts(session_factory)
 
     with pytest.raises(ProviderResultContractError) as error:
@@ -462,9 +449,7 @@ def test_vocal_analysis_descriptor_is_not_a_structured_artifact_payload(
         analysis_result={"pitch": {"status": "fake", "value": None}},
     ).model_copy(
         update={
-            "lineage": _candidate(graph).lineage.model_copy(
-                update={"processing_types": ("pitch",)}
-            )
+            "lineage": _candidate(graph).lineage.model_copy(update={"processing_types": ("pitch",)})
         }
     )
 

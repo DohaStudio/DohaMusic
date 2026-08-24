@@ -42,9 +42,7 @@ def gpu_memory_mb() -> float | None:
             check=False,
             timeout=5,
         )
-        values = [
-            float(line.strip()) for line in result.stdout.splitlines() if line.strip()
-        ]
+        values = [float(line.strip()) for line in result.stdout.splitlines() if line.strip()]
         return sum(values) if values else 0.0
     except (OSError, ValueError, subprocess.TimeoutExpired):
         return None
@@ -196,9 +194,7 @@ def main() -> int:
             else:
                 code = "VOICE_CONVERSION_FAILED"
             raise RuntimeError(f"{code}: Seed-VC inference failed")
-        candidates = sorted(
-            temporary_output.glob("*.wav"), key=lambda path: path.stat().st_mtime
-        )
+        candidates = sorted(temporary_output.glob("*.wav"), key=lambda path: path.stat().st_mtime)
         if not candidates:
             raise RuntimeError("VOICE_OUTPUT_NOT_CREATED: Seed-VC produced no WAV")
         normalize_output(candidates[-1], args.output_path)
@@ -211,9 +207,7 @@ def main() -> int:
                 "input_duration_seconds": wav_duration(args.source_path),
                 "reference_duration_seconds": wav_duration(args.reference_path),
                 "peak_vram_mb": max(peak_vram) if peak_vram else None,
-                "peak_process_memory_mb": max(peak_process_memory)
-                if peak_process_memory
-                else None,
+                "peak_process_memory_mb": max(peak_process_memory) if peak_process_memory else None,
                 "peak_cpu_percent": max(peak_cpu_percent) if peak_cpu_percent else None,
             }
         )
@@ -221,9 +215,7 @@ def main() -> int:
     except Exception as exc:  # noqa: BLE001 - Seed-VC 경계의 예외를 안전한 오류로 변환한다.
         message = str(exc)
         code = (
-            message.split(":", 1)[0]
-            if message.startswith("VOICE_")
-            else "VOICE_CONVERSION_FAILED"
+            message.split(":", 1)[0] if message.startswith("VOICE_") else "VOICE_CONVERSION_FAILED"
         )
         payload.update(
             {
@@ -231,9 +223,7 @@ def main() -> int:
                 "error_message": "Seed-VC 실행에 실패했습니다. 상세 내용은 로컬 로그를 확인하세요.",
                 "conversion_time_seconds": time.perf_counter() - started_at,
                 "peak_vram_mb": max(peak_vram) if peak_vram else None,
-                "peak_process_memory_mb": max(peak_process_memory)
-                if peak_process_memory
-                else None,
+                "peak_process_memory_mb": max(peak_process_memory) if peak_process_memory else None,
                 "peak_cpu_percent": max(peak_cpu_percent) if peak_cpu_percent else None,
             }
         )

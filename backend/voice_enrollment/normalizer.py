@@ -71,9 +71,7 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
         except OSError:
             temporary_output.unlink(missing_ok=True)
             output_path.unlink(missing_ok=True)
-            raise VoiceAudioProcessingError(
-                "VOICE_SAMPLE_NORMALIZATION_FAILED"
-            ) from None
+            raise VoiceAudioProcessingError("VOICE_SAMPLE_NORMALIZATION_FAILED") from None
 
     def _normalize_wav(self, source_path: Path, output_path: Path) -> None:
         format_tag, bit_depth = self._read_wav_format(source_path)
@@ -117,9 +115,7 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
             try:
                 pcm = resample_poly(pcm, 48_000 // divisor, sample_rate // divisor)
             except (OverflowError, ValueError):
-                raise VoiceAudioProcessingError(
-                    "VOICE_SAMPLE_NORMALIZATION_FAILED"
-                ) from None
+                raise VoiceAudioProcessingError("VOICE_SAMPLE_NORMALIZATION_FAILED") from None
         if not np.isfinite(pcm).all():
             raise VoiceAudioProcessingError("VOICE_SAMPLE_NORMALIZATION_FAILED")
         normalized = np.clip(np.rint(pcm), -32_768, 32_767).astype("<i2")
@@ -130,9 +126,7 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
                 target.setframerate(48_000)
                 target.writeframes(normalized.tobytes())
         except (OSError, wave.Error):
-            raise VoiceAudioProcessingError(
-                "VOICE_SAMPLE_NORMALIZATION_FAILED"
-            ) from None
+            raise VoiceAudioProcessingError("VOICE_SAMPLE_NORMALIZATION_FAILED") from None
 
     @staticmethod
     def _read_wav_format(source_path: Path) -> tuple[int, int]:
@@ -147,17 +141,11 @@ class HybridVoiceAudioNormalizer(VoiceAudioNormalizer):
                     chunk_id, chunk_size = struct.unpack("<4sI", chunk_header)
                     if chunk_id == b"fmt ":
                         if chunk_size < 16:
-                            raise VoiceAudioProcessingError(
-                                "VOICE_SAMPLE_DECODE_FAILED"
-                            )
+                            raise VoiceAudioProcessingError("VOICE_SAMPLE_DECODE_FAILED")
                         payload = source.read(16)
                         if len(payload) != 16:
-                            raise VoiceAudioProcessingError(
-                                "VOICE_SAMPLE_DECODE_FAILED"
-                            )
-                        format_tag, _, _, _, _, bit_depth = struct.unpack(
-                            "<HHIIHH", payload
-                        )
+                            raise VoiceAudioProcessingError("VOICE_SAMPLE_DECODE_FAILED")
+                        format_tag, _, _, _, _, bit_depth = struct.unpack("<HHIIHH", payload)
                         return format_tag, bit_depth
                     source.seek(chunk_size + (chunk_size % 2), os.SEEK_CUR)
         except VoiceAudioProcessingError:

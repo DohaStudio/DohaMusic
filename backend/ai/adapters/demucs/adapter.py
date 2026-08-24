@@ -37,9 +37,7 @@ class DemucsAdapter:
         result = self.runtime.separate(request.source_path, request.job_id)
         for path in (result.vocals_path, result.instrumental_path):
             if not path.is_file() or path.stat().st_size == 0:
-                raise StemOutputNotCreatedError(
-                    "Demucs Stem 출력 파일이 생성되지 않았습니다."
-                )
+                raise StemOutputNotCreatedError("Demucs Stem 출력 파일이 생성되지 않았습니다.")
         return StemSeparationResult(
             vocals_path=result.vocals_path,
             instrumental_path=result.instrumental_path,

@@ -63,9 +63,7 @@ def _encoded_wav_bytes(
     block_align = channels * ((bit_depth + 7) // 8)
     byte_rate = rate * block_align
     fmt = (
-        struct.pack(
-            "<HHIIHH", format_tag, channels, rate, byte_rate, block_align, bit_depth
-        )
+        struct.pack("<HHIIHH", format_tag, channels, rate, byte_rate, block_align, bit_depth)
         + extra
     )
     chunks = b"fmt " + struct.pack("<I", len(fmt)) + fmt
@@ -97,9 +95,7 @@ def _system_ffmpeg() -> str | None:
     [(48_000, 1), (48_000, 2), (16_000, 1)],
     ids=["pcm16-mono", "pcm16-stereo", "pcm16-16khz-resample"],
 )
-def test_wav_normalizer_outputs_pcm16_48khz_mono(
-    tmp_path: Path, rate: int, channels: int
-) -> None:
+def test_wav_normalizer_outputs_pcm16_48khz_mono(tmp_path: Path, rate: int, channels: int) -> None:
     source = tmp_path / "source with spaces.wav"
     output = tmp_path / "output.wav"
     source.write_bytes(_wav_bytes(rate=rate, channels=channels))
@@ -139,9 +135,7 @@ def test_wav_normalizer_outputs_pcm16_48khz_mono(
     ],
     ids=["pcm24", "float32", "adpcm", "wave-format-extensible"],
 )
-def test_wav_normalizer_rejects_unsupported_codec(
-    tmp_path: Path, payload: bytes
-) -> None:
+def test_wav_normalizer_rejects_unsupported_codec(tmp_path: Path, payload: bytes) -> None:
     source = tmp_path / "unsupported.wav"
     output = tmp_path / "output.wav"
     source.write_bytes(payload)
@@ -149,9 +143,7 @@ def test_wav_normalizer_rejects_unsupported_codec(
         ffmpeg_executable="missing", timeout_seconds=1, max_output_bytes=200_000
     )
 
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_UNSUPPORTED_CODEC"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_UNSUPPORTED_CODEC"):
         normalizer.normalize(source, output, VoiceContainer.WAV)
 
     assert not output.exists()
@@ -186,9 +178,7 @@ def test_wav_normalizer_classifies_output_limit_as_duration_failure(
         ffmpeg_executable="missing", timeout_seconds=1, max_output_bytes=96_044
     )
 
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_DURATION_TOO_LONG"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DURATION_TOO_LONG"):
         normalizer.normalize(source, output, VoiceContainer.WAV)
 
     assert not output.exists()
@@ -210,9 +200,7 @@ def test_wav_normalizer_cleans_partial_output_after_os_error(
         raise OSError("simulated atomic write failure")
 
     monkeypatch.setattr(normalizer, "_normalize_wav", fail_after_partial)
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_NORMALIZATION_FAILED"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_NORMALIZATION_FAILED"):
         normalizer.normalize(source, output, VoiceContainer.WAV)
 
     assert not output.exists()
@@ -265,9 +253,9 @@ def test_system_ffmpeg_opus_normalization(
 
     normalizer.normalize(encoded, output, container)
 
-    validated = VoiceAudioValidator(
-        min_duration_seconds=0.5, max_duration_seconds=2
-    ).validate(output)
+    validated = VoiceAudioValidator(min_duration_seconds=0.5, max_duration_seconds=2).validate(
+        output
+    )
     assert validated.sample_rate == 48_000
     assert validated.channels == 1
     assert validated.bit_depth == 16
@@ -342,9 +330,7 @@ def test_media_validation_rejects_mismatch_and_filename_path() -> None:
         validate_media("sample.wav", "audio/ogg", b"OggSxxxxOpusHead")
     with pytest.raises(VoiceAudioProcessingError):
         validate_media("../sample.wav", "audio/wav", _wav_bytes())
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_UNSUPPORTED_MEDIA_TYPE"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_UNSUPPORTED_MEDIA_TYPE"):
         validate_media(
             "sample.wav",
             "audio/wav",
@@ -361,9 +347,7 @@ def test_ffmpeg_missing_timeout_nonzero_and_argument_list(
     normalizer = HybridVoiceAudioNormalizer(
         ffmpeg_executable="ffmpeg", timeout_seconds=1, max_output_bytes=200_000
     )
-    monkeypatch.setattr(
-        "backend.voice_enrollment.normalizer.shutil.which", lambda _: None
-    )
+    monkeypatch.setattr("backend.voice_enrollment.normalizer.shutil.which", lambda _: None)
     with pytest.raises(VoiceAudioProcessingError, match="VOICE_NORMALIZER_UNAVAILABLE"):
         normalizer.normalize(source, output, VoiceContainer.WEBM)
 
@@ -374,15 +358,11 @@ def test_ffmpeg_missing_timeout_nonzero_and_argument_list(
         ffmpeg_executable=str(executable), timeout_seconds=1, max_output_bytes=200_000
     )
 
-    def timeout(
-        command: list[str], **kwargs: object
-    ) -> subprocess.CompletedProcess[str]:
+    def timeout(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
         assert isinstance(command, list)
         assert kwargs["shell"] is False
         if command[1:] == ["-version"]:
-            return subprocess.CompletedProcess(
-                command, 0, stdout="ffmpeg version test-build\n"
-            )
+            return subprocess.CompletedProcess(command, 0, stdout="ffmpeg version test-build\n")
         assert command[0] == str(executable)
         assert str(source) in command
         raise subprocess.TimeoutExpired(command, 1)
@@ -391,13 +371,9 @@ def test_ffmpeg_missing_timeout_nonzero_and_argument_list(
     with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DECODE_TIMEOUT"):
         normalizer.normalize(source, output, VoiceContainer.WEBM)
 
-    def nonzero(
-        command: list[str], **kwargs: object
-    ) -> subprocess.CompletedProcess[str]:
+    def nonzero(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
         if command[1:] == ["-version"]:
-            return subprocess.CompletedProcess(
-                command, 0, stdout="ffmpeg version test-build\n"
-            )
+            return subprocess.CompletedProcess(command, 0, stdout="ffmpeg version test-build\n")
         output.with_suffix(".normalizing").write_bytes(b"partial")
         return subprocess.CompletedProcess(command, 1)
 
@@ -407,19 +383,13 @@ def test_ffmpeg_missing_timeout_nonzero_and_argument_list(
     assert not output.exists()
     assert not output.with_suffix(".normalizing").exists()
 
-    def no_output(
-        command: list[str], **kwargs: object
-    ) -> subprocess.CompletedProcess[str]:
+    def no_output(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
         if command[1:] == ["-version"]:
-            return subprocess.CompletedProcess(
-                command, 0, stdout="ffmpeg version test-build\n"
-            )
+            return subprocess.CompletedProcess(command, 0, stdout="ffmpeg version test-build\n")
         return subprocess.CompletedProcess(command, 0)
 
     monkeypatch.setattr("backend.voice_enrollment.normalizer.subprocess.run", no_output)
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_NORMALIZATION_FAILED"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_NORMALIZATION_FAILED"):
         normalizer.normalize(source, output, VoiceContainer.OGG)
 
 
@@ -444,9 +414,7 @@ def test_ffmpeg_rejects_invalid_absolute_path_and_version(
     )
     monkeypatch.setattr(
         "backend.voice_enrollment.normalizer.subprocess.run",
-        lambda *args, **kwargs: subprocess.CompletedProcess(
-            args[0], 0, stdout="different tool\n"
-        ),
+        lambda *args, **kwargs: subprocess.CompletedProcess(args[0], 0, stdout="different tool\n"),
     )
     with pytest.raises(VoiceAudioProcessingError, match="VOICE_NORMALIZER_UNAVAILABLE"):
         normalizer.normalize(source, output, VoiceContainer.WEBM)
@@ -476,21 +444,15 @@ def test_validator_pass_warnings_and_failures(tmp_path: Path) -> None:
 
     short = tmp_path / "short.wav"
     short.write_bytes(_wav_bytes(duration=0.1, rate=48_000, channels=1))
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_DURATION_TOO_SHORT"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DURATION_TOO_SHORT"):
         validator.validate(short)
     long = tmp_path / "long.wav"
     long.write_bytes(_wav_bytes(duration=2.1, rate=48_000, channels=1))
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_DURATION_TOO_LONG"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_DURATION_TOO_LONG"):
         validator.validate(long)
     corrupt = tmp_path / "corrupt.wav"
     corrupt.write_bytes(b"not-wave")
-    with pytest.raises(
-        VoiceAudioProcessingError, match="VOICE_SAMPLE_INVALID_WAV_OUTPUT"
-    ):
+    with pytest.raises(VoiceAudioProcessingError, match="VOICE_SAMPLE_INVALID_WAV_OUTPUT"):
         validator.validate(corrupt)
 
 
