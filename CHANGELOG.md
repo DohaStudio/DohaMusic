@@ -17,6 +17,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - ADR-046에서 locator 전 Provider execution·Result validation은 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`로 확정했다. 새 entity/field, schema와 Alembic은 필요하지 않으며 다음 dependency는 `DURABLE_LOCATOR_REQUIRED`다.
 - CURRENT reclaim Runtime은 계속 미구현이다. Python·DB·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
 
+### 유지보수 — Ruff 정적검사 기준선
+
+- Python root를 `backend`와 `ai_worker`, test root를 `backend/tests`로 명시하고 로컬과 CI의 compileall·Ruff lint·Ruff format 명령을 통일했다.
+- Ruff 0.16.4와 명시적 rule set을 저장소 자체 설정으로 고정해 상위 디렉터리 설정 상속을 제거하고, first-party Python 전체의 lint·format 기준선을 정리했다.
+- project-root bootstrap 뒤 import가 필요한 AI worker script 세 개만 근거가 있는 `E402` 예외로 제한했다. 기능·API·DB·Dataset·Training·authentication 계약은 변경하지 않았다.
+
 ### 추가 — Clip Service Authority Foundation
 
 - ADR-045에서 active Clip이 없는 Track만 tombstone하고, 하나라도 있으면 `TRACK_NOT_EMPTY`로 거부하며 cascade 삭제하지 않는 V1 의미를 확정했다.
