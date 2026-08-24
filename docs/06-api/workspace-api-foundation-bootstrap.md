@@ -1,4 +1,4 @@
-# Workspace API 공통 기반과 Bootstrap
+﻿# Workspace API 공통 기반과 Bootstrap
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-24
@@ -106,12 +106,12 @@ Project·Asset·AssetVersion과 Runtime Table row는 생성하거나 변경하�
 - 명시적 SQLite URL
 - 기존 SQLite 파일 또는 명시적 in-memory 테스트 DB
 - `alembic_version` Table 존재
-- revision row가 정확히 하나이고 그 값이 Bootstrap이 검증한 target `20260824_0020`과 정확히 일치
+- revision row가 정확히 하나이고 그 값이 Bootstrap이 검증한 target `20260824_0021`과 정확히 일치
 - `workspaces`, `music_projects`, `composition_snapshots`, `project_composition_selections` Table 존재
 - selection primary key·selected Snapshot unique·same-Project 복합 FK 존재
 - `(project_id, composition_snapshot_id)` Snapshot identity unique Index 존재
 
-Bootstrap은 최소 revision 이상을 허용하지 않습니다. 현재 target은 Alembic source head `20260824_0020`이며 실제 사용자 DB `20260810_0017`은 migration 승인·적용 전까지 fail-closed로 거부됩니다. 과거 revision, 미래·알 수 없는·형식 오류 revision과 revision row 0개 또는 복수를 거부하며 일반 Alembic DAG 비교와 자동 호환 판정은 별도 설계 없이 도입하지 않습니다. 실제 Bootstrap은 아직 실행하지 않았습니다.
+Bootstrap은 최소 revision 이상을 허용하지 않습니다. 현재 target은 Alembic source head `20260824_0021`이며 실제 사용자 DB `20260810_0017`은 migration 승인·적용 전까지 fail-closed로 거부됩니다. 과거 revision, 미래·알 수 없는·형식 오류 revision과 revision row 0개 또는 복수를 거부하며 일반 Alembic DAG 비교와 자동 호환 판정은 별도 설계 없이 도입하지 않습니다. 실제 Bootstrap은 아직 실행하지 않았습니다.
 
 Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자동 생성을 수행하지 않습니다. 이번 작업에서는 실제 사용자 DB에 접근하거나 Bootstrap을 실행하지 않았습니다.
 

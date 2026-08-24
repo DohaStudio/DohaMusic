@@ -11,7 +11,7 @@ from uuid import UUID, uuid4
 import pytest
 from alembic import command
 from alembic.config import Config
-from sqlalchemy import inspect, select, text
+from sqlalchemy import insert, inspect, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, configure_mappers
 
@@ -121,8 +121,10 @@ def _seed_artifact(engine) -> tuple[UUID, UUID, UUID]:
             )
         )
         session.flush()
-        session.add(
-            Artifact(
+        # 이 테스트는 historical 0015/0016 schema를 검증한다. 현재 Artifact ORM의
+        # 0021 column을 historical table에 암묵적으로 INSERT하지 않는다.
+        session.execute(
+            insert(Artifact.__table__).values(
                 artifact_id=artifact_id,
                 asset_version_id=version_id,
                 artifact_kind="audio",
@@ -311,8 +313,19 @@ def test_catalog_migration_round_trip_preserves_existing_schema_and_rows(
         session.add(location)
         session.commit()
         session.refresh(location)
-        assert location.artifact.asset_version.asset.asset_id == asset_id
-        assert location.artifact.asset_version.asset_version_id == version_id
+        assert location.artifact_id == artifact_id
+        lineage = session.execute(
+            text(
+                "SELECT av.asset_version_id, av.asset_id "
+                "FROM artifacts AS a "
+                "JOIN asset_versions AS av "
+                "ON av.asset_version_id = a.asset_version_id "
+                "WHERE a.artifact_id = :artifact_id"
+            ),
+            {"artifact_id": artifact_id.hex},
+        ).one()
+        assert UUID(lineage.asset_version_id) == version_id
+        assert UUID(lineage.asset_id) == asset_id
 
     command.downgrade(config, PREVIOUS_REVISION)
     with engine.connect() as connection:
@@ -398,8 +411,8 @@ def test_catalog_rejects_duplicate_locator(tmp_path: Path) -> None:
             )
         )
         session.flush()
-        session.add(
-            Artifact(
+        session.execute(
+            insert(Artifact.__table__).values(
                 artifact_id=second_artifact_id,
                 asset_version_id=second_version_id,
                 artifact_kind="audio",

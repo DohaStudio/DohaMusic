@@ -1,15 +1,22 @@
-Warning: truncated output (original token count: 20460)
+﻿Warning: truncated output (original token count: 20460)
 Total output lines: 715
 
 # 변경 이력
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-24
+> 최종 수정일: 2026-08-25
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Clip Service Authority Foundation
+
+- ADR-045에서 active Clip이 없는 Track만 tombstone하고, 하나라도 있으면 `TRACK_NOT_EMPTY`로 거부하며 cascade 삭제하지 않는 V1 의미를 확정했다.
+- trusted ingestion이 WAV frame 또는 FLAC STREAMINFO에서 계산한 양의 integer microseconds를 `Artifact.duration_us`에 저장하도록 구현했다. MP3는 정확한 현재 의존성이 없어 길이를 추정하지 않고 Clip source에서 fail-closed한다.
+- Alembic `20260824_0021`로 nullable `artifacts.duration_us`와 양수 CHECK를 additive하게 추가했다. 기존 Artifact row의 backfill·Payload rewrite와 실제 사용자 DB 적용은 0건이다.
+- exact AssetVersion의 active audio Artifact 후보가 정확히 하나이고 trusted duration이 있을 때만 Clip source metadata를 반환하는 내부 Service와 active Clip count Repository primitive를 추가했다. WorkingComposition mutation·API·Frontend·Provider·GPU 호출은 추가하지 않았다.
 
 ### 문서 — Workspace Worker Re-entry Lifecycle Authority
 

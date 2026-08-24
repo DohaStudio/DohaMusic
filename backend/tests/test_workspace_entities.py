@@ -107,6 +107,7 @@ EXPECTED_COLUMNS = {
         "artifact_kind",
         "media_type",
         "size_bytes",
+        "duration_us",
         "checksum_algorithm",
         "artifact_checksum",
         "producer_type",

@@ -1,9 +1,9 @@
-# Clip Domain / Persistence Design Definition of Done
+﻿# Clip Domain / Persistence Design Definition of Done
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-24
+> 최종 수정일: 2026-08-25
 > 관련 기능: AI-native DAW D3 Clip Editing 선행 설계
-> 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [AI-native DAW DoD](AI-Native-DAW.md), [Master Roadmap](../../MASTER_ROADMAP.md)
+> 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [AI-native DAW DoD](AI-Native-DAW.md), [Master Roadmap](../../MASTER_ROADMAP.md)
 
 이 문서는 Clip Editing 구현 완료가 아니라 구현을 시작하기 위한 Domain/Persistence 결정 완료를 판정한다. ORM·Alembic·API·Frontend·테스트는 모두 후속 범위다.
 
@@ -25,13 +25,14 @@
 - [x] product-only edit operation과 신규 Common Contract schema 0건 결정
 - [x] future MIDI/Instrument 확장과 V1 audio-only eligibility 분리
 - [x] path·storage locator·credential 비저장과 기존 rights authority 유지
+- [x] active Clip이 없는 Track만 tombstone하고 non-empty Track은 `TRACK_NOT_EMPTY`로 거부하는 V1 삭제 의미 결정
 
 ## 구현 Gate — [진행 중]
 
 - [x] mutable·immutable 5개 logical table의 SQLAlchemy/Alembic 구현
 - [x] integer microseconds·positive duration·source range·exact AssetVersion persistence와 DB CHECK/FK 구현
 - [x] Repository primitive·deterministic read·same-Track overlap helper·optimistic revision·transaction-owner rollback 테스트
-- [ ] exact source duration의 Artifact media metadata/probe 기반 서버 검증 authority 구현
+- [x] exact source duration의 trusted Artifact ingestion·persisted metadata 기반 서버 검증 authority 구현
 - [ ] Service mutation·기존 idempotency record orchestration·atomic split/commit 테스트
 - [ ] WorkingComposition product API와 OpenAPI/error contract
 - [ ] Frontend Clip move·trim·split·delete·Track reorder
@@ -41,4 +42,4 @@
 
 ## 판정
 
-`Clip Domain/Persistence Design`과 `Clip Persistence Foundation`은 COMPLETE다. 전체 `Clip Editing Implementation`은 진행 중이며 다음 Gate는 `WorkingComposition Service + Product API`다. 실제 사용자 DB migration, API, Frontend와 working preview/render는 완료로 표시하지 않는다.
+`Clip Domain/Persistence Design`, `Clip Persistence Foundation`과 `Clip Service Authority Foundation`은 COMPLETE다. 전체 `Clip Editing Implementation`은 진행 중이며 다음 Gate는 `WorkingComposition Service + Product API`다. 실제 사용자 DB migration, mutation Service, API, Frontend와 working preview/render는 완료로 표시하지 않는다.

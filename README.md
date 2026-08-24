@@ -1,4 +1,4 @@
-# DohaMusic
+﻿# DohaMusic
 
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
@@ -25,7 +25,7 @@ DohaMusic = AI-native DAW
 현재 `develop`에서 확인되는 범위다.
 
 - D1 Composition Read Workspace와 D2 Timeline Playback, Master / Mix Waveform·richer Playhead Foundation은 완료됐다. Project 상세의 선택된 CompositionSnapshot에는 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
-- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 Project당 하나의 mutable WorkingComposition, canonical Track·Clip identity, exact AssetVersion과 새 불변 Snapshot commit 경계를 설계했다. mutable 3개·immutable 2개 persistence table과 Repository 기반은 구현했으며 source media duration 실측 Service·API·Clip UI는 미구현이다.
+- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)과 [ADR-045](docs/11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, Track 삭제와 trusted source duration 권위를 확정했다. persistence와 trusted WAV·FLAC duration 기반은 구현했으며 mutation Service·API·Clip UI는 미구현이다.
 - FastAPI Router → Service → Repository → SQLAlchemy 구조와 SQLite·Alembic 기반
 - 생성·Stem·Voice Conversion·Pipeline·Lyrics의 Legacy API와 비동기 작업 흐름
 - Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
@@ -96,7 +96,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 ## Current Development Track
 
 - AI-native DAW D0 제품 목표 정합화: [완료]
-- 현재 제품 단계: D1 Composition Read Workspace [완료] / D2 Timeline Playback·Waveform·Richer Playhead [완료] / Clip Domain·Persistence Design [완료] / D3 Clip Persistence Foundation [완료] / NEXT: WorkingComposition Service + Product API
+- 현재 제품 단계: D1 Composition Read Workspace [완료] / D2 Timeline Playback·Waveform·Richer Playhead [완료] / Clip Domain·Persistence Design [완료] / D3 Clip Persistence·Authority Foundation [완료] / NEXT: WorkingComposition Service + Product API
 - 병행 Track: AI Provider 저장소 분리, [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md), F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
 
 현재 실행 순서와 `NEXT / LATER`는 [ROADMAP](ROADMAP.md), 장기 Phase·Track·Gate는 [MASTER_ROADMAP](MASTER_ROADMAP.md), 완료 판정은 [DoD](docs/DoD/README.md)를 기준으로 한다.
