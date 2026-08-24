@@ -194,7 +194,7 @@ source revision `20260810_0017`에서 `claim_token`, 길이 128의 `claimed_by`,
 - claim 성공 Worker만 `queued → running`할 수 있다.
 - 실행 Worker는 lease를 소유하고 heartbeat로 연장한다.
 - 같은 Job을 두 Worker가 동시에 실행할 수 없다.
-- `attempt`는 같은 immutable Job의 dispatch·Provider invocation 시도이고 공개 retry와 다르다.
+- `attempt`는 같은 immutable Job의 Worker ownership generation/claim 횟수다. Provider invocation·Provider retry 횟수나 새 Workspace retry Job 횟수가 아니다.
 - 현재 구현에서 같은 Job attempt는 Provider idempotency가 중복 side effect를 방지할 수 있을 때만 허용하며 running lease 만료는 `WORKER_LEASE_EXPIRED`, retryable `true`의 `failed`로 종료한다.
 - 목표 계약에서 replay-safe로 등록된 Provider-backed Job은 yielded/expired `running` claim을 CAS로 reclaim한다. `attempt`는 Worker ownership generation마다 증가하고 Provider retry·새 Workspace retry와 구분하며, 기존 row의 무조건적인 `queued` 복귀는 계속 금지한다.
 
