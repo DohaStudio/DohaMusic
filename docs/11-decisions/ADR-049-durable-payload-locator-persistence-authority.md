@@ -23,17 +23,17 @@ DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED
 1. source descriptor 복제를 위해 locator를 저장하지 않는다. acquisition 전 crash는 Result replay로 복구한다.
 2. 전용 `PayloadLocator` aggregate는 Provider binding의 ordered payload entry와 DohaMusic-owned verified staging·revocation·cleanup을 결합한다.
 3. `ProviderJobBinding`은 append-only Provider execution identity로 유지하며 payload Column을 추가하지 않는다.
-4. 관계는 `ProviderJobBinding 1:N PayloadLocator`다. binding + ordinal과 canonical source tuple을 각각 unique로 둔다.
+4. 관계는 `ProviderJobBinding 1:N PayloadLocator`다. locator는 direct `workspace_job_id`와 binding ID를 모두 보존하고 두 scope의 일치를 DB constraint로 강제한다. binding + ordinal과 canonical source tuple을 각각 unique로 둔다.
 5. `payloadref:v1:<uuidhex>` 형식은 유지하고 UUID를 DB primary key와 opaque internal reference에 공통 사용한다.
 6. locator는 trust PASS 뒤 idempotent `source_bound`로 issue하고 verified staging publish 뒤 별도 transaction에서 actual facts와 safe storage key를 확정한다.
 7. partial acquisition과 `acquiring`은 durable locator state가 아니다. Workspace Worker claim과 downloader attempt가 소유한다.
 8. source availability, locator policy expiry와 credential expiry를 분리한다.
 9. locator ID 보유는 권한이 아니다. 최신 owner·취소·삭제·Consent/access gate를 통과해야 resolve할 수 있다.
-10. Completion commit 뒤 성공 authority는 `Artifact`, `AssetVersion`, `JobOutput`이며 locator는 audit·cleanup만 담당한다.
+10. Completion commit 뒤 성공 authority는 `Artifact`, `AssetVersion`, `JobOutput`이며 locator는 audit·cleanup만 담당한다. lifecycle backward transition, revocation 해제와 cleaned staging resurrection은 금지한다.
 
 ## schema와 migration
 
-additive `payload_locators` table 하나가 필요하다. immutable source/expected fields, nullable verified staging/actual fields, revocation·ingestion·cleanup timestamps, lifecycle revision을 둔다. absolute path, root, credential, signed URL, raw response와 bytes는 저장하지 않는다. safe relative staging key만 config-owned backend ID와 함께 저장한다.
+additive `payload_locators` table 하나가 필요하다. direct Workspace Job FK와 ProviderJobBinding FK, immutable source/expected fields, nullable verified staging/actual fields, revocation·ingestion·cleanup timestamps, lifecycle revision을 둔다. Workspace Job과 binding scope는 composite FK 또는 동등한 DB constraint로 일치시킨다. absolute path, root, credential, signed URL, raw response와 bytes는 저장하지 않는다. safe relative staging key만 config-owned backend ID와 함께 저장한다.
 
 현행 Alembic head 다음 revision에서 빈 table을 추가하므로 기존 row backfill은 없다. current 기준 successor 후보는 `20260825_0023`이며 구현 시 최신 develop head를 다시 확인한다. 구체적인 Column, CHECK, FK, unique와 Index는 architecture 문서가 authority다.
 

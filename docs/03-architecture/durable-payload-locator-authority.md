@@ -102,13 +102,13 @@ Workspace Job
        └─ PayloadLocator 1:N (ordered payload entries)
 ```
 
-`workspace_job_id`, `provider_id`, `provider_job_id`는 binding에서 유일하게 파생하므로 locator row에 중복 저장하지 않는다. owner·Workspace scope는 조회 때 binding과 Job을 join해 검증한다.
+locator row는 `workspace_job_id`와 `provider_job_binding_id`를 모두 보존한다. direct Workspace scope는 owner·cancellation·rights 조회와 cleanup scan의 durable boundary이고, binding은 exact Provider execution authority다. 두 값의 불일치를 막기 위해 `(workspace_job_id, provider_job_binding_id)`가 같은 binding row를 가리키는 composite FK 또는 동등한 DB constraint를 사용한다. `provider_id`와 `provider_job_id`는 binding에서 파생하며 locator row에 중복 저장하지 않는다.
 
 두 unique key를 사용한다.
 
 ```text
 UNIQUE(provider_job_binding_id, payload_ordinal)
-UNIQUE(provider_job_binding_id, provider_artifact_id, role, source_kind, source_id)
+UNIQUE(provider_job_binding_id, provider_artifact_id, role, source_id)
 ```
 
 같은 key와 모든 immutable expected field가 같으면 기존 locator를 replay한다. unique identity는 같지만 checksum·size·media·availability·ordinal 중 하나라도 다르면 `RESULT_REPLAY_CONFLICT`로 fail closed한다. Result의 ordered 1:N 의미를 보존하기 위해 `payload_ordinal >= 0`을 저장한다.
@@ -130,8 +130,9 @@ source_bound
 - revocation은 `revoked_at`과 safe reason으로 직교 기록하며 모든 acquire·resolve·reuse·ingestion을 차단한다.
 - `ingested` 이후 성공 authority는 `Artifact`, `AssetVersion`, `JobOutput`이다. locator는 audit와 cleanup만 소유한다.
 - 각 성공한 mutable transition은 `lifecycle_revision + 1` CAS로 경쟁을 감지한다.
+- 모든 backward transition은 금지한다. 특히 `cleaned → verified_staged` resurrection과 `ingested → verified_staged` 재사용은 허용하지 않는다.
 
-최소 revocation reason은 `workspace_cancelled`, `workspace_deleted`, `rights_revoked`, `source_invalidated`, `integrity_failure`, `security_incident`다. Provider source가 기술적으로 남아 있어도 revocation 뒤 재취득하지 않는다.
+revocation은 staging status와 별도의 terminal control overlay다. `revoked_at`이 기록되면 해제하거나 이전 상태로 되돌리지 않으며 source acquisition, staging resolve/reuse와 ingestion을 모두 fail closed한다. verified bytes가 남아 있으면 cleanup을 요청할 수만 있다. 최소 revocation reason은 `workspace_cancelled`, `workspace_deleted`, `rights_revoked`, `source_invalidated`, `integrity_failure`, `security_incident`다. Provider source가 기술적으로 남아 있어도 revocation 뒤 재취득하지 않는다.
 
 ## 7. schema 설계
 
@@ -140,6 +141,7 @@ source_bound
 | Column | null | authority |
 |---|---:|---|
 | `payload_locator_id` UUID PK | 아니요 | `payloadref:v1:<uuid.hex>`의 opaque ID |
+| `workspace_job_id` UUID FK | 아니요 | `jobs`, direct Workspace scope, `ON DELETE RESTRICT` |
 | `provider_job_binding_id` UUID FK | 아니요 | `provider_job_bindings`, `ON DELETE RESTRICT` |
 | `payload_ordinal` integer | 아니요 | ordered Result 위치, `>= 0` |
 | `provider_artifact_id` string(200) | 아니요 | Provider payload artifact identity |
@@ -170,7 +172,7 @@ source_bound
 | `lifecycle_revision` integer | 아니요 | 0 시작, mutation 성공당 +1 |
 | `created_at`, `updated_at` datetime | 아니요 | issue와 마지막 transition 감사 |
 
-CHECK는 expected 값의 형식·양수 크기, UTC timestamp, lifecycle revision, staging 상태별 nullable field 묶음, revocation timestamp/reason 동시 nullability를 검증한다. `verified_staged` 이상에서는 staging backend/key·actual facts·`verified_at`이 모두 non-null이어야 한다. expected와 actual facts는 별도 Column으로 보존하되 verify transition은 equality를 요구한다.
+FK는 locator의 Workspace Job과 Provider binding의 Workspace Job이 같음을 보장한다. CHECK는 expected 값의 형식·양수 크기, UTC timestamp, lifecycle revision, staging 상태별 nullable field 묶음, revocation timestamp/reason 동시 nullability를 검증한다. `verified_staged` 이상에서는 staging backend/key·actual facts·`verified_at`이 모두 non-null이어야 하고, `source_bound`에서는 actual·staging·verification field가 모두 null이어야 한다. expected와 actual facts는 별도 Column으로 보존하되 verify transition은 equality를 요구한다.
 
 최소 Index는 binding history, `(staging_status, cleanup_requested_at)`, source availability, locator policy expiry와 nullable ingested Artifact 조회다. DB에는 Authorization, signed URL, API key, cookie, credential, raw Provider response, absolute path, storage root와 payload bytes를 저장하지 않는다.
 
@@ -185,7 +187,7 @@ SourceLocator와 StagingLocator 두 aggregate를 만들지 않는다. 한 `Paylo
 | partial download와 이번 attempt temp cleanup | Downloader |
 | immutable verified object publish·resolve·delete | Staging adapter |
 | issue·replay·revoke·handoff·cleanup policy | Payload reconciliation Service |
-| Artifact prepare와 atomic completion | Artifact ingestion + Completion UoW |
+| Artifact prepare·atomic completion과 성공 뒤 cleanup request 기록 | Artifact ingestion + Completion UoW |
 | stale verified staging scan·cleanup 실행 | 후속 background janitor |
 | 취소·삭제·Consent/access 판단 | 기존 Workspace·Asset·Voice/Consent authority |
 
