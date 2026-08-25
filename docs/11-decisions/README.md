@@ -53,6 +53,7 @@
 | [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md) | 완료 revision과 복수 identity를 보존하는 versioned idempotency replay 결과 | 승인 |
 | [ADR-048](ADR-048-dohavocal-payload-acquisition-consumer.md) | DohaVocal 0.2.0 payload Result trust와 transient acquisition 경계 | 승인, durable locator는 ADR-049에서 후속 구현 |
 | [ADR-049](ADR-049-durable-payload-locator-persistence-authority.md) | Result replay와 verified staging을 분리한 전용 PayloadLocator persistence 권위 | 승인, persistence foundation 구현 |
+| [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md) | WorkingComposition same-ID restore·exact split inverse mutation과 history boundary | 승인 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -80,6 +81,7 @@
 - [ADR-040 — Canonical Track·Clip과 Working Composition 권위](ADR-040-canonical-track-clip-working-composition-authority.md): Project당 하나의 mutable WorkingComposition, canonical Track·Clip identity, exact AssetVersion, revision·atomic edit와 별도 불변 Snapshot Track/Clip commit 경계를 결정한다.
 - [ADR-047 — Revision-safe Idempotency Completion Result 권위](ADR-047-revision-safe-idempotency-completion-result.md): 기존 resource replay를 보존하면서 완료 revision과 operation별 복수 identity를 bounded versioned JSON으로 원자 저장한다.
 - [ADR-045 — Clip Service 삭제 의미와 신뢰된 미디어 길이 권위](ADR-045-clip-service-deletion-media-duration-authority.md): non-empty Track 삭제 거부와 trusted ingestion이 저장한 exact duration, exact-one Artifact fail-closed 경계를 결정한다.
+- [ADR-050 — WorkingComposition Inverse Mutation 권위](ADR-050-working-composition-inverse-mutation-authority.md): same-ID Track/Clip restore, exact split geometry 기반 unsplit/resplit과 Frontend history boundary를 결정한다.
 
 ## Artifact Storage
 

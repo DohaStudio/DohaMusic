@@ -70,8 +70,12 @@ class WorkingCompositionErrorCode(StrEnum):
     WORKING_COMPOSITION_REVISION_CONFLICT = "WORKING_COMPOSITION_REVISION_CONFLICT"
     TRACK_NOT_FOUND = "TRACK_NOT_FOUND"
     TRACK_NOT_EMPTY = "TRACK_NOT_EMPTY"
+    TRACK_ALREADY_ACTIVE = "TRACK_ALREADY_ACTIVE"
+    TRACK_RESTORE_ORDER_INVALID = "TRACK_RESTORE_ORDER_INVALID"
     CLIP_NOT_FOUND = "CLIP_NOT_FOUND"
+    CLIP_ALREADY_ACTIVE = "CLIP_ALREADY_ACTIVE"
     CLIP_OVERLAP = "CLIP_OVERLAP"
+    SPLIT_STRUCTURE_CONFLICT = "SPLIT_STRUCTURE_CONFLICT"
     INVALID_CLIP_RANGE = "INVALID_CLIP_RANGE"
     SOURCE_ASSET_UNAVAILABLE = "SOURCE_ASSET_UNAVAILABLE"
     SOURCE_ARTIFACT_AMBIGUOUS = "SOURCE_ARTIFACT_AMBIGUOUS"
@@ -91,8 +95,16 @@ _SAFE_ERROR_MESSAGES = {
     ),
     WorkingCompositionErrorCode.TRACK_NOT_FOUND: "Track을 찾을 수 없습니다.",
     WorkingCompositionErrorCode.TRACK_NOT_EMPTY: "활성 Clip이 있는 Track은 삭제할 수 없습니다.",
+    WorkingCompositionErrorCode.TRACK_ALREADY_ACTIVE: "Track이 이미 활성 상태입니다.",
+    WorkingCompositionErrorCode.TRACK_RESTORE_ORDER_INVALID: (
+        "Track 복원 순서가 유효하지 않습니다."
+    ),
     WorkingCompositionErrorCode.CLIP_NOT_FOUND: "Clip을 찾을 수 없습니다.",
+    WorkingCompositionErrorCode.CLIP_ALREADY_ACTIVE: "Clip이 이미 활성 상태입니다.",
     WorkingCompositionErrorCode.CLIP_OVERLAP: "같은 Track의 활성 Clip은 겹칠 수 없습니다.",
+    WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT: (
+        "Split 원본과 child의 canonical geometry가 일치하지 않습니다."
+    ),
     WorkingCompositionErrorCode.INVALID_CLIP_RANGE: "Clip 시간 범위가 유효하지 않습니다.",
     WorkingCompositionErrorCode.SOURCE_ASSET_UNAVAILABLE: (
         "Clip source AssetVersion을 사용할 수 없습니다."
@@ -412,6 +424,60 @@ class WorkingCompositionService:
             response_status=200,
         )
 
+    def restore_track(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        track_id: UUID,
+        target_track_order: int,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        _validate_uuid(track_id, "track_id")
+        if type(target_track_order) is not int or target_track_order < 0:
+            raise WorkingCompositionError(WorkingCompositionErrorCode.TRACK_RESTORE_ORDER_INVALID)
+        operation = IdempotencyResultType.TRACK_RESTORE
+
+        def mutate(
+            repository: CompositionRepository,
+            _session: Session,
+            working: WorkingComposition,
+        ) -> UUID:
+            track = self._require_track_any(repository, working, track_id)
+            if track.deleted_at is None:
+                raise WorkingCompositionError(WorkingCompositionErrorCode.TRACK_ALREADY_ACTIVE)
+            try:
+                repository.restore_composition_track(track, target_track_order=target_track_order)
+            except ValueError as error:
+                code = (
+                    WorkingCompositionErrorCode.TRACK_ALREADY_ACTIVE
+                    if str(error) == "TRACK_ALREADY_ACTIVE"
+                    else WorkingCompositionErrorCode.TRACK_RESTORE_ORDER_INVALID
+                )
+                raise WorkingCompositionError(code) from None
+            return track.track_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=track_id,
+            body={"target_track_order": target_track_order},
+            mutate=mutate,
+            payload=lambda identity: {"track_id": identity},
+            resource_type="composition_track",
+            resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
     def create_clip(
         self,
         project_id: UUID,
@@ -671,6 +737,217 @@ class WorkingCompositionService:
             payload=lambda identity: {"clip_id": identity},
             resource_type="composition_clip",
             resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
+    def restore_clip(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        clip_id: UUID,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        _validate_uuid(clip_id, "clip_id")
+        operation = IdempotencyResultType.CLIP_RESTORE
+
+        def mutate(
+            repository: CompositionRepository,
+            session: Session,
+            working: WorkingComposition,
+        ) -> UUID:
+            clip = self._require_clip_any(repository, working, clip_id)
+            if clip.deleted_at is None:
+                raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_ALREADY_ACTIVE)
+            self._require_track(repository, working, clip.track_id)
+            self._validate_restore_source(
+                session,
+                project_id=project_id,
+                effective_owner_id=effective_owner_id,
+                clip=clip,
+            )
+            timeline_end = clip.timeline_start + clip.source_out - clip.source_in
+            if repository.active_clip_overlap_exists(
+                working_composition_id=working.working_composition_id,
+                track_id=clip.track_id,
+                timeline_start=clip.timeline_start,
+                timeline_end=timeline_end,
+            ):
+                raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP)
+            repository.restore_composition_clip(clip)
+            return clip.clip_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=clip_id,
+            body={},
+            mutate=mutate,
+            payload=lambda identity: {"clip_id": identity},
+            resource_type="composition_clip",
+            resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
+    def unsplit_clip(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        original_clip_id: UUID,
+        left_clip_id: UUID,
+        right_clip_id: UUID,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        return self._toggle_split(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            original_clip_id=original_clip_id,
+            left_clip_id=left_clip_id,
+            right_clip_id=right_clip_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+            operation=IdempotencyResultType.CLIP_UNSPLIT,
+            activate_original=True,
+        )
+
+    def resplit_clip(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        original_clip_id: UUID,
+        left_clip_id: UUID,
+        right_clip_id: UUID,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        return self._toggle_split(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            original_clip_id=original_clip_id,
+            left_clip_id=left_clip_id,
+            right_clip_id=right_clip_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+            operation=IdempotencyResultType.CLIP_RESPLIT,
+            activate_original=False,
+        )
+
+    def _toggle_split(
+        self,
+        *,
+        project_id: UUID,
+        working_composition_id: UUID,
+        original_clip_id: UUID,
+        left_clip_id: UUID,
+        right_clip_id: UUID,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+        operation: IdempotencyResultType,
+        activate_original: bool,
+    ) -> WorkingMutationResult:
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        identities = (original_clip_id, left_clip_id, right_clip_id)
+        for identity in identities:
+            _validate_uuid(identity, "clip_id")
+        if len(set(identities)) != 3:
+            raise WorkingCompositionError(WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT)
+
+        def mutate(
+            repository: CompositionRepository,
+            session: Session,
+            working: WorkingComposition,
+        ) -> tuple[UUID, UUID, UUID]:
+            original = self._require_clip_any(repository, working, original_clip_id)
+            left = self._require_clip_any(repository, working, left_clip_id)
+            right = self._require_clip_any(repository, working, right_clip_id)
+            if activate_original:
+                valid_state = (
+                    original.deleted_at is not None
+                    and left.deleted_at is None
+                    and right.deleted_at is None
+                )
+            else:
+                valid_state = (
+                    original.deleted_at is None
+                    and left.deleted_at is not None
+                    and right.deleted_at is not None
+                )
+            if not valid_state or not _split_geometry_matches(original, left, right):
+                raise WorkingCompositionError(WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT)
+            self._require_track(repository, working, original.track_id)
+            self._validate_restore_source(
+                session,
+                project_id=project_id,
+                effective_owner_id=effective_owner_id,
+                clip=original,
+            )
+
+            if activate_original:
+                repository.tombstone_composition_clip(left)
+                repository.tombstone_composition_clip(right)
+                original_end = original.timeline_start + original.source_out - original.source_in
+                if repository.active_clip_overlap_exists(
+                    working_composition_id=working.working_composition_id,
+                    track_id=original.track_id,
+                    timeline_start=original.timeline_start,
+                    timeline_end=original_end,
+                ):
+                    raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP)
+                repository.restore_composition_clip(original)
+            else:
+                repository.tombstone_composition_clip(original)
+                for child in (left, right):
+                    child_end = child.timeline_start + child.source_out - child.source_in
+                    if repository.active_clip_overlap_exists(
+                        working_composition_id=working.working_composition_id,
+                        track_id=child.track_id,
+                        timeline_start=child.timeline_start,
+                        timeline_end=child_end,
+                    ):
+                        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP)
+                repository.restore_composition_clip(left)
+                repository.restore_composition_clip(right)
+            return identities
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=original_clip_id,
+            body={
+                "left_clip_id": str(left_clip_id),
+                "right_clip_id": str(right_clip_id),
+            },
+            mutate=mutate,
+            payload=lambda value: {
+                "original_clip_id": value[0],
+                "left_clip_id": value[1],
+                "right_clip_id": value[2],
+            },
+            resource_type="composition_clip_split",
+            resource_id=lambda value: value[0],
             response_status=200,
         )
 
@@ -955,6 +1232,24 @@ class WorkingCompositionService:
             }
             raise WorkingCompositionError(mapping[error.code]) from None
 
+    def _validate_restore_source(
+        self,
+        session: Session,
+        *,
+        project_id: UUID,
+        effective_owner_id: UUID,
+        clip: CompositionClip,
+    ) -> None:
+        """Recheck current eligibility without replacing frozen Clip geometry."""
+
+        self._resolve_source_duration(
+            session,
+            project_id=project_id,
+            workspace_id=self._project_workspace_id(session, project_id, effective_owner_id),
+            effective_owner_id=effective_owner_id,
+            asset_version_id=clip.source_asset_version_id,
+        )
+
     def _normalize_mutation(
         self,
         *,
@@ -997,12 +1292,38 @@ class WorkingCompositionService:
         return track
 
     @staticmethod
+    def _require_track_any(
+        repository: CompositionRepository,
+        working: WorkingComposition,
+        track_id: UUID,
+    ) -> CompositionTrack:
+        track = repository.get_composition_track(
+            working.working_composition_id, track_id, include_deleted=True
+        )
+        if track is None:
+            raise WorkingCompositionError(WorkingCompositionErrorCode.TRACK_NOT_FOUND)
+        return track
+
+    @staticmethod
     def _require_clip(
         repository: CompositionRepository,
         working: WorkingComposition,
         clip_id: UUID,
     ) -> CompositionClip:
         clip = repository.get_composition_clip(working.working_composition_id, clip_id)
+        if clip is None:
+            raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_NOT_FOUND)
+        return clip
+
+    @staticmethod
+    def _require_clip_any(
+        repository: CompositionRepository,
+        working: WorkingComposition,
+        clip_id: UUID,
+    ) -> CompositionClip:
+        clip = repository.get_composition_clip(
+            working.working_composition_id, clip_id, include_deleted=True
+        )
         if clip is None:
             raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_NOT_FOUND)
         return clip
@@ -1234,3 +1555,31 @@ def _validate_clip_range(
         and source_out <= source_duration
     ):
         raise WorkingCompositionError(WorkingCompositionErrorCode.INVALID_CLIP_RANGE)
+
+
+def _split_geometry_matches(
+    original: CompositionClip,
+    left: CompositionClip,
+    right: CompositionClip,
+) -> bool:
+    original_end = original.timeline_start + original.source_out - original.source_in
+    left_end = left.timeline_start + left.source_out - left.source_in
+    right_end = right.timeline_start + right.source_out - right.source_in
+    return (
+        left.working_composition_id == original.working_composition_id
+        and right.working_composition_id == original.working_composition_id
+        and left.track_id == original.track_id
+        and right.track_id == original.track_id
+        and left.split_from_clip_id == original.clip_id
+        and right.split_from_clip_id == original.clip_id
+        and left.source_asset_version_id == original.source_asset_version_id
+        and right.source_asset_version_id == original.source_asset_version_id
+        and left.source_duration == original.source_duration
+        and right.source_duration == original.source_duration
+        and left.source_in == original.source_in
+        and left.source_out == right.source_in
+        and right.source_out == original.source_out
+        and left.timeline_start == original.timeline_start
+        and left_end == right.timeline_start
+        and right_end == original_end
+    )

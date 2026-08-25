@@ -24,6 +24,7 @@ from backend.schemas.workspace import (
     ClipMoveRequest,
     ClipMutationResult,
     ClipSplitRequest,
+    ClipToggleRequest,
     ClipTrimEndRequest,
     ClipTrimStartRequest,
     InitializeResult,
@@ -35,6 +36,7 @@ from backend.schemas.workspace import (
     TrackMutationResult,
     TrackRenameRequest,
     TrackReorderRequest,
+    TrackRestoreRequest,
     WorkingCompositionCheckoutRequest,
     WorkingCompositionDetail,
     WorkingCompositionInitializeRequest,
@@ -275,6 +277,35 @@ def delete_track(
 
 
 @router.post(
+    "/tracks/{track_id}/restore",
+    response_model=SuccessResponse[TrackMutationResult],
+    operation_id="restore_working_composition_track",
+)
+def restore_track(
+    project_id: UUID,
+    track_id: UUID,
+    payload: TrackRestoreRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[TrackMutationResult]:
+    try:
+        result = service.restore_track(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            track_id=track_id,
+            target_track_order=payload.target_track_order,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(request, _track_result(result))
+
+
+@router.post(
     "/clips",
     response_model=SuccessResponse[ClipMutationResult],
     status_code=status.HTTP_201_CREATED,
@@ -454,6 +485,92 @@ def delete_clip(
     return _success(request, _clip_result(result))
 
 
+@router.post(
+    "/clips/{clip_id}/restore",
+    response_model=SuccessResponse[ClipMutationResult],
+    operation_id="restore_working_composition_clip",
+)
+def restore_clip(
+    project_id: UUID,
+    clip_id: UUID,
+    payload: WorkingMutationRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[ClipMutationResult]:
+    try:
+        result = service.restore_clip(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            clip_id=clip_id,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(request, _clip_result(result))
+
+
+@router.post(
+    "/clips/{original_clip_id}/unsplit",
+    response_model=SuccessResponse[SplitClipResult],
+    operation_id="unsplit_working_composition_clip",
+)
+def unsplit_clip(
+    project_id: UUID,
+    original_clip_id: UUID,
+    payload: ClipToggleRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[SplitClipResult]:
+    return _split_toggle_response(
+        request,
+        lambda: service.unsplit_clip(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            original_clip_id=original_clip_id,
+            left_clip_id=payload.left_clip_id,
+            right_clip_id=payload.right_clip_id,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        ),
+    )
+
+
+@router.post(
+    "/clips/{original_clip_id}/resplit",
+    response_model=SuccessResponse[SplitClipResult],
+    operation_id="resplit_working_composition_clip",
+)
+def resplit_clip(
+    project_id: UUID,
+    original_clip_id: UUID,
+    payload: ClipToggleRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[SplitClipResult]:
+    return _split_toggle_response(
+        request,
+        lambda: service.resplit_clip(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            original_clip_id=original_clip_id,
+            left_clip_id=payload.left_clip_id,
+            right_clip_id=payload.right_clip_id,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        ),
+    )
+
+
 def _success(request: Request, data):
     return SuccessResponse(data=data, request_id=get_request_id(request))
 
@@ -489,6 +606,23 @@ def _absolute_clip_response(
             clip_id=clip_id,
             completed_revision=result.completed_revision,
             replayed=False,
+        ),
+    )
+
+
+def _split_toggle_response(request: Request, operation) -> SuccessResponse[SplitClipResult]:
+    try:
+        result = operation()
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(
+        request,
+        SplitClipResult(
+            original_clip_id=result.identities["original_clip_id"],
+            left_clip_id=result.identities["left_clip_id"],
+            right_clip_id=result.identities["right_clip_id"],
+            completed_revision=result.completed_revision,
+            replayed=result.replayed,
         ),
     )
 

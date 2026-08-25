@@ -37,6 +37,10 @@ class TrackReorderRequest(WorkingMutationRequest):
     ordered_track_ids: list[UUID] = Field(min_length=1)
 
 
+class TrackRestoreRequest(WorkingMutationRequest):
+    target_track_order: int = Field(ge=0)
+
+
 class ClipCreateRequest(WorkingMutationRequest):
     track_id: UUID
     source_asset_version_id: UUID
@@ -60,6 +64,11 @@ class ClipTrimEndRequest(WorkingMutationRequest):
 
 class ClipSplitRequest(WorkingMutationRequest):
     split_at: Decimal = Field(gt=0)
+
+
+class ClipToggleRequest(WorkingMutationRequest):
+    left_clip_id: UUID
+    right_clip_id: UUID
 
 
 class TrackDetail(_StrictModel):

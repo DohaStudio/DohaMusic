@@ -27,7 +27,7 @@ DohaMusic = AI-native DAW
 현재 `develop`에서 확인되는 범위다.
 
 - D1 Composition Read Workspace와 D2 Timeline Playback, Master / Mix Waveform·richer Playhead Foundation은 완료됐다. Project 상세의 선택된 CompositionSnapshot에는 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
-- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)과 [ADR-045](docs/11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, Track 삭제와 trusted source duration 권위를 확정했다. persistence, trusted WAV·FLAC duration, atomic mutation Service와 13개 Product operation을 구현했으며 Clip UI·Composition commit은 미구현이다.
+- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)·[ADR-045](docs/11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)·[ADR-050](docs/11-decisions/ADR-050-working-composition-inverse-mutation-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, trusted source duration과 inverse mutation 권위를 확정했다. persistence, trusted WAV·FLAC duration, atomic mutation Service와 restore·unsplit/resplit을 포함한 17개 Product operation을 구현했으며 Frontend Clip UI·Undo/Redo·Composition commit은 미구현이다.
 - FastAPI Router → Service → Repository → SQLAlchemy 구조와 SQLite·Alembic 기반
 - 생성·Stem·Voice Conversion·Pipeline·Lyrics의 Legacy API와 비동기 작업 흐름
 - Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
