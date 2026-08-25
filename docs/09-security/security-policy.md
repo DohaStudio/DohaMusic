@@ -1,9 +1,9 @@
 # 보안 정책
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-08-25
 > 관련 기능: Storage·Voice·Frontend public contract 보안
-> 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md)
+> 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md)
 
 보호 자산은 계정, 음성 원본·파생물, 가사·프롬프트, 생성 결과, 모델 파일, 비밀 값, 동의 기록이다. 기본 원칙은 최소 권한, 소유권 검사, 입력 불신, 비밀 분리, 감사 가능성, 안전한 삭제다.
 
@@ -30,6 +30,8 @@ Pipeline 생성 요청도 기존 Voice Profile 동의와 `voices/references` Sto
 - upload와 Generation·Stem·Voice 개별 content API는 구현되지 않았으며 disabled control을 통해서도 파일 경로를 우회 노출하지 않는다.
 
 현재 파일 접근은 로컬 단일 사용자 개발 범위다. Voice upload/list/get은 구현됐지만 인증·리소스 소유권, rate limit, 감사 로그, 보존 기간·삭제 재시도와 접근 통제가 구현되기 전에는 공개 Production 배포를 승인하지 않는다.
+
+Verified payload staging은 config-owned process-private root에 opaque locator-derived filename만 사용한다. DB·로그·오류·공개 DTO에 absolute path, storage root, user·voice·Provider source identity, URL·credential과 raw bytes를 저장하지 않는다. partial과 published object는 symlink·junction·reparse·regular-file·root containment을 검사하고 published object는 매 open actual SHA-256·size·media를 재검증한다. rights/cancel/revocation은 staging reuse보다 우선하며 자세한 authority는 [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md)을 따른다. local adapter는 아직 미구현이다.
 
 후보 평가 점수나 Stars를 신뢰 경계로 사용하지 않는다. 새 Provider를 구현하기 전에는 공식 배포 경로의 checkpoint hash, pickle 등 역직렬화 형식, 원격 코드 실행 요구, 의존성 lock, 취약점과 모델 출처를 검토한다. RVC처럼 사용자별 학습 산출물을 만드는 후보는 동의 철회 시 checkpoint·feature index·cache까지 삭제하는 정책이 먼저 필요하다. Experimental과 Rejected Provider는 자동 fallback 또는 사용자 입력 처리 경로에 참여하지 않는다.
 

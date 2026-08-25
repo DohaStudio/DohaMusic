@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 기준 + 계획]
 > 최종 수정일: 2026-08-10
-> 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Workspace Artifact 모델](workspace-artifact-model.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [데이터베이스 개요](../07-database/database-overview.md)
+> 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Verified Durable Staging Authority](verified-durable-staging-authority.md), [Workspace Artifact 모델](workspace-artifact-model.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md), [데이터베이스 개요](../07-database/database-overview.md)
 
 ## 현재 구현
 
@@ -31,7 +31,7 @@ F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)�
 
 현재 `AUDIO_STORAGE_ROOT` 구현과 별개로 장기 로컬 Artifact root를 다음처럼 구분한다. Catalog·`DOHA_ARTIFACT_ROOT` local Resolver와 별도 `DOHA_ARTIFACT_STAGING_ROOT` Trusted Ingestion을 구현했다. Ingestion은 staging과 네 domain root의 중첩을 거부하고 test root에서만 Payload를 publish했다. 실제 운영 root directory를 생성하거나 사용자 파일을 읽고 이동하지 않았다.
 
-Durable `PayloadLocator` persistence foundation은 config-owned backend ID와 canonical relative `staging_key`를 저장할 schema와 lifecycle만 제공한다. absolute path, drive/UNC, URL, traversal, root, credential과 bytes는 DB에 저장하지 않는다. 이번 범위는 파일을 쓰거나 읽는 staging adapter가 아니며 `verified_staged` transition 입력은 후속 verified staging authority가 제공해야 한다.
+Durable `PayloadLocator` persistence foundation은 config-owned backend ID와 canonical relative `staging_key`를 저장할 schema와 lifecycle을 제공한다. [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 `DOHA_ARTIFACT_STAGING_ROOT` 아래 locator-derived key, partial verify와 exclusive hard-link publish, restart orphan adoption을 사용하는 local adapter가 충분하며 새 schema는 필요하지 않다고 확정했다. absolute path, drive/UNC, URL, traversal, root, credential과 bytes는 DB에 저장하지 않는다. adapter와 `verified_staged` 통합은 아직 미구현이다.
 
 ```text
 D:/DohaArtifacts/

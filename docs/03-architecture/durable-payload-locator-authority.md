@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-25
 > 기준: DohaMusic develop `bdc141237d7c0fd407084ce1bccebfbd86d651a6`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 최종 판정: `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`
-> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md)
 
 ## 1. 결론과 범위
 
@@ -232,7 +232,7 @@ PayloadLocator domain model
 
 Service가 persistence port의 짧은 transaction을 열고 SQLAlchemy Repository는 `flush()`만 수행한다. exact issue replay, immutable conflict, UUID collision bounded retry, revision CAS, restart, lifecycle, revocation, source/policy expiry와 staging-key security를 격리 SQLite로 검증한다. App composition root는 Service를 생성하지만 호출 API나 Worker는 없다.
 
-다음 단계는 verified durable staging authority다. durable byte staging, downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
+후속 [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 schema와 local filesystem adapter로 충분하다고 확정했다. 다음 구현 단계는 port, local adapter, partial·exclusive publish·recover/open/delete와 `verified_staged` 통합이다. durable byte adapter, downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
 
 ```text
 PayloadLocator persistence foundation: IMPLEMENTED

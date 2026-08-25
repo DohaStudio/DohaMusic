@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Verified Durable Staging authority 확정
+
+- `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`를 확정했다. 기존 `DOHA_ARTIFACT_STAGING_ROOT`, actual-byte 검증, file `fsync`와 exclusive hard-link publish primitive를 재사용하고 locator-derived deterministic key로 restart orphan을 adopt한다.
+- byte publish 후 최신 claim·cancel·rights·revocation·revision을 재검증해 `verified_staged` CAS를 수행한다. partial과 orphan cleanup, same-locator replay, missing/tampered object fail-closed, lifecycle 기반 retention과 `cleanup_pending → delete → cleaned` ordering을 고정했다.
+- 별도 staging metadata table·Alembic·object storage 선행 추상화는 필요하지 않다고 판정했다. 이번 변경은 문서-only이며 local adapter, downloader, Artifact ingestion, Completion과 Worker wiring은 아직 미구현이다.
+
 ### 추가 — Durable Payload Locator Persistence Foundation
 
 - `payloadref:v1:<32 lowercase UUID hex>` identity의 전용 `PayloadLocator` domain, persistence port, SQLAlchemy/SQLite adapter와 Service-owned transaction을 구현했다. `ProviderJobBinding 1:N`과 direct Workspace scope는 composite FK로 일치시키고 ordinal 및 canonical source tuple을 각각 unique로 보존한다.

@@ -4,7 +4,7 @@
 > 작성일: 2026-08-25
 > 최종 수정일: 2026-08-25
 > 관련 기능: DohaVocal payload reconciliation restart recovery
-> 관련 문서: [Durable Payload Locator Authority](../03-architecture/durable-payload-locator-authority.md), [ADR-041](ADR-041-trusted-payload-locator-authority.md), [ADR-046](ADR-046-durable-execution-handoff-authority.md), [ADR-048](ADR-048-dohavocal-payload-acquisition-consumer.md)
+> 관련 문서: [Durable Payload Locator Authority](../03-architecture/durable-payload-locator-authority.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md), [ADR-041](ADR-041-trusted-payload-locator-authority.md), [ADR-046](ADR-046-durable-execution-handoff-authority.md), [ADR-048](ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-050](ADR-050-verified-durable-staging-authority.md)
 
 ## 배경과 문제
 
