@@ -1,14 +1,14 @@
 # Trusted Payload Locator / Resolver Contract
 
-> 문서 상태: [완료: 내부 locator·issuer·resolver Foundation] / [미구현: downloader·Completion adapter·Worker wiring·durable production registry]
+> 문서 상태: [완료: process-local locator·issuer·resolver Foundation, durable persistence authority] / [미구현: dedicated schema/Runtime·staging·downloader·Completion adapter·Worker wiring]
 > 최종 수정일: 2026-08-25
-> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
 
-DohaVocal `0.2.0`의 `source_id`는 acquisition에만 쓰이는 Provider-side opaque subresource identity이며 `payloadref:v1` locator가 아니다. 현재 consumer는 검증된 bounded transient bytes까지만 반환하고 locator를 발급·저장하지 않는다. Consumer PR 병합 뒤 `DURABLE_LOCATOR_REQUIRED`를 재분석하기 전에는 이 contract의 durable issuer/resolver 또는 Completion에 연결하지 않는다.
+DohaVocal `0.2.0`의 `source_id`는 acquisition에만 쓰이는 Provider-side opaque subresource identity이며 `payloadref:v1` locator가 아니다. Result replay는 source descriptor를 재구성하지만 verified staging key·actual facts·revocation·cleanup은 복구하지 못한다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)는 이를 전용 aggregate로 영속해야 한다고 판정했으며 현재 consumer는 여전히 bounded transient bytes까지만 반환한다.
 
 ## 1. 목적과 authority
 
-`TrustedPayloadReference`는 Provider Artifact ID, Provider URL, 원격 URI 또는 filesystem path가 아니다. DohaMusic runtime이 자신이 소유한 `DOHA_ARTIFACT_STAGING_ROOT` 아래의 실제 regular file을 검증한 뒤 발급하는 내부 capability 식별자다. Provider wire response가 locator 문자열을 보내더라도 신뢰하거나 직접 변환하지 않는다.
+`TrustedPayloadReference`는 Provider Artifact ID, Provider URL, 원격 URI 또는 filesystem path가 아니다. DohaMusic runtime만 발급하는 내부 opaque lookup identity다. 보유 자체는 권한이나 capability token이 아니며 상위 owner·Workspace·rights gate가 선행한다. Provider wire response가 locator 문자열을 보내더라도 신뢰하거나 직접 변환하지 않는다.
 
 ```text
 DohaMusic-owned staging payload
@@ -46,7 +46,7 @@ locator는 `namespace=payloadref`, `version=1`, 추론 불가능한 `opaque_id`�
 
 ## 5. 구현 범위와 process boundary
 
-`InMemoryTrustedPayloadRegistry`는 deterministic clock/ID를 주입할 수 있는 process-local Foundation fake이며 production 구현이 아니다. 현재 Worker service와 Completion foundation의 호출은 같은 application process에서 조립 가능하지만 background daemon, multi-process/host handoff와 restart 후 복구는 아직 구현되지 않았다. 따라서 production reconciliation에는 `DURABLE_LOCATOR_REQUIRED`가 적용된다. durable record는 Provider Job binding·output role·Provider Artifact identity, trusted byte identity·checksum·size·media, expiry와 cleanup 상태를 immutable하게 결합해야 하며 재발급은 감사 가능해야 한다. schema와 구현은 후속 설계 Gate이고 이번 변경의 Alembic revision은 0개다. 상세 replay 정책은 [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다.
+`InMemoryTrustedPayloadRegistry`는 deterministic clock/ID를 주입할 수 있는 process-local Foundation fake이며 production 구현이 아니다. current locator 형식과 resolver의 staging·무결성 경계는 유지한다. 재분석 결과는 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`이며 `ProviderJobBinding 1:N PayloadLocator`가 source expectation과 verified staging·revocation·cleanup을 결합한다. schema와 Runtime은 후속 구현이고 이번 문서 변경의 Alembic revision은 0개다. 상세 Column·state·crash 정책은 [Durable Payload Locator Authority](durable-payload-locator-authority.md)를 따른다.
 
 DohaVocal `0.1.0` metadata-only 결과는 `payload_present=false`, `payload_reference=None`, binary·structured eligibility false다. `0.2.0` payload-backed 결과도 현재는 read-only adapter가 network transaction 밖에서 bounded transient bytes를 검증하는 데 그치며 `payload_reference=None`과 ingestion eligibility false를 유지한다. 이 bytes를 durable staging에 두고 issuer로 reference를 만든 뒤 Completion에 전달하는 downloader orchestration, Artifact ingestion, AssetVersion·JobOutput·ModelUsage commit은 모두 `[미구현]`이다. arbitrary URL fetch는 허용하지 않는다.
 

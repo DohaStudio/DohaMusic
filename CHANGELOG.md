@@ -11,12 +11,18 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 — Durable Payload Locator Persistence Authority
+
+- DohaVocal `0.2.0` Result replay는 acquisition 전 source descriptor 복구에 충분하지만 verified staging key·actual byte facts·revocation·cleanup은 복구하지 못한다고 판정했다.
+- append-only `ProviderJobBinding` extension 대신 ordered 1:N 전용 `PayloadLocator` aggregate와 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`를 ADR-049로 확정했다.
+- `payloadref:v1` 호환 identity, source-bound → verified-staged → Artifact handoff·cleanup lifecycle, expected/actual fact 분리, safe storage key, 15개 crash matrix와 다음 최소 schema 범위를 문서화했다. Python·DB·Alembic·Runtime·network·filesystem 변경은 0개다.
+
 ### 추가 — DohaVocal 0.2.0 Payload Acquisition Consumer
 
 - DohaVocal PR #6에서 병합된 `0.2.0` payload-backed Result와 `GetPayloadContent` capability를 기존 `0.1.0` metadata-only 경로와 분리한 strict DTO로 추가했다.
 - payload source·role·SHA-256·size·media·availability와 Workspace contract version을 read-only trust gate에서 검증하고, ordered canonical replay identity가 달라지면 fail-closed한다.
 - 고정 DohaVocal origin의 payload endpoint를 redirect 없이 bounded streaming으로 읽어 실제 size·media type·SHA-256을 검증하는 transient acquisition port를 추가했다. locator persistence, staging, Artifact ingestion, Completion 및 Worker wiring은 미구현 상태다.
-- 결정 근거와 다음 `DURABLE_LOCATOR_REQUIRED` 재분석 순서를 ADR-048에 기록했다.
+- 결정 근거와 후속 `DURABLE_LOCATOR_REQUIRED` 재분석 dependency를 ADR-048에 기록했고, 재분석 결과는 ADR-049가 확정한다.
 
 ### 추가 — WorkingComposition Atomic Mutation Service와 Product API
 
