@@ -1,5 +1,7 @@
 ﻿# DohaMusic 마스터 로드맵
 
+> Provider 결과 경계 업데이트(2026-08-25): DohaVocal `0.2.0` payload consumer는 구현, Durable Locator는 미구현입니다. PR 병합 뒤 locator authority를 재분석하기 전에는 Worker/Completion/Artifact ingestion으로 연결하지 않습니다.
+>
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-25
@@ -37,11 +39,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
-| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract·HTTP Transport·metadata Result trust gate·Trusted Payload resolver Foundation 구현, Worker reconciliation·re-entry lifecycle 계약 확정, reclaim runtime·concrete wiring·downloader·durable locator·Completion adapter·실제 payload/model 미구현 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal `0.1.0` 호환·`0.2.0` payload consumer DTO/trust/transient acquisition·Trusted Payload resolver Foundation 구현, Worker reconciliation·re-entry lifecycle 계약 확정, reclaim runtime·concrete wiring·downloader orchestration·durable locator·Completion adapter·실제 ingestion/model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport·metadata-only Result trust gate, DohaMusic-owned Trusted Payload locator/issuer/resolver Foundation은 구현했고 [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md), [Worker Re-entry Lifecycle](docs/03-architecture/workspace-worker-reentry-lifecycle.md)과 [Durable Execution Handoff Analysis](docs/03-architecture/durable-execution-handoff-analysis.md)을 확정했다. locator 전 새 durable handoff storage는 불필요하다. atomic reclaim runtime·concrete Worker wiring·인증·downloader·durable locator·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload locator/issuer/resolver Foundation은 구현했고 [Durable Execution Handoff Analysis](docs/03-architecture/durable-execution-handoff-analysis.md)은 locator 전 새 handoff storage가 불필요함을 확정했다. Consumer PR review/merge 뒤 `DURABLE_LOCATOR_REQUIRED`를 재분석한다. atomic reclaim runtime·concrete Worker wiring·인증·downloader orchestration·durable locator·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다.
 
 ## AI-native DAW 제품 전환 상태
 

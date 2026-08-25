@@ -79,6 +79,7 @@ from backend.services.workspace.provider_result_ingestion_service import (
     ProviderResultIngestionDecision,
     ProviderResultIngestionService,
     ProviderResultNotIngestibleError,
+    TrustedPayloadSourceCandidate,
     TrustedProviderResultCandidate,
 )
 from backend.services.workspace.trusted_media_metadata_service import (
@@ -181,6 +182,7 @@ __all__ = [
     "TrustedPayloadIssuer",
     "TrustedPayloadReference",
     "TrustedPayloadResolver",
+    "TrustedPayloadSourceCandidate",
     "TrustedProviderResultCandidate",
     "WorkspaceService",
 ]
