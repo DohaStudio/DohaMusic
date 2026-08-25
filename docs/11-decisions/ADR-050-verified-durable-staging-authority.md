@@ -80,5 +80,4 @@ DB migration은 없다. 첫 구현 PR은 port, local adapter, partial/publish/re
 
 ## 관련 PR
 
-- Authority 문서 PR: Draft 생성 후 번호 기록
-
+- Authority 문서 PR: #127
