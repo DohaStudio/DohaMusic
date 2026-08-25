@@ -6,7 +6,7 @@
 > 적용 범위: DohaVocal Runtime `0.1.0` metadata-only 호환 및 `0.2.0` payload-backed DTO·capability negotiation·read-only acquisition transport
 > 관련 문서: [Provider API 계약](../06-api/provider-api-contract.md), [Workspace Job Foundation](workspace-job-foundation.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-034](../11-decisions/ADR-034-dohavocal-consumer-contract.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md)
 
-`0.1.0`은 기존 9개 operation과 `payload_present=false`를 그대로 유지한다. `0.2.0`은 `GetPayloadContent` 및 exact `payload_acquisition` 광고가 있을 때만 선택하며, Result의 ordered payload entry를 strict DTO로 파싱한다. acquisition adapter는 고정 origin·redirect 금지·bounded streaming·Content-Type/size/SHA-256 검증 후 transient bytes만 반환한다. durable locator, downloader orchestration, Artifact ingestion과 Worker 연결은 아직 구현되지 않았다.
+`0.1.0`은 기존 9개 operation과 `payload_present=false`를 그대로 유지한다. `0.2.0`은 `GetPayloadContent` 및 exact `payload_acquisition` 광고가 있을 때만 선택하며, Result의 ordered payload entry를 strict DTO로 파싱한다. acquisition adapter는 고정 origin·redirect 금지·bounded streaming·Content-Type/size/SHA-256 검증 후 transient bytes만 반환한다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)는 전용 persistence 필요성을 확정했지만 schema/Runtime, durable staging, downloader orchestration, Artifact ingestion과 Worker 연결은 아직 구현되지 않았다.
 
 ## 1. 기준선과 권위
 

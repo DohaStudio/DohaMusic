@@ -52,6 +52,7 @@
 | [ADR-046](ADR-046-durable-execution-handoff-authority.md) | locator 전 Durable Execution Handoff storage 불필요 판정 | 승인, runtime 미구현 |
 | [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md) | 완료 revision과 복수 identity를 보존하는 versioned idempotency replay 결과 | 승인 |
 | [ADR-048](ADR-048-dohavocal-payload-acquisition-consumer.md) | DohaVocal 0.2.0 payload Result trust와 transient acquisition 경계 | 승인, durable locator 미구현 |
+| [ADR-049](ADR-049-durable-payload-locator-persistence-authority.md) | Result replay와 verified staging을 분리한 전용 PayloadLocator persistence 권위 | 승인 제안, schema/Runtime 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -66,6 +67,7 @@
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): Provider success와 Workspace completion을 분리하고 lease·idempotency·payload·role·retry·crash recovery 권위를 확정한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): replay-safe Provider-backed Job의 `LEASE_EXPIRY_RECLAIMABLE`, claim token transfer와 retry 경계를 확정한다.
 - [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): 기존 Job·Provider binding·deterministic replay로 locator 전 same-Job resume을 재구성하며 새 handoff storage가 불필요함을 확정한다.
+- [ADR-049 — Durable Payload Locator Persistence Authority](ADR-049-durable-payload-locator-persistence-authority.md): source descriptor replay와 verified staging handoff를 분리하고 `ProviderJobBinding 1:N PayloadLocator` 전용 aggregate 필요성을 확정한다.
 
 ## Workspace 데이터베이스
 
@@ -92,6 +94,7 @@
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): metadata-only success 이후의 `running` 상태, bounded lease ownership, payload reconciliation과 Completion replay를 승인한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): 공개 상태 추가 없이 graceful yield와 expired `running` claim의 atomic same-Job reclaim을 승인한다.
 - [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): Provider execution·Result validation 복구에는 기존 authority가 충분하고 payload locator는 별도 dependency임을 확정한다.
+- [ADR-049 — Durable Payload Locator Persistence Authority](ADR-049-durable-payload-locator-persistence-authority.md): acquisition 전 source는 Result replay로 복구하고 verified staging·revocation·cleanup은 dedicated locator aggregate가 소유하도록 결정한다.
 
 ## Phase 6.5
 
