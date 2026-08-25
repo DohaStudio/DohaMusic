@@ -8,6 +8,7 @@ import uuid
 import wave
 from array import array
 from collections.abc import Callable
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -55,16 +56,9 @@ class VoiceUploadService:
         content_length: int | None,
     ) -> VoiceProfile:
         if not consent_confirmed:
-            raise AppError(
-                "VOICE_CONSENT_REQUIRED", "음성 사용 동의가 필요합니다.", 422
-            )
-        if (
-            content_length is not None
-            and content_length > MAX_VOICE_UPLOAD_BYTES + 64_000
-        ):
-            raise AppError(
-                "VOICE_FILE_TOO_LARGE", "음성 파일은 25MB 이하여야 합니다.", 413
-            )
+            raise AppError("VOICE_CONSENT_REQUIRED", "음성 사용 동의가 필요합니다.", 422)
+        if content_length is not None and content_length > MAX_VOICE_UPLOAD_BYTES + 64_000:
+            raise AppError("VOICE_FILE_TOO_LARGE", "음성 파일은 25MB 이하여야 합니다.", 413)
         if file is None or not file.filename:
             raise AppError("VOICE_FILE_REQUIRED", "음성 파일을 선택해 주세요.", 422)
 
@@ -90,9 +84,7 @@ class VoiceUploadService:
                 target.flush()
                 os.fsync(target.fileno())
             if size_bytes == 0:
-                raise AppError(
-                    "VOICE_FILE_EMPTY", "빈 음성 파일은 등록할 수 없습니다.", 422
-                )
+                raise AppError("VOICE_FILE_EMPTY", "빈 음성 파일은 등록할 수 없습니다.", 422)
             metadata = self._inspect_wav(temporary_path)
             final_dir.mkdir(parents=False, exist_ok=False)
             temporary_path.replace(final_path)
@@ -137,17 +129,11 @@ class VoiceUploadService:
     def _validate_declared_file(file: UploadFile) -> None:
         filename = file.filename or ""
         if any(character in filename for character in ("/", "\\", "\x00")):
-            raise AppError(
-                "VOICE_FILE_TYPE_UNSUPPORTED", "안전하지 않은 파일명입니다.", 415
-            )
+            raise AppError("VOICE_FILE_TYPE_UNSUPPORTED", "안전하지 않은 파일명입니다.", 415)
         if Path(filename).suffix.lower() != ".wav":
-            raise AppError(
-                "VOICE_FILE_TYPE_UNSUPPORTED", "WAV 파일만 등록할 수 있습니다.", 415
-            )
+            raise AppError("VOICE_FILE_TYPE_UNSUPPORTED", "WAV 파일만 등록할 수 있습니다.", 415)
         if file.content_type not in ALLOWED_VOICE_MIME_TYPES:
-            raise AppError(
-                "VOICE_FILE_TYPE_UNSUPPORTED", "WAV MIME 형식만 허용됩니다.", 415
-            )
+            raise AppError("VOICE_FILE_TYPE_UNSUPPORTED", "WAV MIME 형식만 허용됩니다.", 415)
 
     @staticmethod
     def _inspect_wav(path: Path) -> WavMetadata:
@@ -171,13 +157,9 @@ class VoiceUploadService:
                     )
                 duration = frame_count / sample_rate
                 if duration < MIN_VOICE_DURATION_SECONDS:
-                    raise AppError(
-                        "VOICE_FILE_TOO_SHORT", "음성은 5초 이상이어야 합니다.", 422
-                    )
+                    raise AppError("VOICE_FILE_TOO_SHORT", "음성은 5초 이상이어야 합니다.", 422)
                 if duration > MAX_VOICE_DURATION_SECONDS:
-                    raise AppError(
-                        "VOICE_FILE_TOO_LONG", "음성은 60초 이하여야 합니다.", 422
-                    )
+                    raise AppError("VOICE_FILE_TOO_LONG", "음성은 60초 이하여야 합니다.", 422)
 
                 total_samples = 0
                 sum_squares = 0
@@ -215,9 +197,7 @@ class VoiceUploadService:
 
     @staticmethod
     def _display_filename(filename: str) -> str:
-        cleaned = "".join(
-            character for character in filename if character.isprintable()
-        ).strip()
+        cleaned = "".join(character for character in filename if character.isprintable()).strip()
         stem = Path(cleaned).stem[:200].rstrip(" .") or "voice-reference"
         if stem.upper() in {"CON", "PRN", "AUX", "NUL", "COM1", "LPT1"}:
             stem = "voice-reference"
@@ -226,11 +206,7 @@ class VoiceUploadService:
     @staticmethod
     def _cleanup(temporary_path: Path, final_path: Path, final_dir: Path) -> None:
         for path in (temporary_path, final_path):
-            try:
+            with suppress(OSError):
                 path.unlink(missing_ok=True)
-            except OSError:
-                pass
-        try:
+        with suppress(OSError):
             final_dir.rmdir()
-        except OSError:
-            pass

@@ -65,15 +65,11 @@ def test_kpop_lyrics_request_uses_k0_structure_and_template_rules() -> None:
     )
     result = TemplateLyricsGenerator().generate(request)
     assert [section.section_type for section in result.sections] == list(KPOP_STRUCTURE)
-    chorus = next(
-        section for section in result.sections if section.section_type == "chorus"
-    )
+    chorus = next(section for section in result.sections if section.section_type == "chorus")
     post_chorus = next(
         section for section in result.sections if section.section_type == "post_chorus"
     )
-    bridge = next(
-        section for section in result.sections if section.section_type == "bridge"
-    )
+    bridge = next(section for section in result.sections if section.section_type == "bridge")
     assert sum(line.count("여름") for line in chorus.lines) >= 2
     assert all(len(line) < 40 for line in post_chorus.lines)
     assert "새로운 마음" in " ".join(bridge.lines)

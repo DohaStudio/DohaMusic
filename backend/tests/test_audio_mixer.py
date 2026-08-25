@@ -34,9 +34,7 @@ def build_mixer(tmp_path, **overrides) -> DefaultAudioMixer:
     return DefaultAudioMixer(AudioMixerConfig(**values))
 
 
-def mix(
-    mixer, tmp_path, vocals, instrumental, vocal_rate=48_000, instrumental_rate=48_000
-):
+def mix(mixer, tmp_path, vocals, instrumental, vocal_rate=48_000, instrumental_rate=48_000):
     vocal_path = tmp_path / "vocals.wav"
     instrumental_path = tmp_path / "instrumental.wav"
     write_audio(vocal_path, vocals, vocal_rate)
@@ -147,6 +145,4 @@ def test_silence_metadata_is_valid_json(tmp_path) -> None:
 
 def test_factory_keeps_mock_and_defaults_to_real_mixer(tmp_path) -> None:
     assert isinstance(create_audio_mixer(Settings(), tmp_path), DefaultAudioMixer)
-    assert isinstance(
-        create_audio_mixer(Settings(audio_mixer="mock"), tmp_path), MockAudioMixer
-    )
+    assert isinstance(create_audio_mixer(Settings(audio_mixer="mock"), tmp_path), MockAudioMixer)

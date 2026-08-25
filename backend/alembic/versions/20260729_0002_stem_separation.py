@@ -30,9 +30,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["source_file_id"], ["generated_files.id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["source_file_id"], ["generated_files.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index("ix_stem_jobs_source_file_id", "stem_jobs", ["source_file_id"])

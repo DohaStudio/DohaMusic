@@ -88,9 +88,7 @@ def hash_file(path: Path) -> str:
     return digest.hexdigest()
 
 
-def audio_metrics(
-    path: Path, soundfile_module: Any, numpy_module: Any
-) -> dict[str, Any]:
+def audio_metrics(path: Path, soundfile_module: Any, numpy_module: Any) -> dict[str, Any]:
     audio, sample_rate = soundfile_module.read(path, always_2d=True, dtype="float32")
     absolute = numpy_module.abs(audio)
     rms = float(numpy_module.sqrt(numpy_module.mean(numpy_module.square(audio))))
@@ -187,9 +185,7 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         stage = "inference"
         inference_started = time.perf_counter()
         _, sources = separator.separate_audio_file(args.input_path)
-        metadata["separation_time_seconds"] = round(
-            time.perf_counter() - inference_started, 3
-        )
+        metadata["separation_time_seconds"] = round(time.perf_counter() - inference_started, 3)
         vocals = sources["vocals"]
         instrumental = torch.stack(
             [source for name, source in sources.items() if name != "vocals"]
@@ -210,10 +206,7 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         )
         vocals_metrics = audio_metrics(args.vocals_output, soundfile, numpy)
         instrumental_metrics = audio_metrics(args.instrumental_output, soundfile, numpy)
-        if (
-            vocals_metrics["duration_seconds"]
-            != instrumental_metrics["duration_seconds"]
-        ):
+        if vocals_metrics["duration_seconds"] != instrumental_metrics["duration_seconds"]:
             raise ValueError("Stem durations do not match")
         metadata.update(
             success=True,
@@ -247,9 +240,7 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         metadata.update(
             success=False,
             error_code=(
-                "STEM_MODEL_LOAD_FAILED"
-                if stage == "model_load"
-                else "STEM_SEPARATION_FAILED"
+                "STEM_MODEL_LOAD_FAILED" if stage == "model_load" else "STEM_SEPARATION_FAILED"
             ),
             error_message=type(exc).__name__,
         )
@@ -258,19 +249,14 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any]]:
         sampler.stop()
         cpu_after = process.cpu_times()
         metadata.update(
-            peak_torch_allocated_mb=round(
-                torch.cuda.max_memory_allocated() / 1024 / 1024, 2
-            ),
-            peak_torch_reserved_mb=round(
-                torch.cuda.max_memory_reserved() / 1024 / 1024, 2
-            ),
+            peak_torch_allocated_mb=round(torch.cuda.max_memory_allocated() / 1024 / 1024, 2),
+            peak_torch_reserved_mb=round(torch.cuda.max_memory_reserved() / 1024 / 1024, 2),
             peak_nvidia_smi_mb=sampler.peak_nvidia_smi_mb,
             process_memory_peak_mb=round(sampler.process_memory_peak_mb, 2),
             system_memory_peak_mb=round(sampler.system_memory_peak_mb, 2),
             process_cpu_percent_peak=round(sampler.process_cpu_percent_peak, 2),
             process_cpu_time_seconds=round(
-                (cpu_after.user + cpu_after.system)
-                - (cpu_before.user + cpu_before.system),
+                (cpu_after.user + cpu_after.system) - (cpu_before.user + cpu_before.system),
                 3,
             ),
         )

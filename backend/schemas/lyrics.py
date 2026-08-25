@@ -7,6 +7,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from backend.kpop.options import KPopGenerationOptions
 from backend.lyrics.constants import (
     DEFAULT_STRUCTURE,
     KPOP_PRESET_GENRES,
@@ -23,7 +24,6 @@ from backend.lyrics.constants import (
     SUPPORTED_SECTION_TYPES,
 )
 from backend.lyrics.validator import normalize_plain_text, normalize_section_type
-from backend.kpop.options import KPopGenerationOptions
 
 
 class LyricsCreate(BaseModel):
@@ -40,18 +40,13 @@ class LyricsCreate(BaseModel):
         ge=MIN_TARGET_DURATION_SECONDS,
         le=MAX_TARGET_DURATION_SECONDS,
     )
-    additional_instructions: str | None = Field(
-        default=None, max_length=MAX_INSTRUCTIONS_LENGTH
-    )
+    additional_instructions: str | None = Field(default=None, max_length=MAX_INSTRUCTIONS_LENGTH)
     allow_template_fallback: bool = False
     generation_options: KPopGenerationOptions | None = None
 
     @model_validator(mode="after")
     def use_kpop_structure_when_omitted(self) -> LyricsCreate:
-        if (
-            "structure" not in self.model_fields_set
-            and self.genre in KPOP_PRESET_GENRES
-        ):
+        if "structure" not in self.model_fields_set and self.genre in KPOP_PRESET_GENRES:
             self.structure = list(KPOP_STRUCTURE)
         return self
 
@@ -101,9 +96,7 @@ class LyricsCreate(BaseModel):
     @classmethod
     def normalize_structure(cls, values: list[str]) -> list[str]:
         normalized = [normalize_section_type(value) for value in values]
-        if not normalized or any(
-            value not in SUPPORTED_SECTION_TYPES for value in normalized
-        ):
+        if not normalized or any(value not in SUPPORTED_SECTION_TYPES for value in normalized):
             raise ValueError("invalid structure")
         return normalized
 

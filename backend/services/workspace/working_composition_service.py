@@ -286,9 +286,7 @@ class WorkingCompositionService:
                     track_type="audio",
                     name=track_name,
                     track_order=len(
-                        repository.list_active_composition_tracks(
-                            working.working_composition_id
-                        )
+                        repository.list_active_composition_tracks(working.working_composition_id)
                     ),
                 )
             )
@@ -326,9 +324,7 @@ class WorkingCompositionService:
         _validate_uuid(track_id, "track_id")
         track_name = _normalize_track_name(name)
 
-        def mutate(
-            repository: CompositionRepository, working: WorkingComposition
-        ) -> UUID:
+        def mutate(repository: CompositionRepository, working: WorkingComposition) -> UUID:
             track = self._require_track(repository, working, track_id)
             track.name = track_name
             repository.flush()
@@ -359,13 +355,9 @@ class WorkingCompositionService:
         for track_id in order:
             _validate_uuid(track_id, "ordered_track_ids")
 
-        def mutate(
-            repository: CompositionRepository, working: WorkingComposition
-        ) -> UUID:
+        def mutate(repository: CompositionRepository, working: WorkingComposition) -> UUID:
             try:
-                repository.reorder_active_composition_tracks(
-                    working.working_composition_id, order
-                )
+                repository.reorder_active_composition_tracks(working.working_composition_id, order)
             except ValueError:
                 raise ApplicationValidationError(
                     "ordered_track_ids는 전체 active Track과 정확히 일치해야 합니다."
@@ -403,9 +395,7 @@ class WorkingCompositionService:
                 working_composition_id=working.working_composition_id,
                 track_id=track.track_id,
             ):
-                raise WorkingCompositionError(
-                    WorkingCompositionErrorCode.TRACK_NOT_EMPTY
-                )
+                raise WorkingCompositionError(WorkingCompositionErrorCode.TRACK_NOT_EMPTY)
             repository.tombstone_composition_track(track)
             return track.track_id
 
@@ -458,9 +448,7 @@ class WorkingCompositionService:
             source_duration = self._resolve_source_duration(
                 session,
                 project_id=project_id,
-                workspace_id=self._project_workspace_id(
-                    session, project_id, effective_owner_id
-                ),
+                workspace_id=self._project_workspace_id(session, project_id, effective_owner_id),
                 effective_owner_id=effective_owner_id,
                 asset_version_id=source_asset_version_id,
             )
@@ -483,9 +471,7 @@ class WorkingCompositionService:
             try:
                 repository.add_composition_clip(clip)
             except ValueError:
-                raise WorkingCompositionError(
-                    WorkingCompositionErrorCode.CLIP_OVERLAP
-                ) from None
+                raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP) from None
             return clip.clip_id
 
         return self._run_idempotent_mutation(
@@ -598,13 +584,9 @@ class WorkingCompositionService:
             working: WorkingComposition,
         ) -> tuple[UUID, UUID, UUID]:
             original = self._require_clip(repository, working, clip_id)
-            timeline_end = original.timeline_start + (
-                original.source_out - original.source_in
-            )
+            timeline_end = original.timeline_start + (original.source_out - original.source_in)
             if not original.timeline_start < split_at_us < timeline_end:
-                raise WorkingCompositionError(
-                    WorkingCompositionErrorCode.INVALID_CLIP_RANGE
-                )
+                raise WorkingCompositionError(WorkingCompositionErrorCode.INVALID_CLIP_RANGE)
             source_split = original.source_in + (split_at_us - original.timeline_start)
             repository.tombstone_composition_clip(original)
             left = CompositionClip(
@@ -631,9 +613,7 @@ class WorkingCompositionService:
                 repository.add_composition_clip(left)
                 repository.add_composition_clip(right)
             except ValueError:
-                raise WorkingCompositionError(
-                    WorkingCompositionErrorCode.CLIP_OVERLAP
-                ) from None
+                raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP) from None
             return original.clip_id, left.clip_id, right.clip_id
 
         return self._run_idempotent_mutation(
@@ -712,9 +692,7 @@ class WorkingCompositionService:
         )
         _validate_uuid(clip_id, "clip_id")
 
-        def mutate(
-            repository: CompositionRepository, working: WorkingComposition
-        ) -> UUID:
+        def mutate(repository: CompositionRepository, working: WorkingComposition) -> UUID:
             clip = self._require_clip(repository, working, clip_id)
             values = changes(clip)
             timeline_start = values.get("timeline_start", clip.timeline_start)
@@ -754,9 +732,7 @@ class WorkingCompositionService:
         with self.session_factory() as session, session.begin():
             self._require_project_scope(session, project_id, effective_owner_id)
             repository = CompositionRepository(session)
-            working = self._require_working(
-                repository, project_id, working_composition_id
-            )
+            working = self._require_working(repository, project_id, working_composition_id)
             _require_expected_revision(working, expected_revision)
             identity = mutate(repository, working)
             revision = self._increment_revision(
@@ -813,9 +789,7 @@ class WorkingCompositionService:
             if replay is not None:
                 return replay
             repository = CompositionRepository(session)
-            working = self._require_working(
-                repository, project_id, working_composition_id
-            )
+            working = self._require_working(repository, project_id, working_composition_id)
             _require_expected_revision(working, expected_revision)
             identity = mutate(repository, session, working)
             revision = self._increment_revision(
@@ -840,9 +814,7 @@ class WorkingCompositionService:
         *,
         composition_snapshot_id: UUID,
     ) -> UUID:
-        snapshot = repository.get_project_snapshot(
-            working.project_id, composition_snapshot_id
-        )
+        snapshot = repository.get_project_snapshot(working.project_id, composition_snapshot_id)
         if snapshot is None:
             raise ResourceNotFoundError("CompositionSnapshot")
         snapshot_tracks = repository.list_snapshot_tracks(composition_snapshot_id)
@@ -850,18 +822,12 @@ class WorkingCompositionService:
             raise WorkingCompositionError(
                 WorkingCompositionErrorCode.SNAPSHOT_ARRANGEMENT_NOT_AVAILABLE
             )
-        snapshot_clips = repository.list_snapshot_clips_for_snapshot(
-            composition_snapshot_id
-        )
+        snapshot_clips = repository.list_snapshot_clips_for_snapshot(composition_snapshot_id)
         self._validate_checkout_overlap(snapshot_tracks, snapshot_clips)
 
-        for clip in repository.list_working_composition_clips(
-            working.working_composition_id
-        ):
+        for clip in repository.list_working_composition_clips(working.working_composition_id):
             repository.tombstone_composition_clip(clip)
-        for track in repository.list_active_composition_tracks(
-            working.working_composition_id
-        ):
+        for track in repository.list_active_composition_tracks(working.working_composition_id):
             repository.tombstone_composition_track(track)
 
         track_by_snapshot_id = {}
@@ -921,9 +887,7 @@ class WorkingCompositionService:
         return working.working_composition_id
 
     @staticmethod
-    def _validate_checkout_overlap(
-        snapshot_tracks: Sequence, snapshot_clips: Sequence
-    ) -> None:
+    def _validate_checkout_overlap(snapshot_tracks: Sequence, snapshot_clips: Sequence) -> None:
         known_tracks = {track.snapshot_track_id for track in snapshot_tracks}
         by_track: dict[UUID, list[tuple[int, int]]] = {}
         for clip in snapshot_clips:
@@ -959,9 +923,7 @@ class WorkingCompositionService:
         assets = AssetRepository(session)
         version = assets.get_asset_version(asset_version_id)
         if version is None:
-            raise WorkingCompositionError(
-                WorkingCompositionErrorCode.SOURCE_ASSET_UNAVAILABLE
-            )
+            raise WorkingCompositionError(WorkingCompositionErrorCode.SOURCE_ASSET_UNAVAILABLE)
         asset = assets.get_asset(version.asset_id)
         if (
             asset is None
@@ -970,13 +932,9 @@ class WorkingCompositionService:
             or asset.deleted_at is not None
             or asset.lifecycle_status != "active"
             or asset.asset_type not in AUDIO_ASSET_TYPES
-            or not WorkspaceRepository(session).project_asset_exists(
-                project_id, asset.asset_id
-            )
+            or not WorkspaceRepository(session).project_asset_exists(project_id, asset.asset_id)
         ):
-            raise WorkingCompositionError(
-                WorkingCompositionErrorCode.SOURCE_ASSET_UNAVAILABLE
-            )
+            raise WorkingCompositionError(WorkingCompositionErrorCode.SOURCE_ASSET_UNAVAILABLE)
         try:
             return (
                 TrustedMediaMetadataService(assets)
@@ -1024,9 +982,7 @@ class WorkingCompositionService:
     ) -> WorkingComposition:
         working = repository.get_working_composition(working_composition_id)
         if working is None or working.project_id != project_id:
-            raise WorkingCompositionError(
-                WorkingCompositionErrorCode.WORKING_COMPOSITION_NOT_FOUND
-            )
+            raise WorkingCompositionError(WorkingCompositionErrorCode.WORKING_COMPOSITION_NOT_FOUND)
         return working
 
     @staticmethod
@@ -1035,9 +991,7 @@ class WorkingCompositionService:
         working: WorkingComposition,
         track_id: UUID,
     ) -> CompositionTrack:
-        track = repository.get_composition_track(
-            working.working_composition_id, track_id
-        )
+        track = repository.get_composition_track(working.working_composition_id, track_id)
         if track is None:
             raise WorkingCompositionError(WorkingCompositionErrorCode.TRACK_NOT_FOUND)
         return track
@@ -1080,9 +1034,7 @@ class WorkingCompositionService:
         project = repository.get_project(project_id)
         if project is None or project.lifecycle_status != "active":
             raise ResourceNotFoundError("MusicProject")
-        workspace = repository.get_workspace_for_owner(
-            project.workspace_id, effective_owner_id
-        )
+        workspace = repository.get_workspace_for_owner(project.workspace_id, effective_owner_id)
         if workspace is None or workspace.lifecycle_status != "active":
             raise ResourceNotFoundError("MusicProject")
         return project
@@ -1090,19 +1042,13 @@ class WorkingCompositionService:
     def _project_workspace_id(
         self, session: Session, project_id: UUID, effective_owner_id: UUID
     ) -> UUID:
-        return self._require_project_scope(
-            session, project_id, effective_owner_id
-        ).workspace_id
+        return self._require_project_scope(session, project_id, effective_owner_id).workspace_id
 
-    def _project_has_working_composition(
-        self, project_id: UUID, effective_owner_id: UUID
-    ) -> bool:
+    def _project_has_working_composition(self, project_id: UUID, effective_owner_id: UUID) -> bool:
         with self.session_factory() as session:
             self._require_project_scope(session, project_id, effective_owner_id)
             return (
-                CompositionRepository(session).get_project_working_composition(
-                    project_id
-                )
+                CompositionRepository(session).get_project_working_composition(project_id)
                 is not None
             )
 
@@ -1110,12 +1056,8 @@ class WorkingCompositionService:
     def _load_aggregate(
         repository: CompositionRepository, working: WorkingComposition
     ) -> WorkingCompositionAggregate:
-        tracks = repository.list_active_composition_tracks(
-            working.working_composition_id
-        )
-        clips = repository.list_working_composition_clips(
-            working.working_composition_id
-        )
+        tracks = repository.list_active_composition_tracks(working.working_composition_id)
+        clips = repository.list_working_composition_clips(working.working_composition_id)
         duration = max(
             (clip.timeline_start + clip.source_out - clip.source_in for clip in clips),
             default=0,
@@ -1216,13 +1158,9 @@ def _fingerprint(
             "expected_revision": expected_revision,
             "operation": operation,
             "project_id": str(project_id),
-            "target_identity": (
-                str(target_identity) if target_identity is not None else None
-            ),
+            "target_identity": (str(target_identity) if target_identity is not None else None),
             "working_composition_id": (
-                str(working_composition_id)
-                if working_composition_id is not None
-                else None
+                str(working_composition_id) if working_composition_id is not None else None
             ),
         },
         ensure_ascii=False,
@@ -1260,14 +1198,10 @@ def _validate_uuid(value: object, field_name: str) -> None:
 
 def _validate_expected_revision(value: object) -> None:
     if type(value) is not int or value < 0:
-        raise ApplicationValidationError(
-            "expected_revision은 0 이상의 정수여야 합니다."
-        )
+        raise ApplicationValidationError("expected_revision은 0 이상의 정수여야 합니다.")
 
 
-def _require_expected_revision(
-    working: WorkingComposition, expected_revision: int
-) -> None:
+def _require_expected_revision(working: WorkingComposition, expected_revision: int) -> None:
     if working.revision != expected_revision:
         raise WorkingCompositionError(
             WorkingCompositionErrorCode.WORKING_COMPOSITION_REVISION_CONFLICT
@@ -1280,14 +1214,10 @@ def _seconds_to_microseconds(value: object, field_name: str) -> int:
     try:
         decimal = Decimal(str(value))
     except (InvalidOperation, TypeError, ValueError):
-        raise ApplicationValidationError(
-            f"{field_name} 값이 유효하지 않습니다."
-        ) from None
+        raise ApplicationValidationError(f"{field_name} 값이 유효하지 않습니다.") from None
     if not decimal.is_finite():
         raise ApplicationValidationError(f"{field_name} 값이 유효하지 않습니다.")
-    return int(
-        (decimal * MICROSECONDS_PER_SECOND).quantize(Decimal(1), rounding=ROUND_HALF_UP)
-    )
+    return int((decimal * MICROSECONDS_PER_SECOND).quantize(Decimal(1), rounding=ROUND_HALF_UP))
 
 
 def _validate_clip_range(

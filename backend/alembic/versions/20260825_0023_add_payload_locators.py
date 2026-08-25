@@ -59,9 +59,7 @@ def upgrade() -> None:
         sa.Column("lifecycle_revision", sa.Integer(), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.CheckConstraint(
-            "payload_ordinal >= 0", name="ck_payload_locators_ordinal_nonnegative"
-        ),
+        sa.CheckConstraint("payload_ordinal >= 0", name="ck_payload_locators_ordinal_nonnegative"),
         sa.CheckConstraint(
             "expected_checksum_algorithm = 'sha256' "
             "AND length(expected_payload_checksum) = 64 "
@@ -179,9 +177,7 @@ def upgrade() -> None:
 def downgrade() -> None:
     """PayloadLocator 전용 table/index와 binding scope index만 제거한다."""
 
-    op.drop_index(
-        "ix_payload_locators_ingested_artifact", table_name="payload_locators"
-    )
+    op.drop_index("ix_payload_locators_ingested_artifact", table_name="payload_locators")
     op.drop_index("ix_payload_locators_policy_expiry", table_name="payload_locators")
     op.drop_index("ix_payload_locators_source_expiry", table_name="payload_locators")
     op.drop_index("ix_payload_locators_cleanup_scan", table_name="payload_locators")

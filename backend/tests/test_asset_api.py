@@ -67,9 +67,7 @@ def test_asset_endpoints_require_explicit_bootstrap(client: TestClient) -> None:
         response = client.request(method, path, json=body)
 
         assert response.status_code == 409
-        assert response.json()["error"]["error_code"] == (
-            "WORKSPACE_BOOTSTRAP_REQUIRED"
-        )
+        assert response.json()["error"]["error_code"] == ("WORKSPACE_BOOTSTRAP_REQUIRED")
         assert response.headers[REQUEST_ID_HEADER]
 
 
@@ -165,9 +163,7 @@ def test_asset_list_uses_owner_scope_filters_and_cursor(client: TestClient) -> N
         assert response.status_code == 200
         body = response.json()
         returned.extend(body["data"])
-        assert (body["pagination"]["next_cursor"] is not None) == body["pagination"][
-            "has_more"
-        ]
+        assert (body["pagination"]["next_cursor"] is not None) == body["pagination"]["has_more"]
         path = body["links"]["next"]
 
     expected_ids = [
@@ -196,8 +192,7 @@ def test_asset_list_uses_owner_scope_filters_and_cursor(client: TestClient) -> N
         "music",
     ]
     assert all(
-        item["workspace_id"] == str(workspace.workspace_id)
-        for item in filtered.json()["data"]
+        item["workspace_id"] == str(workspace.workspace_id) for item in filtered.json()["data"]
     )
 
 

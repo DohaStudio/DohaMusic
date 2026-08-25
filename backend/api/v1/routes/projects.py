@@ -56,9 +56,7 @@ router = APIRouter(
     dependencies=[Depends(reject_owner_input)],
 )
 WorkspaceServiceDependency = Annotated[WorkspaceService, Depends(get_workspace_service)]
-CompositionServiceDependency = Annotated[
-    CompositionService, Depends(get_composition_service)
-]
+CompositionServiceDependency = Annotated[CompositionService, Depends(get_composition_service)]
 EffectiveOwnerDependency = Annotated[UUID, Depends(get_effective_owner_id)]
 
 
@@ -249,18 +247,14 @@ def _composition_workspace_read(
     aggregate: CompositionWorkspaceAggregate,
 ) -> CompositionWorkspaceRead:
     snapshot = aggregate.snapshot
-    resolved_snapshot_id = (
-        snapshot.composition_snapshot_id if snapshot is not None else None
-    )
+    resolved_snapshot_id = snapshot.composition_snapshot_id if snapshot is not None else None
     items = [
         CompositionReadItemDetail(
             snapshot_item_id=resolved.item.snapshot_item_id,
             item_role=resolved.item.item_role,
             sort_order=resolved.item.sort_order,
             asset_version=AssetVersionDetail.model_validate(resolved.asset_version),
-            artifacts=[
-                _artifact_reference(artifact) for artifact in resolved.artifacts
-            ],
+            artifacts=[_artifact_reference(artifact) for artifact in resolved.artifacts],
         )
         for resolved in aggregate.items
     ]
@@ -289,9 +283,7 @@ def _composition_workspace_read(
             ),
         ),
         snapshot=(
-            CompositionReadSnapshot.model_validate(snapshot)
-            if snapshot is not None
-            else None
+            CompositionReadSnapshot.model_validate(snapshot) if snapshot is not None else None
         ),
         items=items,
         track_projections=track_projections,
@@ -300,15 +292,9 @@ def _composition_workspace_read(
             dict(snapshot.mix_settings_snapshot) if snapshot is not None else {}
         ),
         lineage=CompositionReadLineage(
-            processing_chain_id=(
-                snapshot.processing_chain_id if snapshot is not None else None
-            ),
-            provider_versions=(
-                dict(snapshot.provider_versions) if snapshot is not None else {}
-            ),
-            model_manifest_ids=(
-                dict(snapshot.model_manifest_ids) if snapshot is not None else {}
-            ),
+            processing_chain_id=(snapshot.processing_chain_id if snapshot is not None else None),
+            provider_versions=(dict(snapshot.provider_versions) if snapshot is not None else {}),
+            model_manifest_ids=(dict(snapshot.model_manifest_ids) if snapshot is not None else {}),
         ),
     )
 

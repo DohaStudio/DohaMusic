@@ -44,9 +44,7 @@ class SubprocessSeedVCRuntime:
     def __init__(self, config: SeedVCConfig) -> None:
         self.config = config
 
-    def convert(
-        self, source_path: Path, reference_path: Path, job_id: str
-    ) -> SeedVCRuntimeResult:
+    def convert(self, source_path: Path, reference_path: Path, job_id: str) -> SeedVCRuntimeResult:
         self.config.validate()
         output = (self.config.voice_root / "converted" / f"{job_id}.wav").resolve()
         metadata = (self.config.voice_root / "metadata" / f"{job_id}.json").resolve()
@@ -91,9 +89,7 @@ class SubprocessSeedVCRuntime:
                 env=self._environment(),
             )
         except subprocess.TimeoutExpired as exc:
-            raise VoiceTimeoutError(
-                "Voice Conversion 제한 시간을 초과했습니다."
-            ) from exc
+            raise VoiceTimeoutError("Voice Conversion 제한 시간을 초과했습니다.") from exc
         except OSError as exc:
             raise VoiceDependencyNotInstalledError(
                 "Seed-VC 격리 runtime을 실행할 수 없습니다."
@@ -107,9 +103,7 @@ class SubprocessSeedVCRuntime:
             duration_seconds=float(payload["output_duration_seconds"]),
             conversion_time_seconds=float(payload["conversion_time_seconds"]),
             peak_vram_mb=_optional_float(payload.get("peak_vram_mb")),
-            peak_process_memory_mb=_optional_float(
-                payload.get("peak_process_memory_mb")
-            ),
+            peak_process_memory_mb=_optional_float(payload.get("peak_process_memory_mb")),
         )
 
     def _environment(self) -> dict[str, str]:
@@ -135,9 +129,7 @@ class SubprocessSeedVCRuntime:
         try:
             return json.loads(lines[-1])
         except json.JSONDecodeError as exc:
-            raise VoiceInferenceError(
-                "Seed-VC runner 결과 형식이 유효하지 않습니다."
-            ) from exc
+            raise VoiceInferenceError("Seed-VC runner 결과 형식이 유효하지 않습니다.") from exc
 
     @staticmethod
     def _raise_failure(payload: dict[str, object]) -> None:

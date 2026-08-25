@@ -74,9 +74,7 @@ class VoiceProfileRepository:
 
     def is_in_use(self, profile_id: str) -> bool:
         pipeline = self.session.scalar(
-            select(PipelineJob.id)
-            .where(PipelineJob.voice_profile_id == profile_id)
-            .limit(1)
+            select(PipelineJob.id).where(PipelineJob.voice_profile_id == profile_id).limit(1)
         )
         conversion = self.session.scalar(
             select(VoiceConversionJob.id)

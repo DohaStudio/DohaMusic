@@ -188,9 +188,7 @@ def map_asset_version_error(exc: Exception) -> AppError:
             return asset_version_not_found()
         if exc.resource_name == "ProcessingChain":
             return invalid_input("참조한 ProcessingChain을 찾을 수 없습니다.")
-    if isinstance(exc, ResourceConflictError) and exc.resource_name.startswith(
-        "AssetVersion"
-    ):
+    if isinstance(exc, ResourceConflictError) and exc.resource_name.startswith("AssetVersion"):
         return asset_version_conflict()
     if isinstance(exc, ApplicationValidationError):
         return invalid_input(exc.message)
@@ -256,9 +254,7 @@ def map_working_composition_error(exc: Exception) -> AppError:
         return AppError(
             code=exc.code.value,
             message=str(exc),
-            status_code=(
-                404 if exc.code in not_found else 422 if exc.code in validation else 409
-            ),
+            status_code=(404 if exc.code in not_found else 422 if exc.code in validation else 409),
         )
     if isinstance(exc, IdempotencyConflictError):
         return AppError(

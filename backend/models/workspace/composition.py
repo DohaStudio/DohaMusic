@@ -37,12 +37,8 @@ if TYPE_CHECKING:
 class CompositionSnapshot(CreatedAtMixin, Base):
     __tablename__ = "composition_snapshots"
     __table_args__ = (
-        CheckConstraint(
-            "snapshot_version >= 1", name="ck_composition_snapshots_positive_version"
-        ),
-        UniqueConstraint(
-            "project_id", "snapshot_version", name="uq_composition_snapshots_version"
-        ),
+        CheckConstraint("snapshot_version >= 1", name="ck_composition_snapshots_positive_version"),
+        UniqueConstraint("project_id", "snapshot_version", name="uq_composition_snapshots_version"),
         Index("ix_composition_snapshots_project_created", "project_id", "created_at"),
         Index(
             "uq_composition_snapshots_project_identity",
@@ -69,17 +65,13 @@ class CompositionSnapshot(CreatedAtMixin, Base):
     mix_settings_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     provider_versions: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     model_manifest_ids: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
-    created_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    created_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
 
     project: Mapped[MusicProject] = relationship(back_populates="composition_snapshots")
     processing_chain: Mapped[ProcessingChain | None] = relationship(
         back_populates="composition_snapshots"
     )
-    items: Mapped[list[SnapshotItem]] = relationship(
-        back_populates="composition_snapshot"
-    )
+    items: Mapped[list[SnapshotItem]] = relationship(back_populates="composition_snapshot")
     jobs: Mapped[list[Job]] = relationship(back_populates="composition_snapshot")
 
 
@@ -116,9 +108,7 @@ class WorkingComposition(TimestampMixin, Base):
 
     __tablename__ = "working_compositions"
     __table_args__ = (
-        CheckConstraint(
-            "revision >= 0", name="ck_working_compositions_non_negative_revision"
-        ),
+        CheckConstraint("revision >= 0", name="ck_working_compositions_non_negative_revision"),
         UniqueConstraint("project_id", name="uq_working_compositions_project"),
         ForeignKeyConstraint(
             ["project_id"],
@@ -148,9 +138,7 @@ class WorkingComposition(TimestampMixin, Base):
     base_composition_snapshot_id: Mapped[UUID | None] = mapped_column(
         Uuid(as_uuid=True), nullable=True
     )
-    mix_settings: Mapped[dict[str, Any]] = mapped_column(
-        JSON, nullable=False, default=dict
-    )
+    mix_settings: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
     revision: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
 
@@ -159,12 +147,8 @@ class CompositionTrack(TimestampMixin, SoftDeleteMixin, Base):
 
     __tablename__ = "composition_tracks"
     __table_args__ = (
-        CheckConstraint(
-            "track_type = 'audio'", name="ck_composition_tracks_audio_type"
-        ),
-        CheckConstraint(
-            "track_order >= 0", name="ck_composition_tracks_non_negative_order"
-        ),
+        CheckConstraint("track_type = 'audio'", name="ck_composition_tracks_audio_type"),
+        CheckConstraint("track_order >= 0", name="ck_composition_tracks_non_negative_order"),
         UniqueConstraint(
             "working_composition_id",
             "track_id",
@@ -204,18 +188,10 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
 
     __tablename__ = "composition_clips"
     __table_args__ = (
-        CheckConstraint(
-            "timeline_start >= 0", name="ck_composition_clips_non_negative_start"
-        ),
-        CheckConstraint(
-            "source_in >= 0", name="ck_composition_clips_non_negative_source_in"
-        ),
-        CheckConstraint(
-            "source_duration > 0", name="ck_composition_clips_positive_duration"
-        ),
-        CheckConstraint(
-            "source_out > source_in", name="ck_composition_clips_non_empty_range"
-        ),
+        CheckConstraint("timeline_start >= 0", name="ck_composition_clips_non_negative_start"),
+        CheckConstraint("source_in >= 0", name="ck_composition_clips_non_negative_source_in"),
+        CheckConstraint("source_duration > 0", name="ck_composition_clips_positive_duration"),
+        CheckConstraint("source_out > source_in", name="ck_composition_clips_non_empty_range"),
         CheckConstraint(
             "source_out <= source_duration",
             name="ck_composition_clips_range_within_source",
@@ -263,9 +239,7 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
     clip_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid
     )
-    working_composition_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False
-    )
+    working_composition_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
     track_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
     source_asset_version_id: Mapped[UUID] = mapped_column(
         ForeignKey("asset_versions.asset_version_id", ondelete="RESTRICT"),
@@ -275,9 +249,7 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
     source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    split_from_clip_id: Mapped[UUID | None] = mapped_column(
-        Uuid(as_uuid=True), nullable=True
-    )
+    split_from_clip_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
 
 
 class CompositionSnapshotTrack(Base):
@@ -285,9 +257,7 @@ class CompositionSnapshotTrack(Base):
 
     __tablename__ = "composition_snapshot_tracks"
     __table_args__ = (
-        CheckConstraint(
-            "track_type = 'audio'", name="ck_composition_snapshot_tracks_audio_type"
-        ),
+        CheckConstraint("track_type = 'audio'", name="ck_composition_snapshot_tracks_audio_type"),
         CheckConstraint(
             "track_order >= 0",
             name="ck_composition_snapshot_tracks_non_negative_order",
@@ -319,9 +289,7 @@ class CompositionSnapshotTrack(Base):
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid
     )
     composition_snapshot_id: Mapped[UUID] = mapped_column(
-        ForeignKey(
-            "composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"
-        ),
+        ForeignKey("composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"),
         nullable=False,
     )
     canonical_track_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
@@ -385,9 +353,7 @@ class CompositionSnapshotClip(Base):
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid
     )
     composition_snapshot_id: Mapped[UUID] = mapped_column(
-        ForeignKey(
-            "composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"
-        ),
+        ForeignKey("composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"),
         nullable=False,
     )
     snapshot_track_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
@@ -400,9 +366,7 @@ class CompositionSnapshotClip(Base):
     source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
-    split_from_clip_id: Mapped[UUID | None] = mapped_column(
-        Uuid(as_uuid=True), nullable=True
-    )
+    split_from_clip_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
 
 
 class SnapshotItem(CreatedAtMixin, Base):
@@ -426,9 +390,7 @@ class SnapshotItem(CreatedAtMixin, Base):
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid
     )
     composition_snapshot_id: Mapped[UUID] = mapped_column(
-        ForeignKey(
-            "composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"
-        ),
+        ForeignKey("composition_snapshots.composition_snapshot_id", ondelete="RESTRICT"),
         nullable=False,
         index=True,
     )
@@ -440,9 +402,7 @@ class SnapshotItem(CreatedAtMixin, Base):
     item_role: Mapped[str] = mapped_column(String, nullable=False, index=True)
     sort_order: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    composition_snapshot: Mapped[CompositionSnapshot] = relationship(
-        back_populates="items"
-    )
+    composition_snapshot: Mapped[CompositionSnapshot] = relationship(back_populates="items")
     asset_version: Mapped[AssetVersion] = relationship(back_populates="snapshot_items")
 
 
@@ -458,16 +418,10 @@ class ProcessingChain(CreatedAtMixin, Base):
     name: Mapped[str] = mapped_column(String, nullable=False)
     chain_version: Mapped[str] = mapped_column(String, nullable=False)
     chain_checksum: Mapped[str] = mapped_column(String, nullable=False, unique=True)
-    created_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    created_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
 
-    steps: Mapped[list[ProcessingStep]] = relationship(
-        back_populates="processing_chain"
-    )
-    asset_versions: Mapped[list[AssetVersion]] = relationship(
-        back_populates="processing_chain"
-    )
+    steps: Mapped[list[ProcessingStep]] = relationship(back_populates="processing_chain")
+    asset_versions: Mapped[list[AssetVersion]] = relationship(back_populates="processing_chain")
     composition_snapshots: Mapped[list[CompositionSnapshot]] = relationship(
         back_populates="processing_chain"
     )

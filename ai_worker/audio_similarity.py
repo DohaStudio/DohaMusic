@@ -73,9 +73,7 @@ def sample_hash(samples: array[Any]) -> str:
 def compare_wav(reference: Path, candidate: Path) -> dict[str, Any]:
     reference_samples, reference_info = read_wav_samples(reference)
     candidate_samples, candidate_info = read_wav_samples(candidate)
-    if reference_info != candidate_info or len(reference_samples) != len(
-        candidate_samples
-    ):
+    if reference_info != candidate_info or len(reference_samples) != len(candidate_samples):
         raise ValueError("WAV shape or format does not match")
 
     count = len(reference_samples)
@@ -85,9 +83,7 @@ def compare_wav(reference: Path, candidate: Path) -> dict[str, Any]:
     max_absolute_difference = 0.0
     reference_sum = 0.0
     candidate_sum = 0.0
-    for reference_value, candidate_value in zip(
-        reference_samples, candidate_samples, strict=True
-    ):
+    for reference_value, candidate_value in zip(reference_samples, candidate_samples, strict=True):
         difference = float(reference_value) - float(candidate_value)
         sum_squared_error += difference * difference
         max_absolute_difference = max(max_absolute_difference, abs(difference))
@@ -99,9 +95,7 @@ def compare_wav(reference: Path, candidate: Path) -> dict[str, Any]:
     covariance = 0.0
     reference_variance = 0.0
     candidate_variance = 0.0
-    for reference_value, candidate_value in zip(
-        reference_samples, candidate_samples, strict=True
-    ):
+    for reference_value, candidate_value in zip(reference_samples, candidate_samples, strict=True):
         reference_centered = float(reference_value) - reference_mean
         candidate_centered = float(candidate_value) - candidate_mean
         covariance += reference_centered * candidate_centered
@@ -122,8 +116,6 @@ def compare_wav(reference: Path, candidate: Path) -> dict[str, Any]:
         "rmse_native": round(rmse, 9),
         "normalized_rmse": round(rmse / normalization, 9),
         "max_absolute_difference_native": round(max_absolute_difference, 9),
-        "normalized_max_absolute_difference": round(
-            max_absolute_difference / normalization, 9
-        ),
+        "normalized_max_absolute_difference": round(max_absolute_difference / normalization, 9),
         "correlation": round(correlation, 9),
     }

@@ -60,9 +60,7 @@ class LocalOperatorCredentialReference:
         require_safe_reference(self.provider_id, "provider_id")
         require_safe_reference(self.credential_reference_id, "credential_reference_id")
         require_safe_reference(self.challenge_reference_id, "challenge_reference_id")
-        require_safe_reference(
-            self.session_binding_reference, "session_binding_reference"
-        )
+        require_safe_reference(self.session_binding_reference, "session_binding_reference")
         require_aware(self.challenge_issued_at, "challenge_issued_at")
         require_aware(self.challenge_expires_at, "challenge_expires_at")
         if self.challenge_expires_at <= self.challenge_issued_at:
@@ -82,9 +80,7 @@ class LocalOperatorPrincipal:
 
     def __post_init__(self) -> None:
         require_safe_reference(self.provider_id, "provider_id")
-        require_safe_reference(
-            self.opaque_subject_reference, "opaque_subject_reference"
-        )
+        require_safe_reference(self.opaque_subject_reference, "opaque_subject_reference")
         if self.verification_status is not LocalOperatorVerificationStatus.VERIFIED:
             raise ValueError("principal must be provider-verified")
 
@@ -102,9 +98,7 @@ class VerifiedLocalOperatorContext:
 
     def __post_init__(self) -> None:
         require_safe_reference(self.context_id, "context_id")
-        require_safe_reference(
-            self.private_session_reference, "private_session_reference"
-        )
+        require_safe_reference(self.private_session_reference, "private_session_reference")
         require_aware(self.authenticated_at, "authenticated_at")
         require_aware(self.expires_at, "expires_at")
         if self.expires_at <= self.authenticated_at:

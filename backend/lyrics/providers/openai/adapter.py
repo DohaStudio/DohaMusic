@@ -112,9 +112,7 @@ class OpenAILyricsGenerator:
         )
         attempts = 0
         while True:
-            remaining = self.config.total_deadline_seconds - (
-                time.perf_counter() - started_at
-            )
+            remaining = self.config.total_deadline_seconds - (time.perf_counter() - started_at)
             if remaining <= 0:
                 raise LyricsTimeoutError()
             try:
@@ -142,11 +140,7 @@ class OpenAILyricsGenerator:
     def _enforce_cost_limit(self, result: LyricsGenerationResult) -> None:
         estimated = result.metadata.get("estimated_cost")
         limit = self.config.max_cost_per_request
-        if (
-            limit is not None
-            and isinstance(estimated, (int, float))
-            and estimated > limit
-        ):
+        if limit is not None and isinstance(estimated, (int, float)) and estimated > limit:
             raise LyricsCostLimitExceededError()
 
     @staticmethod

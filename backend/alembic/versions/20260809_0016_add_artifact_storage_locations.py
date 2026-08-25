@@ -7,8 +7,8 @@ Create Date: 2026-08-09
 
 from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision: str = "20260809_0016"
 down_revision: str | None = "20260808_0015"
@@ -45,9 +45,7 @@ def upgrade() -> None:
             "locator_version >= 1",
             name="ck_artifact_storage_locations_locator_version",
         ),
-        sa.ForeignKeyConstraint(
-            ["artifact_id"], ["artifacts.artifact_id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["artifact_id"], ["artifacts.artifact_id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("storage_location_id"),
         sa.UniqueConstraint(
             "artifact_id",

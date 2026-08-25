@@ -57,9 +57,7 @@ class PayloadLocator(TimestampMixin, Base):
             name="fk_payload_locators_binding_scope",
             ondelete="RESTRICT",
         ),
-        CheckConstraint(
-            "payload_ordinal >= 0", name="ck_payload_locators_ordinal_nonnegative"
-        ),
+        CheckConstraint("payload_ordinal >= 0", name="ck_payload_locators_ordinal_nonnegative"),
         CheckConstraint(
             "expected_checksum_algorithm = 'sha256' "
             "AND length(expected_payload_checksum) = 64 "
@@ -134,9 +132,7 @@ class PayloadLocator(TimestampMixin, Base):
     workspace_job_id: Mapped[UUID] = mapped_column(
         ForeignKey("jobs.job_id", ondelete="RESTRICT"), nullable=False
     )
-    provider_job_binding_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False
-    )
+    provider_job_binding_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False)
     payload_ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
     provider_artifact_id: Mapped[str] = mapped_column(String(200), nullable=False)
     role: Mapped[str] = mapped_column(String(64), nullable=False)
@@ -158,26 +154,16 @@ class PayloadLocator(TimestampMixin, Base):
     )
     staging_backend: Mapped[str | None] = mapped_column(String(32), nullable=True)
     staging_key: Mapped[str | None] = mapped_column(String(512), nullable=True)
-    actual_checksum_algorithm: Mapped[str | None] = mapped_column(
-        String(16), nullable=True
-    )
-    actual_payload_checksum: Mapped[str | None] = mapped_column(
-        String(64), nullable=True
-    )
+    actual_checksum_algorithm: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    actual_payload_checksum: Mapped[str | None] = mapped_column(String(64), nullable=True)
     actual_size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     actual_media_type: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    verified_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     ingested_artifact_id: Mapped[UUID | None] = mapped_column(
         ForeignKey("artifacts.artifact_id", ondelete="RESTRICT"), nullable=True
     )
-    ingested_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    revoked_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    ingested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     revocation_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
     cleanup_requested_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -195,6 +181,4 @@ class PayloadLocator(TimestampMixin, Base):
         back_populates="payload_locators",
         overlaps="payload_locators,workspace_job",
     )
-    ingested_artifact: Mapped[Artifact | None] = relationship(
-        back_populates="payload_locators"
-    )
+    ingested_artifact: Mapped[Artifact | None] = relationship(back_populates="payload_locators")

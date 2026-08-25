@@ -55,21 +55,15 @@ def aggregate_runs(runs: list[dict[str, Any]]) -> dict[str, Any]:
         "inference_time_seconds": summarize(
             run.get("inference_time_seconds") for run in successful
         ),
-        "total_time_seconds": summarize(
-            run.get("total_time_seconds") for run in successful
-        ),
+        "total_time_seconds": summarize(run.get("total_time_seconds") for run in successful),
         "peak_torch_allocated_mb": summarize(
             run.get("peak_torch_allocated_mb") for run in successful
         ),
         "peak_torch_reserved_mb": summarize(
             run.get("peak_torch_reserved_mb") for run in successful
         ),
-        "peak_nvidia_smi_mb": summarize(
-            run.get("peak_nvidia_smi_mb") for run in successful
-        ),
-        "system_memory_peak_mb": summarize(
-            run.get("system_memory_peak_mb") for run in successful
-        ),
+        "peak_nvidia_smi_mb": summarize(run.get("peak_nvidia_smi_mb") for run in successful),
+        "system_memory_peak_mb": summarize(run.get("system_memory_peak_mb") for run in successful),
     }
 
 
@@ -82,30 +76,22 @@ def aggregate_stem_runs(runs: list[dict[str, Any]]) -> dict[str, Any]:
         "success_count": len(successful),
         "failure_count": len(runs) - len(successful),
         "success_rate": round(len(successful) / len(runs), 4) if runs else 0.0,
-        "load_time_seconds": summarize(
-            run.get("load_time_seconds") for run in successful
-        ),
+        "load_time_seconds": summarize(run.get("load_time_seconds") for run in successful),
         "separation_time_seconds": summarize(
             run.get("separation_time_seconds") for run in successful
         ),
-        "total_time_seconds": summarize(
-            run.get("total_time_seconds") for run in successful
-        ),
+        "total_time_seconds": summarize(run.get("total_time_seconds") for run in successful),
         "peak_torch_allocated_mb": summarize(
             run.get("peak_torch_allocated_mb") for run in successful
         ),
         "peak_torch_reserved_mb": summarize(
             run.get("peak_torch_reserved_mb") for run in successful
         ),
-        "peak_nvidia_smi_mb": summarize(
-            run.get("peak_nvidia_smi_mb") for run in successful
-        ),
+        "peak_nvidia_smi_mb": summarize(run.get("peak_nvidia_smi_mb") for run in successful),
         "process_memory_peak_mb": summarize(
             run.get("process_memory_peak_mb") for run in successful
         ),
-        "system_memory_peak_mb": summarize(
-            run.get("system_memory_peak_mb") for run in successful
-        ),
+        "system_memory_peak_mb": summarize(run.get("system_memory_peak_mb") for run in successful),
         "process_cpu_percent_peak": summarize(
             run.get("process_cpu_percent_peak") for run in successful
         ),

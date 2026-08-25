@@ -105,9 +105,7 @@ class HttpVocalProviderTransport:
             raise _invalid_http_response() from None
         return VocalTransportResponse(response.status_code, payload)
 
-    def acquire_payload(
-        self, request: VocalPayloadAcquisitionRequest
-    ) -> VerifiedVocalPayload:
+    def acquire_payload(self, request: VocalPayloadAcquisitionRequest) -> VerifiedVocalPayload:
         """Stream one advertised provider subresource into bounded transient memory."""
 
         if self._closed:
@@ -133,14 +131,10 @@ class HttpVocalProviderTransport:
                 follow_redirects=False,
             ) as response:
                 _require_payload_status(response.status_code)
-                media_type = _normalized_media_type(
-                    response.headers.get("content-type")
-                )
+                media_type = _normalized_media_type(response.headers.get("content-type"))
                 if media_type != payload.expected_media_type:
                     raise _payload_integrity_error()
-                declared_length = _content_length(
-                    response.headers.get("content-length")
-                )
+                declared_length = _content_length(response.headers.get("content-length"))
                 if declared_length is not None and (
                     declared_length != payload.expected_size_bytes
                     or declared_length > maximum_bytes
@@ -217,9 +211,7 @@ def _normalize_base_url(value: str) -> str:
         or parsed.query
         or parsed.fragment
     ):
-        raise ValueError(
-            "DohaVocal base URL must be an HTTP(S) origin without userinfo"
-        )
+        raise ValueError("DohaVocal base URL must be an HTTP(S) origin without userinfo")
     if port is not None and not 1 <= port <= 65535:
         raise ValueError("DohaVocal base URL port is invalid")
     return candidate.rstrip("/")
@@ -283,9 +275,7 @@ def _require_payload_status(status_code: int) -> None:
 
 
 def _payload_integrity_error() -> VocalPayloadAcquisitionError:
-    return VocalPayloadAcquisitionError(
-        VocalPayloadAcquisitionErrorCode.PAYLOAD_INTEGRITY_MISMATCH
-    )
+    return VocalPayloadAcquisitionError(VocalPayloadAcquisitionErrorCode.PAYLOAD_INTEGRITY_MISMATCH)
 
 
 def _invalid_http_response() -> VocalProviderInvalidResponseError:

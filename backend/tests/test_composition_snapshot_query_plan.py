@@ -5,7 +5,6 @@ from __future__ import annotations
 import sqlite3
 from uuid import uuid4
 
-
 SNAPSHOT_COUNT = 6_000
 
 
@@ -59,9 +58,7 @@ def test_snapshot_and_item_queries_use_existing_indexes_without_temp_sort() -> N
         (str(uuid4()), project_id, version, "2026-08-10T00:00:00Z")
         for version in range(1, SNAPSHOT_COUNT + 1)
     ]
-    connection.executemany(
-        "INSERT INTO composition_snapshots VALUES (?, ?, ?, ?)", snapshots
-    )
+    connection.executemany("INSERT INTO composition_snapshots VALUES (?, ?, ?, ?)", snapshots)
     snapshot_id = snapshots[-1][0]
     connection.executemany(
         "INSERT INTO snapshot_items VALUES (?, ?, ?, ?, ?)",

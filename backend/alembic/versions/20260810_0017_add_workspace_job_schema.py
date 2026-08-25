@@ -7,8 +7,8 @@ Create Date: 2026-08-10
 
 from collections.abc import Sequence
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 
 revision: str = "20260810_0017"
 down_revision: str | None = "20260809_0016"
@@ -106,9 +106,7 @@ def upgrade() -> None:
         sa.text("SELECT count(*) FROM jobs WHERE workspace_id IS NULL")
     ).scalar_one()
     if unresolved:
-        raise RuntimeError(
-            "Job.workspace_id를 Project에서 안전하게 backfill할 수 없습니다."
-        )
+        raise RuntimeError("Job.workspace_id를 Project에서 안전하게 backfill할 수 없습니다.")
 
     for index_name, columns in PUBLIC_KEYSET_INDEXES + WORKER_INDEXES:
         op.create_index(index_name, "jobs", list(columns), unique=False)

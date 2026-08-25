@@ -18,9 +18,7 @@ if TYPE_CHECKING:
 class StemFile(Base):
     __tablename__ = "stem_files"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     job_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("stem_jobs.id", ondelete="CASCADE"),

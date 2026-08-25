@@ -151,6 +151,17 @@ npm run dev
 - Frontend: `http://localhost:3000`
 - 상세 설정: [로컬 개발 환경](docs/10-operations/local-development.md), [환경 변수](docs/10-operations/environment-variables.md)
 
+Python source root는 `backend`, 별도 AI tooling root는 `ai_worker`, test root는
+`backend/tests`다. 로컬과 CI는 다음 repository-wide first-party Gate를 동일하게 사용한다.
+
+```powershell
+python -m compileall -q backend ai_worker
+python -m ruff check --no-cache backend ai_worker
+python -m ruff format --check --no-cache backend ai_worker
+python -m pytest -q
+git diff --check
+```
+
 ## Safety / Rights
 
 - 본인 음성 또는 명시적 동의를 받은 음성만 사용한다.

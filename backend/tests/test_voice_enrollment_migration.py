@@ -50,9 +50,7 @@ def test_empty_database_upgrade_downgrade_and_reupgrade(tmp_path) -> None:
     command.downgrade(config, "20260731_0009")
     assert (
         "voice_samples"
-        not in inspect(
-            create_engine(f"sqlite:///{database_path.as_posix()}")
-        ).get_table_names()
+        not in inspect(create_engine(f"sqlite:///{database_path.as_posix()}")).get_table_names()
     )
     command.upgrade(config, "head")
 

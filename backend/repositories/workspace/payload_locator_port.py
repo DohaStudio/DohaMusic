@@ -21,9 +21,7 @@ class PayloadLocatorRepositoryPort(Protocol):
         locator_uuid: UUID,
     ) -> PayloadLocatorRecord: ...
 
-    def get_by_locator_uuid(
-        self, locator_uuid: UUID
-    ) -> PayloadLocatorRecord | None: ...
+    def get_by_locator_uuid(self, locator_uuid: UUID) -> PayloadLocatorRecord | None: ...
 
     def get_for_binding(
         self, provider_job_binding_id: UUID

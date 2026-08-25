@@ -55,9 +55,7 @@ def run_benchmark() -> dict[str, object]:
             "pipeline": {
                 "execution_time_seconds": pipeline["execution_time_seconds"],
                 "mixer_step": next(
-                    item
-                    for item in pipeline["step_execution"]
-                    if item["step"] == "mixer"
+                    item for item in pipeline["step_execution"] if item["step"] == "mixer"
                 ),
                 "success": pipeline["success"],
             },

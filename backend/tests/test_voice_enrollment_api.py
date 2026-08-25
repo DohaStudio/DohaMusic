@@ -146,9 +146,7 @@ def test_create_get_idempotency_and_safe_dto(client: TestClient) -> None:
     assert "ffmpeg" not in serialized.lower()
 
 
-def test_idempotency_in_progress_and_hashed_key(
-    app: FastAPI, client: TestClient
-) -> None:
+def test_idempotency_in_progress_and_hashed_key(app: FastAPI, client: TestClient) -> None:
     assert client.get("/health").status_code == 200
     key = "raw-key-that-must-not-be-stored"
     now = datetime.now(UTC)
@@ -195,9 +193,7 @@ def test_upload_submit_profile_compatibility_and_duplicate_submit(
     replayed = _upload(client, enrollment_id, key=upload_key)
     assert replayed.status_code == 201
     assert replayed.json()["id"] == sample["id"]
-    sample_detail = client.get(
-        f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}"
-    )
+    sample_detail = client.get(f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}")
     assert sample_detail.status_code == 200
 
     submit_key = str(uuid.uuid4())
@@ -284,9 +280,7 @@ def test_delete_cancel_expiration_and_ffmpeg_unavailable(
 ) -> None:
     enrollment_id = _create(client).json()["id"]
     sample = _upload(client, enrollment_id).json()
-    deleted = client.delete(
-        f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}"
-    )
+    deleted = client.delete(f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}")
     assert deleted.status_code == 200
     assert deleted.json()["status"] == "CANCELLED"
     cancelled = client.post(f"/api/voice-enrollments/{enrollment_id}/cancel")
@@ -389,9 +383,7 @@ def test_long_pcm16_wav_returns_duration_error_and_cleans_storage(
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "VOICE_SAMPLE_DURATION_TOO_LONG"
     with app.state.session_factory() as session:
-        samples = (
-            session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
-        )
+        samples = session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
         assert len(samples) == 1
         assert samples[0].failure_code == "VOICE_SAMPLE_DURATION_TOO_LONG"
         assert samples[0].original_storage_path is None
@@ -421,15 +413,10 @@ def test_unsupported_wav_retry_is_idempotent_and_cleans_storage(
         assert response.status_code == 422
         assert response.json()["error"]["code"] == "VOICE_SAMPLE_UNSUPPORTED_CODEC"
     with app.state.session_factory() as session:
-        samples = (
-            session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
-        )
+        samples = session.query(VoiceSample).filter_by(enrollment_id=enrollment_id).all()
         assert len(samples) == 3
         assert all(sample.status == "FAILED" for sample in samples)
-        assert all(
-            sample.failure_code == "VOICE_SAMPLE_UNSUPPORTED_CODEC"
-            for sample in samples
-        )
+        assert all(sample.failure_code == "VOICE_SAMPLE_UNSUPPORTED_CODEC" for sample in samples)
         assert all(sample.original_storage_path is None for sample in samples)
         assert all(sample.normalized_storage_path is None for sample in samples)
     enrollment_directory = (
@@ -481,9 +468,7 @@ def test_upload_limit_conflict_and_submit_rollback(
     def fail_promotion(*_args) -> None:
         raise OSError("simulated")
 
-    monkeypatch.setattr(
-        app.state.voice_enrollment_service.storage, "promote", fail_promotion
-    )
+    monkeypatch.setattr(app.state.voice_enrollment_service.storage, "promote", fail_promotion)
     failed = client.post(
         f"/api/voice-enrollments/{enrollment_id}/submit",
         headers={"Idempotency-Key": str(uuid.uuid4())},
@@ -498,27 +483,18 @@ def test_upload_limit_conflict_and_submit_rollback(
     assert failed.status_code == 500
     assert failed.json()["error"]["code"] == "VOICE_PROFILE_CREATION_FAILED"
     assert (
-        client.get(f"/api/voice-enrollments/{enrollment_id}").json()["status"]
-        == "READY_TO_SUBMIT"
+        client.get(f"/api/voice-enrollments/{enrollment_id}").json()["status"] == "READY_TO_SUBMIT"
     )
-    monkeypatch.setattr(
-        app.state.voice_enrollment_service.storage, "promote", original_promote
-    )
+    monkeypatch.setattr(app.state.voice_enrollment_service.storage, "promote", original_promote)
 
     def fail_delete(_path) -> None:
         raise OSError("simulated")
 
-    monkeypatch.setattr(
-        app.state.voice_enrollment_service.storage, "delete_file", fail_delete
-    )
-    cleanup_failed = client.delete(
-        f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}"
-    )
+    monkeypatch.setattr(app.state.voice_enrollment_service.storage, "delete_file", fail_delete)
+    cleanup_failed = client.delete(f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}")
     assert cleanup_failed.status_code == 500
     assert cleanup_failed.json()["error"]["code"] == "VOICE_CLEANUP_FAILED"
-    detail = client.get(
-        f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}"
-    ).json()
+    detail = client.get(f"/api/voice-enrollments/{enrollment_id}/samples/{sample['id']}").json()
     assert detail["status"] == "FAILED"
     assert detail["cleanup_status"] == "FAILED"
 

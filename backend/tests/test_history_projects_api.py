@@ -26,9 +26,7 @@ def test_history_detail_filter_search_and_public_dto(client: TestClient) -> None
     job = create_pipeline(client, create_profile(client))
     completed = wait_for_pipeline(client, str(job["id"]))
 
-    response = client.get(
-        "/api/history", params={"status": "COMPLETED", "q": "Mock pipeline"}
-    )
+    response = client.get("/api/history", params={"status": "COMPLETED", "q": "Mock pipeline"})
     assert response.status_code == 200
     item = response.json()[0]
     assert item["job_id"] == job["id"]
@@ -52,9 +50,7 @@ def test_history_detail_filter_search_and_public_dto(client: TestClient) -> None
 
 
 def test_project_crud_detail_and_safe_delete_keeps_jobs(client: TestClient) -> None:
-    created = client.post(
-        "/api/projects", json={"title": "Dance Pop", "description": "Singles"}
-    )
+    created = client.post("/api/projects", json={"title": "Dance Pop", "description": "Singles"})
     assert created.status_code == 201
     project_id = created.json()["id"]
     profile_id = create_profile(client)

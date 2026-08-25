@@ -25,9 +25,7 @@ class IdempotencyResultType(StrEnum):
 
 
 _RESULT_PAYLOAD_KEYS: dict[IdempotencyResultType, frozenset[str]] = {
-    IdempotencyResultType.WORKING_COMPOSITION_INITIALIZE: frozenset(
-        {"working_composition_id"}
-    ),
+    IdempotencyResultType.WORKING_COMPOSITION_INITIALIZE: frozenset({"working_composition_id"}),
     IdempotencyResultType.WORKING_COMPOSITION_CHECKOUT: frozenset(
         {"working_composition_id", "base_composition_snapshot_id"}
     ),

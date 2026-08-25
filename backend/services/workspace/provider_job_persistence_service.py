@@ -96,9 +96,7 @@ class ProviderJobPersistenceService:
 
         try:
             with self.session_factory() as session, session.begin():
-                job = JobRepository(session).get_job_for_owner(
-                    workspace_job_id, effective_owner_id
-                )
+                job = JobRepository(session).get_job_for_owner(workspace_job_id, effective_owner_id)
                 if job is None:
                     raise ResourceNotFoundError("Workspace Job")
                 if job.provider_id != normalized_provider:
@@ -151,20 +149,13 @@ class ProviderJobPersistenceService:
     ) -> ProviderJobBinding | None:
         with self.session_factory() as session, session.begin():
             self._require_owned_job(session, workspace_job_id, effective_owner_id)
-            return ProviderJobRepository(session).get_latest_for_workspace_job(
-                workspace_job_id
-            )
+            return ProviderJobRepository(session).get_latest_for_workspace_job(workspace_job_id)
 
     @staticmethod
     def _require_owned_job(
         session: Session, workspace_job_id: UUID, effective_owner_id: UUID
     ) -> None:
-        if (
-            JobRepository(session).get_job_for_owner(
-                workspace_job_id, effective_owner_id
-            )
-            is None
-        ):
+        if JobRepository(session).get_job_for_owner(workspace_job_id, effective_owner_id) is None:
             raise ResourceNotFoundError("Workspace Job")
 
     @staticmethod
@@ -175,13 +166,9 @@ class ProviderJobPersistenceService:
         provider_id: str,
         retry_of_provider_job_id: str,
     ) -> None:
-        parent = repository.get_by_provider_identity(
-            provider_id, retry_of_provider_job_id
-        )
+        parent = repository.get_by_provider_identity(provider_id, retry_of_provider_job_id)
         if parent is None:
-            other_provider_bindings = repository.find_by_provider_job_id(
-                retry_of_provider_job_id
-            )
+            other_provider_bindings = repository.find_by_provider_job_id(retry_of_provider_job_id)
             if other_provider_bindings:
                 raise ProviderJobPersistenceError(
                     ProviderJobPersistenceErrorReason.RETRY_CROSS_PROVIDER,
@@ -233,8 +220,7 @@ def _normalize_provider_job_id(value: object) -> str:
     ):
         raise ProviderJobPersistenceError(
             ProviderJobPersistenceErrorReason.INVALID_PROVIDER_JOB_ID,
-            "Provider Job ID는 경로, URL, 비밀 또는 raw payload가 아닌 "
-            "opaque ID여야 합니다.",
+            "Provider Job ID는 경로, URL, 비밀 또는 raw payload가 아닌 opaque ID여야 합니다.",
         )
     return normalized
 

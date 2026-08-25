@@ -33,9 +33,7 @@ class PipelineRepository:
     ) -> PipelineJob:
         project_id = request.project_id
         if project_id is None:
-            project_id = (
-                HistoryRepository(self.session).get_or_create_default_project().id
-            )
+            project_id = HistoryRepository(self.session).get_or_create_default_project().id
         job = PipelineJob(
             **request.model_dump(exclude={"project_id", "generation_options"}),
             project_id=project_id,
@@ -112,9 +110,7 @@ class PipelineRepository:
     ) -> None:
         current = JobStatus(job.status)
         if target != current and target not in ALLOWED_TRANSITIONS[current]:
-            raise ValueError(
-                f"Invalid job transition: {current.value} -> {target.value}"
-            )
+            raise ValueError(f"Invalid job transition: {current.value} -> {target.value}")
         job.status = target.value
         job.current_step = current_step
         job.progress_percent = progress_percent
@@ -192,9 +188,7 @@ class PipelineRepository:
         job.completed_at = job.updated_at
         self.session.commit()
 
-    def add_file(
-        self, job_id: str, file_type: str, file_path: str, mime_type: str
-    ) -> PipelineFile:
+    def add_file(self, job_id: str, file_type: str, file_path: str, mime_type: str) -> PipelineFile:
         item = PipelineFile(
             job_id=job_id,
             file_type=file_type,

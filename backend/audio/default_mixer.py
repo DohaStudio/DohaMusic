@@ -143,9 +143,7 @@ def _read_audio(path: Path) -> tuple[int, np.ndarray]:
     return sample_rate, audio
 
 
-def _synchronize(
-    audio: np.ndarray, sample_rate: int, config: AudioMixerConfig
-) -> np.ndarray:
+def _synchronize(audio: np.ndarray, sample_rate: int, config: AudioMixerConfig) -> np.ndarray:
     if audio.shape[1] == 1 and config.channels == 2:
         audio = np.repeat(audio, 2, axis=1)
     if audio.shape[1] != config.channels:
@@ -161,9 +159,7 @@ def _synchronize(
     return np.asarray(audio, dtype=np.float64)
 
 
-def _match_length(
-    vocals: np.ndarray, instrumental: np.ndarray
-) -> tuple[np.ndarray, np.ndarray]:
+def _match_length(vocals: np.ndarray, instrumental: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     target_length = max(len(vocals), len(instrumental))
     return _pad(vocals, target_length), _pad(instrumental, target_length)
 

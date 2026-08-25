@@ -48,9 +48,7 @@ class PayloadLocatorService:
                 if error.code is not PayloadLocatorErrorCode.LOCATOR_ID_COLLISION:
                     raise
                 last_collision = error
-        raise last_collision or PayloadLocatorError(
-            PayloadLocatorErrorCode.LOCATOR_ID_COLLISION
-        )
+        raise last_collision or PayloadLocatorError(PayloadLocatorErrorCode.LOCATOR_ID_COLLISION)
 
     def get(self, locator_id: object) -> PayloadLocatorRecord:
         locator_uuid = parse_locator_id(locator_id)
@@ -60,9 +58,7 @@ class PayloadLocatorService:
             raise PayloadLocatorError(PayloadLocatorErrorCode.NOT_FOUND)
         return record
 
-    def get_for_binding(
-        self, provider_job_binding_id: UUID
-    ) -> tuple[PayloadLocatorRecord, ...]:
+    def get_for_binding(self, provider_job_binding_id: UUID) -> tuple[PayloadLocatorRecord, ...]:
         with self._persistence.transaction() as repository:
             return repository.get_for_binding(provider_job_binding_id)
 
@@ -119,10 +115,8 @@ class PayloadLocatorService:
                 raise PayloadLocatorError(PayloadLocatorErrorCode.REVOKED)
             self._require_policy_active(current, self._now())
             if (
-                facts.actual_checksum_algorithm
-                != current.issue.expected_checksum_algorithm
-                or facts.actual_payload_checksum
-                != current.issue.expected_payload_checksum
+                facts.actual_checksum_algorithm != current.issue.expected_checksum_algorithm
+                or facts.actual_payload_checksum != current.issue.expected_payload_checksum
                 or facts.actual_size_bytes != current.issue.expected_size_bytes
                 or facts.actual_media_type != current.issue.expected_media_type
             ):
@@ -195,8 +189,7 @@ class PayloadLocatorService:
             if current.lifecycle_revision != expected_revision:
                 raise PayloadLocatorError(PayloadLocatorErrorCode.REVISION_CONFLICT)
             allowed = current.staging_status is PayloadLocatorStatus.INGESTED or (
-                current.staging_status is PayloadLocatorStatus.VERIFIED_STAGED
-                and current.revoked
+                current.staging_status is PayloadLocatorStatus.VERIFIED_STAGED and current.revoked
             )
             if not allowed:
                 raise PayloadLocatorError(PayloadLocatorErrorCode.ILLEGAL_TRANSITION)
@@ -255,9 +248,7 @@ class PayloadLocatorService:
         revoked_at: datetime,
     ) -> PayloadLocatorRecord:
         self._validate_revision(expected_revision)
-        if not isinstance(reason, PayloadLocatorRevocationReason) or not _is_utc(
-            revoked_at
-        ):
+        if not isinstance(reason, PayloadLocatorRevocationReason) or not _is_utc(revoked_at):
             raise PayloadLocatorError(PayloadLocatorErrorCode.ILLEGAL_TRANSITION)
         locator_uuid = parse_locator_id(locator_id)
         with self._persistence.transaction() as repository:
@@ -296,27 +287,20 @@ class PayloadLocatorService:
         if type(rights_granted) is not bool or not rights_granted:
             raise PayloadLocatorError(PayloadLocatorErrorCode.RIGHTS_REQUIRED)
         if record.issue.workspace_job_id != workspace_job_id:
-            raise PayloadLocatorError(
-                PayloadLocatorErrorCode.WORKSPACE_BINDING_MISMATCH
-            )
+            raise PayloadLocatorError(PayloadLocatorErrorCode.WORKSPACE_BINDING_MISMATCH)
         if record.revoked:
             raise PayloadLocatorError(PayloadLocatorErrorCode.REVOKED)
 
     @staticmethod
     def _require_policy_active(record: PayloadLocatorRecord, now: datetime) -> None:
-        if (
-            record.issue.locator_expires_at is not None
-            and now >= record.issue.locator_expires_at
-        ):
+        if record.issue.locator_expires_at is not None and now >= record.issue.locator_expires_at:
             raise PayloadLocatorError(PayloadLocatorErrorCode.LOCATOR_EXPIRED)
 
     def _new_uuid(self) -> UUID:
         try:
             value = self._id_factory()
         except Exception:
-            raise PayloadLocatorError(
-                PayloadLocatorErrorCode.LOCATOR_ID_COLLISION
-            ) from None
+            raise PayloadLocatorError(PayloadLocatorErrorCode.LOCATOR_ID_COLLISION) from None
         if not isinstance(value, UUID):
             raise PayloadLocatorError(PayloadLocatorErrorCode.LOCATOR_ID_COLLISION)
         return value

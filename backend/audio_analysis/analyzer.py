@@ -11,11 +11,11 @@ import pyloudnorm as pyln
 from scipy.io import wavfile
 
 from backend.audio_analysis.contracts import (
+    PUBLIC_WARNING_MESSAGES,
     AudioAnalysisResult,
     AudioAnalysisStatus,
     AudioAnalysisWarning,
     AudioQualityMetrics,
-    PUBLIC_WARNING_MESSAGES,
 )
 
 # One signed PCM16 quantization step. This recognizes both PCM16 endpoints and
@@ -52,11 +52,7 @@ class DefaultAudioQualityAnalyzer(AudioQualityAnalyzer):
 
         frame_count = raw_samples.shape[0]
         duration_seconds = frame_count / sample_rate
-        if (
-            frame_count <= 0
-            or not math.isfinite(duration_seconds)
-            or duration_seconds <= 0
-        ):
+        if frame_count <= 0 or not math.isfinite(duration_seconds) or duration_seconds <= 0:
             return self._failed("INVALID_AUDIO_DATA")
 
         peak_linear = float(np.max(np.abs(samples)))
@@ -77,9 +73,7 @@ class DefaultAudioQualityAnalyzer(AudioQualityAnalyzer):
         integrated_lufs: float | None
         try:
             measured_lufs = float(pyln.Meter(sample_rate).integrated_loudness(samples))
-            integrated_lufs = (
-                round(measured_lufs, 6) if math.isfinite(measured_lufs) else None
-            )
+            integrated_lufs = round(measured_lufs, 6) if math.isfinite(measured_lufs) else None
         except (ArithmeticError, IndexError, ValueError):
             integrated_lufs = None
         if integrated_lufs is None:

@@ -57,9 +57,7 @@ class Workspace(TimestampMixin, SoftDeleteMixin, Base):
     workspace_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid
     )
-    owner_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    owner_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     lifecycle_status: Mapped[str] = mapped_column(String, nullable=False, index=True)
 
@@ -95,9 +93,7 @@ class MusicProject(TimestampMixin, SoftDeleteMixin, Base):
     title: Mapped[str] = mapped_column(String, nullable=False, index=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     lifecycle_status: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    created_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    created_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
 
     workspace: Mapped[Workspace] = relationship(back_populates="projects")
     project_assets: Mapped[list[ProjectAsset]] = relationship(back_populates="project")
@@ -110,9 +106,7 @@ class MusicProject(TimestampMixin, SoftDeleteMixin, Base):
 class ProjectAsset(CreatedAtMixin, SoftDeleteMixin, Base):
     __tablename__ = "project_assets"
     __table_args__ = (
-        UniqueConstraint(
-            "project_id", "asset_id", name="uq_project_assets_project_asset"
-        ),
+        UniqueConstraint("project_id", "asset_id", name="uq_project_assets_project_asset"),
         Index(
             "ix_project_assets_active_keyset",
             "project_id",

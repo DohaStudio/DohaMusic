@@ -49,9 +49,7 @@ class StemWorker:
                 source_path = self.storage.resolve_relative_path(source_file.file_path)
                 if not source_path.is_file():
                     raise FileNotFoundError("Stem source file is unavailable")
-                repository.transition(
-                    job, JobStatus.STEM_SEPARATING, "stem_separation_started"
-                )
+                repository.transition(job, JobStatus.STEM_SEPARATING, "stem_separation_started")
                 logger.info(
                     "stem_inference_started job_id=%s model=%s",
                     job_id,
@@ -60,9 +58,7 @@ class StemWorker:
                 result = self.stem_separator.separate(
                     StemSeparationInput(job_id=job.id, source_path=source_path)
                 )
-                repository.set_model(
-                    job, result.provider, result.model_name, result.model_version
-                )
+                repository.set_model(job, result.provider, result.model_name, result.model_version)
                 self._add_result_files(repository, job.id, result)
                 repository.transition(job, JobStatus.COMPLETED, "completed")
                 logger.info(

@@ -32,14 +32,10 @@ class DemucsConfig:
                 "Demucs 격리 Python 실행 파일을 찾을 수 없습니다."
             )
         if not self.runner_path.is_file():
-            raise StemDependencyNotInstalledError(
-                "Demucs runner 스크립트를 찾을 수 없습니다."
-            )
+            raise StemDependencyNotInstalledError("Demucs runner 스크립트를 찾을 수 없습니다.")
         if not self.model_cache_path.is_dir():
             raise StemModelNotFoundError("Demucs 모델 캐시를 찾을 수 없습니다.")
         if not any(self.model_cache_path.rglob("*.safetensors")):
             raise StemModelNotFoundError("Demucs checkpoint를 찾을 수 없습니다.")
         if not self.model_name or not self.model_version or not self.device:
-            raise StemProviderNotConfiguredError(
-                "Demucs 모델·버전·장치 설정이 필요합니다."
-            )
+            raise StemProviderNotConfiguredError("Demucs 모델·버전·장치 설정이 필요합니다.")

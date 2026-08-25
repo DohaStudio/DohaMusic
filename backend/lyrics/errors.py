@@ -14,23 +14,17 @@ class LyricsValidationError(LyricsError):
 
 class LyricsGenerationError(LyricsError):
     def __init__(self) -> None:
-        super().__init__(
-            "LYRICS_GENERATION_FAILED", "가사 초안 생성에 실패했습니다.", 500
-        )
+        super().__init__("LYRICS_GENERATION_FAILED", "가사 초안 생성에 실패했습니다.", 500)
 
 
 class LyricsOutputInvalidError(LyricsError):
     def __init__(self) -> None:
-        super().__init__(
-            "LYRICS_OUTPUT_INVALID", "생성된 가사 구조가 유효하지 않습니다.", 500
-        )
+        super().__init__("LYRICS_OUTPUT_INVALID", "생성된 가사 구조가 유효하지 않습니다.", 500)
 
 
 class LyricsApiKeyMissingError(LyricsError):
     def __init__(self) -> None:
-        super().__init__(
-            "LYRICS_API_KEY_MISSING", "외부 가사 Provider 설정이 필요합니다.", 503
-        )
+        super().__init__("LYRICS_API_KEY_MISSING", "외부 가사 Provider 설정이 필요합니다.", 503)
 
 
 class LyricsProviderUnavailableError(LyricsError):
@@ -44,16 +38,12 @@ class LyricsProviderUnavailableError(LyricsError):
 
 class LyricsRateLimitedError(LyricsError):
     def __init__(self) -> None:
-        super().__init__(
-            "LYRICS_RATE_LIMITED", "외부 가사 Provider 요청 한도를 초과했습니다.", 429
-        )
+        super().__init__("LYRICS_RATE_LIMITED", "외부 가사 Provider 요청 한도를 초과했습니다.", 429)
 
 
 class LyricsTimeoutError(LyricsError):
     def __init__(self) -> None:
-        super().__init__(
-            "LYRICS_TIMEOUT", "외부 가사 Provider 응답 시간이 초과되었습니다.", 504
-        )
+        super().__init__("LYRICS_TIMEOUT", "외부 가사 Provider 응답 시간이 초과되었습니다.", 504)
 
 
 class LyricsAuthenticationError(LyricsError):
@@ -83,9 +73,7 @@ class LyricsContentBlockedError(LyricsError):
 
 class LyricsCostLimitExceededError(LyricsError):
     def __init__(self) -> None:
-        super().__init__(
-            "LYRICS_COST_LIMIT_EXCEEDED", "가사 요청 비용 제한을 초과했습니다.", 422
-        )
+        super().__init__("LYRICS_COST_LIMIT_EXCEEDED", "가사 요청 비용 제한을 초과했습니다.", 422)
 
 
 class LyricsRevisionError(LyricsError):

@@ -115,9 +115,7 @@ def validate_common_ai_contract(
     try:
         return package.validate_contract(payload, expected_kind=expected_kind)
     except package.ContractResourceError:
-        raise CommonAIContractError(
-            "The Common AI Contract resources are unavailable."
-        ) from None
+        raise CommonAIContractError("The Common AI Contract resources are unavailable.") from None
 
 
 def validate_rights_metadata(payload: Any) -> tuple[Any, ...]:

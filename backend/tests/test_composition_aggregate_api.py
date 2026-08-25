@@ -158,12 +158,8 @@ def test_aggregate_preserves_exact_version_safe_artifact_and_projection(
         ("music", 0),
     ]
     music = data["items"][1]
-    assert music["asset_version"]["asset_version_id"] == str(
-        second_version.asset_version_id
-    )
-    assert music["asset_version"]["parent_asset_version_id"] == str(
-        graph.asset_version_id
-    )
+    assert music["asset_version"]["asset_version_id"] == str(second_version.asset_version_id)
+    assert music["asset_version"]["parent_asset_version_id"] == str(graph.asset_version_id)
     artifact = music["artifacts"][0]
     assert artifact["artifact_id"] == str(artifact_id)
     assert artifact["content_url"] == f"/api/v1/artifacts/{artifact_id}/content"
@@ -184,12 +180,8 @@ def test_query_override_never_changes_selection_and_latest_is_not_current(
     client: TestClient,
 ) -> None:
     graph = _seed_graph(client)
-    first_id = _post(client, graph, key="d1-a-history-1").json()["data"][
-        "composition_snapshot_id"
-    ]
-    second_id = _post(client, graph, key="d1-a-history-2").json()["data"][
-        "composition_snapshot_id"
-    ]
+    first_id = _post(client, graph, key="d1-a-history-1").json()["data"]["composition_snapshot_id"]
+    second_id = _post(client, graph, key="d1-a-history-2").json()["data"]["composition_snapshot_id"]
     assert _select(client, graph.project_id, first_id).status_code == 200
 
     override = client.get(
@@ -202,9 +194,7 @@ def test_query_override_never_changes_selection_and_latest_is_not_current(
         "resolution": "requested",
         "is_current": False,
     }
-    current = client.get(f"/api/v1/projects/{graph.project_id}/composition").json()[
-        "data"
-    ]
+    current = client.get(f"/api/v1/projects/{graph.project_id}/composition").json()["data"]
     assert current["snapshot"]["composition_snapshot_id"] == first_id
     assert current["snapshot"]["snapshot_version"] == 1
 
@@ -231,12 +221,8 @@ def test_selection_and_override_enforce_project_and_owner_privacy(
         params={"composition_snapshot_id": second_snapshot},
     )
     assert wrong_selection.status_code == wrong_override.status_code == 404
-    assert wrong_selection.json()["error"]["error_code"] == (
-        "COMPOSITION_SNAPSHOT_NOT_FOUND"
-    )
-    assert wrong_override.json()["error"]["error_code"] == (
-        "COMPOSITION_SNAPSHOT_NOT_FOUND"
-    )
+    assert wrong_selection.json()["error"]["error_code"] == ("COMPOSITION_SNAPSHOT_NOT_FOUND")
+    assert wrong_override.json()["error"]["error_code"] == ("COMPOSITION_SNAPSHOT_NOT_FOUND")
 
     other_owner = _seed_graph(client)
     foreign = client.get(f"/api/v1/projects/{first.project_id}/composition")
@@ -257,13 +243,8 @@ def test_get_has_no_side_effects_and_selection_is_atomic(
         entity: _entity_count(client, entity)
         for entity in (Asset, AssetVersion, CompositionSnapshot, SnapshotItem)
     }
-    assert (
-        client.get(f"/api/v1/projects/{graph.project_id}/composition").status_code
-        == 200
-    )
-    assert counts_before == {
-        entity: _entity_count(client, entity) for entity in counts_before
-    }
+    assert client.get(f"/api/v1/projects/{graph.project_id}/composition").status_code == 200
+    assert counts_before == {entity: _entity_count(client, entity) for entity in counts_before}
     assert _entity_count(client, ProjectCompositionSelection) == 0
 
     original = CompositionRepository.set_project_selection
@@ -274,9 +255,7 @@ def test_get_has_no_side_effects_and_selection_is_atomic(
         original(repository, project_id, selected_id)  # type: ignore[arg-type]
         raise RuntimeError("forced rollback")
 
-    monkeypatch.setattr(
-        CompositionRepository, "set_project_selection", fail_after_flush
-    )
+    monkeypatch.setattr(CompositionRepository, "set_project_selection", fail_after_flush)
     with pytest.raises(RuntimeError, match="forced rollback"):
         _composition_service(client).set_project_selection(
             graph.project_id,
@@ -291,10 +270,7 @@ def test_openapi_adds_only_d1_a_operations_without_new_duplicates(
 ) -> None:
     schema = client.app.openapi()
     assert "get" in schema["paths"]["/api/v1/projects/{project_id}/composition"]
-    assert (
-        "patch"
-        in schema["paths"]["/api/v1/projects/{project_id}/composition-selection"]
-    )
+    assert "patch" in schema["paths"]["/api/v1/projects/{project_id}/composition-selection"]
     operation_ids = [
         operation["operationId"]
         for path_item in schema["paths"].values()
@@ -302,9 +278,7 @@ def test_openapi_adds_only_d1_a_operations_without_new_duplicates(
         if isinstance(operation, dict) and "operationId" in operation
     ]
     duplicates = {
-        operation_id
-        for operation_id, count in Counter(operation_ids).items()
-        if count > 1
+        operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
     assert {
         "get_project_composition",
@@ -410,8 +384,7 @@ def test_aggregate_read_query_plan_uses_bounded_index_lookups(
     with client.app.state.session_factory() as session:
         plans = {
             name: [
-                str(row[3])
-                for row in session.execute(text(f"EXPLAIN QUERY PLAN {sql}"), params)
+                str(row[3]) for row in session.execute(text(f"EXPLAIN QUERY PLAN {sql}"), params)
             ]
             for name, sql, params in statements
         }

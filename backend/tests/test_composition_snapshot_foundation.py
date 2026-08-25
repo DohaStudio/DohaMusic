@@ -24,6 +24,7 @@ from backend.db.base import Base
 from backend.db.session import create_database_engine
 from backend.models.idempotency_record import IdempotencyRecord
 from backend.models.workspace import (
+    WORKSPACE_ENTITY_CLASSES,
     Asset,
     AssetType,
     AssetVersion,
@@ -31,7 +32,6 @@ from backend.models.workspace import (
     MusicProject,
     ProjectAsset,
     SnapshotItem,
-    WORKSPACE_ENTITY_CLASSES,
     Workspace,
 )
 from backend.repositories.workspace import CompositionRepository
@@ -170,18 +170,10 @@ def test_cursor_pages_are_descending_complete_and_project_bound(
         cursor=second.next_cursor,
         limit=2,
     )
-    versions = [
-        row.snapshot_version for page in (first, second, third) for row in page.items
-    ]
+    versions = [row.snapshot_version for page in (first, second, third) for row in page.items]
     assert versions == [5, 4, 3, 2, 1]
     assert (
-        len(
-            {
-                row.composition_snapshot_id
-                for page in (first, second, third)
-                for row in page.items
-            }
-        )
+        len({row.composition_snapshot_id for page in (first, second, third) for row in page.items})
         == 5
     )
     assert first.has_more and second.has_more
@@ -337,9 +329,7 @@ def test_snapshot_remains_readable_after_project_asset_detach(
         created.aggregate.snapshot.composition_snapshot_id,
         effective_owner_id=graph.owner_id,
     )
-    assert [item.asset_version_id for item in aggregate.items] == [
-        graph.version.asset_version_id
-    ]
+    assert [item.asset_version_id for item in aggregate.items] == [graph.version.asset_version_id]
 
 
 @pytest.mark.parametrize("role", ["instrumental", "reference", "mix_source", "MUSIC"])
@@ -557,10 +547,7 @@ def test_aggregate_order_and_exact_version_freeze(
         graph.version.asset_version_id,
         second_version.asset_version_id,
     }
-    assert all(
-        item.asset_version_id != third_version.asset_version_id
-        for item in aggregate.items
-    )
+    assert all(item.asset_version_id != third_version.asset_version_id for item in aggregate.items)
 
 
 def test_processing_provider_and_manifest_lineage_are_owner_scoped(

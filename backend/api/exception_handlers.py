@@ -8,10 +8,10 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from backend.core.exceptions import AppError
-from backend.core.logging import get_logger
 from backend.api.v1.dependencies import get_request_id, is_v1_request
 from backend.api.v1.responses import error_response
+from backend.core.exceptions import AppError
+from backend.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -22,9 +22,7 @@ def error_payload(code: str, message: str) -> dict[str, dict[str, str]]:
 
 def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(StarletteHTTPException)
-    async def handle_http_error(
-        request: Request, exc: StarletteHTTPException
-    ) -> JSONResponse:
+    async def handle_http_error(request: Request, exc: StarletteHTTPException) -> JSONResponse:
         if not is_v1_request(request):
             return await http_exception_handler(request, exc)
         error_code, message = _v1_http_error(exc.status_code)
@@ -135,9 +133,7 @@ def _v1_validation_details(
 
     details: list[dict[str, object]] = []
     for error in errors:
-        location = [
-            item for item in error.get("loc", ()) if isinstance(item, (str, int))
-        ]
+        location = [item for item in error.get("loc", ()) if isinstance(item, (str, int))]
         details.append(
             {
                 "location": location,

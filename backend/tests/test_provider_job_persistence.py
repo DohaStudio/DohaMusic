@@ -130,15 +130,10 @@ def test_missing_binding_is_normal_recovery_state(persistence) -> None:
     service = ProviderJobPersistenceService(persistence)
 
     assert (
-        service.list_bindings_for_owner(
-            effective_owner_id=owner_id, workspace_job_id=job_id
-        )
-        == ()
+        service.list_bindings_for_owner(effective_owner_id=owner_id, workspace_job_id=job_id) == ()
     )
     assert (
-        service.get_latest_binding_for_owner(
-            effective_owner_id=owner_id, workspace_job_id=job_id
-        )
+        service.get_latest_binding_for_owner(effective_owner_id=owner_id, workspace_job_id=job_id)
         is None
     )
 
@@ -162,18 +157,12 @@ def test_duplicate_provider_identity_is_fail_closed(persistence) -> None:
         )
 
     assert (
-        len(
-            service.list_bindings_for_owner(
-                effective_owner_id=owner_id, workspace_job_id=job_id
-            )
-        )
+        len(service.list_bindings_for_owner(effective_owner_id=owner_id, workspace_job_id=job_id))
         == 1
     )
 
 
-def test_unrelated_integrity_error_is_not_mapped_as_duplicate(
-    persistence, monkeypatch
-) -> None:
+def test_unrelated_integrity_error_is_not_mapped_as_duplicate(persistence, monkeypatch) -> None:
     owner_id, job_id = _seed_job(persistence)
 
     def fail_with_unrelated_integrity_error(*_args, **_kwargs):
@@ -285,9 +274,7 @@ def test_owner_scope_and_job_provider_are_fail_closed(persistence) -> None:
             provider_id="dohaaudio",
             provider_job_id="wrong-provider",
         )
-    assert (
-        mismatch.value.reason == ProviderJobPersistenceErrorReason.JOB_PROVIDER_MISMATCH
-    )
+    assert mismatch.value.reason == ProviderJobPersistenceErrorReason.JOB_PROVIDER_MISMATCH
 
     _, second_job_id = _seed_job(persistence, owner_id=owner_id)
     with persistence.begin() as session:
@@ -296,9 +283,7 @@ def test_owner_scope_and_job_provider_are_fail_closed(persistence) -> None:
         assert job is not None and second_job is not None
         job.workspace_id = second_job.workspace_id
     with pytest.raises(ResourceNotFoundError):
-        service.get_latest_binding_for_owner(
-            effective_owner_id=owner_id, workspace_job_id=job_id
-        )
+        service.get_latest_binding_for_owner(effective_owner_id=owner_id, workspace_job_id=job_id)
 
 
 def test_retry_lineage_rejects_invalid_parent_relations_atomically(persistence) -> None:
@@ -376,10 +361,7 @@ def test_repository_identity_lookup_and_database_constraints(persistence) -> Non
     with persistence() as session:
         repository = ProviderJobRepository(session)
         assert repository.get_by_id(binding.provider_job_binding_id) is not None
-        assert (
-            repository.get_by_provider_identity("dohavocal", "repository-lookup")
-            is not None
-        )
+        assert repository.get_by_provider_identity("dohavocal", "repository-lookup") is not None
 
     with pytest.raises(IntegrityError), persistence.begin() as session:
         session.add(

@@ -43,19 +43,11 @@ _MEDIA_EXTENSIONS = {
 _BINARY_RESPONSES = {
     200: {
         "description": "전체 Artifact Payload",
-        "content": {
-            "application/octet-stream": {
-                "schema": {"type": "string", "format": "binary"}
-            }
-        },
+        "content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}},
     },
     206: {
         "description": "단일 byte Range Payload",
-        "content": {
-            "application/octet-stream": {
-                "schema": {"type": "string", "format": "binary"}
-            }
-        },
+        "content": {"application/octet-stream": {"schema": {"type": "string", "format": "binary"}}},
     },
     416: {"model": ErrorResponse, "description": "만족할 수 없는 byte Range"},
 }
@@ -173,9 +165,7 @@ def _delivery_response(
         except RangeNotSatisfiable:
             raise _invalid_range(handle.size_bytes) from None
 
-        status_code = (
-            status.HTTP_206_PARTIAL_CONTENT if byte_range else status.HTTP_200_OK
-        )
+        status_code = status.HTTP_206_PARTIAL_CONTENT if byte_range else status.HTTP_200_OK
         start = byte_range.start if byte_range else 0
         length = byte_range.length if byte_range else handle.size_bytes
         stream.seek(start)
@@ -228,18 +218,14 @@ def _delivery_headers(
         "Accept-Ranges": "bytes",
         "Cache-Control": "private, no-store",
         "Content-Disposition": (
-            f'attachment; filename="{_download_filename(handle)}"'
-            if download
-            else "inline"
+            f'attachment; filename="{_download_filename(handle)}"' if download else "inline"
         ),
         "Content-Length": str(length),
         "Content-Type": handle.media_type,
         "X-Content-Type-Options": "nosniff",
     }
     if byte_range is not None:
-        headers["Content-Range"] = (
-            f"bytes {byte_range.start}-{byte_range.end}/{handle.size_bytes}"
-        )
+        headers["Content-Range"] = f"bytes {byte_range.start}-{byte_range.end}/{handle.size_bytes}"
     return headers
 
 

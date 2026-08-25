@@ -28,9 +28,7 @@ def _write_click_track(
 
 
 @pytest.mark.parametrize("bpm", [60, 80, 100, 120, 140, 160])
-def test_estimates_fixed_bpm_without_using_requested_bpm(
-    tmp_path: Path, bpm: int
-) -> None:
+def test_estimates_fixed_bpm_without_using_requested_bpm(tmp_path: Path, bpm: int) -> None:
     path = _write_click_track(tmp_path / f"{bpm}.wav", bpm)
     analyzer = DefaultTempoAnalyzer()
 
@@ -49,9 +47,7 @@ def test_marks_half_and_double_time_candidates_against_requested_bpm(
 ) -> None:
     analyzer = DefaultTempoAnalyzer()
 
-    half_time = analyzer.analyze(
-        _write_click_track(tmp_path / "half.wav", 60), requested_bpm=120
-    )
+    half_time = analyzer.analyze(_write_click_track(tmp_path / "half.wav", 60), requested_bpm=120)
     double_time = analyzer.analyze(
         _write_click_track(tmp_path / "double.wav", 160), requested_bpm=80
     )
@@ -83,8 +79,7 @@ def test_returns_safe_failures_for_silence_short_and_invalid_audio(
     assert short_result.warnings[0].code == "TEMPO_AUDIO_TOO_SHORT"
     assert invalid_result.warnings[0].code == "TEMPO_DETECTION_FAILED"
     assert all(
-        result.requested_bpm == 120
-        for result in (silent_result, short_result, invalid_result)
+        result.requested_bpm == 120 for result in (silent_result, short_result, invalid_result)
     )
 
 

@@ -116,10 +116,7 @@ def _insert_fixtures(database_url: str) -> None:
 
 
 def _queries() -> dict[str, tuple[str, tuple[object, ...]]]:
-    columns = (
-        "project_asset_id, project_id, asset_id, role, display_order, "
-        "created_at, deleted_at"
-    )
+    columns = "project_asset_id, project_id, asset_id, role, display_order, created_at, deleted_at"
     project_id = _identifier(3, 2)
     anchor_id = _identifier(5, 2_250)
     return {
@@ -152,9 +149,7 @@ def _plans_and_rows(database_url: str):
         for name, (query, parameters) in _queries().items():
             plans[name] = " | ".join(
                 row[3]
-                for row in connection.exec_driver_sql(
-                    f"EXPLAIN QUERY PLAN {query}", parameters
-                )
+                for row in connection.exec_driver_sql(f"EXPLAIN QUERY PLAN {query}", parameters)
             )
             rows[name] = list(connection.exec_driver_sql(query, parameters))
     engine.dispose()
@@ -171,9 +166,7 @@ def _create_candidate(database_url: str, *, partial: bool) -> None:
     )
     predicate = " WHERE deleted_at IS NULL" if partial else ""
     with engine.begin() as connection:
-        connection.exec_driver_sql(
-            f"CREATE INDEX {name} ON project_assets ({columns}){predicate}"
-        )
+        connection.exec_driver_sql(f"CREATE INDEX {name} ON project_assets ({columns}){predicate}")
         connection.exec_driver_sql("ANALYZE")
     engine.dispose()
 
@@ -211,9 +204,7 @@ def _schema_contract(database_url: str):
                     for constraint in inspector.get_unique_constraints("project_assets")
                 )
             ),
-            "rows": connection.exec_driver_sql(
-                "SELECT count(*) FROM project_assets"
-            ).scalar_one(),
+            "rows": connection.exec_driver_sql("SELECT count(*) FROM project_assets").scalar_one(),
         }
     engine.dispose()
     return result
@@ -241,34 +232,26 @@ def test_project_asset_index_candidates_query_plan_and_round_trip(
     _insert_fixtures(database_url)
     baseline_schema = _schema_contract(database_url)
     baseline_plans, baseline_rows = _plans_and_rows(database_url)
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" in plan for plan in baseline_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" in plan for plan in baseline_plans.values())
 
     _create_candidate(database_url, partial=False)
     full_plans, full_rows = _plans_and_rows(database_url)
     assert all("candidate_full" in plan for plan in full_plans.values())
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" not in plan for plan in full_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" not in plan for plan in full_plans.values())
     assert full_rows == baseline_rows
     _drop_candidate(database_url, "candidate_full")
 
     _create_candidate(database_url, partial=True)
     partial_plans, partial_rows = _plans_and_rows(database_url)
     assert all("candidate_partial" in plan for plan in partial_plans.values())
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" not in plan for plan in partial_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" not in plan for plan in partial_plans.values())
     assert partial_rows == baseline_rows
     _drop_candidate(database_url, "candidate_partial")
 
     command.upgrade(config, REVISION)
     upgraded_plans, upgraded_rows = _plans_and_rows(database_url)
     assert all(INDEX_NAME in plan for plan in upgraded_plans.values())
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" not in plan for plan in upgraded_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" not in plan for plan in upgraded_plans.values())
     assert upgraded_rows == baseline_rows
     for rows in upgraded_rows.values():
         keys = [(row[4], row[0]) for row in rows]
@@ -285,9 +268,7 @@ def test_project_asset_index_candidates_query_plan_and_round_trip(
         assert tuple(index["column_names"]) == INDEX_COLUMNS
         assert str(index["dialect_options"]["sqlite_where"]) == INDEX_PREDICATE
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == REVISION
         )
     engine.dispose()
@@ -296,14 +277,10 @@ def test_project_asset_index_candidates_query_plan_and_round_trip(
     downgraded_schema = _schema_contract(database_url)
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
-        index_names = {
-            item["name"] for item in inspect(connection).get_indexes("project_assets")
-        }
+        index_names = {item["name"] for item in inspect(connection).get_indexes("project_assets")}
         assert INDEX_NAME not in index_names
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == PREVIOUS_REVISION
         )
         assert connection.exec_driver_sql("PRAGMA quick_check").scalar_one() == "ok"

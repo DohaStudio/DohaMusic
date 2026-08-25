@@ -51,18 +51,12 @@ class CompositionRepository:
         self.session.flush()
         return working_composition
 
-    def get_working_composition(
-        self, working_composition_id: UUID
-    ) -> WorkingComposition | None:
+    def get_working_composition(self, working_composition_id: UUID) -> WorkingComposition | None:
         return self.session.get(WorkingComposition, working_composition_id)
 
-    def get_project_working_composition(
-        self, project_id: UUID
-    ) -> WorkingComposition | None:
+    def get_project_working_composition(self, project_id: UUID) -> WorkingComposition | None:
         return self.session.scalar(
-            select(WorkingComposition).where(
-                WorkingComposition.project_id == project_id
-            )
+            select(WorkingComposition).where(WorkingComposition.project_id == project_id)
         )
 
     def flush(self) -> None:
@@ -135,9 +129,7 @@ class CompositionRepository:
         by_id = {track.track_id: track for track in tracks}
         if set(by_id) != set(ordered_track_ids) or len(by_id) != len(ordered_track_ids):
             raise ValueError("TRACK_ORDER_SET_MISMATCH")
-        offset = (
-            max((track.track_order for track in tracks), default=-1) + len(tracks) + 1
-        )
+        offset = max((track.track_order for track in tracks), default=-1) + len(tracks) + 1
         for track in tracks:
             track.track_order += offset
         self.session.flush()
@@ -279,16 +271,12 @@ class CompositionRepository:
         )
         return list(self.session.scalars(statement))
 
-    def add_snapshot_clip(
-        self, snapshot_clip: CompositionSnapshotClip
-    ) -> CompositionSnapshotClip:
+    def add_snapshot_clip(self, snapshot_clip: CompositionSnapshotClip) -> CompositionSnapshotClip:
         self.session.add(snapshot_clip)
         self.session.flush()
         return snapshot_clip
 
-    def list_snapshot_clips(
-        self, snapshot_track_id: UUID
-    ) -> list[CompositionSnapshotClip]:
+    def list_snapshot_clips(self, snapshot_track_id: UUID) -> list[CompositionSnapshotClip]:
         statement = (
             select(CompositionSnapshotClip)
             .where(CompositionSnapshotClip.snapshot_track_id == snapshot_track_id)
@@ -299,9 +287,7 @@ class CompositionRepository:
         )
         return list(self.session.scalars(statement))
 
-    def list_snapshot_clips_for_snapshot(
-        self, snapshot_id: UUID
-    ) -> list[CompositionSnapshotClip]:
+    def list_snapshot_clips_for_snapshot(self, snapshot_id: UUID) -> list[CompositionSnapshotClip]:
         statement = (
             select(CompositionSnapshotClip)
             .where(CompositionSnapshotClip.composition_snapshot_id == snapshot_id)
@@ -336,9 +322,7 @@ class CompositionRepository:
         )
         return self.session.scalar(statement.limit(1)) is not None
 
-    def get_project_selection(
-        self, project_id: UUID
-    ) -> ProjectCompositionSelection | None:
+    def get_project_selection(self, project_id: UUID) -> ProjectCompositionSelection | None:
         return self.session.get(ProjectCompositionSelection, project_id)
 
     def set_project_selection(
@@ -362,9 +346,7 @@ class CompositionRepository:
             self.session.delete(selection)
             self.session.flush()
 
-    def list_transition_states(
-        self, workspace_id: UUID
-    ) -> list[ProjectCompositionTransitionState]:
+    def list_transition_states(self, workspace_id: UUID) -> list[ProjectCompositionTransitionState]:
         """Workspace의 D1 전환 상태를 N+1 없이 한 번에 조회한다."""
 
         selected_snapshot = CompositionSnapshot.__table__.alias("selected_snapshot")
@@ -439,9 +421,7 @@ class CompositionRepository:
         """Project Snapshot을 version DESC keyset으로 조회한다."""
 
         _validate_snapshot_position(last_snapshot_version, last_id)
-        statement = select(CompositionSnapshot).where(
-            CompositionSnapshot.project_id == project_id
-        )
+        statement = select(CompositionSnapshot).where(CompositionSnapshot.project_id == project_id)
         if last_snapshot_version is not None and last_id is not None:
             statement = statement.where(
                 or_(
@@ -549,14 +529,10 @@ class CompositionRepository:
     def get_processing_chain(self, chain_id: UUID) -> ProcessingChain | None:
         return self.session.get(ProcessingChain, chain_id)
 
-    def list_processing_chains(
-        self, *, limit: int = 100, offset: int = 0
-    ) -> list[ProcessingChain]:
+    def list_processing_chains(self, *, limit: int = 100, offset: int = 0) -> list[ProcessingChain]:
         statement = (
             select(ProcessingChain)
-            .order_by(
-                ProcessingChain.created_at.desc(), ProcessingChain.processing_chain_id
-            )
+            .order_by(ProcessingChain.created_at.desc(), ProcessingChain.processing_chain_id)
             .limit(limit)
             .offset(offset)
         )
@@ -587,9 +563,7 @@ class CompositionRepository:
         return self.session.scalar(statement.limit(1)) is not None
 
 
-def _validate_snapshot_position(
-    last_snapshot_version: int | None, last_id: UUID | None
-) -> None:
+def _validate_snapshot_position(last_snapshot_version: int | None, last_id: UUID | None) -> None:
     if (last_snapshot_version is None) != (last_id is None):
         raise ValueError("Snapshot keyset 위치는 version과 ID가 함께 필요합니다.")
     if last_snapshot_version is not None and (

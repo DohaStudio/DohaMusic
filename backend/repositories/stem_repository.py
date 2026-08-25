@@ -35,11 +35,7 @@ class StemRepository:
         return self.session.get(StemJob, job_id)
 
     def list_files(self, job_id: str) -> list[StemFile]:
-        statement = (
-            select(StemFile)
-            .where(StemFile.job_id == job_id)
-            .order_by(StemFile.created_at)
-        )
+        statement = select(StemFile).where(StemFile.job_id == job_id).order_by(StemFile.created_at)
         return list(self.session.scalars(statement))
 
     def transition(
@@ -50,9 +46,7 @@ class StemRepository:
     ) -> StemJob:
         current = JobStatus(job.status)
         if target not in ALLOWED_TRANSITIONS[current]:
-            raise ValueError(
-                f"Invalid job transition: {current.value} -> {target.value}"
-            )
+            raise ValueError(f"Invalid job transition: {current.value} -> {target.value}")
         job.status = target.value
         job.current_step = current_step
         job.updated_at = datetime.now(UTC)

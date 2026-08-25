@@ -43,9 +43,7 @@ class VoiceSample(Base):
         Index("ix_voice_samples_status_expires_at", "status", "expires_at"),
     )
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     enrollment_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("voice_enrollments.id", ondelete="RESTRICT"),
@@ -62,44 +60,26 @@ class VoiceSample(Base):
     status: Mapped[str] = mapped_column(
         String(32), nullable=False, default=VoiceSampleStatus.UPLOADED.value
     )
-    original_content_type: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
+    original_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     original_size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    original_storage_path: Mapped[str | None] = mapped_column(
-        String(500), nullable=True
-    )
-    normalized_content_type: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
+    original_storage_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    normalized_content_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     normalized_size_bytes: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    normalized_storage_path: Mapped[str | None] = mapped_column(
-        String(500), nullable=True
-    )
+    normalized_storage_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
     duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
     sample_rate: Mapped[int | None] = mapped_column(Integer, nullable=True)
     channels: Mapped[int | None] = mapped_column(Integer, nullable=True)
     bit_depth: Mapped[int | None] = mapped_column(Integer, nullable=True)
     quality_status: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    quality_warnings: Mapped[list[str]] = mapped_column(
-        JSON, nullable=False, default=list
-    )
+    quality_warnings: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     quality_metrics: Mapped[dict[str, float | str]] = mapped_column(
         JSON, nullable=False, default=dict
     )
     failure_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    validated_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    promoted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    deleted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    promoted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     delete_failure_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now

@@ -57,9 +57,7 @@ class SubprocessAceStepRuntime:
         try:
             output_dir.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            raise AIOutputNotCreatedError(
-                "ACE-Step 출력 디렉터리를 준비할 수 없습니다."
-            ) from exc
+            raise AIOutputNotCreatedError("ACE-Step 출력 디렉터리를 준비할 수 없습니다.") from exc
         metadata_path = output_dir / "metadata.json"
         request_path = self._write_request(output_dir, request)
         try:
@@ -113,9 +111,7 @@ class SubprocessAceStepRuntime:
             "DOHAMUSIC_AI_ACE_STEP_DEVICE": self.config.device,
             "DOHAMUSIC_AI_ACE_STEP_QUANTIZATION": self.config.quantization or "",
             "DOHAMUSIC_AI_ACE_STEP_CPU_OFFLOAD": str(self.config.cpu_offload).lower(),
-            "DOHAMUSIC_AI_ACE_STEP_DIT_CPU_OFFLOAD": str(
-                self.config.dit_cpu_offload
-            ).lower(),
+            "DOHAMUSIC_AI_ACE_STEP_DIT_CPU_OFFLOAD": str(self.config.dit_cpu_offload).lower(),
         }
         environment.update({key: str(value) for key, value in values.items()})
         return environment
@@ -143,9 +139,7 @@ class SubprocessAceStepRuntime:
         try:
             return json.loads(lines[-1])
         except json.JSONDecodeError as exc:
-            raise AIInferenceError(
-                "ACE-Step runner 결과 형식이 유효하지 않습니다."
-            ) from exc
+            raise AIInferenceError("ACE-Step runner 결과 형식이 유효하지 않습니다.") from exc
 
     @staticmethod
     def _raise_failure(payload: dict[str, object]) -> None:

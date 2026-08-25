@@ -44,14 +44,10 @@ class VoiceConversionWorker:
                 if profile is None or not profile.consent_confirmed:
                     raise PermissionError("Voice profile consent is unavailable")
                 source_path = self.storage.resolve_relative_path(source.file_path)
-                reference_path = self.storage.resolve_voice_reference(
-                    profile.reference_file_path
-                )
+                reference_path = self.storage.resolve_voice_reference(profile.reference_file_path)
                 if not source_path.is_file() or not reference_path.is_file():
                     raise FileNotFoundError("Voice conversion input is unavailable")
-                repository.transition(
-                    job, JobStatus.VOICE_CONVERTING, "voice_conversion_started"
-                )
+                repository.transition(job, JobStatus.VOICE_CONVERTING, "voice_conversion_started")
                 logger.info(
                     "voice_inference_started job_id=%s model=%s",
                     job_id,
@@ -60,9 +56,7 @@ class VoiceConversionWorker:
                 result = self.voice_converter.convert(
                     VoiceConversionInput(job.id, source_path, reference_path)
                 )
-                repository.set_model(
-                    job, result.provider, result.model_name, result.model_version
-                )
+                repository.set_model(job, result.provider, result.model_name, result.model_version)
                 repository.add_file(
                     job.id,
                     "converted_voice",
@@ -78,7 +72,8 @@ class VoiceConversionWorker:
                     )
                 repository.transition(job, JobStatus.COMPLETED, "completed")
                 logger.info(
-                    "voice_worker_completed job_id=%s provider=%s model=%s version=%s duration_seconds=%s peak_vram_mb=%s",
+                    "voice_worker_completed job_id=%s provider=%s model=%s version=%s "
+                    "duration_seconds=%s peak_vram_mb=%s",
                     job_id,
                     result.provider,
                     result.model_name,
@@ -87,13 +82,9 @@ class VoiceConversionWorker:
                     result.peak_vram_mb,
                 )
             except VoiceConversionError as exc:
-                logger.error(
-                    "voice_worker_ai_failed job_id=%s error_code=%s", job_id, exc.code
-                )
+                logger.error("voice_worker_ai_failed job_id=%s error_code=%s", job_id, exc.code)
                 session.rollback()
-                repository.mark_failed(
-                    job, exc.code, "Voice Conversion 작업이 실패했습니다."
-                )
+                repository.mark_failed(job, exc.code, "Voice Conversion 작업이 실패했습니다.")
             except Exception:
                 logger.exception("voice_worker_failed job_id=%s", job_id)
                 session.rollback()

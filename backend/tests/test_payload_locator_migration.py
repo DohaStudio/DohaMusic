@@ -77,9 +77,7 @@ def test_fresh_upgrade_downgrade_and_reupgrade(tmp_path) -> None:
             item["name"] for item in inspector.get_indexes("provider_job_bindings")
         }
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == PREVIOUS_REVISION
         )
         assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
@@ -107,11 +105,7 @@ def test_existing_develop_database_upgrades_without_rewriting_existing_rows(
     command.upgrade(config, REVISION)
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
-        assert (
-            connection.execute(text("SELECT count(*) FROM jobs")).scalar_one() == before
-        )
-        assert (
-            connection.execute(text(f"SELECT count(*) FROM {TABLE}")).scalar_one() == 0
-        )
+        assert connection.execute(text("SELECT count(*) FROM jobs")).scalar_one() == before
+        assert connection.execute(text(f"SELECT count(*) FROM {TABLE}")).scalar_one() == 0
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
     engine.dispose()

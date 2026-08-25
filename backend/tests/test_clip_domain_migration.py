@@ -131,16 +131,10 @@ def test_clip_domain_existing_schema_upgrade_and_downgrade(tmp_path: Path) -> No
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
         assert set(inspect(connection).get_table_names()) >= TABLES
-        assert (
-            connection.execute(text("SELECT count(*) FROM snapshot_items")).scalar_one()
-            == 1
-        )
+        assert connection.execute(text("SELECT count(*) FROM snapshot_items")).scalar_one() == 1
         assert (
             connection.execute(
-                text(
-                    "SELECT asset_version_id FROM snapshot_items "
-                    "WHERE snapshot_item_id = :item"
-                ),
+                text("SELECT asset_version_id FROM snapshot_items WHERE snapshot_item_id = :item"),
                 {"item": ids["item"]},
             ).scalar_one()
             == ids["version"]
@@ -152,10 +146,7 @@ def test_clip_domain_existing_schema_upgrade_and_downgrade(tmp_path: Path) -> No
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
         assert TABLES.isdisjoint(inspect(connection).get_table_names())
-        assert (
-            connection.execute(text("SELECT count(*) FROM snapshot_items")).scalar_one()
-            == 1
-        )
+        assert connection.execute(text("SELECT count(*) FROM snapshot_items")).scalar_one() == 1
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
     engine.dispose()
 
@@ -168,9 +159,7 @@ def test_clip_domain_fresh_database_upgrade_has_exact_schema(tmp_path: Path) -> 
     with engine.connect() as connection:
         inspector = inspect(connection)
         assert set(inspector.get_table_names()) >= TABLES
-        assert {
-            column["name"] for column in inspector.get_columns("composition_clips")
-        } >= {
+        assert {column["name"] for column in inspector.get_columns("composition_clips")} >= {
             "clip_id",
             "working_composition_id",
             "track_id",
@@ -184,9 +173,7 @@ def test_clip_domain_fresh_database_upgrade_has_exact_schema(tmp_path: Path) -> 
         }
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == SOURCE_HEAD
         )
     engine.dispose()

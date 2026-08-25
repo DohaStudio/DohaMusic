@@ -31,9 +31,7 @@ def _id(namespace: int, value: int) -> UUID:
 
 @pytest.fixture
 def session_factory(tmp_path):
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'asset-cursor.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'asset-cursor.db').as_posix()}")
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     yield factory
@@ -213,11 +211,7 @@ def test_asset_page_is_owner_scoped_stable_and_excludes_deleted(
         pytest.fail("Asset cursor가 종료되지 않았습니다.")
 
     expected = sorted(
-        [
-            item
-            for item in assets
-            if item.owner_id == owner_id and item.deleted_at is None
-        ],
+        [item for item in assets if item.owner_id == owner_id and item.deleted_at is None],
         key=lambda item: (item.created_at, item.asset_id),
         reverse=True,
     )

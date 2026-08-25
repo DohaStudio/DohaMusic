@@ -20,9 +20,7 @@ ServiceDependency = Annotated[PipelineService, Depends(get_pipeline_service)]
 
 
 @router.post("", response_model=PipelineJobRead, status_code=status.HTTP_202_ACCEPTED)
-def create_pipeline(
-    request: PipelineCreate, service: ServiceDependency
-) -> PipelineJobRead:
+def create_pipeline(request: PipelineCreate, service: ServiceDependency) -> PipelineJobRead:
     return PipelineJobRead.model_validate(service.create(request))
 
 
@@ -61,12 +59,8 @@ def retry_pipeline(job_id: str, service: ServiceDependency) -> PipelineRetryRead
 
 
 @router.get("/{job_id}/files", response_model=list[PipelineFileRead])
-def list_pipeline_files(
-    job_id: str, service: ServiceDependency
-) -> list[PipelineFileRead]:
-    return [
-        PipelineFileRead.model_validate(item) for item in service.list_files(job_id)
-    ]
+def list_pipeline_files(job_id: str, service: ServiceDependency) -> list[PipelineFileRead]:
+    return [PipelineFileRead.model_validate(item) for item in service.list_files(job_id)]
 
 
 @router.api_route(

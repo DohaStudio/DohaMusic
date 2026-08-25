@@ -46,10 +46,7 @@ class JobRepository:
 
     def list_jobs(self, *, limit: int = 100, offset: int = 0) -> list[Job]:
         statement = (
-            select(Job)
-            .order_by(Job.created_at.desc(), Job.job_id)
-            .limit(limit)
-            .offset(offset)
+            select(Job).order_by(Job.created_at.desc(), Job.job_id).limit(limit).offset(offset)
         )
         return list(self.session.scalars(statement))
 
@@ -255,9 +252,7 @@ class JobRepository:
         self.session.flush()
         return item
 
-    def list_job_inputs(
-        self, job_id: UUID, *, limit: int = 100, offset: int = 0
-    ) -> list[JobInput]:
+    def list_job_inputs(self, job_id: UUID, *, limit: int = 100, offset: int = 0) -> list[JobInput]:
         statement = (
             select(JobInput)
             .where(JobInput.job_id == job_id)
@@ -359,8 +354,6 @@ def _build_list_jobs_after_statement(
     return statement.order_by(Job.created_at.desc(), Job.job_id.desc()).limit(limit)
 
 
-def _validate_keyset_position(
-    last_created_at: datetime | None, last_id: UUID | None
-) -> None:
+def _validate_keyset_position(last_created_at: datetime | None, last_id: UUID | None) -> None:
     if (last_created_at is None) != (last_id is None):
         raise ValueError("keyset position requires both created_at and id")

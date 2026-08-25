@@ -58,9 +58,7 @@ class SubprocessDemucsRuntime:
             for path in paths.values():
                 path.parent.mkdir(parents=True, exist_ok=True)
         except OSError as exc:
-            raise StemOutputNotCreatedError(
-                "Stem 출력 디렉터리를 준비할 수 없습니다."
-            ) from exc
+            raise StemOutputNotCreatedError("Stem 출력 디렉터리를 준비할 수 없습니다.") from exc
         command = [
             str(self.config.runtime_python),
             str(self.config.runner_path),
@@ -115,20 +113,14 @@ class SubprocessDemucsRuntime:
             duration_seconds=float(payload["duration_actual"]),
             separation_time_seconds=float(payload["separation_time_seconds"]),
             peak_vram_mb=_optional_float(payload.get("peak_nvidia_smi_mb")),
-            peak_process_memory_mb=_optional_float(
-                payload.get("process_memory_peak_mb")
-            ),
+            peak_process_memory_mb=_optional_float(payload.get("process_memory_peak_mb")),
         )
 
     def _output_paths(self, job_id: str) -> dict[str, Path]:
         return {
             "vocals": (self.config.stem_root / "vocals" / f"{job_id}.wav").resolve(),
-            "instrumental": (
-                self.config.stem_root / "instrumentals" / f"{job_id}.wav"
-            ).resolve(),
-            "metadata": (
-                self.config.stem_root / "metadata" / f"{job_id}.json"
-            ).resolve(),
+            "instrumental": (self.config.stem_root / "instrumentals" / f"{job_id}.wav").resolve(),
+            "metadata": (self.config.stem_root / "metadata" / f"{job_id}.json").resolve(),
             "work": (self.config.stem_root / "work" / job_id).resolve(),
         }
 
@@ -153,9 +145,7 @@ class SubprocessDemucsRuntime:
         try:
             return json.loads(lines[-1])
         except json.JSONDecodeError as exc:
-            raise StemInferenceError(
-                "Demucs runner 결과 형식이 유효하지 않습니다."
-            ) from exc
+            raise StemInferenceError("Demucs runner 결과 형식이 유효하지 않습니다.") from exc
 
     @staticmethod
     def _raise_failure(payload: dict[str, object]) -> None:

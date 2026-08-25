@@ -36,14 +36,10 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("completed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.ForeignKeyConstraint(
-            ["voice_profile_id"], ["voice_profiles.id"], ondelete="RESTRICT"
-        ),
+        sa.ForeignKeyConstraint(["voice_profile_id"], ["voice_profiles.id"], ondelete="RESTRICT"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        "ix_pipeline_jobs_voice_profile_id", "pipeline_jobs", ["voice_profile_id"]
-    )
+    op.create_index("ix_pipeline_jobs_voice_profile_id", "pipeline_jobs", ["voice_profile_id"])
     op.create_index("ix_pipeline_jobs_status", "pipeline_jobs", ["status"])
     op.create_table(
         "pipeline_files",

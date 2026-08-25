@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
+import logging
+import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
 from enum import StrEnum
-import logging
 from pathlib import Path
-import re
 from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
@@ -218,13 +218,9 @@ class JobCompletionService:
                 current = repository.get_job_for_owner(job_id, effective_owner_id)
                 if current is None:
                     raise JobCompletionError(JobCompletionErrorCode.INVALID_STATE)
-                self._validate_execution_identity(
-                    current, result, execution_claim_token
-                )
+                self._validate_execution_identity(current, result, execution_claim_token)
                 if current.status is JobStatus.SUCCEEDED:
-                    if not self._matches_existing(
-                        session, repository, current, result, prepared
-                    ):
+                    if not self._matches_existing(session, repository, current, result, prepared):
                         raise JobCompletionError(JobCompletionErrorCode.CONFLICT)
                     replayed = True
                     aggregate = _load_aggregate(repository, current)
@@ -237,9 +233,7 @@ class JobCompletionService:
                     cancelled = True
                     aggregate = _load_aggregate(repository, current)
                 else:
-                    self._persist_outputs(
-                        session, repository, current, result, prepared
-                    )
+                    self._persist_outputs(session, repository, current, result, prepared)
                     session.refresh(current, attribute_names=["cancel_requested_at"])
                     if current.cancel_requested_at is not None:
                         raise JobCompletionError(JobCompletionErrorCode.CANCELLED)
@@ -262,9 +256,7 @@ class JobCompletionService:
         except (ArtifactIngestionError, IntegrityError, OSError, RuntimeError):
             self._compensate_and_discard(prepared, result.outputs)
             self._mark_completion_failed(job_id, effective_owner_id)
-            raise JobCompletionError(
-                JobCompletionErrorCode.PERSISTENCE_FAILED
-            ) from None
+            raise JobCompletionError(JobCompletionErrorCode.PERSISTENCE_FAILED) from None
 
         if cancelled:
             self._compensate_and_discard(prepared, result.outputs)
@@ -300,10 +292,7 @@ class JobCompletionService:
             raise JobCompletionError(JobCompletionErrorCode.INVALID_RESULT)
         if job.provider_id is not None and result.provider_id != job.provider_id:
             raise JobCompletionError(JobCompletionErrorCode.INVALID_RESULT)
-        if (
-            job.model_manifest_id is not None
-            and result.model_manifest_id != job.model_manifest_id
-        ):
+        if job.model_manifest_id is not None and result.model_manifest_id != job.model_manifest_id:
             raise JobCompletionError(JobCompletionErrorCode.INVALID_RESULT)
 
     def _plan_outputs(
@@ -340,13 +329,9 @@ class JobCompletionService:
                     ):
                         raise JobCompletionError(JobCompletionErrorCode.INVALID_RESULT)
                     if output.parent_asset_version_id is not None:
-                        parent = assets.get_asset_version(
-                            output.parent_asset_version_id
-                        )
+                        parent = assets.get_asset_version(output.parent_asset_version_id)
                         if parent is None or parent.asset_id != asset.asset_id:
-                            raise JobCompletionError(
-                                JobCompletionErrorCode.INVALID_RESULT
-                            )
+                            raise JobCompletionError(JobCompletionErrorCode.INVALID_RESULT)
                     version_id = generate_uuid()
                 else:
                     if output.parent_asset_version_id is not None:
@@ -390,9 +375,7 @@ class JobCompletionService:
                     AssetVersion(
                         asset_version_id=plan.asset_version_id,
                         asset_id=asset.asset_id,
-                        version_number=1
-                        if latest is None
-                        else latest.version_number + 1,
+                        version_number=1 if latest is None else latest.version_number + 1,
                         version_origin="provider_generated",
                         parent_asset_version_id=plan.request.parent_asset_version_id,
                         provider_id=result.provider_id,
@@ -429,9 +412,7 @@ class JobCompletionService:
                     commercial_usage_status=result.commercial_usage_status,
                 )
             )
-        if len(repository.list_job_outputs(job.job_id, limit=MAX_OUTPUTS + 1)) != len(
-            prepared
-        ):
+        if len(repository.list_job_outputs(job.job_id, limit=MAX_OUTPUTS + 1)) != len(prepared):
             raise JobCompletionError(JobCompletionErrorCode.INTEGRITY_FAILED)
 
     def _matches_existing(
@@ -462,8 +443,7 @@ class JobCompletionService:
             target_matches = (
                 (
                     version.asset_id == plan.request.target_asset_id
-                    and version.parent_asset_version_id
-                    == plan.request.parent_asset_version_id
+                    and version.parent_asset_version_id == plan.request.parent_asset_version_id
                     and version.version_origin == "provider_generated"
                     and version.provider_id == result.provider_id
                     and version.model_manifest_id == result.model_manifest_id
@@ -508,9 +488,7 @@ class JobCompletionService:
                 job.error_code = result.error_code or "PROVIDER_EXECUTION_FAILED"
                 job.error_message = result.error_message or "Provider execution failed."
                 job.error_retryable = result.error_retryable
-                repository.update_job_status(
-                    job, JobStatus.FAILED, completed_at=datetime.now(UTC)
-                )
+                repository.update_job_status(job, JobStatus.FAILED, completed_at=datetime.now(UTC))
             aggregate = _load_aggregate(repository, job)
         return JobCompletionResult(aggregate, replayed=False)
 
@@ -529,9 +507,7 @@ class JobCompletionService:
                 job.error_code = "JOB_COMPLETION_FAILED"
                 job.error_message = "Workspace Job completion failed."
                 job.error_retryable = True
-                repository.update_job_status(
-                    job, JobStatus.FAILED, completed_at=datetime.now(UTC)
-                )
+                repository.update_job_status(job, JobStatus.FAILED, completed_at=datetime.now(UTC))
         except Exception:
             logger.exception(
                 "Workspace Job completion failure state could not be persisted.",
@@ -564,9 +540,7 @@ class JobCompletionService:
         outputs: Sequence[ProviderOutput],
     ) -> None:
         for _, payload in reversed(prepared):
-            self._ingestion.compensate_prepared(
-                payload, reason_code="JOB_COMPLETION_ROLLBACK"
-            )
+            self._ingestion.compensate_prepared(payload, reason_code="JOB_COMPLETION_ROLLBACK")
         self._discard_outputs(outputs)
 
     def _discard_outputs(self, outputs: Sequence[ProviderOutput]) -> None:

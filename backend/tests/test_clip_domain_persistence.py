@@ -45,9 +45,7 @@ class Graph:
 
 @pytest.fixture
 def session_factory(tmp_path: Path):
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'clip-persistence.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'clip-persistence.db').as_posix()}")
     Base.metadata.create_all(
         engine,
         tables=[
@@ -123,9 +121,7 @@ def _seed_graph(factory: sessionmaker[Session]) -> Graph:
         session.add_all([version, snapshot])
         session.flush()
         session.add(item)
-    return Graph(
-        project.project_id, snapshot.composition_snapshot_id, version.asset_version_id
-    )
+    return Graph(project.project_id, snapshot.composition_snapshot_id, version.asset_version_id)
 
 
 def _working(graph: Graph, **overrides) -> WorkingComposition:
@@ -200,9 +196,7 @@ def test_repository_bounds_mix_settings_without_owning_transaction(
         with pytest.raises(TypeError):
             repository.add_working_composition(_working(graph, mix_settings=[]))
         with pytest.raises(ValueError, match="8192"):
-            repository.add_working_composition(
-                _working(graph, mix_settings={"value": "x" * 8_193})
-            )
+            repository.add_working_composition(_working(graph, mix_settings={"value": "x" * 8_193}))
         assert session.scalar(select(WorkingComposition)) is None
 
 
@@ -510,9 +504,7 @@ def test_repository_reads_tracks_and_clips_deterministically(session_factory) ->
         repository = CompositionRepository(session)
         assert [
             item.track_order
-            for item in repository.list_active_composition_tracks(
-                working.working_composition_id
-            )
+            for item in repository.list_active_composition_tracks(working.working_composition_id)
         ] == [0, 1]
         assert [
             item.timeline_start
@@ -616,9 +608,7 @@ def test_snapshot_track_identity_and_order_are_snapshot_local_unique(
         session.add(
             CompositionSnapshotTrack(
                 composition_snapshot_id=graph.snapshot_id,
-                canonical_track_id=canonical_id
-                if collision == "canonical"
-                else uuid4(),
+                canonical_track_id=canonical_id if collision == "canonical" else uuid4(),
                 track_type="audio",
                 name="Two",
                 track_order=1 if collision == "canonical" else 0,
@@ -642,10 +632,7 @@ def test_snapshot_items_remain_compatible_and_arrangement_is_fk_separate(
         "composition_clips",
     }
     for model in (CompositionSnapshotTrack, CompositionSnapshotClip):
-        targets = {
-            foreign_key.column.table.name
-            for foreign_key in model.__table__.foreign_keys
-        }
+        targets = {foreign_key.column.table.name for foreign_key in model.__table__.foreign_keys}
         assert targets.isdisjoint(mutable_tables)
 
 
@@ -673,13 +660,9 @@ def test_service_owned_rollback_leaves_no_partial_rows(session_factory) -> None:
         session_factory.begin() as session,
     ):
         repository = CompositionRepository(session)
-        repository.add_working_composition(
-            _working(graph, working_composition_id=working_id)
-        )
+        repository.add_working_composition(_working(graph, working_composition_id=working_id))
         repository.add_composition_track(_track(working_id, track_id=track_id))
-        repository.add_composition_clip(
-            _clip(working_id, track_id, graph.asset_version_id)
-        )
+        repository.add_composition_clip(_clip(working_id, track_id, graph.asset_version_id))
         raise RuntimeError("forced failure")
     with session_factory() as session:
         assert session.get(WorkingComposition, working_id) is None
@@ -761,9 +744,7 @@ def test_required_query_plans_use_indexes_without_temp_sort(
     with engine.connect() as connection:
         details = [
             str(row[3]).upper()
-            for row in connection.exec_driver_sql(
-                f"EXPLAIN QUERY PLAN {sql}", (uuid4().hex,)
-            )
+            for row in connection.exec_driver_sql(f"EXPLAIN QUERY PLAN {sql}", (uuid4().hex,))
         ]
     combined = " ".join(details)
     assert f"SEARCH {table_name} USING" in combined

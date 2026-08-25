@@ -102,17 +102,13 @@ def required_env(name: str) -> str:
 def load_settings() -> RuntimeSettings:
     settings = RuntimeSettings(
         project_root=Path(required_env("DOHAMUSIC_AI_ACE_STEP_PROJECT_ROOT")).resolve(),
-        checkpoints_dir=Path(
-            required_env("DOHAMUSIC_AI_ACE_STEP_CHECKPOINT_PATH")
-        ).resolve(),
+        checkpoints_dir=Path(required_env("DOHAMUSIC_AI_ACE_STEP_CHECKPOINT_PATH")).resolve(),
         model_variant=required_env("DOHAMUSIC_AI_ACE_STEP_MODEL_VARIANT"),
         model_version=required_env("DOHAMUSIC_AI_ACE_STEP_MODEL_VERSION"),
         device=required_env("DOHAMUSIC_AI_ACE_STEP_DEVICE"),
         quantization=optional_env("DOHAMUSIC_AI_ACE_STEP_QUANTIZATION"),
         cpu_offload=parse_bool(required_env("DOHAMUSIC_AI_ACE_STEP_CPU_OFFLOAD")),
-        dit_cpu_offload=parse_bool(
-            required_env("DOHAMUSIC_AI_ACE_STEP_DIT_CPU_OFFLOAD")
-        ),
+        dit_cpu_offload=parse_bool(required_env("DOHAMUSIC_AI_ACE_STEP_DIT_CPU_OFFLOAD")),
     )
     if not settings.project_root.is_dir():
         raise ValueError("Configured ACE-Step project root does not exist")
@@ -365,9 +361,7 @@ def main() -> int:
         )
         return EXIT_CONFIGURATION
     try:
-        return execute(
-            settings, request, args.output_dir.resolve(), metadata_path.resolve()
-        )
+        return execute(settings, request, args.output_dir.resolve(), metadata_path.resolve())
     except ImportError as exc:
         print(
             json.dumps(

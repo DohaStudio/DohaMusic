@@ -89,11 +89,7 @@ class TempoAnalysisResult(BaseModel):
         unsupported: bool = False,
     ) -> TempoAnalysisResult:
         return cls(
-            status=(
-                AudioAnalysisStatus.UNSUPPORTED
-                if unsupported
-                else AudioAnalysisStatus.FAILED
-            ),
+            status=(AudioAnalysisStatus.UNSUPPORTED if unsupported else AudioAnalysisStatus.FAILED),
             requested_bpm=requested_bpm,
             warnings=[warning],
         )
@@ -147,11 +143,7 @@ class HookAnalysisResult(BaseModel):
         unsupported: bool = False,
     ) -> HookAnalysisResult:
         return cls(
-            status=(
-                AudioAnalysisStatus.UNSUPPORTED
-                if unsupported
-                else AudioAnalysisStatus.FAILED
-            ),
+            status=(AudioAnalysisStatus.UNSUPPORTED if unsupported else AudioAnalysisStatus.FAILED),
             warnings=[warning],
         )
 

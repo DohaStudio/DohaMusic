@@ -84,8 +84,7 @@ def test_existing_legacy_result_is_preserved_without_fabricated_backfill(
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
         columns = {
-            column["name"]
-            for column in inspect(connection).get_columns("idempotency_records")
+            column["name"] for column in inspect(connection).get_columns("idempotency_records")
         }
         assert RESULT_COLUMNS.isdisjoint(columns)
         assert (
@@ -110,10 +109,7 @@ def test_fresh_head_has_nullable_completion_result_columns(tmp_path: Path) -> No
         }
         assert RESULT_COLUMNS.issubset(columns)
         assert all(columns[name]["nullable"] is True for name in RESULT_COLUMNS)
-        assert (
-            connection.scalar(text("SELECT version_num FROM alembic_version"))
-            == SOURCE_HEAD
-        )
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == SOURCE_HEAD
     with engine.begin() as connection:
         connection.execute(
             text(
@@ -131,16 +127,10 @@ def test_fresh_head_has_nullable_completion_result_columns(tmp_path: Path) -> No
         )
     with pytest.raises(IntegrityError), engine.begin() as connection:
         connection.execute(
-            text(
-                "UPDATE idempotency_records SET completed_revision = -1 "
-                "WHERE id = 'constraints'"
-            )
+            text("UPDATE idempotency_records SET completed_revision = -1 WHERE id = 'constraints'")
         )
     with pytest.raises(IntegrityError), engine.begin() as connection:
         connection.execute(
-            text(
-                "UPDATE idempotency_records SET result_version = 0 "
-                "WHERE id = 'constraints'"
-            )
+            text("UPDATE idempotency_records SET result_version = 0 WHERE id = 'constraints'")
         )
     engine.dispose()

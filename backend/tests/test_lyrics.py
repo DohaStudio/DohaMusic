@@ -27,9 +27,7 @@ def request(language: str = "ko") -> LyricsGenerationRequest:
 def test_mock_provider_returns_fixed_structured_result() -> None:
     result = MockLyricsGenerator().generate(request())
     assert result.provider == "mock"
-    assert [section.section_type for section in result.sections] == list(
-        request().structure
-    )
+    assert [section.section_type for section in result.sections] == list(request().structure)
     assert result.metadata["external_api"] is False
 
 

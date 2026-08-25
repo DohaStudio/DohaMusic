@@ -117,9 +117,7 @@ def test_adapter_maps_runtime_result(tmp_path: Path) -> None:
     metadata_path.write_text("{}", encoding="utf-8")
     runtime = SuccessfulRuntime(audio_path, metadata_path)
 
-    result = AceStepAdapter(ace_config(tmp_path), runtime=runtime).generate(
-        generation_input()
-    )
+    result = AceStepAdapter(ace_config(tmp_path), runtime=runtime).generate(generation_input())
 
     assert result.audio_path == audio_path
     assert result.provider == "ace_step"
@@ -221,9 +219,7 @@ def test_runtime_maps_model_load_error() -> None:
         )
 
 
-def test_runtime_maps_subprocess_timeout(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_runtime_maps_subprocess_timeout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     config = ace_config(tmp_path)
 
     def raise_timeout(*_args: object, **_kwargs: object) -> None:

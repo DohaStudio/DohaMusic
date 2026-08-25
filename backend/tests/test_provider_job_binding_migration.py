@@ -131,9 +131,7 @@ def test_provider_job_binding_migration_round_trip_and_constraints(tmp_path) -> 
     with engine.begin() as connection:
         inspector = inspect(connection)
         assert TABLE in inspector.get_table_names()
-        assert (
-            connection.execute(text(f"SELECT count(*) FROM {TABLE}")).scalar_one() == 0
-        )
+        assert connection.execute(text(f"SELECT count(*) FROM {TABLE}")).scalar_one() == 0
         assert (
             connection.execute(
                 text("SELECT count(*) FROM jobs WHERE job_id = :job_id"),
@@ -214,9 +212,7 @@ def test_provider_job_binding_migration_round_trip_and_constraints(tmp_path) -> 
             == 1
         )
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == PREVIOUS_REVISION
         )
         assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
