@@ -34,9 +34,7 @@ def _database_url(
     engine = create_database_engine(url)
     Base.metadata.create_all(engine)
     with engine.begin() as connection:
-        connection.execute(
-            text("CREATE TABLE alembic_version (version_num VARCHAR(32))")
-        )
+        connection.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32))"))
         connection.execute(
             text("INSERT INTO alembic_version (version_num) VALUES (:revision)"),
             {"revision": revision},
@@ -111,9 +109,7 @@ def test_dry_run_rejects_empty_workspace_name_without_database_access(
 
 
 def test_wrong_revision_is_blocked_without_workspace_change(tmp_path: Path) -> None:
-    database_url = _database_url(
-        tmp_path / "wrong-revision.db", revision="20260801_0011"
-    )
+    database_url = _database_url(tmp_path / "wrong-revision.db", revision="20260801_0011")
 
     with pytest.raises(WorkspaceBootstrapError, match=BOOTSTRAP_TARGET_REVISION):
         execute_bootstrap(
@@ -131,7 +127,7 @@ def test_current_source_head_passes_revision_gate_without_bootstrap(
 ) -> None:
     database_url = _database_url(tmp_path / "current-revision.db")
 
-    assert inspect_bootstrap_target(database_url) == "20260825_0022"
+    assert inspect_bootstrap_target(database_url) == "20260825_0023"
     assert _workspace_count(database_url) == 0
 
 
@@ -187,11 +183,7 @@ def test_revision_row_count_must_be_exactly_one(
         for index in range(revision_count):
             connection.execute(
                 text("INSERT INTO alembic_version (version_num) VALUES (:revision)"),
-                {
-                    "revision": (
-                        BOOTSTRAP_TARGET_REVISION if index == 0 else "20260808_0015"
-                    )
-                },
+                {"revision": (BOOTSTRAP_TARGET_REVISION if index == 0 else "20260808_0015")},
             )
     engine.dispose()
 
@@ -206,9 +198,7 @@ def test_missing_workspace_table_is_blocked(tmp_path: Path) -> None:
     database_url = f"sqlite:///{path.as_posix()}"
     engine = create_database_engine(database_url)
     with engine.begin() as connection:
-        connection.execute(
-            text("CREATE TABLE alembic_version (version_num VARCHAR(32))")
-        )
+        connection.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32))"))
         connection.execute(
             text("INSERT INTO alembic_version VALUES (:revision)"),
             {"revision": BOOTSTRAP_TARGET_REVISION},
@@ -317,9 +307,7 @@ def test_failure_rolls_back_created_workspace(
     database_url = _database_url(tmp_path / "rollback.db")
     original_add = WorkspaceRepository.add_workspace
 
-    def fail_after_flush(
-        repository: WorkspaceRepository, workspace: Workspace
-    ) -> Workspace:
+    def fail_after_flush(repository: WorkspaceRepository, workspace: Workspace) -> Workspace:
         original_add(repository, workspace)
         raise RuntimeError("injected bootstrap failure")
 

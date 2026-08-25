@@ -53,9 +53,7 @@ def _mp3_payload() -> bytes:
     return b"ID3\x04\x00\x00\x00\x00\x00\x00\xff\xfb\x90\x64Xing\x00\x00\x00\x00"
 
 
-def _artifact(
-    asset_version_id: UUID, *, duration_us: int | None, suffix: str = "wav"
-) -> Artifact:
+def _artifact(asset_version_id: UUID, *, duration_us: int | None, suffix: str = "wav") -> Artifact:
     media_type = {
         "wav": "audio/wav",
         "flac": "audio/flac",
@@ -80,30 +78,22 @@ class _Reader:
         self.artifacts = artifacts
         self.requests: list[UUID] = []
 
-    def list_clip_source_artifact_candidates(
-        self, asset_version_id: UUID
-    ) -> list[Artifact]:
+    def list_clip_source_artifact_candidates(self, asset_version_id: UUID) -> list[Artifact]:
         self.requests.append(asset_version_id)
         return self.artifacts
 
 
 def test_wav_duration_is_positive_exact_and_deterministic(tmp_path: Path) -> None:
     path = _write(tmp_path / "source.wav", _wav_payload())
-    first = validate_artifact_media(
-        path, artifact_kind="audio", size_bytes=path.stat().st_size
-    )
-    second = validate_artifact_media(
-        path, artifact_kind="audio", size_bytes=path.stat().st_size
-    )
+    first = validate_artifact_media(path, artifact_kind="audio", size_bytes=path.stat().st_size)
+    second = validate_artifact_media(path, artifact_kind="audio", size_bytes=path.stat().st_size)
     assert first == second
     assert first.media_type == "audio/wav"
     assert first.duration_us == 2_000
 
 
 @pytest.mark.parametrize("mutation", ["zero_rate", "truncated"])
-def test_wav_invalid_metadata_and_truncation_fail_closed(
-    tmp_path: Path, mutation: str
-) -> None:
+def test_wav_invalid_metadata_and_truncation_fail_closed(tmp_path: Path, mutation: str) -> None:
     payload = bytearray(_wav_payload())
     if mutation == "zero_rate":
         payload[24:28] = b"\x00\x00\x00\x00"
@@ -116,9 +106,7 @@ def test_wav_invalid_metadata_and_truncation_fail_closed(
 
 def test_flac_streaminfo_duration_and_malformed_metadata(tmp_path: Path) -> None:
     valid = _write(tmp_path / "valid.flac", _flac_payload())
-    media = validate_artifact_media(
-        valid, artifact_kind="audio", size_bytes=valid.stat().st_size
-    )
+    media = validate_artifact_media(valid, artifact_kind="audio", size_bytes=valid.stat().st_size)
     assert media.media_type == "audio/flac"
     assert media.duration_us == 2_000
 
@@ -146,9 +134,7 @@ def test_mp3_is_format_valid_but_duration_unavailable_without_estimation(
     tmp_path: Path,
 ) -> None:
     path = _write(tmp_path / "vbr.mp3", _mp3_payload())
-    media = validate_artifact_media(
-        path, artifact_kind="audio", size_bytes=path.stat().st_size
-    )
+    media = validate_artifact_media(path, artifact_kind="audio", size_bytes=path.stat().st_size)
     assert media.media_type == "audio/mpeg"
     assert media.duration_us is None
 

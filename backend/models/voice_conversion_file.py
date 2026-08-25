@@ -18,9 +18,7 @@ if TYPE_CHECKING:
 class VoiceConversionFile(Base):
     __tablename__ = "voice_conversion_files"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     job_id: Mapped[str] = mapped_column(
         String(36),
         ForeignKey("voice_conversion_jobs.id", ondelete="CASCADE"),

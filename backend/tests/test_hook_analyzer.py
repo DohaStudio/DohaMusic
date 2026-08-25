@@ -20,9 +20,7 @@ def _write_wave(path: Path, samples: np.ndarray) -> Path:
     return path
 
 
-def _tone(
-    duration: float, amplitude: float = 0.1, frequency: float = 220
-) -> np.ndarray:
+def _tone(duration: float, amplitude: float = 0.1, frequency: float = 220) -> np.ndarray:
     times = np.arange(round(duration * SAMPLE_RATE)) / SAMPLE_RATE
     return amplitude * np.sin(2 * np.pi * frequency * times)
 
@@ -39,15 +37,11 @@ def _repeating_hook_fixture(path: Path) -> Path:
 
 
 def test_selects_repeated_high_energy_hook_candidate(tmp_path: Path) -> None:
-    result = DefaultHookAnalyzer().analyze(
-        _repeating_hook_fixture(tmp_path / "repeated-hook.wav")
-    )
+    result = DefaultHookAnalyzer().analyze(_repeating_hook_fixture(tmp_path / "repeated-hook.wav"))
 
     assert result.status is AudioAnalysisStatus.COMPLETED
     assert result.candidate is not None
-    assert (
-        result.candidate.selection_strategy is HookSelectionStrategy.ENERGY_REPETITION
-    )
+    assert result.candidate.selection_strategy is HookSelectionStrategy.ENERGY_REPETITION
     assert result.candidate.confidence >= 0.5
     assert result.candidate.duration_seconds == pytest.approx(15.0)
     assert result.candidate.start_seconds == pytest.approx(10.0, abs=2.0)
@@ -67,9 +61,7 @@ def test_selects_single_energy_peak_without_claiming_repetition(tmp_path: Path) 
 
 
 def test_uses_middle_fallback_when_no_hook_evidence_exists(tmp_path: Path) -> None:
-    result = DefaultHookAnalyzer().analyze(
-        _write_wave(tmp_path / "steady.wav", _tone(60, 0.1))
-    )
+    result = DefaultHookAnalyzer().analyze(_write_wave(tmp_path / "steady.wav", _tone(60, 0.1)))
 
     assert result.status is AudioAnalysisStatus.PARTIAL
     assert result.candidate is not None
@@ -81,9 +73,7 @@ def test_uses_middle_fallback_when_no_hook_evidence_exists(tmp_path: Path) -> No
 
 
 def test_short_wav_uses_whole_track_as_partial_fallback(tmp_path: Path) -> None:
-    result = DefaultHookAnalyzer().analyze(
-        _write_wave(tmp_path / "short.wav", _tone(8, 0.1))
-    )
+    result = DefaultHookAnalyzer().analyze(_write_wave(tmp_path / "short.wav", _tone(8, 0.1)))
 
     assert result.status is AudioAnalysisStatus.PARTIAL
     assert result.candidate is not None

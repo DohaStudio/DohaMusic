@@ -132,9 +132,7 @@ class WorkspaceRepository:
         limit: int = 100,
         offset: int = 0,
     ) -> list[MusicProject]:
-        statement = select(MusicProject).where(
-            MusicProject.workspace_id == workspace_id
-        )
+        statement = select(MusicProject).where(MusicProject.workspace_id == workspace_id)
         if not include_deleted:
             statement = statement.where(MusicProject.deleted_at.is_(None))
         statement = (
@@ -202,9 +200,7 @@ class WorkspaceRepository:
     def get_project_asset(
         self, project_asset_id: UUID, *, include_deleted: bool = False
     ) -> ProjectAsset | None:
-        statement = select(ProjectAsset).where(
-            ProjectAsset.project_asset_id == project_asset_id
-        )
+        statement = select(ProjectAsset).where(ProjectAsset.project_asset_id == project_asset_id)
         if not include_deleted:
             statement = statement.where(ProjectAsset.deleted_at.is_(None))
         return self.session.scalar(statement)
@@ -221,9 +217,7 @@ class WorkspaceRepository:
         if not include_deleted:
             statement = statement.where(ProjectAsset.deleted_at.is_(None))
         statement = (
-            statement.order_by(
-                ProjectAsset.display_order, ProjectAsset.project_asset_id
-            )
+            statement.order_by(ProjectAsset.display_order, ProjectAsset.project_asset_id)
             .limit(limit)
             .offset(offset)
         )
@@ -302,16 +296,12 @@ class WorkspaceRepository:
         return project_asset
 
 
-def _validate_keyset_position(
-    last_created_at: datetime | None, last_id: UUID | None
-) -> None:
+def _validate_keyset_position(last_created_at: datetime | None, last_id: UUID | None) -> None:
     if (last_created_at is None) != (last_id is None):
         raise ValueError("keyset position requires both created_at and id")
 
 
-def _validate_display_order_position(
-    last_display_order: int | None, last_id: UUID | None
-) -> None:
+def _validate_display_order_position(last_display_order: int | None, last_id: UUID | None) -> None:
     if (last_display_order is None) != (last_id is None):
         raise ValueError("keyset position requires both display_order and id")
     if last_display_order is not None and (

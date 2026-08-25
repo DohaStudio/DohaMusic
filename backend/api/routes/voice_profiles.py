@@ -38,9 +38,7 @@ def create_voice_profile(
     return VoiceProfileRead.model_validate(service.create(request))
 
 
-@router.post(
-    "/upload", response_model=VoiceProfileRead, status_code=status.HTTP_201_CREATED
-)
+@router.post("/upload", response_model=VoiceProfileRead, status_code=status.HTTP_201_CREATED)
 async def upload_voice_profile(
     service: VoiceUploadServiceDependency,
     name: Annotated[str, Form(min_length=1, max_length=100)],
@@ -66,8 +64,7 @@ def list_voice_profiles(
     offset: Annotated[int, Query(ge=0)] = 0,
 ) -> list[VoiceProfileRead]:
     return [
-        VoiceProfileRead.model_validate(item)
-        for item in service.list(limit=limit, offset=offset)
+        VoiceProfileRead.model_validate(item) for item in service.list(limit=limit, offset=offset)
     ]
 
 

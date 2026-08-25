@@ -48,9 +48,7 @@ class GenerationWorker:
                     seed=job.seed,
                 )
                 repository.transition(job, JobStatus.GENERATING, "generation_started")
-                model_name = getattr(
-                    self.music_generator, "model_name", "configured-adapter"
-                )
+                model_name = getattr(self.music_generator, "model_name", "configured-adapter")
                 logger.info(
                     "inference_started job_id=%s model=%s",
                     job_id,
@@ -98,6 +96,4 @@ class GenerationWorker:
                 )
             finally:
                 elapsed_ms = round((time.perf_counter() - started_at) * 1_000, 2)
-                logger.info(
-                    "worker_finished job_id=%s duration_ms=%s", job_id, elapsed_ms
-                )
+                logger.info("worker_finished job_id=%s duration_ms=%s", job_id, elapsed_ms)

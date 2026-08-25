@@ -1,6 +1,6 @@
 # Trusted Payload Locator / Resolver Contract
 
-> 문서 상태: [완료: process-local locator·issuer·resolver Foundation, durable persistence authority] / [미구현: dedicated schema/Runtime·staging·downloader·Completion adapter·Worker wiring]
+> 문서 상태: [완료: process-local locator 호환 adapter, durable schema/Runtime foundation] / [미구현: byte staging·downloader·Completion adapter·Worker wiring]
 > 최종 수정일: 2026-08-25
 > 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
 
@@ -19,7 +19,7 @@ DohaMusic-owned staging payload
 → future internal Completion adapter [미구현]
 ```
 
-Public API operation은 추가하지 않았다. issuer/resolver는 DB transaction을 소유하지 않고 ProviderResultIngestionService, Worker, ProviderDispatcher, downloader와 아직 연결하지 않는다.
+Public API operation은 추가하지 않았다. durable `PayloadLocatorService`는 port를 통해 짧은 transaction을 소유하고 app composition root에서 생성 가능하지만 ProviderResultIngestionService, Worker, ProviderDispatcher와 downloader에는 아직 연결하지 않는다.
 
 ## 2. locator와 descriptor
 
@@ -46,7 +46,7 @@ locator는 `namespace=payloadref`, `version=1`, 추론 불가능한 `opaque_id`�
 
 ## 5. 구현 범위와 process boundary
 
-`InMemoryTrustedPayloadRegistry`는 deterministic clock/ID를 주입할 수 있는 process-local Foundation fake이며 production 구현이 아니다. current locator 형식과 resolver의 staging·무결성 경계는 유지한다. 재분석 결과는 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`이며 `ProviderJobBinding 1:N PayloadLocator`가 source expectation과 verified staging·revocation·cleanup을 결합한다. schema와 Runtime은 후속 구현이고 이번 문서 변경의 Alembic revision은 0개다. 상세 Column·state·crash 정책은 [Durable Payload Locator Authority](durable-payload-locator-authority.md)를 따른다.
+`InMemoryTrustedPayloadRegistry`는 deterministic clock/ID를 주입할 수 있는 process-local Foundation fake이며 production authority가 아니다. current locator 형식과 file-backed resolver 회귀는 유지한다. durable `ProviderJobBinding 1:N PayloadLocator`는 source expectation과 verified staging metadata·revocation·cleanup을 SQLAlchemy/SQLite와 Alembic `20260825_0023`에 보존한다. exact replay와 lifecycle mutation은 Service-owned transaction 및 revision CAS를 사용한다. 상세 Column·state·crash 정책은 [Durable Payload Locator Authority](durable-payload-locator-authority.md)를 따른다.
 
 DohaVocal `0.1.0` metadata-only 결과는 `payload_present=false`, `payload_reference=None`, binary·structured eligibility false다. `0.2.0` payload-backed 결과도 현재는 read-only adapter가 network transaction 밖에서 bounded transient bytes를 검증하는 데 그치며 `payload_reference=None`과 ingestion eligibility false를 유지한다. 이 bytes를 durable staging에 두고 issuer로 reference를 만든 뒤 Completion에 전달하는 downloader orchestration, Artifact ingestion, AssetVersion·JobOutput·ModelUsage commit은 모두 `[미구현]`이다. arbitrary URL fetch는 허용하지 않는다.
 

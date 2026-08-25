@@ -73,9 +73,11 @@ class AssetService:
         normalized_status = _required_text(lifecycle_status, "Asset 상태")
         try:
             with self.session_factory() as session, session.begin():
-                if workspace_id is not None:
-                    if WorkspaceRepository(session).get_workspace(workspace_id) is None:
-                        raise ResourceNotFoundError("Workspace")
+                if (
+                    workspace_id is not None
+                    and WorkspaceRepository(session).get_workspace(workspace_id) is None
+                ):
+                    raise ResourceNotFoundError("Workspace")
                 asset = AssetRepository(session).add_asset(
                     Asset(
                         workspace_id=workspace_id,
@@ -200,9 +202,7 @@ class AssetService:
             session.flush()
         return asset
 
-    def select_asset_version(
-        self, asset_id: UUID, asset_version_id: UUID | None
-    ) -> Asset:
+    def select_asset_version(self, asset_id: UUID, asset_version_id: UUID | None) -> Asset:
         with self.session_factory() as session, session.begin():
             repository = AssetRepository(session)
             asset = repository.get_asset(asset_id)
@@ -211,9 +211,7 @@ class AssetService:
             if asset_version_id is not None:
                 version = repository.get_asset_version(asset_version_id)
                 if version is None or version.asset_id != asset_id:
-                    raise ApplicationValidationError(
-                        "선택 Version은 같은 Asset에 속해야 합니다."
-                    )
+                    raise ApplicationValidationError("선택 Version은 같은 Asset에 속해야 합니다.")
             asset.selected_asset_version_id = asset_version_id
             session.flush()
         return asset
@@ -255,22 +253,18 @@ class AssetService:
                         raise ApplicationValidationError(
                             "상위 Version은 같은 Asset에 속해야 합니다."
                         )
-                if processing_chain_id is not None:
-                    if (
-                        CompositionRepository(session).get_processing_chain(
-                            processing_chain_id
-                        )
-                        is None
-                    ):
-                        raise ResourceNotFoundError("ProcessingChain")
+                if (
+                    processing_chain_id is not None
+                    and CompositionRepository(session).get_processing_chain(processing_chain_id)
+                    is None
+                ):
+                    raise ResourceNotFoundError("ProcessingChain")
                 resolved_number = version_number
                 if resolved_number is None:
                     latest = repository.get_latest_asset_version(asset_id)
                     resolved_number = 1 if latest is None else latest.version_number + 1
                 if resolved_number < 1:
-                    raise ApplicationValidationError(
-                        "version_number는 1 이상이어야 합니다."
-                    )
+                    raise ApplicationValidationError("version_number는 1 이상이어야 합니다.")
                 if repository.version_number_exists(asset_id, resolved_number):
                     raise ResourceConflictError("AssetVersion 번호")
                 version = repository.add_asset_version(
@@ -341,12 +335,8 @@ class AssetService:
     ) -> Artifact:
         normalized_algorithm = checksum_algorithm.strip().lower()
         normalized_checksum = artifact_checksum.strip().lower()
-        if normalized_algorithm != "sha256" or not SHA256_PATTERN.fullmatch(
-            normalized_checksum
-        ):
-            raise ApplicationValidationError(
-                "Artifact checksum은 sha256 64자리 16진수여야 합니다."
-            )
+        if normalized_algorithm != "sha256" or not SHA256_PATTERN.fullmatch(normalized_checksum):
+            raise ApplicationValidationError("Artifact checksum은 sha256 64자리 16진수여야 합니다.")
         if size_bytes < 0:
             raise ApplicationValidationError("Artifact size는 0 이상이어야 합니다.")
         try:
@@ -365,9 +355,7 @@ class AssetService:
                         producer_type=_required_text(producer_type, "생성 주체 유형"),
                         producer_id=producer_id.strip() if producer_id else None,
                         run_id=run_id.strip() if run_id else None,
-                        retention_status=_required_text(
-                            retention_status, "Artifact 보존 상태"
-                        ),
+                        retention_status=_required_text(retention_status, "Artifact 보존 상태"),
                     )
                 )
             return artifact
@@ -388,9 +376,7 @@ class AssetService:
             repository = AssetRepository(session)
             if repository.get_asset_version(asset_version_id) is None:
                 raise ResourceNotFoundError("AssetVersion")
-            return repository.list_version_artifacts(
-                asset_version_id, limit=limit, offset=offset
-            )
+            return repository.list_version_artifacts(asset_version_id, limit=limit, offset=offset)
 
     def create_asset_relation(
         self,
@@ -402,9 +388,7 @@ class AssetService:
         target_asset_version_id: UUID | None = None,
     ) -> AssetRelation:
         asset_pair = source_asset_id is not None and target_asset_id is not None
-        version_pair = (
-            source_asset_version_id is not None and target_asset_version_id is not None
-        )
+        version_pair = source_asset_version_id is not None and target_asset_version_id is not None
         if asset_pair == version_pair:
             raise ApplicationValidationError(
                 "Asset 쌍 또는 AssetVersion 쌍 중 정확히 하나가 필요합니다."
@@ -412,9 +396,7 @@ class AssetService:
         if source_asset_id == target_asset_id and asset_pair:
             raise ApplicationValidationError("Asset 자기 관계는 허용되지 않습니다.")
         if source_asset_version_id == target_asset_version_id and version_pair:
-            raise ApplicationValidationError(
-                "AssetVersion 자기 관계는 허용되지 않습니다."
-            )
+            raise ApplicationValidationError("AssetVersion 자기 관계는 허용되지 않습니다.")
         normalized_type = _required_text(relation_type, "관계 유형")
         try:
             with self.session_factory() as session, session.begin():

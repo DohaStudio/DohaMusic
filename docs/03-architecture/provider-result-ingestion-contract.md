@@ -1,6 +1,6 @@
 # Provider Result → Artifact Ingestion Contract
 
-> 문서 상태: [완료: `0.1.0` metadata-only 및 `0.2.0` payload candidate trust gate·transient acquisition] / [미구현: durable locator·Completion adapter·실제 ingestion]
+> 문서 상태: [완료: `0.1.0`/`0.2.0` trust gate·transient acquisition·durable locator persistence] / [미구현: staging·Completion adapter·실제 ingestion]
 > 최종 수정일: 2026-08-25
 > 기준: DohaMusic `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md), [Durable Payload Locator Authority](durable-payload-locator-authority.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
@@ -59,11 +59,11 @@ payload_reference = null
 
 `metadata_descriptor` checksum은 candidate metadata의 일관성만 증명한다. Artifact ingestion은 DohaMusic이 소유한 trusted staging Payload의 실제 bytes에서 size, MIME과 payload SHA-256을 다시 계산해야 한다. descriptor checksum을 binary 또는 structured Payload checksum으로 변환하거나 재사용하지 않는다.
 
-DohaMusic runtime이 발급하는 [Trusted Payload Locator / Resolver Contract](trusted-payload-locator-resolver-contract.md)는 `payloadref:v1:<opaque-id>`를 trusted staging에 결합하고 expiry·실제 byte checksum·size·media type을 fail-closed 검증한다. Provider path·URI와 wire source는 authority가 아니다. metadata-only candidate는 `payload_absent`, `0.2.0` candidate는 locator가 없으므로 `payload_acquisition_required`로 `require_payload_reference()`를 거부한다. 재시작 시 source descriptor는 Result replay로 다시 만들 수 있지만 transient `previous` candidate는 durable baseline이 아니므로, locator 발급 뒤 replay는 dedicated row의 immutable expected fields와 비교한다. locator schema/Runtime·durable staging·resolver→`ProviderOutput` adapter는 아직 구현하지 않았다.
+DohaMusic runtime의 [Trusted Payload Locator / Resolver Contract](trusted-payload-locator-resolver-contract.md)는 `payloadref:v1:<opaque-id>`와 expected source facts, 선택적 verified staging metadata를 durable row에 결합한다. Provider path·URI와 wire source는 authority가 아니다. metadata-only candidate는 `payload_absent`, `0.2.0` candidate는 orchestration 연결 전이므로 계속 `payload_acquisition_required`로 `require_payload_reference()`를 거부한다. locator issue Service는 구현됐지만 trust gate에서 자동 호출하지 않는다. 발급 뒤 Result replay는 dedicated row의 immutable expected fields와 비교할 수 있다. durable byte staging·resolver→`ProviderOutput` adapter는 아직 구현하지 않았다.
 
 ## 5. Idempotency와 transaction
 
-검증 결과의 논리 idempotency key는 `(provider_job_binding_id, output_role, provider_artifact_id)`다. 같은 candidate를 반복 검증해도 DB·filesystem side effect가 없다. 후속 locator issue는 ordered 1:N을 보존하기 위해 binding + payload ordinal과 canonical source tuple을 unique로 사용하고 immutable expectation mismatch를 replay conflict로 만든다. 현재 contract 변경만으로 table이나 Alembic revision을 추가하지 않는다.
+검증 결과의 논리 idempotency key는 `(provider_job_binding_id, output_role, provider_artifact_id)`다. 같은 candidate를 반복 검증해도 DB·filesystem side effect가 없다. 별도 locator issue는 ordered 1:N을 보존하기 위해 binding + payload ordinal과 canonical source tuple을 unique로 사용하고 immutable expectation mismatch를 `RESULT_REPLAY_CONFLICT`로 만든다. 이 persistence foundation은 Alembic `20260825_0023`을 사용하지만 trust gate 자체의 read-only transaction 경계는 바꾸지 않는다.
 
 실제 payload ingestion이 도입되면 DB 조회 validation과 Completion write를 일관된 transaction 경계에서 재검증해야 한다. Provider network와 파일 전송은 DB transaction 밖에 둔다.
 
@@ -73,8 +73,8 @@ Candidate role은 Completion에 직접 전달하지 않는다. DohaMusic-owned m
 
 - Worker / `ProviderDispatcher` wiring과 polling
 - 실제 DohaVocal 인증·Provider execution
-- payload locator 발급·downloader orchestration·durable staging·resolver 연결
+- trust gate → payload locator issue 연결, downloader orchestration·durable byte staging·resolver 연결
 - 실제 audio/structured Payload ingestion
 - `Artifact`·`AssetVersion`·`JobOutput`·`ModelUsage` 생성
 - Workspace Job completion
-- 신규 DB persistence·Public API
+- Product Public API

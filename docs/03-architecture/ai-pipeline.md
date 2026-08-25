@@ -5,7 +5,7 @@
 > 최종 수정일: 2026-08-25
 > 관련 문서: [저장소와 Provider 경계](repository-provider-boundaries.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [ADR-028](../11-decisions/ADR-028-provider-runtime-artifact-contract.md)
 
-DohaVocal 연동은 `0.2.0` payload Result의 read-only trust/acquisition foundation까지 구현되었다. 검증된 transient bytes를 Workspace Artifact로 만드는 ingestion, durable locator 및 Worker/Completion orchestration은 [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md)에 따라 후속 범위다.
+DohaVocal 연동은 `0.2.0` payload Result의 read-only trust/acquisition과 durable `PayloadLocator` persistence foundation까지 구현되었다. 검증된 transient bytes의 durable staging, Workspace Artifact ingestion 및 Worker/Completion orchestration은 [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md)과 [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)에 따른 후속 범위다.
 
 ```mermaid
 flowchart LR

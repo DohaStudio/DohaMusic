@@ -18,7 +18,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260808_0015"
 PREVIOUS_REVISION = "20260807_0014"
-SOURCE_HEAD = "20260825_0022"
+SOURCE_HEAD = "20260825_0023"
 INDEXES = {
     "ix_assets_owner_active_keyset": (
         "owner_id",
@@ -67,9 +67,7 @@ def _insert_fixtures(database_url: str) -> None:
         owner_index = (value - 1) % len(owners)
         created_at = origin - timedelta(minutes=value // 12)
         workspace_id = (
-            None
-            if value % 19 == 0
-            else _identifier(2, owner_index + 1 + 4 * ((value // 4) % 3))
+            None if value % 19 == 0 else _identifier(2, owner_index + 1 + 4 * ((value // 4) % 3))
         )
         assets.append(
             {
@@ -79,9 +77,7 @@ def _insert_fixtures(database_url: str) -> None:
                 "asset_type": kinds[value % len(kinds)],
                 "lifecycle_status": statuses[value % len(statuses)],
                 "created_at": created_at,
-                "deleted_at": (
-                    created_at + timedelta(days=1) if value % 11 == 0 else None
-                ),
+                "deleted_at": (created_at + timedelta(days=1) if value % 11 == 0 else None),
             }
         )
     with engine.begin() as connection:
@@ -112,8 +108,7 @@ def _insert_fixtures(database_url: str) -> None:
 
 def _queries() -> dict[str, tuple[str, tuple[object, ...], str]]:
     columns = (
-        "asset_id, workspace_id, owner_id, asset_type, lifecycle_status, "
-        "created_at, deleted_at"
+        "asset_id, workspace_id, owner_id, asset_type, lifecycle_status, created_at, deleted_at"
     )
     owner_id = _identifier(1, 1)
     workspace_id = _identifier(2, 1)
@@ -193,9 +188,7 @@ def _plans_and_rows(database_url: str):
         for name, (query, parameters, _) in _queries().items():
             plans[name] = " | ".join(
                 row[3]
-                for row in connection.exec_driver_sql(
-                    f"EXPLAIN QUERY PLAN {query}", parameters
-                )
+                for row in connection.exec_driver_sql(f"EXPLAIN QUERY PLAN {query}", parameters)
             )
             rows[name] = list(connection.exec_driver_sql(query, parameters))
     engine.dispose()
@@ -218,12 +211,10 @@ def _create_candidates(database_url: str, *, partial: bool) -> None:
     engine = create_database_engine(database_url)
     with engine.begin() as connection:
         connection.exec_driver_sql(
-            f"CREATE INDEX candidate_owner_{suffix} ON assets ({owner_columns})"
-            f"{predicate}"
+            f"CREATE INDEX candidate_owner_{suffix} ON assets ({owner_columns}){predicate}"
         )
         connection.exec_driver_sql(
-            f"CREATE INDEX candidate_workspace_{suffix} ON assets "
-            f"({workspace_columns}){predicate}"
+            f"CREATE INDEX candidate_workspace_{suffix} ON assets ({workspace_columns}){predicate}"
         )
         connection.exec_driver_sql("ANALYZE")
     engine.dispose()
@@ -243,9 +234,7 @@ def _database_contract(database_url: str) -> dict[str, object]:
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
         table_names = sorted(
-            name
-            for name in inspect(connection).get_table_names()
-            if name != "alembic_version"
+            name for name in inspect(connection).get_table_names() if name != "alembic_version"
         )
         rows = connection.exec_driver_sql(
             "SELECT asset_id, workspace_id, owner_id, asset_type, "
@@ -257,15 +246,9 @@ def _database_contract(database_url: str) -> dict[str, object]:
             "tables": tuple(table_names),
             "asset_count": len(rows),
             "asset_digest": digest,
-            "quick_check": connection.exec_driver_sql(
-                "PRAGMA quick_check"
-            ).scalar_one(),
-            "integrity_check": connection.exec_driver_sql(
-                "PRAGMA integrity_check"
-            ).scalar_one(),
-            "foreign_key_check": connection.exec_driver_sql(
-                "PRAGMA foreign_key_check"
-            ).all(),
+            "quick_check": connection.exec_driver_sql("PRAGMA quick_check").scalar_one(),
+            "integrity_check": connection.exec_driver_sql("PRAGMA integrity_check").scalar_one(),
+            "foreign_key_check": connection.exec_driver_sql("PRAGMA foreign_key_check").all(),
         }
     engine.dispose()
     return result
@@ -297,25 +280,19 @@ def test_asset_index_candidates_query_plan_and_round_trip(tmp_path: Path) -> Non
     baseline_contract = _database_contract(database_url)
     baseline_plans, baseline_rows = _plans_and_rows(database_url)
     assert len(baseline_contract["tables"]) == 35
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" in plan for plan in baseline_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" in plan for plan in baseline_plans.values())
 
     _create_candidates(database_url, partial=False)
     full_plans, full_rows = _plans_and_rows(database_url)
     assert all("candidate_" in plan for plan in full_plans.values())
     assert all("_full" in plan for plan in full_plans.values())
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" not in plan for plan in full_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" not in plan for plan in full_plans.values())
     assert full_rows == baseline_rows
     _drop_candidates(database_url, partial=False)
 
     _create_candidates(database_url, partial=True)
     partial_plans, partial_rows = _plans_and_rows(database_url)
-    assert all(
-        "USE TEMP B-TREE FOR ORDER BY" in plan for plan in partial_plans.values()
-    )
+    assert all("USE TEMP B-TREE FOR ORDER BY" in plan for plan in partial_plans.values())
     assert partial_rows == baseline_rows
     _drop_candidates(database_url, partial=True)
 
@@ -347,9 +324,7 @@ def test_asset_index_candidates_query_plan_and_round_trip(tmp_path: Path) -> Non
             if index["name"] in INDEXES
         )
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == REVISION
         )
     engine.dispose()
@@ -359,14 +334,10 @@ def test_asset_index_candidates_query_plan_and_round_trip(tmp_path: Path) -> Non
     assert downgraded_contract == baseline_contract
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
-        remaining = {
-            index["name"] for index in inspect(connection).get_indexes("assets")
-        }
+        remaining = {index["name"] for index in inspect(connection).get_indexes("assets")}
         assert not INDEXES.keys() & remaining
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == PREVIOUS_REVISION
         )
     engine.dispose()

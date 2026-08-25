@@ -8,8 +8,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import select
 
-from backend.core.job_status import JobStatus
 from backend.audio_analysis import AudioAnalysisResult
+from backend.core.job_status import JobStatus
 from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
 from backend.pipeline.context import PipelineContext
@@ -81,8 +81,7 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     assert completed["audio_analysis"]["tempo"]["detected_bpm"] is None
     assert completed["audio_analysis"]["hook"]["status"] == "PARTIAL"
     assert (
-        completed["audio_analysis"]["hook"]["candidate"]["selection_strategy"]
-        == "fallback_middle"
+        completed["audio_analysis"]["hook"]["candidate"]["selection_strategy"] == "fallback_middle"
     )
     assert "source_file_role" not in completed["audio_analysis"]
     metadata = completed["result_metadata"]
@@ -101,9 +100,7 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
         "mixer": "default",
         "export": "wav",
     }
-    mixer_metrics = next(
-        item for item in metadata["step_execution"] if item["step"] == "mixer"
-    )
+    mixer_metrics = next(item for item in metadata["step_execution"] if item["step"] == "mixer")
     assert mixer_metrics["audio_quality"]["sample_rate"] == 48_000
     assert mixer_metrics["audio_quality"]["channels"] == 2
     assert mixer_metrics["audio_quality"]["clipping"]["detected"] is False
@@ -120,13 +117,9 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
     final = next(item for item in files if item["file_type"] == "final")
     assert all("file_path" not in item for item in files)
     with client.app.state.session_factory() as session:
-        final_record = session.scalar(
-            select(PipelineFile).where(PipelineFile.id == final["id"])
-        )
+        final_record = session.scalar(select(PipelineFile).where(PipelineFile.id == final["id"]))
         assert final_record is not None
-        final_path = client.app.state.storage.resolve_relative_path(
-            final_record.file_path
-        )
+        final_path = client.app.state.storage.resolve_relative_path(final_record.file_path)
     with wave.open(str(final_path), "rb") as audio:
         assert audio.getframerate() == 48_000
         assert audio.getnchannels() == 2
@@ -183,9 +176,7 @@ def test_pipeline_retries_retryable_provider_failure(client: TestClient) -> None
 
     assert completed["status"] == "COMPLETED"
     attempts = [
-        item
-        for item in completed["result_metadata"]["step_execution"]
-        if item["step"] == "music"
+        item for item in completed["result_metadata"]["step_execution"] if item["step"] == "music"
     ]
     assert [item["status"] for item in attempts] == ["FAILED", "COMPLETED"]
     assert flaky.calls == 2
@@ -277,8 +268,8 @@ def test_analysis_runs_after_irreversible_pipeline_completion(
     client: TestClient,
 ) -> None:
     profile_id = create_profile(client)
-    client.app.state.pipeline_worker.audio_quality_analyzer = (
-        CompletionBoundaryAnalyzer(client.app.state.session_factory)
+    client.app.state.pipeline_worker.audio_quality_analyzer = CompletionBoundaryAnalyzer(
+        client.app.state.session_factory
     )
     response = client.post(
         "/api/pipelines",
@@ -305,9 +296,7 @@ class AlwaysFailingConverter:
 def test_pipeline_failure_records_step_and_cleans_partial_audio(
     client: TestClient,
 ) -> None:
-    client.app.state.pipeline_worker.executor.steps[
-        2
-    ].converter = AlwaysFailingConverter()
+    client.app.state.pipeline_worker.executor.steps[2].converter = AlwaysFailingConverter()
     job = create_pipeline(client, create_profile(client))
     failed = wait_for_pipeline(client, str(job["id"]))
 
@@ -330,9 +319,7 @@ class FailingStep:
 
 
 @pytest.mark.parametrize("index", [0, 1, 2])
-def test_music_stem_and_voice_step_failures_are_attributed(
-    client: TestClient, index: int
-) -> None:
+def test_music_stem_and_voice_step_failures_are_attributed(client: TestClient, index: int) -> None:
     original = client.app.state.pipeline_worker.executor.steps[index]
     client.app.state.pipeline_worker.executor.steps[index] = FailingStep(
         original.name, original.status, original.progress_percent
@@ -353,9 +340,7 @@ def test_pipeline_rejects_unknown_profile_and_invalid_input(client: TestClient) 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "RESOURCE_NOT_FOUND"
     assert (
-        client.post(
-            "/api/pipelines", json={"prompt": "", "voice_profile_id": "short"}
-        ).status_code
+        client.post("/api/pipelines", json={"prompt": "", "voice_profile_id": "short"}).status_code
         == 422
     )
     assert client.get("/api/pipelines/missing").status_code == 404
@@ -508,29 +493,18 @@ def test_retry_analyzes_new_wav_instead_of_copying_source_tempo(
     assert retried["audio_analysis"]["tempo"]["detected_bpm"] is None
     assert retried["audio_analysis"]["tempo"]["confidence"] is None
     assert retried["audio_analysis"]["hook"]["candidate"]["start_seconds"] == 0
+    assert retried["audio_analysis"]["hook"]["candidate"]["selection_strategy"] == "fallback_middle"
     assert (
-        retried["audio_analysis"]["hook"]["candidate"]["selection_strategy"]
-        == "fallback_middle"
-    )
-    assert (
-        client.get(f"/api/pipelines/{source.id}").json()["audio_analysis"]["tempo"][
-            "detected_bpm"
-        ]
+        client.get(f"/api/pipelines/{source.id}").json()["audio_analysis"]["tempo"]["detected_bpm"]
         == 99.9
     )
-    source_hook = client.get(f"/api/pipelines/{source.id}").json()["audio_analysis"][
-        "hook"
-    ]
+    source_hook = client.get(f"/api/pipelines/{source.id}").json()["audio_analysis"]["hook"]
     assert source_hook["candidate"]["start_seconds"] == 40.0
     assert "raw_frame_scores" not in source_hook["candidate"]
 
 
-@pytest.mark.parametrize(
-    "status", [JobStatus.PENDING, JobStatus.GENERATING, JobStatus.COMPLETED]
-)
-def test_retry_rejects_non_terminal_source(
-    client: TestClient, status: JobStatus
-) -> None:
+@pytest.mark.parametrize("status", [JobStatus.PENDING, JobStatus.GENERATING, JobStatus.COMPLETED])
+def test_retry_rejects_non_terminal_source(client: TestClient, status: JobStatus) -> None:
     source = create_stored_pipeline(client, status)
     response = client.post(f"/api/pipelines/{source.id}/retry")
     assert response.status_code == 409

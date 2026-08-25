@@ -22,9 +22,7 @@ def utc_now() -> datetime:
 class VoiceConversionJob(Base):
     __tablename__ = "voice_conversion_jobs"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     source_file_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("stem_files.id", ondelete="RESTRICT"), index=True
     )
@@ -38,9 +36,7 @@ class VoiceConversionJob(Base):
     model_version: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )

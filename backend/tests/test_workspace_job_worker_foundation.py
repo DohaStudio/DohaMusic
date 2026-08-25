@@ -101,9 +101,7 @@ class WorkerFixture:
             artifact_roots=ArtifactStorageRoots.from_base_root(artifact_root),
             staging_root=staging,
         )
-        self.completion = JobCompletionService(
-            self.factory, ingestion_service=self.ingestion
-        )
+        self.completion = JobCompletionService(self.factory, ingestion_service=self.ingestion)
 
     def create_job(self, *, job_type="lyrics_generation") -> Job:
         return (
@@ -154,11 +152,7 @@ class WorkerFixture:
                 model_version="1",
                 license_status="reviewed",
                 commercial_usage_status="allowed",
-                outputs=(
-                    ProviderOutput(
-                        0, "lyrics", payload, "lyrics_text", target_asset_id
-                    ),
-                ),
+                outputs=(ProviderOutput(0, "lyrics", payload, "lyrics_text", target_asset_id),),
             ),
         )
 
@@ -453,9 +447,9 @@ def test_provider_can_heartbeat_during_execution(worker_fixture):
         FakeDispatcher(worker_fixture.success(), heartbeat)
     ).run_once()
     assert completed.status is JobStatus.SUCCEEDED
-    assert worker_fixture.persisted(
-        job.job_id
-    ).heartbeat_at == worker_fixture.now.replace(tzinfo=None)
+    assert worker_fixture.persisted(job.job_id).heartbeat_at == worker_fixture.now.replace(
+        tzinfo=None
+    )
 
 
 def test_public_retry_job_enters_same_worker_queue(worker_fixture):
@@ -473,12 +467,8 @@ def test_public_retry_job_enters_same_worker_queue(worker_fixture):
         )
         .aggregate.job
     )
-    completed = worker_fixture.worker(
-        FakeDispatcher(worker_fixture.success())
-    ).run_once()
-    assert (
-        completed.job_id == retried.job_id and completed.status is JobStatus.SUCCEEDED
-    )
+    completed = worker_fixture.worker(FakeDispatcher(worker_fixture.success())).run_once()
+    assert completed.job_id == retried.job_id and completed.status is JobStatus.SUCCEEDED
     assert worker_fixture.persisted(original.job_id).status is JobStatus.FAILED
 
 
@@ -486,18 +476,19 @@ def test_claim_and_recovery_query_plans_use_worker_indexes(worker_fixture):
     with worker_fixture.factory() as session:
         claim = session.execute(
             text(
-                "EXPLAIN QUERY PLAN SELECT job_id FROM jobs WHERE status='queued' AND cancel_requested_at IS NULL ORDER BY created_at, job_id LIMIT 1"
+                "EXPLAIN QUERY PLAN SELECT job_id FROM jobs WHERE status='queued' "
+                "AND cancel_requested_at IS NULL ORDER BY created_at, job_id LIMIT 1"
             )
         ).all()
         recovery = session.execute(
             text(
-                "EXPLAIN QUERY PLAN SELECT job_id FROM jobs WHERE status='running' AND lease_expires_at < '9999-01-01' ORDER BY lease_expires_at, job_id LIMIT 1"
+                "EXPLAIN QUERY PLAN SELECT job_id FROM jobs WHERE status='running' "
+                "AND lease_expires_at < '9999-01-01' "
+                "ORDER BY lease_expires_at, job_id LIMIT 1"
             )
         ).all()
     claim_plan = " ".join(str(row) for row in claim)
     recovery_plan = " ".join(str(row) for row in recovery)
     assert "ix_jobs_claim_queue" in claim_plan and "TEMP B-TREE" not in claim_plan
-    assert (
-        "ix_jobs_lease_recovery" in recovery_plan and "TEMP B-TREE" not in recovery_plan
-    )
+    assert "ix_jobs_lease_recovery" in recovery_plan and "TEMP B-TREE" not in recovery_plan
     assert "SCAN jobs" not in claim_plan and "SCAN jobs" not in recovery_plan

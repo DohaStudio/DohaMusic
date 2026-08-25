@@ -68,9 +68,7 @@ def normalize_section_type(label: str) -> str:
 def validate_requested_structure(structure: tuple[str, ...]) -> None:
     unsupported = sorted(set(structure) - SUPPORTED_SECTION_TYPES)
     if unsupported:
-        raise LyricsValidationError(
-            f"지원하지 않는 가사 섹션입니다: {', '.join(unsupported)}"
-        )
+        raise LyricsValidationError(f"지원하지 않는 가사 섹션입니다: {', '.join(unsupported)}")
 
 
 def validate_lyrics(raw_lyrics: str, language: str = "ko") -> LyricsValidationResult:

@@ -19,9 +19,7 @@ EXTENSION_CONTAINERS = {
 }
 
 
-def validate_media(
-    filename: str, content_type: str | None, header: bytes
-) -> VoiceContainer:
+def validate_media(filename: str, content_type: str | None, header: bytes) -> VoiceContainer:
     if not filename or any(character in filename for character in ("/", "\\", "\x00")):
         raise VoiceAudioProcessingError("VOICE_SAMPLE_UNSUPPORTED_MEDIA_TYPE")
     extension_container = EXTENSION_CONTAINERS.get(Path(filename).suffix.lower())

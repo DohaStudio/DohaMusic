@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import ast
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -19,9 +19,10 @@ from backend.core.exceptions import (
 )
 from backend.db.base import Base
 from backend.db.session import create_database_engine
-from backend.models.pipeline_job import PipelineJob
 from backend.models.idempotency_record import IdempotencyRecord
+from backend.models.pipeline_job import PipelineJob
 from backend.models.workspace import (
+    WORKSPACE_ENTITY_CLASSES,
     Approval,
     Artifact,
     Asset,
@@ -42,7 +43,6 @@ from backend.models.workspace import (
     RecordingEnrollment,
     SnapshotItem,
     Tag,
-    WORKSPACE_ENTITY_CLASSES,
     Workspace,
 )
 from backend.repositories.workspace import CompositionRepository, JobRepository
@@ -77,9 +77,7 @@ def _count_rollback(session: TrackingSession) -> None:
 
 @pytest.fixture
 def service_factory(tmp_path: Path):
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'workspace-services.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'workspace-services.db').as_posix()}")
     tables = [entity.__table__ for entity in WORKSPACE_ENTITY_CLASSES]
     tables.append(IdempotencyRecord.__table__)
     Base.metadata.create_all(engine, tables=tables)
@@ -145,10 +143,7 @@ def test_service_transaction_commits_once_and_returns_detached_entity(
     assert TrackingSession.commits - before == 1
     assert workspace.name == "Workspace"
     assert object_session(workspace) is None
-    assert (
-        service.get_workspace(workspace.workspace_id).workspace_id
-        == workspace.workspace_id
-    )
+    assert service.get_workspace(workspace.workspace_id).workspace_id == workspace.workspace_id
 
 
 def test_workspace_project_validation_and_project_asset_restore(
@@ -168,9 +163,7 @@ def test_workspace_project_validation_and_project_asset_restore(
         role=" music ",
         display_order=1,
     )
-    service.detach_asset(
-        project_id=graph.project.project_id, asset_id=graph.asset.asset_id
-    )
+    service.detach_asset(project_id=graph.project.project_id, asset_id=graph.asset.asset_id)
     restored = service.attach_asset(
         project_id=graph.project.project_id,
         asset_id=graph.asset.asset_id,
@@ -359,9 +352,7 @@ def test_snapshot_and_processing_chain_success(service_factory) -> None:
     assert _count(service_factory, SnapshotItem) == 1
 
 
-def test_job_creation_rollback_and_pipeline_separation(
-    service_factory, monkeypatch
-) -> None:
+def test_job_creation_rollback_and_pipeline_separation(service_factory, monkeypatch) -> None:
     graph = _seed_graph(service_factory)
     service = JobService(service_factory)
     original = JobRepository.add_job_input
@@ -482,7 +473,7 @@ def test_approval_history_and_recording_enrollment(service_factory) -> None:
         status="approved",
         approved_by=graph.owner_id,
         evidence_id="decision-1",
-        decided_at=datetime.now(timezone.utc),
+        decided_at=datetime.now(UTC),
     )
     second = service.create_approval(
         recording_enrollment_id=enrollment.recording_enrollment_id,
@@ -490,7 +481,7 @@ def test_approval_history_and_recording_enrollment(service_factory) -> None:
         status="revoked",
         approved_by=graph.owner_id,
         evidence_id="decision-2",
-        decided_at=datetime.now(timezone.utc),
+        decided_at=datetime.now(UTC),
     )
     history = service.record_history(
         workspace_id=graph.workspace.workspace_id,
@@ -502,12 +493,7 @@ def test_approval_history_and_recording_enrollment(service_factory) -> None:
 
     assert first.approval_id != second.approval_id
     assert (
-        len(
-            service.list_approvals(
-                recording_enrollment_id=enrollment.recording_enrollment_id
-            )
-        )
-        == 2
+        len(service.list_approvals(recording_enrollment_id=enrollment.recording_enrollment_id)) == 2
     )
     assert history.entity_id == enrollment.recording_enrollment_id
     assert _count(service_factory, RecordingEnrollment) == 1

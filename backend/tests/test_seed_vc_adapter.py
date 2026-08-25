@@ -33,9 +33,7 @@ class RuntimeStub:
     def __init__(self, result: SeedVCRuntimeResult) -> None:
         self.result = result
 
-    def convert(
-        self, source_path: Path, reference_path: Path, job_id: str
-    ) -> SeedVCRuntimeResult:
+    def convert(self, source_path: Path, reference_path: Path, job_id: str) -> SeedVCRuntimeResult:
         return self.result
 
 
@@ -55,14 +53,10 @@ def test_seed_vc_adapter_maps_runtime_result(tmp_path: Path) -> None:
 
 
 def test_seed_vc_adapter_rejects_missing_output(tmp_path: Path) -> None:
-    result = SeedVCRuntimeResult(
-        tmp_path / "missing.wav", tmp_path / "m.json", 0, 0, None, None
-    )
+    result = SeedVCRuntimeResult(tmp_path / "missing.wav", tmp_path / "m.json", 0, 0, None, None)
     with pytest.raises(VoiceOutputNotCreatedError):
         SeedVCAdapter(config(tmp_path), RuntimeStub(result)).convert(
-            VoiceConversionInput(
-                "job", tmp_path / "source.wav", tmp_path / "reference.wav"
-            )
+            VoiceConversionInput("job", tmp_path / "source.wav", tmp_path / "reference.wav")
         )
 
 

@@ -45,9 +45,7 @@ DOMAIN_ARTIFACT_KINDS = {
     "lm": frozenset({"lyrics_text", "manifest", "evaluation"}),
     "audio": frozenset({"audio", "stem", "manifest", "evaluation"}),
     "vocal": frozenset({"audio", "stem", "manifest", "evaluation"}),
-    "music": frozenset(
-        {"lyrics_text", "audio", "stem", "manifest", "evaluation", "snapshot"}
-    ),
+    "music": frozenset({"lyrics_text", "audio", "stem", "manifest", "evaluation", "snapshot"}),
 }
 
 
@@ -77,55 +75,33 @@ _SAFE_MESSAGES = {
     ArtifactIngestionErrorCode.INVALID_KIND: "Artifact kind is not allowed.",
     ArtifactIngestionErrorCode.INVALID_DOMAIN: "Artifact storage domain is invalid.",
     ArtifactIngestionErrorCode.INVALID_PRODUCER: "Artifact producer is invalid.",
-    ArtifactIngestionErrorCode.INVALID_STAGING_PAYLOAD: (
-        "Artifact staging payload is invalid."
-    ),
-    ArtifactIngestionErrorCode.MEDIA_VALIDATION_FAILED: (
-        "Artifact media validation failed."
-    ),
+    ArtifactIngestionErrorCode.INVALID_STAGING_PAYLOAD: ("Artifact staging payload is invalid."),
+    ArtifactIngestionErrorCode.MEDIA_VALIDATION_FAILED: ("Artifact media validation failed."),
     ArtifactIngestionErrorCode.CHECKSUM_MISMATCH: (
         "Artifact checksum hint does not match the payload."
     ),
     ArtifactIngestionErrorCode.MEDIA_TYPE_MISMATCH: (
         "Artifact media type hint does not match the payload."
     ),
-    ArtifactIngestionErrorCode.PUBLISH_COLLISION: (
-        "Artifact immutable target already exists."
-    ),
+    ArtifactIngestionErrorCode.PUBLISH_COLLISION: ("Artifact immutable target already exists."),
     ArtifactIngestionErrorCode.PUBLISH_FAILED: "Artifact publish failed.",
-    ArtifactIngestionErrorCode.REGISTRATION_FAILED: (
-        "Artifact metadata registration failed."
-    ),
-    ArtifactIngestionErrorCode.VERIFICATION_FAILED: (
-        "Published Artifact verification failed."
-    ),
+    ArtifactIngestionErrorCode.REGISTRATION_FAILED: ("Artifact metadata registration failed."),
+    ArtifactIngestionErrorCode.VERIFICATION_FAILED: ("Published Artifact verification failed."),
 }
 
 _PUBLISH_ERROR_MAP = {
-    ArtifactPublishErrorCode.CONFIGURATION_ERROR: (
-        ArtifactIngestionErrorCode.CONFIGURATION_ERROR
-    ),
+    ArtifactPublishErrorCode.CONFIGURATION_ERROR: (ArtifactIngestionErrorCode.CONFIGURATION_ERROR),
     ArtifactPublishErrorCode.INVALID_STAGING_PAYLOAD: (
         ArtifactIngestionErrorCode.INVALID_STAGING_PAYLOAD
     ),
     ArtifactPublishErrorCode.MEDIA_VALIDATION_FAILED: (
         ArtifactIngestionErrorCode.MEDIA_VALIDATION_FAILED
     ),
-    ArtifactPublishErrorCode.CHECKSUM_MISMATCH: (
-        ArtifactIngestionErrorCode.CHECKSUM_MISMATCH
-    ),
-    ArtifactPublishErrorCode.MEDIA_TYPE_MISMATCH: (
-        ArtifactIngestionErrorCode.MEDIA_TYPE_MISMATCH
-    ),
-    ArtifactPublishErrorCode.PUBLISH_COLLISION: (
-        ArtifactIngestionErrorCode.PUBLISH_COLLISION
-    ),
-    ArtifactPublishErrorCode.PUBLISH_FAILED: (
-        ArtifactIngestionErrorCode.PUBLISH_FAILED
-    ),
-    ArtifactPublishErrorCode.VERIFICATION_FAILED: (
-        ArtifactIngestionErrorCode.VERIFICATION_FAILED
-    ),
+    ArtifactPublishErrorCode.CHECKSUM_MISMATCH: (ArtifactIngestionErrorCode.CHECKSUM_MISMATCH),
+    ArtifactPublishErrorCode.MEDIA_TYPE_MISMATCH: (ArtifactIngestionErrorCode.MEDIA_TYPE_MISMATCH),
+    ArtifactPublishErrorCode.PUBLISH_COLLISION: (ArtifactIngestionErrorCode.PUBLISH_COLLISION),
+    ArtifactPublishErrorCode.PUBLISH_FAILED: (ArtifactIngestionErrorCode.PUBLISH_FAILED),
+    ArtifactPublishErrorCode.VERIFICATION_FAILED: (ArtifactIngestionErrorCode.VERIFICATION_FAILED),
 }
 
 
@@ -209,9 +185,7 @@ class ArtifactIngestionService:
         try:
             publisher = LocalArtifactPublisher(artifact_roots, staging_root)
         except ArtifactPublishError:
-            raise ArtifactIngestionError(
-                ArtifactIngestionErrorCode.CONFIGURATION_ERROR
-            ) from None
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.CONFIGURATION_ERROR) from None
         self._session_factory = session_factory
         self._publisher = publisher
         self._orphan_reporter = orphan_reporter
@@ -229,9 +203,7 @@ class ArtifactIngestionService:
         try:
             roots = ArtifactStorageRoots.from_base_root(artifact_root)
         except ArtifactStorageError:
-            raise ArtifactIngestionError(
-                ArtifactIngestionErrorCode.CONFIGURATION_ERROR
-            ) from None
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.CONFIGURATION_ERROR) from None
         return cls(
             session_factory,
             artifact_roots=roots,
@@ -249,9 +221,7 @@ class ArtifactIngestionService:
                 self.verify_registered(session, artifact, prepared)
         except ArtifactIngestionError as error:
             if prepared is not None:
-                candidate = self.compensate_prepared(
-                    prepared, reason_code=error.code.value
-                )
+                candidate = self.compensate_prepared(prepared, reason_code=error.code.value)
                 if candidate is not None:
                     error.orphan_candidate = candidate
             raise
@@ -304,9 +274,7 @@ class ArtifactIngestionService:
             raise ArtifactIngestionError(_PUBLISH_ERROR_MAP[error.code]) from error
         return PreparedArtifactIngestion(normalized, artifact_id, published)
 
-    def register_prepared(
-        self, session: Session, prepared: PreparedArtifactIngestion
-    ) -> Artifact:
+    def register_prepared(self, session: Session, prepared: PreparedArtifactIngestion) -> Artifact:
         asset_repository = AssetRepository(session)
         request = prepared.request
         published = prepared.published
@@ -357,9 +325,7 @@ class ArtifactIngestionService:
                 size_bytes=resolved.size_bytes,
             )
         except (ArtifactMediaValidationError, ArtifactStorageError, OSError):
-            raise ArtifactIngestionError(
-                ArtifactIngestionErrorCode.VERIFICATION_FAILED
-            ) from None
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERIFICATION_FAILED) from None
         published = prepared.published
         if (
             resolved.size_bytes != published.size_bytes
@@ -433,9 +399,7 @@ class ArtifactIngestionService:
 
 
 def _validate_request(request: ArtifactIngestionRequest) -> ArtifactIngestionRequest:
-    if type(request.asset_version_id) is not UUID or not isinstance(
-        request.temporary_path, Path
-    ):
+    if type(request.asset_version_id) is not UUID or not isinstance(request.temporary_path, Path):
         raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_REQUEST)
     artifact_kind = _required_text(request.artifact_kind)
     storage_domain = _required_text(request.storage_domain)
@@ -456,10 +420,7 @@ def _validate_request(request: ArtifactIngestionRequest) -> ArtifactIngestionReq
         if not SHA256_PATTERN.fullmatch(expected_sha256):
             raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_REQUEST)
     original_filename = _optional_text(request.original_filename)
-    if (
-        original_filename is not None
-        and Path(original_filename).name != original_filename
-    ):
+    if original_filename is not None and Path(original_filename).name != original_filename:
         raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_REQUEST)
 
     return ArtifactIngestionRequest(
@@ -470,9 +431,7 @@ def _validate_request(request: ArtifactIngestionRequest) -> ArtifactIngestionReq
         temporary_path=request.temporary_path,
         producer_id=_optional_text(request.producer_id),
         run_id=_optional_text(request.run_id),
-        expected_media_type=expected_media_type.lower()
-        if expected_media_type
-        else None,
+        expected_media_type=expected_media_type.lower() if expected_media_type else None,
         expected_sha256=expected_sha256,
         original_filename=original_filename,
     )

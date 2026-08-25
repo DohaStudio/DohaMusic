@@ -20,9 +20,7 @@ _SAFE_MESSAGES = {
     TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_NOT_FOUND: (
         "Clip source Artifact is unavailable."
     ),
-    TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_AMBIGUOUS: (
-        "Clip source Artifact is ambiguous."
-    ),
+    TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_AMBIGUOUS: ("Clip source Artifact is ambiguous."),
     TrustedMediaMetadataErrorCode.SOURCE_DURATION_UNAVAILABLE: (
         "Clip source duration is unavailable."
     ),
@@ -44,9 +42,7 @@ class TrustedClipSourceMetadata:
 
 
 class ClipSourceArtifactReader(Protocol):
-    def list_clip_source_artifact_candidates(
-        self, asset_version_id: UUID
-    ) -> list[Artifact]: ...
+    def list_clip_source_artifact_candidates(self, asset_version_id: UUID) -> list[Artifact]: ...
 
 
 class TrustedMediaMetadataService:
@@ -56,17 +52,11 @@ class TrustedMediaMetadataService:
         self._repository = repository
 
     def resolve_clip_source(self, asset_version_id: UUID) -> TrustedClipSourceMetadata:
-        candidates = self._repository.list_clip_source_artifact_candidates(
-            asset_version_id
-        )
+        candidates = self._repository.list_clip_source_artifact_candidates(asset_version_id)
         if not candidates:
-            raise TrustedMediaMetadataError(
-                TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_NOT_FOUND
-            )
+            raise TrustedMediaMetadataError(TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_NOT_FOUND)
         if len(candidates) != 1:
-            raise TrustedMediaMetadataError(
-                TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_AMBIGUOUS
-            )
+            raise TrustedMediaMetadataError(TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_AMBIGUOUS)
         artifact = candidates[0]
         if artifact.duration_us is None or artifact.duration_us < 1:
             raise TrustedMediaMetadataError(

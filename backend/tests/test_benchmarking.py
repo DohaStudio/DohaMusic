@@ -97,9 +97,7 @@ def test_benchmark_suite_serialization_contract(tmp_path: Path) -> None:
         '{"prompt":"test", "duration_seconds":9}',
     ],
 )
-def test_benchmark_suite_rejects_invalid_input(
-    tmp_path: Path, request_json: str
-) -> None:
+def test_benchmark_suite_rejects_invalid_input(tmp_path: Path, request_json: str) -> None:
     suite_path = tmp_path / "suite.json"
     suite_path.write_text(
         '{"experiment_id":"EXP-TEST","runs":[{"run_id":"run-1","seed":7}],'

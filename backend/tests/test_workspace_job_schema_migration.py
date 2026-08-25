@@ -20,7 +20,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260810_0017"
 PREVIOUS_REVISION = "20260809_0016"
-SOURCE_HEAD = "20260825_0022"
+SOURCE_HEAD = "20260825_0023"
 PUBLIC_INDEXES = {
     "ix_jobs_workspace_keyset": (
         "workspace_id",
@@ -303,9 +303,7 @@ def _plans_and_rows(database_url: str, *, migrated: bool):
         for name, (query, parameters) in _public_queries(migrated=migrated).items():
             plans[name] = " | ".join(
                 row[3]
-                for row in connection.exec_driver_sql(
-                    f"EXPLAIN QUERY PLAN {query}", parameters
-                )
+                for row in connection.exec_driver_sql(f"EXPLAIN QUERY PLAN {query}", parameters)
             )
             rows[name] = list(connection.exec_driver_sql(query, parameters))
     engine.dispose()
@@ -327,7 +325,7 @@ def test_job_schema_metadata_matches_migration_contract() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
     assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert len(Base.metadata.tables) == 43
+    assert len(Base.metadata.tables) == 44
 
     jobs = Base.metadata.tables["jobs"]
     assert set(jobs.columns.keys()) >= NEW_JOB_COLUMNS
@@ -343,9 +341,7 @@ def test_job_schema_metadata_matches_migration_contract() -> None:
         if index.name in PUBLIC_INDEXES | WORKER_INDEXES
     }
     assert indexes == PUBLIC_INDEXES | WORKER_INDEXES
-    assert "ck_jobs_attempt_nonnegative" in {
-        constraint.name for constraint in jobs.constraints
-    }
+    assert "ck_jobs_attempt_nonnegative" in {constraint.name for constraint in jobs.constraints}
 
 
 def test_job_schema_round_trip_and_query_plans(tmp_path: Path) -> None:
@@ -370,13 +366,9 @@ def test_job_schema_round_trip_and_query_plans(tmp_path: Path) -> None:
             for index in inspector.get_indexes("jobs")
             if index["name"] in PUBLIC_INDEXES | WORKER_INDEXES
         }
-        revision = connection.execute(
-            text("SELECT version_num FROM alembic_version")
-        ).scalar_one()
+        revision = connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
         counts = {
-            table: connection.exec_driver_sql(
-                f"SELECT count(*) FROM {table}"
-            ).scalar_one()
+            table: connection.exec_driver_sql(f"SELECT count(*) FROM {table}").scalar_one()
             for table in ("jobs", "job_inputs", "job_outputs")
         }
         mismatched_workspaces = connection.exec_driver_sql(
@@ -389,14 +381,10 @@ def test_job_schema_round_trip_and_query_plans(tmp_path: Path) -> None:
             "(SELECT input_role FROM job_inputs LIMIT 1), "
             "(SELECT output_role FROM job_outputs LIMIT 1)"
         ).one()
-        attempts = connection.exec_driver_sql(
-            "SELECT min(attempt), max(attempt) FROM jobs"
-        ).one()
+        attempts = connection.exec_driver_sql("SELECT min(attempt), max(attempt) FROM jobs").one()
         foreign_keys = connection.exec_driver_sql("PRAGMA foreign_key_list(jobs)").all()
         integrity = connection.exec_driver_sql("PRAGMA integrity_check").scalar_one()
-        foreign_key_violations = connection.exec_driver_sql(
-            "PRAGMA foreign_key_check"
-        ).all()
+        foreign_key_violations = connection.exec_driver_sql("PRAGMA foreign_key_check").all()
 
     assert revision == REVISION
     assert columns["workspace_id"]["nullable"] is True
@@ -481,17 +469,13 @@ def test_job_schema_round_trip_and_query_plans(tmp_path: Path) -> None:
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
         inspector = inspect(connection)
-        downgraded_columns = {
-            column["name"] for column in inspector.get_columns("jobs")
-        }
+        downgraded_columns = {column["name"] for column in inspector.get_columns("jobs")}
         downgraded_indexes = {index["name"] for index in inspector.get_indexes("jobs")}
         downgraded_revision = connection.execute(
             text("SELECT version_num FROM alembic_version")
         ).scalar_one()
         downgraded_counts = {
-            table: connection.exec_driver_sql(
-                f"SELECT count(*) FROM {table}"
-            ).scalar_one()
+            table: connection.exec_driver_sql(f"SELECT count(*) FROM {table}").scalar_one()
             for table in ("jobs", "job_inputs", "job_outputs")
         }
         assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"

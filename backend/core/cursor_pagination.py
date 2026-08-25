@@ -8,9 +8,10 @@ import hashlib
 import hmac
 import json
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
-from datetime import datetime, timezone
-from typing import Literal, Mapping
+from datetime import UTC, datetime
+from typing import Literal
 from uuid import UUID
 
 from backend.core.exceptions import CursorConfigurationError, InvalidCursorError
@@ -94,9 +95,7 @@ class CursorCodec:
     """Canonical JSON payload를 HMAC-SHA256으로 서명한다."""
 
     def __init__(self, signing_key: str | bytes) -> None:
-        key = (
-            signing_key.encode("utf-8") if isinstance(signing_key, str) else signing_key
-        )
+        key = signing_key.encode("utf-8") if isinstance(signing_key, str) else signing_key
         if len(key) < MIN_CURSOR_SIGNING_KEY_BYTES:
             raise CursorConfigurationError()
         self._signing_key = key
@@ -303,9 +302,7 @@ class CursorCodec:
             supplied_signature = _base64url_decode(signature_part)
         except (ValueError, UnicodeError, binascii.Error):
             raise InvalidCursorError("token_format") from None
-        expected_signature = hmac.new(
-            self._signing_key, payload_bytes, hashlib.sha256
-        ).digest()
+        expected_signature = hmac.new(self._signing_key, payload_bytes, hashlib.sha256).digest()
         if not hmac.compare_digest(supplied_signature, expected_signature):
             raise InvalidCursorError("signature")
         try:
@@ -344,15 +341,13 @@ def _base64url_decode(value: str) -> bytes:
     if not value:
         raise ValueError("empty base64url value")
     padding = "=" * (-len(value) % 4)
-    return base64.b64decode(
-        (value + padding).encode("ascii"), altchars=b"-_", validate=True
-    )
+    return base64.b64decode((value + padding).encode("ascii"), altchars=b"-_", validate=True)
 
 
 def _normalize_datetime(value: datetime) -> datetime:
     if value.tzinfo is None or value.utcoffset() is None:
-        return value.replace(tzinfo=timezone.utc)
-    return value.astimezone(timezone.utc)
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 def _parse_datetime(value: object) -> datetime:
@@ -361,7 +356,7 @@ def _parse_datetime(value: object) -> datetime:
     parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise ValueError("datetime must include timezone")
-    return parsed.astimezone(timezone.utc)
+    return parsed.astimezone(UTC)
 
 
 def _validate_created_at_resource(resource: object) -> None:
@@ -370,9 +365,7 @@ def _validate_created_at_resource(resource: object) -> None:
 
 
 def _validate_filter_hash(filter_hash: object) -> None:
-    if not isinstance(filter_hash, str) or not _FILTER_HASH_PATTERN.fullmatch(
-        filter_hash
-    ):
+    if not isinstance(filter_hash, str) or not _FILTER_HASH_PATTERN.fullmatch(filter_hash):
         raise InvalidCursorError("filter_hash")
 
 

@@ -41,6 +41,4 @@ def list_generation_files(
     job_id: str,
     service: GenerationServiceDependency,
 ) -> list[GeneratedFileRead]:
-    return [
-        GeneratedFileRead.model_validate(item) for item in service.list_files(job_id)
-    ]
+    return [GeneratedFileRead.model_validate(item) for item in service.list_files(job_id)]

@@ -1,15 +1,15 @@
 """Local storage adapter package."""
 
+from backend.storage.artifact_integrity import (
+    ArtifactIntegrity,
+    calculate_artifact_integrity,
+)
 from backend.storage.artifact_resolver import (
     ArtifactStorageError,
     ArtifactStorageErrorCode,
     ArtifactStorageResolver,
     ArtifactStorageRoots,
     ResolvedArtifactPayload,
-)
-from backend.storage.artifact_integrity import (
-    ArtifactIntegrity,
-    calculate_artifact_integrity,
 )
 
 __all__ = [

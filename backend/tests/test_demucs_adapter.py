@@ -102,9 +102,7 @@ def test_adapter_rejects_missing_output(tmp_path: Path) -> None:
     adapter = DemucsAdapter(demucs_config(tmp_path), SuccessfulRuntime(result))
 
     with pytest.raises(StemOutputNotCreatedError):
-        adapter.separate(
-            StemSeparationInput(job_id="missing-output", source_path=tmp_path)
-        )
+        adapter.separate(StemSeparationInput(job_id="missing-output", source_path=tmp_path))
 
 
 def test_config_reports_missing_runtime(tmp_path: Path) -> None:
@@ -151,9 +149,7 @@ def test_runtime_maps_stable_error_codes(
     error_type: type[Exception],
 ) -> None:
     with pytest.raises(error_type):
-        SubprocessDemucsRuntime._raise_failure(
-            {"error_code": code, "error_message": "expected"}
-        )
+        SubprocessDemucsRuntime._raise_failure({"error_code": code, "error_message": "expected"})
 
 
 def test_runtime_maps_subprocess_timeout(
@@ -179,8 +175,7 @@ def test_runtime_maps_abnormal_subprocess_exit(
         args=["demucs"],
         returncode=3,
         stdout=(
-            '{"success":false,"error_code":"STEM_SEPARATION_FAILED",'
-            '"error_message":"expected"}'
+            '{"success":false,"error_code":"STEM_SEPARATION_FAILED","error_message":"expected"}'
         ),
         stderr="runtime failed",
     )

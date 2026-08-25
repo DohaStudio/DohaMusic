@@ -23,13 +23,9 @@ def upgrade() -> None:
         batch.add_column(sa.Column("duration_seconds", sa.Float()))
         batch.add_column(sa.Column("sample_rate", sa.Integer()))
         batch.add_column(sa.Column("channels", sa.Integer()))
+        batch.add_column(sa.Column("status", sa.String(20), nullable=False, server_default="READY"))
         batch.add_column(
-            sa.Column("status", sa.String(20), nullable=False, server_default="READY")
-        )
-        batch.add_column(
-            sa.Column(
-                "quality_warnings", sa.JSON(), nullable=False, server_default="[]"
-            )
+            sa.Column("quality_warnings", sa.JSON(), nullable=False, server_default="[]")
         )
         batch.add_column(sa.Column("consent_text_version", sa.String(50)))
         batch.add_column(sa.Column("consent_confirmed_at", sa.DateTime(timezone=True)))

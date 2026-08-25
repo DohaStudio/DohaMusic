@@ -19,9 +19,7 @@ def test_openai_lyrics_paid_smoke() -> None:
     api_key = os.getenv("DOHAMUSIC_LYRICS_API_KEY", "")
     if not api_key:
         pytest.skip("DOHAMUSIC_LYRICS_API_KEY가 없습니다.")
-    generator = create_lyrics_generator(
-        Settings(lyrics_provider="openai", lyrics_api_key=api_key)
-    )
+    generator = create_lyrics_generator(Settings(lyrics_provider="openai", lyrics_api_key=api_key))
     result = generator.generate(
         LyricsGenerationRequest(
             topic="a short summer memory",

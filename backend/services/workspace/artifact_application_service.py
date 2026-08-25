@@ -21,9 +21,7 @@ from backend.storage.artifact_resolver import (
     ArtifactStorageRoots,
 )
 
-RETENTION_STATUSES = frozenset(
-    {"active", "quarantined", "expired", "pending_delete", "deleted"}
-)
+RETENTION_STATUSES = frozenset({"active", "quarantined", "expired", "pending_delete", "deleted"})
 
 
 class ArtifactAccessErrorCode(StrEnum):
@@ -133,25 +131,19 @@ class ArtifactApplicationService:
             try:
                 with resolver.open_payload(artifact_id) as (resolved, stream):
                     if resolved.size_bytes != artifact.size_bytes:
-                        raise ArtifactAccessError(
-                            ArtifactAccessErrorCode.INTEGRITY_ERROR
-                        )
+                        raise ArtifactAccessError(ArtifactAccessErrorCode.INTEGRITY_ERROR)
                     integrity = calculate_artifact_integrity(stream)
                     if (
                         integrity.size_bytes != artifact.size_bytes
                         or integrity.checksum != artifact.artifact_checksum
                     ):
-                        raise ArtifactAccessError(
-                            ArtifactAccessErrorCode.INTEGRITY_ERROR
-                        )
+                        raise ArtifactAccessError(ArtifactAccessErrorCode.INTEGRITY_ERROR)
                     stream.seek(0)
                     yield _to_content_handle(artifact), stream
             except ArtifactAccessError:
                 raise
             except (ArtifactStorageError, OSError):
-                raise ArtifactAccessError(
-                    ArtifactAccessErrorCode.CONTENT_UNAVAILABLE
-                ) from None
+                raise ArtifactAccessError(ArtifactAccessErrorCode.CONTENT_UNAVAILABLE) from None
 
 
 def _owned_artifact(
@@ -160,9 +152,7 @@ def _owned_artifact(
     artifact_id: UUID,
     effective_owner_id: UUID,
 ) -> Artifact:
-    artifact = AssetRepository(session).get_artifact_for_owner(
-        artifact_id, effective_owner_id
-    )
+    artifact = AssetRepository(session).get_artifact_for_owner(artifact_id, effective_owner_id)
     if artifact is None:
         raise ArtifactAccessError(ArtifactAccessErrorCode.NOT_FOUND)
     return artifact

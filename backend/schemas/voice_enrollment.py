@@ -22,9 +22,7 @@ class VoiceWarningAcknowledgement(BaseModel):
 
 class VoiceEnrollmentSubmitRequest(BaseModel):
     active_reference_sample_id: str
-    included_sample_ids: list[str] | None = Field(
-        default=None, min_length=1, max_length=10
-    )
+    included_sample_ids: list[str] | None = Field(default=None, min_length=1, max_length=10)
     acknowledged_warning_codes: list[VoiceWarningAcknowledgement] = Field(
         default_factory=list, max_length=10
     )
@@ -33,9 +31,9 @@ class VoiceEnrollmentSubmitRequest(BaseModel):
 
     @model_validator(mode="after")
     def validate_unique_samples(self) -> VoiceEnrollmentSubmitRequest:
-        if self.included_sample_ids is not None and len(
-            set(self.included_sample_ids)
-        ) != len(self.included_sample_ids):
+        if self.included_sample_ids is not None and len(set(self.included_sample_ids)) != len(
+            self.included_sample_ids
+        ):
             raise ValueError("included_sample_ids must be unique")
         return self
 

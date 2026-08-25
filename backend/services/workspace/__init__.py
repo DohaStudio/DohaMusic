@@ -66,6 +66,7 @@ from backend.services.workspace.job_worker_service import (
     ProviderExecutionInput,
     ProviderExecutionRequest,
 )
+from backend.services.workspace.payload_locator_service import PayloadLocatorService
 from backend.services.workspace.provider_job_persistence_service import (
     ProviderJobPersistenceError,
     ProviderJobPersistenceErrorReason,
@@ -170,6 +171,7 @@ __all__ = [
     "ProviderJobPersistenceErrorReason",
     "ProviderJobPersistenceService",
     "ProviderJobPersistenceStorageError",
+    "PayloadLocatorService",
     "ProviderOutput",
     "ProviderResult",
     "ProviderResultContractError",

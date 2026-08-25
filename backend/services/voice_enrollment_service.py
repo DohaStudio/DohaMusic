@@ -7,6 +7,7 @@ import json
 import os
 import uuid
 from collections.abc import Callable
+from contextlib import suppress
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -70,9 +71,7 @@ class VoiceEnrollmentService:
         self.session_factory = session_factory
         self.storage = VoiceEnrollmentStorage(storage)
         self.settings = settings
-        max_output_bytes = int(
-            settings.voice_enrollment_max_duration_seconds * 48_000 * 2 + 4096
-        )
+        max_output_bytes = int(settings.voice_enrollment_max_duration_seconds * 48_000 * 2 + 4096)
         self.normalizer = normalizer or HybridVoiceAudioNormalizer(
             ffmpeg_executable=settings.voice_ffmpeg_executable,
             timeout_seconds=settings.voice_normalization_timeout_seconds,
@@ -159,9 +158,7 @@ class VoiceEnrollmentService:
             self._require_mutable(enrollment)
 
         sample_id = str(uuid.uuid4())
-        provisional = self.storage.sample_paths(
-            enrollment_id, sample_id, VoiceContainer.WAV
-        )
+        provisional = self.storage.sample_paths(enrollment_id, sample_id, VoiceContainer.WAV)
         uploading_path = provisional.directory / ".uploading"
         size_bytes = 0
         header = bytearray()
@@ -182,9 +179,7 @@ class VoiceEnrollmentService:
             if size_bytes == 0:
                 raise self._error("VOICE_SAMPLE_EMPTY_AUDIO")
             try:
-                container = validate_media(
-                    file.filename, file.content_type, bytes(header)
-                )
+                container = validate_media(file.filename, file.content_type, bytes(header))
             except VoiceAudioProcessingError as error:
                 raise self._processing_error(error.code) from None
             paths = self.storage.sample_paths(enrollment_id, sample_id, container)
@@ -256,12 +251,8 @@ class VoiceEnrollmentService:
                     status=VoiceSampleStatus.VALIDATING.value,
                     original_content_type=(file.content_type or "").lower(),
                     original_size_bytes=size_bytes,
-                    original_storage_path=self.storage.storage.relative_path(
-                        paths.original
-                    ),
-                    normalized_storage_path=self.storage.storage.relative_path(
-                        paths.normalized
-                    ),
+                    original_storage_path=self.storage.storage.relative_path(paths.original),
+                    normalized_storage_path=self.storage.storage.relative_path(paths.normalized),
                     expires_at=enrollment.expires_at,
                 )
                 session.commit()
@@ -269,9 +260,7 @@ class VoiceEnrollmentService:
             normalized = await run_in_threadpool(
                 self.normalizer.normalize, paths.original, paths.normalized, container
             )
-            validated = await run_in_threadpool(
-                self.validator.validate, normalized.path
-            )
+            validated = await run_in_threadpool(self.validator.validate, normalized.path)
             with self.session_factory() as session:
                 enrollment = self._get_enrollment(session, enrollment_id)
                 self._expire_if_needed(session, enrollment)
@@ -311,14 +300,10 @@ class VoiceEnrollmentService:
                 session.refresh(sample)
                 return self._sample_response(sample)
         except VoiceAudioProcessingError as error:
-            self._record_upload_failure(
-                sample_id, claim_id, error.code, paths.directory
-            )
+            self._record_upload_failure(sample_id, claim_id, error.code, paths.directory)
             raise self._processing_error(error.code) from None
         except AppError as error:
-            self._record_upload_failure(
-                sample_id, claim_id, error.code, paths.directory
-            )
+            self._record_upload_failure(sample_id, claim_id, error.code, paths.directory)
             raise
         except Exception as error:
             logger.error(
@@ -346,9 +331,7 @@ class VoiceEnrollmentService:
         with self.session_factory() as session:
             enrollment = self._get_enrollment(session, enrollment_id)
             self._expire_if_needed(session, enrollment)
-            return self._sample_response(
-                self._get_sample(session, enrollment_id, sample_id)
-            )
+            return self._sample_response(self._get_sample(session, enrollment_id, sample_id))
 
     def delete_sample(self, enrollment_id: str, sample_id: str) -> VoiceSampleResponse:
         with self.session_factory() as session:
@@ -416,20 +399,12 @@ class VoiceEnrollmentService:
                 session.commit()
                 raise self._error("VOICE_ENROLLMENT_INVALID_STATE")
             samples = VoiceSampleRepository(session).list_by_enrollment(enrollment_id)
-            if any(
-                sample.status == VoiceSampleStatus.FAILED.value for sample in samples
-            ):
+            if any(sample.status == VoiceSampleStatus.FAILED.value for sample in samples):
                 IdempotencyRepository(session).release(claim.record)
                 session.commit()
                 raise self._error("VOICE_SAMPLE_VALIDATION_FAILED")
-            ready = [
-                sample
-                for sample in samples
-                if sample.status == VoiceSampleStatus.READY.value
-            ]
-            included_ids = request.included_sample_ids or [
-                sample.id for sample in ready
-            ]
+            ready = [sample for sample in samples if sample.status == VoiceSampleStatus.READY.value]
+            included_ids = request.included_sample_ids or [sample.id for sample in ready]
             included = [sample for sample in ready if sample.id in set(included_ids)]
             if not included or len(included) != len(included_ids):
                 IdempotencyRepository(session).release(claim.record)
@@ -440,8 +415,7 @@ class VoiceEnrollmentService:
                 session.commit()
                 raise self._error("VOICE_SAMPLE_VALIDATION_FAILED")
             acknowledgements = {
-                item.sample_id: set(item.codes)
-                for item in request.acknowledged_warning_codes
+                item.sample_id: set(item.codes) for item in request.acknowledged_warning_codes
             }
             for sample in included:
                 if sample.quality_status not in {
@@ -449,21 +423,16 @@ class VoiceEnrollmentService:
                     VoiceQualityStatus.WARNING.value,
                 }:
                     raise self._error("VOICE_SAMPLE_VALIDATION_FAILED")
-                if (
-                    sample.quality_status == VoiceQualityStatus.WARNING.value
-                    and not set(sample.quality_warnings).issubset(
-                        acknowledgements.get(sample.id, set())
-                    )
-                ):
+                if sample.quality_status == VoiceQualityStatus.WARNING.value and not set(
+                    sample.quality_warnings
+                ).issubset(acknowledgements.get(sample.id, set())):
                     raise self._error("VOICE_WARNING_ACKNOWLEDGEMENT_REQUIRED")
                 if sample.normalized_storage_path is None:
                     raise self._error("VOICE_SAMPLE_VALIDATION_FAILED")
                 promotion_paths.append(
                     (
                         sample.id,
-                        self.storage.storage.resolve_relative_path(
-                            sample.normalized_storage_path
-                        ),
+                        self.storage.storage.resolve_relative_path(sample.normalized_storage_path),
                         self.storage.promoted_path(profile_id, sample.id),
                     )
                 )
@@ -479,20 +448,13 @@ class VoiceEnrollmentService:
                 moved.append((source, destination))
             with self.session_factory() as session:
                 enrollment = self._get_enrollment(session, enrollment_id)
-                samples = VoiceSampleRepository(session).list_by_enrollment(
-                    enrollment_id
-                )
-                included = [
-                    sample for sample in samples if sample.id in set(included_ids)
-                ]
+                samples = VoiceSampleRepository(session).list_by_enrollment(enrollment_id)
+                included = [sample for sample in samples if sample.id in set(included_ids)]
                 active = next(
-                    sample
-                    for sample in included
-                    if sample.id == request.active_reference_sample_id
+                    sample for sample in included if sample.id == request.active_reference_sample_id
                 )
                 destination_by_id = {
-                    sample_id: destination
-                    for sample_id, _source, destination in promotion_paths
+                    sample_id: destination for sample_id, _source, destination in promotion_paths
                 }
                 active_path = destination_by_id[active.id]
                 profile = VoiceProfileRepository(session).create(
@@ -518,9 +480,7 @@ class VoiceEnrollmentService:
                         destination_by_id[sample.id]
                     )
                     sample_repository.promote(sample, profile, commit=False)
-                VoiceProfileRepository(session).set_active_reference(
-                    profile, active, commit=False
-                )
+                VoiceProfileRepository(session).set_active_reference(profile, active, commit=False)
                 enrollment.voice_profile_id = profile.id
                 enrollment.consent_confirmed = True
                 enrollment.consent_policy_version = request.consent_policy_version
@@ -540,10 +500,8 @@ class VoiceEnrollmentService:
                 session.commit()
         except Exception:  # noqa: BLE001 - compensate DB and filesystem failures
             for source, destination in reversed(moved):
-                try:
+                with suppress(OSError):
                     self.storage.restore_promotion(destination, source)
-                except OSError:
-                    pass
             self._recover_submit(enrollment_id, claim_id)
             raise self._error("VOICE_PROFILE_CREATION_FAILED") from None
 
@@ -593,9 +551,7 @@ class VoiceEnrollmentService:
             session.commit()
             raise self._error("VOICE_ENROLLMENT_EXPIRED")
 
-    def _cleanup_enrollment_in_session(
-        self, session: Session, enrollment: VoiceEnrollment
-    ) -> bool:
+    def _cleanup_enrollment_in_session(self, session: Session, enrollment: VoiceEnrollment) -> bool:
         success = True
         for sample in VoiceSampleRepository(session).list_by_enrollment(enrollment.id):
             if sample.status == VoiceSampleStatus.DELETED.value:
@@ -612,23 +568,17 @@ class VoiceEnrollmentService:
                 sample.delete_failure_code = "VOICE_STORAGE_DELETE_FAILED"
                 success = False
         enrollment.cleanup_status = (
-            VoiceCleanupStatus.COMPLETED.value
-            if success
-            else VoiceCleanupStatus.FAILED.value
+            VoiceCleanupStatus.COMPLETED.value if success else VoiceCleanupStatus.FAILED.value
         )
         enrollment.cleanup_completed_at = datetime.now(UTC) if success else None
-        enrollment.cleanup_failure_code = (
-            None if success else "VOICE_STORAGE_DELETE_FAILED"
-        )
+        enrollment.cleanup_failure_code = None if success else "VOICE_STORAGE_DELETE_FAILED"
         return success
 
     def _cleanup_after_submit(self, enrollment_id: str, included_ids: set[str]) -> None:
         with self.session_factory() as session:
             enrollment = self._get_enrollment(session, enrollment_id)
             success = True
-            for sample in VoiceSampleRepository(session).list_by_enrollment(
-                enrollment_id
-            ):
+            for sample in VoiceSampleRepository(session).list_by_enrollment(enrollment_id):
                 if sample.id in included_ids:
                     try:
                         self.storage.delete_file(sample.original_storage_path)
@@ -648,14 +598,10 @@ class VoiceEnrollmentService:
                     sample.delete_failure_code = "VOICE_STORAGE_DELETE_FAILED"
                     success = False
             enrollment.cleanup_status = (
-                VoiceCleanupStatus.COMPLETED.value
-                if success
-                else VoiceCleanupStatus.FAILED.value
+                VoiceCleanupStatus.COMPLETED.value if success else VoiceCleanupStatus.FAILED.value
             )
             enrollment.cleanup_completed_at = datetime.now(UTC) if success else None
-            enrollment.cleanup_failure_code = (
-                None if success else "VOICE_STORAGE_DELETE_FAILED"
-            )
+            enrollment.cleanup_failure_code = None if success else "VOICE_STORAGE_DELETE_FAILED"
             session.commit()
 
     def _cleanup_sample_files(self, sample: VoiceSample) -> bool:
@@ -667,10 +613,8 @@ class VoiceEnrollmentService:
             return False
 
     def _cleanup_failed_reservation(self, directory: Path) -> None:
-        try:
+        with suppress(OSError, ValueError):
             self.storage.remove_sample_directory(directory)
-        except (OSError, ValueError):
-            pass
 
     def _record_upload_failure(
         self,
@@ -686,10 +630,7 @@ class VoiceEnrollmentService:
             cleanup_succeeded = False
         with self.session_factory() as session:
             sample = session.get(VoiceSample, sample_id)
-            if (
-                sample is not None
-                and sample.status == VoiceSampleStatus.VALIDATING.value
-            ):
+            if sample is not None and sample.status == VoiceSampleStatus.VALIDATING.value:
                 sample.failure_code = code
                 sample.quality_status = VoiceQualityStatus.FAIL.value
                 sample.status = (
@@ -721,16 +662,12 @@ class VoiceEnrollmentService:
     def _touch(self, enrollment: VoiceEnrollment) -> None:
         now = datetime.now(UTC)
         enrollment.last_activity_at = now
-        sliding = now + timedelta(
-            hours=self.settings.voice_enrollment_sliding_expiry_hours
-        )
+        sliding = now + timedelta(hours=self.settings.voice_enrollment_sliding_expiry_hours)
         absolute = _as_utc(enrollment.absolute_expires_at)
         enrollment.expires_at = min(sliding, absolute) if absolute else sliding
 
     @staticmethod
-    def _recalculate_enrollment_status(
-        session: Session, enrollment: VoiceEnrollment
-    ) -> None:
+    def _recalculate_enrollment_status(session: Session, enrollment: VoiceEnrollment) -> None:
         samples = VoiceSampleRepository(session).list_by_enrollment(enrollment.id)
         target = (
             VoiceEnrollmentStatus.READY_TO_SUBMIT.value
@@ -755,9 +692,7 @@ class VoiceEnrollmentService:
         return enrollment
 
     @staticmethod
-    def _get_sample(
-        session: Session, enrollment_id: str, sample_id: str
-    ) -> VoiceSample:
+    def _get_sample(session: Session, enrollment_id: str, sample_id: str) -> VoiceSample:
         sample = VoiceSampleRepository(session).get(sample_id)
         if sample is None or sample.enrollment_id != enrollment_id:
             raise VoiceEnrollmentService._error("VOICE_SAMPLE_NOT_FOUND")
@@ -776,9 +711,7 @@ class VoiceEnrollmentService:
 
     @staticmethod
     def _fingerprint(payload: object) -> str:
-        canonical = json.dumps(
-            payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-        )
+        canonical = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
     @staticmethod
@@ -841,20 +774,15 @@ class VoiceEnrollmentService:
         )
 
     @classmethod
-    def _enrollment_response(
-        cls, enrollment: VoiceEnrollment
-    ) -> VoiceEnrollmentResponse:
+    def _enrollment_response(cls, enrollment: VoiceEnrollment) -> VoiceEnrollmentResponse:
         visible = [
             sample
             for sample in enrollment.samples
             if sample.status != VoiceSampleStatus.DELETED.value
         ]
-        ready = sum(
-            sample.status == VoiceSampleStatus.READY.value for sample in visible
-        )
+        ready = sum(sample.status == VoiceSampleStatus.READY.value for sample in visible)
         warning = sum(
-            sample.quality_status == VoiceQualityStatus.WARNING.value
-            for sample in visible
+            sample.quality_status == VoiceQualityStatus.WARNING.value for sample in visible
         )
         failed = sum(
             sample.status

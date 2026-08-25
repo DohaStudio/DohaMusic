@@ -11,9 +11,7 @@ from backend.core.config import Settings
 from backend.storage.service import StorageService
 
 
-def create_voice_converter(
-    settings: Settings, storage: StorageService
-) -> VoiceConverter:
+def create_voice_converter(settings: Settings, storage: StorageService) -> VoiceConverter:
     provider = settings.voice_provider.strip().lower()
     if provider == "mock":
         return MockVoiceConverter(storage, settings.mock_voice_delay_seconds)

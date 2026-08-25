@@ -155,15 +155,9 @@ class CompositionService:
         if not items:
             raise ApplicationValidationError("Snapshot Item이 하나 이상 필요합니다.")
         normalized_items = self._normalize_snapshot_items(items)
-        normalized_mix = _validate_json_object(
-            mix_settings_snapshot, "mix_settings_snapshot"
-        )
-        normalized_providers = _validate_string_mapping(
-            provider_versions, "provider_versions"
-        )
-        normalized_manifests = _validate_string_mapping(
-            model_manifest_ids, "model_manifest_ids"
-        )
+        normalized_mix = _validate_json_object(mix_settings_snapshot, "mix_settings_snapshot")
+        normalized_providers = _validate_string_mapping(provider_versions, "provider_versions")
+        normalized_manifests = _validate_string_mapping(model_manifest_ids, "model_manifest_ids")
         fingerprint = _snapshot_fingerprint(
             project_id=project_id,
             effective_owner_id=effective_owner_id,
@@ -203,9 +197,7 @@ class CompositionService:
             snapshot = repository.get_snapshot(snapshot_id)
             if snapshot is None:
                 raise ResourceNotFoundError("CompositionSnapshot")
-            self._require_project_scope(
-                session, snapshot.project_id, effective_owner_id
-            )
+            self._require_project_scope(session, snapshot.project_id, effective_owner_id)
             return self._load_aggregate(repository, snapshot)
 
     def set_project_selection(
@@ -228,9 +220,7 @@ class CompositionService:
                 if selected_snapshot_id is None:
                     repository.clear_project_selection(project_id)
                 else:
-                    snapshot = repository.get_project_snapshot(
-                        project_id, selected_snapshot_id
-                    )
+                    snapshot = repository.get_project_snapshot(project_id, selected_snapshot_id)
                     if snapshot is None:
                         raise ResourceNotFoundError("CompositionSnapshot")
                     repository.set_project_selection(project_id, selected_snapshot_id)
@@ -255,27 +245,19 @@ class CompositionService:
         if composition_snapshot_id is not None:
             _validate_uuid(composition_snapshot_id, "composition_snapshot_id")
         with self.session_factory() as session:
-            project = self._require_project_scope(
-                session, project_id, effective_owner_id
-            )
+            project = self._require_project_scope(session, project_id, effective_owner_id)
             repository = CompositionRepository(session)
             selection = repository.get_project_selection(project_id)
             selected_snapshot_id = (
-                selection.selected_composition_snapshot_id
-                if selection is not None
-                else None
+                selection.selected_composition_snapshot_id if selection is not None else None
             )
             if composition_snapshot_id is not None:
-                snapshot = repository.get_project_snapshot(
-                    project_id, composition_snapshot_id
-                )
+                snapshot = repository.get_project_snapshot(project_id, composition_snapshot_id)
                 if snapshot is None:
                     raise ResourceNotFoundError("CompositionSnapshot")
                 resolution: Literal["selected", "requested", "none"] = "requested"
             elif selected_snapshot_id is not None:
-                snapshot = repository.get_project_snapshot(
-                    project_id, selected_snapshot_id
-                )
+                snapshot = repository.get_project_snapshot(project_id, selected_snapshot_id)
                 if snapshot is None:
                     raise ResourceConflictError("CompositionSelection")
                 resolution = "selected"
@@ -354,9 +336,7 @@ class CompositionService:
             self._require_project_scope(session, project_id, effective_owner_id)
             rows = CompositionRepository(session).list_project_snapshots_after(
                 project_id,
-                last_snapshot_version=(
-                    position.last_snapshot_version if position else None
-                ),
+                last_snapshot_version=(position.last_snapshot_version if position else None),
                 last_id=(position.last_id if position else None),
                 limit=limit + 1,
             )
@@ -393,9 +373,7 @@ class CompositionService:
         fingerprint: str,
     ) -> CompositionSnapshotCreation:
         with self.session_factory() as session, session.begin():
-            project = self._require_project_scope(
-                session, project_id, effective_owner_id
-            )
+            project = self._require_project_scope(session, project_id, effective_owner_id)
             idempotency_repository = IdempotencyRepository(session)
             try:
                 claim = idempotency_repository.claim(
@@ -447,14 +425,9 @@ class CompositionService:
                     or asset.workspace_id not in {None, project.workspace_id}
                 ):
                     raise ResourceNotFoundError("AssetVersion")
-                if not workspace_repository.project_asset_exists(
-                    project_id, asset.asset_id
-                ):
+                if not workspace_repository.project_asset_exists(project_id, asset.asset_id):
                     raise ResourceNotFoundError("ProjectAsset")
-                if (
-                    version.provider_id is not None
-                    and version.provider_id not in provider_versions
-                ):
+                if version.provider_id is not None and version.provider_id not in provider_versions:
                     raise ApplicationValidationError(
                         "Provider가 있는 AssetVersion은 provider_versions에 포함해야 합니다."
                     )
@@ -470,9 +443,7 @@ class CompositionService:
             snapshot = composition_repository.add_snapshot(
                 CompositionSnapshot(
                     project_id=project_id,
-                    snapshot_version=(
-                        composition_repository.get_next_snapshot_version(project_id)
-                    ),
+                    snapshot_version=(composition_repository.get_next_snapshot_version(project_id)),
                     processing_chain_id=processing_chain_id,
                     mix_settings_snapshot=dict(mix_settings_snapshot),
                     provider_versions=dict(provider_versions),
@@ -545,10 +516,7 @@ class CompositionService:
         )
         version_ids = [item.asset_version_id for item in items]
         version_rows = repository.list_asset_versions_with_assets(version_ids)
-        versions = {
-            version.asset_version_id: (version, asset)
-            for version, asset in version_rows
-        }
+        versions = {version.asset_version_id: (version, asset) for version, asset in version_rows}
         artifacts = repository.list_artifacts_for_versions(
             version_ids,
             limit=MAX_AGGREGATE_ARTIFACTS + 1,
@@ -557,9 +525,7 @@ class CompositionService:
             raise ResourceConflictError("Composition aggregate Artifact limit")
         artifacts_by_version: dict[UUID, list[Artifact]] = {}
         for artifact in artifacts:
-            artifacts_by_version.setdefault(artifact.asset_version_id, []).append(
-                artifact
-            )
+            artifacts_by_version.setdefault(artifact.asset_version_id, []).append(artifact)
 
         resolved: list[CompositionReadItem] = []
         for item in items:
@@ -578,9 +544,7 @@ class CompositionService:
                     item=item,
                     asset_version=version,
                     asset=asset,
-                    artifacts=tuple(
-                        artifacts_by_version.get(version.asset_version_id, ())
-                    ),
+                    artifacts=tuple(artifacts_by_version.get(version.asset_version_id, ())),
                 )
             )
         return tuple(resolved)
@@ -597,9 +561,7 @@ class CompositionService:
         project = repository.get_project(project_id)
         if project is None or project.lifecycle_status != "active":
             raise ResourceNotFoundError("MusicProject")
-        workspace = repository.get_workspace_for_owner(
-            project.workspace_id, effective_owner_id
-        )
+        workspace = repository.get_workspace_for_owner(project.workspace_id, effective_owner_id)
         if workspace is None or workspace.lifecycle_status != "active":
             raise ResourceNotFoundError("MusicProject")
         return project
@@ -708,18 +670,14 @@ class CompositionService:
                     "Snapshot Item 역할이 공개 vocabulary에 포함되지 않습니다."
                 )
             if type(item.sort_order) is not int or item.sort_order < 0:
-                raise ApplicationValidationError(
-                    "Snapshot Item 순서는 0 이상이어야 합니다."
-                )
+                raise ApplicationValidationError("Snapshot Item 순서는 0 이상이어야 합니다.")
             if (role, item.sort_order) in role_orders:
                 raise ResourceConflictError("Snapshot Item 역할과 순서")
             if (item.asset_version_id, role) in version_roles:
                 raise ResourceConflictError("Snapshot Item Version과 역할")
             role_orders.add((role, item.sort_order))
             version_roles.add((item.asset_version_id, role))
-            normalized.append(
-                SnapshotItemInput(item.asset_version_id, role, item.sort_order)
-            )
+            normalized.append(SnapshotItemInput(item.asset_version_id, role, item.sort_order))
         return normalized
 
     @staticmethod
@@ -730,9 +688,7 @@ class CompositionService:
         orders: set[int] = set()
         for step in steps:
             if step.step_order < 1:
-                raise ApplicationValidationError(
-                    "ProcessingStep 순서는 1 이상이어야 합니다."
-                )
+                raise ApplicationValidationError("ProcessingStep 순서는 1 이상이어야 합니다.")
             if step.step_order in orders:
                 raise ResourceConflictError("ProcessingStep 순서")
             orders.add(step.step_order)
@@ -819,15 +775,11 @@ def _normalize_json_value(
         return value
     if type(value) is float:
         if not math.isfinite(value):
-            raise ApplicationValidationError(
-                f"{field_name}에는 유한한 숫자만 허용합니다."
-            )
+            raise ApplicationValidationError(f"{field_name}에는 유한한 숫자만 허용합니다.")
         return value
     if isinstance(value, str):
         if len(value) > MAX_JSON_STRING_LENGTH:
-            raise ApplicationValidationError(
-                f"{field_name}의 문자열이 허용 길이를 초과합니다."
-            )
+            raise ApplicationValidationError(f"{field_name}의 문자열이 허용 길이를 초과합니다.")
         return value
     if isinstance(value, list):
         return [
@@ -843,9 +795,7 @@ def _normalize_json_value(
         normalized: dict[str, Any] = {}
         for key, item in value.items():
             if not isinstance(key, str) or not key or len(key) > MAX_JSON_KEY_LENGTH:
-                raise ApplicationValidationError(
-                    f"{field_name}의 key 형식이 유효하지 않습니다."
-                )
+                raise ApplicationValidationError(f"{field_name}의 key 형식이 유효하지 않습니다.")
             normalized[key] = _normalize_json_value(
                 item,
                 field_name,

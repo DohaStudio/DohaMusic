@@ -88,9 +88,7 @@ def test_asset_version_endpoints_require_explicit_bootstrap(
         response = client.request(method, path, json=body)
 
         assert response.status_code == 409
-        assert response.json()["error"]["error_code"] == (
-            "WORKSPACE_BOOTSTRAP_REQUIRED"
-        )
+        assert response.json()["error"]["error_code"] == ("WORKSPACE_BOOTSTRAP_REQUIRED")
         assert response.headers[REQUEST_ID_HEADER]
 
 
@@ -169,9 +167,7 @@ def test_asset_version_detail_is_nested_and_owner_scoped(client: TestClient) -> 
         asset_type=AssetType.VOCAL,
     )
 
-    response = client.get(
-        f"/api/v1/assets/{asset.asset_id}/versions/{version.asset_version_id}"
-    )
+    response = client.get(f"/api/v1/assets/{asset.asset_id}/versions/{version.asset_version_id}")
     wrong_parent = client.get(
         f"/api/v1/assets/{other_asset.asset_id}/versions/{version.asset_version_id}"
     )

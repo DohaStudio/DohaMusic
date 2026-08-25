@@ -21,9 +21,7 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=36), nullable=False),
         sa.Column("title", sa.String(length=200), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
-        sa.Column(
-            "is_default", sa.Boolean(), nullable=False, server_default=sa.false()
-        ),
+        sa.Column("is_default", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -72,9 +70,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     with op.batch_alter_table("pipeline_jobs") as batch:
-        batch.drop_constraint(
-            "fk_pipeline_jobs_project_id_projects", type_="foreignkey"
-        )
+        batch.drop_constraint("fk_pipeline_jobs_project_id_projects", type_="foreignkey")
         batch.drop_index("ix_pipeline_jobs_project_id")
         batch.drop_column("project_id")
     op.drop_index("ix_projects_title", table_name="projects")

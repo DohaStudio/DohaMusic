@@ -40,9 +40,7 @@ class VocalPayloadAcquisitionRequest:
             )
         expires_at = self.payload.available_until
         if expires_at is not None and expires_at <= datetime.now(UTC):
-            raise VocalPayloadAcquisitionError(
-                VocalPayloadAcquisitionErrorCode.PAYLOAD_EXPIRED
-            )
+            raise VocalPayloadAcquisitionError(VocalPayloadAcquisitionErrorCode.PAYLOAD_EXPIRED)
 
 
 @dataclass(frozen=True, slots=True)
@@ -60,6 +58,4 @@ class VerifiedVocalPayload:
 class VocalPayloadAcquisitionPort(Protocol):
     """Returns verified bounded bytes; it never returns URLs or raw responses."""
 
-    def acquire_payload(
-        self, request: VocalPayloadAcquisitionRequest
-    ) -> VerifiedVocalPayload: ...
+    def acquire_payload(self, request: VocalPayloadAcquisitionRequest) -> VerifiedVocalPayload: ...

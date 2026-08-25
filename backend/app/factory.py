@@ -36,6 +36,7 @@ from backend.pipeline.steps import (
     StemSeparationStep,
     VoiceConversionStep,
 )
+from backend.repositories.workspace import SqlAlchemyPayloadLocatorPersistence
 from backend.services.generation_service import GenerationService
 from backend.services.history_service import HistoryService
 from backend.services.lyrics_service import LyricsService
@@ -50,6 +51,7 @@ from backend.services.workspace import (
     AssetService,
     CompositionService,
     JobService,
+    PayloadLocatorService,
     WorkingCompositionService,
     WorkspaceService,
 )
@@ -192,12 +194,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             session_factory,
             cursor_codec=cursor_codec,
         )
-        app.state.working_composition_service = WorkingCompositionService(
-            session_factory
-        )
+        app.state.working_composition_service = WorkingCompositionService(session_factory)
         app.state.job_service = JobService(
             session_factory,
             cursor_codec=cursor_codec,
+        )
+        app.state.payload_locator_service = PayloadLocatorService(
+            SqlAlchemyPayloadLocatorPersistence(session_factory)
         )
         artifact_roots = (
             ArtifactStorageRoots.from_base_root(resolved_settings.artifact_root)
@@ -244,9 +247,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         )
         voice_maintenance_scheduler = VoiceEnrollmentScheduler(
             maintenance=voice_maintenance_service,
-            expiration_interval_seconds=(
-                resolved_settings.voice_expiration_scan_interval_seconds
-            ),
+            expiration_interval_seconds=(resolved_settings.voice_expiration_scan_interval_seconds),
             cleanup_interval_seconds=resolved_settings.voice_cleanup_interval_seconds,
             orphan_interval_seconds=resolved_settings.voice_orphan_scan_interval_seconds,
         )

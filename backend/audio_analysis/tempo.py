@@ -11,9 +11,9 @@ from scipy.io import wavfile
 from scipy.signal import fftconvolve, find_peaks
 
 from backend.audio_analysis.contracts import (
+    PUBLIC_WARNING_MESSAGES,
     AudioAnalysisStatus,
     AudioAnalysisWarning,
-    PUBLIC_WARNING_MESSAGES,
     TempoAnalysisResult,
 )
 
@@ -25,24 +25,18 @@ LOW_CONFIDENCE_THRESHOLD = 0.5
 
 class TempoAnalyzer(ABC):
     @abstractmethod
-    def analyze(
-        self, file_path: Path, requested_bpm: float | None = None
-    ) -> TempoAnalysisResult:
+    def analyze(self, file_path: Path, requested_bpm: float | None = None) -> TempoAnalysisResult:
         """Estimate tempo without using requested BPM as an estimator prior."""
 
 
 class DefaultTempoAnalyzer(TempoAnalyzer):
     """Estimate global tempo from an onset-energy autocorrelation."""
 
-    def analyze(
-        self, file_path: Path, requested_bpm: float | None = None
-    ) -> TempoAnalysisResult:
+    def analyze(self, file_path: Path, requested_bpm: float | None = None) -> TempoAnalysisResult:
         if not file_path.exists() or not file_path.is_file():
             return self._failed(requested_bpm, "TEMPO_DETECTION_FAILED")
         if file_path.suffix.lower() != ".wav":
-            return self._failed(
-                requested_bpm, "TEMPO_UNSUPPORTED_AUDIO", unsupported=True
-            )
+            return self._failed(requested_bpm, "TEMPO_UNSUPPORTED_AUDIO", unsupported=True)
         try:
             sample_rate, raw = wavfile.read(file_path)
         except (OSError, ValueError):
@@ -51,9 +45,7 @@ class DefaultTempoAnalyzer(TempoAnalyzer):
             return self._failed(requested_bpm, "TEMPO_DETECTION_FAILED")
         channels = 1 if raw.ndim == 1 else raw.shape[1]
         if channels not in {1, 2}:
-            return self._failed(
-                requested_bpm, "TEMPO_UNSUPPORTED_AUDIO", unsupported=True
-            )
+            return self._failed(requested_bpm, "TEMPO_UNSUPPORTED_AUDIO", unsupported=True)
         samples = self._normalized_samples(raw)
         if samples is None or not np.isfinite(samples).all():
             return self._failed(requested_bpm, "TEMPO_DETECTION_FAILED")
@@ -68,33 +60,19 @@ class DefaultTempoAnalyzer(TempoAnalyzer):
         if estimate is None:
             return self._failed(requested_bpm, "TEMPO_DETECTION_FAILED")
         detected_bpm, confidence = estimate
-        bpm_error = (
-            round(detected_bpm - requested_bpm, 3)
-            if requested_bpm is not None
-            else None
-        )
-        tolerance = (
-            max(3.0, requested_bpm * 0.03) if requested_bpm is not None else None
-        )
+        bpm_error = round(detected_bpm - requested_bpm, 3) if requested_bpm is not None else None
+        tolerance = max(3.0, requested_bpm * 0.03) if requested_bpm is not None else None
         half_time = bool(
-            tolerance is not None
-            and abs(detected_bpm * 2.0 - requested_bpm) <= tolerance
+            tolerance is not None and abs(detected_bpm * 2.0 - requested_bpm) <= tolerance
         )
         double_time = bool(
-            tolerance is not None
-            and abs(detected_bpm / 2.0 - requested_bpm) <= tolerance
+            tolerance is not None and abs(detected_bpm / 2.0 - requested_bpm) <= tolerance
         )
         warnings = (
-            [self._warning("TEMPO_CONFIDENCE_LOW")]
-            if confidence < LOW_CONFIDENCE_THRESHOLD
-            else []
+            [self._warning("TEMPO_CONFIDENCE_LOW")] if confidence < LOW_CONFIDENCE_THRESHOLD else []
         )
         return TempoAnalysisResult(
-            status=(
-                AudioAnalysisStatus.PARTIAL
-                if warnings
-                else AudioAnalysisStatus.COMPLETED
-            ),
+            status=(AudioAnalysisStatus.PARTIAL if warnings else AudioAnalysisStatus.COMPLETED),
             requested_bpm=requested_bpm,
             detected_bpm=round(detected_bpm, 3),
             confidence=round(confidence, 4),
@@ -129,10 +107,7 @@ class DefaultTempoAnalyzer(TempoAnalyzer):
             return None
         lags = np.arange(min_lag, max_lag + 1)
         scores = np.array(
-            [
-                DefaultTempoAnalyzer._normalized_correlation(envelope, int(lag))
-                for lag in lags
-            ]
+            [DefaultTempoAnalyzer._normalized_correlation(envelope, int(lag)) for lag in lags]
         )
         if not np.isfinite(scores).all() or float(np.max(scores)) <= 0:
             return None

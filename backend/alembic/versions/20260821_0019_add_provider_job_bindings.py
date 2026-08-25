@@ -28,8 +28,7 @@ def upgrade() -> None:
         sa.Column("retry_of_provider_job_id", sa.String(256), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.CheckConstraint(
-            "retry_of_provider_job_id IS NULL "
-            "OR retry_of_provider_job_id <> provider_job_id",
+            "retry_of_provider_job_id IS NULL OR retry_of_provider_job_id <> provider_job_id",
             name="ck_provider_job_bindings_no_self_retry",
         ),
         sa.ForeignKeyConstraint(
@@ -77,10 +76,7 @@ def downgrade() -> None:
     # SQLite는 self-referencing FK가 있는 populated table의 DROP을 거부하므로
     # downgrade가 어차피 제거할 이력을 leaf부터 비운다.
     op.execute(
-        sa.text(
-            "DELETE FROM provider_job_bindings "
-            "WHERE retry_of_provider_job_id IS NOT NULL"
-        )
+        sa.text("DELETE FROM provider_job_bindings WHERE retry_of_provider_job_id IS NOT NULL")
     )
     op.execute(sa.text("DELETE FROM provider_job_bindings"))
     op.drop_index(

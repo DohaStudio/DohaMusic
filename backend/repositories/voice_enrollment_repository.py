@@ -93,14 +93,11 @@ class VoiceEnrollmentRepository:
             .where(
                 or_(
                     VoiceEnrollment.cleanup_status == VoiceCleanupStatus.PENDING.value,
-                    VoiceEnrollment.status
-                    == VoiceEnrollmentStatus.DELETE_PENDING.value,
+                    VoiceEnrollment.status == VoiceEnrollmentStatus.DELETE_PENDING.value,
                     and_(
                         or_(
-                            VoiceEnrollment.cleanup_status
-                            == VoiceCleanupStatus.FAILED.value,
-                            VoiceEnrollment.status
-                            == VoiceEnrollmentStatus.DELETE_FAILED.value,
+                            VoiceEnrollment.cleanup_status == VoiceCleanupStatus.FAILED.value,
+                            VoiceEnrollment.status == VoiceEnrollmentStatus.DELETE_FAILED.value,
                         ),
                         VoiceEnrollment.updated_at <= retry_cutoff,
                     ),
@@ -111,9 +108,7 @@ class VoiceEnrollmentRepository:
         )
         return list(self.session.scalars(statement))
 
-    def list_interrupted_submissions(
-        self, *, limit: int = 100
-    ) -> list[VoiceEnrollment]:
+    def list_interrupted_submissions(self, *, limit: int = 100) -> list[VoiceEnrollment]:
         statement = (
             select(VoiceEnrollment)
             .where(VoiceEnrollment.status == VoiceEnrollmentStatus.SUBMITTING.value)

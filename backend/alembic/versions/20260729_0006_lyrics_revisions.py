@@ -18,9 +18,7 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     with op.batch_alter_table("lyrics_documents") as batch_op:
         batch_op.add_column(sa.Column("parent_id", sa.String(36), nullable=True))
-        batch_op.add_column(
-            sa.Column("version", sa.Integer(), nullable=False, server_default="1")
-        )
+        batch_op.add_column(sa.Column("version", sa.Integer(), nullable=False, server_default="1"))
         batch_op.add_column(sa.Column("revision_instruction", sa.Text(), nullable=True))
         batch_op.add_column(sa.Column("source_hash", sa.String(64), nullable=True))
         batch_op.add_column(sa.Column("result_hash", sa.String(64), nullable=True))

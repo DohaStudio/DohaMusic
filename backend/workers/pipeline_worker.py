@@ -71,9 +71,7 @@ class PipelineWorker:
                 profile = repository.get_profile(job.voice_profile_id)
                 if profile is None or not profile.consent_confirmed:
                     raise PermissionError("동의된 음성 프로필이 필요합니다.")
-                reference_path = self.storage.resolve_voice_reference(
-                    profile.reference_file_path
-                )
+                reference_path = self.storage.resolve_voice_reference(profile.reference_file_path)
                 if not reference_path.is_file():
                     raise FileNotFoundError("참조 음성 파일이 없습니다.")
                 context = PipelineContext(
@@ -96,15 +94,13 @@ class PipelineWorker:
                 metadata = self._metadata(context, started_at, success=True)
                 metadata.update(self._kpop_metadata(job.input_snapshot))
                 requested_bpm = self._requested_bpm(job.input_snapshot)
-                metadata["audio_analysis"] = AudioAnalysisResult.pending(
-                    requested_bpm
-                ).model_dump(mode="json")
+                metadata["audio_analysis"] = AudioAnalysisResult.pending(requested_bpm).model_dump(
+                    mode="json"
+                )
                 metadata_path = self._write_metadata(job.id, metadata)
                 context.metadata_file = metadata_path
                 self._ensure_not_cancelled(repository, job)
-                if not repository.finalize_success(
-                    job, metadata, self._file_entries(context)
-                ):
+                if not repository.finalize_success(job, metadata, self._file_entries(context)):
                     raise PipelineCancelled
                 self._complete_audio_analysis(repository, job, context, metadata)
                 logger.info(
@@ -130,9 +126,7 @@ class PipelineWorker:
             except Exception as exc:
                 logger.exception("pipeline_worker_failed job_id=%s", job_id)
                 session.rollback()
-                wrapped = PipelineError(
-                    "PIPELINE_FAILED", str(exc), step=job.current_step
-                )
+                wrapped = PipelineError("PIPELINE_FAILED", str(exc), step=job.current_step)
                 self._fail(repository, job, context, started_at, wrapped)
             finally:
                 logger.info(
@@ -142,23 +136,15 @@ class PipelineWorker:
                 )
 
     @staticmethod
-    def _start_step(
-        repository: PipelineRepository, job: Any, step: PipelineStep
-    ) -> None:
+    def _start_step(repository: PipelineRepository, job: Any, step: PipelineStep) -> None:
         PipelineWorker._ensure_not_cancelled(repository, job)
-        repository.transition(
-            job, step.status, f"{step.name}_started", step.progress_percent
-        )
+        repository.transition(job, step.status, f"{step.name}_started", step.progress_percent)
         logger.info("pipeline_step_started job_id=%s step=%s", job.id, step.name)
 
     @staticmethod
-    def _complete_step(
-        repository: PipelineRepository, job: Any, step: PipelineStep
-    ) -> None:
+    def _complete_step(repository: PipelineRepository, job: Any, step: PipelineStep) -> None:
         PipelineWorker._ensure_not_cancelled(repository, job)
-        logger.info(
-            "pipeline_step_boundary_checked job_id=%s step=%s", job.id, step.name
-        )
+        logger.info("pipeline_step_boundary_checked job_id=%s step=%s", job.id, step.name)
 
     @staticmethod
     def _ensure_not_cancelled(repository: PipelineRepository, job: Any) -> None:
@@ -243,9 +229,7 @@ class PipelineWorker:
     def _write_metadata(self, job_id: str, metadata: dict[str, Any]) -> Path:
         path = self.storage.pipeline_dir / job_id / "metadata.json"
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
-            json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        path.write_text(json.dumps(metadata, ensure_ascii=False, indent=2), encoding="utf-8")
         return path
 
     def _complete_audio_analysis(
@@ -316,16 +300,12 @@ class PipelineWorker:
                 repository.set_metadata(job, updated_metadata)
             except Exception:
                 repository.session.rollback()
-                logger.exception(
-                    "audio_analysis_failure_metadata_save_failed job_id=%s", job.id
-                )
+                logger.exception("audio_analysis_failure_metadata_save_failed job_id=%s", job.id)
                 return
         try:
             self._write_metadata(job.id, updated_metadata)
         except OSError:
-            logger.exception(
-                "audio_analysis_file_metadata_save_failed job_id=%s", job.id
-            )
+            logger.exception("audio_analysis_file_metadata_save_failed job_id=%s", job.id)
         logger.info(
             "audio_analysis_completed job_id=%s status=%s version=%s",
             job.id,

@@ -21,11 +21,7 @@ class LyricsRepository:
         return self.session.get(LyricsDocument, lyrics_id)
 
     def has_children(self, lyrics_id: str) -> bool:
-        statement = (
-            select(LyricsDocument.id)
-            .where(LyricsDocument.parent_id == lyrics_id)
-            .limit(1)
-        )
+        statement = select(LyricsDocument.id).where(LyricsDocument.parent_id == lyrics_id).limit(1)
         return self.session.scalar(statement) is not None
 
     def update_metadata(

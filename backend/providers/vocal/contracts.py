@@ -108,10 +108,7 @@ class VocalAnalysisInput(StrictFrozenModel):
 
 
 VocalJobInput = Annotated[
-    VocalGenerationInput
-    | VoiceConversionInput
-    | VocalCorrectionInput
-    | VocalAnalysisInput,
+    VocalGenerationInput | VoiceConversionInput | VocalCorrectionInput | VocalAnalysisInput,
     Field(discriminator="job_type"),
 ]
 
@@ -397,9 +394,7 @@ class VocalPayloadBackedResultCandidate(VocalProviderResultCandidate):
         return self
 
 
-AnyVocalProviderResultCandidate = (
-    VocalProviderResultCandidate | VocalPayloadBackedResultCandidate
-)
+AnyVocalProviderResultCandidate = VocalProviderResultCandidate | VocalPayloadBackedResultCandidate
 
 
 ReviewStatus = Literal["UNKNOWN", "REVIEW_REQUIRED", "APPROVED", "REJECTED"]

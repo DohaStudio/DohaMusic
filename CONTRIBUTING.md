@@ -18,4 +18,21 @@
 4. 모델 실험은 [실험 보고서 템플릿](reports/experiment-report-template.md)으로 기록한다.
 5. 아키텍처 결정 변경은 새 ADR을 작성하고 기존 ADR 상태를 대체됨으로 표시한다.
 
+## Python 검증 기준
+
+Tracked first-party Python root는 `backend`와 `ai_worker`이고 test root는
+`backend/tests`다. 존재하지 않는 `src tests` 경로 또는 변경 파일만을 대상으로 삼지
+않으며, 로컬과 CI에서 다음 명령을 동일하게 실행한다.
+
+```powershell
+python -m compileall -q backend ai_worker
+python -m ruff check --no-cache backend ai_worker
+python -m ruff format --check --no-cache backend ai_worker
+python -m pytest -q
+git diff --check
+```
+
+Ruff 예외는 `pyproject.toml`에 파일과 사유를 좁게 기록한다. `--unsafe-fixes`, 광범위한
+ignore, 대량 `noqa`, `continue-on-error`로 Gate를 우회하지 않는다.
+
 커밋 메시지는 한국어 또는 명확한 Conventional Commit 형식을 사용한다.

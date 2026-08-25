@@ -66,8 +66,7 @@ class LyricsService:
                     request.generation_options.language_ratio.ko,
                     request.generation_options.language_ratio.en,
                 )
-                if request.generation_options
-                and request.generation_options.language_ratio
+                if request.generation_options and request.generation_options.language_ratio
                 else None
             ),
             hook_phrase=(
@@ -111,9 +110,7 @@ class LyricsService:
 
         metadata = {
             **result.metadata,
-            "capabilities": {
-                "revision": callable(getattr(self.generator, "revise", None))
-            },
+            "capabilities": {"revision": callable(getattr(self.generator, "revise", None))},
             "provider": result.provider,
             "model_name": result.model_name,
             "model_version": result.model_version,
@@ -123,9 +120,7 @@ class LyricsService:
             "mood": request.mood,
             "keywords": request.keywords,
             "requested_structure": request.structure,
-            "generated_structure": [
-                section.section_type for section in validation.sections
-            ],
+            "generated_structure": [section.section_type for section in validation.sections],
             "target_duration_seconds": request.target_duration_seconds,
             "additional_instructions_provided": bool(request.additional_instructions),
             "generation_options": (
@@ -178,9 +173,7 @@ class LyricsService:
         source = self.get(lyrics_id)
         revise = getattr(self.generator, "revise", None)
         if not callable(revise):
-            raise LyricsRevisionError(
-                "현재 Lyrics Provider는 의미 기반 수정을 지원하지 않습니다."
-            )
+            raise LyricsRevisionError("현재 Lyrics Provider는 의미 기반 수정을 지원하지 않습니다.")
         source_sections = tuple(
             LyricsSection(item["section_type"], tuple(item["lines"]))
             for item in source.sections_data
@@ -214,16 +207,11 @@ class LyricsService:
         validation_started_at = time.perf_counter()
         validation = validate_lyrics(result.full_text, source.language)
         validation_time = time.perf_counter() - validation_started_at
-        generated_structure = tuple(
-            section.section_type for section in validation.sections
-        )
+        generated_structure = tuple(section.section_type for section in validation.sections)
         if (
             not validation.valid
             or not result.sections
-            or (
-                request.preserve_structure
-                and generated_structure != tuple(source.structure)
-            )
+            or (request.preserve_structure and generated_structure != tuple(source.structure))
         ):
             raise LyricsOutputInvalidError()
 
@@ -330,9 +318,7 @@ class LyricsService:
             if document is None:
                 raise ResourceNotFoundError("가사 문서")
             if repository.has_children(lyrics_id):
-                raise LyricsRevisionError(
-                    "수정 이력이 있는 원본 문서는 삭제할 수 없습니다."
-                )
+                raise LyricsRevisionError("수정 이력이 있는 원본 문서는 삭제할 수 없습니다.")
             repository.delete(document)
         logger.info("lyrics_document_deleted lyrics_id=%s", lyrics_id)
 

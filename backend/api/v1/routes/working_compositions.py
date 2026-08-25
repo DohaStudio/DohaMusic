@@ -146,9 +146,7 @@ def checkout_working_composition(
         request,
         CheckoutResult(
             working_composition_id=result.identities["working_composition_id"],
-            base_composition_snapshot_id=result.identities[
-                "base_composition_snapshot_id"
-            ],
+            base_composition_snapshot_id=result.identities["base_composition_snapshot_id"],
             completed_revision=result.completed_revision,
             replayed=result.replayed,
         ),

@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         SnapshotItem,
     )
     from backend.models.workspace.job import JobInput, JobOutput, ModelUsage
+    from backend.models.workspace.payload_locator import PayloadLocator
     from backend.models.workspace.storage import ArtifactStorageLocation
     from backend.models.workspace.workspace import ProjectAsset, Workspace
 
@@ -74,9 +75,7 @@ class Asset(TimestampMixin, SoftDeleteMixin, Base):
         nullable=True,
         index=True,
     )
-    owner_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    owner_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
     asset_type: Mapped[AssetType] = mapped_column(
         SAEnum(
             AssetType,
@@ -118,9 +117,7 @@ class Asset(TimestampMixin, SoftDeleteMixin, Base):
 class AssetVersion(CreatedAtMixin, Base):
     __tablename__ = "asset_versions"
     __table_args__ = (
-        CheckConstraint(
-            "version_number >= 1", name="ck_asset_versions_positive_number"
-        ),
+        CheckConstraint("version_number >= 1", name="ck_asset_versions_positive_number"),
         UniqueConstraint("asset_id", "version_number", name="uq_asset_versions_number"),
     )
 
@@ -145,17 +142,11 @@ class AssetVersion(CreatedAtMixin, Base):
         index=True,
     )
     provider_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
-    model_manifest_id: Mapped[str | None] = mapped_column(
-        String, nullable=True, index=True
-    )
+    model_manifest_id: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
     settings_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
-    created_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    created_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
 
-    asset: Mapped[Asset] = relationship(
-        back_populates="versions", foreign_keys=[asset_id]
-    )
+    asset: Mapped[Asset] = relationship(back_populates="versions", foreign_keys=[asset_id])
     selected_by_asset: Mapped[Asset | None] = relationship(
         back_populates="selected_version",
         foreign_keys="Asset.selected_asset_version_id",
@@ -169,9 +160,7 @@ class AssetVersion(CreatedAtMixin, Base):
     child_versions: Mapped[list[AssetVersion]] = relationship(
         back_populates="parent_version", foreign_keys=[parent_asset_version_id]
     )
-    processing_chain: Mapped[ProcessingChain | None] = relationship(
-        back_populates="asset_versions"
-    )
+    processing_chain: Mapped[ProcessingChain | None] = relationship(back_populates="asset_versions")
     artifacts: Mapped[list[Artifact]] = relationship(back_populates="asset_version")
     source_relations: Mapped[list[AssetRelation]] = relationship(
         back_populates="source_asset_version",
@@ -181,14 +170,10 @@ class AssetVersion(CreatedAtMixin, Base):
         back_populates="target_asset_version",
         foreign_keys="AssetRelation.target_asset_version_id",
     )
-    snapshot_items: Mapped[list[SnapshotItem]] = relationship(
-        back_populates="asset_version"
-    )
+    snapshot_items: Mapped[list[SnapshotItem]] = relationship(back_populates="asset_version")
     job_inputs: Mapped[list[JobInput]] = relationship(back_populates="asset_version")
     job_outputs: Mapped[list[JobOutput]] = relationship(back_populates="asset_version")
-    model_usages: Mapped[list[ModelUsage]] = relationship(
-        back_populates="asset_version"
-    )
+    model_usages: Mapped[list[ModelUsage]] = relationship(back_populates="asset_version")
     recording_enrollments: Mapped[list[RecordingEnrollment]] = relationship(
         back_populates="recording_asset_version"
     )
@@ -242,6 +227,9 @@ class Artifact(CreatedAtMixin, Base):
     )
     job_inputs: Mapped[list[JobInput]] = relationship(back_populates="artifact")
     job_outputs: Mapped[list[JobOutput]] = relationship(back_populates="artifact")
+    payload_locators: Mapped[list[PayloadLocator]] = relationship(
+        back_populates="ingested_artifact"
+    )
 
 
 class AssetRelation(CreatedAtMixin, Base):

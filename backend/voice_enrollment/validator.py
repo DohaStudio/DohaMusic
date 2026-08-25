@@ -18,9 +18,7 @@ QUALITY_VERSION = "basic-v1"
 
 
 class VoiceAudioValidator:
-    def __init__(
-        self, *, min_duration_seconds: float, max_duration_seconds: float
-    ) -> None:
+    def __init__(self, *, min_duration_seconds: float, max_duration_seconds: float) -> None:
         self.min_duration_seconds = min_duration_seconds
         self.max_duration_seconds = max_duration_seconds
 

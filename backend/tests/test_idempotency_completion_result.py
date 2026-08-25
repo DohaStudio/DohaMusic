@@ -22,9 +22,7 @@ from backend.repositories.idempotency_repository import IdempotencyRepository
 
 @pytest.fixture
 def sessions(tmp_path):
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'idempotency.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'idempotency.db').as_posix()}")
     IdempotencyRecord.__table__.create(engine)
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     yield factory
@@ -49,9 +47,7 @@ def _result(
             "working_composition_id": str(uuid4()),
             "base_composition_snapshot_id": str(uuid4()),
         },
-        IdempotencyResultType.COMPOSITION_COMMIT: {
-            "composition_snapshot_id": str(uuid4())
-        },
+        IdempotencyResultType.COMPOSITION_COMMIT: {"composition_snapshot_id": str(uuid4())},
         IdempotencyResultType.TRACK_CREATE: {"track_id": str(uuid4())},
         IdempotencyResultType.TRACK_DELETE: {"track_id": str(uuid4())},
         IdempotencyResultType.CLIP_CREATE: {"clip_id": str(uuid4())},
@@ -129,9 +125,7 @@ def test_completion_result_roundtrip_replays_original_revision_and_split_ids(
         assert replay.completion_result == first
         assert replay.completion_result.completed_revision == 6
         assert session.scalar(text("SELECT revision FROM current_aggregate")) == 8
-        assert dict(replay.completion_result.result_payload) == dict(
-            first.result_payload
-        )
+        assert dict(replay.completion_result.result_payload) == dict(first.result_payload)
         assert session.scalar(select(func.count()).select_from(IdempotencyRecord)) == 1
 
 
@@ -181,9 +175,7 @@ def test_legacy_completed_record_remains_replayable_but_new_contract_fails_close
     now = datetime.now(UTC)
     with sessions() as session, session.begin():
         repository = IdempotencyRepository(session)
-        claim = repository.claim(
-            scope="legacy", key="key", fingerprint="c" * 64, now=now
-        )
+        claim = repository.claim(scope="legacy", key="key", fingerprint="c" * 64, now=now)
         repository.complete(
             claim.record,
             resource_type="workspace_job",
@@ -207,9 +199,7 @@ def test_partial_or_unknown_completion_result_fails_closed(sessions) -> None:
     now = datetime.now(UTC)
     with sessions() as session, session.begin():
         repository = IdempotencyRepository(session)
-        claim = repository.claim(
-            scope="partial", key="key", fingerprint="d" * 64, now=now
-        )
+        claim = repository.claim(scope="partial", key="key", fingerprint="d" * 64, now=now)
         repository.complete(
             claim.record,
             resource_type="composition_clip",
@@ -265,9 +255,7 @@ def test_result_payload_schema_uuid_and_utf8_size_are_bounded(monkeypatch) -> No
 def test_domain_revision_and_completion_result_rollback_together(sessions) -> None:
     engine = sessions.kw["bind"]
     with engine.begin() as connection:
-        connection.execute(
-            text("CREATE TABLE revision_probe (revision INTEGER NOT NULL)")
-        )
+        connection.execute(text("CREATE TABLE revision_probe (revision INTEGER NOT NULL)"))
         connection.execute(text("INSERT INTO revision_probe VALUES (5)"))
 
     with (

@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260821_0019"
 PREVIOUS_REVISION = "20260820_0018"
 TABLE = "provider_job_bindings"
-SOURCE_HEAD = "20260825_0022"
+SOURCE_HEAD = "20260825_0023"
 
 
 def _config(database_url: str) -> Config:
@@ -101,7 +101,7 @@ def test_provider_job_binding_metadata_matches_revision() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
     assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert len(Base.metadata.tables) == 43
+    assert len(Base.metadata.tables) == 44
 
     table = Base.metadata.tables[TABLE]
     assert {column.name for column in table.columns} == {
@@ -131,9 +131,7 @@ def test_provider_job_binding_migration_round_trip_and_constraints(tmp_path) -> 
     with engine.begin() as connection:
         inspector = inspect(connection)
         assert TABLE in inspector.get_table_names()
-        assert (
-            connection.execute(text(f"SELECT count(*) FROM {TABLE}")).scalar_one() == 0
-        )
+        assert connection.execute(text(f"SELECT count(*) FROM {TABLE}")).scalar_one() == 0
         assert (
             connection.execute(
                 text("SELECT count(*) FROM jobs WHERE job_id = :job_id"),
@@ -214,9 +212,7 @@ def test_provider_job_binding_migration_round_trip_and_constraints(tmp_path) -> 
             == 1
         )
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == PREVIOUS_REVISION
         )
         assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"

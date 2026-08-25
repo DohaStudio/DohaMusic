@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from backend.kpop.presets import KPOP_PRESET_REGISTRY, PresetRegistry
 from backend.kpop.options import KPopGenerationOptions
+from backend.kpop.presets import KPOP_PRESET_REGISTRY, PresetRegistry
 
 COMPILER_VERSION = "kpop-prompt-v1"
 MAX_COMPILED_PROMPT_LENGTH = 1_500
@@ -78,9 +78,7 @@ class KPopPromptCompiler:
             )
         prompt = "\n\n".join(sections)
         if len(prompt) > MAX_COMPILED_PROMPT_LENGTH:
-            raise KPopPromptValidationError(
-                "Compiled K-POP prompt exceeds 1500 characters"
-            )
+            raise KPopPromptValidationError("Compiled K-POP prompt exceeds 1500 characters")
         return PromptCompilationResult(
             prompt=prompt,
             preset_id=preset.id,
@@ -94,7 +92,8 @@ class KPopPromptCompiler:
         sections = ["Structured user options (override preset defaults):"]
         if options.requested_bpm is not None:
             sections.append(
-                f"Target tempo around {options.requested_bpm} BPM; treat this as a prompt goal, not an exact guarantee."
+                f"Target tempo around {options.requested_bpm} BPM; "
+                "treat this as a prompt goal, not an exact guarantee."
             )
         if options.language_ratio is not None:
             sections.append(
@@ -136,9 +135,7 @@ class KPopPromptCompiler:
 
     @staticmethod
     def _reject_artist_imitation(value: str) -> None:
-        if value and any(
-            pattern.search(value) for pattern in _ARTIST_IMITATION_PATTERNS
-        ):
+        if value and any(pattern.search(value) for pattern in _ARTIST_IMITATION_PATTERNS):
             raise KPopPromptValidationError(
                 "Specific artist, voice, or writing-style imitation is not supported"
             )

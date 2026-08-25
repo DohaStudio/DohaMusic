@@ -11,17 +11,18 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
-### 문서 — Durable Payload Locator Persistence Authority
+### 추가 — Durable Payload Locator Persistence Foundation
 
-- DohaVocal `0.2.0` Result replay는 acquisition 전 source descriptor 복구에 충분하지만 verified staging key·actual byte facts·revocation·cleanup은 복구하지 못한다고 판정했다.
-- append-only `ProviderJobBinding` extension 대신 ordered 1:N 전용 `PayloadLocator` aggregate와 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`를 ADR-049로 확정했다.
-- `payloadref:v1` 호환 identity, source-bound → verified-staged → Artifact handoff·cleanup lifecycle, expected/actual fact 분리, safe storage key, 15개 crash matrix와 다음 최소 schema 범위를 문서화했다. Python·DB·Alembic·Runtime·network·filesystem 변경은 0개다.
+- `payloadref:v1:<32 lowercase UUID hex>` identity의 전용 `PayloadLocator` domain, persistence port, SQLAlchemy/SQLite adapter와 Service-owned transaction을 구현했다. `ProviderJobBinding 1:N`과 direct Workspace scope는 composite FK로 일치시키고 ordinal 및 canonical source tuple을 각각 unique로 보존한다.
+- exact issue replay는 기존 locator를 반환하고 immutable mismatch는 `RESULT_REPLAY_CONFLICT`로 fail-closed한다. expected/actual facts, source/policy expiry, safe relative staging key, terminal revocation과 `source_bound → verified_staged → ingested → cleanup_pending → cleaned` revision CAS를 구현했다.
+- additive Alembic `20260825_0023`과 fresh/existing upgrade·downgrade·re-upgrade, restart, idempotency, concurrent mutation, lifecycle, revocation 및 path/URL/credential security regression을 추가했다. `InMemoryTrustedPayloadRegistry`는 test/dev 호환으로 유지하고 Product API는 추가하지 않았다.
+- durable byte staging, downloader orchestration, Artifact ingestion/Completion adapter, Worker dispatcher/reclaim과 실제 Provider Runtime은 계속 미구현이다.
 
 ### 추가 — DohaVocal 0.2.0 Payload Acquisition Consumer
 
 - DohaVocal PR #6에서 병합된 `0.2.0` payload-backed Result와 `GetPayloadContent` capability를 기존 `0.1.0` metadata-only 경로와 분리한 strict DTO로 추가했다.
 - payload source·role·SHA-256·size·media·availability와 Workspace contract version을 read-only trust gate에서 검증하고, ordered canonical replay identity가 달라지면 fail-closed한다.
-- 고정 DohaVocal origin의 payload endpoint를 redirect 없이 bounded streaming으로 읽어 실제 size·media type·SHA-256을 검증하는 transient acquisition port를 추가했다. locator persistence, staging, Artifact ingestion, Completion 및 Worker wiring은 미구현 상태다.
+- 고정 DohaVocal origin의 payload endpoint를 redirect 없이 bounded streaming으로 읽어 실제 size·media type·SHA-256을 검증하는 transient acquisition port를 추가했다. 당시 locator persistence도 미구현이었으나 현재 위 Persistence Foundation으로 구현됐고 byte staging, Artifact ingestion, Completion 및 Worker wiring은 계속 미구현이다.
 - 결정 근거와 후속 `DURABLE_LOCATOR_REQUIRED` 재분석 dependency를 ADR-048에 기록했고, 재분석 결과는 ADR-049가 확정한다.
 
 ### 추가 — WorkingComposition Atomic Mutation Service와 Product API
@@ -45,6 +46,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 최신 `develop`의 Workspace Job·ProviderJobBinding·Provider replay·Result trust gate·Completion authority를 다시 분류하고 17개 crash/restart case를 판정했다.
 - ADR-046에서 locator 전 Provider execution·Result validation은 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`로 확정했다. 새 entity/field, schema와 Alembic은 필요하지 않으며 다음 dependency는 `DURABLE_LOCATOR_REQUIRED`다.
 - CURRENT reclaim Runtime은 계속 미구현이다. Python·DB·API·Frontend·Provider wiring·network·Artifact·Dataset·model/GPU는 변경하지 않았다.
+
+### 유지보수 — Ruff 정적검사 기준선
+
+- Python root를 `backend`와 `ai_worker`, test root를 `backend/tests`로 명시하고 로컬과 CI의 compileall·Ruff lint·Ruff format 명령을 통일했다.
+- Ruff 0.16.4와 명시적 rule set을 저장소 자체 설정으로 고정해 상위 디렉터리 설정 상속을 제거하고, first-party Python 전체의 lint·format 기준선을 정리했다.
+- project-root bootstrap 뒤 import가 필요한 AI worker script 세 개만 근거가 있는 `E402` 예외로 제한했다. 기능·API·DB·Dataset·Training·authentication 계약은 변경하지 않았다.
 
 ### 추가 — Clip Service Authority Foundation
 

@@ -31,12 +31,8 @@ def upgrade() -> None:
         sa.Column("id", sa.String(length=36), nullable=False),
         sa.Column("profile_name", sa.String(length=100), nullable=False),
         sa.Column("profile_description", sa.Text(), nullable=True),
-        sa.Column(
-            "status", sa.String(length=32), nullable=False, server_default="DRAFT"
-        ),
-        sa.Column(
-            "consent_confirmed", sa.Boolean(), nullable=False, server_default=sa.false()
-        ),
+        sa.Column("status", sa.String(length=32), nullable=False, server_default="DRAFT"),
+        sa.Column("consent_confirmed", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("consent_policy_version", sa.String(length=50), nullable=True),
         sa.Column("consent_confirmed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("voice_profile_id", sa.String(length=36), nullable=True),
@@ -65,18 +61,14 @@ def upgrade() -> None:
             ondelete="RESTRICT",
         ),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "voice_profile_id", name="uq_voice_enrollments_voice_profile_id"
-        ),
+        sa.UniqueConstraint("voice_profile_id", name="uq_voice_enrollments_voice_profile_id"),
     )
     op.create_index(
         "ix_voice_enrollments_status_expires_at",
         "voice_enrollments",
         ["status", "expires_at"],
     )
-    op.create_index(
-        "ix_voice_enrollments_cleanup_status", "voice_enrollments", ["cleanup_status"]
-    )
+    op.create_index("ix_voice_enrollments_cleanup_status", "voice_enrollments", ["cleanup_status"])
 
     op.create_table(
         "voice_samples",
@@ -86,9 +78,7 @@ def upgrade() -> None:
         sa.Column("source_type", sa.String(length=32), nullable=False),
         sa.Column("prompt_id", sa.String(length=100), nullable=True),
         sa.Column("category", sa.String(length=50), nullable=False),
-        sa.Column(
-            "status", sa.String(length=32), nullable=False, server_default="UPLOADED"
-        ),
+        sa.Column("status", sa.String(length=32), nullable=False, server_default="UPLOADED"),
         sa.Column("original_content_type", sa.String(length=100), nullable=True),
         sa.Column("original_size_bytes", sa.BigInteger(), nullable=True),
         sa.Column("original_storage_path", sa.String(length=500), nullable=True),
@@ -217,32 +207,22 @@ def downgrade() -> None:
     bind = op.get_bind()
     enrollment_count = bind.scalar(sa.text("SELECT COUNT(*) FROM voice_enrollments"))
     nonlegacy_count = bind.scalar(
-        sa.text(
-            "SELECT COUNT(*) FROM voice_samples WHERE source_type <> 'LEGACY_REFERENCE'"
-        )
+        sa.text("SELECT COUNT(*) FROM voice_samples WHERE source_type <> 'LEGACY_REFERENCE'")
     )
     if enrollment_count or nonlegacy_count:
-        raise RuntimeError(
-            "Cannot downgrade voice enrollment schema while enrollment data exists"
-        )
+        raise RuntimeError("Cannot downgrade voice enrollment schema while enrollment data exists")
 
     with op.batch_alter_table("voice_profiles") as batch:
         batch.drop_constraint(
             "fk_voice_profiles_active_reference_sample_id_voice_samples",
             type_="foreignkey",
         )
-        batch.drop_constraint(
-            "uq_voice_profiles_active_reference_sample_id", type_="unique"
-        )
+        batch.drop_constraint("uq_voice_profiles_active_reference_sample_id", type_="unique")
         batch.drop_column("active_reference_sample_id")
     op.drop_index("ix_voice_samples_status_expires_at", table_name="voice_samples")
-    op.drop_index(
-        "ix_voice_samples_voice_profile_id_status", table_name="voice_samples"
-    )
+    op.drop_index("ix_voice_samples_voice_profile_id_status", table_name="voice_samples")
     op.drop_index("ix_voice_samples_enrollment_id_status", table_name="voice_samples")
     op.drop_table("voice_samples")
     op.drop_index("ix_voice_enrollments_cleanup_status", table_name="voice_enrollments")
-    op.drop_index(
-        "ix_voice_enrollments_status_expires_at", table_name="voice_enrollments"
-    )
+    op.drop_index("ix_voice_enrollments_status_expires_at", table_name="voice_enrollments")
     op.drop_table("voice_enrollments")

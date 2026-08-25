@@ -64,9 +64,7 @@ def test_generation_options_are_optional_and_strict() -> None:
 @pytest.mark.parametrize("bpm", [70, 180])
 def test_bpm_accepts_integer_boundaries(bpm: int) -> None:
     assert (
-        KPopGenerationOptions.model_validate(
-            options_payload(requested_bpm=bpm)
-        ).requested_bpm
+        KPopGenerationOptions.model_validate(options_payload(requested_bpm=bpm)).requested_bpm
         == bpm
     )
 
@@ -100,12 +98,8 @@ def test_preset_and_genre_mismatch_is_rejected() -> None:
 
 def test_compiler_applies_all_options_deterministically() -> None:
     options = KPopGenerationOptions.model_validate(options_payload())
-    first = KPopPromptCompiler().compile(
-        "kpop_dance", "여름밤의 자신감 있는 곡", options=options
-    )
-    second = KPopPromptCompiler().compile(
-        "kpop_dance", "여름밤의 자신감 있는 곡", options=options
-    )
+    first = KPopPromptCompiler().compile("kpop_dance", "여름밤의 자신감 있는 곡", options=options)
+    second = KPopPromptCompiler().compile("kpop_dance", "여름밤의 자신감 있는 곡", options=options)
     assert first == second
     assert first.normalized_options is not None
     for expected in (
@@ -124,15 +118,11 @@ def test_compiler_applies_all_options_deterministically() -> None:
 
 
 def test_compiler_omits_empty_hook_and_keeps_safety_and_length_limits() -> None:
-    options = KPopGenerationOptions.model_validate(
-        options_payload(hook=None, concept=None)
-    )
+    options = KPopGenerationOptions.model_validate(options_payload(hook=None, concept=None))
     result = KPopPromptCompiler().compile("kpop_dance", "원본 요청", options=options)
     assert "Repeat the hook" not in result.prompt
     with pytest.raises(KPopPromptValidationError):
-        KPopPromptCompiler().compile(
-            "kpop_dance", "유명 가수처럼 노래해 줘", options=options
-        )
+        KPopPromptCompiler().compile("kpop_dance", "유명 가수처럼 노래해 줘", options=options)
     with pytest.raises(KPopPromptValidationError):
         KPopPromptCompiler().compile("kpop_dance", "가" * 1400, options=options)
 
@@ -148,10 +138,7 @@ def test_pipeline_snapshot_public_metadata_and_retry_restore_options(
     assert created["kpop_prompt_compiler_version"] == "kpop-prompt-v1"
     assert created["prompt"].endswith("여름밤의 자신감 있는 곡")
     completed = wait_for_pipeline(client, created["id"])
-    assert (
-        completed["result_metadata"]["generation_options"]["hook"]["phrase"]
-        == "Play My Heart"
-    )
+    assert completed["result_metadata"]["generation_options"]["hook"]["phrase"] == "Play My Heart"
     assert "input_snapshot" not in completed
 
     with client.app.state.session_factory() as session:
@@ -178,9 +165,7 @@ def test_pipeline_snapshot_public_metadata_and_retry_restore_options(
     assert history_item["generation_options"]["preset_id"] == "kpop_dance"
     assert "compiled_prompt" not in history_item
     project = client.get(f"/api/projects/{created['project_id']}").json()
-    project_item = next(
-        item for item in project["jobs"] if item["job_id"] == created["id"]
-    )
+    project_item = next(item for item in project["jobs"] if item["job_id"] == created["id"])
     assert project_item["generation_options"]["concept"] == "confident_bright"
 
 
@@ -195,9 +180,7 @@ def test_api_maps_generation_option_errors(client: TestClient) -> None:
     )
     assert invalid_bpm.status_code == 422
     assert invalid_bpm.json()["error"]["code"] == "INVALID_REQUESTED_BPM"
-    mismatch = client.post(
-        "/api/pipelines", json=pipeline_payload(profile_id, genre="rock")
-    )
+    mismatch = client.post("/api/pipelines", json=pipeline_payload(profile_id, genre="rock"))
     assert mismatch.status_code == 422
     assert mismatch.json()["error"]["code"] == "PRESET_GENRE_MISMATCH"
 
@@ -240,9 +223,7 @@ def test_lyrics_options_control_hook_and_post_chorus(client: TestClient) -> None
     document = response.json()
     assert "post_chorus" not in document["structure"]
     chorus = next(
-        section
-        for section in document["sections"]
-        if section["section_type"] == "chorus"
+        section for section in document["sections"] if section["section_type"] == "chorus"
     )
     assert "Play My Heart, Play My Heart, Play My Heart" in chorus["lines"][0]
     assert document["metadata"]["generation_options"]["language_ratio"] == {

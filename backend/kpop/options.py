@@ -99,9 +99,7 @@ def public_generation_metadata(
     except (TypeError, ValueError):
         return None, None
     version = snapshot.get("compiler_version")
-    return options.model_dump(mode="json"), version if isinstance(
-        version, str
-    ) else None
+    return options.model_dump(mode="json"), version if isinstance(version, str) else None
 
 
 def _normalize_limited_text(value: str, label: str) -> str:

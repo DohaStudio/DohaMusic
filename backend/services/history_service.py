@@ -31,9 +31,7 @@ class HistoryService:
         return HistoryItemRead(
             job_id=job.id,
             project_id=job.project_id,
-            title=(original_prompt if isinstance(original_prompt, str) else job.prompt)[
-                :200
-            ],
+            title=(original_prompt if isinstance(original_prompt, str) else job.prompt)[:200],
             status=job.status,
             created_at=job.created_at,
             duration=job.duration_seconds,
@@ -77,9 +75,7 @@ class HistoryService:
     def list_projects(self) -> list[ProjectRead]:
         with self.session_factory() as session:
             return [
-                ProjectRead.model_validate(project).model_copy(
-                    update={"job_count": count}
-                )
+                ProjectRead.model_validate(project).model_copy(update={"job_count": count})
                 for project, count in HistoryRepository(session).list_projects()
             ]
 
@@ -91,9 +87,7 @@ class HistoryService:
                 raise ResourceNotFoundError("Project")
             jobs = [
                 self._item(row)
-                for row in repository.history_rows(
-                    limit=100, offset=0, project_id=project_id
-                )
+                for row in repository.history_rows(limit=100, offset=0, project_id=project_id)
             ]
             return ProjectDetailRead(
                 id=project.id,
@@ -107,9 +101,7 @@ class HistoryService:
 
     def create_project(self, request: ProjectCreate) -> ProjectRead:
         with self.session_factory() as session:
-            project = HistoryRepository(session).create_project(
-                request.title, request.description
-            )
+            project = HistoryRepository(session).create_project(request.title, request.description)
             return ProjectRead.model_validate(project)
 
     def update_project(self, project_id: str, request: ProjectUpdate) -> ProjectRead:

@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import os
 import stat
+from contextlib import suppress
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
@@ -68,12 +69,9 @@ class LocalArtifactPublisher:
         try:
             validated_staging_root = validate_local_root(staging_root)
         except ArtifactStorageError:
-            raise ArtifactPublishError(
-                ArtifactPublishErrorCode.CONFIGURATION_ERROR
-            ) from None
+            raise ArtifactPublishError(ArtifactPublishErrorCode.CONFIGURATION_ERROR) from None
         if any(
-            _paths_overlap(validated_staging_root, root)
-            for root in artifact_roots.roots.values()
+            _paths_overlap(validated_staging_root, root) for root in artifact_roots.roots.values()
         ):
             raise ArtifactPublishError(ArtifactPublishErrorCode.CONFIGURATION_ERROR)
         self.artifact_roots = artifact_roots
@@ -106,10 +104,7 @@ class LocalArtifactPublisher:
                 artifact_kind=artifact_kind,
                 size_bytes=size_bytes,
             )
-            if (
-                expected_media_type is not None
-                and media.media_type != expected_media_type
-            ):
+            if expected_media_type is not None and media.media_type != expected_media_type:
                 raise ArtifactPublishError(ArtifactPublishErrorCode.MEDIA_TYPE_MISMATCH)
             if expected_sha256 is not None and checksum != expected_sha256:
                 raise ArtifactPublishError(ArtifactPublishErrorCode.CHECKSUM_MISMATCH)
@@ -125,13 +120,9 @@ class LocalArtifactPublisher:
             try:
                 os.link(pending_path, final_path)
             except FileExistsError:
-                raise ArtifactPublishError(
-                    ArtifactPublishErrorCode.PUBLISH_COLLISION
-                ) from None
+                raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_COLLISION) from None
             except OSError:
-                raise ArtifactPublishError(
-                    ArtifactPublishErrorCode.PUBLISH_FAILED
-                ) from None
+                raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_FAILED) from None
 
             final_identity = pending_identity
             final_stat = final_path.stat(follow_symlinks=False)
@@ -155,9 +146,7 @@ class LocalArtifactPublisher:
                 source_identity=source_identity,
             )
         except ArtifactMediaValidationError:
-            raise ArtifactPublishError(
-                ArtifactPublishErrorCode.MEDIA_VALIDATION_FAILED
-            ) from None
+            raise ArtifactPublishError(ArtifactPublishErrorCode.MEDIA_VALIDATION_FAILED) from None
         except ArtifactPublishError:
             if final_path is not None and final_identity is not None:
                 _unlink_if_identity_matches(final_path, final_identity)
@@ -172,9 +161,7 @@ class LocalArtifactPublisher:
         return removed
 
     def cleanup_staging(self, published: PublishedLocalPayload) -> bool:
-        removed = _unlink_if_identity_matches(
-            published.source_path, published.source_identity
-        )
+        removed = _unlink_if_identity_matches(published.source_path, published.source_identity)
         if removed:
             _sync_directory(published.source_path.parent)
         return removed
@@ -191,9 +178,7 @@ class LocalArtifactPublisher:
             _sync_directory(source_path.parent)
         return removed
 
-    def _resolve_staging_payload(
-        self, requested_path: Path
-    ) -> tuple[Path, tuple[int, int]]:
+    def _resolve_staging_payload(self, requested_path: Path) -> tuple[Path, tuple[int, int]]:
         if not requested_path.is_absolute() or any(
             part in {".", ".."} for part in requested_path.parts
         ):
@@ -203,13 +188,9 @@ class LocalArtifactPublisher:
             assert_safe_local_path(self.staging_root, requested_path)
             resolved = requested_path.resolve(strict=True)
             resolved.relative_to(self.staging_root)
-            descriptor, descriptor_stat = open_regular_local_file(
-                self.staging_root, resolved
-            )
+            descriptor, descriptor_stat = open_regular_local_file(self.staging_root, resolved)
         except (ArtifactStorageError, OSError, RuntimeError, ValueError):
-            raise ArtifactPublishError(
-                ArtifactPublishErrorCode.INVALID_STAGING_PAYLOAD
-            ) from None
+            raise ArtifactPublishError(ArtifactPublishErrorCode.INVALID_STAGING_PAYLOAD) from None
         os.close(descriptor)
         return resolved, (descriptor_stat.st_dev, descriptor_stat.st_ino)
 
@@ -235,16 +216,12 @@ def _ensure_directory(root: Path, target: Path) -> Path:
     current = root
     for part in parts:
         current /= part
-        try:
+        with suppress(FileExistsError):
             current.mkdir()
-        except FileExistsError:
-            pass
         try:
             assert_safe_local_path(root, current)
         except ArtifactStorageError:
-            raise ArtifactPublishError(
-                ArtifactPublishErrorCode.PUBLISH_FAILED
-            ) from None
+            raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_FAILED) from None
         if not current.is_dir():
             raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_FAILED)
     return target
@@ -257,13 +234,9 @@ def _copy_exclusive(
     staging_root: Path,
 ) -> tuple[str, int, tuple[int, int]]:
     try:
-        source_descriptor, source_stat = open_regular_local_file(
-            staging_root, source_path
-        )
+        source_descriptor, source_stat = open_regular_local_file(staging_root, source_path)
     except ArtifactStorageError:
-        raise ArtifactPublishError(
-            ArtifactPublishErrorCode.INVALID_STAGING_PAYLOAD
-        ) from None
+        raise ArtifactPublishError(ArtifactPublishErrorCode.INVALID_STAGING_PAYLOAD) from None
     flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
     try:
         destination_descriptor = os.open(destination_path, flags, 0o600)
@@ -289,8 +262,7 @@ def _copy_exclusive(
             os.fsync(destination.fileno())
         source_after = source_path.stat(follow_symlinks=False)
         if (
-            (source_after.st_dev, source_after.st_ino)
-            != (source_stat.st_dev, source_stat.st_ino)
+            (source_after.st_dev, source_after.st_ino) != (source_stat.st_dev, source_stat.st_ino)
             or source_after.st_size != source_stat.st_size
             or size_bytes != source_stat.st_size
         ):
@@ -335,10 +307,8 @@ def _unlink_if_identity_matches(path: Path, identity: tuple[int, int]) -> bool:
 
 
 def _unlink_unchecked(path: Path) -> None:
-    try:
+    with suppress(FileNotFoundError):
         path.unlink()
-    except FileNotFoundError:
-        pass
 
 
 def _sync_directory(path: Path) -> bool:

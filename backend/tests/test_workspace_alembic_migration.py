@@ -16,11 +16,7 @@ from backend.models.workspace import WORKSPACE_ENTITY_CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION_PATH = (
-    ROOT
-    / "backend"
-    / "alembic"
-    / "versions"
-    / "20260806_0012_add_workspace_entity_tables.py"
+    ROOT / "backend" / "alembic" / "versions" / "20260806_0012_add_workspace_entity_tables.py"
 )
 REVISION = "20260806_0012"
 PREVIOUS_REVISION = "20260801_0011"
@@ -66,6 +62,7 @@ def _workspace_tables() -> set[str]:
             "composition_snapshot_tracks",
             "composition_tracks",
             "project_composition_selections",
+            "payload_locators",
             "provider_job_bindings",
             "working_compositions",
         }
@@ -118,13 +115,11 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
     dropped_tables = {
         table for operation, table in downgrade_operations if operation == "drop_table"
     }
-    used_operations = {
-        operation for operation, _ in upgrade_operations + downgrade_operations
-    }
+    used_operations = {operation for operation, _ in upgrade_operations + downgrade_operations}
 
     assert _revision_assignment("revision") == REVISION
     assert _revision_assignment("down_revision") == PREVIOUS_REVISION
-    assert len(WORKSPACE_ENTITY_CLASSES) == 28
+    assert len(WORKSPACE_ENTITY_CLASSES) == 29
     assert len(workspace_tables) == 21
     assert created_tables == workspace_tables
     assert dropped_tables == workspace_tables
@@ -169,6 +164,7 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
             "composition_snapshot_tracks",
             "composition_tracks",
             "project_composition_selections",
+            "payload_locators",
             "provider_job_bindings",
             "working_compositions",
         }
@@ -182,12 +178,9 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
             text("select version_num from alembic_version")
         ).scalar_one()
         workspace_foreign_keys = sum(
-            len(inspector.get_foreign_keys(table_name))
-            for table_name in workspace_tables
+            len(inspector.get_foreign_keys(table_name)) for table_name in workspace_tables
         )
-        foreign_key_violations = connection.exec_driver_sql(
-            "PRAGMA foreign_key_check"
-        ).all()
+        foreign_key_violations = connection.exec_driver_sql("PRAGMA foreign_key_check").all()
 
     assert upgraded_revision == REVISION
     assert upgraded_tables - {"alembic_version"} == (
@@ -199,6 +192,7 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
             "composition_snapshot_tracks",
             "composition_tracks",
             "project_composition_selections",
+            "payload_locators",
             "provider_job_bindings",
             "working_compositions",
         }

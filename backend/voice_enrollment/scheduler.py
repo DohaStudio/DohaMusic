@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from contextlib import suppress
 
 from backend.core.logging import get_logger
 from backend.voice_enrollment.maintenance import VoiceEnrollmentMaintenanceService
@@ -48,9 +49,7 @@ class VoiceEnrollmentScheduler:
         except Exception:  # noqa: BLE001 - scheduler boundary keeps API available
             logger.error("voice_maintenance_recovery failed")
         self._stop.clear()
-        self._task = asyncio.create_task(
-            self._run(), name="voice-enrollment-maintenance"
-        )
+        self._task = asyncio.create_task(self._run(), name="voice-enrollment-maintenance")
         logger.info(
             "voice_maintenance_scheduler started expiration_interval=%s "
             "cleanup_interval=%s orphan_interval=%s",
@@ -89,13 +88,9 @@ class VoiceEnrollmentScheduler:
         ]
         try:
             while not self._stop.is_set():
-                timeout = max(
-                    0.0, min(next_run for _, next_run, _ in scans) - loop.time()
-                )
-                try:
+                timeout = max(0.0, min(next_run for _, next_run, _ in scans) - loop.time())
+                with suppress(TimeoutError):
                     await asyncio.wait_for(self._stop.wait(), timeout=timeout)
-                except TimeoutError:
-                    pass
                 if self._stop.is_set():
                     break
                 now = loop.time()

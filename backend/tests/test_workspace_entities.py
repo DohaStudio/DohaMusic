@@ -39,6 +39,7 @@ EXPECTED_ENTITY_TABLES = {
     "ProcessingStep": "processing_steps",
     "ModelUsage": "model_usages",
     "ProviderJobBinding": "provider_job_bindings",
+    "PayloadLocator": "payload_locators",
     "RecordingEnrollment": "recording_enrollments",
     "Tag": "tags",
     "Comment": "comments",
@@ -288,6 +289,40 @@ EXPECTED_COLUMNS = {
         "retry_of_provider_job_id",
         "created_at",
     },
+    "payload_locators": {
+        "payload_locator_id",
+        "workspace_job_id",
+        "provider_job_binding_id",
+        "payload_ordinal",
+        "provider_artifact_id",
+        "role",
+        "source_kind",
+        "source_id",
+        "artifact_kind",
+        "expected_checksum_algorithm",
+        "expected_payload_checksum",
+        "expected_size_bytes",
+        "expected_media_type",
+        "source_available_until",
+        "locator_expires_at",
+        "staging_status",
+        "staging_backend",
+        "staging_key",
+        "actual_checksum_algorithm",
+        "actual_payload_checksum",
+        "actual_size_bytes",
+        "actual_media_type",
+        "verified_at",
+        "ingested_artifact_id",
+        "ingested_at",
+        "revoked_at",
+        "revocation_reason",
+        "cleanup_requested_at",
+        "cleanup_completed_at",
+        "lifecycle_revision",
+        "created_at",
+        "updated_at",
+    },
     "recording_enrollments": {
         "recording_enrollment_id",
         "workspace_id",
@@ -368,13 +403,11 @@ LEGACY_TABLES = {
 
 
 def test_workspace_entity_and_table_names_are_exact() -> None:
-    actual = {
-        entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES
-    }
+    actual = {entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES}
 
-    assert len(WORKSPACE_ENTITY_CLASSES) == 28
+    assert len(WORKSPACE_ENTITY_CLASSES) == 29
     assert actual == EXPECTED_ENTITY_TABLES
-    assert len(set(actual.values())) == 28
+    assert len(set(actual.values())) == 29
 
 
 def test_workspace_table_columns_match_documented_contract() -> None:
@@ -410,14 +443,12 @@ def test_workspace_enums_match_common_contract() -> None:
 
 def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     target_tables = set(EXPECTED_ENTITY_TABLES.values())
-    storage_tables = {
-        entity.__tablename__ for entity in ARTIFACT_STORAGE_ENTITY_CLASSES
-    }
+    storage_tables = {entity.__tablename__ for entity in ARTIFACT_STORAGE_ENTITY_CLASSES}
 
     assert target_tables.isdisjoint(LEGACY_TABLES)
     assert storage_tables == {"artifact_storage_locations"}
     assert set(Base.metadata.tables) == target_tables | storage_tables | LEGACY_TABLES
-    assert len(Base.metadata.tables) == 43
+    assert len(Base.metadata.tables) == 44
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

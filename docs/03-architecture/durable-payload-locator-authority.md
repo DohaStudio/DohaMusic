@@ -1,8 +1,8 @@
 # Durable Payload Locator Authority
 
-> 문서 상태: [승인 제안: architecture authority, Runtime·schema 미구현]
+> 문서 상태: [승인: persistence foundation 구현, byte staging·통합 미구현]
 > 최종 수정일: 2026-08-25
-> 기준: DohaMusic `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
+> 기준: DohaMusic develop `bdc141237d7c0fd407084ce1bccebfbd86d651a6`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 최종 판정: `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`
 > 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
 
@@ -18,7 +18,7 @@ DohaVocal `0.2.0` Result의 `provider_subresource` source descriptor는 Provider
 - revocation, Artifact handoff와 cleanup lifecycle
 - 같은 Result replay의 idempotent issue와 immutable conflict 판정
 
-이 fact는 append-only Provider execution identity와 cardinality·mutation·retention이 다르다. 따라서 `ProviderJobBinding` Column 확장이 아니라 전용 `PayloadLocator` aggregate/table이 필요하다. 이 문서는 authority와 다음 migration 설계만 확정하며 Python, DB, Alembic, downloader, staging, Artifact ingestion, Completion, Worker와 network를 변경하지 않는다.
+이 fact는 append-only Provider execution identity와 cardinality·mutation·retention이 다르다. 따라서 `ProviderJobBinding` Column 확장이 아니라 전용 `PayloadLocator` aggregate/table이 필요하다. Domain·persistence port·SQLAlchemy/SQLite adapter·additive Alembic `20260825_0023`과 issue/replay/revoke/resolve lifecycle은 구현했다. downloader, byte staging, Artifact ingestion, Completion, Worker와 network는 변경하지 않았다.
 
 ```text
 Provider Result replay authority
@@ -136,7 +136,7 @@ revocation은 staging status와 별도의 terminal control overlay다. `revoked_
 
 ## 7. schema 설계
 
-다음 implementation PR은 현행 Alembic head를 다시 확인한 뒤 additive revision 하나로 `payload_locators`를 추가한다. 현재 기준 예상 successor는 `20260825_0023`이지만 develop이 이동하면 실제 next revision을 사용한다. 기존 process-local registry row는 없으므로 backfill은 없다.
+Alembic `20260825_0023`은 `20260825_0022`의 단일 successor로 빈 `payload_locators` table과 binding scope unique index를 additive하게 추가한다. 기존 process-local registry row는 없으므로 backfill은 없다. downgrade는 locator table/index와 scope index만 제거한다.
 
 | Column | null | authority |
 |---|---:|---|
@@ -215,11 +215,11 @@ Resolver는 locator row만 보고 권한을 부여하지 않는다. 상위 orche
 
 source가 만료됐고 verified staging도 없다면 payload-layer recovery는 fail closed한다. 이를 이유로 Provider inference, RetryJob 또는 새 Workspace Job을 자동 실행하지 않는다.
 
-## 10. transaction과 다음 구현 범위
+## 10. 구현된 transaction 범위와 다음 단계
 
 Provider network와 file/object I/O 동안 열린 DB transaction은 0개다. Service가 issue, verified transition, revoke, ingested handoff와 cleanup transition의 짧은 transaction을 소유하고 Repository는 `commit()`·`rollback()`을 호출하지 않는다.
 
-다음 구현 PR의 최대 범위는 다음과 같다.
+현재 구현 범위는 다음과 같다.
 
 ```text
 PayloadLocator domain model
@@ -230,4 +230,13 @@ PayloadLocator domain model
 → restart/idempotency/security tests
 ```
 
-그 PR에서도 durable byte staging, downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 제외한다. DB persistence TARGET 테스트를 현재 PASS로 표현하지 않는다.
+Service가 persistence port의 짧은 transaction을 열고 SQLAlchemy Repository는 `flush()`만 수행한다. exact issue replay, immutable conflict, UUID collision bounded retry, revision CAS, restart, lifecycle, revocation, source/policy expiry와 staging-key security를 격리 SQLite로 검증한다. App composition root는 Service를 생성하지만 호출 API나 Worker는 없다.
+
+다음 단계는 verified durable staging authority다. durable byte staging, downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
+
+```text
+PayloadLocator persistence foundation: IMPLEMENTED
+durable byte staging: NOT IMPLEMENTED
+downloader orchestration: NOT IMPLEMENTED
+Artifact ingestion wiring: NOT IMPLEMENTED
+```

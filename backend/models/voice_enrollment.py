@@ -31,20 +31,14 @@ class VoiceEnrollment(Base):
         Index("ix_voice_enrollments_cleanup_status", "cleanup_status"),
     )
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     profile_name: Mapped[str] = mapped_column(String(100), nullable=False)
     profile_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
         String(32), nullable=False, default=VoiceEnrollmentStatus.DRAFT.value
     )
-    consent_confirmed: Mapped[bool] = mapped_column(
-        Boolean, nullable=False, default=False
-    )
-    consent_policy_version: Mapped[str | None] = mapped_column(
-        String(50), nullable=True
-    )
+    consent_confirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    consent_policy_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
     consent_confirmed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -57,21 +51,13 @@ class VoiceEnrollment(Base):
     last_activity_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=utc_now
     )
-    expires_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     absolute_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    submitted_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    cancelled_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     failure_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     cleanup_status: Mapped[str] = mapped_column(
         String(32), nullable=False, default=VoiceCleanupStatus.NOT_REQUESTED.value

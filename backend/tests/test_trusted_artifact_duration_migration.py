@@ -17,7 +17,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 PREVIOUS_REVISION = "20260824_0020"
 REVISION = "20260824_0021"
-SOURCE_HEAD = "20260825_0022"
+SOURCE_HEAD = "20260825_0023"
 
 
 def _config(database_url: str) -> Config:
@@ -110,9 +110,7 @@ def test_existing_artifact_remains_unknown_without_payload_backfill(
         assert "duration_us" not in {
             column["name"] for column in inspect(connection).get_columns("artifacts")
         }
-        assert (
-            connection.execute(text("SELECT count(*) FROM artifacts")).scalar_one() == 1
-        )
+        assert connection.execute(text("SELECT count(*) FROM artifacts")).scalar_one() == 1
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
     engine.dispose()
 
@@ -133,9 +131,7 @@ def test_fresh_head_has_nullable_positive_duration_column(tmp_path: Path) -> Non
         checks = {item["name"] for item in inspector.get_check_constraints("artifacts")}
         assert "ck_artifacts_positive_duration_us" in checks
         assert (
-            connection.execute(
-                text("SELECT version_num FROM alembic_version")
-            ).scalar_one()
+            connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
             == SOURCE_HEAD
         )
     engine.dispose()
