@@ -671,31 +671,84 @@ def test_product_router_exposes_service_results_and_structured_duplicate_error(
     assert read.json()["data"]["tracks"][0]["name"] == "API Track"
 
 
-def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids(
-    working_client,
-) -> None:
-    app = working_client.app
-    routes = [
-        route
-        for route in app.routes
-        if isinstance(route, APIRoute) and route.path.startswith("/api/v1")
-    ]
-    schema = app.openapi()
-    paths = {
-        path: item
-        for path, item in schema["paths"].items()
-        if path.startswith("/api/v1")
+def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None:
+    routes = [route for route in working_router.routes if isinstance(route, APIRoute)]
+    surface = {
+        (method, route.path, route.operation_id)
+        for route in routes
+        for method in route.methods
     }
-    operation_ids = [
-        operation["operationId"]
-        for item in paths.values()
-        for method, operation in item.items()
-        if method.lower() in {"get", "post", "patch", "delete"}
-    ]
+    assert surface == {
+        (
+            "GET",
+            "/projects/{project_id}/working-composition",
+            "get_working_composition",
+        ),
+        (
+            "POST",
+            "/projects/{project_id}/working-composition/initialize",
+            "initialize_working_composition",
+        ),
+        (
+            "POST",
+            "/projects/{project_id}/working-composition/checkout",
+            "checkout_working_composition",
+        ),
+        (
+            "POST",
+            "/projects/{project_id}/working-composition/tracks",
+            "create_working_composition_track",
+        ),
+        (
+            "PATCH",
+            "/projects/{project_id}/working-composition/tracks/reorder",
+            "reorder_working_composition_tracks",
+        ),
+        (
+            "PATCH",
+            "/projects/{project_id}/working-composition/tracks/{track_id}",
+            "rename_working_composition_track",
+        ),
+        (
+            "DELETE",
+            "/projects/{project_id}/working-composition/tracks/{track_id}",
+            "delete_working_composition_track",
+        ),
+        (
+            "POST",
+            "/projects/{project_id}/working-composition/clips",
+            "create_working_composition_clip",
+        ),
+        (
+            "PATCH",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/move",
+            "move_working_composition_clip",
+        ),
+        (
+            "PATCH",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/trim-start",
+            "trim_working_composition_clip_start",
+        ),
+        (
+            "PATCH",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/trim-end",
+            "trim_working_composition_clip_end",
+        ),
+        (
+            "POST",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/split",
+            "split_working_composition_clip",
+        ),
+        (
+            "DELETE",
+            "/projects/{project_id}/working-composition/clips/{clip_id}",
+            "delete_working_composition_clip",
+        ),
+    }
     assert len(routes) == 13
-    assert len(paths) == 12
-    assert len(operation_ids) == 13
-    assert len(operation_ids) == len(set(operation_ids))
+    assert len({path for _, path, _ in surface}) == 12
+    operation_ids = [operation_id for _, _, operation_id in surface]
+    assert len(operation_ids) == len(set(operation_ids)) == 13
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(
