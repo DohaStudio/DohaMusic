@@ -586,4 +586,4 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 - `[완료]` 실제 사용자 DB `20260808_0015 → 20260809_0016` 안전 적용과 복구 Gate
 - 구현된 Catalog Resolver를 사용하는 API·Worker 전환 순서와 Legacy 경로 제거 Gate
 - persisted trusted duration을 사용하는 Owner·ProjectAsset·audio eligibility mutation Service
-- same-Track overlap의 최종 mutation transaction race 방어와 public API idempotency orchestration
+- same-Track overlap의 최종 mutation transaction race 방어와 public API idempotency orchestration은 WorkingComposition Service에서 구현
