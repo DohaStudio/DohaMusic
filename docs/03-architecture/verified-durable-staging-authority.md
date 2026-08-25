@@ -249,4 +249,3 @@ VerifiedPayloadStagingPort
 필수 검증은 same-locator replay, collision, partial cleanup, crash-after-publish adoption, missing/tampered object, Windows drive·UNC·reserved name, traversal·URL·credential, symlink/junction/reparse, rights/cancel/revocation race, cleanup idempotency와 DB transaction 0 during I/O다.
 
 downloader orchestration, `GetPayloadContent` Worker 연결, Artifact ingestion/Completion, reclaim, dispatcher, daemon, production authentication, DohaVocal Runtime과 model/GPU는 그 다음 작업이다.
-
