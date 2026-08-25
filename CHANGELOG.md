@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — DohaVocal 0.2.0 Payload Acquisition Consumer
+
+- DohaVocal PR #6에서 병합된 `0.2.0` payload-backed Result와 `GetPayloadContent` capability를 기존 `0.1.0` metadata-only 경로와 분리한 strict DTO로 추가했다.
+- payload source·role·SHA-256·size·media·availability와 Workspace contract version을 read-only trust gate에서 검증하고, ordered canonical replay identity가 달라지면 fail-closed한다.
+- 고정 DohaVocal origin의 payload endpoint를 redirect 없이 bounded streaming으로 읽어 실제 size·media type·SHA-256을 검증하는 transient acquisition port를 추가했다. locator persistence, staging, Artifact ingestion, Completion 및 Worker wiring은 미구현 상태다.
+- 결정 근거와 다음 `DURABLE_LOCATOR_REQUIRED` 재분석 순서를 ADR-048에 기록했다.
+
 ### 추가 — WorkingComposition Atomic Mutation Service와 Product API
 
 - WorkingComposition no-write GET, explicit initialize·Snapshot checkout, Track create·rename·reorder·delete와 Clip create·move·trim-start·trim-end·split·delete Service를 구현했다. 모든 상태 변경은 expected revision compare-and-swap으로 성공당 정확히 `+1`이며 Repository는 transaction을 소유하지 않는다.

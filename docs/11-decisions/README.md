@@ -51,6 +51,7 @@
 | [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md) | Track 삭제 의미와 trusted Artifact media duration 권위 | 승인 |
 | [ADR-046](ADR-046-durable-execution-handoff-authority.md) | locator 전 Durable Execution Handoff storage 불필요 판정 | 승인, runtime 미구현 |
 | [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md) | 완료 revision과 복수 identity를 보존하는 versioned idempotency replay 결과 | 승인 |
+| [ADR-048](ADR-048-dohavocal-payload-acquisition-consumer.md) | DohaVocal 0.2.0 payload Result trust와 transient acquisition 경계 | 승인, durable locator 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

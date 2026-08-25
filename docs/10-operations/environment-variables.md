@@ -44,6 +44,7 @@
 | `DOHAVOCAL_READ_TIMEOUT_SECONDS` | DohaVocal HTTP read timeout | `30` |
 | `DOHAVOCAL_WRITE_TIMEOUT_SECONDS` | DohaVocal HTTP write timeout | `10` |
 | `DOHAVOCAL_POOL_TIMEOUT_SECONDS` | DohaVocal HTTP connection pool timeout | `2` |
+| `DOHAVOCAL_PAYLOAD_MAX_BYTES` | DohaVocal payload acquisition의 실제 streaming byte 상한 | `67108864` |
 | `DOHAMUSIC_VOICE_SEED_VC_RUNTIME_PYTHON` | 격리 Seed-VC Python | 빈 값 |
 | `DOHAMUSIC_VOICE_SEED_VC_RUNNER_PATH` | DohaMusic Seed-VC runner | `ai_worker/scripts/run_seed_vc_conversion.py` |
 | `DOHAMUSIC_VOICE_SEED_VC_PROJECT_ROOT` | 고정 공식 checkout | 빈 값 |
@@ -84,7 +85,7 @@
 
 `NEXT_PUBLIC_*` 값은 browser bundle에 공개되므로 비밀을 넣지 않는다. 기존 DB·Storage·Worker·로그 변수는 `backend/.env.example`에서 함께 관리하고 애플리케이션은 `.env`를 자동 로드하지 않는다. `DOHA_ARTIFACT_ROOT` 또는 네 domain directory가 안전하지 않으면 Resolver가, `DOHA_ARTIFACT_STAGING_ROOT`가 없거나 final root와 겹치면 Trusted Ingestion이 fail-closed한다. 두 root의 실제 값은 로그에 출력하지 않으며 기존 `AUDIO_STORAGE_ROOT` Runtime에는 영향을 주지 않는다. 빈 Provider 경로는 Mock 사용에 영향을 주지 않고 실제 Job에서 명시적 설정 오류가 된다.
 
-`DOHAVOCAL_BASE_URL`은 application request·Project·settings snapshot으로 덮어쓸 수 없다. 이 Foundation은 HTTP adapter 설정만 제공하며 Workspace Worker wiring, 인증, Artifact ingestion과 실제 Provider 운영을 활성화하지 않는다. transport 자동 retry도 없으므로 재시도 정책은 후속 orchestration 계약에서 별도로 결정한다.
+`DOHAVOCAL_BASE_URL`과 `DOHAVOCAL_PAYLOAD_MAX_BYTES`는 application request·Project·settings snapshot으로 덮어쓸 수 없다. `0.2.0` read-only acquisition은 configured maximum과 caller 상한 중 작은 값을 적용한다. Workspace Worker wiring, 인증, durable locator, Artifact ingestion과 실제 Provider 운영은 활성화하지 않는다. transport 자동 retry도 없으므로 재시도 정책은 후속 orchestration 계약에서 별도로 결정한다.
 
 기존 `/api/voice-profiles/upload` 제한은 25MB·5~60초 고정 계약이다. 신규 Enrollment는 위 설정을 사용하며 기본값을 동일하게 유지한다. FFmpeg binary는 저장소가 배포·다운로드하지 않는다. `DOHAMUSIC_VOICE_FFMPEG_EXECUTABLE`은 PATH에서 찾을 이름 또는 `ffmpeg.exe`의 절대 경로만 사용하며, 변경 후 Backend를 재시작한다. WebM/Ogg 요청의 최초 사용 시 `-version` 검증이 실패하면 `VOICE_NORMALIZER_UNAVAILABLE`을 반환하고 WAV 요청은 영향을 받지 않는다.
 
