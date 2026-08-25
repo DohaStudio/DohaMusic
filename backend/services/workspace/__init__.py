@@ -88,6 +88,13 @@ from backend.services.workspace.trusted_media_metadata_service import (
     TrustedMediaMetadataErrorCode,
     TrustedMediaMetadataService,
 )
+from backend.services.workspace.working_composition_service import (
+    WorkingCompositionAggregate,
+    WorkingCompositionError,
+    WorkingCompositionErrorCode,
+    WorkingCompositionService,
+    WorkingMutationResult,
+)
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
     CompositionTransitionSummary,
@@ -184,5 +191,10 @@ __all__ = [
     "TrustedPayloadResolver",
     "TrustedPayloadSourceCandidate",
     "TrustedProviderResultCandidate",
+    "WorkingCompositionAggregate",
+    "WorkingCompositionError",
+    "WorkingCompositionErrorCode",
+    "WorkingCompositionService",
+    "WorkingMutationResult",
     "WorkspaceService",
 ]

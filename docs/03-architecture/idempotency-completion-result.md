@@ -32,11 +32,14 @@ Idempotency claim
 
 ## Transaction 책임
 
-Repository는 record를 Session에 반영할 뿐 `commit()`이나 `rollback()`을 호출하지 않는다. 후속 WorkingComposition Service는 domain row, revision, completion result를 하나의 `session.begin()` 경계에 둔다. 강제 실패 시 세 상태가 모두 rollback되어야 한다.
+Repository는 record를 Session에 반영할 뿐 `commit()`이나 `rollback()`을 호출하지 않는다. WorkingComposition Service는 domain row, revision, completion result를 하나의 `session.begin()` 경계에 둔다. split·checkout·create·delete 강제 실패 테스트에서 세 상태가 함께 rollback됨을 검증했다.
+
+initialize는 GET-or-create가 아니다. 최초 요청만 revision 0 aggregate를 만들며, 같은 key·같은 fingerprint는 최초 identity/revision을 replay한다. 다른 key 또는 새 key로 이미 존재하는 Project를 initialize하면 `WORKING_COMPOSITION_ALREADY_EXISTS`이고 성공 completion result를 남기지 않는다. DB unique race의 loser도 같은 Product conflict다.
 
 ## 현재 상태
 
 - Revision-safe Idempotency Foundation: [완료]
 - Alembic source revision: `20260825_0022`
 - 실제 사용자 DB migration: [미실행], 현재 `20260810_0017`
-- WorkingComposition Service/Product API: [미구현], 다음 작업
+- WorkingComposition Service/Product API: [완료], 13개 operation
+- Composition commit·Frontend·working preview/render: [미구현]

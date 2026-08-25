@@ -3,8 +3,8 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-20
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: `/api/v1` Resource Endpoint 30개 구현, Workspace Job API 5/5, 나머지 34개 미구현
-> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [D1 Composition Read 계약](composition-read-workspace.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md), [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)
+> 구현 상태: `/api/v1` Resource Endpoint 30개, D1 Product API 2개, WorkingComposition Product operation 13개 구현; Workspace Job API 5/5, 나머지 Resource 34개 미구현
+> 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [D1 Composition Read 계약](composition-read-workspace.md), [WorkingComposition Product API](working-composition-api.md), [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md), [ADR-031](../11-decisions/ADR-031-workspace-rest-api-contract.md), [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)
 
 ## 1. 목적
 

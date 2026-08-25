@@ -119,7 +119,7 @@ Schema 생성, Alembic upgrade, Runtime Table 조회·수정과 앱 startup 자�
 
 ## 8. Idempotency-Key 후속 판단
 
-현행 `idempotency_records`는 Guided Voice Enrollment와 CompositionSnapshot 생성에서 사용합니다. Revision `20260825_0022`는 후속 WorkingComposition mutation이 최초 완료 revision과 복수 identity를 재생할 수 있도록 versioned completion result를 추가했지만 기존 API는 기존 resource replay를 계속 사용합니다. CompositionSnapshot은 effective Owner·Project scope, canonical body fingerprint, Resource 재조회 replay와 24시간 보존을 구현했지만 다음 일반 Workspace API 계약은 아직 전체 Resource에 확정되지 않았습니다.
+현행 `idempotency_records`는 Guided Voice Enrollment와 CompositionSnapshot 생성에서 사용합니다. Revision `20260825_0022`의 versioned completion result는 WorkingComposition initialize·checkout·Track/Clip create/delete·split이 최초 완료 revision과 복수 identity를 재생하는 데 사용하며 기존 API는 기존 resource replay를 계속 사용합니다. CompositionSnapshot은 effective Owner·Project scope, canonical body fingerprint, Resource 재조회 replay와 24시간 보존을 구현했지만 다음 일반 Workspace API 계약은 아직 전체 Resource에 확정되지 않았습니다.
 
 - Workspace·actor·HTTP Method·정규화 Path scope
 - canonical request fingerprint
