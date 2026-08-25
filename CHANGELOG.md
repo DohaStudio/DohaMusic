@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Revision-safe Idempotency Completion Result Foundation
+
+- 완료 revision과 operation별 Product identity를 보존하는 immutable `IdempotencyCompletionResult`와 여덟 result type allowlist를 추가했다. payload는 canonical UUID key만 허용하고 UTF-8 JSON 8,192 bytes로 제한한다.
+- 기존 `complete()`와 `resource_type/resource_id/response_status` replay를 유지하면서 `claim_with_result()`와 `complete_with_result()`를 추가했다. 새 결과가 없거나 일부만 있는 legacy·손상 row, unknown version/type은 fail-closed하며 Repository는 commit/rollback하지 않는다.
+- Alembic `20260825_0022`로 nullable `completed_revision`, `result_type`, `result_version`, `result_payload`를 additive하게 추가했다. 기존 `COMPLETED` row는 추측 backfill하지 않았고 실제 사용자 DB에는 적용하지 않았다.
+- ADR-047에 성공 mutation만 같은 transaction에서 결과를 저장하는 replay·legacy·보안 권위를 기록했다. WorkingComposition mutation Service와 Product API는 다음 작업으로 유지한다.
+
 ### 문서 — Durable Execution Handoff authority 확정
 
 - 최신 `develop`의 Workspace Job·ProviderJobBinding·Provider replay·Result trust gate·Completion authority를 다시 분류하고 17개 crash/restart case를 판정했다.

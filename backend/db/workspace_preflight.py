@@ -63,6 +63,14 @@ WORKSPACE_TABLES = {
     "workspaces",
 }
 MINIMUM_FREE_BYTES = 100 * 1024 * 1024
+POST_TARGET_NULLABLE_COLUMNS = {
+    "idempotency_records": {
+        "completed_revision",
+        "result_payload",
+        "result_type",
+        "result_version",
+    },
+}
 
 
 class PreflightError(RuntimeError):
@@ -228,9 +236,19 @@ def inspect_schema_drift(
         actual_columns = _actual_columns(connection, table_name)
         expected_columns = _expected_columns(table_name)
         missing_columns = sorted(set(expected_columns) - set(actual_columns))
+        allowed_missing_columns = POST_TARGET_NULLABLE_COLUMNS.get(table_name, set())
+        post_target_missing_columns = sorted(
+            set(missing_columns) & allowed_missing_columns
+        )
+        missing_columns = sorted(set(missing_columns) - allowed_missing_columns)
         extra_columns = sorted(set(actual_columns) - set(expected_columns))
         if missing_columns:
             blockers.append(f"{table_name} Column 누락: {', '.join(missing_columns)}")
+        if post_target_missing_columns:
+            acceptable.append(
+                f"{table_name} post-target nullable columns absent: "
+                f"{', '.join(post_target_missing_columns)}"
+            )
         if extra_columns:
             warnings.append(f"{table_name} 예상 외 Column: {', '.join(extra_columns)}")
         for column_name in sorted(set(actual_columns) & set(expected_columns)):
