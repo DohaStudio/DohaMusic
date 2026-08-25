@@ -29,7 +29,7 @@ GET /v1/jobs/{job_id}/artifacts/{provider_artifact_id}/payloads/{source_id}
 ```text
 DohaVocal contract 0.2.0: MERGED upstream
 DohaMusic consumer 0.2.0: IMPLEMENTED
-Durable Locator: NOT IMPLEMENTED / REANALYSIS NEXT
+Durable Locator: DEDICATED AUTHORITY REQUIRED / RUNTIME NOT IMPLEMENTED
 ```
 
-다음 순서는 Consumer PR review/merge 후 `DURABLE_LOCATOR_REQUIRED`를 최신 authority 기준으로 다시 분석하고, 그 결과에 따라 PayloadLocator persistence 필요 여부를 결정하는 것이다.
+후속 ADR-049는 Result replay가 acquisition 전 source 복구에는 충분하지만 verified staging·revocation·cleanup에는 전용 `PayloadLocator` persistence가 필요하다고 확정했다. schema/Runtime과 durable staging은 아직 구현하지 않았다.
