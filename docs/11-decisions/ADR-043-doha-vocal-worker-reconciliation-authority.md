@@ -25,9 +25,9 @@ DohaMusic에는 Workspace Job Worker, DohaVocal HTTP Consumer, Provider Job Pers
 ## Consequences
 
 - concrete wiring은 공개 상태 enum, DB schema, API 또는 Provider 계약을 임의로 확장할 수 없다.
-- bounded single-invocation wiring은 가능하지만 ADR-044의 reclaim runtime, durable locator, payload downloader와 Completion adapter가 없으면 end-to-end production completion을 완료로 선언할 수 없다.
+- bounded single-invocation wiring은 가능하고 ADR-049의 durable locator persistence foundation은 구현됐지만, ADR-044의 reclaim runtime, verified durable byte staging·payload downloader와 Completion adapter가 없으면 end-to-end production completion을 완료로 선언할 수 없다.
 - Provider Job binding과 Completion idempotency를 재사용해 crash replay의 중복 side effect를 제한한다.
-- 현재 process-local locator와 미구현 reclaim runtime의 한계를 문서와 운영 상태에서 계속 드러낸다.
+- process-local 호환 locator의 한계와 미구현 verified durable byte staging·reclaim runtime을 문서와 운영 상태에서 계속 드러낸다.
 
 ## Rejected alternatives
 

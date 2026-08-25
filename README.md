@@ -1,6 +1,6 @@
 ﻿# DohaMusic
 
-> 2026-08-25: DohaVocal `0.2.0` payload-backed Result consumer와 read-only `GetPayloadContent` 검증 transport foundation이 구현되었습니다. 재분석 결과 source 재구성은 Result replay로 충분하지만 verified staging·revocation·cleanup의 restart authority에는 전용 `PayloadLocator` persistence가 필요하다고 판정했습니다. Runtime·schema·staging·Artifact ingestion·Completion/Worker wiring은 아직 미구현이며 자세한 결정은 [Durable Payload Locator Authority](docs/03-architecture/durable-payload-locator-authority.md)와 [ADR-049](docs/11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)을 참고하십시오.
+> 2026-08-25: DohaVocal `0.2.0` payload-backed Result consumer와 전용 `PayloadLocator` persistence foundation을 구현했습니다. `payloadref:v1` issue/replay/resolve, expected·actual 분리, lifecycle CAS, revocation, SQLite restart recovery와 additive Alembic `20260825_0023`이 현재 범위입니다. durable byte staging·downloader·Artifact ingestion·Completion/Worker wiring은 아직 미구현이며 자세한 경계는 [Durable Payload Locator Authority](docs/03-architecture/durable-payload-locator-authority.md)와 [ADR-049](docs/11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)을 참고하십시오.
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
@@ -39,7 +39,7 @@ DohaMusic = AI-native DAW
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
 - Common AI Contract의 `RightsMetadata` opt-in 검증 기반
-- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·version별 9/10 operation strict DTO, `0.1.0` metadata-only 호환과 `0.2.0` payload-backed Result·bounded acquisition 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 read-only trust gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 DohaMusic-owned opaque locator Foundation. [Durable Payload Locator Authority](docs/03-architecture/durable-payload-locator-authority.md)는 source replay와 staging handoff를 분리하고 전용 aggregate 필요성을 확정했다. reclaim runtime·Worker wiring·인증·downloader orchestration·durable locator schema/Runtime·Completion adapter·실제 Artifact ingestion·실제 Vocal model은 미구현
+- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·version별 9/10 operation strict DTO, `0.1.0` metadata-only 호환과 `0.2.0` payload-backed Result·bounded acquisition 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 read-only trust gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 process-local 호환 adapter 및 durable persistence foundation. reclaim runtime·Worker wiring·인증·downloader orchestration·durable byte staging·Completion adapter·실제 Artifact ingestion·실제 Vocal model은 미구현
 
 다음은 CURRENT가 아니다.
 

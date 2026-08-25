@@ -1,6 +1,6 @@
 # ADR-049: Durable Payload Locator Persistence Authority
 
-> 상태: 승인 제안
+> 상태: 승인·Persistence Foundation 구현
 > 작성일: 2026-08-25
 > 최종 수정일: 2026-08-25
 > 관련 기능: DohaVocal payload reconciliation restart recovery
@@ -35,7 +35,7 @@ DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED
 
 additive `payload_locators` table 하나가 필요하다. direct Workspace Job FK와 ProviderJobBinding FK, immutable source/expected fields, nullable verified staging/actual fields, revocation·ingestion·cleanup timestamps, lifecycle revision을 둔다. Workspace Job과 binding scope는 composite FK 또는 동등한 DB constraint로 일치시킨다. absolute path, root, credential, signed URL, raw response와 bytes는 저장하지 않는다. safe relative staging key만 config-owned backend ID와 함께 저장한다.
 
-현행 Alembic head 다음 revision에서 빈 table을 추가하므로 기존 row backfill은 없다. current 기준 successor 후보는 `20260825_0023`이며 구현 시 최신 develop head를 다시 확인한다. 구체적인 Column, CHECK, FK, unique와 Index는 architecture 문서가 authority다.
+Alembic `20260825_0023`은 `20260825_0022` 다음에 빈 table과 binding scope unique index를 additive하게 추가하며 기존 row backfill은 없다. 구체적인 Column, CHECK, FK, unique와 Index는 architecture 문서가 authority다.
 
 ## 선택 이유
 
@@ -60,7 +60,9 @@ additive `payload_locators` table 하나가 필요하다. direct Workspace Job F
 
 ## 구현·검증 상태
 
-이 ADR은 architecture authority만 확정한다. Python, DB schema, Alembic, Runtime, network와 file I/O 변경은 0개다. current process-local locator, 0.2.0 consumer와 generic Artifact/Completion 회귀만 검증할 수 있으며 TARGET DB persistence는 `[미구현]`이다.
+Domain value/entity, persistence port, SQLAlchemy/SQLite adapter, Service transaction, additive Alembic `20260825_0023`과 `source_bound → verified_staged → ingested → cleanup_pending → cleaned` lifecycle을 구현했다. terminal revocation, exact replay/conflict, source/policy expiry, rights context, safe staging key, optimistic revision CAS와 restart persistence를 검증한다. process-local `InMemoryTrustedPayloadRegistry`는 test/dev 호환으로 유지한다.
+
+durable bytes 작성·resolve/delete를 수행하는 staging adapter, downloader orchestration, Artifact ingestion/Completion과 Worker wiring은 `[미구현]`이다. 현재 구현은 network/file I/O를 수행하지 않고 Product API를 추가하지 않는다.
 
 ## 재검토 조건
 
@@ -74,4 +76,4 @@ additive `payload_locators` table 하나가 필요하다. direct Workspace Job F
 
 - DohaVocal PR #6: Provider payload acquisition authority
 - DohaMusic PR #124: `0.2.0` consumer·transient acquisition
-- 본 ADR 문서 PR: Draft 생성 후 번호 기록
+- Persistence Foundation 구현 PR: #126

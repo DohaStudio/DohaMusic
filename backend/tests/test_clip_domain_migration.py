@@ -14,7 +14,7 @@ from backend.db.session import create_database_engine
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260824_0020"
-SOURCE_HEAD = "20260825_0022"
+SOURCE_HEAD = "20260825_0023"
 PREVIOUS_REVISION = "20260821_0019"
 TABLES = {
     "working_compositions",
@@ -130,7 +130,7 @@ def test_clip_domain_existing_schema_upgrade_and_downgrade(tmp_path: Path) -> No
     command.upgrade(config, REVISION)
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
-        assert TABLES <= set(inspect(connection).get_table_names())
+        assert set(inspect(connection).get_table_names()) >= TABLES
         assert (
             connection.execute(text("SELECT count(*) FROM snapshot_items")).scalar_one()
             == 1
@@ -167,7 +167,7 @@ def test_clip_domain_fresh_database_upgrade_has_exact_schema(tmp_path: Path) -> 
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
         inspector = inspect(connection)
-        assert TABLES <= set(inspector.get_table_names())
+        assert set(inspector.get_table_names()) >= TABLES
         assert {
             column["name"] for column in inspector.get_columns("composition_clips")
         } >= {

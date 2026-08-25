@@ -14,6 +14,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 PREVIOUS_REVISION = "20260824_0021"
 REVISION = "20260825_0022"
+SOURCE_HEAD = "20260825_0023"
 RESULT_COLUMNS = {
     "completed_revision",
     "result_type",
@@ -31,7 +32,7 @@ def _config(database_url: str) -> Config:
 
 def test_idempotency_completion_revision_is_single_head() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
 
 
@@ -111,7 +112,7 @@ def test_fresh_head_has_nullable_completion_result_columns(tmp_path: Path) -> No
         assert all(columns[name]["nullable"] is True for name in RESULT_COLUMNS)
         assert (
             connection.scalar(text("SELECT version_num FROM alembic_version"))
-            == REVISION
+            == SOURCE_HEAD
         )
     with engine.begin() as connection:
         connection.execute(

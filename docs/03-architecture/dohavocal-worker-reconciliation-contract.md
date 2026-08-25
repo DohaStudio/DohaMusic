@@ -165,4 +165,4 @@ Provider network 호출 중 열린 DB transaction은 0개다. 이 Workspace reco
 
 다음 concrete PR의 최대 범위는 Workspace Worker에서 concrete DohaVocal dispatch, 기존 HTTP Transport, Provider Job binding/recovery, bounded polling, heartbeat/cancel, GetResult와 기존 Result trust gate까지다.
 
-payload downloader, durable locator, Vocal Completion adapter, Artifact ingestion wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행은 각각 별도 후속 의존성이다. 이 의존성이 없다는 사실은 계약 확정의 blocker가 아니며 해당 runtime capability를 완료로 선언하는 것만 막는다.
+durable `PayloadLocator` persistence foundation은 구현됐다. payload downloader·verified durable byte staging, Vocal Completion adapter, Artifact ingestion wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행은 각각 별도 후속 의존성이다. 이 의존성이 없다는 사실은 계약 확정의 blocker가 아니며 해당 runtime capability를 완료로 선언하는 것만 막는다.

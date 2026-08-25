@@ -29,7 +29,7 @@ GET /v1/jobs/{job_id}/artifacts/{provider_artifact_id}/payloads/{source_id}
 ```text
 DohaVocal contract 0.2.0: MERGED upstream
 DohaMusic consumer 0.2.0: IMPLEMENTED
-Durable Locator: DEDICATED AUTHORITY REQUIRED / RUNTIME NOT IMPLEMENTED
+Durable Locator: DEDICATED PERSISTENCE FOUNDATION IMPLEMENTED / BYTE STAGING NOT IMPLEMENTED
 ```
 
-후속 ADR-049는 Result replay가 acquisition 전 source 복구에는 충분하지만 verified staging·revocation·cleanup에는 전용 `PayloadLocator` persistence가 필요하다고 확정했다. schema/Runtime과 durable staging은 아직 구현하지 않았다.
+후속 ADR-049는 Result replay가 acquisition 전 source 복구에는 충분하지만 verified staging·revocation·cleanup에는 전용 `PayloadLocator` persistence가 필요하다고 확정하고 schema/Runtime foundation을 구현했다. verified durable byte staging과 orchestration은 아직 구현하지 않았다.
