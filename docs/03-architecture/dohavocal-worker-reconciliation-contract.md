@@ -1,9 +1,9 @@
 # DohaVocal Worker Reconciliation Contract
 
 > 문서 상태: [승인: 구현 전 authoritative contract]
-> 기준: DohaMusic `f6a727abddb6df5ca4a46173bd4a04b88ca60c65`
+> 기준: DohaMusic `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`
 > 구현 상태: Workspace Worker·HTTP Transport·Provider Job Persistence·Result Ingestion·Trusted Payload process-local Foundation·Completion UoW는 각각 격리 구현, concrete wiring은 [미구현]
-> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md)
+> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
 
 ## 1. 범위와 핵심 결정
 
@@ -71,12 +71,14 @@ binding, owner, Provider Job identity, role, Manifest, lineage 또는 checksum s
 
 Provider는 opaque payload identity/reference와 불변 결과 metadata만 제공한다. DohaMusic은 locator 신뢰, payload acquisition, byte 기반 checksum·size·media 검증, staging, Artifact ingestion과 Workspace commit을 소유한다. Provider가 DohaMusic storage에 직접 쓰거나 Workspace output role을 결정하지 않는다.
 
-현재 `InMemoryTrustedPayloadRegistry`는 process-local test/Foundation 구현이다. crash/restart, multi-process 또는 lease 간 resume에 사용하기에 충분하지 않다. production reconciliation 전에 `DURABLE_LOCATOR_REQUIRED`이며 향후 durable record는 최소한 다음을 보존해야 한다.
+현재 `InMemoryTrustedPayloadRegistry`는 process-local test/Foundation 구현이다. crash/restart, multi-process 또는 lease 간 resume에 사용하기에 충분하지 않다. 재분석 결과 production reconciliation에는 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`이며 전용 record는 최소한 다음을 보존해야 한다.
 
 - Provider Job binding, output role과 Provider Artifact identity의 immutable 결합
 - opaque locator identity, 생성 시각, 선택적 TTL/expiry와 cleanup 상태
 - trusted staging identity와 실제 byte checksum·size·media type
-- 같은 identity의 재발급·replay 감사 기록; 기존 binding overwrite 금지
+- 같은 identity의 idempotent issue·replay와 immutable conflict; 기존 binding overwrite 금지
+
+locator는 acquisition 전 source 복구를 위해 필요한 것이 아니다. 이 구간은 binding과 Result replay로 충분하다. locator의 별도 durability 근거는 verified staging safe key·actual byte facts·revocation·Artifact handoff·cleanup이며 세부 lifecycle은 [Durable Payload Locator Authority](durable-payload-locator-authority.md)가 소유한다.
 
 locator 만료 또는 일시적 저장소 장애는 동일 Provider 결과 identity와 immutable payload를 다시 검증할 수 있을 때만 payload-layer retry가 가능하다. 이를 이유로 비싼 Provider inference를 자동 재실행하지 않는다.
 
@@ -146,8 +148,9 @@ Provider retry 횟수와 정책은 future configuration dependency다. 자동 Wo
 | binding commit 뒤 | binding history 존재 | latest exact binding status 조회 | Create 금지 | active 선택 직렬화 / Worker |
 | Provider running 중 | binding 존재, Workspace `running` | CURRENT는 expiry failure; TARGET은 yield/expiry reclaim 뒤 same binding poll | Create 금지 | inference 재실행 금지 / Worker |
 | Provider success 뒤 Result fetch 전 | Provider terminal, binding 존재 | status와 result 재조회 | Create 금지 | Result read replay / Provider |
-| Result ingestion 뒤 locator 전 | trusted metadata는 비영속 decision | Result trust gate 재실행 | Create 금지 | side effect 없음 / Workspace |
-| locator 발급 뒤 | process-local이면 restart 복구 불가 | durable locator가 있을 때 exact record resolve | Create 금지 | locator 중복 방지 / Reconciliation |
+| Result ingestion 뒤 locator 전 | trusted metadata는 비영속 decision | Result trust gate 재실행·idempotent locator issue | Create 금지 | side effect 없음 / Workspace |
+| source-bound locator 발급 뒤 | binding + durable expected source facts | existing locator replay 뒤 acquire/reconcile | Create 금지 | locator unique가 중복 방지 / Reconciliation |
+| verified staging 확정 뒤 | locator safe key + actual byte facts | rights gate·bytes 재검증 뒤 Completion | Create 금지 | staging reuse·cleanup / Reconciliation |
 | payload staging 뒤 Completion 전 | trusted staging, DB 미완료 | byte identity 재검증 후 Completion 또는 cleanup | Create 금지 | orphan staging / Payload layer |
 | Artifact prepare 뒤 DB commit 전 | publish 가능, Completion DB 미완료 | 같은 payload replay; 실패 publish 보상 | Create 금지 | publish duplicate 방지 / Completion |
 | Completion commit 뒤 응답 전 | Workspace `succeeded`와 lineage 원자 commit | existing aggregate replay | 모든 Provider mutation 금지 | DB/output duplicate 없음 / Completion |
@@ -162,4 +165,4 @@ Provider network 호출 중 열린 DB transaction은 0개다. 이 Workspace reco
 
 다음 concrete PR의 최대 범위는 Workspace Worker에서 concrete DohaVocal dispatch, 기존 HTTP Transport, Provider Job binding/recovery, bounded polling, heartbeat/cancel, GetResult와 기존 Result trust gate까지다.
 
-payload downloader, durable locator, Vocal Completion adapter, Artifact ingestion wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행은 각각 별도 후속 의존성이다. 이 의존성이 없다는 사실은 계약 확정의 blocker가 아니며 해당 runtime capability를 완료로 선언하는 것만 막는다.
+durable `PayloadLocator` persistence foundation은 구현됐다. payload downloader·verified durable byte staging, Vocal Completion adapter, Artifact ingestion wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행은 각각 별도 후속 의존성이다. 이 의존성이 없다는 사실은 계약 확정의 blocker가 아니며 해당 runtime capability를 완료로 선언하는 것만 막는다.

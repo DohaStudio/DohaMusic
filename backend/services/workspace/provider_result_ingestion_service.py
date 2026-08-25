@@ -19,7 +19,11 @@ from backend.contracts.vocal_jobs import (
 )
 from backend.core.exceptions import ApplicationValidationError
 from backend.models.workspace import JobStatus
-from backend.providers.vocal import VocalProviderResultCandidate
+from backend.providers.vocal import (
+    VocalPayloadBackedResultCandidate,
+    VocalProviderPayloadEntry,
+    VocalProviderResultCandidate,
+)
 from backend.repositories.workspace import (
     AssetRepository,
     CompositionRepository,
@@ -50,6 +54,9 @@ class ProviderResultContractErrorReason(StrEnum):
     LINEAGE_MISMATCH = "lineage_mismatch"
     PROCESSING_CHAIN_MISMATCH = "processing_chain_mismatch"
     CHECKSUM_MISMATCH = "checksum_mismatch"
+    CONTRACT_VERSION_MISMATCH = "contract_version_mismatch"
+    PAYLOAD_DESCRIPTOR_MISMATCH = "payload_descriptor_mismatch"
+    RESULT_REPLAY_CONFLICT = "result_replay_conflict"
     INVALID_CANDIDATE = "invalid_candidate"
 
 
@@ -63,6 +70,34 @@ class ProviderResultContractError(ApplicationValidationError):
 
 class IngestionDecisionReason(StrEnum):
     PAYLOAD_ABSENT = "payload_absent"
+    PAYLOAD_ACQUISITION_REQUIRED = "payload_acquisition_required"
+
+
+@dataclass(frozen=True, slots=True)
+class TrustedPayloadSourceCandidate:
+    provider_artifact_id: str
+    role: str
+    source_kind: str
+    source_id: str
+    checksum_algorithm: str
+    payload_checksum: str
+    expected_size_bytes: int
+    expected_media_type: str
+    available_until: datetime | None
+
+    @property
+    def replay_identity(self) -> tuple[object, ...]:
+        return (
+            self.provider_artifact_id,
+            self.role,
+            self.source_kind,
+            self.source_id,
+            self.checksum_algorithm,
+            self.payload_checksum,
+            self.expected_size_bytes,
+            self.expected_media_type,
+            self.available_until,
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -75,6 +110,7 @@ class TrustedProviderResultCandidate:
     provider_job_id: str
     output_role: str
     provider_artifact_id: str
+    provider_result_artifact_id: str
     provider_output_asset_version_id: str
     source_asset_version_id: UUID
     parent_asset_version_id: UUID
@@ -91,6 +127,7 @@ class TrustedProviderResultCandidate:
     provider_parent_artifact_id: str | None
     processing_types: tuple[str, ...]
     analysis_result: dict[str, object] | None
+    payloads: tuple[TrustedPayloadSourceCandidate, ...] = ()
     payload_reference: TrustedPayloadReference | None = None
 
     @property
@@ -104,9 +141,42 @@ class TrustedProviderResultCandidate:
     def require_payload_reference(self) -> TrustedPayloadReference:
         """metadata-only 결과의 payload-backed Completion 변환을 차단한다."""
 
-        if not self.payload_present or self.payload_reference is None:
+        if not self.payload_present:
             raise ProviderResultNotIngestibleError(IngestionDecisionReason.PAYLOAD_ABSENT)
+        if self.payload_reference is None:
+            raise ProviderResultNotIngestibleError(
+                IngestionDecisionReason.PAYLOAD_ACQUISITION_REQUIRED
+            )
         return self.payload_reference
+
+    @property
+    def replay_identity(self) -> tuple[object, ...]:
+        return (
+            self.workspace_job_id,
+            self.provider_job_binding_id,
+            self.provider_id,
+            self.provider_job_id,
+            self.output_role,
+            self.provider_artifact_id,
+            self.provider_result_artifact_id,
+            self.provider_output_asset_version_id,
+            self.source_asset_version_id,
+            self.parent_asset_version_id,
+            self.processing_chain_id,
+            self.model_manifest_id,
+            self.settings_snapshot,
+            self.artifact_kind,
+            self.media_type,
+            self.payload_present,
+            self.metadata_checksum,
+            self.checksum_scope,
+            self.created_at,
+            self.provider_source_artifact_id,
+            self.provider_parent_artifact_id,
+            self.processing_types,
+            self.analysis_result,
+            tuple(payload.replay_identity for payload in self.payloads),
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,7 +204,7 @@ class ProviderResultIngestionService:
         workspace_job_id: UUID,
         provider_job_binding_id: UUID,
         output_role: str,
-        wire_candidate: VocalProviderResultCandidate,
+        wire_candidate: VocalProviderResultCandidate | VocalPayloadBackedResultCandidate,
     ) -> ProviderResultIngestionDecision:
         job_repository = JobRepository(session)
         job = job_repository.get_job_for_owner(workspace_job_id, effective_owner_id)
@@ -148,6 +218,12 @@ class ProviderResultIngestionService:
             _reject(ProviderResultContractErrorReason.BINDING_MISSING)
         if binding.workspace_job_id != workspace_job_id:
             _reject(ProviderResultContractErrorReason.WORKSPACE_JOB_MISMATCH)
+
+        expected_contract_version = (
+            "0.2.0" if isinstance(wire_candidate, VocalPayloadBackedResultCandidate) else "0.1.0"
+        )
+        if job.api_contract_version != expected_contract_version:
+            _reject(ProviderResultContractErrorReason.CONTRACT_VERSION_MISMATCH)
 
         self._validate_identity(job, binding, wire_candidate)
         expected_role = VOCAL_JOB_OUTPUT_ROLES.get(job.job_type)
@@ -177,6 +253,12 @@ class ProviderResultIngestionService:
             candidate=wire_candidate,
         )
         self._validate_descriptor(wire_candidate, job.job_type)
+        trusted_payloads = self._validate_payloads(wire_candidate, expected_role=output_role)
+        provider_artifact_id = (
+            trusted_payloads[0].provider_artifact_id
+            if trusted_payloads
+            else wire_candidate.artifact_id
+        )
 
         trusted = TrustedProviderResultCandidate(
             workspace_job_id=workspace_job_id,
@@ -184,7 +266,8 @@ class ProviderResultIngestionService:
             provider_id=binding.provider_id,
             provider_job_id=binding.provider_job_id,
             output_role=output_role,
-            provider_artifact_id=wire_candidate.artifact_id,
+            provider_artifact_id=provider_artifact_id,
+            provider_result_artifact_id=wire_candidate.artifact_id,
             provider_output_asset_version_id=wire_candidate.output_asset_version_id,
             source_asset_version_id=source_id,
             parent_asset_version_id=parent_id,
@@ -193,7 +276,7 @@ class ProviderResultIngestionService:
             settings_snapshot=deepcopy(wire_candidate.lineage.settings_snapshot),
             artifact_kind=wire_candidate.artifact_kind,
             media_type=wire_candidate.media_type,
-            payload_present=False,
+            payload_present=wire_candidate.payload_present,
             metadata_checksum=wire_candidate.artifact_checksum,
             checksum_scope=wire_candidate.checksum_scope,
             created_at=wire_candidate.lineage.created_at,
@@ -201,13 +284,57 @@ class ProviderResultIngestionService:
             provider_parent_artifact_id=wire_candidate.lineage.parent_artifact_id,
             processing_types=wire_candidate.lineage.processing_types,
             analysis_result=deepcopy(wire_candidate.analysis_result),
+            payloads=trusted_payloads,
+        )
+        reason = (
+            IngestionDecisionReason.PAYLOAD_ACQUISITION_REQUIRED
+            if trusted_payloads
+            else IngestionDecisionReason.PAYLOAD_ABSENT
         )
         return ProviderResultIngestionDecision(
             candidate=trusted,
-            reason=IngestionDecisionReason.PAYLOAD_ABSENT,
+            reason=reason,
             eligible_for_binary_ingestion=False,
             eligible_for_structured_ingestion=False,
         )
+
+    @staticmethod
+    def validate_replay(
+        previous: TrustedProviderResultCandidate,
+        current: TrustedProviderResultCandidate,
+    ) -> None:
+        if previous.replay_identity != current.replay_identity:
+            _reject(ProviderResultContractErrorReason.RESULT_REPLAY_CONFLICT)
+
+    @staticmethod
+    def _validate_payloads(
+        candidate: VocalProviderResultCandidate | VocalPayloadBackedResultCandidate,
+        *,
+        expected_role: str,
+    ) -> tuple[TrustedPayloadSourceCandidate, ...]:
+        if not isinstance(candidate, VocalPayloadBackedResultCandidate):
+            return ()
+        trusted: list[TrustedPayloadSourceCandidate] = []
+        for payload in candidate.payloads:
+            if payload.role != expected_role:
+                _reject(ProviderResultContractErrorReason.OUTPUT_ROLE_MISMATCH)
+            _validate_payload_descriptor(payload)
+            if payload.expected_media_type != candidate.media_type:
+                _reject(ProviderResultContractErrorReason.PAYLOAD_DESCRIPTOR_MISMATCH)
+            trusted.append(
+                TrustedPayloadSourceCandidate(
+                    provider_artifact_id=payload.provider_artifact_id,
+                    role=payload.role,
+                    source_kind=payload.source.kind,
+                    source_id=payload.source.source_id,
+                    checksum_algorithm=payload.checksum_algorithm,
+                    payload_checksum=payload.payload_checksum,
+                    expected_size_bytes=payload.expected_size_bytes,
+                    expected_media_type=payload.expected_media_type,
+                    available_until=payload.available_until,
+                )
+            )
+        return tuple(trusted)
 
     @staticmethod
     def _validate_identity(job, binding, candidate) -> None:
@@ -287,13 +414,15 @@ class ProviderResultIngestionService:
         return source_id, parent_id, chain_id
 
     @staticmethod
-    def _validate_descriptor(candidate: VocalProviderResultCandidate, job_type: str) -> None:
+    def _validate_descriptor(
+        candidate: VocalProviderResultCandidate | VocalPayloadBackedResultCandidate,
+        job_type: str,
+    ) -> None:
         _safe_identifier(candidate.artifact_id)
         _safe_identifier(candidate.output_asset_version_id)
         _safe_text(candidate.media_type)
         if (
-            candidate.payload_present is not False
-            or candidate.checksum_algorithm != "sha256"
+            candidate.checksum_algorithm != "sha256"
             or candidate.checksum_scope != "metadata_descriptor"
             or candidate.lineage.checksum_scope != "metadata_descriptor"
             or candidate.artifact_checksum != candidate.lineage.checksum
@@ -301,6 +430,17 @@ class ProviderResultIngestionService:
             _reject(ProviderResultContractErrorReason.CHECKSUM_MISMATCH)
         if job_type != "vocal_analysis" and candidate.analysis_result is not None:
             _reject(ProviderResultContractErrorReason.INVALID_CANDIDATE)
+
+
+def _validate_payload_descriptor(candidate: VocalProviderPayloadEntry) -> None:
+    _safe_identifier(candidate.provider_artifact_id)
+    _safe_identifier(candidate.source.source_id)
+    if (
+        candidate.source.kind != "provider_subresource"
+        or candidate.checksum_algorithm != "sha256"
+        or candidate.expected_size_bytes <= 0
+    ):
+        _reject(ProviderResultContractErrorReason.PAYLOAD_DESCRIPTOR_MISMATCH)
 
 
 def _validate_parent_lineage(repository: AssetRepository, source_id: UUID, parent_id: UUID) -> None:

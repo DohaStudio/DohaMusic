@@ -13,7 +13,12 @@ from backend.core.exceptions import (
     ResourceConflictError,
     ResourceNotFoundError,
 )
-from backend.services.workspace import WorkspaceService
+from backend.services.workspace import (
+    TrustedMediaMetadataError,
+    WorkingCompositionError,
+    WorkingCompositionErrorCode,
+    WorkspaceService,
+)
 
 
 def require_bootstrapped_workspace(service: WorkspaceService) -> None:
@@ -226,6 +231,47 @@ def map_composition_snapshot_error(exc: Exception) -> AppError:
         )
     if isinstance(exc, ApplicationValidationError):
         return invalid_input(exc.message)
+    raise exc
+
+
+def map_working_composition_error(exc: Exception) -> AppError:
+    if isinstance(exc, ResourceNotFoundError):
+        if exc.resource_name == "MusicProject":
+            return project_not_found()
+        if exc.resource_name == "CompositionSnapshot":
+            return AppError(
+                code="COMPOSITION_SNAPSHOT_NOT_FOUND",
+                message="CompositionSnapshot을 찾을 수 없습니다.",
+                status_code=404,
+            )
+    if isinstance(exc, WorkingCompositionError):
+        not_found = {
+            WorkingCompositionErrorCode.WORKING_COMPOSITION_NOT_FOUND,
+            WorkingCompositionErrorCode.TRACK_NOT_FOUND,
+            WorkingCompositionErrorCode.CLIP_NOT_FOUND,
+        }
+        validation = {WorkingCompositionErrorCode.INVALID_CLIP_RANGE}
+        return AppError(
+            code=exc.code.value,
+            message=str(exc),
+            status_code=(404 if exc.code in not_found else 422 if exc.code in validation else 409),
+        )
+    if isinstance(exc, IdempotencyConflictError):
+        return AppError(
+            code="IDEMPOTENCY_KEY_REUSED",
+            message="같은 Idempotency-Key가 다른 요청에 사용됐습니다.",
+            status_code=409,
+        )
+    if isinstance(exc, IdempotencyInProgressError):
+        return AppError(
+            code="IDEMPOTENCY_IN_PROGRESS",
+            message="같은 Idempotency-Key 요청이 처리 중입니다.",
+            status_code=409,
+        )
+    if isinstance(exc, ApplicationValidationError):
+        return invalid_input(exc.message)
+    if isinstance(exc, TrustedMediaMetadataError):
+        return AppError(code=exc.code.value, message=str(exc), status_code=409)
     raise exc
 
 

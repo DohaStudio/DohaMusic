@@ -1,9 +1,11 @@
 # Provider Result → Artifact Ingestion Contract
 
-> 문서 상태: [완료: metadata-only trust/eligibility·Trusted Payload locator/resolver Foundation] / [미구현: payload transport·Completion adapter·실제 ingestion]
-> 최종 수정일: 2026-08-24
-> 기준: DohaMusic `64577d8c5c7d96b11c2ee22aefa5ce79da7725bc`, DohaVocal `59de6c7b50f2e1d28a04f13ad649bf99f5737ec2`, `.github/develop` 공통 명세 `dd75fc88c16e9ae9a04acfafb72756a905f6365b` (기존 고정 검토 SHA `1e4b480c8cbd6e51835f8550e685e9b136d8071d` 대비 호환 확인)
-> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md)
+> 문서 상태: [완료: `0.1.0`/`0.2.0` trust gate·transient acquisition·durable locator persistence] / [미구현: staging·Completion adapter·실제 ingestion]
+> 최종 수정일: 2026-08-25
+> 기준: DohaMusic `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
+> 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md), [Durable Payload Locator Authority](durable-payload-locator-authority.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
+
+`0.2.0` trust gate는 Workspace Job contract version, current primary role, separate Result/payload artifact identity, `provider_subresource` source, SHA-256, 양수 size, role별 media type과 timezone-aware availability를 검증한다. ordered canonical payload identity가 replay 사이에 달라지면 `result_replay_conflict`다. 검증 결과는 `payload_acquisition_required`, binary/structured ingestion eligibility는 계속 false이며 DB·filesystem mutation은 없다.
 
 ## 1. 목적과 경계
 
@@ -34,9 +36,9 @@ VocalProviderResultCandidate (wire)
 
 검증 실패는 contract error다. 이 경계는 `Artifact`, `AssetVersion`, `JobOutput`, `ModelUsage`와 Job 상태를 변경하지 않으며 Session lifecycle이나 commit/rollback을 소유하지 않고 호출자 transaction에 참여한다.
 
-## 3. Metadata-only semantics
+## 3. Versioned payload semantics
 
-현재 DohaVocal authority는 `payload_present=false`만 허용한다. 이는 Provider execution result metadata가 존재한다는 뜻이지, 실제 audio 또는 JSON Artifact Payload가 존재한다는 뜻이 아니다.
+DohaVocal `0.1.0`은 `payload_present=false`만 허용한다. 이는 Provider execution result metadata가 존재한다는 뜻이지, 실제 audio 또는 JSON Artifact Payload가 존재한다는 뜻이 아니다. `0.2.0`은 `payload_present=true`일 때 하나 이상의 ordered payload entry를 요구하고 false일 때 entry를 금지한다.
 
 검증 성공 결과는 다음을 명시한다.
 
@@ -47,6 +49,8 @@ eligible_for_structured_ingestion = false
 payload_reference = null
 ```
 
+`0.2.0` payload-backed 검증 결과는 `reason=payload_acquisition_required`다. source descriptor는 transient acquisition에 사용할 수 있지만 locator가 아니므로 `payload_reference=null`이고 두 ingestion eligibility는 여전히 false다.
+
 따라서 Provider 실행 성공을 Provider failure로 바꾸지 않지만 Workspace Job도 `succeeded`로 만들지 않는다. 현재 상태 machine에 새 상태를 추가하지 않고 Job은 Completion requirements를 충족할 실제 Payload가 생길 때까지 기존 `running` 상태를 유지한다. 내부 `stage`, bounded polling, lease와 terminal reconciliation은 [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다. trust failure는 비재시도 fail-closed이며 payload 가용성의 일시적 실패와 혼합하지 않는다.
 
 `vocal_analysis.analysis_result`도 현재 Fake metadata descriptor의 일부다. `.github` Artifact 명세의 실제 직렬화 Payload와 크기·checksum을 갖춘 structured Artifact가 아니므로 Artifact로 등록하지 않는다.
@@ -55,11 +59,11 @@ payload_reference = null
 
 `metadata_descriptor` checksum은 candidate metadata의 일관성만 증명한다. Artifact ingestion은 DohaMusic이 소유한 trusted staging Payload의 실제 bytes에서 size, MIME과 payload SHA-256을 다시 계산해야 한다. descriptor checksum을 binary 또는 structured Payload checksum으로 변환하거나 재사용하지 않는다.
 
-DohaMusic runtime이 발급하는 [Trusted Payload Locator / Resolver Contract](trusted-payload-locator-resolver-contract.md)는 `payloadref:v1:<opaque-id>`를 trusted staging regular file에 immutable하게 결합하고 expiry·identity·실제 byte checksum·media type을 fail-closed 검증한다. Provider path·URI와 wire locator는 authority가 아니다. 현재 metadata-only trusted candidate의 `require_payload_reference()`는 항상 `payload_absent`로 거부하며 locator를 자동 생성하지 않는다. remote download, arbitrary URL fetch, resolver→`ProviderOutput` adapter와 실제 Provider Payload access는 구현하지 않았다.
+DohaMusic runtime의 [Trusted Payload Locator / Resolver Contract](trusted-payload-locator-resolver-contract.md)는 `payloadref:v1:<opaque-id>`와 expected source facts, 선택적 verified staging metadata를 durable row에 결합한다. Provider path·URI와 wire source는 authority가 아니다. metadata-only candidate는 `payload_absent`, `0.2.0` candidate는 orchestration 연결 전이므로 계속 `payload_acquisition_required`로 `require_payload_reference()`를 거부한다. locator issue Service는 구현됐지만 trust gate에서 자동 호출하지 않는다. 발급 뒤 Result replay는 dedicated row의 immutable expected fields와 비교할 수 있다. durable byte staging·resolver→`ProviderOutput` adapter는 아직 구현하지 않았다.
 
 ## 5. Idempotency와 transaction
 
-검증 결과의 논리 idempotency key는 `(provider_job_binding_id, output_role, provider_artifact_id)`다. 같은 candidate를 반복 검증해도 DB·filesystem side effect가 없다. 실제 ingestion retry의 duplicate 방지는 후속 payload 계약에서 이 key와 기존 Completion UoW replay/uniqueness를 함께 사용해 확정한다. 현재 contract만을 위해 table이나 Alembic revision을 추가하지 않는다.
+검증 결과의 논리 idempotency key는 `(provider_job_binding_id, output_role, provider_artifact_id)`다. 같은 candidate를 반복 검증해도 DB·filesystem side effect가 없다. 별도 locator issue는 ordered 1:N을 보존하기 위해 binding + payload ordinal과 canonical source tuple을 unique로 사용하고 immutable expectation mismatch를 `RESULT_REPLAY_CONFLICT`로 만든다. 이 persistence foundation은 Alembic `20260825_0023`을 사용하지만 trust gate 자체의 read-only transaction 경계는 바꾸지 않는다.
 
 실제 payload ingestion이 도입되면 DB 조회 validation과 Completion write를 일관된 transaction 경계에서 재검증해야 한다. Provider network와 파일 전송은 DB transaction 밖에 둔다.
 
@@ -68,9 +72,9 @@ Candidate role은 Completion에 직접 전달하지 않는다. DohaMusic-owned m
 ## 6. 미구현
 
 - Worker / `ProviderDispatcher` wiring과 polling
-- 실제 DohaVocal network·인증·Provider execution
-- payload locator 발급·download·resolver
+- 실제 DohaVocal 인증·Provider execution
+- trust gate → payload locator issue 연결, downloader orchestration·durable byte staging·resolver 연결
 - 실제 audio/structured Payload ingestion
 - `Artifact`·`AssetVersion`·`JobOutput`·`ModelUsage` 생성
 - Workspace Job completion
-- 신규 DB persistence·Public API
+- Product Public API

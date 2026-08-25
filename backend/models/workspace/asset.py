@@ -42,6 +42,7 @@ if TYPE_CHECKING:
         SnapshotItem,
     )
     from backend.models.workspace.job import JobInput, JobOutput, ModelUsage
+    from backend.models.workspace.payload_locator import PayloadLocator
     from backend.models.workspace.storage import ArtifactStorageLocation
     from backend.models.workspace.workspace import ProjectAsset, Workspace
 
@@ -226,6 +227,9 @@ class Artifact(CreatedAtMixin, Base):
     )
     job_inputs: Mapped[list[JobInput]] = relationship(back_populates="artifact")
     job_outputs: Mapped[list[JobOutput]] = relationship(back_populates="artifact")
+    payload_locators: Mapped[list[PayloadLocator]] = relationship(
+        back_populates="ingested_artifact"
+    )
 
 
 class AssetRelation(CreatedAtMixin, Base):

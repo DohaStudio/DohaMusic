@@ -236,6 +236,7 @@ def test_base_url_and_timeouts_load_from_environment(monkeypatch):
     monkeypatch.setenv("DOHAVOCAL_READ_TIMEOUT_SECONDS", "20")
     monkeypatch.setenv("DOHAVOCAL_WRITE_TIMEOUT_SECONDS", "8")
     monkeypatch.setenv("DOHAVOCAL_POOL_TIMEOUT_SECONDS", "1")
+    monkeypatch.setenv("DOHAVOCAL_PAYLOAD_MAX_BYTES", "1048576")
 
     settings = Settings.from_environment()
 
@@ -244,6 +245,7 @@ def test_base_url_and_timeouts_load_from_environment(monkeypatch):
     assert settings.dohavocal_read_timeout_seconds == 20
     assert settings.dohavocal_write_timeout_seconds == 8
     assert settings.dohavocal_pool_timeout_seconds == 1
+    assert settings.dohavocal_payload_max_bytes == 1048576
 
 
 def test_base_url_trailing_slashes_do_not_change_endpoint_path(vocal_fixture):

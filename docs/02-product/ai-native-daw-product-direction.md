@@ -110,7 +110,7 @@ Rights, review, eligibility와 immutable lineage Gate를 모든 단계에서 유
 
 다음은 문서화된 TARGET이며 현재 완료가 아니다.
 
-- WorkingComposition Service/API와 편집 가능한 Arrangement UI, Track/Clip Waveform, Section marker
+- WorkingComposition Service/API를 소비하는 편집 가능한 Arrangement UI, Track/Clip Waveform, Section marker
 - 범위 편집, split·trim·move·copy·delete, fade·loop, undo·redo
 - 다중 Track Volume·Pan·Mute·Solo와 DAW Mixer UI
 - AI Music Director와 Candidate A/B 선택 Workflow

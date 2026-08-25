@@ -37,6 +37,7 @@ class Settings(BaseModel):
     dohavocal_read_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
     dohavocal_write_timeout_seconds: float = Field(default=10.0, gt=0, le=300)
     dohavocal_pool_timeout_seconds: float = Field(default=2.0, gt=0, le=300)
+    dohavocal_payload_max_bytes: int = Field(default=64 * 1024 * 1024, gt=0, le=1024 * 1024 * 1024)
     pipeline_version: str = "1"
     pipeline_max_retries: int = Field(default=1, ge=0, le=5)
     pipeline_step_timeout_seconds: float = Field(default=900, ge=0.01, le=7_200)
@@ -181,6 +182,7 @@ class Settings(BaseModel):
             "DOHAVOCAL_READ_TIMEOUT_SECONDS": "dohavocal_read_timeout_seconds",
             "DOHAVOCAL_WRITE_TIMEOUT_SECONDS": "dohavocal_write_timeout_seconds",
             "DOHAVOCAL_POOL_TIMEOUT_SECONDS": "dohavocal_pool_timeout_seconds",
+            "DOHAVOCAL_PAYLOAD_MAX_BYTES": "dohavocal_payload_max_bytes",
             "DOHAMUSIC_PIPELINE_VERSION": "pipeline_version",
             "DOHAMUSIC_PIPELINE_MAX_RETRIES": "pipeline_max_retries",
             "DOHAMUSIC_PIPELINE_STEP_TIMEOUT_SECONDS": "pipeline_step_timeout_seconds",

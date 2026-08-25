@@ -34,7 +34,7 @@ graceful bounded wait의 종료는 Worker 실패가 아니다. Provider가 `queu
 
 graceful yield는 Provider execution cancel, Provider retry 또는 새 Workspace retry Job 생성을 뜻하지 않는다. 기존 Provider execution과 binding을 그대로 보존하고 현재 Worker invocation의 ownership만 반납한다.
 
-Provider가 `succeeded`여도 payload가 준비되지 않았다면 Provider inference를 다시 실행하지 않는다. durable locator가 아직 없다면 process-local locator를 restart authority로 사용할 수 없으며, payload recovery가 완료되었다고 간주할 수도 없다.
+Provider가 `succeeded`여도 payload가 준비되지 않았다면 Provider inference를 다시 실행하지 않는다. durable locator row가 아직 발급되지 않았으면 Result replay로 source descriptor를 복구하고, row가 있더라도 verified durable staging이 없으면 payload recovery가 완료되었다고 간주하지 않는다. process-local locator는 restart authority가 아니다.
 
 ## 3. Durable 표현과 public state
 
@@ -140,6 +140,6 @@ claim token과 Worker ID는 내부 execution identity이며 공개 API, 로그, 
 
 ## 10. 구현 의존성과 handoff 분석
 
-이 결정으로 same-Job re-entry lifecycle blocker는 계약 수준에서 해소되었다. 후속 [Durable Execution Handoff Analysis](durable-execution-handoff-analysis.md)와 ADR-046은 Provider execution부터 Result validation까지 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`를 확정했다. payload locator 이후 복구는 별도 `DURABLE_LOCATOR_REQUIRED`이며 reclaim Runtime은 여전히 미구현이다.
+이 결정으로 same-Job re-entry lifecycle blocker는 계약 수준에서 해소되었다. 후속 [Durable Execution Handoff Analysis](durable-execution-handoff-analysis.md)와 ADR-046은 Provider execution부터 Result validation까지 `NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED`를 확정했다. payload locator 이후의 facts는 ADR-049 전용 persistence foundation에 보존하며 verified durable byte staging과 reclaim Runtime은 여전히 미구현이다.
 
-후속 구현 의존성은 atomic repository operations, eligible dispatcher registry, concrete DohaVocal dispatch/transport, bounded polling과 shutdown yield, cancellation propagation, durable locator/downloader, Completion adapter, daemon/scheduler, production authentication이다. 본 문서 PR은 Python, DB/schema, Alembic, API, Frontend, network 또는 Provider를 변경하지 않는다.
+후속 구현 의존성은 atomic reclaim repository operations, eligible dispatcher registry, concrete DohaVocal dispatch/transport, bounded polling과 shutdown yield, cancellation propagation, verified durable staging/downloader, Completion adapter, daemon/scheduler, production authentication이다. 본 문서 PR 자체는 Python, DB/schema, Alembic, API, Frontend, network 또는 Provider를 변경하지 않았다. 후속 ADR-049 PR이 별도 locator DB/schema foundation을 추가했다.

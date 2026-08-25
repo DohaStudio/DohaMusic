@@ -1,8 +1,10 @@
 ﻿# DohaMusic 마스터 로드맵
 
+> Provider 결과 경계 업데이트(2026-08-25): DohaVocal `0.2.0` payload consumer와 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`에 따른 전용 PayloadLocator persistence foundation을 구현했습니다. durable byte staging·Worker/Completion/Artifact ingestion은 아직 미구현입니다.
+>
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-24
+> 최종 수정일: 2026-08-25
 > 현재 실행 순서: [ROADMAP](ROADMAP.md)
 > 완료 판정: [Phase DoD](docs/DoD/README.md)
 
@@ -37,11 +39,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
-| Phase B New Implementation Separation | [진행 중] | DohaVocal Fake Runtime·DohaMusic Consumer Contract·HTTP Transport·metadata Result trust gate·Trusted Payload resolver Foundation 구현, Worker reconciliation·re-entry lifecycle 계약 확정, reclaim runtime·concrete wiring·downloader·durable locator·Completion adapter·실제 payload/model 미구현 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal `0.1.0` 호환·`0.2.0` payload consumer DTO/trust/transient acquisition·Trusted Payload resolver와 durable locator persistence foundation 구현; reclaim·concrete wiring·downloader·durable staging·Completion·실제 ingestion/model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal Fake Runtime과 DohaMusic Consumer Contract·HTTP Transport·metadata-only Result trust gate, DohaMusic-owned Trusted Payload locator/issuer/resolver Foundation은 구현했고 [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md), [Worker Re-entry Lifecycle](docs/03-architecture/workspace-worker-reentry-lifecycle.md)과 [Durable Execution Handoff Analysis](docs/03-architecture/durable-execution-handoff-analysis.md)을 확정했다. locator 전 새 durable handoff storage는 불필요하다. atomic reclaim runtime·concrete Worker wiring·인증·downloader·durable locator·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다. 신규 Music Generator는 DohaAudio에서 구현한다. 세부 단계와 완료 기준은 [분리 Roadmap](planning/repository-separation-roadmap.md)과 [DoD](docs/DoD/Provider-Separation.md)를 따른다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload process-local adapter 및 durable PayloadLocator persistence foundation을 구현했다. `payloadref:v1` identity, exact replay, lifecycle CAS, revocation과 restart recovery가 CURRENT다. atomic reclaim·concrete Worker wiring·인증·downloader·durable byte staging·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다.
 
 ## AI-native DAW 제품 전환 상태
 
@@ -49,7 +51,7 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 |---|---|---|
 | Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현 |
 | AI-native DAW Product Direction | [완료] | PR #94가 `develop`에 병합되어 CURRENT/TARGET/NOT IMPLEMENTED 기준 확정 |
-| Composition Runtime UI | [진행 중] | D1·D2와 D3 Clip Persistence·Authority Foundation 완료; Service/API와 편집 가능한 Track/Clip·Section·Mixer 미구현 |
+| Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition persistence·Service·13개 Product operation 완료; Frontend Track/Clip·Composition commit·Section·Mixer 미구현 |
 | Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
 | Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
 
@@ -95,7 +97,7 @@ Phase 8  Doha Studio                 [완료]
   ↓ 후속 개선
 F6       Guided Voice Enrollment     [진행 중]
   ↓ 독립 장기 전환
-Track    AI-native DAW Product       [D0·D1·D2 완료 / D3 Clip Persistence·Authority Foundation 완료·후속 진행 중 / D4~D9 계획]
+Track    AI-native DAW Product       [D0·D1·D2 완료 / D3 WorkingComposition Backend 완료·Frontend 진행 필요 / D4~D9 계획]
   ↓
 K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
   ↓ 병행
@@ -120,7 +122,7 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·Audio·Cancel·Retry 완료; DAW TARGET과 분리 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | `D0·D1·D2·Clip Persistence·Authority Foundation 완료 / D3 후속 진행 중` | 5개 persistence table·trusted duration·Track 삭제 기반 완료; mutation Service·API/UI, 실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | `D0·D1·D2·WorkingComposition Backend 완료 / D3 Frontend 후속 진행 중` | 5개 persistence table·trusted duration·atomic mutation Service·13개 Product operation 완료; Frontend·Composition commit·실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현, reconciliation 계약 확정; Provider dispatch wiring·durable payload ingestion·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -131,7 +133,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구한다. D1-A product API 2개, D3 Clip Persistence와 Authority Foundation을 구현해 source metadata는 43개 Table·Alembic `20260824_0021`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency와 PayloadLocator Foundation을 구현해 source metadata는 44개 Table·Alembic `20260825_0023`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 
@@ -318,7 +320,11 @@ Clip Persistence Foundation [완료]
   ↓
 Clip Service Authority Foundation [완료]
   ↓
-WorkingComposition Service + Product API [다음]
+Revision-safe Idempotency Foundation [완료]
+  ↓
+WorkingComposition Service + Product API [완료]
+  ↓
+Frontend Clip Editing + memory Undo/Redo [다음]
 ```
 
-이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 Clip Persistence·Authority Foundation 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0021` 적용을 뜻하지 않는다.
+이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 WorkingComposition persistence·Service·Product API 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0022` 적용을 뜻하지 않는다.

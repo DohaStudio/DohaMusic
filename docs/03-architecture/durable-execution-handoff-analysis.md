@@ -1,8 +1,8 @@
 # Durable Execution Handoff Analysis
 
 > 문서 상태: 승인된 architecture authority, Runtime 미구현
-> 기준: `develop` `addecaf4b19e5bf9e652e659006236bb7d1c8aac`
-> 관련 결정: [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md)
+> 기준: `develop` `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`
+> 관련 결정: [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
 
 ## 1. 판정과 범위
 
@@ -12,7 +12,7 @@ Provider execution부터 Result trust validation까지의 same-Job 재진입에�
 NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED
 ```
 
-이 판정은 payload locator 발급 전까지만 적용한다. locator가 생긴 뒤 payload acquisition·staging·Completion으로 넘기는 cross-process identity는 [Trusted Payload Locator / Resolver Contract](trusted-payload-locator-resolver-contract.md)의 `DURABLE_LOCATOR_REQUIRED`가 소유한다. execution handoff storage가 locator identity를 복제하지 않는다.
+이 판정은 payload locator 발급 전까지만 적용한다. 후속 재분석은 Result replay가 acquisition 전 source를 복구하므로 별도 source handoff storage는 여전히 불필요하지만, verified staging·revocation·cleanup의 cross-process identity에는 [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 dedicated aggregate가 필요하다고 확정했다. execution handoff storage가 locator identity를 복제하지 않는다.
 
 ## 2. Persistence inventory
 
@@ -29,7 +29,7 @@ NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED
 | provider-success-seen, validation-passed, completion-started/done | `NOT_PERSISTED` | 기존 Provider read 또는 terminal/output aggregate와 중복 |
 | polling cursor/count, invocation deadline, raw response, in-memory candidate | `PROCESS_LOCAL` | 새 claim invocation에서 다시 시작; business authority 아님 |
 | terminal state, JobOutput, Artifact, AssetVersion, ModelUsage, catalog state | `DURABLE_AUTHORITATIVE` | Completion UoW가 atomic하게 확정 |
-| production payload locator | `NOT_PERSISTED` | 별도 `DURABLE_LOCATOR_REQUIRED` dependency |
+| production payload locator facts | `DURABLE_AUTHORITATIVE` | ADR-049 전용 `PayloadLocator` schema/Runtime foundation; verified durable byte staging·통합 미구현 |
 
 Result fingerprint를 별도 저장하지 않는다. trust gate 입력은 binding과 replay한 wire Result에서 다시 얻고 validation은 숨은 mutation 없이 반복할 수 있다.
 
@@ -100,4 +100,4 @@ locator 전에는 `YES`인 독립 durable fact가 없다. 새 `DurableExecutionH
 - durable locator, downloader, Completion adapter와 payload ingestion
 - production authentication과 실제 Vocal model/GPU
 
-따라서 CURRENT `WORKER_LEASE_EXPIRED` failure를 TARGET reclaim 성공으로 표현하지 않는다. 다음 architecture dependency는 `DURABLE_LOCATOR_REQUIRED`다.
+따라서 CURRENT `WORKER_LEASE_EXPIRED` failure를 TARGET reclaim 성공으로 표현하지 않는다. locator dependency의 schema 판정은 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`로 해소됐지만 Runtime·durable staging·reclaim은 계속 미구현이다.

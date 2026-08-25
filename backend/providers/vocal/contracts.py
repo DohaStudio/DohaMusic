@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
 from typing import Annotated, Any, Literal
 
@@ -12,6 +12,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 DOHAVOCAL_PROVIDER_ID = "dohavocal"
 DOHAVOCAL_CONTRACT_VERSION = "0.1.0"
+DOHAVOCAL_PAYLOAD_CONTRACT_VERSION = "0.2.0"
+VocalContractVersion = Literal["0.1.0", "0.2.0"]
 DOHAVOCAL_OPERATIONS = (
     "GetCapabilities",
     "CreateJob",
@@ -23,6 +25,9 @@ DOHAVOCAL_OPERATIONS = (
     "Health",
     "Readiness",
 )
+DOHAVOCAL_PAYLOAD_OPERATIONS = (*DOHAVOCAL_OPERATIONS, "GetPayloadContent")
+_OPAQUE_PAYLOAD_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]{0,199}\Z")
+_URI_SCHEME = re.compile(r"[A-Za-z][A-Za-z0-9+.-]*:")
 
 
 class StrictFrozenModel(BaseModel):
@@ -111,7 +116,7 @@ VocalJobInput = Annotated[
 class VocalCreateJobRequest(StrictFrozenModel):
     provider_id: Literal[DOHAVOCAL_PROVIDER_ID] = DOHAVOCAL_PROVIDER_ID
     capability: VocalCapability
-    api_contract_version: Literal[DOHAVOCAL_CONTRACT_VERSION] = DOHAVOCAL_CONTRACT_VERSION
+    api_contract_version: VocalContractVersion = DOHAVOCAL_CONTRACT_VERSION
     idempotency_key: str = Field(min_length=1, max_length=200)
     project_id: str
     input_asset_version_ids: tuple[str, ...] = ()
@@ -145,18 +150,41 @@ class VocalReadinessProbe(StrictFrozenModel):
     provider_id: Literal[DOHAVOCAL_PROVIDER_ID]
 
 
+class VocalPayloadAcquisitionCapability(StrictFrozenModel):
+    supported: Literal[True]
+    source_kinds: tuple[Literal["provider_subresource"], ...]
+    operation: Literal["GetPayloadContent"]
+
+    @model_validator(mode="after")
+    def require_exact_source_surface(self) -> VocalPayloadAcquisitionCapability:
+        if self.source_kinds != ("provider_subresource",):
+            raise ValueError("unsupported DohaVocal payload source kind surface")
+        return self
+
+
 class VocalCapabilities(StrictFrozenModel):
     provider_id: Literal[DOHAVOCAL_PROVIDER_ID]
-    api_contract_version: Literal[DOHAVOCAL_CONTRACT_VERSION]
+    api_contract_version: VocalContractVersion
     capabilities: tuple[VocalCapability, ...]
     supported_operations: tuple[str, ...]
+    payload_acquisition: VocalPayloadAcquisitionCapability | None = None
 
     @model_validator(mode="after")
     def require_complete_surface(self) -> VocalCapabilities:
-        if set(self.capabilities) != set(VocalCapability):
+        if self.capabilities != tuple(VocalCapability):
             raise ValueError("DohaVocal capability surface가 지원 기준과 다릅니다.")
-        if tuple(self.supported_operations) != DOHAVOCAL_OPERATIONS:
+        expected_operations = (
+            DOHAVOCAL_OPERATIONS
+            if self.api_contract_version == DOHAVOCAL_CONTRACT_VERSION
+            else DOHAVOCAL_PAYLOAD_OPERATIONS
+        )
+        if tuple(self.supported_operations) != expected_operations:
             raise ValueError("DohaVocal operation surface가 지원 기준과 다릅니다.")
+        if self.api_contract_version == DOHAVOCAL_CONTRACT_VERSION:
+            if self.payload_acquisition is not None:
+                raise ValueError("0.1.0 must not advertise payload acquisition")
+        elif self.payload_acquisition is None:
+            raise ValueError("0.2.0 must advertise payload acquisition")
         return self
 
 
@@ -177,7 +205,7 @@ class BaseVocalJob(StrictFrozenModel):
     job_type: VocalCapability
     status: VocalJobStatus
     provider_id: Literal[DOHAVOCAL_PROVIDER_ID]
-    api_contract_version: Literal[DOHAVOCAL_CONTRACT_VERSION]
+    api_contract_version: VocalContractVersion
     progress_percent: int = Field(ge=0, le=100)
     input_asset_version_ids: tuple[str, ...]
     input_artifact_ids: tuple[str, ...]
@@ -286,6 +314,89 @@ class VocalProviderResultCandidate(StrictFrozenModel):
         return deepcopy(value)
 
 
+class VocalPayloadSource(StrictFrozenModel):
+    kind: Literal["provider_subresource"]
+    source_id: str = Field(min_length=1, max_length=200)
+
+    @field_validator("source_id")
+    @classmethod
+    def require_opaque_source_id(cls, value: str) -> str:
+        if (
+            not value.isascii()
+            or _OPAQUE_PAYLOAD_ID.fullmatch(value) is None
+            or ".." in value
+            or _URI_SCHEME.search(value) is not None
+        ):
+            raise ValueError("payload source_id must be a bounded opaque identifier")
+        return value
+
+
+VocalPayloadRole = Literal[
+    "generated_vocal_candidate",
+    "converted_vocal_candidate",
+    "corrected_vocal_candidate",
+    "vocal_analysis_result",
+]
+
+
+class VocalProviderPayloadEntry(StrictFrozenModel):
+    provider_artifact_id: str = Field(min_length=1, max_length=200)
+    role: VocalPayloadRole
+    source: VocalPayloadSource
+    checksum_algorithm: Literal["sha256"]
+    payload_checksum: str = Field(pattern=r"^[0-9a-f]{64}$")
+    expected_size_bytes: int = Field(gt=0)
+    expected_media_type: Literal["audio/wav", "audio/flac", "application/json"]
+    available_until: datetime | None
+
+    @field_validator("provider_artifact_id")
+    @classmethod
+    def require_opaque_artifact_id(cls, value: str) -> str:
+        if (
+            not value.isascii()
+            or _OPAQUE_PAYLOAD_ID.fullmatch(value) is None
+            or ".." in value
+            or _URI_SCHEME.search(value) is not None
+        ):
+            raise ValueError("provider_artifact_id must be a bounded opaque identifier")
+        return value
+
+    @field_validator("available_until")
+    @classmethod
+    def require_aware_expiry(cls, value: datetime | None) -> datetime | None:
+        if value is not None and value.utcoffset() != timedelta(0):
+            raise ValueError("available_until must be UTC and timezone-aware")
+        return value
+
+    @model_validator(mode="after")
+    def require_role_media_pair(self) -> VocalProviderPayloadEntry:
+        if self.role == "vocal_analysis_result":
+            if self.expected_media_type != "application/json":
+                raise ValueError("analysis payload must use application/json")
+        elif self.expected_media_type not in {"audio/wav", "audio/flac"}:
+            raise ValueError("audio payload must use audio/wav or audio/flac")
+        return self
+
+
+class VocalPayloadBackedResultCandidate(VocalProviderResultCandidate):
+    """0.2.0 Result whose payload entries are acquisition candidates only."""
+
+    payload_present: bool
+    payloads: tuple[VocalProviderPayloadEntry, ...]
+
+    @model_validator(mode="after")
+    def require_payload_presence_invariants(self) -> VocalPayloadBackedResultCandidate:
+        if self.payload_present != bool(self.payloads):
+            raise ValueError("payload_present and payload entries disagree")
+        roles = tuple(item.role for item in self.payloads)
+        if len(roles) != len(set(roles)):
+            raise ValueError("payload roles must be unique")
+        return self
+
+
+AnyVocalProviderResultCandidate = VocalProviderResultCandidate | VocalPayloadBackedResultCandidate
+
+
 ReviewStatus = Literal["UNKNOWN", "REVIEW_REQUIRED", "APPROVED", "REJECTED"]
 
 
@@ -299,7 +410,7 @@ class VocalModelManifest(StrictFrozenModel):
     capabilities: tuple[VocalCapability, ...]
     input_formats: tuple[str, ...]
     output_formats: tuple[str, ...]
-    api_contract_version: Literal[DOHAVOCAL_CONTRACT_VERSION]
+    api_contract_version: VocalContractVersion
     dataset_manifest_id: str | None = None
     training_run_id: str | None = None
     evaluation_result_id: str | None = None

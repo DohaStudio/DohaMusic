@@ -206,10 +206,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
 
-    assert len(registered_routes) == 77
-    assert len(api_routes) == 73
-    assert len(openapi_paths) == 55
-    assert len(operation_ids) == 75
+    assert len(registered_routes) == 90
+    assert len(api_routes) == 86
+    assert len(openapi_paths) == 67
+    assert len(operation_ids) == 88
     assert (
         len(
             [
@@ -221,8 +221,8 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         == 33
     )
     assert "/health" in openapi_paths
-    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 32
-    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 21
+    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 45
+    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 33
     v1_operations = {
         (method.upper(), path): operation
         for path, path_item in openapi_paths.items()
@@ -263,8 +263,39 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         ("GET", "/api/v1/jobs/{job_id}"),
         ("POST", "/api/v1/jobs/{job_id}/cancel"),
         ("POST", "/api/v1/jobs/{job_id}/retry"),
+        ("GET", "/api/v1/projects/{project_id}/working-composition"),
+        ("POST", "/api/v1/projects/{project_id}/working-composition/initialize"),
+        ("POST", "/api/v1/projects/{project_id}/working-composition/checkout"),
+        ("POST", "/api/v1/projects/{project_id}/working-composition/tracks"),
+        ("PATCH", "/api/v1/projects/{project_id}/working-composition/tracks/reorder"),
+        (
+            "PATCH",
+            "/api/v1/projects/{project_id}/working-composition/tracks/{track_id}",
+        ),
+        (
+            "DELETE",
+            "/api/v1/projects/{project_id}/working-composition/tracks/{track_id}",
+        ),
+        ("POST", "/api/v1/projects/{project_id}/working-composition/clips"),
+        (
+            "PATCH",
+            "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}/move",
+        ),
+        (
+            "PATCH",
+            "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}/trim-start",
+        ),
+        (
+            "PATCH",
+            "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}/trim-end",
+        ),
+        (
+            "POST",
+            "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}/split",
+        ),
+        ("DELETE", "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}"),
     }
-    assert len({item["operationId"] for item in v1_operations.values()}) == 32
+    assert len({item["operationId"] for item in v1_operations.values()}) == 45
     assert all(item.get("summary") for item in v1_operations.values())
     assert all(item.get("tags") for item in v1_operations.values())
     assert len(duplicate_ids) == 2

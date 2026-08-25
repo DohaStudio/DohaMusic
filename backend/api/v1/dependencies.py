@@ -15,6 +15,7 @@ from backend.services.workspace import (
     AssetService,
     CompositionService,
     JobService,
+    WorkingCompositionService,
     WorkspaceService,
 )
 
@@ -49,7 +50,7 @@ def get_workspace_service(request: Request) -> WorkspaceService:
 
     service = getattr(request.app.state, "workspace_service", None)
     if not isinstance(service, WorkspaceService):
-        raise RuntimeError("WorkspaceService가 구성되지 않았습니다.")
+        raise TypeError("WorkspaceService가 구성되지 않았습니다.")
     return service
 
 
@@ -58,7 +59,7 @@ def get_asset_service(request: Request) -> AssetService:
 
     service = getattr(request.app.state, "asset_service", None)
     if not isinstance(service, AssetService):
-        raise RuntimeError("AssetService가 구성되지 않았습니다.")
+        raise TypeError("AssetService가 구성되지 않았습니다.")
     return service
 
 
@@ -67,7 +68,7 @@ def get_artifact_application_service(request: Request) -> ArtifactApplicationSer
 
     service = getattr(request.app.state, "artifact_application_service", None)
     if not isinstance(service, ArtifactApplicationService):
-        raise RuntimeError("ArtifactApplicationService가 구성되지 않았습니다.")
+        raise TypeError("ArtifactApplicationService가 구성되지 않았습니다.")
     return service
 
 
@@ -76,7 +77,14 @@ def get_composition_service(request: Request) -> CompositionService:
 
     service = getattr(request.app.state, "composition_service", None)
     if not isinstance(service, CompositionService):
-        raise RuntimeError("CompositionService가 구성되지 않았습니다.")
+        raise TypeError("CompositionService가 구성되지 않았습니다.")
+    return service
+
+
+def get_working_composition_service(request: Request) -> WorkingCompositionService:
+    service = getattr(request.app.state, "working_composition_service", None)
+    if not isinstance(service, WorkingCompositionService):
+        raise TypeError("WorkingCompositionService가 구성되지 않았습니다.")
     return service
 
 
@@ -85,7 +93,7 @@ def get_job_service(request: Request) -> JobService:
 
     service = getattr(request.app.state, "job_service", None)
     if not isinstance(service, JobService):
-        raise RuntimeError("JobService가 구성되지 않았습니다.")
+        raise TypeError("JobService가 구성되지 않았습니다.")
     return service
 
 

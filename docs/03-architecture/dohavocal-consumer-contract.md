@@ -2,9 +2,11 @@
 
 > 문서 역할: Provider Boundary와 System Architecture를 보충하는 SUPPORTING 계약
 > 문서 상태: [구현·검증 완료]
-> 최종 수정일: 2026-08-24
-> 적용 범위: DohaVocal Runtime `0.1.0` DTO·mapping·transport port·HTTP transport·Mock HTTP contract test
-> 관련 문서: [Provider API 계약](../06-api/provider-api-contract.md), [Workspace Job Foundation](workspace-job-foundation.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-034](../11-decisions/ADR-034-dohavocal-consumer-contract.md)
+> 최종 수정일: 2026-08-25
+> 적용 범위: DohaVocal Runtime `0.1.0` metadata-only 호환 및 `0.2.0` payload-backed DTO·capability negotiation·read-only acquisition transport
+> 관련 문서: [Provider API 계약](../06-api/provider-api-contract.md), [Workspace Job Foundation](workspace-job-foundation.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-034](../11-decisions/ADR-034-dohavocal-consumer-contract.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md)
+
+`0.1.0`은 기존 9개 operation과 `payload_present=false`를 그대로 유지한다. `0.2.0`은 `GetPayloadContent` 및 exact `payload_acquisition` 광고가 있을 때만 선택하며, Result의 ordered payload entry를 strict DTO로 파싱한다. acquisition adapter는 고정 origin·redirect 금지·bounded streaming·Content-Type/size/SHA-256 검증 후 transient bytes만 반환한다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 전용 persistence schema/Runtime foundation은 구현됐지만 durable byte staging, downloader orchestration, Artifact ingestion과 Worker 연결은 아직 구현되지 않았다.
 
 ## 1. 기준선과 권위
 
@@ -43,7 +45,7 @@ DohaMusic authorized application context
 | `health` | `Health` | `GET /health` |
 | `readiness` | `Readiness` | `GET /ready` |
 
-지원 capability는 `vocal_generation`, `voice_conversion`, `vocal_correction`, `vocal_analysis` 네 개다. 알 수 없는 capability, operation 차이, extra field와 `api_contract_version != 0.1.0`은 fail-closed 한다.
+지원 capability는 `vocal_generation`, `voice_conversion`, `vocal_correction`, `vocal_analysis` 네 개다. 알 수 없는 capability, version별 exact operation 차이, extra field와 지원하지 않는 contract version은 fail-closed한다. `0.1.0`은 9개 operation, `0.2.0`은 여기에 `GetPayloadContent`를 추가한 10개 operation과 exact acquisition 광고를 요구한다.
 
 ## 3. CreateJob과 권한 Scope
 
@@ -75,7 +77,7 @@ Consumer는 다음 값을 손실 없이 보존한다.
 - Provider·Model Manifest·settings·processing type·Provider Job ID
 - `source_artifact_id`, `parent_artifact_id`
 
-`artifact_checksum`과 lineage `checksum`은 `checksum_scope=metadata_descriptor`인 metadata descriptor SHA-256이다. `payload_present=false`이므로 audio integrity 검증 또는 실제 파일 checksum으로 승격하지 않는다.
+`artifact_checksum`과 lineage `checksum`은 `checksum_scope=metadata_descriptor`인 metadata descriptor SHA-256이다. `0.1.0`에서는 이를 audio integrity 또는 실제 파일 checksum으로 승격하지 않는다. `0.2.0` payload entry의 별도 `payload_checksum`만 acquisition한 실제 bytes의 SHA-256과 비교한다.
 
 ## 6. Model Manifest와 Consent 경계
 
@@ -103,11 +105,11 @@ connect·read·write·pool timeout은 각각 설정 가능하고 무한 timeout�
 
 ## 8. 검증과 미구현
 
-`backend/tests/fixtures/vocal-provider-contract-v0.1.0.json`은 DohaVocal source를 import하지 않는 stable JSON fixture다. canonical Provider ID는 `dohavocal`, 실제 Fake Model Manifest ID는 `dohavocal.fake-model@0.1.0`으로 고정해 Runtime wire identity와 일치시킨다. Fake transport와 `httpx.MockTransport`로 4 capability, 9 operation, request·state·retry·idempotency·snapshot·lineage·checksum·Manifest·오류·probe·timeout·URL 경계를 검증한다. 실제 network 호출은 0건이다.
+`backend/tests/fixtures/vocal-provider-contract-v0.1.0.json`과 별도 `vocal-provider-contract-v0.2.0.json`은 DohaVocal source를 import하지 않는 stable JSON fixture다. 기존 fixture를 바꾸지 않고 4 capability, version별 9/10 operation, request·state·retry·idempotency·snapshot·lineage·payload source·checksum·size·media·availability·오류·timeout·redirect 경계를 검증한다. 실제 network 호출은 0건이다.
 
 이번 Foundation에 포함하지 않은 항목은 다음과 같다.
 
-- 실제 HTTP 또는 localhost 호출
+- 실제 외부 HTTP 또는 localhost 호출과 production 인증
 - 실제 DohaVocal process·Provider·AI model·GPU 호출
 - Workspace Worker dispatcher 조립과 polling policy
 - Artifact payload·Catalog·Resolver·AssetVersion commit

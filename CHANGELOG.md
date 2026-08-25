@@ -11,6 +11,36 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Durable Payload Locator Persistence Foundation
+
+- `payloadref:v1:<32 lowercase UUID hex>` identity의 전용 `PayloadLocator` domain, persistence port, SQLAlchemy/SQLite adapter와 Service-owned transaction을 구현했다. `ProviderJobBinding 1:N`과 direct Workspace scope는 composite FK로 일치시키고 ordinal 및 canonical source tuple을 각각 unique로 보존한다.
+- exact issue replay는 기존 locator를 반환하고 immutable mismatch는 `RESULT_REPLAY_CONFLICT`로 fail-closed한다. expected/actual facts, source/policy expiry, safe relative staging key, terminal revocation과 `source_bound → verified_staged → ingested → cleanup_pending → cleaned` revision CAS를 구현했다.
+- additive Alembic `20260825_0023`과 fresh/existing upgrade·downgrade·re-upgrade, restart, idempotency, concurrent mutation, lifecycle, revocation 및 path/URL/credential security regression을 추가했다. `InMemoryTrustedPayloadRegistry`는 test/dev 호환으로 유지하고 Product API는 추가하지 않았다.
+- durable byte staging, downloader orchestration, Artifact ingestion/Completion adapter, Worker dispatcher/reclaim과 실제 Provider Runtime은 계속 미구현이다.
+
+### 추가 — DohaVocal 0.2.0 Payload Acquisition Consumer
+
+- DohaVocal PR #6에서 병합된 `0.2.0` payload-backed Result와 `GetPayloadContent` capability를 기존 `0.1.0` metadata-only 경로와 분리한 strict DTO로 추가했다.
+- payload source·role·SHA-256·size·media·availability와 Workspace contract version을 read-only trust gate에서 검증하고, ordered canonical replay identity가 달라지면 fail-closed한다.
+- 고정 DohaVocal origin의 payload endpoint를 redirect 없이 bounded streaming으로 읽어 실제 size·media type·SHA-256을 검증하는 transient acquisition port를 추가했다. 당시 locator persistence도 미구현이었으나 현재 위 Persistence Foundation으로 구현됐고 byte staging, Artifact ingestion, Completion 및 Worker wiring은 계속 미구현이다.
+- 결정 근거와 후속 `DURABLE_LOCATOR_REQUIRED` 재분석 dependency를 ADR-048에 기록했고, 재분석 결과는 ADR-049가 확정한다.
+
+### 추가 — WorkingComposition Atomic Mutation Service와 Product API
+
+- WorkingComposition no-write GET, explicit initialize·Snapshot checkout, Track create·rename·reorder·delete와 Clip create·move·trim-start·trim-end·split·delete Service를 구현했다. 모든 상태 변경은 expected revision compare-and-swap으로 성공당 정확히 `+1`이며 Repository는 transaction을 소유하지 않는다.
+- initialize는 GET-or-create가 아니다. 같은 key·fingerprint만 최초 ID/revision을 replay하고, 다른/new key의 duplicate와 DB unique race loser는 `409 WORKING_COMPOSITION_ALREADY_EXISTS`로 정규화하며 state·revision·성공 completion result를 남기지 않는다.
+- exact AssetVersion·effective Owner/Workspace/Project·active ProjectAsset, exactly-one eligible Artifact와 trusted duration을 Clip create에 적용했다. integer microseconds half-up, same-Track 반개구간 overlap 거부, adjacency·cross-Track 중첩 허용, Track non-empty 삭제 거부와 tombstone lineage를 유지한다.
+- `/api/v1/projects/{project_id}/working-composition` 아래 13개 Product operation을 추가했다. 새 Router는 Service만 호출하고 path·locator·credential·raw DB 오류를 공개하지 않으며 새 operation ID 중복은 0개다.
+- initialize·checkout·Track/Clip create/delete·split은 stored `IdempotencyCompletionResult`에서 최초 identity와 completed revision을 replay한다. split·checkout·reorder·create/delete 강제 실패와 concurrent initialize/revision race의 partial mutation 0을 격리 SQLite로 검증했다.
+- Alembic head는 `20260825_0022`로 유지하고 신규 migration은 추가하지 않았다. 실제 사용자 DB·Artifact payload·media·Provider·GPU에는 접근하지 않았다. Composition commit, Frontend·Undo/Redo·Waveform·working preview/render·Mixer는 후속이다.
+
+### 추가 — Revision-safe Idempotency Completion Result Foundation
+
+- 완료 revision과 operation별 Product identity를 보존하는 immutable `IdempotencyCompletionResult`와 여덟 result type allowlist를 추가했다. payload는 canonical UUID key만 허용하고 UTF-8 JSON 8,192 bytes로 제한한다.
+- 기존 `complete()`와 `resource_type/resource_id/response_status` replay를 유지하면서 `claim_with_result()`와 `complete_with_result()`를 추가했다. 새 결과가 없거나 일부만 있는 legacy·손상 row, unknown version/type은 fail-closed하며 Repository는 commit/rollback하지 않는다.
+- Alembic `20260825_0022`로 nullable `completed_revision`, `result_type`, `result_version`, `result_payload`를 additive하게 추가했다. 기존 `COMPLETED` row는 추측 backfill하지 않았고 실제 사용자 DB에는 적용하지 않았다.
+- ADR-047에 성공 mutation만 같은 transaction에서 결과를 저장하는 replay·legacy·보안 권위를 기록했다. 후속 WorkingComposition mutation Service와 Product API가 이 결과 계약을 소비한다.
+
 ### 문서 — Durable Execution Handoff authority 확정
 
 - 최신 `develop`의 Workspace Job·ProviderJobBinding·Provider replay·Result trust gate·Completion authority를 다시 분류하고 17개 crash/restart case를 판정했다.

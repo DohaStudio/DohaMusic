@@ -73,12 +73,14 @@
 - [x] canonical Track·Clip·WorkingComposition authority와 persistence ADR
 - [x] mutable working state와 immutable Snapshot commit·schema extension 경계
 - [x] split identity·revision concurrency·Undo/Redo ownership·overlap·duration 정책
-- [ ] split·trim·move·copy·delete·fade·gain·loop
+- [x] Backend split·trim·move·delete와 Track create·rename·reorder·delete
+- [ ] Frontend copy·fade·gain·loop와 편집 UI
 - [ ] 원본 불변 AssetVersion·CompositionSnapshot commit
 - [x] WorkingComposition·Track·Clip·SnapshotTrack·SnapshotClip ORM과 additive Alembic 구현
 - [x] exact microseconds·FK·lineage·overlap helper·revision·Repository rollback 회귀 검증
 - [x] Track non-empty 삭제 거부와 trusted WAV·FLAC Artifact duration authority 기반
-- [ ] Service·API와 undo/redo·동시 편집·복구 구현
+- [x] WorkingComposition Service·Product API·expected revision CAS·idempotency replay 구현
+- [ ] Frontend undo/redo·동시 편집 recovery 구현
 
 ## D4. Mixer와 Export — [계획]
 

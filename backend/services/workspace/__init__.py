@@ -66,6 +66,7 @@ from backend.services.workspace.job_worker_service import (
     ProviderExecutionInput,
     ProviderExecutionRequest,
 )
+from backend.services.workspace.payload_locator_service import PayloadLocatorService
 from backend.services.workspace.provider_job_persistence_service import (
     ProviderJobPersistenceError,
     ProviderJobPersistenceErrorReason,
@@ -79,6 +80,7 @@ from backend.services.workspace.provider_result_ingestion_service import (
     ProviderResultIngestionDecision,
     ProviderResultIngestionService,
     ProviderResultNotIngestibleError,
+    TrustedPayloadSourceCandidate,
     TrustedProviderResultCandidate,
 )
 from backend.services.workspace.trusted_media_metadata_service import (
@@ -86,6 +88,13 @@ from backend.services.workspace.trusted_media_metadata_service import (
     TrustedMediaMetadataError,
     TrustedMediaMetadataErrorCode,
     TrustedMediaMetadataService,
+)
+from backend.services.workspace.working_composition_service import (
+    WorkingCompositionAggregate,
+    WorkingCompositionError,
+    WorkingCompositionErrorCode,
+    WorkingCompositionService,
+    WorkingMutationResult,
 )
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
@@ -162,6 +171,7 @@ __all__ = [
     "ProviderJobPersistenceErrorReason",
     "ProviderJobPersistenceService",
     "ProviderJobPersistenceStorageError",
+    "PayloadLocatorService",
     "ProviderOutput",
     "ProviderResult",
     "ProviderResultContractError",
@@ -181,6 +191,12 @@ __all__ = [
     "TrustedPayloadIssuer",
     "TrustedPayloadReference",
     "TrustedPayloadResolver",
+    "TrustedPayloadSourceCandidate",
     "TrustedProviderResultCandidate",
+    "WorkingCompositionAggregate",
+    "WorkingCompositionError",
+    "WorkingCompositionErrorCode",
+    "WorkingCompositionService",
+    "WorkingMutationResult",
     "WorkspaceService",
 ]

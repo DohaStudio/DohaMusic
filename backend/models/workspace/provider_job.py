@@ -22,6 +22,7 @@ from backend.models.workspace.mixins import CreatedAtMixin
 
 if TYPE_CHECKING:
     from backend.models.workspace.job import Job
+    from backend.models.workspace.payload_locator import PayloadLocator
 
 
 class ProviderJobBinding(CreatedAtMixin, Base):
@@ -57,6 +58,12 @@ class ProviderJobBinding(CreatedAtMixin, Base):
             "ix_provider_job_bindings_provider_job_id",
             "provider_job_id",
         ),
+        Index(
+            "uq_provider_job_bindings_workspace_identity",
+            "workspace_job_id",
+            "provider_job_binding_id",
+            unique=True,
+        ),
     )
 
     provider_job_binding_id: Mapped[UUID] = mapped_column(
@@ -70,3 +77,7 @@ class ProviderJobBinding(CreatedAtMixin, Base):
     retry_of_provider_job_id: Mapped[str | None] = mapped_column(String(256), nullable=True)
 
     workspace_job: Mapped[Job] = relationship(back_populates="provider_job_bindings")
+    payload_locators: Mapped[list[PayloadLocator]] = relationship(
+        back_populates="provider_job_binding",
+        overlaps="payload_locators,workspace_job",
+    )

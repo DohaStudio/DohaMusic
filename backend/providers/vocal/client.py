@@ -10,6 +10,7 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from .contracts import (
     DOHAVOCAL_CONTRACT_VERSION,
+    DOHAVOCAL_PAYLOAD_CONTRACT_VERSION,
     AnyVocalJob,
     BaseVocalJob,
     VocalCapabilities,
@@ -17,6 +18,7 @@ from .contracts import (
     VocalErrorEnvelope,
     VocalHealthProbe,
     VocalModelManifest,
+    VocalPayloadBackedResultCandidate,
     VocalProviderResultCandidate,
     VocalReadinessProbe,
 )
@@ -61,7 +63,8 @@ class VocalProviderClient:
             json_body=request.model_dump(mode="json"),
         )
         if (
-            job.job_type != request.capability
+            job.api_contract_version != request.api_contract_version
+            or job.job_type != request.capability
             or job.model_manifest_id != request.model_manifest_id
             or job.input_asset_version_ids != request.input_asset_version_ids
             or job.input_artifact_ids != request.input_artifact_ids
@@ -88,11 +91,22 @@ class VocalProviderClient:
             raise _invalid_response()
         return job
 
-    def get_result(self, job_id: str) -> VocalProviderResultCandidate:
+    def get_result(
+        self,
+        job_id: str,
+        *,
+        api_contract_version: str = DOHAVOCAL_CONTRACT_VERSION,
+    ) -> VocalProviderResultCandidate | VocalPayloadBackedResultCandidate:
+        if api_contract_version == DOHAVOCAL_CONTRACT_VERSION:
+            result_model = VocalProviderResultCandidate
+        elif api_contract_version == DOHAVOCAL_PAYLOAD_CONTRACT_VERSION:
+            result_model = VocalPayloadBackedResultCandidate
+        else:
+            raise _unsupported_contract_version()
         result = self._request(
             "GET",
             f"/v1/jobs/{_path_segment(job_id)}/result",
-            VocalProviderResultCandidate,
+            result_model,
         )
         if result.run_id != job_id or result.lineage.job_id != job_id:
             raise _invalid_response()
@@ -184,7 +198,11 @@ class VocalProviderClient:
             if (
                 isinstance(response.json_body, dict)
                 and "api_contract_version" in response.json_body
-                and response.json_body["api_contract_version"] != DOHAVOCAL_CONTRACT_VERSION
+                and response.json_body["api_contract_version"]
+                not in {
+                    DOHAVOCAL_CONTRACT_VERSION,
+                    DOHAVOCAL_PAYLOAD_CONTRACT_VERSION,
+                }
             ):
                 raise VocalProviderContractVersionError(
                     VocalProviderErrorDetail(
@@ -209,6 +227,18 @@ class VocalProviderClient:
         }:
             raise VocalProviderContractVersionError(detail)
         raise VocalProviderApplicationError(detail)
+
+
+def _unsupported_contract_version() -> VocalProviderContractVersionError:
+    return VocalProviderContractVersionError(
+        VocalProviderErrorDetail(
+            "PROVIDER_CONTRACT_VERSION_UNSUPPORTED",
+            "Vocal Provider contract version is unsupported.",
+            False,
+            "response_validation",
+            "not-available",
+        )
+    )
 
 
 def _safe_error(error: object) -> VocalProviderErrorDetail:

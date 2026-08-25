@@ -50,6 +50,9 @@
 | [ADR-044](ADR-044-workspace-worker-reentry-lifecycle-authority.md) | Workspace Worker same-Job yield·expired reclaim·claim transfer 권위 | 승인, runtime 미구현 |
 | [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md) | Track 삭제 의미와 trusted Artifact media duration 권위 | 승인 |
 | [ADR-046](ADR-046-durable-execution-handoff-authority.md) | locator 전 Durable Execution Handoff storage 불필요 판정 | 승인, runtime 미구현 |
+| [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md) | 완료 revision과 복수 identity를 보존하는 versioned idempotency replay 결과 | 승인 |
+| [ADR-048](ADR-048-dohavocal-payload-acquisition-consumer.md) | DohaVocal 0.2.0 payload Result trust와 transient acquisition 경계 | 승인, durable locator는 ADR-049에서 후속 구현 |
+| [ADR-049](ADR-049-durable-payload-locator-persistence-authority.md) | Result replay와 verified staging을 분리한 전용 PayloadLocator persistence 권위 | 승인, persistence foundation 구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -64,6 +67,7 @@
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): Provider success와 Workspace completion을 분리하고 lease·idempotency·payload·role·retry·crash recovery 권위를 확정한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): replay-safe Provider-backed Job의 `LEASE_EXPIRY_RECLAIMABLE`, claim token transfer와 retry 경계를 확정한다.
 - [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): 기존 Job·Provider binding·deterministic replay로 locator 전 same-Job resume을 재구성하며 새 handoff storage가 불필요함을 확정한다.
+- [ADR-049 — Durable Payload Locator Persistence Authority](ADR-049-durable-payload-locator-persistence-authority.md): source descriptor replay와 verified staging handoff를 분리하고 `ProviderJobBinding 1:N PayloadLocator` 전용 aggregate 필요성을 확정한다.
 
 ## Workspace 데이터베이스
 
@@ -74,6 +78,7 @@
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
 - [ADR-035 — D1 Composition Read 권위와 Projection 계약](ADR-035-d1-composition-read-authority.md): Workspace read authority, explicit Project selection, snapshot-local Track projection, Section 비가용 상태와 Project aggregate GET을 결정한다.
 - [ADR-040 — Canonical Track·Clip과 Working Composition 권위](ADR-040-canonical-track-clip-working-composition-authority.md): Project당 하나의 mutable WorkingComposition, canonical Track·Clip identity, exact AssetVersion, revision·atomic edit와 별도 불변 Snapshot Track/Clip commit 경계를 결정한다.
+- [ADR-047 — Revision-safe Idempotency Completion Result 권위](ADR-047-revision-safe-idempotency-completion-result.md): 기존 resource replay를 보존하면서 완료 revision과 operation별 복수 identity를 bounded versioned JSON으로 원자 저장한다.
 - [ADR-045 — Clip Service 삭제 의미와 신뢰된 미디어 길이 권위](ADR-045-clip-service-deletion-media-duration-authority.md): non-empty Track 삭제 거부와 trusted ingestion이 저장한 exact duration, exact-one Artifact fail-closed 경계를 결정한다.
 
 ## Artifact Storage
@@ -89,6 +94,7 @@
 - [ADR-043 — DohaVocal Worker Reconciliation Authority](ADR-043-doha-vocal-worker-reconciliation-authority.md): metadata-only success 이후의 `running` 상태, bounded lease ownership, payload reconciliation과 Completion replay를 승인한다.
 - [ADR-044 — Workspace Worker Re-entry Lifecycle Authority](ADR-044-workspace-worker-reentry-lifecycle-authority.md): 공개 상태 추가 없이 graceful yield와 expired `running` claim의 atomic same-Job reclaim을 승인한다.
 - [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): Provider execution·Result validation 복구에는 기존 authority가 충분하고 payload locator는 별도 dependency임을 확정한다.
+- [ADR-049 — Durable Payload Locator Persistence Authority](ADR-049-durable-payload-locator-persistence-authority.md): acquisition 전 source는 Result replay로 복구하고 verified staging·revocation·cleanup은 dedicated locator aggregate가 소유하도록 결정한다.
 
 ## Phase 6.5
 

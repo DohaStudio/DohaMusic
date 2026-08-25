@@ -30,7 +30,13 @@ from backend.models.workspace import (
     ProviderJobBinding,
     Workspace,
 )
-from backend.providers.vocal import VocalArtifactLineage, VocalProviderResultCandidate
+from backend.providers.vocal import (
+    VocalArtifactLineage,
+    VocalPayloadBackedResultCandidate,
+    VocalPayloadSource,
+    VocalProviderPayloadEntry,
+    VocalProviderResultCandidate,
+)
 from backend.services.workspace import (
     IngestionDecisionReason,
     ProviderResultContractError,
@@ -85,6 +91,7 @@ def _seed_contract(
     *,
     job_type: str = "voice_conversion",
     owner_id: UUID | None = None,
+    api_contract_version: str = "0.1.0",
 ) -> ContractGraph:
     owner = owner_id or uuid4()
     provider_job_id = f"provider-job-{uuid4()}"
@@ -169,8 +176,10 @@ def _seed_contract(
             job_type=job_type,
             status=JobStatus.RUNNING,
             provider_id="dohavocal",
-            api_contract_version="0.1.0",
-            model_manifest_id="dynamic-vocal@1",
+            api_contract_version=api_contract_version,
+            model_manifest_id=(
+                "dynamic-vocal@2" if api_contract_version == "0.2.0" else "dynamic-vocal@1"
+            ),
             progress_percent=10,
             settings_snapshot={
                 "strength": 0.5,
@@ -256,6 +265,32 @@ def _candidate(
     )
 
 
+def _payload_candidate(graph: ContractGraph) -> VocalPayloadBackedResultCandidate:
+    legacy = _candidate(graph)
+    lineage = legacy.lineage.model_copy(update={"model_manifest_id": "dynamic-vocal@2"})
+    return VocalPayloadBackedResultCandidate(
+        **legacy.model_dump(exclude={"payload_present", "lineage", "media_type", "size_bytes"}),
+        payload_present=True,
+        lineage=lineage,
+        media_type="audio/wav",
+        size_bytes=7,
+        payloads=(
+            VocalProviderPayloadEntry(
+                provider_artifact_id="provider-artifact-001",
+                role="converted_vocal_candidate",
+                source=VocalPayloadSource(kind="provider_subresource", source_id="content-001"),
+                checksum_algorithm="sha256",
+                payload_checksum=(
+                    "239f59ed55e737c77147cf55ad0c1b030b6d7ee748a7426952f9b852d5a935e5"
+                ),
+                expected_size_bytes=7,
+                expected_media_type="audio/wav",
+                available_until=datetime(2099, 1, 1, tzinfo=UTC),
+            ),
+        ),
+    )
+
+
 def _validate(factory, graph, candidate, *, output_role="converted_vocal_candidate"):
     with factory() as session, session.begin():
         return ProviderResultIngestionService().validate_candidate_for_owner(
@@ -311,6 +346,45 @@ def test_revalidation_is_idempotent_and_has_no_side_effects(session_factory) -> 
 
     assert first == second
     assert _counts(session_factory) == before
+
+
+def test_payload_result_is_trusted_as_acquisition_candidate_only(
+    session_factory,
+) -> None:
+    graph = _seed_contract(session_factory, api_contract_version="0.2.0")
+    before = _counts(session_factory)
+
+    result = _validate(session_factory, graph, _payload_candidate(graph))
+
+    assert result.reason is IngestionDecisionReason.PAYLOAD_ACQUISITION_REQUIRED
+    assert result.eligible_for_binary_ingestion is False
+    assert result.candidate.payload_present is True
+    assert result.candidate.provider_result_artifact_id != (result.candidate.provider_artifact_id)
+    assert result.candidate.payloads[0].source_id == "content-001"
+    with pytest.raises(ProviderResultNotIngestibleError) as error:
+        result.candidate.require_payload_reference()
+    assert error.value.reason is IngestionDecisionReason.PAYLOAD_ACQUISITION_REQUIRED
+    assert _counts(session_factory) == before
+
+
+def test_payload_replay_conflict_is_detected(session_factory) -> None:
+    graph = _seed_contract(session_factory, api_contract_version="0.2.0")
+    first = _validate(session_factory, graph, _payload_candidate(graph)).candidate
+    changed_wire = _payload_candidate(graph)
+    changed_payload = changed_wire.payloads[0].model_copy(update={"payload_checksum": "b" * 64})
+    changed_wire = changed_wire.model_copy(update={"payloads": (changed_payload,)})
+    changed = _validate(session_factory, graph, changed_wire).candidate
+
+    with pytest.raises(ProviderResultContractError) as error:
+        ProviderResultIngestionService.validate_replay(first, changed)
+    assert error.value.reason is ProviderResultContractErrorReason.RESULT_REPLAY_CONFLICT
+
+
+def test_result_contract_version_must_match_workspace_job(session_factory) -> None:
+    graph = _seed_contract(session_factory)
+    with pytest.raises(ProviderResultContractError) as error:
+        _validate(session_factory, graph, _payload_candidate(graph))
+    assert error.value.reason is ProviderResultContractErrorReason.CONTRACT_VERSION_MISMATCH
 
 
 @pytest.mark.parametrize(

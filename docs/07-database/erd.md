@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료: CURRENT Runtime]
 > 문서 범위: Workspace schema를 제외한 운영 source of truth 14개 Table
-> Alembic source head: `20260824_0021`, source metadata 43개; 실제 사용자 DB: `20260810_0017`, Application Table 36개
+> Alembic source head: `20260825_0023`, source metadata 44개; 실제 사용자 DB: `20260810_0017`, Application Table 36개
 > 최종 수정일: 2026-08-24
 > TARGET 구조: [TARGET ERD](database-redesign-erd.md) — [부분 구현]
 
