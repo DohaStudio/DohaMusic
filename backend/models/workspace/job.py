@@ -35,6 +35,7 @@ if TYPE_CHECKING:
     from backend.models.workspace.asset import Artifact, AssetVersion
     from backend.models.workspace.collaboration import Approval
     from backend.models.workspace.composition import CompositionSnapshot
+    from backend.models.workspace.payload_locator import PayloadLocator
     from backend.models.workspace.provider_job import ProviderJobBinding
     from backend.models.workspace.workspace import MusicProject
 
@@ -188,6 +189,10 @@ class Job(CreatedAtMixin, Base):
     model_usages: Mapped[list[ModelUsage]] = relationship(back_populates="job")
     provider_job_bindings: Mapped[list[ProviderJobBinding]] = relationship(
         back_populates="workspace_job"
+    )
+    payload_locators: Mapped[list[PayloadLocator]] = relationship(
+        back_populates="workspace_job",
+        foreign_keys="PayloadLocator.workspace_job_id",
     )
 
 

@@ -1,6 +1,6 @@
 ﻿# DohaMusic 마스터 로드맵
 
-> Provider 결과 경계 업데이트(2026-08-25): DohaVocal `0.2.0` payload consumer는 구현됐고 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`로 판정했습니다. 전용 PayloadLocator schema/Runtime·durable staging·Worker/Completion/Artifact ingestion은 아직 미구현입니다.
+> Provider 결과 경계 업데이트(2026-08-25): DohaVocal `0.2.0` payload consumer와 `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`에 따른 전용 PayloadLocator persistence foundation을 구현했습니다. durable byte staging·Worker/Completion/Artifact ingestion은 아직 미구현입니다.
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
@@ -39,11 +39,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
-| Phase B New Implementation Separation | [진행 중] | DohaVocal `0.1.0` 호환·`0.2.0` payload consumer DTO/trust/transient acquisition·Trusted Payload resolver Foundation 구현, Worker reconciliation·re-entry와 dedicated locator persistence authority 확정; locator schema/Runtime·reclaim·concrete wiring·downloader·staging·Completion·실제 ingestion/model 미구현 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal `0.1.0` 호환·`0.2.0` payload consumer DTO/trust/transient acquisition·Trusted Payload resolver와 durable locator persistence foundation 구현; reclaim·concrete wiring·downloader·durable staging·Completion·실제 ingestion/model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload locator/issuer/resolver Foundation은 구현했다. [Durable Execution Handoff Analysis](docs/03-architecture/durable-execution-handoff-analysis.md)은 locator 전 새 handoff storage가 불필요함을, [Durable Payload Locator Authority](docs/03-architecture/durable-payload-locator-authority.md)은 verified staging·revocation·cleanup에 dedicated aggregate가 필요함을 확정했다. PayloadLocator schema/Runtime·atomic reclaim·concrete Worker wiring·인증·downloader·durable staging·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload process-local adapter 및 durable PayloadLocator persistence foundation을 구현했다. `payloadref:v1` identity, exact replay, lifecycle CAS, revocation과 restart recovery가 CURRENT다. atomic reclaim·concrete Worker wiring·인증·downloader·durable byte staging·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다.
 
 ## AI-native DAW 제품 전환 상태
 
@@ -133,7 +133,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구한다. D1-A product API 2개, D3 Clip Persistence·Authority와 Revision-safe Idempotency Foundation을 구현해 source metadata는 43개 Table·Alembic `20260825_0022`다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency와 PayloadLocator Foundation을 구현해 source metadata는 44개 Table·Alembic `20260825_0023`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 
