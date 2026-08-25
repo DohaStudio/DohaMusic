@@ -1,0 +1,75 @@
+{
+  "capabilities": {
+    "provider_id": "dohavocal",
+    "api_contract_version": "0.2.0",
+    "capabilities": [
+      "vocal_generation",
+      "voice_conversion",
+      "vocal_correction",
+      "vocal_analysis"
+    ],
+    "supported_operations": [
+      "GetCapabilities",
+      "CreateJob",
+      "GetJobStatus",
+      "CancelJob",
+      "RetryJob",
+      "GetResult",
+      "GetModelManifest",
+      "Health",
+      "Readiness",
+      "GetPayloadContent"
+    ],
+    "payload_acquisition": {
+      "supported": true,
+      "source_kinds": ["provider_subresource"],
+      "operation": "GetPayloadContent"
+    }
+  },
+  "result": {
+    "artifact_id": "result-envelope-001",
+    "artifact_kind": "audio",
+    "media_type": "audio/wav",
+    "size_bytes": 7,
+    "checksum_algorithm": "sha256",
+    "artifact_checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "checksum_scope": "metadata_descriptor",
+    "payload_present": true,
+    "producer_type": "provider",
+    "producer_id": "dohavocal",
+    "run_id": "provider-job-001",
+    "retention_status": "candidate",
+    "output_asset_version_id": "33333333-3333-4333-8333-333333333333",
+    "lineage": {
+      "source_asset_version_id": "00000000-0000-4000-8000-000000000001",
+      "parent_asset_version_id": "11111111-1111-4111-8111-111111111111",
+      "processing_chain_id": "55555555-5555-4555-8555-555555555555",
+      "provider_id": "dohavocal",
+      "model_manifest_id": "dohavocal.fake-model@0.2.0",
+      "settings_snapshot": {"quality": {"mode": "contract"}},
+      "processing_types": ["voice_conversion"],
+      "created_at": "2026-08-25T00:00:02Z",
+      "checksum": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "checksum_scope": "metadata_descriptor",
+      "source_artifact_id": "22222222-2222-4222-8222-222222222222",
+      "parent_artifact_id": "22222222-2222-4222-8222-222222222222",
+      "job_id": "provider-job-001"
+    },
+    "analysis_result": null,
+    "payloads": [
+      {
+        "provider_artifact_id": "provider-artifact-001",
+        "role": "converted_vocal_candidate",
+        "source": {
+          "kind": "provider_subresource",
+          "source_id": "content-001"
+        },
+        "checksum_algorithm": "sha256",
+        "payload_checksum": "239f59ed55e737c77147cf55ad0c1b030b6d7ee748a7426952f9b852d5a935e5",
+        "expected_size_bytes": 7,
+        "expected_media_type": "audio/wav",
+        "available_until": "2099-08-25T00:00:00Z"
+      }
+    ]
+  }
+}

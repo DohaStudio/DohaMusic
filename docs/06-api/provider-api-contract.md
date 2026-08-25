@@ -1,9 +1,9 @@
 # DohaMusic Provider API 계약
 
 > 문서 상태: [부분 구현]
-> 최종 수정일: 2026-08-19
+> 최종 수정일: 2026-08-25
 > 관련 기능: DohaMusic Workspace Job Orchestrator와 DohaLM·DohaAudio·DohaVocal Provider 연결
-> 구현 상태: DohaVocal `0.1.0` Consumer Client·DTO·fake transport contract test 구현, Production HTTP transport 미구현
+> 구현 상태: DohaVocal `0.1.0` metadata-only 호환 및 `0.2.0` payload DTO·capability negotiation·read-only binary HTTP acquisition foundation 구현. Public API·production 인증·Artifact ingestion은 미구현
 > 관련 문서: [Workspace API 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [AI Pipeline](../03-architecture/ai-pipeline.md)
 
 ## 1. 목적
@@ -55,6 +55,8 @@ Provider는 Workspace Entity가 아닙니다. Provider identity와 capability는
 | `GetModelManifest` | `GET /api/v1/providers/{provider_id}/model-manifests/{model_manifest_id}` |
 | `Health` | `GET /api/v1/providers/{provider_id}/health` |
 | `Readiness` | `GET /api/v1/providers/{provider_id}/readiness` |
+
+DohaVocal `0.2.0` 내부 consumer는 `GetPayloadContent`를 추가로 협상한다. 이는 Public Workspace REST endpoint가 아니라 고정된 Provider origin의 `GET /v1/jobs/{job_id}/artifacts/{provider_artifact_id}/payloads/{source_id}` read-only 호출이다. 응답은 bounded streaming으로 media·size·SHA-256을 검증하며 Provider URL이나 locator를 외부 API에 노출하지 않는다.
 
 HTTP는 장기 transport 방향이며 현재 ACE-Step·Demucs·Seed-VC Local Runner와 Subprocess Adapter는 Legacy 호환 계층입니다. 구현 전까지 이 문서를 실제 HTTP Endpoint가 존재하는 것으로 해석하지 않습니다.
 

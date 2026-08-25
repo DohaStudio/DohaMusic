@@ -1,5 +1,7 @@
 ﻿# DohaMusic
 
+> 2026-08-25: DohaVocal `0.2.0` payload-backed Result consumer와 read-only `GetPayloadContent` 검증 transport foundation이 구현되었습니다. Durable Locator, Artifact ingestion, Completion/Worker wiring은 아직 구현되지 않았으며 다음 단계는 Consumer PR 병합 후 `DURABLE_LOCATOR_REQUIRED` 재분석입니다. 자세한 결정은 [ADR-048](docs/11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md)을 참고하십시오.
+>
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
 > 최종 수정일: 2026-08-24
@@ -37,7 +39,7 @@ DohaMusic = AI-native DAW
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
 - Common AI Contract의 `RightsMetadata` opt-in 검증 기반
-- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·9개 operation strict DTO와 config 기반 HTTP Transport·Mock HTTP 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 metadata-only trust/eligibility gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 DohaMusic-owned opaque locator Foundation. [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md)은 Provider 성공과 Workspace 성공, lease·retry·payload·role·crash recovery 권위를 확정하고 [Worker Re-entry Lifecycle](docs/03-architecture/workspace-worker-reentry-lifecycle.md)은 replay-safe Provider Job의 `LEASE_EXPIRY_RECLAIMABLE` 목표 계약을 확정한다. reclaim runtime·Worker wiring·인증·payload downloader·durable locator·Completion adapter·실제 Artifact ingestion·실제 Vocal model은 미구현
+- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·version별 9/10 operation strict DTO, `0.1.0` metadata-only 호환과 `0.2.0` payload-backed Result·bounded acquisition 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 read-only trust gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 DohaMusic-owned opaque locator Foundation. [Worker Reconciliation Contract](docs/03-architecture/dohavocal-worker-reconciliation-contract.md)은 Provider 성공과 Workspace 성공, lease·retry·payload·role·crash recovery 권위를 확정한다. reclaim runtime·Worker wiring·인증·downloader orchestration·durable locator·Completion adapter·실제 Artifact ingestion·실제 Vocal model은 미구현
 
 다음은 CURRENT가 아니다.
 

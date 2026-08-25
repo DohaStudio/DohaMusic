@@ -2,12 +2,19 @@
 
 from __future__ import annotations
 
+from hashlib import sha256
 from types import TracebackType
 from typing import TYPE_CHECKING, Self
-from urllib.parse import urlsplit
+from urllib.parse import quote, urlsplit
 
 import httpx
 
+from .acquisition import (
+    VerifiedVocalPayload,
+    VocalPayloadAcquisitionError,
+    VocalPayloadAcquisitionErrorCode,
+    VocalPayloadAcquisitionRequest,
+)
 from .errors import VocalProviderErrorDetail, VocalProviderInvalidResponseError
 from .transport import VocalTransportRequest, VocalTransportResponse
 
@@ -26,6 +33,7 @@ class HttpVocalProviderTransport:
         read_timeout_seconds: float = 30.0,
         write_timeout_seconds: float = 10.0,
         pool_timeout_seconds: float = 2.0,
+        payload_max_bytes: int = 64 * 1024 * 1024,
         client: httpx.Client | None = None,
     ) -> None:
         self._base_url = _normalize_base_url(base_url)
@@ -35,6 +43,9 @@ class HttpVocalProviderTransport:
             write=write_timeout_seconds,
             pool=pool_timeout_seconds,
         )
+        if payload_max_bytes <= 0:
+            raise ValueError("DohaVocal payload maximum must be positive")
+        self._payload_max_bytes = payload_max_bytes
         self._client = client or httpx.Client(follow_redirects=False)
         self._owns_client = client is None
         self._closed = False
@@ -52,6 +63,7 @@ class HttpVocalProviderTransport:
             read_timeout_seconds=settings.dohavocal_read_timeout_seconds,
             write_timeout_seconds=settings.dohavocal_write_timeout_seconds,
             pool_timeout_seconds=settings.dohavocal_pool_timeout_seconds,
+            payload_max_bytes=settings.dohavocal_payload_max_bytes,
             client=client,
         )
 
@@ -92,6 +104,84 @@ class HttpVocalProviderTransport:
         except ValueError:
             raise _invalid_http_response() from None
         return VocalTransportResponse(response.status_code, payload)
+
+    def acquire_payload(
+        self, request: VocalPayloadAcquisitionRequest
+    ) -> VerifiedVocalPayload:
+        """Stream one advertised provider subresource into bounded transient memory."""
+
+        if self._closed:
+            raise VocalPayloadAcquisitionError(
+                VocalPayloadAcquisitionErrorCode.PAYLOAD_TRANSFER_FAILED
+            )
+        payload = request.payload
+        maximum_bytes = min(request.max_size_bytes, self._payload_max_bytes)
+        if payload.expected_size_bytes > maximum_bytes:
+            raise _payload_integrity_error()
+        path = (
+            f"/v1/jobs/{_payload_segment(request.job_id)}/artifacts/"
+            f"{_payload_segment(payload.provider_artifact_id)}/payloads/"
+            f"{_payload_segment(payload.source.source_id)}"
+        )
+        _validate_origin_relative_path(path)
+        try:
+            with self._client.stream(
+                "GET",
+                f"{self._base_url}{path}",
+                headers={"Accept": payload.expected_media_type},
+                timeout=self._timeout,
+                follow_redirects=False,
+            ) as response:
+                _require_payload_status(response.status_code)
+                media_type = _normalized_media_type(
+                    response.headers.get("content-type")
+                )
+                if media_type != payload.expected_media_type:
+                    raise _payload_integrity_error()
+                declared_length = _content_length(
+                    response.headers.get("content-length")
+                )
+                if declared_length is not None and (
+                    declared_length != payload.expected_size_bytes
+                    or declared_length > maximum_bytes
+                ):
+                    raise _payload_integrity_error()
+
+                digest = sha256()
+                chunks: list[bytes] = []
+                size = 0
+                for chunk in response.iter_bytes():
+                    size += len(chunk)
+                    if size > maximum_bytes or size > payload.expected_size_bytes:
+                        raise _payload_integrity_error()
+                    digest.update(chunk)
+                    chunks.append(chunk)
+        except VocalPayloadAcquisitionError:
+            raise
+        except httpx.TimeoutException:
+            raise VocalPayloadAcquisitionError(
+                VocalPayloadAcquisitionErrorCode.PAYLOAD_TRANSFER_FAILED
+            ) from None
+        except (httpx.HTTPError, RuntimeError):
+            raise VocalPayloadAcquisitionError(
+                VocalPayloadAcquisitionErrorCode.PAYLOAD_TRANSFER_FAILED
+            ) from None
+
+        if size != payload.expected_size_bytes:
+            raise _payload_integrity_error()
+        actual_checksum = digest.hexdigest()
+        if actual_checksum != payload.payload_checksum:
+            raise _payload_integrity_error()
+        return VerifiedVocalPayload(
+            job_id=request.job_id,
+            provider_artifact_id=payload.provider_artifact_id,
+            source_id=payload.source.source_id,
+            media_type=media_type,
+            size_bytes=size,
+            checksum_algorithm="sha256",
+            payload_checksum=actual_checksum,
+            content=b"".join(chunks),
+        )
 
     def close(self) -> None:
         if self._closed:
@@ -154,6 +244,48 @@ def _is_json_content_type(value: str | None) -> bool:
         return False
     media_type = value.partition(";")[0].strip().lower()
     return media_type == "application/json" or media_type.endswith("+json")
+
+
+def _payload_segment(value: str) -> str:
+    return quote(value, safe="")
+
+
+def _normalized_media_type(value: str | None) -> str:
+    if value is None:
+        raise _payload_integrity_error()
+    return value.partition(";")[0].strip().lower()
+
+
+def _content_length(value: str | None) -> int | None:
+    if value is None:
+        return None
+    try:
+        parsed = int(value)
+    except ValueError:
+        raise _payload_integrity_error() from None
+    if parsed < 0:
+        raise _payload_integrity_error()
+    return parsed
+
+
+def _require_payload_status(status_code: int) -> None:
+    if status_code == 200:
+        return
+    if status_code in {401, 403}:
+        code = VocalPayloadAcquisitionErrorCode.PAYLOAD_ACCESS_DENIED
+    elif status_code == 404:
+        code = VocalPayloadAcquisitionErrorCode.PAYLOAD_UNAVAILABLE
+    elif status_code == 410:
+        code = VocalPayloadAcquisitionErrorCode.PAYLOAD_EXPIRED
+    else:
+        code = VocalPayloadAcquisitionErrorCode.PAYLOAD_TRANSFER_FAILED
+    raise VocalPayloadAcquisitionError(code)
+
+
+def _payload_integrity_error() -> VocalPayloadAcquisitionError:
+    return VocalPayloadAcquisitionError(
+        VocalPayloadAcquisitionErrorCode.PAYLOAD_INTEGRITY_MISMATCH
+    )
 
 
 def _invalid_http_response() -> VocalProviderInvalidResponseError:
