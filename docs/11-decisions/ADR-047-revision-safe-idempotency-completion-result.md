@@ -6,6 +6,8 @@
 > 관련 기능: AI-native DAW D3 WorkingComposition mutation 선행 기반
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [Idempotency Completion Result](../03-architecture/idempotency-completion-result.md), [Database Table Definition](../07-database/table-definition.md)
 
+> 구현 추적: 2026-08-25 WorkingComposition Service가 initialize·checkout·Track create/delete·Clip create/split/delete에서 `claim_with_result()`와 `complete_with_result()`를 사용한다. same-key replay는 현재 aggregate를 읽지 않고 최초 identity와 `completed_revision`을 반환하며, 실패 transaction은 성공 completion result를 남기지 않는다.
+
 ## 1. 배경
 
 ADR-040은 성공한 WorkingComposition mutation이 완료 revision을 반환하고 같은 `Idempotency-Key`와 fingerprint가 최초 결과를 재생하도록 요구한다. 기존 `idempotency_records`는 단일 `resource_type`, `resource_id`, `response_status`만 저장하므로 split의 두 자식 Clip, checkout의 base Snapshot, commit의 Snapshot과 당시 완료 revision을 함께 보존할 수 없다. 현재 aggregate를 다시 읽으면 후속 mutation 뒤 최초 revision이 달라지므로 faithful replay가 아니다.
@@ -39,7 +41,7 @@ V1 result type은 다음 여덟 개만 허용한다.
 
 - same key + same fingerprint + 완전한 `COMPLETED`: 저장된 typed result를 반환한다.
 - 현재 aggregate revision이나 현재 Resource 상태를 다시 계산하지 않는다.
-- same key + different fingerprint: 기존 `IDEMPOTENCY_CONFLICT` 내부 계약을 유지한다. 공개 `IDEMPOTENCY_KEY_REUSED` mapping은 후속 Product Service/API가 담당한다.
+- same key + different fingerprint: 기존 `IDEMPOTENCY_CONFLICT` 내부 계약을 유지하고 Product API는 이를 `IDEMPOTENCY_KEY_REUSED`로 mapping한다.
 - `IN_PROGRESS`: 기존 `IDEMPOTENCY_IN_PROGRESS`를 유지한다.
 - unknown version, unknown type, schema 불일치, 일부 필드만 있는 결과: fail-closed한다.
 - validation·revision conflict 등 실패 응답은 저장하지 않는다. 현재 권위는 성공 mutation replay만 다룬다.
@@ -57,4 +59,4 @@ V1 result type은 다음 여덟 개만 허용한다.
 
 ## 7. 영향과 재검토
 
-Alembic `20260825_0022`는 네 nullable Column과 revision/version CHECK만 추가하고 실제 사용자 DB, Artifact, media에 접근하지 않는다. WorkingComposition Service/API는 이번 결정의 소비자이지만 이 ADR 구현 범위에는 포함하지 않는다. error replay, 새로운 result version, aggregate 전체 replay가 필요해지면 별도 authority를 승인한 뒤 재검토한다.
+Alembic `20260825_0022`는 네 nullable Column과 revision/version CHECK만 추가하고 실제 사용자 DB, Artifact, media에 접근하지 않는다. 후속 WorkingComposition Service/API가 이 결정의 소비자로 구현됐으며 legacy consumer는 기존 `claim()`/`complete()`를 유지한다. error replay, 새로운 result version, aggregate 전체 replay가 필요해지면 별도 authority를 승인한 뒤 재검토한다.

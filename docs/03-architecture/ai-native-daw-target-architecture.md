@@ -37,7 +37,7 @@ flowchart LR
 
 D1-A Backend read path인 `Project Composition aggregate → CompositionService → Workspace Repository → Workspace DB`를 구현했다. D1-Transition은 기존 persistence에 project-level selected Snapshot authority가 없음을 확인하고 `NO_PREEXISTING_SELECTION_AUTHORITY`로 고정했다. Bootstrap Service transaction에서 active Workspace의 Project·Snapshot·selection을 단일 batch로 검사하지만 selection row를 생성하거나 바꾸지 않는다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다. D1-B Frontend는 이 aggregate와 selection PATCH를 Project 상세에서 소비하며, 실제 사용자 DB 전환은 여전히 별도 승인 TARGET이다.
 
-[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 mutable WorkingComposition과 canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 설계했다. [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)는 non-empty Track 삭제 거부와 trusted ingestion이 저장한 WAV·FLAC duration만 쓰는 authority를 확정했다. [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md)은 최초 완료 revision과 복수 identity replay authority를 확정했다. schema·Repository·trusted duration·idempotency foundation은 revision `20260825_0022`까지 구현했지만 mutation orchestration, API와 UI는 아직 구현하지 않았다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
+[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 mutable WorkingComposition과 canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 설계했다. [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)는 non-empty Track 삭제 거부와 trusted ingestion이 저장한 WAV·FLAC duration만 쓰는 authority를 확정했다. [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md)은 최초 완료 revision과 복수 identity replay authority를 확정했다. schema·Repository·trusted duration·idempotency foundation과 [atomic mutation Service](working-composition-service.md), 13개 Product operation은 구현했다. Frontend와 Composition commit은 아직 구현하지 않았다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
 
 ## 3. TARGET — 제품 Runtime
 
@@ -200,7 +200,7 @@ flowchart LR
 
 | 영역 | 현재 Gap |
 |---|---|
-| Composition edit model | ADR-040과 5개 persistence table·Repository foundation 구현; Service/API/UI 미구현 |
+| Composition edit model | ADR-040과 5개 persistence table·Service·13개 Product operation 구현; Frontend UI·Composition commit 미구현 |
 | Provider orchestration | 외부 DohaLM·DohaAudio·DohaVocal 실제 transport 미구현 |
 | Candidate workflow | 다중 후보 저장·비교·선택·commit 미구현 |
 | Composition QA | CompositionEvaluationRun, 통합 Report, RevisionPlan 실행 미구현 |
@@ -213,7 +213,7 @@ flowchart LR
 
 구현 전에 별도 ADR 또는 versioned 계약 검토가 필요한 항목이다.
 
-- canonical Section identity와 편집 표현. canonical Track·Clip·WorkingComposition과 Snapshot extension persistence는 구현했지만 Timeline edit·Undo/Redo Service/API/UI는 미구현
+- canonical Section identity와 편집 표현. canonical Track·Clip·WorkingComposition persistence와 Backend edit Service/API는 구현했지만 Timeline UI·Undo/Redo는 미구현
 - `CompositionEvaluationRun`의 제품 수명주기·저장·API 및 Common Contract 승격 필요성
 - QA issue의 Track·Section·time range deep-link 형식
 - `MusicIntent.target`에서 실제로 부족함이 입증될 때의 `clip_id`, `bar_range`, `beat_range` 최소 확장

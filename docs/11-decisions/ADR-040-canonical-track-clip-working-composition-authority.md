@@ -6,7 +6,7 @@
 > 관련 기능: AI-native DAW D3 Non-destructive Clip Editing
 > 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
-> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. mutation Service/API/UI 단계는 후속이다.
+> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어서 WorkingComposition read·initialize·checkout, Track/Clip mutation Service와 13개 Product operation을 구현했다. Snapshot commit·Frontend·working preview/render는 후속이다.
 
 ## 1. Context
 
@@ -254,6 +254,8 @@ Router는 Session·ORM을 직접 변경하지 않는다. 기존 정책대로 Ser
 
 - move/trim/reorder PATCH는 최종 absolute 값을 보내며 의미상 idempotent다. 성공 응답을 잃고 이전 revision으로 재시도하면 409 후 GET/reconcile한다.
 - split, delete, checkout/revert와 commit은 필수 `Idempotency-Key`를 사용한다.
+- initialize는 필수 `Idempotency-Key`를 사용한다. 최초 요청만 revision 0 WorkingComposition과 completion result를 만든다. 같은 key·같은 fingerprint는 최초 `working_composition_id`와 `completed_revision`을 replay한다.
+- Project에 WorkingComposition이 이미 있는데 다른 key로 initialize하면 `409 WORKING_COMPOSITION_ALREADY_EXISTS`다. 기존 aggregate나 현재 revision을 성공 응답으로 반환하지 않으며 state·revision·성공 completion result를 만들지 않는다. DB unique race의 concurrent loser도 같은 Product conflict로 정규화한다.
 - 기존 `idempotency_records`에 effective Owner·Project·WorkingComposition·operation·normalized body fingerprint를 scope로 포함한다.
 - 같은 key·같은 요청은 최초 결과를 replay하고, 같은 key·다른 요청은 `IDEMPOTENCY_KEY_REUSED`로 거부한다.
 
@@ -271,22 +273,27 @@ V1은 hybrid가 아닌 **Frontend command/history stack + server resulting-state
 
 `move_clip`, `trim_clip_start`, `trim_clip_end`, `split_clip`, `delete_clip`은 DohaMusic product-domain operation이다. Common Contract에 신규 `EditIntent`나 operation schema를 만들지 않는다. AI 편집은 기존 `MusicIntent`를 재사용하며 Common 확장은 실제 부족함이 입증된 뒤 별도 검토한다.
 
-## 13. API boundary candidate
+## 13. API boundary
 
-기존 Project namespace와 Service injection convention을 따르는 versioned product API 후보는 다음과 같다.
+기존 Project namespace와 Service injection convention을 따르는 versioned Product API는 다음과 같다.
 
 ```text
 GET    /api/v1/projects/{project_id}/working-composition
+POST   /api/v1/projects/{project_id}/working-composition/initialize
 POST   /api/v1/projects/{project_id}/working-composition/checkout
+POST   /api/v1/projects/{project_id}/working-composition/tracks
+PATCH  /api/v1/projects/{project_id}/working-composition/tracks/reorder
 PATCH  /api/v1/projects/{project_id}/working-composition/tracks/{track_id}
-PATCH  /api/v1/projects/{project_id}/working-composition/clips/{clip_id}
+DELETE /api/v1/projects/{project_id}/working-composition/tracks/{track_id}
+POST   /api/v1/projects/{project_id}/working-composition/clips
+PATCH  /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/move
+PATCH  /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/trim-start
+PATCH  /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/trim-end
 POST   /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/split
 DELETE /api/v1/projects/{project_id}/working-composition/clips/{clip_id}
-POST   /api/v1/projects/{project_id}/working-composition/revert
-POST   /api/v1/projects/{project_id}/working-composition/commit
 ```
 
-URL과 DTO의 최종 형태는 구현 PR의 OpenAPI 검토에서 확정한다. 공개 입력은 owner, path, storage locator, canonical ID override를 받지 않는다.
+공개 입력은 owner, path, storage locator, source duration, Artifact ID와 canonical ID override를 받지 않는다. Composition commit과 base-null clear/revert는 이 API 범위에 포함하지 않는다.
 
 ## 14. Playback and Waveform boundary
 

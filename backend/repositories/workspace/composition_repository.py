@@ -65,6 +65,11 @@ class CompositionRepository:
             )
         )
 
+    def flush(self) -> None:
+        """Expose transaction-local constraint validation without committing."""
+
+        self.session.flush()
+
     def increment_working_revision(
         self, working_composition_id: UUID, *, expected_revision: int
     ) -> int | None:
@@ -91,6 +96,21 @@ class CompositionRepository:
         self.session.flush()
         return track
 
+    def get_composition_track(
+        self,
+        working_composition_id: UUID,
+        track_id: UUID,
+        *,
+        include_deleted: bool = False,
+    ) -> CompositionTrack | None:
+        statement = select(CompositionTrack).where(
+            CompositionTrack.working_composition_id == working_composition_id,
+            CompositionTrack.track_id == track_id,
+        )
+        if not include_deleted:
+            statement = statement.where(CompositionTrack.deleted_at.is_(None))
+        return self.session.scalar(statement)
+
     def list_active_composition_tracks(
         self, working_composition_id: UUID
     ) -> list[CompositionTrack]:
@@ -104,6 +124,31 @@ class CompositionRepository:
         )
         return list(self.session.scalars(statement))
 
+    def reorder_active_composition_tracks(
+        self,
+        working_composition_id: UUID,
+        ordered_track_ids: Sequence[UUID],
+    ) -> None:
+        """Reassign the full active order without transient unique collisions."""
+
+        tracks = self.list_active_composition_tracks(working_composition_id)
+        by_id = {track.track_id: track for track in tracks}
+        if set(by_id) != set(ordered_track_ids) or len(by_id) != len(ordered_track_ids):
+            raise ValueError("TRACK_ORDER_SET_MISMATCH")
+        offset = (
+            max((track.track_order for track in tracks), default=-1) + len(tracks) + 1
+        )
+        for track in tracks:
+            track.track_order += offset
+        self.session.flush()
+        for order, track_id in enumerate(ordered_track_ids):
+            by_id[track_id].track_order = order
+        self.session.flush()
+
+    def tombstone_composition_track(self, track: CompositionTrack) -> None:
+        track.deleted_at = utc_now()
+        self.session.flush()
+
     def add_composition_clip(self, clip: CompositionClip) -> CompositionClip:
         clip_end = clip.timeline_start + clip.source_out - clip.source_in
         if self.active_clip_overlap_exists(
@@ -116,6 +161,21 @@ class CompositionRepository:
         self.session.add(clip)
         self.session.flush()
         return clip
+
+    def get_composition_clip(
+        self,
+        working_composition_id: UUID,
+        clip_id: UUID,
+        *,
+        include_deleted: bool = False,
+    ) -> CompositionClip | None:
+        statement = select(CompositionClip).where(
+            CompositionClip.working_composition_id == working_composition_id,
+            CompositionClip.clip_id == clip_id,
+        )
+        if not include_deleted:
+            statement = statement.where(CompositionClip.deleted_at.is_(None))
+        return self.session.scalar(statement)
 
     def active_clip_overlap_exists(
         self,
@@ -154,6 +214,40 @@ class CompositionRepository:
             .order_by(CompositionClip.timeline_start, CompositionClip.clip_id)
         )
         return list(self.session.scalars(statement))
+
+    def list_working_composition_clips(
+        self,
+        working_composition_id: UUID,
+        *,
+        include_deleted: bool = False,
+    ) -> list[CompositionClip]:
+        statement = (
+            select(CompositionClip)
+            .join(
+                CompositionTrack,
+                and_(
+                    CompositionTrack.working_composition_id
+                    == CompositionClip.working_composition_id,
+                    CompositionTrack.track_id == CompositionClip.track_id,
+                ),
+            )
+            .where(
+                CompositionClip.working_composition_id == working_composition_id,
+                CompositionTrack.deleted_at.is_(None),
+            )
+        )
+        if not include_deleted:
+            statement = statement.where(CompositionClip.deleted_at.is_(None))
+        statement = statement.order_by(
+            CompositionTrack.track_order,
+            CompositionClip.timeline_start,
+            CompositionClip.clip_id,
+        )
+        return list(self.session.scalars(statement))
+
+    def tombstone_composition_clip(self, clip: CompositionClip) -> None:
+        clip.deleted_at = utc_now()
+        self.session.flush()
 
     def count_active_composition_clips(
         self, *, working_composition_id: UUID, track_id: UUID
@@ -199,6 +293,20 @@ class CompositionRepository:
             select(CompositionSnapshotClip)
             .where(CompositionSnapshotClip.snapshot_track_id == snapshot_track_id)
             .order_by(
+                CompositionSnapshotClip.timeline_start,
+                CompositionSnapshotClip.snapshot_clip_id,
+            )
+        )
+        return list(self.session.scalars(statement))
+
+    def list_snapshot_clips_for_snapshot(
+        self, snapshot_id: UUID
+    ) -> list[CompositionSnapshotClip]:
+        statement = (
+            select(CompositionSnapshotClip)
+            .where(CompositionSnapshotClip.composition_snapshot_id == snapshot_id)
+            .order_by(
+                CompositionSnapshotClip.snapshot_track_id,
                 CompositionSnapshotClip.timeline_start,
                 CompositionSnapshotClip.snapshot_clip_id,
             )
