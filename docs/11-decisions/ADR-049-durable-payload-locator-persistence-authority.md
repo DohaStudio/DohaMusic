@@ -76,4 +76,4 @@ durable bytes 작성·resolve/delete를 수행하는 staging adapter, downloader
 
 - DohaVocal PR #6: Provider payload acquisition authority
 - DohaMusic PR #124: `0.2.0` consumer·transient acquisition
-- Persistence Foundation 구현 PR: Draft 생성 후 번호 기록
+- Persistence Foundation 구현 PR: #126

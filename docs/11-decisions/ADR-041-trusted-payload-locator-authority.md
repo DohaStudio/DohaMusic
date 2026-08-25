@@ -20,7 +20,7 @@ Provider URL·path·credential, metadata descriptor checksum과 Provider artifac
 - 내부 locator가 경로와 storage topology를 노출하지 않는다.
 - payload 변경·교체·삭제와 만료는 안전하게 거부된다.
 - 기존 `ProviderOutput.temporary_path`와 Artifact ingestion의 byte-derived 무결성 계약을 보존한다.
-- Foundation 구현은 deterministic process-local in-memory registry다. restart·multi-process handoff의 durable registry와 lifecycle은 후속 ADR-049가 dedicated aggregate로 확정했으며 schema/Runtime은 미구현이다.
+- 이 ADR의 Foundation 구현은 deterministic process-local in-memory registry다. 후속 ADR-049는 restart·multi-process handoff용 dedicated aggregate와 schema/Runtime foundation을 구현했으며 verified durable byte staging과 통합은 아직 미구현이다.
 - Public API, Alembic, network/downloader, Worker wiring, 실제 ingestion은 추가하지 않는다.
 
 ## 대안
