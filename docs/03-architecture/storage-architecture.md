@@ -31,7 +31,7 @@ F6는 [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md)�
 
 현재 `AUDIO_STORAGE_ROOT` 구현과 별개로 장기 로컬 Artifact root를 다음처럼 구분한다. Catalog·`DOHA_ARTIFACT_ROOT` local Resolver와 별도 `DOHA_ARTIFACT_STAGING_ROOT` Trusted Ingestion을 구현했다. Ingestion은 staging과 네 domain root의 중첩을 거부하고 test root에서만 Payload를 publish했다. 실제 운영 root directory를 생성하거나 사용자 파일을 읽고 이동하지 않았다.
 
-Durable `PayloadLocator` persistence foundation은 config-owned backend ID와 canonical relative `staging_key`를 저장할 schema와 lifecycle을 제공한다. [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 `DOHA_ARTIFACT_STAGING_ROOT` 아래 locator-derived key, partial verify와 exclusive hard-link publish, restart orphan adoption을 사용하는 local adapter가 충분하며 새 schema는 필요하지 않다고 확정했다. absolute path, drive/UNC, URL, traversal, root, credential과 bytes는 DB에 저장하지 않는다. adapter와 `verified_staged` 통합은 아직 미구현이다.
+Durable `PayloadLocator` persistence foundation은 config-owned backend ID와 canonical relative `staging_key`를 저장할 schema와 lifecycle을 제공한다. [Verified Durable Staging Authority](verified-durable-staging-authority.md)에 따라 기존 `DOHA_ARTIFACT_STAGING_ROOT` 아래 locator-derived key, partial verify와 exclusive hard-link publish, restart orphan adoption을 수행하는 local adapter와 `verified_staged` CAS 통합을 구현했다. absolute path, drive/UNC, URL, traversal, root, credential과 bytes는 DB에 저장하지 않는다. downloader·Artifact ingestion·Completion·Worker wiring은 아직 미구현이다.
 
 ```text
 D:/DohaArtifacts/

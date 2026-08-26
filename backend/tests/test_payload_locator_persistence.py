@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import inspect as python_inspect
+import io
+import wave
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, replace
 from datetime import UTC, datetime, timedelta
@@ -40,7 +43,14 @@ from backend.repositories.workspace import SqlAlchemyPayloadLocatorPersistence
 from backend.repositories.workspace.payload_locator_repository import (
     PayloadLocatorRepository,
 )
-from backend.services.workspace import PayloadLocatorService
+from backend.services.workspace import (
+    PayloadLocatorService,
+    PayloadStagingAuthority,
+    PayloadStagingService,
+    PayloadStagingServiceError,
+    PayloadStagingServiceErrorCode,
+)
+from backend.storage import LocalFilesystemStagingAdapter
 
 NOW = datetime(2026, 8, 25, 12, tzinfo=UTC)
 CHECKSUM = "a" * 64
@@ -178,6 +188,127 @@ def _facts(**changes) -> VerifiedStagingFacts:
 
 def _assert_code(error: pytest.ExceptionInfo[PayloadLocatorError], code) -> None:
     assert error.value.code is code
+
+
+def _runtime_wav() -> bytes:
+    output = io.BytesIO()
+    with wave.open(output, "wb") as payload:
+        payload.setnchannels(1)
+        payload.setsampwidth(2)
+        payload.setframerate(8_000)
+        payload.writeframes(b"\x00\x00" * 80)
+    return output.getvalue()
+
+
+def test_staging_runtime_revalidates_authority_and_commits_verified_cas(
+    locator_graph, tmp_path
+) -> None:
+    content = _runtime_wav()
+    locator_service = _service(locator_graph)
+    issued = locator_service.issue(
+        _issue(
+            locator_graph,
+            expected_payload_checksum=hashlib.sha256(content).hexdigest(),
+            expected_size_bytes=len(content),
+        )
+    )
+    staging_root = tmp_path / "verified-staging"
+    staging_root.mkdir()
+    staging = LocalFilesystemStagingAdapter(staging_root, clock=lambda: NOW)
+    runtime = PayloadStagingService(locator_service, staging)
+    calls = 0
+
+    def authority() -> PayloadStagingAuthority:
+        nonlocal calls
+        calls += 1
+        return PayloadStagingAuthority(locator_graph["job_id"], True, True, False)
+
+    resolved = runtime.stage(issued.locator_id, [content[:31], content[31:]], authority)
+
+    assert calls == 2
+    assert resolved.staging_status is PayloadLocatorStatus.VERIFIED_STAGED
+    assert resolved.lifecycle_revision == issued.lifecycle_revision + 1
+    assert resolved.staging_key is not None
+    assert (staging_root / resolved.staging_key).read_bytes() == content
+
+
+def test_staging_runtime_cancellation_after_io_prevents_cas_and_cleans_orphan(
+    locator_graph, tmp_path
+) -> None:
+    content = _runtime_wav()
+    locator_service = _service(locator_graph)
+    issued = locator_service.issue(
+        _issue(
+            locator_graph,
+            expected_payload_checksum=hashlib.sha256(content).hexdigest(),
+            expected_size_bytes=len(content),
+        )
+    )
+    staging_root = tmp_path / "verified-staging"
+    staging_root.mkdir()
+    runtime = PayloadStagingService(
+        locator_service,
+        LocalFilesystemStagingAdapter(staging_root, clock=lambda: NOW),
+    )
+    calls = 0
+
+    def authority() -> PayloadStagingAuthority:
+        nonlocal calls
+        calls += 1
+        return PayloadStagingAuthority(
+            locator_graph["job_id"], True, True, cancellation_requested=calls > 1
+        )
+
+    with pytest.raises(PayloadStagingServiceError) as cancelled:
+        runtime.stage(issued.locator_id, [content], authority)
+
+    assert cancelled.value.code is PayloadStagingServiceErrorCode.CANCELLATION_REQUESTED
+    assert (
+        locator_service.get(issued.locator_id).staging_status is PayloadLocatorStatus.SOURCE_BOUND
+    )
+    assert not tuple(staging_root.rglob("*.wav"))
+
+
+def test_staging_runtime_revocation_after_io_prevents_cas_and_cleans_orphan(
+    locator_graph, tmp_path
+) -> None:
+    content = _runtime_wav()
+    locator_service = _service(locator_graph)
+    issued = locator_service.issue(
+        _issue(
+            locator_graph,
+            expected_payload_checksum=hashlib.sha256(content).hexdigest(),
+            expected_size_bytes=len(content),
+        )
+    )
+    staging_root = tmp_path / "verified-staging"
+    staging_root.mkdir()
+    runtime = PayloadStagingService(
+        locator_service,
+        LocalFilesystemStagingAdapter(staging_root, clock=lambda: NOW),
+    )
+    calls = 0
+
+    def authority() -> PayloadStagingAuthority:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            locator_service.revoke(
+                issued.locator_id,
+                expected_revision=issued.lifecycle_revision,
+                reason=PayloadLocatorRevocationReason.RIGHTS_REVOKED,
+                revoked_at=NOW,
+            )
+        return PayloadStagingAuthority(locator_graph["job_id"], True, True, False)
+
+    with pytest.raises(PayloadLocatorError) as revoked:
+        runtime.stage(issued.locator_id, [content], authority)
+
+    assert revoked.value.code is PayloadLocatorErrorCode.REVOKED
+    current = locator_service.get(issued.locator_id)
+    assert current.revoked
+    assert current.staging_status is PayloadLocatorStatus.SOURCE_BOUND
+    assert not tuple(staging_root.rglob("*.wav"))
 
 
 def test_issue_is_idempotent_and_survives_new_service_instance(locator_graph) -> None:

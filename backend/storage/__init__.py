@@ -11,6 +11,14 @@ from backend.storage.artifact_resolver import (
     ArtifactStorageRoots,
     ResolvedArtifactPayload,
 )
+from backend.storage.verified_payload_staging import (
+    ExpectedPayloadFacts,
+    LocalFilesystemStagingAdapter,
+    VerifiedPayloadStagingError,
+    VerifiedPayloadStagingErrorCode,
+    VerifiedPayloadStagingPort,
+    VerifiedStagedPayload,
+)
 
 __all__ = [
     "ArtifactIntegrity",
@@ -20,4 +28,10 @@ __all__ = [
     "ArtifactStorageRoots",
     "ResolvedArtifactPayload",
     "calculate_artifact_integrity",
+    "ExpectedPayloadFacts",
+    "LocalFilesystemStagingAdapter",
+    "VerifiedPayloadStagingError",
+    "VerifiedPayloadStagingErrorCode",
+    "VerifiedPayloadStagingPort",
+    "VerifiedStagedPayload",
 ]

@@ -1,6 +1,6 @@
 # Workspace Job Worker 운영 경계
 
-> 상태: [완료: 실행 기반·Provider Job persistence·metadata Result trust gate·durable PayloadLocator persistence·reconciliation 계약] / [미구현: background runtime·Provider dispatch wiring·verified durable byte staging·실제 payload ingestion]
+> 상태: [완료: 실행 기반·Provider Job persistence·metadata Result trust gate·durable PayloadLocator persistence·verified durable local staging foundation·reconciliation 계약] / [미구현: background runtime·Provider dispatch/downloader wiring·실제 payload ingestion]
 
 운영 수명주기의 authoritative source는 [DohaVocal Worker Reconciliation Contract](../03-architecture/dohavocal-worker-reconciliation-contract.md)와 [Workspace Worker Re-entry Lifecycle](../03-architecture/workspace-worker-reentry-lifecycle.md)이다. Provider `succeeded`만으로 Workspace Job을 성공 처리하지 않으며 trust gate·trusted payload·Completion commit 전까지 `running`을 유지한다.
 
@@ -18,4 +18,4 @@ Provider polling이 성공 metadata를 반환하면 [Provider Result Ingestion C
 - Provider 실패의 공개 `error_code`는 64자 이하의 `[A-Z][A-Z0-9_]*` machine code만 허용하며, 그 밖의 값은 `PROVIDER_EXECUTION_FAILED`로 대체한다. 원본 오류·경로·credential·stack trace는 공개 오류에 저장하지 않는다.
 - 동일 Job의 transport retry는 `workspace-job:<job_id>` canonical idempotency key를 재사용한다. 같은 Provider 결과의 Completion UoW replay는 기존 결과를 반환하고 `AssetVersion`·`Artifact`·Catalog·`JobOutput`·`ModelUsage`를 중복 생성하지 않는다.
 - Provider가 `CANCELLED`를 명시적으로 반환하면 cancel marker 유무와 관계없이 Job을 `cancelled`로 종료하며 Completion UoW와 출력 lineage를 생성하지 않는다. 실행 중 marker가 설정된 기존 success race도 cancel 우선이다.
-- 실제 daemon, scheduler, DohaLM·DohaAudio·DohaVocal dispatch 연결·외부 호출과 payload ingestion은 아직 없다. production crash/restart payload 복구용 locator facts는 전용 persistence foundation에 보존하지만 verified durable byte staging과 Worker 연결은 아직 없다.
+- 실제 daemon, scheduler, DohaLM·DohaAudio·DohaVocal dispatch 연결·외부 호출과 payload ingestion은 아직 없다. production crash/restart payload 복구용 locator facts와 verified durable local bytes foundation은 구현했지만 downloader와 Worker caller에는 연결하지 않았다.

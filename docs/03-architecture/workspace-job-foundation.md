@@ -159,7 +159,7 @@ DohaMusic만 Provider를 호출하고 Provider 간 직접 호출을 금지한다
 
 Provider의 `success`는 Provider-side 생성 완료다. Workspace `succeeded`는 DohaMusic의 무결성 검증·publish·lineage 등록과 DB commit까지 완료됐음을 의미한다.
 
-Provider terminal success부터 payload와 Completion까지의 `running` 유지, 내부 `stage`, bounded polling, lease 소유, retry·cancel과 crash 복구는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)가 권위다. 목표 same-Job ownership transfer는 [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)의 `LEASE_EXPIRY_RECLAIMABLE`을 따른다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 dedicated aggregate schema/Runtime foundation은 구현됐지만 reclaim과 durable byte staging·Worker 연결은 미구현이므로 lease expiry는 계속 retryable failure다.
+Provider terminal success부터 payload와 Completion까지의 `running` 유지, 내부 `stage`, bounded polling, lease 소유, retry·cancel과 crash 복구는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)가 권위다. 목표 same-Job ownership transfer는 [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)의 `LEASE_EXPIRY_RECLAIMABLE`을 따른다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 dedicated aggregate schema/Runtime과 verified durable local staging foundation은 구현됐지만 reclaim·downloader·Worker 연결은 미구현이므로 lease expiry는 계속 retryable failure다.
 
 ## 11. Completion Unit of Work와 부분 출력
 

@@ -1,6 +1,6 @@
 # Trusted Payload Locator / Resolver Contract
 
-> 문서 상태: [완료: process-local locator 호환 adapter, durable schema/Runtime foundation, local staging authority] / [미구현: local byte staging adapter·downloader·Completion adapter·Worker wiring]
+> 문서 상태: [완료: process-local locator 호환 adapter, durable schema/Runtime foundation, verified local byte staging adapter·CAS] / [미구현: downloader·Completion adapter·Worker wiring]
 > 최종 수정일: 2026-08-25
 > 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)
 

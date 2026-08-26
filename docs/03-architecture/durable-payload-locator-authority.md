@@ -232,11 +232,11 @@ PayloadLocator domain model
 
 Service가 persistence port의 짧은 transaction을 열고 SQLAlchemy Repository는 `flush()`만 수행한다. exact issue replay, immutable conflict, UUID collision bounded retry, revision CAS, restart, lifecycle, revocation, source/policy expiry와 staging-key security를 격리 SQLite로 검증한다. App composition root는 Service를 생성하지만 호출 API나 Worker는 없다.
 
-후속 [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 schema와 local filesystem adapter로 충분하다고 확정했다. 다음 구현 단계는 port, local adapter, partial·exclusive publish·recover/open/delete와 `verified_staged` 통합이다. durable byte adapter, downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
+후속 [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 schema와 local filesystem adapter로 충분하다고 확정했고, port, local adapter, partial·exclusive publish·recover/open/delete와 `verified_staged` CAS foundation을 구현했다. downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
 
 ```text
 PayloadLocator persistence foundation: IMPLEMENTED
-durable byte staging: NOT IMPLEMENTED
+durable byte staging foundation: IMPLEMENTED
 downloader orchestration: NOT IMPLEMENTED
 Artifact ingestion wiring: NOT IMPLEMENTED
 ```

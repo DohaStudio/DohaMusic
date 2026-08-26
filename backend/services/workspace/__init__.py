@@ -67,6 +67,13 @@ from backend.services.workspace.job_worker_service import (
     ProviderExecutionRequest,
 )
 from backend.services.workspace.payload_locator_service import PayloadLocatorService
+from backend.services.workspace.payload_staging_service import (
+    PayloadStagingAuthority,
+    PayloadStagingService,
+    PayloadStagingServiceError,
+    PayloadStagingServiceErrorCode,
+    staged_payload_from_record,
+)
 from backend.services.workspace.provider_job_persistence_service import (
     ProviderJobPersistenceError,
     ProviderJobPersistenceErrorReason,
@@ -172,6 +179,10 @@ __all__ = [
     "ProviderJobPersistenceService",
     "ProviderJobPersistenceStorageError",
     "PayloadLocatorService",
+    "PayloadStagingAuthority",
+    "PayloadStagingService",
+    "PayloadStagingServiceError",
+    "PayloadStagingServiceErrorCode",
     "ProviderOutput",
     "ProviderResult",
     "ProviderResultContractError",
@@ -199,4 +210,5 @@ __all__ = [
     "WorkingCompositionService",
     "WorkingMutationResult",
     "WorkspaceService",
+    "staged_payload_from_record",
 ]

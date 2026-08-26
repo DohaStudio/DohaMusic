@@ -9,7 +9,7 @@
 
 DohaMusic은 제품 서비스와 Workspace·Job Orchestration을 소유하고, 모델별 Dataset·학습·평가·추론 Runtime은 독립 AI Provider 저장소가 소유하는 방향을 제안한다. 저장소 책임 경계의 결정과 실제 Runtime 이전은 별도 단계다. 현재 `PipelineExecutor`는 목표 제품 책임 자체가 아니라 Legacy·Compatibility Workflow다.
 
-DohaLM, [DohaAudio](https://github.com/DohaStudio/DohaAudio)와 [DohaVocal](https://github.com/DohaStudio/DohaVocal)은 실제 저장소로 존재한다. DohaVocal은 single-process metadata-only Fake Runtime Foundation을 구현했고 DohaMusic은 Consumer Contract, config 기반 HTTP Transport, metadata Result trust gate와 durable `PayloadLocator` persistence foundation을 구현했다. locator는 Provider source identity와 DohaMusic staging metadata만 보존하며 Provider credential·raw response·bytes를 저장하지 않는다. Workspace Worker wiring·인증·durable byte staging·실제 Artifact payload ingestion·실제 Vocal model·공통 Model Registry·Artifact URI 전환은 `[미구현]`이다. 기존 DohaMusic의 ACE-Step·Demucs·Seed-VC Adapter와 subprocess Runner는 단계적 전환 기간의 호환 계층으로 유지한다.
+DohaLM, [DohaAudio](https://github.com/DohaStudio/DohaAudio)와 [DohaVocal](https://github.com/DohaStudio/DohaVocal)은 실제 저장소로 존재한다. DohaVocal은 single-process metadata-only Fake Runtime Foundation을 구현했고 DohaMusic은 Consumer Contract, config 기반 HTTP Transport, metadata Result trust gate, durable `PayloadLocator` persistence와 verified durable local staging foundation을 구현했다. locator는 Provider source identity와 DohaMusic staging metadata만 보존하며 Provider credential·raw response·bytes를 저장하지 않는다. Workspace Worker wiring·인증·downloader·실제 Artifact payload ingestion·실제 Vocal model·공통 Model Registry·Artifact URI 전환은 `[미구현]`이다. 기존 DohaMusic의 ACE-Step·Demucs·Seed-VC Adapter와 subprocess Runner는 단계적 전환 기간의 호환 계층으로 유지한다.
 
 ## 목표 구조
 
