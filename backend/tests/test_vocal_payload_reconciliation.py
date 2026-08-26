@@ -41,7 +41,7 @@ from backend.services.workspace import (
 )
 from backend.storage import LocalFilesystemStagingAdapter
 
-NOW = datetime(2026, 8, 26, 12, tzinfo=UTC)
+NOW = datetime(2100, 1, 1, 12, tzinfo=UTC)
 
 
 def _wav_bytes() -> bytes:
