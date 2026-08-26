@@ -57,7 +57,7 @@ D:/DohaArtifacts/
     └── runs/
 ```
 
-초기 local backend는 `DOHA_ARTIFACT_ROOT` 환경 설정으로 base root를 주입한다. pre-Artifact Payload는 별도 `DOHA_ARTIFACT_STAGING_ROOT`로 주입하며 두 변수는 기본 미설정이고 서로 겹치면 fail-closed한다. ADR-051은 같은 staging root 아래 locator-derived durable namespace와 random partial namespace를 사용하고 새 root 설정을 만들지 않는다. 네 domain directory와 staging root는 실제 안전한 directory여야 한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다. 코드와 공개 DTO에는 운영 절대 경로를 저장하지 않는다.
+초기 local backend는 `DOHA_ARTIFACT_ROOT` 환경 설정으로 base root를 주입한다. pre-Artifact Payload는 별도 `DOHA_ARTIFACT_STAGING_ROOT`로 주입하며 두 변수는 기본 미설정이고 서로 겹치면 fail-closed한다. ADR-051에 따라 verified local staging adapter는 같은 staging root 아래 locator-derived durable namespace와 random partial namespace를 사용하며 새 root 설정을 만들지 않는다. 네 domain directory와 staging root는 실제 안전한 directory여야 한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다. 코드와 공개 DTO에는 운영 절대 경로를 저장하지 않는다.
 
 ## 4. authoritative Catalog 결정
 

@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 구현 — Verified Durable Payload Staging Runtime Foundation
+
+- `VerifiedPayloadStagingPort`와 `LocalFilesystemStagingAdapter`를 구현했다. locator-derived deterministic final key, random partial, bounded streaming SHA-256·size, WAV·FLAC·strict UTF-8 JSON 검증, file `fsync`, exclusive hard-link publish, concurrent reuse와 restart orphan adoption을 제공한다.
+- verified open은 no-follow regular handle에서 전체 actual facts를 재검증하고, verified delete는 identity/facts mismatch를 성공으로 숨기지 않으면서 missing을 idempotent하게 처리한다.
+- `PayloadStagingService`가 I/O 전후 claim·cancellation·rights authority를 재검증하고 짧은 transaction의 `source_bound → verified_staged` CAS를 수행한다. CAS loser의 equivalent object는 재사용하며 채택되지 않은 object는 안전하게 정리한다.
+- downloader·Artifact ingestion·Completion·Worker wiring·API·schema·Alembic은 추가하지 않았다.
+
 ### 문서 — Verified Durable Staging authority 확정
 
 - `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`를 확정했다. 기존 `DOHA_ARTIFACT_STAGING_ROOT`, actual-byte 검증, file `fsync`와 exclusive hard-link publish primitive를 재사용하고 locator-derived deterministic key로 restart orphan을 adopt한다.

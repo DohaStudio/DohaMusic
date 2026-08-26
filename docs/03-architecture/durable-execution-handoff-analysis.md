@@ -29,7 +29,7 @@ NO_NEW_DURABLE_HANDOFF_STORAGE_REQUIRED
 | provider-success-seen, validation-passed, completion-started/done | `NOT_PERSISTED` | 기존 Provider read 또는 terminal/output aggregate와 중복 |
 | polling cursor/count, invocation deadline, raw response, in-memory candidate | `PROCESS_LOCAL` | 새 claim invocation에서 다시 시작; business authority 아님 |
 | terminal state, JobOutput, Artifact, AssetVersion, ModelUsage, catalog state | `DURABLE_AUTHORITATIVE` | Completion UoW가 atomic하게 확정 |
-| production payload locator facts | `DURABLE_AUTHORITATIVE` | ADR-049 전용 `PayloadLocator` schema/Runtime foundation; verified durable byte staging·통합 미구현 |
+| production payload locator facts | `DURABLE_AUTHORITATIVE` | ADR-049 전용 `PayloadLocator` schema/Runtime과 verified durable local staging·CAS foundation 구현; downloader·Worker 통합 미구현 |
 
 Result fingerprint를 별도 저장하지 않는다. trust gate 입력은 binding과 replay한 wire Result에서 다시 얻고 validation은 숨은 mutation 없이 반복할 수 있다.
 

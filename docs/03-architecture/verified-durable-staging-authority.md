@@ -1,5 +1,25 @@
 # Verified Durable Staging Authority
 
+> 구현 업데이트(2026-08-26): `VerifiedPayloadStagingPort`, `LocalFilesystemStagingAdapter`, verified open/delete와 `PayloadStagingService`의 `source_bound → verified_staged` CAS를 구현했다. composition root에서 생성 가능하지만 Worker/downloader caller에는 등록하지 않았다.
+
+## 구현 상태
+
+```text
+VerifiedPayloadStagingPort: IMPLEMENTED
+LocalFilesystemStagingAdapter: IMPLEMENTED
+verified durable staging: IMPLEMENTED
+downloader orchestration: NOT IMPLEMENTED
+Artifact ingestion: NOT IMPLEMENTED
+Completion: NOT IMPLEMENTED
+Worker wiring: NOT IMPLEMENTED
+```
+
+구현은 `DOHA_ARTIFACT_STAGING_ROOT` 아래에서 locator-derived final key와 attempt별 random partial을 사용한다. 입력 chunks는 예상 size를 상한으로 streaming write하며 write 중 SHA-256과 size를 계산한다. close 후 no-follow reopen, actual WAV·FLAC·strict UTF-8 JSON parser, expected/actual exact comparison을 통과한 regular file만 `os.link(partial, final)`로 exclusive publish한다. 기존 final은 매번 전체 facts를 재검증해 concurrent loser와 restart orphan을 adopt한다.
+
+`open_verified`는 context-managed descriptor를 반환하기 전에 key·containment·link/reparse·identity·SHA-256·size·media를 다시 검증한다. `delete_verified`도 동일 facts와 identity가 일치하는 object만 지우고 missing은 idempotent no-op으로 처리한다. unsafe key, missing, tamper와 cleanup failure는 서로 다른 stable internal error code다.
+
+application staging service는 파일 I/O 동안 DB transaction을 열지 않는다. I/O 전후 caller-provided claim·cancellation·rights evidence를 검증하고 마지막에 기존 `PayloadLocatorService`의 revision CAS를 호출한다. equivalent CAS winner는 재사용하고 채택되지 않은 object만 facts·identity 검증 후 정리한다. 이 foundation은 downloader, `GetPayloadContent`, Artifact ingestion, Completion 또는 Worker를 호출하지 않는다.
+
 > 문서 상태: [승인: authority 확정, adapter·통합 미구현]
 > 최종 수정일: 2026-08-26
 > 기준: DohaMusic `develop` `f27c01ff12b55f6f7b0dfc95acaf0d20135c0f87`

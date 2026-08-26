@@ -1,6 +1,6 @@
 ﻿# DohaMusic 실행 로드맵
 
-> DohaVocal `0.2.0` consumer와 전용 `PayloadLocator` persistence foundation은 구현했습니다. verified durable staging은 `LOCAL_ADAPTER_SUFFICIENT`·`NO_NEW_SCHEMA_REQUIRED` authority를 확정했으며 다음 Provider Track은 local staging adapter 구현입니다. downloader·Artifact ingestion은 별도 후속입니다.
+> DohaVocal `0.2.0` consumer, 전용 `PayloadLocator` persistence와 verified durable local staging foundation을 구현했습니다. `LOCAL_ADAPTER_SUFFICIENT`·`NO_NEW_SCHEMA_REQUIRED` 결정을 실제 port·adapter·CAS로 반영했으며 downloader·Artifact ingestion은 별도 후속입니다.
 >
 > 문서 역할: 현재 실행 순서와 NEXT/LATER
 > 장기 기준: [MASTER_ROADMAP](MASTER_ROADMAP.md)
@@ -28,11 +28,11 @@
 [저장소 분리 Roadmap](planning/repository-separation-roadmap.md)에 따라 책임 경계와 Runtime 이전을 분리한다.
 
 1. Phase A `[완료]`: 책임, Provider 계약 범위, Dataset·Artifact 정책, Model Manifest와 ADR을 문서화하고 PR #50 병합 근거를 확인했다.
-2. Phase B `[진행 중]`: DohaVocal `0.1.0` 호환과 `0.2.0` payload Result DTO·trust gate·transient acquisition, Trusted Payload process-local adapter와 durable `PayloadLocator` persistence foundation을 구현했다. `source_bound → verified_staged → ingested → cleanup_pending → cleaned`, terminal revocation, restart/idempotency/CAS를 보존한다. verified durable staging은 local adapter와 기존 schema가 충분하다고 확정했지만 adapter, reclaim runtime, concrete Vocal Worker wiring·인증·downloader·Completion adapter·실제 model·Artifact payload 통합은 남아 있다.
+2. Phase B `[진행 중]`: DohaVocal `0.1.0` 호환과 `0.2.0` payload Result DTO·trust gate·transient acquisition, Trusted Payload process-local adapter, durable `PayloadLocator` persistence와 verified local staging foundation을 구현했다. `source_bound → verified_staged → ingested → cleanup_pending → cleaned`, terminal revocation, restart/idempotency/CAS를 보존한다. reclaim runtime, concrete Vocal Worker wiring·인증·downloader·Completion adapter·실제 model·Artifact payload 통합은 남아 있다.
 3. Phase C `[계획]`: ACE-Step·Demucs·Seed-VC Runner를 순차 이전하고 로컬 `Path`를 Artifact ID·URI 계약으로 전환한다.
 4. Phase D `[계획]`: 전환 검증이 끝난 내부 Runner와 구형 Adapter만 제거하고 운영 계약 version과 DoD를 확정한다.
 
-DohaVocal `0.1.0` Fake Runtime 호환과 DohaMusic `0.2.0` Consumer DTO·capability negotiation·config 기반 transient binary HTTP acquisition·Result trust gate, dedicated PayloadLocator schema/Runtime은 구현했다. local durable staging authority는 확정했지만 adapter, Worker 연결·인증·downloader·Artifact payload·AssetVersion commit, DohaAudio Runtime과 공통 Model Registry는 구현하지 않았다.
+DohaVocal `0.1.0` Fake Runtime 호환과 DohaMusic `0.2.0` Consumer DTO·capability negotiation·config 기반 transient binary HTTP acquisition·Result trust gate, dedicated PayloadLocator schema/Runtime과 verified local staging foundation은 구현했다. Worker 연결·인증·downloader·Artifact payload·AssetVersion commit, DohaAudio Runtime과 공통 Model Registry는 구현하지 않았다.
 
 DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic은 transient acquisition adapter 기반을 구현했다. 실제 Workspace Artifact locator·ingestion, DohaAudio Runtime API와 공통 Model Registry는 구현하지 않았다.
 
@@ -75,7 +75,7 @@ Clip Persistence·Authority와 Revision-safe Idempotency Foundation은 Backend O
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | AI-native DAW Product | [진행 중] | D0·D1·D2와 WorkingComposition persistence·Service·17개 Product operation 및 Backend inverse mutation 완료; Frontend Clip UI·Undo/Redo·Composition commit·실제 DB 전환·Section·Mixer·D4~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N 및 PayloadLocator persistence, `0.1.0`/`0.2.0` Result trust gate·transient acquisition 구현; Provider dispatch wiring·downloader·durable byte staging·Completion adapter·실제 payload ingestion·background daemon과 나머지 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N, PayloadLocator persistence와 verified durable local staging, `0.1.0`/`0.2.0` Result trust gate·transient acquisition 구현; Provider dispatch wiring·downloader·Completion adapter·실제 payload ingestion·background daemon과 나머지 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | Phase A 완료; DohaVocal Runtime·Consumer Contract·HTTP Transport·metadata Result trust gate 구현, Worker wiring·실제 Artifact payload 통합·Phase C~D 미착수 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 | Reviewer Authentication Authority | [Foundation 구현 / OS adapter 미구현] | V1 `LOCAL_ONLY`, single owner/operator, `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL` 선택과 provider-independent fail-closed contract 구현; 실제 credential·delegated assertion·mapping·ReviewerAuthority 미구현 | [Authority](docs/09-security/reviewer-authentication-deployment-authority.md) |

@@ -52,10 +52,11 @@ from backend.services.workspace import (
     CompositionService,
     JobService,
     PayloadLocatorService,
+    PayloadStagingService,
     WorkingCompositionService,
     WorkspaceService,
 )
-from backend.storage import ArtifactStorageRoots
+from backend.storage import ArtifactStorageRoots, LocalFilesystemStagingAdapter
 from backend.storage.service import StorageService
 from backend.voice_enrollment.maintenance import (
     VoiceEnrollmentMaintenanceService,
@@ -199,9 +200,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             session_factory,
             cursor_codec=cursor_codec,
         )
-        app.state.payload_locator_service = PayloadLocatorService(
+        payload_locator_service = PayloadLocatorService(
             SqlAlchemyPayloadLocatorPersistence(session_factory)
         )
+        app.state.payload_locator_service = payload_locator_service
         artifact_roots = (
             ArtifactStorageRoots.from_base_root(resolved_settings.artifact_root)
             if resolved_settings.artifact_root is not None
@@ -210,6 +212,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.artifact_application_service = ArtifactApplicationService(
             session_factory,
             artifact_roots=artifact_roots,
+        )
+        payload_staging_adapter = (
+            LocalFilesystemStagingAdapter(
+                resolved_settings.artifact_staging_root,
+                artifact_roots=artifact_roots,
+            )
+            if resolved_settings.artifact_staging_root is not None
+            else None
+        )
+        app.state.verified_payload_staging = payload_staging_adapter
+        app.state.payload_staging_service = (
+            PayloadStagingService(payload_locator_service, payload_staging_adapter)
+            if payload_staging_adapter is not None
+            else None
         )
         app.state.storage = storage
         app.state.worker = worker
