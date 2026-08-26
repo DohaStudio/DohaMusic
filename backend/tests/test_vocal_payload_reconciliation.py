@@ -41,6 +41,7 @@ from backend.services.workspace import (
 )
 from backend.storage import LocalFilesystemStagingAdapter
 
+# Keep source availability deterministic independently of the wall-clock test date.
 NOW = datetime(2100, 1, 1, 12, tzinfo=UTC)
 
 
