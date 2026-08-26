@@ -131,6 +131,34 @@ def test_existing_final_with_conflicting_expected_bytes_is_rejected(tmp_path: Pa
     assert conflict.value.code is VerifiedPayloadStagingErrorCode.PUBLISH_CONFLICT
 
 
+def test_concurrent_different_bytes_has_one_winner_and_no_overwrite(tmp_path: Path) -> None:
+    first_content = _wav_bytes()
+    second_content = first_content[:-2] + b"\x01\x00"
+    locator_uuid = uuid4()
+    adapter = _adapter(tmp_path)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = tuple(
+            executor.submit(adapter.stage_verified, locator_uuid, [content], _facts(content))
+            for content in (first_content, second_content)
+        )
+        outcomes = []
+        for future in futures:
+            try:
+                outcomes.append(future.result())
+            except VerifiedPayloadStagingError as error:
+                outcomes.append(error)
+
+    successes = [value for value in outcomes if not isinstance(value, Exception)]
+    failures = [value for value in outcomes if isinstance(value, VerifiedPayloadStagingError)]
+    assert len(successes) == 1
+    assert len(failures) == 1
+    assert failures[0].code is VerifiedPayloadStagingErrorCode.PUBLISH_CONFLICT
+    final_path = tmp_path / "staging" / Path(successes[0].staging_key)
+    assert final_path.read_bytes() in {first_content, second_content}
+    assert not any((tmp_path / "staging" / ".partial").rglob("*.partial"))
+
+
 def test_crash_partial_is_not_authority_and_has_identity_safe_cleanup(tmp_path: Path) -> None:
     content = _wav_bytes()
     locator_uuid = uuid4()
