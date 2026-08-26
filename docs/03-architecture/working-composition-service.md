@@ -1,8 +1,8 @@
 # WorkingComposition Atomic Mutation Service
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-25
-> 관련 기능: AI-native DAW D3 Clip Editing Backend
+> 최종 수정일: 2026-08-26
+> 관련 기능: AI-native DAW D3 Clip Editing Backend와 Frontend consumer
 > 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Product API](../06-api/working-composition-api.md)
 
 ## 책임과 계층
@@ -56,4 +56,4 @@ checkout은 같은 Project의 immutable SnapshotTrack/SnapshotClip만 authority�
 
 격리 SQLite fixture에서 revision race exactly-one success, initialize unique race, inverse replay fidelity, 동일 canonical ID 복원, atomic Track reindex, current source eligibility, exact split geometry, overlap과 forced rollback을 검증했다. source Alembic head는 `20260825_0022`이며 inverse mutation은 기존 tombstone·lineage schema를 사용하므로 새 migration은 없다. 실제 사용자 DB·Artifact payload·media·Provider·GPU에는 접근하지 않았다.
 
-initialize는 빈 Frontend history에서 시작하고 checkout은 history barrier다. Backend는 command history나 undo stack을 저장하지 않는다. Composition commit, Frontend Undo/Redo, Waveform, working preview/render와 Mixer는 후속 범위다.
+initialize는 빈 Frontend history에서 시작하고 checkout은 history barrier다. Backend는 command history나 undo stack을 저장하지 않는다. Frontend는 이 계약을 memory-only command stack과 conflict GET/reconcile로 소비한다. Composition commit, Track/Clip Waveform, working preview/render와 Mixer는 후속 범위다.

@@ -2,11 +2,11 @@
 
 > 상태: 승인
 > 작성일: 2026-08-25
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-26
 > 관련 기능: AI-native DAW D3 Backend inverse mutation과 Frontend Undo/Redo 경계
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md), [WorkingComposition Service](../03-architecture/working-composition-service.md), [Product API](../06-api/working-composition-api.md)
 
-> 구현 추적: 2026-08-25 Track restore, Clip restore, atomic unsplit/resplit Service와 네 Product operation을 구현했다. revision-safe completion result V1에 네 result type을 추가했으며 기존 tombstone·split lineage schema를 재사용하므로 Alembic migration은 추가하지 않았다. Frontend command history와 Composition commit은 후속이다.
+> 구현 추적: 2026-08-26 Track/Clip restore와 atomic unsplit/resplit Backend에 이어 Frontend strict LIFO memory command history를 구현했다. initialize·checkout·Project 변경·conflict reconcile history boundary, same-ID undo/redo와 response revision authority를 소비한다. Composition commit은 후속이다.
 
 ## 1. 배경
 

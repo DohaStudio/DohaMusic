@@ -7,6 +7,7 @@ import type {
 } from "@/types/api";
 import { CompositionTimeline } from "./composition-timeline";
 import { resolveCompositionPlayback } from "./timeline-playback";
+import { WorkingCompositionEditor } from "./working-composition-editor";
 
 const roleLabels = {
   music: "Music",
@@ -38,6 +39,11 @@ export function CompositionReadyView({ data }: { data: CompositionWorkspaceDto }
       </dl>
 
       <CompositionTimeline tracks={data.track_projections} playback={playback} />
+      <WorkingCompositionEditor
+        projectId={data.project.project_id}
+        snapshotId={snapshot.composition_snapshot_id}
+        sources={data.items.filter((item) => item.item_role !== "lyrics")}
+      />
 
       <section aria-labelledby="composition-tracks-title">
         <div className="composition-section-heading">

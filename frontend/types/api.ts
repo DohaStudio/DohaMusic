@@ -331,3 +331,65 @@ export interface CompositionSelectionDto {
   project_id: string;
   selected_snapshot_id: string | null;
 }
+
+export interface WorkingTrackDto {
+  track_id: string;
+  track_type: string;
+  name: string;
+  track_order: number;
+}
+
+export interface WorkingClipDto {
+  clip_id: string;
+  track_id: string;
+  source_asset_version_id: string;
+  timeline_start: string;
+  source_in: string;
+  source_out: string;
+  source_duration: string;
+  split_from_clip_id: string | null;
+}
+
+export interface WorkingCompositionDto {
+  working_composition_id: string;
+  project_id: string;
+  base_composition_snapshot_id: string | null;
+  revision: number;
+  mix_settings: Record<string, unknown>;
+  tracks: WorkingTrackDto[];
+  clips: WorkingClipDto[];
+  timeline_duration: string;
+}
+
+export interface WorkingMutationResultDto {
+  completed_revision: number;
+  replayed: boolean;
+}
+
+export interface WorkingInitializeResultDto extends WorkingMutationResultDto {
+  working_composition_id: string;
+}
+
+export interface WorkingCheckoutResultDto extends WorkingMutationResultDto {
+  working_composition_id: string;
+  base_composition_snapshot_id: string;
+}
+
+export interface WorkingTrackResultDto extends WorkingMutationResultDto {
+  track_id: string;
+}
+
+export interface WorkingReorderResultDto {
+  working_composition_id: string;
+  completed_revision: number;
+}
+
+export interface WorkingClipResultDto extends WorkingMutationResultDto {
+  clip_id: string;
+}
+
+export interface WorkingSplitResultDto extends WorkingMutationResultDto {
+  original_clip_id: string;
+  left_clip_id: string;
+  right_clip_id: string;
+}

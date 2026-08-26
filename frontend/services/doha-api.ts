@@ -16,6 +16,13 @@ import type {
   CompositionSelectionDto,
   CompositionSnapshotSummaryDto,
   CompositionWorkspaceDto,
+  WorkingCheckoutResultDto,
+  WorkingClipResultDto,
+  WorkingCompositionDto,
+  WorkingInitializeResultDto,
+  WorkingReorderResultDto,
+  WorkingSplitResultDto,
+  WorkingTrackResultDto,
 } from "@/types/api";
 import type {
   VoiceEnrollmentCreateRequest,
@@ -202,7 +209,75 @@ export const dohaApi = {
         body: JSON.stringify({ selected_snapshot_id: snapshotId }),
       },
     ).then((response) => response.data),
+  getWorkingComposition: (projectId: string, signal?: AbortSignal) =>
+    workspaceData<WorkingCompositionDto>(workingPath(projectId), { signal }),
+  initializeWorkingComposition: (projectId: string, idempotencyKey: string) =>
+    workspaceData<WorkingInitializeResultDto>(`${workingPath(projectId)}/initialize`, {
+      method: "POST",
+      headers: idempotencyHeader(idempotencyKey),
+      body: "{}",
+    }),
+  checkoutWorkingComposition: (projectId: string, body: WorkingBase & { composition_snapshot_id: string }, idempotencyKey: string) =>
+    workspaceData<WorkingCheckoutResultDto>(`${workingPath(projectId)}/checkout`, mutationInit("POST", body, idempotencyKey)),
+  createWorkingTrack: (projectId: string, body: WorkingBase & { name: string }, idempotencyKey: string) =>
+    workspaceData<WorkingTrackResultDto>(`${workingPath(projectId)}/tracks`, mutationInit("POST", body, idempotencyKey)),
+  renameWorkingTrack: (projectId: string, trackId: string, body: WorkingBase & { name: string }) =>
+    workspaceData<WorkingTrackResultDto>(`${workingPath(projectId)}/tracks/${encodeURIComponent(trackId)}`, mutationInit("PATCH", body)),
+  reorderWorkingTracks: (projectId: string, body: WorkingBase & { ordered_track_ids: string[] }) =>
+    workspaceData<WorkingReorderResultDto>(`${workingPath(projectId)}/tracks/reorder`, mutationInit("PATCH", body)),
+  deleteWorkingTrack: (projectId: string, trackId: string, body: WorkingBase, idempotencyKey: string) =>
+    workspaceData<WorkingTrackResultDto>(`${workingPath(projectId)}/tracks/${encodeURIComponent(trackId)}`, mutationInit("DELETE", body, idempotencyKey)),
+  restoreWorkingTrack: (projectId: string, trackId: string, body: WorkingBase & { target_track_order: number }, idempotencyKey: string) =>
+    workspaceData<WorkingTrackResultDto>(`${workingPath(projectId)}/tracks/${encodeURIComponent(trackId)}/restore`, mutationInit("POST", body, idempotencyKey)),
+  createWorkingClip: (projectId: string, body: WorkingBase & { track_id: string; source_asset_version_id: string; timeline_start: string; source_in: string; source_out: string }, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips`, mutationInit("POST", body, idempotencyKey)),
+  moveWorkingClip: (projectId: string, clipId: string, body: WorkingBase & { timeline_start: string }) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/move`, mutationInit("PATCH", body)),
+  trimWorkingClipStart: (projectId: string, clipId: string, body: WorkingBase & { timeline_start: string; source_in: string }) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/trim-start`, mutationInit("PATCH", body)),
+  trimWorkingClipEnd: (projectId: string, clipId: string, body: WorkingBase & { source_out: string }) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/trim-end`, mutationInit("PATCH", body)),
+  splitWorkingClip: (projectId: string, clipId: string, body: WorkingBase & { split_at: string }, idempotencyKey: string) =>
+    workspaceData<WorkingSplitResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/split`, mutationInit("POST", body, idempotencyKey)),
+  deleteWorkingClip: (projectId: string, clipId: string, body: WorkingBase, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}`, mutationInit("DELETE", body, idempotencyKey)),
+  restoreWorkingClip: (projectId: string, clipId: string, body: WorkingBase, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/restore`, mutationInit("POST", body, idempotencyKey)),
+  unsplitWorkingClip: (projectId: string, originalClipId: string, body: WorkingBase & SplitChildren, idempotencyKey: string) =>
+    workspaceData<WorkingSplitResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(originalClipId)}/unsplit`, mutationInit("POST", body, idempotencyKey)),
+  resplitWorkingClip: (projectId: string, originalClipId: string, body: WorkingBase & SplitChildren, idempotencyKey: string) =>
+    workspaceData<WorkingSplitResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(originalClipId)}/resplit`, mutationInit("POST", body, idempotencyKey)),
 };
+
+interface WorkingBase {
+  working_composition_id: string;
+  expected_revision: number;
+}
+
+interface SplitChildren {
+  left_clip_id: string;
+  right_clip_id: string;
+}
+
+function workingPath(projectId: string): string {
+  return `/api/v1/projects/${encodeURIComponent(projectId)}/working-composition`;
+}
+
+function idempotencyHeader(key: string): Record<string, string> {
+  return { "Idempotency-Key": key };
+}
+
+function mutationInit(method: string, body: object, idempotencyKey?: string): RequestInit {
+  return {
+    method,
+    headers: idempotencyKey ? idempotencyHeader(idempotencyKey) : undefined,
+    body: JSON.stringify(body),
+  };
+}
+
+function workspaceData<T>(path: string, init?: RequestInit): Promise<T> {
+  return apiRequest<{ data: T }>(path, init).then((response) => response.data);
+}
 
 export function getPipelineFileContentUrl(jobId: string, fileId: string) {
   return `/backend/api/pipelines/${encodeURIComponent(jobId)}/files/${encodeURIComponent(fileId)}/content`;
