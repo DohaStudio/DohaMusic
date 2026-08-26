@@ -1,6 +1,6 @@
 # Durable Payload Locator Authority
 
-> 문서 상태: [승인: persistence foundation 구현, byte staging·통합 미구현]
+> 문서 상태: [승인: persistence·verified staging·acquisition orchestration 구현]
 > 최종 수정일: 2026-08-25
 > 기준: DohaMusic develop `bdc141237d7c0fd407084ce1bccebfbd86d651a6`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 최종 판정: `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`
@@ -18,7 +18,7 @@ DohaVocal `0.2.0` Result의 `provider_subresource` source descriptor는 Provider
 - revocation, Artifact handoff와 cleanup lifecycle
 - 같은 Result replay의 idempotent issue와 immutable conflict 판정
 
-이 fact는 append-only Provider execution identity와 cardinality·mutation·retention이 다르다. 따라서 `ProviderJobBinding` Column 확장이 아니라 전용 `PayloadLocator` aggregate/table이 필요하다. Domain·persistence port·SQLAlchemy/SQLite adapter·additive Alembic `20260825_0023`과 issue/replay/revoke/resolve lifecycle은 구현했다. downloader, byte staging, Artifact ingestion, Completion, Worker와 network는 변경하지 않았다.
+이 fact는 append-only Provider execution identity와 cardinality·mutation·retention이 다르다. 따라서 `ProviderJobBinding` Column 확장이 아니라 전용 `PayloadLocator` aggregate/table이 필요하다. Domain·persistence port·SQLAlchemy/SQLite adapter·additive Alembic `20260825_0023`, verified byte staging과 [acquisition orchestration](dohavocal-payload-acquisition-orchestration.md)을 구현했다. Artifact ingestion, Completion과 Worker caller는 아직 연결하지 않았다.
 
 ```text
 Provider Result replay authority
@@ -232,11 +232,11 @@ PayloadLocator domain model
 
 Service가 persistence port의 짧은 transaction을 열고 SQLAlchemy Repository는 `flush()`만 수행한다. exact issue replay, immutable conflict, UUID collision bounded retry, revision CAS, restart, lifecycle, revocation, source/policy expiry와 staging-key security를 격리 SQLite로 검증한다. App composition root는 Service를 생성하지만 호출 API나 Worker는 없다.
 
-후속 [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 schema와 local filesystem adapter로 충분하다고 확정했고, port, local adapter, partial·exclusive publish·recover/open/delete와 `verified_staged` CAS foundation을 구현했다. downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
+후속 [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 schema와 local filesystem adapter로 충분하다고 확정했고, port, local adapter, partial·exclusive publish·recover/open/delete와 `verified_staged` CAS foundation을 구현했다. [Payload Acquisition Orchestration](dohavocal-payload-acquisition-orchestration.md)은 fixed-origin Provider network를 이 foundation에 연결했다. Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon과 production authentication은 계속 `[미구현]`이다.
 
 ```text
 PayloadLocator persistence foundation: IMPLEMENTED
 durable byte staging foundation: IMPLEMENTED
-downloader orchestration: NOT IMPLEMENTED
+payload acquisition orchestration: IMPLEMENTED
 Artifact ingestion wiring: NOT IMPLEMENTED
 ```

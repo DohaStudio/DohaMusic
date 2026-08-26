@@ -96,6 +96,11 @@ from backend.services.workspace.trusted_media_metadata_service import (
     TrustedMediaMetadataErrorCode,
     TrustedMediaMetadataService,
 )
+from backend.services.workspace.vocal_payload_reconciliation_service import (
+    VocalPayloadReconciliationError,
+    VocalPayloadReconciliationErrorCode,
+    VocalPayloadReconciliationService,
+)
 from backend.services.workspace.working_composition_service import (
     WorkingCompositionAggregate,
     WorkingCompositionError,
@@ -211,4 +216,7 @@ __all__ = [
     "WorkingMutationResult",
     "WorkspaceService",
     "staged_payload_from_record",
+    "VocalPayloadReconciliationError",
+    "VocalPayloadReconciliationErrorCode",
+    "VocalPayloadReconciliationService",
 ]
