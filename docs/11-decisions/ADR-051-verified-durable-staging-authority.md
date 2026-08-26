@@ -2,7 +2,7 @@
 
 > 상태: 승인·구현 대기
 > 작성일: 2026-08-25
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-26
 > 관련 기능: PayloadLocator `verified_staged` restart-safe byte authority
 > 관련 문서: [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md), [ADR-049](ADR-049-durable-payload-locator-persistence-authority.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md)
 
