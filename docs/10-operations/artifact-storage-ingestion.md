@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: 내부 Artifact publish, authoritative SHA-256·size·MIME, 실패 보상
-> 관련 문서: [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [환경 변수](environment-variables.md)
+> 관련 문서: [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md), [환경 변수](environment-variables.md)
 
 ## 1. 현재 경계
 
@@ -28,7 +28,7 @@ DOHA_ARTIFACT_STAGING_ROOT=
 
 두 값에는 기본 경로가 없다. Artifact root의 `lm`, `audio`, `vocal`, `music` directory와 staging root가 모두 실제 안전한 directory여야 하고 서로 상위·하위 관계로 겹치면 구성을 거부한다. 코드·DB·로그·공개 DTO에 실제 절대 경로를 저장하지 않는다.
 
-Staging root에 handoff한 파일은 ingestion이 소유하는 임시 Payload여야 한다. 사용자 원본, Provider 원본 저장소와 Dataset 파일을 staging으로 가장해 전달하지 않는다. 검증 또는 DB 등록 실패 시 source는 재시도·진단을 위해 보존하고, 성공 후 identity가 그대로인 staging Payload만 제거한다.
+Staging root에 handoff한 파일은 DohaMusic이 소유하는 pre-Artifact Payload여야 한다. 사용자 원본, Provider 원본 저장소와 Dataset 파일을 staging으로 가장해 전달하지 않는다. future local staging adapter는 같은 root의 전용 `payload-staging/v1` namespace에 verified object를 보존하고 ingestion은 safe handle을 통해 읽는다. 검증 또는 DB 등록 실패 시 source는 재시도·진단을 위해 보존하고, 성공 후 locator cleanup policy와 identity/facts 검증을 통과한 staging Payload만 제거한다. adapter와 ingestion 연결은 아직 미구현이다.
 
 ## 3. 허용 계약
 

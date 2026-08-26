@@ -1,8 +1,8 @@
 # Trusted Payload Locator / Resolver Contract
 
-> 문서 상태: [완료: process-local locator 호환 adapter, durable schema/Runtime foundation] / [미구현: byte staging·downloader·Completion adapter·Worker wiring]
+> 문서 상태: [완료: process-local locator 호환 adapter, durable schema/Runtime foundation, local staging authority] / [미구현: local byte staging adapter·downloader·Completion adapter·Worker wiring]
 > 최종 수정일: 2026-08-25
-> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)
 
 DohaVocal `0.2.0`의 `source_id`는 acquisition에만 쓰이는 Provider-side opaque subresource identity이며 `payloadref:v1` locator가 아니다. Result replay는 source descriptor를 재구성하지만 verified staging key·actual facts·revocation·cleanup은 복구하지 못한다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)는 이를 전용 aggregate로 영속해야 한다고 판정했으며 현재 consumer는 여전히 bounded transient bytes까지만 반환한다.
 
@@ -48,7 +48,7 @@ locator는 `namespace=payloadref`, `version=1`, 추론 불가능한 `opaque_id`�
 
 `InMemoryTrustedPayloadRegistry`는 deterministic clock/ID를 주입할 수 있는 process-local Foundation fake이며 production authority가 아니다. current locator 형식과 file-backed resolver 회귀는 유지한다. durable `ProviderJobBinding 1:N PayloadLocator`는 source expectation과 verified staging metadata·revocation·cleanup을 SQLAlchemy/SQLite와 Alembic `20260825_0023`에 보존한다. exact replay와 lifecycle mutation은 Service-owned transaction 및 revision CAS를 사용한다. 상세 Column·state·crash 정책은 [Durable Payload Locator Authority](durable-payload-locator-authority.md)를 따른다.
 
-DohaVocal `0.1.0` metadata-only 결과는 `payload_present=false`, `payload_reference=None`, binary·structured eligibility false다. `0.2.0` payload-backed 결과도 현재는 read-only adapter가 network transaction 밖에서 bounded transient bytes를 검증하는 데 그치며 `payload_reference=None`과 ingestion eligibility false를 유지한다. 이 bytes를 durable staging에 두고 issuer로 reference를 만든 뒤 Completion에 전달하는 downloader orchestration, Artifact ingestion, AssetVersion·JobOutput·ModelUsage commit은 모두 `[미구현]`이다. arbitrary URL fetch는 허용하지 않는다.
+DohaVocal `0.1.0` metadata-only 결과는 `payload_present=false`, `payload_reference=None`, binary·structured eligibility false다. `0.2.0` payload-backed 결과도 현재는 read-only adapter가 network transaction 밖에서 bounded transient bytes를 검증하는 데 그치며 `payload_reference=None`과 ingestion eligibility false를 유지한다. [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 locator-derived local key, exclusive publish, full open verification과 orphan adoption으로 다음 adapter 계약을 확정했지만 구현하지 않았다. 이 bytes를 durable staging에 두고 Completion에 전달하는 downloader orchestration, Artifact ingestion, AssetVersion·JobOutput·ModelUsage commit은 모두 `[미구현]`이다. arbitrary URL fetch는 허용하지 않는다.
 
 ## 6. 오류 계약
 
