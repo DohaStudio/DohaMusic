@@ -183,9 +183,7 @@ def _assert_code(error: pytest.ExceptionInfo[PayloadLocatorError], code) -> None
 def test_issue_is_idempotent_and_survives_new_service_instance(locator_graph) -> None:
     first = _service(locator_graph).issue(_issue(locator_graph))
     restarted = PayloadLocatorService(
-        SqlAlchemyPayloadLocatorPersistence(
-            create_session_factory(locator_graph["database_url"])
-        ),
+        SqlAlchemyPayloadLocatorPersistence(create_session_factory(locator_graph["database_url"])),
         clock=lambda: NOW,
     )
     replay = restarted.issue(_issue(locator_graph))
@@ -207,9 +205,7 @@ def test_issue_is_idempotent_and_survives_new_service_instance(locator_graph) ->
         {"provider_artifact_id": "provider-artifact-2"},
     ],
 )
-def test_same_binding_ordinal_with_changed_fact_conflicts(
-    locator_graph, changes
-) -> None:
+def test_same_binding_ordinal_with_changed_fact_conflicts(locator_graph, changes) -> None:
     service = _service(locator_graph)
     service.issue(_issue(locator_graph))
     with pytest.raises(PayloadLocatorError) as caught:
@@ -233,9 +229,7 @@ def test_invalid_workspace_binding_association_fails_closed(locator_graph) -> No
     _assert_code(caught, PayloadLocatorErrorCode.WORKSPACE_BINDING_MISMATCH)
 
     with locator_graph["factory"].begin() as session:
-        row = PayloadLocator(
-            payload_locator_id=uuid4(), **asdict(_issue(locator_graph))
-        )
+        row = PayloadLocator(payload_locator_id=uuid4(), **asdict(_issue(locator_graph)))
         row.workspace_job_id = uuid4()
         session.add(row)
         with pytest.raises(IntegrityError):
@@ -351,9 +345,7 @@ def test_two_workers_racing_same_revision_produce_one_transition(locator_graph) 
 
 
 @pytest.mark.parametrize("reason", list(PayloadLocatorRevocationReason))
-def test_revocation_is_terminal_and_blocks_acquire_stage_and_ingest(
-    locator_graph, reason
-) -> None:
+def test_revocation_is_terminal_and_blocks_acquire_stage_and_ingest(locator_graph, reason) -> None:
     service = _service(locator_graph)
     issue = _issue(
         locator_graph,
@@ -401,9 +393,7 @@ def test_source_expiry_is_distinct_from_verified_staging_and_rights(
     locator_graph,
 ) -> None:
     service = _service(locator_graph)
-    issued = service.issue(
-        _issue(locator_graph, source_available_until=NOW - timedelta(seconds=1))
-    )
+    issued = service.issue(_issue(locator_graph, source_available_until=NOW - timedelta(seconds=1)))
     with pytest.raises(PayloadLocatorError) as expired:
         service.resolve_for_acquisition(
             issued.locator_id,
@@ -468,9 +458,7 @@ def test_revoked_verified_staging_can_only_advance_to_cleanup(locator_graph) -> 
 
 def test_locator_policy_expiry_blocks_ingestion(locator_graph) -> None:
     service = _service(locator_graph)
-    issued = service.issue(
-        _issue(locator_graph, locator_expires_at=NOW + timedelta(seconds=1))
-    )
+    issued = service.issue(_issue(locator_graph, locator_expires_at=NOW + timedelta(seconds=1)))
     staged = service.transition_to_verified_staged(
         issued.locator_id, expected_revision=0, facts=_facts()
     )
@@ -538,10 +526,7 @@ def test_locator_table_contains_no_bytes_credentials_or_absolute_root(
     assert not columns.intersection(
         {"payload_bytes", "authorization", "credential", "signed_url", "storage_root"}
     )
-    assert all(
-        "C:\\" not in str(value) and "https://" not in str(value)
-        for value in row.values()
-    )
+    assert all("C:\\" not in str(value) and "https://" not in str(value) for value in row.values())
 
 
 def test_repository_is_flush_only_and_port_hides_sqlalchemy() -> None:
@@ -554,9 +539,7 @@ def test_repository_is_flush_only_and_port_hides_sqlalchemy() -> None:
 
 def test_random_id_collision_retries_are_bounded(locator_graph) -> None:
     fixed = uuid4()
-    first = _service(locator_graph, id_factory=lambda: fixed).issue(
-        _issue(locator_graph)
-    )
+    first = _service(locator_graph, id_factory=lambda: fixed).issue(_issue(locator_graph))
     assert first.locator_uuid == fixed
     second_issue = replace(
         _issue(locator_graph),

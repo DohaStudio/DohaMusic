@@ -45,9 +45,7 @@ IdempotencyKeyHeader = Annotated[
     ),
 ]
 
-_ALLOWED_JOB_QUERY_FIELDS = frozenset(
-    {"project_id", "status", "job_type", "cursor", "limit"}
-)
+_ALLOWED_JOB_QUERY_FIELDS = frozenset({"project_id", "status", "job_type", "cursor", "limit"})
 
 
 def reject_job_query_input(request: Request) -> None:
@@ -245,9 +243,7 @@ def _aggregate_detail(aggregate: JobAggregate) -> JobDetail:
         **summary.model_dump(),
         inputs=[JobInputDetail.model_validate(item) for item in aggregate.inputs],
         outputs=[JobOutputDetail.model_validate(item) for item in aggregate.outputs],
-        model_usages=[
-            JobModelUsageDetail.model_validate(item) for item in aggregate.model_usages
-        ],
+        model_usages=[JobModelUsageDetail.model_validate(item) for item in aggregate.model_usages],
         error_code=job.error_code,
         error_message=job.error_message,
         error_retryable=job.error_retryable,

@@ -98,9 +98,7 @@ def test_sample_promotion_and_active_reference_invariants(client) -> None:
         assert sample in samples.list_by_profile(profile.id)
 
         with pytest.raises(ValueError, match="must belong"):
-            profiles.set_active_reference(
-                profile, other_profile.active_reference_sample
-            )
+            profiles.set_active_reference(profile, other_profile.active_reference_sample)
 
         incomplete = samples.create(
             enrollment_id=enrollment.id,

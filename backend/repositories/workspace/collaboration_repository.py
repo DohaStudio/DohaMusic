@@ -24,9 +24,7 @@ class CollaborationRepository:
     def __init__(self, session: Session) -> None:
         self.session = session
 
-    def add_recording_enrollment(
-        self, enrollment: RecordingEnrollment
-    ) -> RecordingEnrollment:
+    def add_recording_enrollment(self, enrollment: RecordingEnrollment) -> RecordingEnrollment:
         self.session.add(enrollment)
         self.session.flush()
         return enrollment
@@ -89,17 +87,13 @@ class CollaborationRepository:
         statement = statement.order_by(Tag.name, Tag.tag_id).limit(limit).offset(offset)
         return list(self.session.scalars(statement))
 
-    def tag_name_exists(
-        self, asset_id: UUID, name: str, *, include_deleted: bool = False
-    ) -> bool:
+    def tag_name_exists(self, asset_id: UUID, name: str, *, include_deleted: bool = False) -> bool:
         statement = select(Tag.tag_id).where(Tag.asset_id == asset_id, Tag.name == name)
         if not include_deleted:
             statement = statement.where(Tag.deleted_at.is_(None))
         return self.session.scalar(statement.limit(1)) is not None
 
-    def find_tag(
-        self, asset_id: UUID, name: str, *, include_deleted: bool = False
-    ) -> Tag | None:
+    def find_tag(self, asset_id: UUID, name: str, *, include_deleted: bool = False) -> Tag | None:
         statement = select(Tag).where(Tag.asset_id == asset_id, Tag.name == name)
         if not include_deleted:
             statement = statement.where(Tag.deleted_at.is_(None))
@@ -115,9 +109,7 @@ class CollaborationRepository:
         self.session.flush()
         return comment
 
-    def get_comment(
-        self, comment_id: UUID, *, include_deleted: bool = False
-    ) -> Comment | None:
+    def get_comment(self, comment_id: UUID, *, include_deleted: bool = False) -> Comment | None:
         statement = select(Comment).where(Comment.comment_id == comment_id)
         if not include_deleted:
             statement = statement.where(Comment.deleted_at.is_(None))
@@ -135,9 +127,7 @@ class CollaborationRepository:
         if not include_deleted:
             statement = statement.where(Comment.deleted_at.is_(None))
         statement = (
-            statement.order_by(Comment.created_at, Comment.comment_id)
-            .limit(limit)
-            .offset(offset)
+            statement.order_by(Comment.created_at, Comment.comment_id).limit(limit).offset(offset)
         )
         return list(self.session.scalars(statement))
 
@@ -151,9 +141,7 @@ class CollaborationRepository:
         self.session.flush()
         return favorite
 
-    def get_favorite(
-        self, favorite_id: UUID, *, include_deleted: bool = False
-    ) -> Favorite | None:
+    def get_favorite(self, favorite_id: UUID, *, include_deleted: bool = False) -> Favorite | None:
         statement = select(Favorite).where(Favorite.favorite_id == favorite_id)
         if not include_deleted:
             statement = statement.where(Favorite.deleted_at.is_(None))
@@ -254,9 +242,7 @@ class CollaborationRepository:
         if asset_version_id is not None:
             statement = statement.where(Approval.asset_version_id == asset_version_id)
         if recording_enrollment_id is not None:
-            statement = statement.where(
-                Approval.recording_enrollment_id == recording_enrollment_id
-            )
+            statement = statement.where(Approval.recording_enrollment_id == recording_enrollment_id)
         if model_usage_id is not None:
             statement = statement.where(Approval.model_usage_id == model_usage_id)
         statement = (

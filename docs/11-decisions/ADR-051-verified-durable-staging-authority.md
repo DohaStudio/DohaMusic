@@ -1,4 +1,4 @@
-# ADR-050: Verified Durable Staging Authority
+# ADR-051: Verified Durable Staging Authority
 
 > 상태: 승인·구현 대기
 > 작성일: 2026-08-25

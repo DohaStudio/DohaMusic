@@ -22,9 +22,7 @@ def utc_now() -> datetime:
 class GenerationJob(Base):
     __tablename__ = "generation_jobs"
 
-    id: Mapped[str] = mapped_column(
-        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
-    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     status: Mapped[str] = mapped_column(String(32), nullable=False, index=True)
     prompt: Mapped[str] = mapped_column(Text, nullable=False)
     lyrics: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -34,15 +32,11 @@ class GenerationJob(Base):
     current_step: Mapped[str] = mapped_column(String(100), nullable=False)
     error_code: Mapped[str | None] = mapped_column(String(100), nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=utc_now
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, onupdate=utc_now
     )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     files: Mapped[list[GeneratedFile]] = relationship(
         back_populates="job",

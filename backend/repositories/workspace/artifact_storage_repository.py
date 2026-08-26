@@ -46,17 +46,11 @@ class ArtifactStorageRepository:
 
         statement = select(ArtifactStorageLocation)
         if after_id is not None:
-            statement = statement.where(
-                ArtifactStorageLocation.storage_location_id > after_id
-            )
-        statement = statement.order_by(
-            ArtifactStorageLocation.storage_location_id
-        ).limit(limit)
+            statement = statement.where(ArtifactStorageLocation.storage_location_id > after_id)
+        statement = statement.order_by(ArtifactStorageLocation.storage_location_id).limit(limit)
         return list(self.session.scalars(statement))
 
-    def add_storage_location(
-        self, location: ArtifactStorageLocation
-    ) -> ArtifactStorageLocation:
+    def add_storage_location(self, location: ArtifactStorageLocation) -> ArtifactStorageLocation:
         self.session.add(location)
         self.session.flush()
         return location

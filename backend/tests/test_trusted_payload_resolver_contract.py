@@ -147,9 +147,7 @@ def test_outside_directory_and_missing_payloads_are_rejected(
         registry.register_trusted_payload(staging_root, artifact_kind="lyrics_text")
     _assert_code(directory_error, TrustedPayloadErrorCode.PAYLOAD_NOT_REGULAR_FILE)
     with pytest.raises(TrustedPayloadError) as missing_error:
-        registry.register_trusted_payload(
-            staging_root / "missing.txt", artifact_kind="lyrics_text"
-        )
+        registry.register_trusted_payload(staging_root / "missing.txt", artifact_kind="lyrics_text")
     _assert_code(missing_error, TrustedPayloadErrorCode.PAYLOAD_MISSING)
 
 
@@ -162,9 +160,7 @@ def test_symlink_escape_is_rejected(staging_root: Path, tmp_path: Path) -> None:
         pytest.skip("symlink creation is unavailable on this platform")
 
     with pytest.raises(TrustedPayloadError) as caught:
-        _registry(staging_root).register_trusted_payload(
-            link, artifact_kind="lyrics_text"
-        )
+        _registry(staging_root).register_trusted_payload(link, artifact_kind="lyrics_text")
     _assert_code(caught, TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
 
 
@@ -177,9 +173,7 @@ def test_reported_reparse_point_is_rejected_without_path_disclosure(
     def reject_reparse(_root: Path, _candidate: Path) -> None:
         raise ArtifactStorageError(ArtifactStorageErrorCode.STORAGE_ESCAPE)
 
-    monkeypatch.setattr(
-        trusted_payload_module, "assert_safe_local_path", reject_reparse
-    )
+    monkeypatch.setattr(trusted_payload_module, "assert_safe_local_path", reject_reparse)
     with pytest.raises(TrustedPayloadError) as caught:
         registry.register_trusted_payload(path, artifact_kind="lyrics_text")
     _assert_code(caught, TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
@@ -194,9 +188,7 @@ def test_windows_drive_and_unc_paths_outside_root_are_rejected(
     staging_root: Path, candidate: Path
 ) -> None:
     with pytest.raises(TrustedPayloadError) as caught:
-        _registry(staging_root).register_trusted_payload(
-            candidate, artifact_kind="lyrics_text"
-        )
+        _registry(staging_root).register_trusted_payload(candidate, artifact_kind="lyrics_text")
     _assert_code(caught, TrustedPayloadErrorCode.PAYLOAD_OUTSIDE_TRUSTED_ROOT)
 
 
@@ -209,10 +201,7 @@ def test_windows_root_containment_is_case_insensitive(staging_root: Path) -> Non
         Path(str(path).swapcase()), artifact_kind="lyrics_text"
     )
 
-    assert (
-        registry.resolve(reference).payload_checksum
-        == hashlib.sha256(payload).hexdigest()
-    )
+    assert registry.resolve(reference).payload_checksum == hashlib.sha256(payload).hexdigest()
 
 
 def test_expiry_is_explicit_timezone_aware_and_fail_closed(staging_root: Path) -> None:
@@ -308,9 +297,7 @@ def test_configuration_and_non_regular_special_file_fail_closed(
     fifo = staging_root / "payload.fifo"
     os.mkfifo(fifo)
     with pytest.raises(TrustedPayloadError) as fifo_error:
-        _registry(staging_root).register_trusted_payload(
-            fifo, artifact_kind="lyrics_text"
-        )
+        _registry(staging_root).register_trusted_payload(fifo, artifact_kind="lyrics_text")
     _assert_code(fifo_error, TrustedPayloadErrorCode.PAYLOAD_NOT_REGULAR_FILE)
 
 

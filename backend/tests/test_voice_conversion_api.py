@@ -12,9 +12,7 @@ from backend.models.stem_file import StemFile
 from backend.models.voice_conversion_file import VoiceConversionFile
 
 
-def wait_for_terminal(
-    client: TestClient, endpoint: str, job_id: str
-) -> dict[str, object]:
+def wait_for_terminal(client: TestClient, endpoint: str, job_id: str) -> dict[str, object]:
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
         response = client.get(f"{endpoint}/{job_id}")
@@ -32,9 +30,7 @@ def prepare_inputs(client: TestClient) -> tuple[str, str]:
         json={"prompt": "Voice conversion test", "duration_seconds": 10},
     )
     generated = wait_for_terminal(client, "/api/generations", generation.json()["id"])
-    generated_file_id = client.get(f"/api/generations/{generated['id']}/files").json()[
-        0
-    ]["id"]
+    generated_file_id = client.get(f"/api/generations/{generated['id']}/files").json()[0]["id"]
     stem = client.post("/api/stems", json={"source_file_id": generated_file_id})
     stemmed = wait_for_terminal(client, "/api/stems", stem.json()["id"])
     files = client.get(f"/api/stems/{stemmed['id']}/files").json()
@@ -43,9 +39,7 @@ def prepare_inputs(client: TestClient) -> tuple[str, str]:
     storage = client.app.state.storage
     reference = storage.voice_references_dir / "consented-test.wav"
     with client.app.state.session_factory() as session:
-        vocal_record = session.scalar(
-            select(StemFile).where(StemFile.id == vocals["id"])
-        )
+        vocal_record = session.scalar(select(StemFile).where(StemFile.id == vocals["id"]))
         assert vocal_record is not None
         source_path = storage.resolve_relative_path(vocal_record.file_path)
     shutil.copyfile(source_path, reference)
@@ -70,9 +64,7 @@ def test_create_get_and_list_mock_voice_conversion(client: TestClient) -> None:
     assert response.status_code == 202
     assert response.json()["status"] == "PENDING"
 
-    completed = wait_for_terminal(
-        client, "/api/voice-conversion", response.json()["id"]
-    )
+    completed = wait_for_terminal(client, "/api/voice-conversion", response.json()["id"])
     assert completed["status"] == "COMPLETED"
     assert completed["provider"] == "mock"
     files = client.get(f"/api/voice-conversion/{completed['id']}/files").json()

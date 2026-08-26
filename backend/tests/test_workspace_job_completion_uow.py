@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import io
-from pathlib import Path
 import wave
+from pathlib import Path
 from uuid import UUID, uuid4
 
 import pytest
@@ -45,13 +45,13 @@ from backend.services.workspace import (
     ProviderResultStatus,
     WorkspaceService,
 )
-from backend.storage.artifact_resolver import (
-    APPROVED_STORAGE_DOMAINS,
-    ArtifactStorageRoots,
-)
 from backend.storage.artifact_publisher import (
     ArtifactPublishError,
     ArtifactPublishErrorCode,
+)
+from backend.storage.artifact_resolver import (
+    APPROVED_STORAGE_DOMAINS,
+    ArtifactStorageRoots,
 )
 
 
@@ -64,9 +64,7 @@ class CompletionFixture:
             (self.artifact_root / domain).mkdir(parents=True)
         self.engine = create_database_engine(f"sqlite:///{tmp_path / 'completion.db'}")
         Base.metadata.create_all(self.engine)
-        self.factory = sessionmaker(
-            bind=self.engine, autoflush=False, expire_on_commit=False
-        )
+        self.factory = sessionmaker(bind=self.engine, autoflush=False, expire_on_commit=False)
         self.owner_id = uuid4()
         workspace_service = WorkspaceService(self.factory)
         self.workspace = workspace_service.create_workspace(
@@ -82,9 +80,7 @@ class CompletionFixture:
             artifact_roots=ArtifactStorageRoots.from_base_root(self.artifact_root),
             staging_root=self.staging_root,
         )
-        self.completion = JobCompletionService(
-            self.factory, ingestion_service=self.ingestion
-        )
+        self.completion = JobCompletionService(self.factory, ingestion_service=self.ingestion)
 
     def close(self) -> None:
         assert self.engine.pool.checkedout() == 0
@@ -217,8 +213,7 @@ def test_completion_replay_is_idempotent_and_conflict_is_fail_closed(
         provider_result=completion.success_result(first, target),
     )
     counts = tuple(
-        completion.count(entity)
-        for entity in (AssetVersion, Artifact, JobOutput, ModelUsage)
+        completion.count(entity) for entity in (AssetVersion, Artifact, JobOutput, ModelUsage)
     )
 
     replay_path = completion.write("replay.txt", b"same payload")
@@ -229,8 +224,7 @@ def test_completion_replay_is_idempotent_and_conflict_is_fail_closed(
     )
     assert replay.replayed is True
     assert counts == tuple(
-        completion.count(entity)
-        for entity in (AssetVersion, Artifact, JobOutput, ModelUsage)
+        completion.count(entity) for entity in (AssetVersion, Artifact, JobOutput, ModelUsage)
     )
     assert len(completion.published_files()) == 1
 
@@ -243,8 +237,7 @@ def test_completion_replay_is_idempotent_and_conflict_is_fail_closed(
         )
     assert caught.value.completion_code is JobCompletionErrorCode.CONFLICT
     assert counts == tuple(
-        completion.count(entity)
-        for entity in (AssetVersion, Artifact, JobOutput, ModelUsage)
+        completion.count(entity) for entity in (AssetVersion, Artifact, JobOutput, ModelUsage)
     )
     assert len(completion.published_files()) == 1
 
@@ -377,9 +370,7 @@ def test_invalid_media_and_output_role_fail_without_partial_state(
         completion.completion.complete_job_with_provider_result(
             role_job.job_id,
             effective_owner_id=completion.owner_id,
-            provider_result=completion.success_result(
-                invalid_role, target, role="unknown"
-            ),
+            provider_result=completion.success_result(invalid_role, target, role="unknown"),
         )
     assert role_error.value.completion_code is JobCompletionErrorCode.INVALID_RESULT
     assert completion.count(Artifact) == completion.count(JobOutput) == 0
@@ -492,9 +483,7 @@ def test_multi_output_failure_is_atomic(completion: CompletionFixture) -> None:
         commercial_usage_status="allowed",
         outputs=(
             ProviderOutput(0, "vocal_stem", first, "stem", vocal_target.asset_id),
-            ProviderOutput(
-                1, "instrumental_stem", second, "stem", music_target.asset_id
-            ),
+            ProviderOutput(1, "instrumental_stem", second, "stem", music_target.asset_id),
         ),
     )
     baseline_versions = completion.count(AssetVersion)

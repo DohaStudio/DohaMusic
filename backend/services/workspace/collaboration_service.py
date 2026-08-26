@@ -53,9 +53,7 @@ class CollaborationService:
                 repository = CollaborationRepository(session)
                 if asset_repository.get_asset(asset_id) is None:
                     raise ResourceNotFoundError("Asset")
-                existing = repository.find_tag(
-                    asset_id, normalized_name, include_deleted=True
-                )
+                existing = repository.find_tag(asset_id, normalized_name, include_deleted=True)
                 if existing is not None:
                     if existing.deleted_at is None:
                         raise ResourceConflictError("Tag")
@@ -74,15 +72,11 @@ class CollaborationService:
         except IntegrityError:
             raise ResourceConflictError("Tag") from None
 
-    def list_tags(
-        self, asset_id: UUID, *, limit: int = 100, offset: int = 0
-    ) -> list[Tag]:
+    def list_tags(self, asset_id: UUID, *, limit: int = 100, offset: int = 0) -> list[Tag]:
         with self.session_factory() as session:
             if AssetRepository(session).get_asset(asset_id) is None:
                 raise ResourceNotFoundError("Asset")
-            return CollaborationRepository(session).list_tags(
-                asset_id, limit=limit, offset=offset
-            )
+            return CollaborationRepository(session).list_tags(asset_id, limit=limit, offset=offset)
 
     def delete_tag(self, tag_id: UUID) -> Tag:
         with self.session_factory() as session, session.begin():
@@ -93,9 +87,7 @@ class CollaborationService:
             repository.soft_delete_tag(tag)
         return tag
 
-    def create_comment(
-        self, *, asset_version_id: UUID, created_by: UUID, body: str
-    ) -> Comment:
+    def create_comment(self, *, asset_version_id: UUID, created_by: UUID, body: str) -> Comment:
         normalized_body = _required_text(body, "Comment 본문")
         with self.session_factory() as session, session.begin():
             if AssetRepository(session).get_asset_version(asset_version_id) is None:
@@ -139,16 +131,9 @@ class CollaborationService:
                 asset = asset_repository.get_asset(asset_id)
                 if asset is None:
                     raise ResourceNotFoundError("Asset")
-                if (
-                    asset.workspace_id is not None
-                    and asset.workspace_id != workspace_id
-                ):
-                    raise ApplicationValidationError(
-                        "Favorite Asset의 Workspace 범위가 다릅니다."
-                    )
-                existing = repository.find_favorite(
-                    workspace_id, asset_id, include_deleted=True
-                )
+                if asset.workspace_id is not None and asset.workspace_id != workspace_id:
+                    raise ApplicationValidationError("Favorite Asset의 Workspace 범위가 다릅니다.")
+                existing = repository.find_favorite(workspace_id, asset_id, include_deleted=True)
                 if existing is not None:
                     if existing.deleted_at is None:
                         return existing
@@ -206,9 +191,7 @@ class CollaborationService:
                     before_snapshot=(
                         dict(before_snapshot) if before_snapshot is not None else None
                     ),
-                    after_snapshot=(
-                        dict(after_snapshot) if after_snapshot is not None else None
-                    ),
+                    after_snapshot=(dict(after_snapshot) if after_snapshot is not None else None),
                 )
             )
         return history
@@ -237,20 +220,19 @@ class CollaborationService:
     ) -> Approval:
         targets = [asset_version_id, recording_enrollment_id, model_usage_id]
         if sum(target is not None for target in targets) != 1:
-            raise ApplicationValidationError(
-                "Approval 대상은 정확히 하나만 지정해야 합니다."
-            )
+            raise ApplicationValidationError("Approval 대상은 정확히 하나만 지정해야 합니다.")
         with self.session_factory() as session, session.begin():
             repository = CollaborationRepository(session)
             if asset_version_id is not None:
                 if AssetRepository(session).get_asset_version(asset_version_id) is None:
                     raise ResourceNotFoundError("AssetVersion")
-            elif recording_enrollment_id is not None:
-                if repository.get_recording_enrollment(recording_enrollment_id) is None:
-                    raise ResourceNotFoundError("RecordingEnrollment")
-            if model_usage_id is not None:
-                if session.get(ModelUsage, model_usage_id) is None:
-                    raise ResourceNotFoundError("ModelUsage")
+            elif (
+                recording_enrollment_id is not None
+                and repository.get_recording_enrollment(recording_enrollment_id) is None
+            ):
+                raise ResourceNotFoundError("RecordingEnrollment")
+            if model_usage_id is not None and session.get(ModelUsage, model_usage_id) is None:
+                raise ResourceNotFoundError("ModelUsage")
             approval = repository.add_approval(
                 Approval(
                     asset_version_id=asset_version_id,
@@ -318,9 +300,7 @@ class CollaborationService:
                         consent_policy_version=_required_text(
                             consent_policy_version, "Consent 정책 version"
                         ),
-                        consent_evidence_id=_required_text(
-                            consent_evidence_id, "Consent 증적 ID"
-                        ),
+                        consent_evidence_id=_required_text(consent_evidence_id, "Consent 증적 ID"),
                         created_by=created_by,
                     )
                 )
@@ -330,9 +310,7 @@ class CollaborationService:
 
     def get_recording_enrollment(self, enrollment_id: UUID) -> RecordingEnrollment:
         with self.session_factory() as session:
-            enrollment = CollaborationRepository(session).get_recording_enrollment(
-                enrollment_id
-            )
+            enrollment = CollaborationRepository(session).get_recording_enrollment(enrollment_id)
             if enrollment is None:
                 raise ResourceNotFoundError("RecordingEnrollment")
             return enrollment

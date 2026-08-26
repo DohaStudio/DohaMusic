@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-25
 > 기준: DohaMusic `develop` `e1b4c0007487436bfef5a4d0d0f5271898d8fa4b`
 > 최종 판정: `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`
-> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)
 
 ## 1. 결론과 범위
 

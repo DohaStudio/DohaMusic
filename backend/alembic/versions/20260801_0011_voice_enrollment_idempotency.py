@@ -26,9 +26,7 @@ def upgrade() -> None:
         sa.Column("scope", sa.String(length=150), nullable=False),
         sa.Column("key_hash", sa.String(length=64), nullable=False),
         sa.Column("request_fingerprint", sa.String(length=64), nullable=False),
-        sa.Column(
-            "status", sa.String(length=20), nullable=False, server_default="IN_PROGRESS"
-        ),
+        sa.Column("status", sa.String(length=20), nullable=False, server_default="IN_PROGRESS"),
         sa.Column("resource_type", sa.String(length=50), nullable=True),
         sa.Column("resource_id", sa.String(length=36), nullable=True),
         sa.Column("response_status", sa.Integer(), nullable=True),

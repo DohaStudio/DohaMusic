@@ -106,9 +106,7 @@ class PayloadLocatorIssue:
             and type(self.expected_size_bytes) is int
             and self.expected_size_bytes > 0
             and self.expected_media_type in EXPECTED_MEDIA_TYPES
-            and _valid_role_media_kind(
-                self.role, self.artifact_kind, self.expected_media_type
-            )
+            and _valid_role_media_kind(self.role, self.artifact_kind, self.expected_media_type)
             and _is_utc_or_none(self.source_available_until)
             and _is_utc_or_none(self.locator_expires_at)
         )

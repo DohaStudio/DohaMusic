@@ -10,9 +10,9 @@ from fastapi import APIRouter, Depends, Query, Request
 from backend.api.v1.dependencies import get_request_id, get_workspace_service
 from backend.api.v1.routes.common import (
     map_workspace_error,
+    reject_owner_input,
     relative_next_url,
     relative_request_url,
-    reject_owner_input,
     require_bootstrapped_workspace,
 )
 from backend.schemas.workspace import (

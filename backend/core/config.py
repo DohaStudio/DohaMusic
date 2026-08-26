@@ -37,9 +37,7 @@ class Settings(BaseModel):
     dohavocal_read_timeout_seconds: float = Field(default=30.0, gt=0, le=300)
     dohavocal_write_timeout_seconds: float = Field(default=10.0, gt=0, le=300)
     dohavocal_pool_timeout_seconds: float = Field(default=2.0, gt=0, le=300)
-    dohavocal_payload_max_bytes: int = Field(
-        default=64 * 1024 * 1024, gt=0, le=1024 * 1024 * 1024
-    )
+    dohavocal_payload_max_bytes: int = Field(default=64 * 1024 * 1024, gt=0, le=1024 * 1024 * 1024)
     pipeline_version: str = "1"
     pipeline_max_retries: int = Field(default=1, ge=0, le=5)
     pipeline_step_timeout_seconds: float = Field(default=900, ge=0.01, le=7_200)
@@ -245,12 +243,22 @@ class Settings(BaseModel):
             "DOHAMUSIC_VOICE_NORMALIZATION_TIMEOUT_SECONDS": "voice_normalization_timeout_seconds",
             "DOHAMUSIC_VOICE_ENROLLMENT_MAX_FILE_BYTES": "voice_enrollment_max_file_bytes",
             "DOHAMUSIC_VOICE_ENROLLMENT_MAX_SAMPLES": "voice_enrollment_max_samples",
-            "DOHAMUSIC_VOICE_ENROLLMENT_MIN_DURATION_SECONDS": "voice_enrollment_min_duration_seconds",
-            "DOHAMUSIC_VOICE_ENROLLMENT_MAX_DURATION_SECONDS": "voice_enrollment_max_duration_seconds",
-            "DOHAMUSIC_VOICE_ENROLLMENT_SLIDING_EXPIRY_HOURS": "voice_enrollment_sliding_expiry_hours",
-            "DOHAMUSIC_VOICE_ENROLLMENT_ABSOLUTE_EXPIRY_DAYS": "voice_enrollment_absolute_expiry_days",
+            "DOHAMUSIC_VOICE_ENROLLMENT_MIN_DURATION_SECONDS": (
+                "voice_enrollment_min_duration_seconds"
+            ),
+            "DOHAMUSIC_VOICE_ENROLLMENT_MAX_DURATION_SECONDS": (
+                "voice_enrollment_max_duration_seconds"
+            ),
+            "DOHAMUSIC_VOICE_ENROLLMENT_SLIDING_EXPIRY_HOURS": (
+                "voice_enrollment_sliding_expiry_hours"
+            ),
+            "DOHAMUSIC_VOICE_ENROLLMENT_ABSOLUTE_EXPIRY_DAYS": (
+                "voice_enrollment_absolute_expiry_days"
+            ),
             "DOHAMUSIC_VOICE_CLEANUP_INTERVAL_SECONDS": "voice_cleanup_interval_seconds",
-            "DOHAMUSIC_VOICE_EXPIRATION_SCAN_INTERVAL_SECONDS": "voice_expiration_scan_interval_seconds",
+            "DOHAMUSIC_VOICE_EXPIRATION_SCAN_INTERVAL_SECONDS": (
+                "voice_expiration_scan_interval_seconds"
+            ),
             "DOHAMUSIC_VOICE_ORPHAN_SCAN_INTERVAL_SECONDS": "voice_orphan_scan_interval_seconds",
             "DOHAMUSIC_VOICE_DELETE_RETRY_LIMIT": "voice_delete_retry_limit",
             "DOHAMUSIC_VOICE_DELETE_RETRY_DELAY_SECONDS": "voice_delete_retry_delay_seconds",

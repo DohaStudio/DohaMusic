@@ -66,9 +66,7 @@ def revision_prompt(request: LyricsRevisionRequest) -> str:
         "language": request.source_language,
         "source_title": request.source_title,
         "source_lyrics": request.source_full_text,
-        "source_structure": [
-            section.section_type for section in request.source_sections
-        ],
+        "source_structure": [section.section_type for section in request.source_sections],
         "instruction": request.instruction,
         "preserve_structure": request.preserve_structure,
     }

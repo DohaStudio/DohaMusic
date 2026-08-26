@@ -19,9 +19,7 @@ from backend.providers.vocal import (
     VocalProviderClient,
 )
 
-FIXTURE_PATH = (
-    Path(__file__).parent / "fixtures" / "vocal-provider-contract-v0.2.0.json"
-)
+FIXTURE_PATH = Path(__file__).parent / "fixtures" / "vocal-provider-contract-v0.2.0.json"
 
 
 @pytest.fixture
@@ -45,18 +43,14 @@ def test_020_capability_and_result_are_strictly_negotiated(payload_fixture) -> N
     [
         lambda value: value["capabilities"].pop("payload_acquisition"),
         lambda value: value["capabilities"]["supported_operations"].pop(),
-        lambda value: value["capabilities"]["payload_acquisition"].update(
-            source_kinds=["url"]
-        ),
+        lambda value: value["capabilities"]["payload_acquisition"].update(source_kinds=["url"]),
         lambda value: value["result"]["payloads"][0]["source"].update(
             source_id="https://evil.example/payload"
         ),
         lambda value: value["result"]["payloads"][0]["source"].update(
             source_id="../private/payload"
         ),
-        lambda value: value["result"]["payloads"][0]["source"].update(
-            source_id="token=secret"
-        ),
+        lambda value: value["result"]["payloads"][0]["source"].update(source_id="token=secret"),
         lambda value: value["result"]["payloads"][0].update(payload_checksum="A" * 64),
         lambda value: value["result"]["payloads"][0].update(
             expected_media_type="application/octet-stream"
@@ -86,9 +80,7 @@ def _request(payload_fixture, *, max_size_bytes: int = 32):
 def _transport(handler):
     client = httpx.Client(transport=httpx.MockTransport(handler))
     return (
-        HttpVocalProviderTransport(
-            base_url="https://trusted.example/runtime", client=client
-        ),
+        HttpVocalProviderTransport(base_url="https://trusted.example/runtime", client=client),
         client,
     )
 
@@ -120,8 +112,7 @@ def test_payload_is_streamed_and_verified_without_returning_a_locator(
     )
     assert observed[0].url.host == "trusted.example"
     assert observed[0].url.path == (
-        "/runtime/v1/jobs/provider-job-001/artifacts/provider-artifact-001/"
-        "payloads/content-001"
+        "/runtime/v1/jobs/provider-job-001/artifacts/provider-artifact-001/payloads/content-001"
     )
     assert observed[0].headers["accept"] == "audio/wav"
 
@@ -145,9 +136,7 @@ def test_redirect_is_not_followed(payload_fixture) -> None:
     def handler(_request: httpx.Request) -> httpx.Response:
         nonlocal calls
         calls += 1
-        return httpx.Response(
-            302, headers={"location": "https://untrusted.example/payload"}
-        )
+        return httpx.Response(302, headers={"location": "https://untrusted.example/payload"})
 
     transport, client = _transport(handler)
     try:
@@ -190,9 +179,7 @@ def test_configured_maximum_rejects_descriptor_before_network(payload_fixture) -
     finally:
         transport.close()
         client.close()
-    assert (
-        error.value.code is VocalPayloadAcquisitionErrorCode.PAYLOAD_INTEGRITY_MISMATCH
-    )
+    assert error.value.code is VocalPayloadAcquisitionErrorCode.PAYLOAD_INTEGRITY_MISMATCH
     assert calls == 0
 
 
@@ -202,9 +189,7 @@ def test_expired_availability_rejects_before_network(payload_fixture) -> None:
         update={"available_until": datetime(2000, 1, 1, tzinfo=UTC)}
     )
     with pytest.raises(VocalPayloadAcquisitionError) as error:
-        VocalPayloadAcquisitionRequest(
-            job_id=result.run_id, payload=expired, max_size_bytes=32
-        )
+        VocalPayloadAcquisitionRequest(job_id=result.run_id, payload=expired, max_size_bytes=32)
     assert error.value.code is VocalPayloadAcquisitionErrorCode.PAYLOAD_EXPIRED
 
 
@@ -218,12 +203,8 @@ def test_expired_availability_rejects_before_network(payload_fixture) -> None:
         (500, VocalPayloadAcquisitionErrorCode.PAYLOAD_TRANSFER_FAILED),
     ],
 )
-def test_payload_http_failures_have_stable_safe_semantics(
-    payload_fixture, status, code
-) -> None:
-    transport, client = _transport(
-        lambda _request: httpx.Response(status, content=b"secret")
-    )
+def test_payload_http_failures_have_stable_safe_semantics(payload_fixture, status, code) -> None:
+    transport, client = _transport(lambda _request: httpx.Response(status, content=b"secret"))
     try:
         with pytest.raises(VocalPayloadAcquisitionError) as error:
             transport.acquire_payload(_request(payload_fixture))
@@ -243,9 +224,7 @@ def test_payload_http_failures_have_stable_safe_semantics(
         (b"short", {"content-type": "audio/wav"}),
     ],
 )
-def test_media_size_and_checksum_mismatch_fail_closed(
-    payload_fixture, content, headers
-) -> None:
+def test_media_size_and_checksum_mismatch_fail_closed(payload_fixture, content, headers) -> None:
     transport, client = _transport(
         lambda _request: httpx.Response(200, content=content, headers=headers)
     )
@@ -255,9 +234,7 @@ def test_media_size_and_checksum_mismatch_fail_closed(
     finally:
         transport.close()
         client.close()
-    assert (
-        error.value.code is VocalPayloadAcquisitionErrorCode.PAYLOAD_INTEGRITY_MISMATCH
-    )
+    assert error.value.code is VocalPayloadAcquisitionErrorCode.PAYLOAD_INTEGRITY_MISMATCH
 
 
 def test_client_selects_result_dto_from_negotiated_version(payload_fixture) -> None:

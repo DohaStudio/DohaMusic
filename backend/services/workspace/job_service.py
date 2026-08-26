@@ -7,7 +7,7 @@ import json
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -57,16 +57,12 @@ from backend.services.workspace.composition_service import (
 
 ALLOWED_TRANSITIONS: dict[JobStatus, frozenset[JobStatus]] = {
     JobStatus.QUEUED: frozenset({JobStatus.RUNNING, JobStatus.CANCELLED}),
-    JobStatus.RUNNING: frozenset(
-        {JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED}
-    ),
+    JobStatus.RUNNING: frozenset({JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED}),
     JobStatus.SUCCEEDED: frozenset(),
     JobStatus.FAILED: frozenset(),
     JobStatus.CANCELLED: frozenset(),
 }
-TERMINAL_STATUSES = frozenset(
-    {JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED}
-)
+TERMINAL_STATUSES = frozenset({JobStatus.SUCCEEDED, JobStatus.FAILED, JobStatus.CANCELLED})
 OFFICIAL_JOB_TYPES = frozenset(
     {
         "lyrics_generation",
@@ -249,15 +245,11 @@ class JobService:
             settings_snapshot=normalized_settings,
             job_input=job_input,
         )
-        normalized_contract = _bounded_text(
-            api_contract_version, "API contract version", 64
-        )
+        normalized_contract = _bounded_text(api_contract_version, "API contract version", 64)
         scope = f"workspace:job:create:{effective_owner_id}"
         try:
             with self.session_factory() as session, session.begin():
-                project = self._require_project_scope(
-                    session, project_id, effective_owner_id
-                )
+                project = self._require_project_scope(session, project_id, effective_owner_id)
                 fingerprint = _job_create_fingerprint(
                     effective_owner_id=effective_owner_id,
                     workspace_id=project.workspace_id,
@@ -287,13 +279,11 @@ class JobService:
                     required=normalized_type in REQUIRED_SNAPSHOT_JOB_TYPES,
                 )
                 asset_repository = AssetRepository(session)
-                processing_chain_id = getattr(
-                    normalized_vocal_input, "processing_chain_id", None
-                )
+                processing_chain_id = getattr(normalized_vocal_input, "processing_chain_id", None)
                 if processing_chain_id is not None:
-                    processing_chain = CompositionRepository(
-                        session
-                    ).get_processing_chain(processing_chain_id)
+                    processing_chain = CompositionRepository(session).get_processing_chain(
+                        processing_chain_id
+                    )
                     if (
                         processing_chain is None
                         or processing_chain.created_by != effective_owner_id
@@ -313,19 +303,16 @@ class JobService:
                     resolved_versions[item.input_role or ""] = version_id
                     reference_id = item.artifact_id or item.asset_version_id
                     if reference_id is None:
-                        raise ApplicationValidationError(
-                            "JobInput reference is required."
-                        )
+                        raise ApplicationValidationError("JobInput reference is required.")
                     direct_references[item.input_role or ""] = reference_id
                     if snapshot_versions is not None and not _snapshot_has_input(
                         snapshot_versions, version_id, item.input_role
                     ):
                         raise ApplicationValidationError(
-                            "JobInput의 exact AssetVersion이 CompositionSnapshot과 일치하지 않습니다."
+                            "JobInput의 exact AssetVersion이 CompositionSnapshot과 "
+                            "일치하지 않습니다."
                         )
-                parent_version_id = getattr(
-                    normalized_vocal_input, "parent_asset_version_id", None
-                )
+                parent_version_id = getattr(normalized_vocal_input, "parent_asset_version_id", None)
                 if parent_version_id is not None:
                     validated_parent_version_id = self._validate_contract_reference(
                         session,
@@ -473,9 +460,7 @@ class JobService:
             session.flush()
             return job
 
-    def cancel_job_for_owner(
-        self, job_id: UUID, *, effective_owner_id: UUID
-    ) -> JobCancelResult:
+    def cancel_job_for_owner(self, job_id: UUID, *, effective_owner_id: UUID) -> JobCancelResult:
         """Cancel action은 상태 자체로 idempotent하며 별도 key를 요구하지 않는다."""
 
         with self.session_factory() as session, session.begin():
@@ -507,9 +492,7 @@ class JobService:
         try:
             with self.session_factory() as session, session.begin():
                 repository = JobRepository(session)
-                original = self._require_job_owner(
-                    repository, job_id, effective_owner_id
-                )
+                original = self._require_job_owner(repository, job_id, effective_owner_id)
                 if original.status not in {JobStatus.FAILED, JobStatus.CANCELLED}:
                     raise InvalidStateError("재시도 원본 Workspace Job")
                 original_type = _normalize_job_type(original.job_type)
@@ -518,9 +501,7 @@ class JobService:
                 )
                 if original.workspace_id != project.workspace_id:
                     raise InvalidStateError("재시도 원본 Workspace Job")
-                original_rows = repository.list_job_inputs(
-                    original.job_id, limit=MAX_JOB_INPUTS
-                )
+                original_rows = repository.list_job_inputs(original.job_id, limit=MAX_JOB_INPUTS)
                 original_inputs = self._normalize_contract_inputs(
                     original_type,
                     tuple(
@@ -553,7 +534,8 @@ class JobService:
                         snapshot_versions, version_id, item.input_role
                     ):
                         raise ApplicationValidationError(
-                            "재시도 JobInput의 exact AssetVersion이 CompositionSnapshot과 일치하지 않습니다."
+                            "재시도 JobInput의 exact AssetVersion이 CompositionSnapshot과 "
+                            "일치하지 않습니다."
                         )
                 fingerprint = _job_retry_fingerprint(
                     effective_owner_id=effective_owner_id,
@@ -642,9 +624,7 @@ class JobService:
                 if project is None:
                     raise ResourceNotFoundError("MusicProject")
                 if composition_snapshot_id is not None:
-                    snapshot = composition_repository.get_snapshot(
-                        composition_snapshot_id
-                    )
+                    snapshot = composition_repository.get_snapshot(composition_snapshot_id)
                     if snapshot is None or snapshot.project_id != project_id:
                         raise ApplicationValidationError(
                             "CompositionSnapshot은 같은 Project에 속해야 합니다."
@@ -725,13 +705,9 @@ class JobService:
             if project_id is not None:
                 if WorkspaceRepository(session).get_project(project_id) is None:
                     raise ResourceNotFoundError("MusicProject")
-                return repository.list_project_jobs(
-                    project_id, limit=limit, offset=offset
-                )
+                return repository.list_project_jobs(project_id, limit=limit, offset=offset)
             if status is not None:
-                return repository.list_jobs_by_status(
-                    status, limit=limit, offset=offset
-                )
+                return repository.list_jobs_by_status(status, limit=limit, offset=offset)
             return repository.list_jobs(limit=limit, offset=offset)
 
     def list_job_page(
@@ -750,9 +726,7 @@ class JobService:
         _validate_page_limit(limit)
         if status is not None and not isinstance(status, JobStatus):
             raise ApplicationValidationError("Job 상태 filter가 유효하지 않습니다.")
-        normalized_job_type = (
-            _normalize_job_type(job_type) if job_type is not None else None
-        )
+        normalized_job_type = _normalize_job_type(job_type) if job_type is not None else None
         codec = self._require_cursor_codec()
         filter_hash = filter_fingerprint(
             {
@@ -837,9 +811,7 @@ class JobService:
             raise ApplicationValidationError(
                 "성공 전이는 complete_job_with_outputs를 사용해야 합니다."
             )
-        if progress_percent is not None and not Decimal(
-            0
-        ) <= progress_percent <= Decimal(100):
+        if progress_percent is not None and not Decimal(0) <= progress_percent <= Decimal(100):
             raise ApplicationValidationError("진행률은 0에서 100 사이여야 합니다.")
         with self.session_factory() as session, session.begin():
             repository = JobRepository(session)
@@ -847,7 +819,7 @@ class JobService:
             if job is None:
                 raise ResourceNotFoundError("Workspace Job")
             self._validate_transition(job.status, status)
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             repository.update_job_status(
                 job,
                 status,
@@ -899,9 +871,7 @@ class JobService:
         except IntegrityError:
             raise ResourceConflictError("JobOutput") from None
 
-    def complete_job_with_outputs(
-        self, job_id: UUID, outputs: Sequence[JobReferenceOutput]
-    ) -> Job:
+    def complete_job_with_outputs(self, job_id: UUID, outputs: Sequence[JobReferenceOutput]) -> Job:
         normalized_outputs = self._normalize_outputs(outputs)
         if not normalized_outputs:
             raise ApplicationValidationError("성공 Job에는 출력이 필요합니다.")
@@ -923,9 +893,7 @@ class JobService:
                         asset_version_id=output.asset_version_id,
                         artifact_id=output.artifact_id,
                     )
-                    if job_repository.job_output_order_exists(
-                        job_id, output.output_order
-                    ):
+                    if job_repository.job_output_order_exists(job_id, output.output_order):
                         raise ResourceConflictError("JobOutput 순서")
                     job_repository.add_job_output(
                         JobOutput(
@@ -939,15 +907,13 @@ class JobService:
                 job_repository.update_job_status(
                     job,
                     JobStatus.SUCCEEDED,
-                    completed_at=datetime.now(timezone.utc),
+                    completed_at=datetime.now(UTC),
                 )
             return job
         except IntegrityError:
             raise ResourceConflictError("Job 완료 결과") from None
 
-    def record_model_usage(
-        self, job_id: UUID, usage_input: ModelUsageInput
-    ) -> ModelUsage:
+    def record_model_usage(self, job_id: UUID, usage_input: ModelUsageInput) -> ModelUsage:
         try:
             with self.session_factory() as session, session.begin():
                 job_repository = JobRepository(session)
@@ -986,18 +952,14 @@ class JobService:
             return repository.list_model_usages(job_id, limit=limit, offset=offset)
 
     @staticmethod
-    def _require_project_scope(
-        session: Session, project_id: UUID, effective_owner_id: UUID
-    ):
+    def _require_project_scope(session: Session, project_id: UUID, effective_owner_id: UUID):
         repository = WorkspaceRepository(session)
         if not repository.list_workspaces(owner_id=effective_owner_id, limit=1):
             raise WorkspaceBootstrapRequiredError()
         project = repository.get_project(project_id)
         if project is None or project.lifecycle_status != "active":
             raise ResourceNotFoundError("MusicProject")
-        workspace = repository.get_workspace_for_owner(
-            project.workspace_id, effective_owner_id
-        )
+        workspace = repository.get_workspace_for_owner(project.workspace_id, effective_owner_id)
         if workspace is None or workspace.lifecycle_status != "active":
             raise ResourceNotFoundError("MusicProject")
         return project
@@ -1057,9 +1019,7 @@ class JobService:
             raise ResourceNotFoundError("CompositionSnapshot")
         return {
             (item.asset_version_id, item.item_role)
-            for item in repository.list_snapshot_items(
-                composition_snapshot_id, limit=64
-            )
+            for item in repository.list_snapshot_items(composition_snapshot_id, limit=64)
         }
 
     @staticmethod
@@ -1067,29 +1027,21 @@ class JobService:
         job_type: str, inputs: Sequence[JobReferenceInput]
     ) -> list[JobReferenceInput]:
         if len(inputs) > MAX_JOB_INPUTS:
-            raise ApplicationValidationError(
-                f"JobInput은 최대 {MAX_JOB_INPUTS}개까지 허용합니다."
-            )
+            raise ApplicationValidationError(f"JobInput은 최대 {MAX_JOB_INPUTS}개까지 허용합니다.")
         required_roles, allowed_roles = JOB_INPUT_ROLES[job_type]
         normalized: list[JobReferenceInput] = []
         orders: set[int] = set()
         roles: set[str] = set()
         for item in inputs:
             if type(item.input_order) is not int or item.input_order < 0:
-                raise ApplicationValidationError(
-                    "JobInput 순서는 0 이상 정수여야 합니다."
-                )
+                raise ApplicationValidationError("JobInput 순서는 0 이상 정수여야 합니다.")
             if item.input_order in orders:
                 raise ResourceConflictError("JobInput 순서")
             role = _bounded_text(item.input_role, "JobInput 역할", 64)
             if role not in allowed_roles:
-                raise ApplicationValidationError(
-                    "Job 유형에 허용되지 않은 input_role입니다."
-                )
+                raise ApplicationValidationError("Job 유형에 허용되지 않은 input_role입니다.")
             if role in roles:
-                raise ApplicationValidationError(
-                    "같은 input_role은 중복할 수 없습니다."
-                )
+                raise ApplicationValidationError("같은 input_role은 중복할 수 없습니다.")
             if (item.asset_version_id is None) == (item.artifact_id is None):
                 raise ApplicationValidationError(
                     "JobInput에는 AssetVersion 또는 Artifact 중 하나만 필요합니다."
@@ -1144,9 +1096,7 @@ class JobService:
             or (asset.workspace_id is not None and asset.workspace_id != workspace_id)
         ):
             raise ResourceNotFoundError("JobInput")
-        project_asset = WorkspaceRepository(session).find_project_asset(
-            project_id, asset.asset_id
-        )
+        project_asset = WorkspaceRepository(session).find_project_asset(project_id, asset.asset_id)
         if project_asset is None:
             raise ResourceNotFoundError("ProjectAsset")
         return version.asset_version_id
@@ -1199,9 +1149,7 @@ class JobService:
         normalized: list[JobReferenceOutput] = []
         for output in outputs:
             if output.output_order < 0:
-                raise ApplicationValidationError(
-                    "JobOutput 순서는 0 이상이어야 합니다."
-                )
+                raise ApplicationValidationError("JobOutput 순서는 0 이상이어야 합니다.")
             if output.output_order in orders:
                 raise ResourceConflictError("JobOutput 순서")
             if (output.asset_version_id is None) == (output.artifact_id is None):
@@ -1235,9 +1183,7 @@ class JobService:
         if asset is None:
             raise ResourceNotFoundError("Asset")
         if asset.workspace_id is not None and asset.workspace_id != workspace_id:
-            raise ApplicationValidationError(
-                "Job 입출력의 Workspace 범위가 일치하지 않습니다."
-            )
+            raise ApplicationValidationError("Job 입출력의 Workspace 범위가 일치하지 않습니다.")
 
     @staticmethod
     def _build_model_usage(
@@ -1257,21 +1203,15 @@ class JobService:
             job_id=job_id,
             asset_version_id=value.asset_version_id,
             provider_id=_required_text(value.provider_id, "Provider ID"),
-            model_manifest_id=_required_text(
-                value.model_manifest_id, "Model Manifest ID"
-            ),
+            model_manifest_id=_required_text(value.model_manifest_id, "Model Manifest ID"),
             model_id=_required_text(value.model_id, "Model ID"),
             model_version=_required_text(value.model_version, "Model version"),
             checkpoint_version=(
                 value.checkpoint_version.strip() if value.checkpoint_version else None
             ),
-            api_contract_version=_required_text(
-                value.api_contract_version, "API contract version"
-            ),
+            api_contract_version=_required_text(value.api_contract_version, "API contract version"),
             license_status=_required_text(value.license_status, "License 상태"),
-            commercial_usage_status=_required_text(
-                value.commercial_usage_status, "상업 이용 상태"
-            ),
+            commercial_usage_status=_required_text(value.commercial_usage_status, "상업 이용 상태"),
         )
 
 
@@ -1313,29 +1253,21 @@ def _optional_bounded_text(value: object, field_name: str, maximum: int) -> str 
 def _safe_public_text(value: object, field_name: str, maximum: int) -> str:
     normalized = _bounded_text(value, field_name, maximum)
     if any(ord(character) < 32 and character not in "\t" for character in normalized):
-        raise ApplicationValidationError(
-            f"{field_name}에 제어 문자를 사용할 수 없습니다."
-        )
+        raise ApplicationValidationError(f"{field_name}에 제어 문자를 사용할 수 없습니다.")
     if _UNSAFE_PUBLIC_TEXT.search(normalized):
-        raise ApplicationValidationError(
-            f"{field_name}에 민감한 실행 정보를 포함할 수 없습니다."
-        )
+        raise ApplicationValidationError(f"{field_name}에 민감한 실행 정보를 포함할 수 없습니다.")
     return normalized
 
 
 def _safe_error_code(value: object) -> str:
-    normalized = _bounded_text(
-        value or "JOB_FAILED", "오류 코드", MAX_ERROR_CODE_LENGTH
-    )
+    normalized = _bounded_text(value or "JOB_FAILED", "오류 코드", MAX_ERROR_CODE_LENGTH)
     if re.fullmatch(r"[A-Z][A-Z0-9_]*", normalized) is None:
         raise ApplicationValidationError("오류 코드는 안전한 대문자 식별자여야 합니다.")
     return normalized
 
 
 def _safe_error_details_id(value: object) -> str | None:
-    normalized = _optional_bounded_text(
-        value, "오류 상세 참조", MAX_ERROR_DETAILS_ID_LENGTH
-    )
+    normalized = _optional_bounded_text(value, "오류 상세 참조", MAX_ERROR_DETAILS_ID_LENGTH)
     if normalized is None:
         return None
     if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9._:-]*", normalized) is None:
@@ -1404,13 +1336,9 @@ def _normalize_vocal_contract(
             "구조화된 Vocal Job은 dohavocal Provider를 사용해야 합니다."
         )
     if model_manifest_id is None:
-        raise ApplicationValidationError(
-            "구조화된 Vocal Job에는 Model Manifest ID가 필요합니다."
-        )
+        raise ApplicationValidationError("구조화된 Vocal Job에는 Model Manifest ID가 필요합니다.")
     if job_input is None:
-        raise ApplicationValidationError(
-            "구조화된 Vocal Job에는 job_input이 필요합니다."
-        )
+        raise ApplicationValidationError("구조화된 Vocal Job에는 job_input이 필요합니다.")
     try:
         normalized_input = VOCAL_JOB_INPUT_ADAPTER.validate_python(job_input)
     except ValidationError:
@@ -1418,13 +1346,9 @@ def _normalize_vocal_contract(
             "Vocal Job의 job_input 계약이 유효하지 않습니다."
         ) from None
     if normalized_input.job_type != job_type:
-        raise ApplicationValidationError(
-            "job_type과 job_input.job_type이 일치해야 합니다."
-        )
+        raise ApplicationValidationError("job_type과 job_input.job_type이 일치해야 합니다.")
     stored_settings = dict(settings_snapshot)
-    stored_settings[VOCAL_JOB_INPUT_SETTINGS_KEY] = normalized_input.model_dump(
-        mode="json"
-    )
+    stored_settings[VOCAL_JOB_INPUT_SETTINGS_KEY] = normalized_input.model_dump(mode="json")
     return stored_settings, normalized_input
 
 
@@ -1454,12 +1378,10 @@ def _validate_vocal_input_references(
         return
     if resolved_versions.get("source_vocal") != job_input.source_asset_version_id:
         raise ApplicationValidationError(
-            "job_input.source_asset_version_id와 source_vocal lineage가 "
-            "일치해야 합니다."
+            "job_input.source_asset_version_id와 source_vocal lineage가 일치해야 합니다."
         )
     if job_input.job_type == "voice_conversion" and (
-        direct_references.get("voice_reference")
-        != job_input.voice_reference_artifact_id
+        direct_references.get("voice_reference") != job_input.voice_reference_artifact_id
     ):
         raise ApplicationValidationError(
             "job_input.voice_reference_artifact_id와 voice_reference가 일치해야 합니다."
@@ -1482,26 +1404,19 @@ def _validate_vocal_parent_lineage(
     visited: set[UUID] = set()
     current = parent
     while current.asset_version_id != source_version_id:
-        if (
-            current.asset_version_id in visited
-            or current.parent_asset_version_id is None
-        ):
+        if current.asset_version_id in visited or current.parent_asset_version_id is None:
             raise ApplicationValidationError(
                 "parent_asset_version_id는 source AssetVersion의 파생본이어야 합니다."
             )
         visited.add(current.asset_version_id)
         ancestor = repository.get_asset_version(current.parent_asset_version_id)
         if ancestor is None or ancestor.asset_id != source.asset_id:
-            raise ApplicationValidationError(
-                "parent_asset_version_id의 계보가 유효하지 않습니다."
-            )
+            raise ApplicationValidationError("parent_asset_version_id의 계보가 유효하지 않습니다.")
         current = ancestor
 
 
 def _canonical_fingerprint(payload: dict[str, Any]) -> str:
-    serialized = json.dumps(
-        payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")
-    )
+    serialized = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
 
@@ -1536,9 +1451,7 @@ def _job_create_fingerprint(
         {
             "api_contract_version": api_contract_version,
             "composition_snapshot_id": (
-                str(composition_snapshot_id)
-                if composition_snapshot_id is not None
-                else None
+                str(composition_snapshot_id) if composition_snapshot_id is not None else None
             ),
             "effective_owner_id": str(effective_owner_id),
             "inputs": [
@@ -1580,9 +1493,7 @@ def _job_retry_fingerprint(
         {
             "api_contract_version": api_contract_version,
             "composition_snapshot_id": (
-                str(composition_snapshot_id)
-                if composition_snapshot_id is not None
-                else None
+                str(composition_snapshot_id) if composition_snapshot_id is not None else None
             ),
             "effective_owner_id": str(effective_owner_id),
             "inputs": [

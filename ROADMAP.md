@@ -42,11 +42,11 @@ DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic�
 
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
 2. D1·D2 `[완료]`: Composition Read의 Workspace 권위와 Project 상세 연결, 읽기 전용 Timeline·Track lane·단일 Mix playback·실제 media duration·Playhead·Master/Mix Waveform·seek·scroll·zoom·keyboard 기반을 완료했다. 실제 DB 승인은 별도 유지한다.
-3. D3 `[진행 중]`: ADR-040의 mutable WorkingComposition·canonical Track/Clip, ADR-045의 Track 삭제·trusted duration과 ADR-047의 revision-safe replay 권위를 확정했다. 5개 persistence table, nullable Artifact duration, versioned completion result, atomic mutation Service와 13개 Product operation을 구현했으며 Clip UI·Composition commit은 미구현이다. D4 Mixer·독립 Export는 `[계획]`이다.
+3. D3 `[진행 중]`: ADR-040의 mutable WorkingComposition·canonical Track/Clip, ADR-045의 Track 삭제·trusted duration, ADR-047의 revision-safe replay와 ADR-050의 inverse mutation 권위를 확정했다. 5개 persistence table, nullable Artifact duration, versioned completion result, atomic mutation Service와 restore·unsplit/resplit을 포함한 17개 Product operation을 구현했으며 Frontend Clip UI·Undo/Redo·Composition commit은 미구현이다. D4 Mixer·독립 Export는 `[계획]`이다.
 4. D5~D7 `[계획]`: AI Music Director·Candidate A/B, Reference Panel, Composition Evaluation/QA를 연결한다.
 5. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
 
-Clip Persistence·Authority와 Revision-safe Idempotency Foundation은 Backend ORM·Repository·Alembic `20260825_0022`, trusted WAV·FLAC duration, Track active Clip count와 완료 revision·복수 identity replay를 격리 회귀로 검증했다. 이어 WorkingComposition atomic mutation Service와 Product API 13개를 구현했다. Frontend·Provider·Training·Dataset·GPU·Common Contract는 변경하지 않았고 편집 가능한 Track/Clip Waveform·Clip UI·Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
+Clip Persistence·Authority와 Revision-safe Idempotency Foundation은 Backend ORM·Repository·Alembic `20260825_0022`, trusted WAV·FLAC duration, Track active Clip count와 완료 revision·복수 identity replay를 격리 회귀로 검증했다. 이어 WorkingComposition atomic mutation Service와 Product API 17개를 구현했고 Track/Clip restore와 exact split geometry 기반 unsplit/resplit을 추가했다. Frontend·Provider·Training·Dataset·GPU·Common Contract는 변경하지 않았고 편집 가능한 Track/Clip Waveform·Clip UI·Undo/Redo·Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-08-25
@@ -73,7 +73,7 @@ Clip Persistence·Authority와 Revision-safe Idempotency Foundation은 Backend O
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | D0·D1·D2와 WorkingComposition persistence·Service·13개 Product operation 완료; Frontend Clip UI·Composition commit·실제 DB 전환·Section·Mixer·D4~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | D0·D1·D2와 WorkingComposition persistence·Service·17개 Product operation 및 Backend inverse mutation 완료; Frontend Clip UI·Undo/Redo·Composition commit·실제 DB 전환·Section·Mixer·D4~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N 및 PayloadLocator persistence, `0.1.0`/`0.2.0` Result trust gate·transient acquisition 구현; Provider dispatch wiring·downloader·durable byte staging·Completion adapter·실제 payload ingestion·background daemon과 나머지 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |

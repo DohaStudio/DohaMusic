@@ -16,9 +16,7 @@ from uuid import UUID
 from backend.models.workspace.storage import ArtifactStorageLocation
 
 APPROVED_STORAGE_DOMAINS = frozenset({"lm", "audio", "vocal", "music"})
-APPROVED_MUSIC_NAMESPACES = frozenset(
-    {"mixes", "exports", "previews", "snapshots", "runs"}
-)
+APPROVED_MUSIC_NAMESPACES = frozenset({"mixes", "exports", "previews", "snapshots", "runs"})
 SUPPORTED_STORAGE_BACKEND = "local"
 SUPPORTED_LOCATOR_VERSION = 1
 
@@ -50,9 +48,7 @@ _SAFE_ERROR_MESSAGES = {
     ArtifactStorageErrorCode.INVALID_DOMAIN: "Artifact storage domain is invalid.",
     ArtifactStorageErrorCode.INVALID_KEY: "Artifact storage key is invalid.",
     ArtifactStorageErrorCode.STORAGE_ESCAPE: "Artifact storage boundary was rejected.",
-    ArtifactStorageErrorCode.CONFIGURATION_ERROR: (
-        "Artifact storage configuration is invalid."
-    ),
+    ArtifactStorageErrorCode.CONFIGURATION_ERROR: ("Artifact storage configuration is invalid."),
 }
 
 
@@ -67,9 +63,7 @@ class ArtifactStorageError(RuntimeError):
 class ArtifactStorageLocationReader(Protocol):
     """Resolver가 요구하는 최소 Catalog 조회 계약."""
 
-    def get_storage_location(
-        self, artifact_id: UUID
-    ) -> ArtifactStorageLocation | None: ...
+    def get_storage_location(self, artifact_id: UUID) -> ArtifactStorageLocation | None: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -95,19 +89,12 @@ class ArtifactStorageRoots:
     def from_base_root(cls, artifact_root: Path | None) -> ArtifactStorageRoots:
         if artifact_root is None:
             raise ArtifactStorageError(ArtifactStorageErrorCode.CONFIGURATION_ERROR)
-        return cls(
-            {
-                domain: artifact_root / domain
-                for domain in sorted(APPROVED_STORAGE_DOMAINS)
-            }
-        )
+        return cls({domain: artifact_root / domain for domain in sorted(APPROVED_STORAGE_DOMAINS)})
 
     def __post_init__(self) -> None:
         if set(self.roots) != APPROVED_STORAGE_DOMAINS:
             raise ArtifactStorageError(ArtifactStorageErrorCode.CONFIGURATION_ERROR)
-        validated = {
-            domain: _validate_root(root) for domain, root in self.roots.items()
-        }
+        validated = {domain: _validate_root(root) for domain, root in self.roots.items()}
         object.__setattr__(self, "roots", MappingProxyType(validated))
 
     def candidate_path(self, storage_domain: str, storage_key: str) -> Path:
@@ -122,9 +109,7 @@ class ArtifactStorageRoots:
         try:
             candidate.resolve(strict=False).relative_to(root)
         except (OSError, RuntimeError, ValueError):
-            raise ArtifactStorageError(
-                ArtifactStorageErrorCode.STORAGE_ESCAPE
-            ) from None
+            raise ArtifactStorageError(ArtifactStorageErrorCode.STORAGE_ESCAPE) from None
         return candidate
 
 
@@ -154,30 +139,22 @@ class ArtifactStorageResolver:
         if location.storage_backend != SUPPORTED_STORAGE_BACKEND:
             raise ArtifactStorageError(ArtifactStorageErrorCode.UNSUPPORTED_BACKEND)
         if location.locator_version != SUPPORTED_LOCATOR_VERSION:
-            raise ArtifactStorageError(
-                ArtifactStorageErrorCode.UNSUPPORTED_LOCATOR_VERSION
-            )
+            raise ArtifactStorageError(ArtifactStorageErrorCode.UNSUPPORTED_LOCATOR_VERSION)
         if location.storage_domain not in APPROVED_STORAGE_DOMAINS:
             raise ArtifactStorageError(ArtifactStorageErrorCode.INVALID_DOMAIN)
 
         root = self._roots.roots[location.storage_domain]
-        candidate = self._roots.candidate_path(
-            location.storage_domain, location.storage_key
-        )
+        candidate = self._roots.candidate_path(location.storage_domain, location.storage_key)
 
         try:
             resolved_path = candidate.resolve(strict=True)
         except (OSError, RuntimeError):
-            raise ArtifactStorageError(
-                ArtifactStorageErrorCode.CONTENT_UNAVAILABLE
-            ) from None
+            raise ArtifactStorageError(ArtifactStorageErrorCode.CONTENT_UNAVAILABLE) from None
 
         try:
             resolved_path.relative_to(root)
         except ValueError:
-            raise ArtifactStorageError(
-                ArtifactStorageErrorCode.STORAGE_ESCAPE
-            ) from None
+            raise ArtifactStorageError(ArtifactStorageErrorCode.STORAGE_ESCAPE) from None
 
         descriptor, descriptor_stat = _open_regular_file(root, resolved_path)
         os.close(descriptor)
@@ -192,9 +169,7 @@ class ArtifactStorageResolver:
         )
 
     @contextmanager
-    def open_payload(
-        self, artifact_id: UUID
-    ) -> Iterator[tuple[ResolvedArtifactPayload, BinaryIO]]:
+    def open_payload(self, artifact_id: UUID) -> Iterator[tuple[ResolvedArtifactPayload, BinaryIO]]:
         """재검증한 동일 file descriptor를 content 계층에 제공한다."""
 
         resolved = self.resolve(artifact_id)
@@ -203,8 +178,7 @@ class ArtifactStorageResolver:
         if (
             descriptor_stat.st_size != resolved.size_bytes
             or descriptor_stat.st_mtime_ns != resolved.modified_ns
-            or (descriptor_stat.st_dev, descriptor_stat.st_ino)
-            != resolved.file_identity
+            or (descriptor_stat.st_dev, descriptor_stat.st_ino) != resolved.file_identity
         ):
             os.close(descriptor)
             raise ArtifactStorageError(ArtifactStorageErrorCode.CONTENT_UNAVAILABLE)
@@ -261,9 +235,7 @@ def _validate_root(root: Path) -> Path:
     except ArtifactStorageError:
         raise
     except (OSError, RuntimeError):
-        raise ArtifactStorageError(
-            ArtifactStorageErrorCode.CONFIGURATION_ERROR
-        ) from None
+        raise ArtifactStorageError(ArtifactStorageErrorCode.CONFIGURATION_ERROR) from None
     if _is_link_or_reparse(absolute):
         raise ArtifactStorageError(ArtifactStorageErrorCode.CONFIGURATION_ERROR)
     return resolved
@@ -310,9 +282,7 @@ def _open_regular_file(root: Path, path: Path) -> tuple[int, os.stat_result]:
     try:
         descriptor = os.open(path, flags)
     except OSError:
-        raise ArtifactStorageError(
-            ArtifactStorageErrorCode.CONTENT_UNAVAILABLE
-        ) from None
+        raise ArtifactStorageError(ArtifactStorageErrorCode.CONTENT_UNAVAILABLE) from None
 
     try:
         descriptor_stat = os.fstat(descriptor)

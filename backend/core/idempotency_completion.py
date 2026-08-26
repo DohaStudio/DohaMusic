@@ -18,26 +18,36 @@ class IdempotencyResultType(StrEnum):
     WORKING_COMPOSITION_CHECKOUT = "WORKING_COMPOSITION_CHECKOUT"
     TRACK_CREATE = "TRACK_CREATE"
     TRACK_DELETE = "TRACK_DELETE"
+    TRACK_RESTORE = "TRACK_RESTORE"
     CLIP_CREATE = "CLIP_CREATE"
     CLIP_SPLIT = "CLIP_SPLIT"
     CLIP_DELETE = "CLIP_DELETE"
+    CLIP_RESTORE = "CLIP_RESTORE"
+    CLIP_UNSPLIT = "CLIP_UNSPLIT"
+    CLIP_RESPLIT = "CLIP_RESPLIT"
     COMPOSITION_COMMIT = "COMPOSITION_COMMIT"
 
 
 _RESULT_PAYLOAD_KEYS: dict[IdempotencyResultType, frozenset[str]] = {
-    IdempotencyResultType.WORKING_COMPOSITION_INITIALIZE: frozenset(
-        {"working_composition_id"}
-    ),
+    IdempotencyResultType.WORKING_COMPOSITION_INITIALIZE: frozenset({"working_composition_id"}),
     IdempotencyResultType.WORKING_COMPOSITION_CHECKOUT: frozenset(
         {"working_composition_id", "base_composition_snapshot_id"}
     ),
     IdempotencyResultType.TRACK_CREATE: frozenset({"track_id"}),
     IdempotencyResultType.TRACK_DELETE: frozenset({"track_id"}),
+    IdempotencyResultType.TRACK_RESTORE: frozenset({"track_id"}),
     IdempotencyResultType.CLIP_CREATE: frozenset({"clip_id"}),
     IdempotencyResultType.CLIP_SPLIT: frozenset(
         {"original_clip_id", "left_clip_id", "right_clip_id"}
     ),
     IdempotencyResultType.CLIP_DELETE: frozenset({"clip_id"}),
+    IdempotencyResultType.CLIP_RESTORE: frozenset({"clip_id"}),
+    IdempotencyResultType.CLIP_UNSPLIT: frozenset(
+        {"original_clip_id", "left_clip_id", "right_clip_id"}
+    ),
+    IdempotencyResultType.CLIP_RESPLIT: frozenset(
+        {"original_clip_id", "left_clip_id", "right_clip_id"}
+    ),
     IdempotencyResultType.COMPOSITION_COMMIT: frozenset({"composition_snapshot_id"}),
 }
 

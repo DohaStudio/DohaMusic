@@ -96,9 +96,7 @@ def _seed_contract(
     owner = owner_id or uuid4()
     provider_job_id = f"provider-job-{uuid4()}"
     with factory.begin() as session:
-        workspace = Workspace(
-            owner_id=owner, name="Trusted result", lifecycle_status="active"
-        )
+        workspace = Workspace(owner_id=owner, name="Trusted result", lifecycle_status="active")
         session.add(workspace)
         session.flush()
         project = MusicProject(
@@ -180,9 +178,7 @@ def _seed_contract(
             provider_id="dohavocal",
             api_contract_version=api_contract_version,
             model_manifest_id=(
-                "dynamic-vocal@2"
-                if api_contract_version == "0.2.0"
-                else "dynamic-vocal@1"
+                "dynamic-vocal@2" if api_contract_version == "0.2.0" else "dynamic-vocal@1"
             ),
             progress_percent=10,
             settings_snapshot={
@@ -273,9 +269,7 @@ def _payload_candidate(graph: ContractGraph) -> VocalPayloadBackedResultCandidat
     legacy = _candidate(graph)
     lineage = legacy.lineage.model_copy(update={"model_manifest_id": "dynamic-vocal@2"})
     return VocalPayloadBackedResultCandidate(
-        **legacy.model_dump(
-            exclude={"payload_present", "lineage", "media_type", "size_bytes"}
-        ),
+        **legacy.model_dump(exclude={"payload_present", "lineage", "media_type", "size_bytes"}),
         payload_present=True,
         lineage=lineage,
         media_type="audio/wav",
@@ -284,9 +278,7 @@ def _payload_candidate(graph: ContractGraph) -> VocalPayloadBackedResultCandidat
             VocalProviderPayloadEntry(
                 provider_artifact_id="provider-artifact-001",
                 role="converted_vocal_candidate",
-                source=VocalPayloadSource(
-                    kind="provider_subresource", source_id="content-001"
-                ),
+                source=VocalPayloadSource(kind="provider_subresource", source_id="content-001"),
                 checksum_algorithm="sha256",
                 payload_checksum=(
                     "239f59ed55e737c77147cf55ad0c1b030b6d7ee748a7426952f9b852d5a935e5"
@@ -367,9 +359,7 @@ def test_payload_result_is_trusted_as_acquisition_candidate_only(
     assert result.reason is IngestionDecisionReason.PAYLOAD_ACQUISITION_REQUIRED
     assert result.eligible_for_binary_ingestion is False
     assert result.candidate.payload_present is True
-    assert result.candidate.provider_result_artifact_id != (
-        result.candidate.provider_artifact_id
-    )
+    assert result.candidate.provider_result_artifact_id != (result.candidate.provider_artifact_id)
     assert result.candidate.payloads[0].source_id == "content-001"
     with pytest.raises(ProviderResultNotIngestibleError) as error:
         result.candidate.require_payload_reference()
@@ -381,27 +371,20 @@ def test_payload_replay_conflict_is_detected(session_factory) -> None:
     graph = _seed_contract(session_factory, api_contract_version="0.2.0")
     first = _validate(session_factory, graph, _payload_candidate(graph)).candidate
     changed_wire = _payload_candidate(graph)
-    changed_payload = changed_wire.payloads[0].model_copy(
-        update={"payload_checksum": "b" * 64}
-    )
+    changed_payload = changed_wire.payloads[0].model_copy(update={"payload_checksum": "b" * 64})
     changed_wire = changed_wire.model_copy(update={"payloads": (changed_payload,)})
     changed = _validate(session_factory, graph, changed_wire).candidate
 
     with pytest.raises(ProviderResultContractError) as error:
         ProviderResultIngestionService.validate_replay(first, changed)
-    assert (
-        error.value.reason is ProviderResultContractErrorReason.RESULT_REPLAY_CONFLICT
-    )
+    assert error.value.reason is ProviderResultContractErrorReason.RESULT_REPLAY_CONFLICT
 
 
 def test_result_contract_version_must_match_workspace_job(session_factory) -> None:
     graph = _seed_contract(session_factory)
     with pytest.raises(ProviderResultContractError) as error:
         _validate(session_factory, graph, _payload_candidate(graph))
-    assert (
-        error.value.reason
-        is ProviderResultContractErrorReason.CONTRACT_VERSION_MISMATCH
-    )
+    assert error.value.reason is ProviderResultContractErrorReason.CONTRACT_VERSION_MISMATCH
 
 
 @pytest.mark.parametrize(
@@ -419,9 +402,7 @@ def test_result_contract_version_must_match_workspace_job(session_factory) -> No
         ),
     ],
 )
-def test_binding_and_execution_identity_mismatch_fail_closed(
-    session_factory, case, reason
-) -> None:
+def test_binding_and_execution_identity_mismatch_fail_closed(session_factory, case, reason) -> None:
     graph = _seed_contract(session_factory)
     candidate = _candidate(graph)
     kwargs = {
@@ -436,9 +417,7 @@ def test_binding_and_execution_identity_mismatch_fail_closed(
     elif case == "missing_binding":
         kwargs["provider_job_binding_id"] = uuid4()
     elif case == "wrong_provider":
-        kwargs["wire_candidate"] = candidate.model_copy(
-            update={"producer_id": "dohaaudio"}
-        )
+        kwargs["wire_candidate"] = candidate.model_copy(update={"producer_id": "dohaaudio"})
     else:
         kwargs["wire_candidate"] = candidate.model_copy(update={"run_id": "wrong-job"})
 
@@ -512,27 +491,20 @@ def test_processing_chain_must_match_job_and_effective_owner(session_factory) ->
         foreign_id = foreign.processing_chain_id
     candidate = candidate.model_copy(
         update={
-            "lineage": candidate.lineage.model_copy(
-                update={"processing_chain_id": str(foreign_id)}
-            )
+            "lineage": candidate.lineage.model_copy(update={"processing_chain_id": str(foreign_id)})
         }
     )
 
     with pytest.raises(ProviderResultContractError) as error:
         _validate(session_factory, graph, candidate)
-    assert (
-        error.value.reason
-        is ProviderResultContractErrorReason.PROCESSING_CHAIN_MISMATCH
-    )
+    assert error.value.reason is ProviderResultContractErrorReason.PROCESSING_CHAIN_MISMATCH
 
 
 def test_provider_identifiers_and_paths_never_become_workspace_authority(
     session_factory,
 ) -> None:
     graph = _seed_contract(session_factory)
-    candidate = _candidate(graph).model_copy(
-        update={"artifact_id": "file:///tmp/fake.wav"}
-    )
+    candidate = _candidate(graph).model_copy(update={"artifact_id": "file:///tmp/fake.wav"})
     before = _counts(session_factory)
 
     with pytest.raises(ProviderResultContractError) as error:
@@ -551,9 +523,7 @@ def test_vocal_analysis_descriptor_is_not_a_structured_artifact_payload(
         analysis_result={"pitch": {"status": "fake", "value": None}},
     ).model_copy(
         update={
-            "lineage": _candidate(graph).lineage.model_copy(
-                update={"processing_types": ("pitch",)}
-            )
+            "lineage": _candidate(graph).lineage.model_copy(update={"processing_types": ("pitch",)})
         }
     )
 

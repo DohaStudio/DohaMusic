@@ -6,7 +6,7 @@
 > 관련 기능: AI-native DAW D3 WorkingComposition mutation 선행 기반
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [Idempotency Completion Result](../03-architecture/idempotency-completion-result.md), [Database Table Definition](../07-database/table-definition.md)
 
-> 구현 추적: 2026-08-25 WorkingComposition Service가 initialize·checkout·Track create/delete·Clip create/split/delete에서 `claim_with_result()`와 `complete_with_result()`를 사용한다. same-key replay는 현재 aggregate를 읽지 않고 최초 identity와 `completed_revision`을 반환하며, 실패 transaction은 성공 completion result를 남기지 않는다.
+> 구현 추적: 2026-08-25 WorkingComposition Service가 initialize·checkout·Track create/delete/restore·Clip create/split/delete/restore/unsplit/resplit에서 `claim_with_result()`와 `complete_with_result()`를 사용한다. same-key replay는 현재 aggregate를 읽지 않고 최초 identity와 `completed_revision`을 반환하며, 실패 transaction은 성공 completion result를 남기지 않는다. [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md)의 네 inverse result type은 기존 V1 column을 재사용한다.
 
 ## 1. 배경
 
@@ -32,7 +32,9 @@ V1 result type은 다음 여덟 개만 허용한다.
 - `WORKING_COMPOSITION_INITIALIZE`
 - `WORKING_COMPOSITION_CHECKOUT`
 - `TRACK_CREATE`, `TRACK_DELETE`
-- `CLIP_CREATE`, `CLIP_SPLIT`, `CLIP_DELETE`
+- `TRACK_RESTORE`
+- `CLIP_CREATE`, `CLIP_SPLIT`, `CLIP_DELETE`, `CLIP_RESTORE`
+- `CLIP_UNSPLIT`, `CLIP_RESPLIT`
 - `COMPOSITION_COMMIT`
 
 각 payload는 계약에 정의된 canonical UUID key만 허용한다. split은 `original_clip_id`, `left_clip_id`, `right_clip_id`를 보존한다. checkout은 `working_composition_id`, `base_composition_snapshot_id`, commit은 `composition_snapshot_id`를 보존한다. payload는 canonical UTF-8 JSON 기준 8,192 bytes 이하이고 arbitrary key, aggregate dump, path, locator, credential, signed URL, Provider response를 허용하지 않는다.

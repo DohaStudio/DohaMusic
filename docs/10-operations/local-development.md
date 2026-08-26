@@ -29,12 +29,20 @@ python -m venv .venv
 .venv\Scripts\Activate.ps1
 python -m pip install -e ".[dev]"
 python -m alembic -c backend/alembic.ini upgrade head
+python -m compileall -q backend ai_worker
+python -m ruff check --no-cache backend ai_worker
+python -m ruff format --check --no-cache backend ai_worker
 python -m pytest -q
+git diff --check
 python -m backend.scripts.benchmark_pipeline
 python -m backend.scripts.benchmark_audio_mixer
 python -m backend.scripts.benchmark_lyrics
 python -m uvicorn backend.main:app --reload
 ```
+
+`backend`와 `ai_worker`는 tracked first-party Python root이며 `backend/tests`가 test
+root다. 위 compile·Ruff·pytest·diff 명령은 CI와 동일한 canonical Gate다. GPU,
+benchmark, external, paid marker는 아래의 명시적 opt-in 절차에서만 별도로 실행한다.
 
 Backend 설치에는 Mixer·K3.1 Quality·K3.2 Tempo·K3.3 Hook 분석용 NumPy·SciPy, BS.1770 Integrated LUFS용 `pyloudnorm>=0.2,<0.3`, resource 측정용 psutil이 포함된다. pyloudnorm 0.2.0 pure Python wheel은 Windows·Python 3.12에서 설치·테스트했으며 Tempo와 Hook은 새 의존성 없이 기존 NumPy·SciPy를 사용한다. 기본 `DOHAMUSIC_AUDIO_MIXER=default`는 별도 AI·FFmpeg 설치 없이 실제 WAV를 합성한다. DSP 계약은 [Audio Quality Engine](../03-architecture/audio-quality-engine.md), K3 검증은 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 따른다.
 

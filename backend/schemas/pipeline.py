@@ -8,9 +8,9 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
+from backend.audio_analysis import PublicAudioAnalysis, sanitize_result_metadata
 from backend.kpop.options import KPopGenerationOptions
 from backend.kpop.presets import KPOP_PRESET_REGISTRY
-from backend.audio_analysis import PublicAudioAnalysis, sanitize_result_metadata
 
 
 class PipelineCreate(BaseModel):
@@ -27,9 +27,7 @@ class PipelineCreate(BaseModel):
     def validate_preset_genre(self) -> PipelineCreate:
         if self.generation_options is None or self.genre is None:
             return self
-        canonical_genre = KPOP_PRESET_REGISTRY.get(
-            self.generation_options.preset_id
-        ).genre
+        canonical_genre = KPOP_PRESET_REGISTRY.get(self.generation_options.preset_id).genre
         if self.genre != canonical_genre:
             raise PydanticCustomError(
                 "preset_genre_mismatch",

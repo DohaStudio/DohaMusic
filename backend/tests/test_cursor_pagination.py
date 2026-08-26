@@ -6,7 +6,7 @@ import base64
 import hashlib
 import hmac
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -32,14 +32,12 @@ from backend.services.workspace import WorkspaceService
 
 TEST_KEY = "cursor-test-signing-key-with-32-bytes-minimum"
 OTHER_KEY = "other-cursor-signing-key-with-32-bytes-minimum"
-CREATED_AT = datetime(2026, 8, 6, 3, 0, tzinfo=timezone.utc)
+CREATED_AT = datetime(2026, 8, 6, 3, 0, tzinfo=UTC)
 
 
 @pytest.fixture
 def session_factory(tmp_path: Path):
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'cursor-pagination.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'cursor-pagination.db').as_posix()}")
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     yield factory
@@ -64,9 +62,7 @@ def _workspace(
     )
 
 
-def _project(
-    workspace_id: UUID, identifier: int, *, deleted: bool = False
-) -> MusicProject:
+def _project(workspace_id: UUID, identifier: int, *, deleted: bool = False) -> MusicProject:
     return MusicProject(
         project_id=UUID(int=identifier),
         workspace_id=workspace_id,
@@ -300,9 +296,7 @@ def test_workspace_pages_have_no_duplicates_or_omissions(session_factory) -> Non
     first = service.list_workspace_page(limit=2)
     second = service.list_workspace_page(limit=2, cursor=first.next_cursor)
     third = service.list_workspace_page(limit=2, cursor=second.next_cursor)
-    identifiers = [
-        item.workspace_id for page in (first, second, third) for item in page.items
-    ]
+    identifiers = [item.workspace_id for page in (first, second, third) for item in page.items]
 
     assert [len(first.items), len(second.items), len(third.items)] == [2, 2, 1]
     assert first.has_more and first.next_cursor
@@ -391,9 +385,7 @@ def test_workspace_cursor_is_bound_to_owner_filter(session_factory) -> None:
     first = service.list_workspace_page(limit=1, owner_id=first_owner)
 
     with pytest.raises(InvalidCursorError):
-        service.list_workspace_page(
-            limit=1, owner_id=second_owner, cursor=first.next_cursor
-        )
+        service.list_workspace_page(limit=1, owner_id=second_owner, cursor=first.next_cursor)
 
 
 def test_project_pages_bind_cursor_to_workspace_and_exclude_deleted(
@@ -403,9 +395,7 @@ def test_project_pages_bind_cursor_to_workspace_and_exclude_deleted(
     second_workspace = _workspace(200)
     with session_factory.begin() as session:
         session.add_all([first_workspace, second_workspace])
-        session.add_all(
-            [_project(first_workspace.workspace_id, index) for index in range(1, 5)]
-        )
+        session.add_all([_project(first_workspace.workspace_id, index) for index in range(1, 5)])
         session.add(_project(first_workspace.workspace_id, 99, deleted=True))
         session.add(_project(second_workspace.workspace_id, 101))
     service = WorkspaceService(session_factory, cursor_codec=CursorCodec(TEST_KEY))
@@ -420,9 +410,7 @@ def test_project_pages_bind_cursor_to_workspace_and_exclude_deleted(
     assert first.has_more and first.next_cursor
     assert second.has_more is False and second.next_cursor is None
     with pytest.raises(InvalidCursorError):
-        service.list_project_page(
-            second_workspace.workspace_id, limit=2, cursor=first.next_cursor
-        )
+        service.list_project_page(second_workspace.workspace_id, limit=2, cursor=first.next_cursor)
 
 
 def test_project_page_rejects_missing_workspace(session_factory) -> None:
@@ -435,9 +423,9 @@ def test_project_page_returns_empty_for_existing_workspace(session_factory) -> N
     workspace = _workspace(1)
     with session_factory.begin() as session:
         session.add(workspace)
-    page = WorkspaceService(
-        session_factory, cursor_codec=CursorCodec(TEST_KEY)
-    ).list_project_page(workspace.workspace_id, limit=10)
+    page = WorkspaceService(session_factory, cursor_codec=CursorCodec(TEST_KEY)).list_project_page(
+        workspace.workspace_id, limit=10
+    )
     assert page.items == ()
     assert page.has_more is False
     assert page.next_cursor is None

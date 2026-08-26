@@ -194,10 +194,7 @@ class JobWorkerService:
                 result.error_code or "PROVIDER_EXECUTION_FAILED",
                 result.retryable,
             )
-        if (
-            result.status is not ProviderDispatchStatus.SUCCEEDED
-            or result.provider_result is None
-        ):
+        if result.status is not ProviderDispatchStatus.SUCCEEDED or result.provider_result is None:
             return self._fail(job.job_id, token, "PROVIDER_RESULT_INVALID", False)
         try:
             completed = self._completion.complete_job_with_provider_result(

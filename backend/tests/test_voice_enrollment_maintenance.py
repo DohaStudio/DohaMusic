@@ -27,9 +27,7 @@ from backend.voice_enrollment.scheduler import VoiceEnrollmentScheduler
 from backend.voice_enrollment.storage import VoiceEnrollmentStorage
 
 
-def _maintenance(
-    client, **settings_updates: object
-) -> VoiceEnrollmentMaintenanceService:
+def _maintenance(client, **settings_updates: object) -> VoiceEnrollmentMaintenanceService:
     return VoiceEnrollmentMaintenanceService(
         session_factory=client.app.state.session_factory,
         storage=client.app.state.storage,
@@ -124,16 +122,12 @@ def test_expiration_uses_sliding_and_absolute_deadlines(client) -> None:
         assert repository.list_expired(now=now) == []
         pending_ids = {
             item.id
-            for item in repository.list_cleanup_pending(
-                retry_before=now - timedelta(seconds=1)
-            )
+            for item in repository.list_cleanup_pending(retry_before=now - timedelta(seconds=1))
         }
         assert pending_ids == {sliding.id, absolute.id}
         retry_ids = {
             item.id
-            for item in repository.list_cleanup_pending(
-                retry_before=now + timedelta(seconds=1)
-            )
+            for item in repository.list_cleanup_pending(retry_before=now + timedelta(seconds=1))
         }
         assert retry.id in retry_ids
 
@@ -146,9 +140,7 @@ def test_cleanup_is_idempotent_for_partial_and_missing_files(
         status=VoiceEnrollmentStatus.CANCELLED.value,
         cleanup_status=VoiceCleanupStatus.PENDING.value,
     )
-    sample = _create_sample(
-        client, enrollment.id, status=VoiceSampleStatus.DELETE_PENDING.value
-    )
+    sample = _create_sample(client, enrollment.id, status=VoiceSampleStatus.DELETE_PENDING.value)
     original, normalized = _sample_files(client, enrollment.id, sample.id)
     with client.app.state.session_factory() as session:
         persisted = session.get(VoiceSample, sample.id)
@@ -179,12 +171,8 @@ def test_cleanup_is_idempotent_for_partial_and_missing_files(
         assert persisted.original_storage_path is None
         assert persisted.normalized_storage_path == normalized
 
-    assert (
-        maintenance.process_cleanup(now=datetime.now(UTC) + timedelta(seconds=1)) == 1
-    )
-    assert (
-        maintenance.process_cleanup(now=datetime.now(UTC) + timedelta(seconds=2)) == 0
-    )
+    assert maintenance.process_cleanup(now=datetime.now(UTC) + timedelta(seconds=1)) == 1
+    assert maintenance.process_cleanup(now=datetime.now(UTC) + timedelta(seconds=2)) == 0
     with client.app.state.session_factory() as session:
         persisted_sample = session.get(VoiceSample, sample.id)
         persisted_enrollment = session.get(VoiceEnrollment, enrollment.id)
@@ -239,23 +227,16 @@ def test_restart_recovers_interrupted_normalize_submit_and_cleanup(client) -> No
     )
     partial.write_bytes(b"partial")
 
-    submitting = _create_enrollment(
-        client, status=VoiceEnrollmentStatus.SUBMITTING.value
-    )
-    ready_sample = _create_sample(
-        client, submitting.id, status=VoiceSampleStatus.READY.value
-    )
+    submitting = _create_enrollment(client, status=VoiceEnrollmentStatus.SUBMITTING.value)
+    ready_sample = _create_sample(client, submitting.id, status=VoiceSampleStatus.READY.value)
     _, ready_normalized = _sample_files(client, submitting.id, ready_sample.id)
-    unrecoverable = _create_enrollment(
-        client, status=VoiceEnrollmentStatus.SUBMITTING.value
-    )
+    unrecoverable = _create_enrollment(client, status=VoiceEnrollmentStatus.SUBMITTING.value)
     _create_sample(
         client,
         unrecoverable.id,
         status=VoiceSampleStatus.READY.value,
         normalized_storage_path=(
-            f"voices/enrollments/{unrecoverable.id}/samples/{uuid.uuid4()}"
-            "/normalized.wav"
+            f"voices/enrollments/{unrecoverable.id}/samples/{uuid.uuid4()}/normalized.wav"
         ),
     )
 
@@ -339,8 +320,7 @@ def test_orphan_scan_deletes_only_unambiguous_server_paths(client) -> None:
         missing_enrollment.id,
         status=VoiceSampleStatus.READY.value,
         normalized_storage_path=(
-            f"voices/enrollments/{missing_enrollment.id}/samples/{uuid.uuid4()}"
-            "/normalized.wav"
+            f"voices/enrollments/{missing_enrollment.id}/samples/{uuid.uuid4()}/normalized.wav"
         ),
     )
 

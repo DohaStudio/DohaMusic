@@ -8,9 +8,7 @@ from backend.schemas.workspace.common import ErrorResponse, SuccessResponse
 
 
 def success_response(*, data: Any, request_id: str) -> dict[str, Any]:
-    return SuccessResponse[Any](data=data, request_id=request_id).model_dump(
-        mode="json"
-    )
+    return SuccessResponse[Any](data=data, request_id=request_id).model_dump(mode="json")
 
 
 def error_response(

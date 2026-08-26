@@ -50,9 +50,7 @@ class VoiceConversionRepository:
     ) -> VoiceConversionJob:
         current = JobStatus(job.status)
         if target not in ALLOWED_TRANSITIONS[current]:
-            raise ValueError(
-                f"Invalid job transition: {current.value} -> {target.value}"
-            )
+            raise ValueError(f"Invalid job transition: {current.value} -> {target.value}")
         job.status = target.value
         job.current_step = current_step
         job.updated_at = datetime.now(UTC)
@@ -62,9 +60,7 @@ class VoiceConversionRepository:
         self.session.refresh(job)
         return job
 
-    def set_model(
-        self, job: VoiceConversionJob, provider: str, name: str, version: str
-    ) -> None:
+    def set_model(self, job: VoiceConversionJob, provider: str, name: str, version: str) -> None:
         job.provider = provider
         job.model_name = name
         job.model_version = version
@@ -81,9 +77,7 @@ class VoiceConversionRepository:
         job.completed_at = job.updated_at
         self.session.commit()
 
-    def add_file(
-        self, job_id: str, file_type: str, file_path: str, mime_type: str
-    ) -> None:
+    def add_file(self, job_id: str, file_type: str, file_path: str, mime_type: str) -> None:
         self.session.add(
             VoiceConversionFile(
                 job_id=job_id,

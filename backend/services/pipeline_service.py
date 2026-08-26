@@ -71,13 +71,10 @@ class PipelineService:
             if profile is None:
                 raise ResourceNotFoundError("음성 프로필")
             if not profile.consent_confirmed:
-                raise AppError(
-                    "VOICE_CONSENT_REQUIRED", "음성 사용 동의가 필요합니다.", 400
-                )
+                raise AppError("VOICE_CONSENT_REQUIRED", "음성 사용 동의가 필요합니다.", 400)
             if (
                 persisted_request.project_id is not None
-                and repository.session.get(Project, persisted_request.project_id)
-                is None
+                and repository.session.get(Project, persisted_request.project_id) is None
             ):
                 raise ResourceNotFoundError("Project")
             job = repository.create(
@@ -103,9 +100,7 @@ class PipelineService:
             repository = PipelineRepository(session)
             job = repository.get(job_id)
             if job is None:
-                raise AppError(
-                    "PIPELINE_JOB_NOT_FOUND", "음악 작업을 찾을 수 없습니다.", 404
-                )
+                raise AppError("PIPELINE_JOB_NOT_FOUND", "음악 작업을 찾을 수 없습니다.", 404)
             if job.status in {JobStatus.COMPLETED.value, JobStatus.FAILED.value}:
                 raise AppError(
                     "PIPELINE_CANCEL_NOT_ALLOWED",
@@ -121,9 +116,7 @@ class PipelineService:
             repository = PipelineRepository(session)
             source = repository.get(job_id)
             if source is None:
-                raise AppError(
-                    "PIPELINE_JOB_NOT_FOUND", "음악 작업을 찾을 수 없습니다.", 404
-                )
+                raise AppError("PIPELINE_JOB_NOT_FOUND", "음악 작업을 찾을 수 없습니다.", 404)
             if source.status not in {JobStatus.FAILED.value, JobStatus.CANCELLED.value}:
                 raise AppError(
                     "PIPELINE_RETRY_NOT_ALLOWED",
@@ -135,11 +128,7 @@ class PipelineService:
                 session.expunge(existing)
                 return existing
             profile = repository.get_profile(source.voice_profile_id)
-            if (
-                profile is None
-                or profile.status != "READY"
-                or not profile.consent_confirmed
-            ):
+            if profile is None or profile.status != "READY" or not profile.consent_confirmed:
                 raise AppError(
                     "RETRY_VOICE_PROFILE_UNAVAILABLE",
                     "사용한 목소리를 더 이상 사용할 수 없어 다시 만들 수 없습니다.",
@@ -158,9 +147,7 @@ class PipelineService:
                 }
             )
             request_values = {
-                key: snapshot[key]
-                for key in PipelineCreate.model_fields
-                if key in snapshot
+                key: snapshot[key] for key in PipelineCreate.model_fields if key in snapshot
             }
             if (
                 source.project_id is not None
@@ -211,9 +198,7 @@ class PipelineService:
             {
                 "original_prompt": request.prompt,
                 "compiled_prompt": result.prompt,
-                "normalized_generation_options": result.normalized_options.model_dump(
-                    mode="json"
-                ),
+                "normalized_generation_options": result.normalized_options.model_dump(mode="json"),
                 "compiler_version": result.compiler_version,
                 "compiler_warnings": list(result.warnings),
             }
@@ -239,14 +224,10 @@ class PipelineService:
                 item.content_available = available
                 item.download_available = available
                 item.content_url = (
-                    f"/api/pipelines/{job_id}/files/{item.id}/content"
-                    if available
-                    else None
+                    f"/api/pipelines/{job_id}/files/{item.id}/content" if available else None
                 )
                 item.download_url = (
-                    f"/api/pipelines/{job_id}/files/{item.id}/download"
-                    if available
-                    else None
+                    f"/api/pipelines/{job_id}/files/{item.id}/download" if available else None
                 )
                 session.expunge(item)
             return files
@@ -263,9 +244,7 @@ class PipelineService:
             repository = PipelineRepository(session)
             job = repository.get(job_id)
             if job is None:
-                raise AppError(
-                    "PIPELINE_NOT_FOUND", "Pipeline 작업을 찾을 수 없습니다.", 404
-                )
+                raise AppError("PIPELINE_NOT_FOUND", "Pipeline 작업을 찾을 수 없습니다.", 404)
             item = repository.get_file(file_id)
             if item is None:
                 raise AppError("FILE_NOT_FOUND", "파일을 찾을 수 없습니다.", 404)
@@ -292,8 +271,7 @@ class PipelineService:
                 "".join(
                     character
                     for character in item.file_type.lower()
-                    if character.isascii()
-                    and (character.isalnum() or character in "-_")
+                    if character.isascii() and (character.isalnum() or character in "-_")
                 )[:40]
                 or "audio"
             )
@@ -309,14 +287,10 @@ class PipelineService:
 
     def _validate_file(self, item: PipelineFile) -> tuple[Path, int]:
         if item.file_type not in PUBLIC_AUDIO_FILE_TYPES:
-            raise AppError(
-                "FILE_CONTENT_UNAVAILABLE", "재생할 수 없는 파일입니다.", 409
-            )
+            raise AppError("FILE_CONTENT_UNAVAILABLE", "재생할 수 없는 파일입니다.", 409)
         raw_path = Path(item.file_path)
         if raw_path.is_absolute():
-            raise AppError(
-                "INVALID_FILE_STORAGE_PATH", "파일 저장 위치가 올바르지 않습니다.", 409
-            )
+            raise AppError("INVALID_FILE_STORAGE_PATH", "파일 저장 위치가 올바르지 않습니다.", 409)
         candidate = self.storage.root / raw_path
         current = candidate
         while current != self.storage.root:
@@ -340,17 +314,11 @@ class PipelineService:
             ) from None
         file_stat = path.stat()
         if not stat.S_ISREG(file_stat.st_mode):
-            raise AppError(
-                "INVALID_FILE_STORAGE_PATH", "일반 파일만 사용할 수 있습니다.", 409
-            )
+            raise AppError("INVALID_FILE_STORAGE_PATH", "일반 파일만 사용할 수 있습니다.", 409)
         if (item.mime_type.lower(), path.suffix.lower()) not in ALLOWED_AUDIO_TYPES:
-            raise AppError(
-                "UNSUPPORTED_AUDIO_FILE", "지원하지 않는 오디오 형식입니다.", 415
-            )
+            raise AppError("UNSUPPORTED_AUDIO_FILE", "지원하지 않는 오디오 형식입니다.", 415)
         if file_stat.st_size <= 0 or file_stat.st_size > MAX_AUDIO_FILE_BYTES:
-            raise AppError(
-                "FILE_CONTENT_UNAVAILABLE", "허용된 파일 크기를 벗어났습니다.", 409
-            )
+            raise AppError("FILE_CONTENT_UNAVAILABLE", "허용된 파일 크기를 벗어났습니다.", 409)
         try:
             with path.open("rb") as audio:
                 header = audio.read(12)
@@ -359,9 +327,7 @@ class PipelineService:
                 "FILE_MISSING_FROM_STORAGE", "저장된 파일을 읽을 수 없습니다.", 404
             ) from None
         if len(header) != 12 or header[:4] != b"RIFF" or header[8:] != b"WAVE":
-            raise AppError(
-                "UNSUPPORTED_AUDIO_FILE", "지원하지 않는 오디오 형식입니다.", 415
-            )
+            raise AppError("UNSUPPORTED_AUDIO_FILE", "지원하지 않는 오디오 형식입니다.", 415)
         return path, file_stat.st_size
 
     @staticmethod
@@ -395,9 +361,7 @@ class PipelineService:
                 416,
                 error_headers,
             )
-        if (start_text and not start_text.isdigit()) or (
-            end_text and not end_text.isdigit()
-        ):
+        if (start_text and not start_text.isdigit()) or (end_text and not end_text.isdigit()):
             raise AppError(
                 "INVALID_RANGE",
                 "요청한 파일 범위가 올바르지 않습니다.",

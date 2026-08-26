@@ -26,21 +26,14 @@ class SeedVCRuntime(Protocol):
 class SeedVCAdapter:
     provider = "seed_vc"
 
-    def __init__(
-        self, config: SeedVCConfig, runtime: SeedVCRuntime | None = None
-    ) -> None:
+    def __init__(self, config: SeedVCConfig, runtime: SeedVCRuntime | None = None) -> None:
         self.config = config
         self.runtime = runtime or SubprocessSeedVCRuntime(config)
         self.model_name = config.model_name
 
     def convert(self, request: VoiceConversionInput) -> VoiceConversionResult:
-        result = self.runtime.convert(
-            request.source_path, request.reference_path, request.job_id
-        )
-        if (
-            not result.converted_path.is_file()
-            or result.converted_path.stat().st_size == 0
-        ):
+        result = self.runtime.convert(request.source_path, request.reference_path, request.job_id)
+        if not result.converted_path.is_file() or result.converted_path.stat().st_size == 0:
             raise VoiceOutputNotCreatedError("Seed-VC 출력 파일이 생성되지 않았습니다.")
         return VoiceConversionResult(
             converted_path=result.converted_path,

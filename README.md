@@ -1,6 +1,6 @@
 ﻿# DohaMusic
 
-> 2026-08-25: DohaVocal `0.2.0` payload-backed Result consumer와 전용 `PayloadLocator` persistence foundation을 구현했습니다. verified byte authority는 `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`로 확정해 기존 staging root·exclusive publish·restart orphan adoption을 사용하며 새 schema는 필요하지 않습니다. local staging adapter·downloader·Artifact ingestion·Completion/Worker wiring은 아직 미구현이며 자세한 경계는 [Verified Durable Staging Authority](docs/03-architecture/verified-durable-staging-authority.md)와 [ADR-050](docs/11-decisions/ADR-050-verified-durable-staging-authority.md)을 참고하십시오.
+> 2026-08-25: DohaVocal `0.2.0` payload-backed Result consumer와 전용 `PayloadLocator` persistence foundation을 구현했습니다. verified byte authority는 `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`로 확정해 기존 staging root·exclusive publish·restart orphan adoption을 사용하며 새 schema는 필요하지 않습니다. local staging adapter·downloader·Artifact ingestion·Completion/Worker wiring은 아직 미구현이며 자세한 경계는 [Verified Durable Staging Authority](docs/03-architecture/verified-durable-staging-authority.md)와 [ADR-051](docs/11-decisions/ADR-051-verified-durable-staging-authority.md)을 참고하십시오.
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
@@ -27,7 +27,7 @@ DohaMusic = AI-native DAW
 현재 `develop`에서 확인되는 범위다.
 
 - D1 Composition Read Workspace와 D2 Timeline Playback, Master / Mix Waveform·richer Playhead Foundation은 완료됐다. Project 상세의 선택된 CompositionSnapshot에는 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
-- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)과 [ADR-045](docs/11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, Track 삭제와 trusted source duration 권위를 확정했다. persistence, trusted WAV·FLAC duration, atomic mutation Service와 13개 Product operation을 구현했으며 Clip UI·Composition commit은 미구현이다.
+- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)·[ADR-045](docs/11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)·[ADR-050](docs/11-decisions/ADR-050-working-composition-inverse-mutation-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, trusted source duration과 inverse mutation 권위를 확정했다. persistence, trusted WAV·FLAC duration, atomic mutation Service와 restore·unsplit/resplit을 포함한 17개 Product operation을 구현했으며 Frontend Clip UI·Undo/Redo·Composition commit은 미구현이다.
 - FastAPI Router → Service → Repository → SQLAlchemy 구조와 SQLite·Alembic 기반
 - 생성·Stem·Voice Conversion·Pipeline·Lyrics의 Legacy API와 비동기 작업 흐름
 - Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
@@ -150,6 +150,17 @@ npm run dev
 - Health: `GET http://127.0.0.1:8000/health`
 - Frontend: `http://localhost:3000`
 - 상세 설정: [로컬 개발 환경](docs/10-operations/local-development.md), [환경 변수](docs/10-operations/environment-variables.md)
+
+Python source root는 `backend`, 별도 AI tooling root는 `ai_worker`, test root는
+`backend/tests`다. 로컬과 CI는 다음 repository-wide first-party Gate를 동일하게 사용한다.
+
+```powershell
+python -m compileall -q backend ai_worker
+python -m ruff check --no-cache backend ai_worker
+python -m ruff format --check --no-cache backend ai_worker
+python -m pytest -q
+git diff --check
+```
 
 ## Safety / Rights
 

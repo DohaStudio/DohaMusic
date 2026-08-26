@@ -62,9 +62,7 @@ def resolve_database_url(
     try:
         parsed = make_url(database_url)
     except ArgumentError as error:
-        raise WorkspaceBootstrapError(
-            "DATABASE_URL 형식이 유효하지 않습니다."
-        ) from error
+        raise WorkspaceBootstrapError("DATABASE_URL 형식이 유효하지 않습니다.") from error
     if not parsed.drivername.startswith("sqlite"):
         raise WorkspaceBootstrapError("Bootstrap 대상은 명시적 SQLite DB여야 합니다.")
     return database_url
@@ -94,13 +92,9 @@ def inspect_bootstrap_target(database_url: str) -> str:
                 if "workspaces" in missing_tables:
                     raise WorkspaceBootstrapError("Workspace Table이 없습니다.")
                 raise WorkspaceBootstrapError("D1 Transition 필수 Table이 없습니다.")
-            revisions = tuple(
-                connection.scalars(text("SELECT version_num FROM alembic_version"))
-            )
+            revisions = tuple(connection.scalars(text("SELECT version_num FROM alembic_version")))
             if len(revisions) != 1:
-                raise WorkspaceBootstrapError(
-                    "Alembic revision row는 정확히 하나여야 합니다."
-                )
+                raise WorkspaceBootstrapError("Alembic revision row는 정확히 하나여야 합니다.")
             revision = revisions[0]
             if revision != BOOTSTRAP_TARGET_REVISION:
                 raise WorkspaceBootstrapError(
@@ -111,9 +105,7 @@ def inspect_bootstrap_target(database_url: str) -> str:
     except WorkspaceBootstrapError:
         raise
     except SQLAlchemyError as error:
-        raise WorkspaceBootstrapError(
-            "Bootstrap DB 사전 점검에 실패했습니다."
-        ) from error
+        raise WorkspaceBootstrapError("Bootstrap DB 사전 점검에 실패했습니다.") from error
     finally:
         engine.dispose()
 
@@ -140,8 +132,7 @@ def _inspect_transition_constraints(schema_inspector: object) -> None:
         tuple(item.get("constrained_columns") or ())
         == ("project_id", "selected_composition_snapshot_id")
         and item.get("referred_table") == "composition_snapshots"
-        and tuple(item.get("referred_columns") or ())
-        == ("project_id", "composition_snapshot_id")
+        and tuple(item.get("referred_columns") or ()) == ("project_id", "composition_snapshot_id")
         for item in foreign_keys
     )
     if not has_same_project_fk:
@@ -149,8 +140,7 @@ def _inspect_transition_constraints(schema_inspector: object) -> None:
     indexes = get_indexes("composition_snapshots")
     has_identity_index = any(
         item.get("unique")
-        and tuple(item.get("column_names") or ())
-        == ("project_id", "composition_snapshot_id")
+        and tuple(item.get("column_names") or ()) == ("project_id", "composition_snapshot_id")
         for item in indexes
     )
     if not has_identity_index:

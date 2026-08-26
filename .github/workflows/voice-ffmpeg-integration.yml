@@ -5,12 +5,14 @@ on:
     branches: [develop]
     paths:
       - ".github/workflows/voice-ffmpeg-integration.yml"
+      - "ai_worker/**"
       - "backend/**"
       - "pyproject.toml"
   push:
     branches: [develop]
     paths:
       - ".github/workflows/voice-ffmpeg-integration.yml"
+      - "ai_worker/**"
       - "backend/**"
       - "pyproject.toml"
 
@@ -34,10 +36,12 @@ jobs:
           ffmpeg -version
       - name: Install Backend
         run: python -m pip install -e ".[dev]"
-      - name: Ruff changed scope
-        run: python -m ruff check backend/voice_enrollment/normalizer.py backend/tests/test_voice_enrollment_audio.py
+      - name: Compile first-party Python
+        run: python -m compileall -q backend ai_worker
+      - name: Ruff lint
+        run: python -m ruff check --no-cache backend ai_worker
       - name: Ruff format
-        run: python -m ruff format --check .
+        run: python -m ruff format --check --no-cache backend ai_worker
       - name: Backend tests with real FFmpeg
         run: python -m pytest -q
 

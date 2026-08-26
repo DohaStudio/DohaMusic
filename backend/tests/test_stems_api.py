@@ -69,9 +69,7 @@ def test_create_get_and_list_mock_stems(client: TestClient) -> None:
     }
     assert all("file_path" not in item for item in files)
     with client.app.state.session_factory() as session:
-        records = session.scalars(
-            select(StemFile).where(StemFile.job_id == completed["id"])
-        ).all()
+        records = session.scalars(select(StemFile).where(StemFile.job_id == completed["id"])).all()
     storage = client.app.state.storage
     for item in records:
         path = storage.resolve_relative_path(item.file_path)

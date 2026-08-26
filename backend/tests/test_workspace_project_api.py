@@ -42,10 +42,7 @@ def test_resource_api_requires_workspace_bootstrap(client: TestClient) -> None:
 
         assert response.status_code == 409
         assert response.json()["error"]["error_code"] == "WORKSPACE_BOOTSTRAP_REQUIRED"
-        assert (
-            response.json()["error"]["request_id"]
-            == response.headers[REQUEST_ID_HEADER]
-        )
+        assert response.json()["error"]["request_id"] == response.headers[REQUEST_ID_HEADER]
 
 
 def test_workspace_list_detail_and_update(client: TestClient) -> None:
@@ -82,9 +79,7 @@ def test_workspace_list_detail_and_update(client: TestClient) -> None:
 
 def test_workspace_errors_are_resource_specific(client: TestClient) -> None:
     first = _create_workspace(client, name="첫 작업실")
-    second = _service(client).create_workspace(
-        owner_id=first.owner_id, name="둘째 작업실"
-    )
+    second = _service(client).create_workspace(owner_id=first.owner_id, name="둘째 작업실")
 
     missing = client.get(f"/api/v1/workspaces/{uuid4()}")
     assert missing.status_code == 404
@@ -138,9 +133,7 @@ def test_project_list_uses_hmac_cursor_without_duplicates(client: TestClient) ->
         )
         assert response.status_code == 201
 
-    first = client.get(
-        f"/api/v1/projects?workspace_id={workspace.workspace_id}&limit=2"
-    )
+    first = client.get(f"/api/v1/projects?workspace_id={workspace.workspace_id}&limit=2")
     assert first.status_code == 200
     first_body = first.json()
     assert first_body["pagination"]["has_more"] is True
@@ -152,9 +145,7 @@ def test_project_list_uses_hmac_cursor_without_duplicates(client: TestClient) ->
     assert len(ids) == 3
     assert len(set(ids)) == 3
 
-    other_workspace = _service(client).create_workspace(
-        owner_id=uuid4(), name="다른 작업실"
-    )
+    other_workspace = _service(client).create_workspace(owner_id=uuid4(), name="다른 작업실")
     reused = client.get(
         "/api/v1/projects",
         params={
@@ -263,9 +254,7 @@ def test_resource_api_validates_uuid_name_and_limit(client: TestClient) -> None:
     assert invalid_uuid.json()["error"]["error_code"] == "INVALID_INPUT"
 
     for body in ({}, {"name": ""}, {"name": "   "}, {"deleted_at": None}):
-        response = client.patch(
-            f"/api/v1/workspaces/{workspace.workspace_id}", json=body
-        )
+        response = client.patch(f"/api/v1/workspaces/{workspace.workspace_id}", json=body)
         assert response.status_code == 422
         assert response.json()["error"]["error_code"] == "INVALID_INPUT"
 

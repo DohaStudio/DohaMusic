@@ -403,9 +403,7 @@ LEGACY_TABLES = {
 
 
 def test_workspace_entity_and_table_names_are_exact() -> None:
-    actual = {
-        entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES
-    }
+    actual = {entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES}
 
     assert len(WORKSPACE_ENTITY_CLASSES) == 29
     assert actual == EXPECTED_ENTITY_TABLES
@@ -445,9 +443,7 @@ def test_workspace_enums_match_common_contract() -> None:
 
 def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     target_tables = set(EXPECTED_ENTITY_TABLES.values())
-    storage_tables = {
-        entity.__tablename__ for entity in ARTIFACT_STORAGE_ENTITY_CLASSES
-    }
+    storage_tables = {entity.__tablename__ for entity in ARTIFACT_STORAGE_ENTITY_CLASSES}
 
     assert target_tables.isdisjoint(LEGACY_TABLES)
     assert storage_tables == {"artifact_storage_locations"}

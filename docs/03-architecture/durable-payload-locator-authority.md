@@ -4,7 +4,7 @@
 > 최종 수정일: 2026-08-25
 > 기준: DohaMusic develop `bdc141237d7c0fd407084ce1bccebfbd86d651a6`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 최종 판정: `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`
-> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)
 
 ## 1. 결론과 범위
 

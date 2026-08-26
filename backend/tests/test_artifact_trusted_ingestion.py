@@ -238,9 +238,7 @@ def test_supported_kind_media_matrix(
 
 
 @pytest.mark.parametrize("artifact_kind", ["model", "checkpoint", "unknown"])
-def test_unvalidated_kinds_fail_closed(
-    ingestion: IngestionFixture, artifact_kind: str
-) -> None:
+def test_unvalidated_kinds_fail_closed(ingestion: IngestionFixture, artifact_kind: str) -> None:
     source = ingestion.write("payload.bin", b"payload")
     with pytest.raises(ArtifactIngestionError) as caught:
         ingestion.service().ingest(
@@ -311,9 +309,7 @@ def test_staging_boundary_rejects_invalid_inputs(
     assert ingestion.rows() == ([], [])
 
 
-def test_staging_symlink_is_rejected(
-    ingestion: IngestionFixture, tmp_path: Path
-) -> None:
+def test_staging_symlink_is_rejected(ingestion: IngestionFixture, tmp_path: Path) -> None:
     outside = tmp_path / "outside.wav"
     outside.write_bytes(_wav_payload())
     link = ingestion.staging_root / "link.wav"
@@ -358,9 +354,7 @@ def test_invalid_media_is_rejected_without_registration(
     domain = "lm" if artifact_kind in {"lyrics_text", "manifest"} else "audio"
     with pytest.raises(ArtifactIngestionError) as caught:
         ingestion.service().ingest(
-            ingestion.request(
-                source, artifact_kind=artifact_kind, storage_domain=domain
-            )
+            ingestion.request(source, artifact_kind=artifact_kind, storage_domain=domain)
         )
     assert caught.value.code is ArtifactIngestionErrorCode.MEDIA_VALIDATION_FAILED
     assert source.exists()
@@ -427,9 +421,7 @@ def test_concurrent_same_target_never_clobbers_payload(
 
     def ingest(path: Path) -> IngestedArtifact | ArtifactIngestionErrorCode:
         try:
-            return ingestion.service(artifact_id=artifact_id).ingest(
-                ingestion.request(path)
-            )
+            return ingestion.service(artifact_id=artifact_id).ingest(ingestion.request(path))
         except ArtifactIngestionError as error:
             return error.code
 
@@ -449,9 +441,7 @@ def test_concurrent_same_target_never_clobbers_payload(
     artifacts, locations = ingestion.rows()
     assert len(artifacts) == len(locations) == 1
     final_path = (
-        ingestion.artifact_root
-        / "audio"
-        / Path(locations[0].storage_key.replace("/", os.sep))
+        ingestion.artifact_root / "audio" / Path(locations[0].storage_key.replace("/", os.sep))
     )
     assert final_path.read_bytes() == _wav_payload()
 
@@ -544,12 +534,8 @@ def test_duplicate_checksum_preserves_distinct_lineage_artifacts(
     ingestion: IngestionFixture,
 ) -> None:
     payload = _wav_payload()
-    first = ingestion.service().ingest(
-        ingestion.request(ingestion.write("first.wav", payload))
-    )
-    second = ingestion.service().ingest(
-        ingestion.request(ingestion.write("second.wav", payload))
-    )
+    first = ingestion.service().ingest(ingestion.request(ingestion.write("first.wav", payload)))
+    second = ingestion.service().ingest(ingestion.request(ingestion.write("second.wav", payload)))
     assert first.artifact_id != second.artifact_id
     assert first.artifact_checksum == second.artifact_checksum
     artifacts, locations = ingestion.rows()

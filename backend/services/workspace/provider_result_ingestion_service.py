@@ -142,9 +142,7 @@ class TrustedProviderResultCandidate:
         """metadata-only 결과의 payload-backed Completion 변환을 차단한다."""
 
         if not self.payload_present:
-            raise ProviderResultNotIngestibleError(
-                IngestionDecisionReason.PAYLOAD_ABSENT
-            )
+            raise ProviderResultNotIngestibleError(IngestionDecisionReason.PAYLOAD_ABSENT)
         if self.payload_reference is None:
             raise ProviderResultNotIngestibleError(
                 IngestionDecisionReason.PAYLOAD_ACQUISITION_REQUIRED
@@ -206,8 +204,7 @@ class ProviderResultIngestionService:
         workspace_job_id: UUID,
         provider_job_binding_id: UUID,
         output_role: str,
-        wire_candidate: VocalProviderResultCandidate
-        | VocalPayloadBackedResultCandidate,
+        wire_candidate: VocalProviderResultCandidate | VocalPayloadBackedResultCandidate,
     ) -> ProviderResultIngestionDecision:
         job_repository = JobRepository(session)
         job = job_repository.get_job_for_owner(workspace_job_id, effective_owner_id)
@@ -223,9 +220,7 @@ class ProviderResultIngestionService:
             _reject(ProviderResultContractErrorReason.WORKSPACE_JOB_MISMATCH)
 
         expected_contract_version = (
-            "0.2.0"
-            if isinstance(wire_candidate, VocalPayloadBackedResultCandidate)
-            else "0.1.0"
+            "0.2.0" if isinstance(wire_candidate, VocalPayloadBackedResultCandidate) else "0.1.0"
         )
         if job.api_contract_version != expected_contract_version:
             _reject(ProviderResultContractErrorReason.CONTRACT_VERSION_MISMATCH)
@@ -258,9 +253,7 @@ class ProviderResultIngestionService:
             candidate=wire_candidate,
         )
         self._validate_descriptor(wire_candidate, job.job_type)
-        trusted_payloads = self._validate_payloads(
-            wire_candidate, expected_role=output_role
-        )
+        trusted_payloads = self._validate_payloads(wire_candidate, expected_role=output_role)
         provider_artifact_id = (
             trusted_payloads[0].provider_artifact_id
             if trusted_payloads
@@ -450,9 +443,7 @@ def _validate_payload_descriptor(candidate: VocalProviderPayloadEntry) -> None:
         _reject(ProviderResultContractErrorReason.PAYLOAD_DESCRIPTOR_MISMATCH)
 
 
-def _validate_parent_lineage(
-    repository: AssetRepository, source_id: UUID, parent_id: UUID
-) -> None:
+def _validate_parent_lineage(repository: AssetRepository, source_id: UUID, parent_id: UUID) -> None:
     source = repository.get_asset_version(source_id)
     parent = repository.get_asset_version(parent_id)
     if source is None or parent is None or source.asset_id != parent.asset_id:
@@ -460,10 +451,7 @@ def _validate_parent_lineage(
     visited: set[UUID] = set()
     current = parent
     while current.asset_version_id != source_id:
-        if (
-            current.asset_version_id in visited
-            or current.parent_asset_version_id is None
-        ):
+        if current.asset_version_id in visited or current.parent_asset_version_id is None:
             _reject(ProviderResultContractErrorReason.LINEAGE_MISMATCH)
         visited.add(current.asset_version_id)
         ancestor = repository.get_asset_version(current.parent_asset_version_id)

@@ -35,13 +35,8 @@ class AceStepAdapter:
         self.model_name = config.model_variant
 
     def generate(self, request: GenerationInput) -> GenerationResult:
-        runtime_result = self.runtime.generate(
-            to_runner_request(request), request.job_id
-        )
-        if (
-            not runtime_result.audio_path.is_file()
-            or runtime_result.audio_path.stat().st_size == 0
-        ):
+        runtime_result = self.runtime.generate(to_runner_request(request), request.job_id)
+        if not runtime_result.audio_path.is_file() or runtime_result.audio_path.stat().st_size == 0:
             raise AIOutputNotCreatedError("ACE-Step 출력 파일이 생성되지 않았습니다.")
         return GenerationResult(
             audio_path=runtime_result.audio_path,

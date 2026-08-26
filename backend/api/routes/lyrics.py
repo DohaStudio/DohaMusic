@@ -19,9 +19,7 @@ LyricsServiceDependency = Annotated[LyricsService, Depends(get_lyrics_service)]
 
 
 @router.post("", response_model=LyricsDocumentRead, status_code=status.HTTP_201_CREATED)
-def create_lyrics(
-    request: LyricsCreate, service: LyricsServiceDependency
-) -> LyricsDocumentRead:
+def create_lyrics(request: LyricsCreate, service: LyricsServiceDependency) -> LyricsDocumentRead:
     return LyricsDocumentRead.model_validate(service.create(request))
 
 

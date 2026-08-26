@@ -26,9 +26,7 @@ from backend.providers.vocal import (
     VoiceConversionInput,
 )
 
-FIXTURE_PATH = (
-    Path(__file__).parent / "fixtures" / "vocal-provider-contract-v0.1.0.json"
-)
+FIXTURE_PATH = Path(__file__).parent / "fixtures" / "vocal-provider-contract-v0.1.0.json"
 MODEL_MANIFEST_ID = "dohavocal.fake-model@0.1.0"
 
 
@@ -66,9 +64,7 @@ def _client(
     settings: Settings | None = None,
 ) -> tuple[VocalProviderClient, HttpVocalProviderTransport, httpx.Client]:
     http_client = httpx.Client(transport=httpx.MockTransport(handler))
-    transport = HttpVocalProviderTransport.from_settings(
-        settings or Settings(), client=http_client
-    )
+    transport = HttpVocalProviderTransport.from_settings(settings or Settings(), client=http_client)
     return VocalProviderClient(transport), transport, http_client
 
 
@@ -165,15 +161,9 @@ def test_http_result_preserves_metadata_only_lineage(vocal_fixture):
     assert result.payload_present is False
     assert result.checksum_scope == "metadata_descriptor"
     assert result.lineage.checksum_scope == "metadata_descriptor"
-    assert result.lineage.source_asset_version_id == (
-        "00000000-0000-4000-8000-000000000001"
-    )
-    assert result.lineage.parent_asset_version_id == (
-        "11111111-1111-4111-8111-111111111111"
-    )
-    assert result.lineage.processing_chain_id == (
-        "55555555-5555-4555-8555-555555555555"
-    )
+    assert result.lineage.source_asset_version_id == ("00000000-0000-4000-8000-000000000001")
+    assert result.lineage.parent_asset_version_id == ("11111111-1111-4111-8111-111111111111")
+    assert result.lineage.processing_chain_id == ("55555555-5555-4555-8555-555555555555")
     assert result.lineage.model_manifest_id == MODEL_MANIFEST_ID
 
 
@@ -282,17 +272,11 @@ def test_injected_client_cannot_enable_cross_origin_redirect():
     def handler(request: httpx.Request) -> httpx.Response:
         observed.append(str(request.url))
         if len(observed) == 1:
-            return httpx.Response(
-                302, headers={"location": "http://untrusted.example/health"}
-            )
+            return httpx.Response(302, headers={"location": "http://untrusted.example/health"})
         return httpx.Response(200, json={"status": "ok", "provider_id": "dohavocal"})
 
-    http_client = httpx.Client(
-        transport=httpx.MockTransport(handler), follow_redirects=True
-    )
-    transport = HttpVocalProviderTransport(
-        base_url="https://trusted.example", client=http_client
-    )
+    http_client = httpx.Client(transport=httpx.MockTransport(handler), follow_redirects=True)
+    transport = HttpVocalProviderTransport(base_url="https://trusted.example", client=http_client)
     try:
         with pytest.raises(VocalProviderInvalidResponseError):
             VocalProviderClient(transport).health()
@@ -439,8 +423,7 @@ def test_http_application_error_does_not_leak_raw_sensitive_fields(vocal_fixture
     payload["error"].update(
         {
             "message": (
-                "Traceback C:\\Users\\private\\model.pt /home/user/model.pt "
-                "token=secret-value"
+                "Traceback C:\\Users\\private\\model.pt /home/user/model.pt token=secret-value"
             ),
             "details_id": "api_key=secret-value",
         }
@@ -477,9 +460,7 @@ def test_http_application_error_does_not_leak_raw_sensitive_fields(vocal_fixture
 )
 def test_non_json_or_malformed_json_fails_closed(content, content_type):
     def handler(_request: httpx.Request) -> httpx.Response:
-        return httpx.Response(
-            200, content=content, headers={"content-type": content_type}
-        )
+        return httpx.Response(200, content=content, headers={"content-type": content_type})
 
     client, transport, http_client = _client(handler)
     try:
@@ -553,9 +534,7 @@ def test_identity_version_extra_and_enum_drift_fail_closed(vocal_fixture, mutati
 
     client, transport, http_client = _client(handler)
     try:
-        with pytest.raises(
-            (VocalProviderInvalidResponseError, VocalProviderContractVersionError)
-        ):
+        with pytest.raises((VocalProviderInvalidResponseError, VocalProviderContractVersionError)):
             client.get_capabilities()
     finally:
         transport.close()
@@ -564,13 +543,9 @@ def test_identity_version_extra_and_enum_drift_fail_closed(vocal_fixture, mutati
 
 def test_transport_close_is_idempotent_and_does_not_close_injected_client():
     http_client = httpx.Client(
-        transport=httpx.MockTransport(
-            lambda _request: httpx.Response(200, json={"status": "ok"})
-        )
+        transport=httpx.MockTransport(lambda _request: httpx.Response(200, json={"status": "ok"}))
     )
-    transport = HttpVocalProviderTransport(
-        base_url="http://127.0.0.1:8080", client=http_client
-    )
+    transport = HttpVocalProviderTransport(base_url="http://127.0.0.1:8080", client=http_client)
 
     transport.close()
     transport.close()

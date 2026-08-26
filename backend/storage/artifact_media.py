@@ -59,12 +59,7 @@ def _validate_audio(path: Path) -> ValidatedArtifactMedia:
                 sample_width = payload.getsampwidth()
                 sample_rate = payload.getframerate()
                 total_samples = payload.getnframes()
-                if (
-                    channels < 1
-                    or sample_width < 1
-                    or sample_rate < 1
-                    or total_samples < 1
-                ):
+                if channels < 1 or sample_width < 1 or sample_rate < 1 or total_samples < 1:
                     raise ArtifactMediaValidationError("유효하지 않은 WAV입니다.")
                 frame_width = channels * sample_width
                 remaining_samples = total_samples
@@ -108,9 +103,7 @@ def _validate_mp3_header(path: Path, header: bytes) -> None:
         with path.open("rb") as stream:
             if header.startswith(b"ID3"):
                 id3_header = stream.read(10)
-                if len(id3_header) != 10 or any(
-                    byte & 0x80 for byte in id3_header[6:10]
-                ):
+                if len(id3_header) != 10 or any(byte & 0x80 for byte in id3_header[6:10]):
                     raise ArtifactMediaValidationError("유효하지 않은 MP3 ID3입니다.")
                 tag_size = (
                     (id3_header[6] << 21)
@@ -146,9 +139,7 @@ def _duration_us(*, total_samples: int, sample_rate: int) -> int:
     """sample authority를 가장 가까운 microsecond로 deterministic half-up 변환한다."""
 
     if total_samples < 1 or sample_rate < 1:
-        raise ArtifactMediaValidationError(
-            "Audio duration metadata가 유효하지 않습니다."
-        )
+        raise ArtifactMediaValidationError("Audio duration metadata가 유효하지 않습니다.")
     duration_us = (total_samples * 1_000_000 + sample_rate // 2) // sample_rate
     if duration_us < 1:
         raise ArtifactMediaValidationError("Audio duration이 유효하지 않습니다.")
@@ -181,9 +172,7 @@ def _flac_duration_us(path: Path) -> int:
                     )
                 if block_type == 0:
                     if streaminfo is not None or block_length != 34:
-                        raise ArtifactMediaValidationError(
-                            "FLAC STREAMINFO가 유효하지 않습니다."
-                        )
+                        raise ArtifactMediaValidationError("FLAC STREAMINFO가 유효하지 않습니다.")
                     streaminfo = block
                 first_block = False
             if streaminfo is None or not stream.read(1):
@@ -210,9 +199,7 @@ def _validate_utf8_text(path: Path) -> None:
 
 def _validate_json(path: Path, *, size_bytes: int) -> None:
     if size_bytes > MAX_STRUCTURED_PAYLOAD_BYTES:
-        raise ArtifactMediaValidationError(
-            "구조화 Artifact의 검증 크기 상한을 초과했습니다."
-        )
+        raise ArtifactMediaValidationError("구조화 Artifact의 검증 크기 상한을 초과했습니다.")
     try:
         with path.open("r", encoding="utf-8") as stream:
             json.load(stream)

@@ -30,11 +30,7 @@ from backend.models.workspace import (
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION_PATH = (
-    ROOT
-    / "backend"
-    / "alembic"
-    / "versions"
-    / "20260809_0016_add_artifact_storage_locations.py"
+    ROOT / "backend" / "alembic" / "versions" / "20260809_0016_add_artifact_storage_locations.py"
 )
 REVISION = "20260809_0016"
 PREVIOUS_REVISION = "20260808_0015"
@@ -70,23 +66,17 @@ def _existing_snapshot(engine) -> tuple[dict[str, int], str]:
     digest_rows: list[tuple[str, tuple[tuple[object, ...], ...]]] = []
     with engine.connect() as connection:
         inspector = inspect(connection)
-        table_names = sorted(
-            set(inspector.get_table_names()) - {TABLE, "alembic_version"}
-        )
+        table_names = sorted(set(inspector.get_table_names()) - {TABLE, "alembic_version"})
         for table_name in table_names:
             columns = [column["name"] for column in inspector.get_columns(table_name)]
             quoted_columns = ", ".join(f'"{column}"' for column in columns)
             counts[table_name] = connection.exec_driver_sql(
                 f'SELECT count(*) FROM "{table_name}"'
             ).scalar_one()
-            primary_keys = inspector.get_pk_constraint(table_name)[
-                "constrained_columns"
-            ]
+            primary_keys = inspector.get_pk_constraint(table_name)["constrained_columns"]
             query = f'SELECT {quoted_columns} FROM "{table_name}"'
             if primary_keys:
-                query += " ORDER BY " + ", ".join(
-                    f'"{column}"' for column in primary_keys
-                )
+                query += " ORDER BY " + ", ".join(f'"{column}"' for column in primary_keys)
             rows = tuple(tuple(row) for row in connection.exec_driver_sql(query).all())
             digest_rows.append((table_name, rows))
     digest = hashlib.sha256(repr(digest_rows).encode("utf-8")).hexdigest()
@@ -174,12 +164,8 @@ def test_catalog_entity_contract_and_relationship_are_exact() -> None:
         "published_at",
         "created_at",
     }
-    assert not any(
-        "path" in column.name for column in ArtifactStorageLocation.__table__.columns
-    )
-    assert (
-        ArtifactStorageLocation.artifact.property.back_populates == "storage_location"
-    )
+    assert not any("path" in column.name for column in ArtifactStorageLocation.__table__.columns)
+    assert ArtifactStorageLocation.artifact.property.back_populates == "storage_location"
     assert Artifact.storage_location.property.back_populates == "artifact"
     assert Artifact.storage_location.property.uselist is False
 
@@ -257,16 +243,10 @@ def test_catalog_migration_round_trip_preserves_existing_schema_and_rows(
         reflected_checks = {
             constraint["name"] for constraint in inspector.get_check_constraints(TABLE)
         }
-        revision = connection.execute(
-            text("select version_num from alembic_version")
-        ).scalar_one()
-        foreign_key_violations = connection.exec_driver_sql(
-            "PRAGMA foreign_key_check"
-        ).all()
+        revision = connection.execute(text("select version_num from alembic_version")).scalar_one()
+        foreign_key_violations = connection.exec_driver_sql("PRAGMA foreign_key_check").all()
         quick_check = connection.exec_driver_sql("PRAGMA quick_check").scalar_one()
-        integrity_check = connection.exec_driver_sql(
-            "PRAGMA integrity_check"
-        ).scalar_one()
+        integrity_check = connection.exec_driver_sql("PRAGMA integrity_check").scalar_one()
 
     assert revision == REVISION
     assert len(tables) == 36
@@ -300,9 +280,9 @@ def test_catalog_migration_round_trip_preserves_existing_schema_and_rows(
         "ck_artifact_storage_locations_locator_version",
     }
     assert len(WORKSPACE_ENTITY_CLASSES) == WORKSPACE_TABLE_COUNT
-    assert len(
-        tables - {entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES}
-    ) == (LEGACY_TABLE_COUNT + 1)
+    assert len(tables - {entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES}) == (
+        LEGACY_TABLE_COUNT + 1
+    )
     assert _existing_snapshot(engine) == (baseline_counts, baseline_digest)
     assert foreign_key_violations == []
     assert quick_check == "ok"
@@ -337,9 +317,7 @@ def test_catalog_migration_round_trip_preserves_existing_schema_and_rows(
         artifact_count = connection.execute(
             select(text("count(*)")).select_from(Base.metadata.tables["artifacts"])
         ).scalar_one()
-        foreign_key_violations = connection.exec_driver_sql(
-            "PRAGMA foreign_key_check"
-        ).all()
+        foreign_key_violations = connection.exec_driver_sql("PRAGMA foreign_key_check").all()
     engine.dispose()
 
     assert downgraded_revision == PREVIOUS_REVISION
@@ -447,9 +425,7 @@ def test_catalog_rejects_invalid_database_invariants(
     overrides: dict[str, object],
     expected_constraint: str,
 ) -> None:
-    database_url = (
-        f"sqlite:///{(tmp_path / f'catalog-{expected_constraint}.db').as_posix()}"
-    )
+    database_url = f"sqlite:///{(tmp_path / f'catalog-{expected_constraint}.db').as_posix()}"
     config = _config(database_url)
     command.upgrade(config, REVISION)
     engine = create_database_engine(database_url)

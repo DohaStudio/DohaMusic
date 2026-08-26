@@ -86,9 +86,7 @@ def session(session_factory):
         yield value
 
 
-def _workspace(
-    owner_id: UUID | None = None, *, name: str = "개인 작업공간"
-) -> Workspace:
+def _workspace(owner_id: UUID | None = None, *, name: str = "개인 작업공간") -> Workspace:
     return Workspace(
         owner_id=owner_id or uuid4(),
         name=name,
@@ -182,8 +180,7 @@ def test_workspace_repository_queries_soft_delete_and_project_asset_constraints(
     )
 
     assert (
-        repository.get_workspace_for_owner(workspace.workspace_id, workspace.owner_id)
-        == workspace
+        repository.get_workspace_for_owner(workspace.workspace_id, workspace.owner_id) == workspace
     )
     assert repository.workspace_name_exists(workspace.owner_id, workspace.name)
     assert repository.project_title_exists(workspace.workspace_id, project.title)
@@ -275,17 +272,15 @@ def test_asset_repository_versions_artifacts_relations_and_immutability(
     ]
     assert repository.get_latest_asset_version(source_asset.asset_id) == second_version
     assert repository.version_number_exists(source_asset.asset_id, 2)
-    version_artifacts = repository.list_version_artifacts(
-        first_version.asset_version_id
-    )
+    version_artifacts = repository.list_version_artifacts(first_version.asset_version_id)
     assert {item.artifact_id for item in version_artifacts} == {
         artifact.artifact_id,
         clip_source.artifact_id,
         inactive_source.artifact_id,
     }
-    assert repository.list_clip_source_artifact_candidates(
-        first_version.asset_version_id
-    ) == [clip_source]
+    assert repository.list_clip_source_artifact_candidates(first_version.asset_version_id) == [
+        clip_source
+    ]
     assert repository.checksum_exists("sha256", "abc123")
     assert repository.list_asset_relations(asset_id=source_asset.asset_id) == [relation]
     assert repository.relation_exists(
@@ -429,9 +424,7 @@ def test_job_repository_is_separate_from_pipeline_and_orders_inputs_outputs(
     assert repository.list_model_usages(job.job_id) == [usage]
     assert repository.job_input_order_exists(job.job_id, 1)
     assert repository.job_output_order_exists(job.job_id, 1)
-    repository.update_job_status(
-        job, JobStatus.SUCCEEDED, completed_at=datetime.now(UTC)
-    )
+    repository.update_job_status(job, JobStatus.SUCCEEDED, completed_at=datetime.now(UTC))
     assert job.status == JobStatus.SUCCEEDED
     assert session.commit_calls == 0
 
@@ -484,10 +477,7 @@ def test_collaboration_repository_metadata_constraints_and_soft_delete(
         )
     )
 
-    assert (
-        repository.get_recording_enrollment(enrollment.recording_enrollment_id)
-        == enrollment
-    )
+    assert repository.get_recording_enrollment(enrollment.recording_enrollment_id) == enrollment
     assert repository.tag_name_exists(asset.asset_id, tag.name)
     assert repository.favorite_exists(workspace.workspace_id, asset.asset_id)
     assert repository.list_history(workspace.workspace_id) == [history]
@@ -505,9 +495,7 @@ def test_collaboration_repository_metadata_constraints_and_soft_delete(
     assert repository.get_comment(comment.comment_id, include_deleted=True) == comment
     assert repository.get_favorite(favorite.favorite_id) is None
 
-    session.add(
-        Tag(asset_id=asset.asset_id, name=tag.name, created_by=workspace.owner_id)
-    )
+    session.add(Tag(asset_id=asset.asset_id, name=tag.name, created_by=workspace.owner_id))
     with pytest.raises(IntegrityError):
         session.flush()
 
@@ -542,9 +530,7 @@ def test_repository_classes_never_end_transactions() -> None:
 
     for repository_class in repository_classes:
         names = {
-            name
-            for name in dir(repository_class)
-            if callable(getattr(repository_class, name))
+            name for name in dir(repository_class) if callable(getattr(repository_class, name))
         }
         assert "commit" not in names
         assert "rollback" not in names

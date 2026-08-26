@@ -83,9 +83,7 @@ def test_job_endpoints_require_bootstrap(client: TestClient) -> None:
     for method, path, body, headers in requests:
         response = client.request(method, path, json=body, headers=headers)
         assert response.status_code == 409
-        assert response.json()["error"]["error_code"] == (
-            "WORKSPACE_BOOTSTRAP_REQUIRED"
-        )
+        assert response.json()["error"]["error_code"] == ("WORKSPACE_BOOTSTRAP_REQUIRED")
         assert response.headers[REQUEST_ID_HEADER]
 
 
@@ -153,9 +151,7 @@ def test_job_create_rejects_internal_fields_and_invalid_inputs(
 def test_job_list_uses_service_cursor_and_official_filters(client: TestClient) -> None:
     _, project_id = _seed_project(client)
     for index in range(3):
-        assert (
-            _create_job(client, project_id, key=f"job-list-{index}").status_code == 201
-        )
+        assert _create_job(client, project_id, key=f"job-list-{index}").status_code == 201
 
     first = client.get(
         "/api/v1/jobs",

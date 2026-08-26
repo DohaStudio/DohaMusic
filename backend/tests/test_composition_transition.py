@@ -40,9 +40,7 @@ def transition_database_template(tmp_path_factory: pytest.TempPathFactory) -> Pa
     engine = create_database_engine(f"sqlite:///{path.as_posix()}")
     Base.metadata.create_all(engine)
     with engine.begin() as connection:
-        connection.execute(
-            text("CREATE TABLE alembic_version (version_num VARCHAR(32))")
-        )
+        connection.execute(text("CREATE TABLE alembic_version (version_num VARCHAR(32))"))
         connection.execute(
             text("INSERT INTO alembic_version VALUES (:revision)"),
             {"revision": BOOTSTRAP_TARGET_REVISION},
@@ -110,10 +108,7 @@ def _selection_count(database_url: str) -> int:
     try:
         with Session(engine) as session:
             return int(
-                session.scalar(
-                    select(func.count()).select_from(ProjectCompositionSelection)
-                )
-                or 0
+                session.scalar(select(func.count()).select_from(ProjectCompositionSelection)) or 0
             )
     finally:
         engine.dispose()
@@ -333,9 +328,7 @@ def test_transition_inventory_is_one_batch_query(database_url: str) -> None:
             states = CompositionRepository(session).list_transition_states(workspace_id)
             assert len(statements) == 1
             sql, parameters = statements[0]
-            plan = session.connection().exec_driver_sql(
-                f"EXPLAIN QUERY PLAN {sql}", parameters
-            )
+            plan = session.connection().exec_driver_sql(f"EXPLAIN QUERY PLAN {sql}", parameters)
             plan_details = [str(row[3]) for row in plan]
         assert len(states) == 1
         assert not any("TEMP B-TREE" in detail for detail in plan_details), plan_details
@@ -353,16 +346,12 @@ def test_transition_preserves_aggregate_empty_selection_required_and_ready(
     try:
         service = CompositionService(factory)
         assert (
-            service.get_project_composition(
-                project_id, effective_owner_id=owner_id
-            ).state
+            service.get_project_composition(project_id, effective_owner_id=owner_id).state
             == "empty"
         )
         snapshot_id = _add_snapshot(database_url, project_id, owner_id)
         assert (
-            service.get_project_composition(
-                project_id, effective_owner_id=owner_id
-            ).state
+            service.get_project_composition(project_id, effective_owner_id=owner_id).state
             == "selection_required"
         )
         service.set_project_selection(
@@ -371,9 +360,7 @@ def test_transition_preserves_aggregate_empty_selection_required_and_ready(
             effective_owner_id=owner_id,
         )
         assert (
-            service.get_project_composition(
-                project_id, effective_owner_id=owner_id
-            ).state
+            service.get_project_composition(project_id, effective_owner_id=owner_id).state
             == "ready"
         )
     finally:

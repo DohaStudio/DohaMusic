@@ -43,15 +43,11 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         if args.command == "inventory":
-            result = collect_inventory(
-                args.database, read_approved=args.confirm_read_approved
-            )
+            result = collect_inventory(args.database, read_approved=args.confirm_read_approved)
         elif args.command == "plan-backup":
             result = {
                 "database": mask_path(args.database),
-                "planned_backup": mask_path(
-                    planned_backup_path(args.database, args.backup_root)
-                ),
+                "planned_backup": mask_path(planned_backup_path(args.database, args.backup_root)),
                 "database_opened": False,
                 "files_created": False,
             }
@@ -64,9 +60,7 @@ def main(argv: list[str] | None = None) -> int:
                 writers_stopped=args.confirm_writers_stopped,
             )
     except PreflightError as error:
-        print(
-            json.dumps({"status": "BLOCKED", "error": str(error)}, ensure_ascii=False)
-        )
+        print(json.dumps({"status": "BLOCKED", "error": str(error)}, ensure_ascii=False))
         return 2
     except (OSError, sqlite3.Error):
         print(

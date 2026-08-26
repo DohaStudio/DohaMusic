@@ -40,9 +40,7 @@ class PayloadLocatorRepository(PayloadLocatorRepositoryPort):
     ) -> PayloadLocatorRecord:
         binding = self.session.get(ProviderJobBinding, issue.provider_job_binding_id)
         if binding is None or binding.workspace_job_id != issue.workspace_job_id:
-            raise PayloadLocatorError(
-                PayloadLocatorErrorCode.WORKSPACE_BINDING_MISMATCH
-            )
+            raise PayloadLocatorError(PayloadLocatorErrorCode.WORKSPACE_BINDING_MISMATCH)
 
         replay = self._find_replay_candidate(issue)
         if replay is not None:
@@ -78,21 +76,15 @@ class PayloadLocatorRepository(PayloadLocatorRepositoryPort):
             if replay is not None:
                 return _require_exact_replay(replay, issue)
             if self.session.get(PayloadLocator, locator_uuid) is not None:
-                raise PayloadLocatorError(
-                    PayloadLocatorErrorCode.LOCATOR_ID_COLLISION
-                ) from None
-            raise PayloadLocatorError(
-                PayloadLocatorErrorCode.RESULT_REPLAY_CONFLICT
-            ) from None
+                raise PayloadLocatorError(PayloadLocatorErrorCode.LOCATOR_ID_COLLISION) from None
+            raise PayloadLocatorError(PayloadLocatorErrorCode.RESULT_REPLAY_CONFLICT) from None
         return _to_record(row)
 
     def get_by_locator_uuid(self, locator_uuid: UUID) -> PayloadLocatorRecord | None:
         row = self.session.get(PayloadLocator, locator_uuid)
         return _to_record(row) if row is not None else None
 
-    def get_for_binding(
-        self, provider_job_binding_id: UUID
-    ) -> tuple[PayloadLocatorRecord, ...]:
+    def get_for_binding(self, provider_job_binding_id: UUID) -> tuple[PayloadLocatorRecord, ...]:
         rows = self.session.scalars(
             select(PayloadLocator)
             .where(PayloadLocator.provider_job_binding_id == provider_job_binding_id)
@@ -153,9 +145,7 @@ class PayloadLocatorRepository(PayloadLocatorRepositoryPort):
         self.session.refresh(row)
         return _to_record(row)
 
-    def _find_replay_candidate(
-        self, issue: PayloadLocatorIssue
-    ) -> PayloadLocator | None:
+    def _find_replay_candidate(self, issue: PayloadLocatorIssue) -> PayloadLocator | None:
         by_ordinal = self.session.scalar(
             select(PayloadLocator).where(
                 PayloadLocator.provider_job_binding_id == issue.provider_job_binding_id,
@@ -172,9 +162,7 @@ class PayloadLocatorRepository(PayloadLocatorRepositoryPort):
         )
         if by_ordinal is not None and by_source is not None:
             if by_ordinal.payload_locator_id != by_source.payload_locator_id:
-                raise PayloadLocatorError(
-                    PayloadLocatorErrorCode.RESULT_REPLAY_CONFLICT
-                )
+                raise PayloadLocatorError(PayloadLocatorErrorCode.RESULT_REPLAY_CONFLICT)
             return by_ordinal
         return by_ordinal or by_source
 
@@ -191,9 +179,7 @@ class SqlAlchemyPayloadLocatorPersistence:
             yield PayloadLocatorRepository(session)
 
 
-def _require_exact_replay(
-    row: PayloadLocator, issue: PayloadLocatorIssue
-) -> PayloadLocatorRecord:
+def _require_exact_replay(row: PayloadLocator, issue: PayloadLocatorIssue) -> PayloadLocatorRecord:
     record = _to_record(row)
     if record.immutable_facts != issue.immutable_facts:
         raise PayloadLocatorError(PayloadLocatorErrorCode.RESULT_REPLAY_CONFLICT)

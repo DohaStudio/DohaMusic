@@ -3,7 +3,7 @@
 > 문서 상태: [승인]
 > 최종 수정일: 2026-08-25
 > 관련 기능: Artifact Catalog, Storage Resolver, 안전한 ingestion과 content·download
-> 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Workspace Job Foundation](workspace-job-foundation.md), [Storage Architecture](storage-architecture.md), [Verified Durable Staging Authority](verified-durable-staging-authority.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
+> 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Workspace Job Foundation](workspace-job-foundation.md), [Storage Architecture](storage-architecture.md), [Verified Durable Staging Authority](verified-durable-staging-authority.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
 
 ## 1. 목적과 현재 경계
 
@@ -57,7 +57,7 @@ D:/DohaArtifacts/
     └── runs/
 ```
 
-초기 local backend는 `DOHA_ARTIFACT_ROOT` 환경 설정으로 base root를 주입한다. pre-Artifact Payload는 별도 `DOHA_ARTIFACT_STAGING_ROOT`로 주입하며 두 변수는 기본 미설정이고 서로 겹치면 fail-closed한다. ADR-050은 같은 staging root 아래 locator-derived durable namespace와 random partial namespace를 사용하고 새 root 설정을 만들지 않는다. 네 domain directory와 staging root는 실제 안전한 directory여야 한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다. 코드와 공개 DTO에는 운영 절대 경로를 저장하지 않는다.
+초기 local backend는 `DOHA_ARTIFACT_ROOT` 환경 설정으로 base root를 주입한다. pre-Artifact Payload는 별도 `DOHA_ARTIFACT_STAGING_ROOT`로 주입하며 두 변수는 기본 미설정이고 서로 겹치면 fail-closed한다. ADR-051은 같은 staging root 아래 locator-derived durable namespace와 random partial namespace를 사용하고 새 root 설정을 만들지 않는다. 네 domain directory와 staging root는 실제 안전한 directory여야 한다. `lm`, `audio`, `vocal`은 Provider 결과를, `music`은 DohaMusic의 Mix·Export·Preview·Snapshot·Workspace run을 소유한다. 코드와 공개 DTO에는 운영 절대 경로를 저장하지 않는다.
 
 ## 4. authoritative Catalog 결정
 

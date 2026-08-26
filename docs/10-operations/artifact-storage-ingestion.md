@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-10
 > 관련 기능: 내부 Artifact publish, authoritative SHA-256·size·MIME, 실패 보상
-> 관련 문서: [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md), [환경 변수](environment-variables.md)
+> 관련 문서: [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md), [환경 변수](environment-variables.md)
 
 ## 1. 현재 경계
 

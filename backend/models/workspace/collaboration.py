@@ -58,24 +58,16 @@ class RecordingEnrollment(CreatedAtMixin, SoftDeleteMixin, Base):
         index=True,
     )
     status: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    consent_policy_version: Mapped[str] = mapped_column(
-        String, nullable=False, index=True
-    )
+    consent_policy_version: Mapped[str] = mapped_column(String, nullable=False, index=True)
     consent_evidence_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    created_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
-    completed_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
-    )
+    created_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     workspace: Mapped[Workspace] = relationship(back_populates="recording_enrollments")
     recording_asset_version: Mapped[AssetVersion] = relationship(
         back_populates="recording_enrollments"
     )
-    approvals: Mapped[list[Approval]] = relationship(
-        back_populates="recording_enrollment"
-    )
+    approvals: Mapped[list[Approval]] = relationship(back_populates="recording_enrollment")
 
 
 class Approval(CreatedAtMixin, Base):
@@ -98,9 +90,7 @@ class Approval(CreatedAtMixin, Base):
         index=True,
     )
     recording_enrollment_id: Mapped[UUID | None] = mapped_column(
-        ForeignKey(
-            "recording_enrollments.recording_enrollment_id", ondelete="RESTRICT"
-        ),
+        ForeignKey("recording_enrollments.recording_enrollment_id", ondelete="RESTRICT"),
         nullable=True,
         index=True,
     )
@@ -111,17 +101,13 @@ class Approval(CreatedAtMixin, Base):
     )
     usage_purpose: Mapped[str] = mapped_column(String, nullable=False, index=True)
     status: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    approved_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    approved_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
     evidence_id: Mapped[str] = mapped_column(String, nullable=False, index=True)
     decided_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, index=True
     )
 
-    asset_version: Mapped[AssetVersion | None] = relationship(
-        back_populates="approvals"
-    )
+    asset_version: Mapped[AssetVersion | None] = relationship(back_populates="approvals")
     recording_enrollment: Mapped[RecordingEnrollment | None] = relationship(
         back_populates="approvals"
     )
@@ -139,18 +125,14 @@ class Tag(CreatedAtMixin, SoftDeleteMixin, Base):
         ForeignKey("assets.asset_id", ondelete="RESTRICT"), nullable=False, index=True
     )
     name: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    created_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    created_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
 
     asset: Mapped[Asset] = relationship(back_populates="tags")
 
 
 class Comment(TimestampMixin, SoftDeleteMixin, Base):
     __tablename__ = "comments"
-    __table_args__ = (
-        Index("ix_comments_version_created", "asset_version_id", "created_at"),
-    )
+    __table_args__ = (Index("ix_comments_version_created", "asset_version_id", "created_at"),)
 
     comment_id: Mapped[UUID] = mapped_column(
         Uuid(as_uuid=True), primary_key=True, default=generate_uuid
@@ -160,9 +142,7 @@ class Comment(TimestampMixin, SoftDeleteMixin, Base):
         nullable=False,
         index=True,
     )
-    created_by: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    created_by: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
     body: Mapped[str] = mapped_column(Text, nullable=False)
 
     asset_version: Mapped[AssetVersion] = relationship(back_populates="comments")
@@ -171,9 +151,7 @@ class Comment(TimestampMixin, SoftDeleteMixin, Base):
 class Favorite(CreatedAtMixin, SoftDeleteMixin, Base):
     __tablename__ = "favorites"
     __table_args__ = (
-        UniqueConstraint(
-            "workspace_id", "asset_id", name="uq_favorites_workspace_asset"
-        ),
+        UniqueConstraint("workspace_id", "asset_id", name="uq_favorites_workspace_asset"),
     )
 
     favorite_id: Mapped[UUID] = mapped_column(
@@ -207,13 +185,9 @@ class History(CreatedAtMixin, Base):
         nullable=False,
         index=True,
     )
-    actor_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    actor_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
     entity_type: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    entity_id: Mapped[UUID] = mapped_column(
-        Uuid(as_uuid=True), nullable=False, index=True
-    )
+    entity_id: Mapped[UUID] = mapped_column(Uuid(as_uuid=True), nullable=False, index=True)
     action: Mapped[str] = mapped_column(String, nullable=False, index=True)
     before_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)
     after_snapshot: Mapped[dict[str, Any] | None] = mapped_column(JSON, nullable=True)

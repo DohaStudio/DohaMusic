@@ -11,9 +11,7 @@ from backend.models.pipeline_file import PipelineFile
 from backend.models.pipeline_job import PipelineJob
 
 
-def create_completed_pipeline(
-    client: TestClient, suffix: str = "one"
-) -> tuple[str, list[dict]]:
+def create_completed_pipeline(client: TestClient, suffix: str = "one") -> tuple[str, list[dict]]:
     storage = client.app.state.storage
     reference = storage.voice_references_dir / f"access-{suffix}.wav"
     shutil.copyfile(storage.sample_file, reference)
@@ -132,14 +130,10 @@ def test_content_supports_start_middle_suffix_and_last_byte_ranges(
     "range_header",
     ["items=0-1", "bytes=", "bytes=a-b", "bytes=20-10", "bytes=0-1,4-5"],
 )
-def test_invalid_ranges_return_stable_416(
-    client: TestClient, range_header: str
-) -> None:
+def test_invalid_ranges_return_stable_416(client: TestClient, range_header: str) -> None:
     job_id, files = create_completed_pipeline(client, range_header.replace("/", "-"))
     item = final_file(files)
-    response = client.get(
-        content_url(job_id, item["id"]), headers={"Range": range_header}
-    )
+    response = client.get(content_url(job_id, item["id"]), headers={"Range": range_header})
     assert response.status_code == 416
     assert response.json()["error"]["code"] == "INVALID_RANGE"
     assert response.headers["accept-ranges"] == "bytes"
@@ -149,9 +143,7 @@ def test_invalid_ranges_return_stable_416(
 def test_range_start_beyond_file_size_returns_416(client: TestClient) -> None:
     job_id, files = create_completed_pipeline(client)
     item = final_file(files)
-    response = client.get(
-        content_url(job_id, item["id"]), headers={"Range": "bytes=999999999-"}
-    )
+    response = client.get(content_url(job_id, item["id"]), headers={"Range": "bytes=999999999-"})
     assert response.status_code == 416
     assert response.json()["error"]["code"] == "INVALID_RANGE"
 
@@ -164,14 +156,8 @@ def test_file_access_rejects_missing_job_file_and_job_mismatch(
     file_id = final_file(files)["id"]
     missing = "00000000-0000-0000-0000-000000000000"
 
-    assert (
-        client.get(content_url(missing, file_id)).json()["error"]["code"]
-        == "PIPELINE_NOT_FOUND"
-    )
-    assert (
-        client.get(content_url(job_id, missing)).json()["error"]["code"]
-        == "FILE_NOT_FOUND"
-    )
+    assert client.get(content_url(missing, file_id)).json()["error"]["code"] == "PIPELINE_NOT_FOUND"
+    assert client.get(content_url(job_id, missing)).json()["error"]["code"] == "FILE_NOT_FOUND"
     mismatch = client.get(content_url(other_job_id, file_id))
     assert mismatch.status_code == 404
     assert mismatch.json()["error"]["code"] == "FILE_JOB_MISMATCH"
@@ -187,8 +173,7 @@ def test_file_access_rejects_incomplete_pipeline_and_unavailable_type(
     assert unavailable.status_code == 409
     assert unavailable.json()["error"]["code"] == "FILE_CONTENT_UNAVAILABLE"
     download = client.get(
-        metadata["download_url"]
-        or f"/api/pipelines/{job_id}/files/{metadata['id']}/download"
+        metadata["download_url"] or f"/api/pipelines/{job_id}/files/{metadata['id']}/download"
     )
     assert download.json()["error"]["code"] == "FILE_DOWNLOAD_UNAVAILABLE"
 

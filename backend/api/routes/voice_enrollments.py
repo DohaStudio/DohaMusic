@@ -24,9 +24,7 @@ IdempotencyKey = Annotated[
 ]
 VOICE_SAMPLE_UPLOAD_RESPONSES = {
     422: {
-        "description": (
-            "파일 길이, decode 또는 WAV codec/bit depth가 등록 계약에 맞지 않음"
-        ),
+        "description": ("파일 길이, decode 또는 WAV codec/bit depth가 등록 계약에 맞지 않음"),
         "content": {
             "application/json": {
                 "examples": {
@@ -53,9 +51,7 @@ def _private_no_store(response: Response) -> None:
     response.headers["Cache-Control"] = "private, no-store"
 
 
-@router.post(
-    "", response_model=VoiceEnrollmentResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("", response_model=VoiceEnrollmentResponse, status_code=status.HTTP_201_CREATED)
 def create_voice_enrollment(
     request: VoiceEnrollmentCreateRequest,
     service: VoiceEnrollmentServiceDependency,
@@ -87,13 +83,9 @@ async def upload_voice_sample(
     service: VoiceEnrollmentServiceDependency,
     response: Response,
     source_type: Annotated[str, Form(min_length=1, max_length=32)],
-    category: Annotated[
-        str, Form(min_length=1, max_length=50, pattern=r"^[A-Za-z0-9_-]+$")
-    ],
+    category: Annotated[str, Form(min_length=1, max_length=50, pattern=r"^[A-Za-z0-9_-]+$")],
     file: Annotated[UploadFile | None, File()] = None,
-    prompt_id: Annotated[
-        str | None, Form(max_length=100, pattern=r"^[A-Za-z0-9_.:-]+$")
-    ] = None,
+    prompt_id: Annotated[str | None, Form(max_length=100, pattern=r"^[A-Za-z0-9_.:-]+$")] = None,
     idempotency_key: IdempotencyKey = None,
 ) -> VoiceSampleResponse:
     _private_no_store(response)
@@ -118,9 +110,7 @@ def get_voice_sample(
     return service.get_sample(enrollment_id, sample_id)
 
 
-@router.delete(
-    "/{enrollment_id}/samples/{sample_id}", response_model=VoiceSampleResponse
-)
+@router.delete("/{enrollment_id}/samples/{sample_id}", response_model=VoiceSampleResponse)
 def delete_voice_sample(
     enrollment_id: str,
     sample_id: str,

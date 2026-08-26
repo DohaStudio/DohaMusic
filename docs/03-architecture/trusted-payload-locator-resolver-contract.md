@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료: process-local locator 호환 adapter, durable schema/Runtime foundation, local staging authority] / [미구현: local byte staging adapter·downloader·Completion adapter·Worker wiring]
 > 최종 수정일: 2026-08-25
-> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)
 
 DohaVocal `0.2.0`의 `source_id`는 acquisition에만 쓰이는 Provider-side opaque subresource identity이며 `payloadref:v1` locator가 아니다. Result replay는 source descriptor를 재구성하지만 verified staging key·actual facts·revocation·cleanup은 복구하지 못한다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)는 이를 전용 aggregate로 영속해야 한다고 판정했으며 현재 consumer는 여전히 bounded transient bytes까지만 반환한다.
 

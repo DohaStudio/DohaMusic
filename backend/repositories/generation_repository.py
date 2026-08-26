@@ -47,9 +47,7 @@ class GenerationRepository:
     ) -> GenerationJob:
         current = JobStatus(job.status)
         if target not in ALLOWED_TRANSITIONS[current]:
-            raise ValueError(
-                f"Invalid job transition: {current.value} -> {target.value}"
-            )
+            raise ValueError(f"Invalid job transition: {current.value} -> {target.value}")
         job.status = target.value
         job.current_step = current_step
         job.updated_at = datetime.now(UTC)

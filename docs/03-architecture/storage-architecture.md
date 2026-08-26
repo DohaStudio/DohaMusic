@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 기준 + 계획]
 > 최종 수정일: 2026-08-10
-> 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Verified Durable Staging Authority](verified-durable-staging-authority.md), [Workspace Artifact 모델](workspace-artifact-model.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-050](../11-decisions/ADR-050-verified-durable-staging-authority.md), [데이터베이스 개요](../07-database/database-overview.md)
+> 관련 문서: [Artifact Storage 계약](artifact-storage-contract.md), [Verified Durable Staging Authority](verified-durable-staging-authority.md), [Workspace Artifact 모델](workspace-artifact-model.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md), [데이터베이스 개요](../07-database/database-overview.md)
 
 ## 현재 구현
 

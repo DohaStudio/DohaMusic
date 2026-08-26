@@ -85,9 +85,7 @@ def _job(
 
 @pytest.fixture
 def session_factory(tmp_path: Path):
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'job-cursor.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'job-cursor.db').as_posix()}")
     Base.metadata.create_all(engine)
     factory = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
     yield factory
@@ -471,9 +469,7 @@ def _seed_query_plan(engine) -> dict[str, object]:
 
 
 def test_job_repository_query_plans_use_0017_indexes(tmp_path: Path) -> None:
-    engine = create_database_engine(
-        f"sqlite:///{(tmp_path / 'job-query-plan.db').as_posix()}"
-    )
+    engine = create_database_engine(f"sqlite:///{(tmp_path / 'job-query-plan.db').as_posix()}")
     Base.metadata.create_all(engine)
     values = _seed_query_plan(engine)
     filters = {
@@ -510,10 +506,7 @@ def test_job_repository_query_plans_use_0017_indexes(tmp_path: Path) -> None:
                     compile_kwargs={"literal_binds": True},
                 )
                 plan = " | ".join(
-                    row[3]
-                    for row in connection.exec_driver_sql(
-                        f"EXPLAIN QUERY PLAN {compiled}"
-                    )
+                    row[3] for row in connection.exec_driver_sql(f"EXPLAIN QUERY PLAN {compiled}")
                 )
                 assert expected_indexes[name] in plan, (name, page, plan)
                 assert "TEMP B-TREE" not in plan, (name, page, plan)

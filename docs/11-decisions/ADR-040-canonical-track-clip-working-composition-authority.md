@@ -6,7 +6,7 @@
 > 관련 기능: AI-native DAW D3 Non-destructive Clip Editing
 > 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
-> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어서 WorkingComposition read·initialize·checkout, Track/Clip mutation Service와 13개 Product operation을 구현했다. Snapshot commit·Frontend·working preview/render는 후속이다.
+> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어서 WorkingComposition read·initialize·checkout, Track/Clip mutation Service와 13개 Product operation을 구현한 뒤 [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md)의 same-ID restore·unsplit/resplit 4개 operation을 추가했다. Snapshot commit·Frontend Undo/Redo·working preview/render는 후속이다.
 
 ## 1. Context
 
