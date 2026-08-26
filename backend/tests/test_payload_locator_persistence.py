@@ -269,6 +269,200 @@ def test_staging_runtime_cancellation_after_io_prevents_cas_and_cleans_orphan(
     assert not tuple(staging_root.rglob("*.wav"))
 
 
+def test_staging_runtime_pre_io_rights_denial_skips_io_and_cas(
+    locator_graph, tmp_path, monkeypatch
+) -> None:
+    content = _runtime_wav()
+    locator_service = _service(locator_graph)
+    issued = locator_service.issue(
+        _issue(
+            locator_graph,
+            expected_payload_checksum=hashlib.sha256(content).hexdigest(),
+            expected_size_bytes=len(content),
+        )
+    )
+    staging_root = tmp_path / "verified-staging"
+    staging_root.mkdir()
+    staging = LocalFilesystemStagingAdapter(staging_root, clock=lambda: NOW)
+    runtime = PayloadStagingService(locator_service, staging)
+    cas_calls = 0
+    original_transition = locator_service.transition_to_verified_staged
+
+    def transition(*args, **kwargs):
+        nonlocal cas_calls
+        cas_calls += 1
+        return original_transition(*args, **kwargs)
+
+    monkeypatch.setattr(locator_service, "transition_to_verified_staged", transition)
+
+    with pytest.raises(PayloadLocatorError) as denied:
+        runtime.stage(
+            issued.locator_id,
+            [content],
+            lambda: PayloadStagingAuthority(locator_graph["job_id"], False, True, False),
+        )
+
+    assert denied.value.code is PayloadLocatorErrorCode.RIGHTS_REQUIRED
+    assert cas_calls == 0
+    assert (
+        locator_service.get(issued.locator_id).staging_status is PayloadLocatorStatus.SOURCE_BOUND
+    )
+    assert not tuple(staging_root.rglob("*.wav"))
+
+
+def test_staging_runtime_post_io_rights_denial_skips_cas_and_cleans_orphan(
+    locator_graph, tmp_path, monkeypatch
+) -> None:
+    content = _runtime_wav()
+    locator_service = _service(locator_graph)
+    issued = locator_service.issue(
+        _issue(
+            locator_graph,
+            expected_payload_checksum=hashlib.sha256(content).hexdigest(),
+            expected_size_bytes=len(content),
+        )
+    )
+    staging_root = tmp_path / "verified-staging"
+    staging_root.mkdir()
+    runtime = PayloadStagingService(
+        locator_service,
+        LocalFilesystemStagingAdapter(staging_root, clock=lambda: NOW),
+    )
+    authority_calls = 0
+    cas_calls = 0
+    original_transition = locator_service.transition_to_verified_staged
+
+    def authority() -> PayloadStagingAuthority:
+        nonlocal authority_calls
+        authority_calls += 1
+        return PayloadStagingAuthority(locator_graph["job_id"], authority_calls == 1, True, False)
+
+    def transition(*args, **kwargs):
+        nonlocal cas_calls
+        cas_calls += 1
+        return original_transition(*args, **kwargs)
+
+    monkeypatch.setattr(locator_service, "transition_to_verified_staged", transition)
+
+    with pytest.raises(PayloadLocatorError) as denied:
+        runtime.stage(issued.locator_id, [content], authority)
+
+    assert denied.value.code is PayloadLocatorErrorCode.RIGHTS_REQUIRED
+    assert authority_calls == 2
+    assert cas_calls == 0
+    assert (
+        locator_service.get(issued.locator_id).staging_status is PayloadLocatorStatus.SOURCE_BOUND
+    )
+    assert not tuple(staging_root.rglob("*.wav"))
+
+
+def test_staging_runtime_rights_denial_preserves_equivalent_cas_winner(
+    locator_graph, tmp_path, monkeypatch
+) -> None:
+    content = _runtime_wav()
+    checksum = hashlib.sha256(content).hexdigest()
+    locator_service = _service(locator_graph)
+    issued = locator_service.issue(
+        _issue(
+            locator_graph,
+            expected_payload_checksum=checksum,
+            expected_size_bytes=len(content),
+        )
+    )
+    staging_root = tmp_path / "verified-staging"
+    staging_root.mkdir()
+    runtime = PayloadStagingService(
+        locator_service,
+        LocalFilesystemStagingAdapter(staging_root, clock=lambda: NOW),
+    )
+    authority_calls = 0
+    cas_calls = 0
+    original_transition = locator_service.transition_to_verified_staged
+
+    def transition(*args, **kwargs):
+        nonlocal cas_calls
+        cas_calls += 1
+        return original_transition(*args, **kwargs)
+
+    def authority() -> PayloadStagingAuthority:
+        nonlocal authority_calls
+        authority_calls += 1
+        if authority_calls == 2:
+            transition(
+                issued.locator_id,
+                expected_revision=issued.lifecycle_revision,
+                facts=VerifiedStagingFacts(
+                    staging_backend="local",
+                    staging_key=LocalFilesystemStagingAdapter.final_key(
+                        issued.locator_uuid, "audio/wav"
+                    ),
+                    actual_checksum_algorithm="sha256",
+                    actual_payload_checksum=checksum,
+                    actual_size_bytes=len(content),
+                    actual_media_type="audio/wav",
+                    verified_at=NOW,
+                ),
+            )
+        return PayloadStagingAuthority(locator_graph["job_id"], authority_calls == 1, True, False)
+
+    monkeypatch.setattr(locator_service, "transition_to_verified_staged", transition)
+
+    with pytest.raises(PayloadLocatorError) as denied:
+        runtime.stage(issued.locator_id, [content], authority)
+
+    assert denied.value.code is PayloadLocatorErrorCode.RIGHTS_REQUIRED
+    assert cas_calls == 1  # concurrent winner only; denied invocation performs no CAS
+    current = locator_service.get(issued.locator_id)
+    assert current.staging_status is PayloadLocatorStatus.VERIFIED_STAGED
+    assert current.staging_key is not None
+    assert (staging_root / current.staging_key).read_bytes() == content
+
+
+def test_staging_runtime_post_io_claim_loss_skips_cas_and_cleans_orphan(
+    locator_graph, tmp_path, monkeypatch
+) -> None:
+    content = _runtime_wav()
+    locator_service = _service(locator_graph)
+    issued = locator_service.issue(
+        _issue(
+            locator_graph,
+            expected_payload_checksum=hashlib.sha256(content).hexdigest(),
+            expected_size_bytes=len(content),
+        )
+    )
+    staging_root = tmp_path / "verified-staging"
+    staging_root.mkdir()
+    runtime = PayloadStagingService(
+        locator_service,
+        LocalFilesystemStagingAdapter(staging_root, clock=lambda: NOW),
+    )
+    authority_calls = 0
+    cas_calls = 0
+    original_transition = locator_service.transition_to_verified_staged
+
+    def authority() -> PayloadStagingAuthority:
+        nonlocal authority_calls
+        authority_calls += 1
+        return PayloadStagingAuthority(locator_graph["job_id"], True, authority_calls == 1, False)
+
+    def transition(*args, **kwargs):
+        nonlocal cas_calls
+        cas_calls += 1
+        return original_transition(*args, **kwargs)
+
+    monkeypatch.setattr(locator_service, "transition_to_verified_staged", transition)
+
+    with pytest.raises(PayloadStagingServiceError) as claim_lost:
+        runtime.stage(issued.locator_id, [content], authority)
+
+    assert claim_lost.value.code is PayloadStagingServiceErrorCode.CLAIM_REQUIRED
+    assert cas_calls == 0
+    assert (
+        locator_service.get(issued.locator_id).staging_status is PayloadLocatorStatus.SOURCE_BOUND
+    )
+    assert not tuple(staging_root.rglob("*.wav"))
+
+
 def test_staging_runtime_revocation_after_io_prevents_cas_and_cleans_orphan(
     locator_graph, tmp_path
 ) -> None:

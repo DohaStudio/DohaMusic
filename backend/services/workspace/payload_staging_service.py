@@ -88,7 +88,9 @@ class PayloadStagingService:
             after = self._require_authority(authority_provider)
             if after.workspace_job_id != before.workspace_job_id:
                 raise PayloadStagingServiceError(PayloadStagingServiceErrorCode.INVALID_AUTHORITY)
-        except PayloadStagingServiceError:
+            if not after.rights_granted:
+                raise PayloadLocatorError(PayloadLocatorErrorCode.RIGHTS_REQUIRED)
+        except (PayloadLocatorError, PayloadStagingServiceError):
             self._cleanup_unadopted(locator_id, staged)
             raise
 
