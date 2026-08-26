@@ -36,6 +36,7 @@ from backend.pipeline.steps import (
     StemSeparationStep,
     VoiceConversionStep,
 )
+from backend.providers.vocal import HttpVocalProviderTransport
 from backend.repositories.workspace import SqlAlchemyPayloadLocatorPersistence
 from backend.services.generation_service import GenerationService
 from backend.services.history_service import HistoryService
@@ -53,6 +54,7 @@ from backend.services.workspace import (
     JobService,
     PayloadLocatorService,
     PayloadStagingService,
+    VocalPayloadReconciliationService,
     WorkingCompositionService,
     WorkspaceService,
 )
@@ -227,6 +229,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             if payload_staging_adapter is not None
             else None
         )
+        vocal_payload_transport = (
+            HttpVocalProviderTransport.from_settings(resolved_settings)
+            if app.state.payload_staging_service is not None
+            else None
+        )
+        app.state.vocal_payload_reconciliation_service = (
+            VocalPayloadReconciliationService(
+                vocal_payload_transport,
+                payload_locator_service,
+                app.state.payload_staging_service,
+                payload_staging_adapter,
+                max_payload_size_bytes=resolved_settings.dohavocal_payload_max_bytes,
+            )
+            if vocal_payload_transport is not None and payload_staging_adapter is not None
+            else None
+        )
         app.state.storage = storage
         app.state.worker = worker
         app.state.dispatcher = dispatcher
@@ -294,6 +312,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             yield
         finally:
             await voice_maintenance_scheduler.stop()
+            if vocal_payload_transport is not None:
+                vocal_payload_transport.close()
             shared_executor.shutdown(wait=True, cancel_futures=False)
             session_factory.kw["bind"].dispose()
             logger.info("application_stopped")

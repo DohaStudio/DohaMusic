@@ -133,7 +133,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency와 PayloadLocator Foundation을 구현해 source metadata는 44개 Table·Alembic `20260825_0023`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. DohaVocal trusted payload acquisition에서 verified durable staging과 `verified_staged` CAS까지 application orchestration을 구현했다. source metadata는 44개 Table·Alembic `20260825_0023`이며 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Artifact ingestion·Completion adapter, Provider/Worker dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

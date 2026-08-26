@@ -1,6 +1,6 @@
 # Verified Durable Staging Authority
 
-> 구현 업데이트(2026-08-26): `VerifiedPayloadStagingPort`, `LocalFilesystemStagingAdapter`, verified open/delete와 `PayloadStagingService`의 `source_bound → verified_staged` CAS를 구현했다. composition root에서 생성 가능하지만 Worker/downloader caller에는 등록하지 않았다.
+> 구현 업데이트(2026-08-26): `VerifiedPayloadStagingPort`, local adapter와 `PayloadStagingService`에 이어 [DohaVocal Payload Acquisition Orchestration](dohavocal-payload-acquisition-orchestration.md)을 구현했다. composition root에서 `GetPayloadContent → verified_staged`를 사용할 수 있지만 Worker caller에는 등록하지 않았다.
 
 ## 구현 상태
 
@@ -8,7 +8,7 @@
 VerifiedPayloadStagingPort: IMPLEMENTED
 LocalFilesystemStagingAdapter: IMPLEMENTED
 verified durable staging: IMPLEMENTED
-downloader orchestration: NOT IMPLEMENTED
+payload acquisition orchestration: IMPLEMENTED
 Artifact ingestion: NOT IMPLEMENTED
 Completion: NOT IMPLEMENTED
 Worker wiring: NOT IMPLEMENTED
@@ -18,7 +18,7 @@ Worker wiring: NOT IMPLEMENTED
 
 `open_verified`는 context-managed descriptor를 반환하기 전에 key·containment·link/reparse·identity·SHA-256·size·media를 다시 검증한다. `delete_verified`도 동일 facts와 identity가 일치하는 object만 지우고 missing은 idempotent no-op으로 처리한다. unsafe key, missing, tamper와 cleanup failure는 서로 다른 stable internal error code다.
 
-application staging service는 파일 I/O 동안 DB transaction을 열지 않는다. I/O 전후 caller-provided claim·cancellation·rights evidence를 검증하고 마지막에 기존 `PayloadLocatorService`의 revision CAS를 호출한다. equivalent CAS winner는 재사용하고 채택되지 않은 object만 facts·identity 검증 후 정리한다. 이 foundation은 downloader, `GetPayloadContent`, Artifact ingestion, Completion 또는 Worker를 호출하지 않는다.
+application staging service는 파일 I/O 동안 DB transaction을 열지 않는다. I/O 전후 caller-provided claim·cancellation·rights evidence를 검증하고 마지막에 기존 `PayloadLocatorService`의 revision CAS를 호출한다. acquisition orchestration은 network 전후 authority를 재검증하고 bounded verified bytes를 이 service로 넘긴다. Artifact ingestion, Completion 또는 Worker는 호출하지 않는다.
 
 > 문서 상태: [승인: authority 확정, adapter·통합 미구현]
 > 최종 수정일: 2026-08-26
@@ -268,4 +268,4 @@ VerifiedPayloadStagingPort
 
 필수 검증은 same-locator replay, collision, partial cleanup, crash-after-publish adoption, missing/tampered object, Windows drive·UNC·reserved name, traversal·URL·credential, symlink/junction/reparse, rights/cancel/revocation race, cleanup idempotency와 DB transaction 0 during I/O다.
 
-downloader orchestration, `GetPayloadContent` Worker 연결, Artifact ingestion/Completion, reclaim, dispatcher, daemon, production authentication, DohaVocal Runtime과 model/GPU는 그 다음 작업이다.
+acquisition orchestration은 구현됐다. `GetPayloadContent` Worker 연결, Artifact ingestion/Completion, reclaim, dispatcher, daemon, production authentication, DohaVocal Runtime과 model/GPU는 그 다음 작업이다.

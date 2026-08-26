@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 구현 — DohaVocal Payload Acquisition Orchestration Foundation
+
+- `VocalPayloadReconciliationService`가 trusted Result candidate와 durable locator binding을 검증하고 fixed-origin `GetPayloadContent` 결과를 verified staging으로 전달해 `source_bound → verified_staged`까지 연결한다.
+- network 전후와 staging post-I/O에 claim·cancellation·rights·revocation·revision gate를 유지한다. `verified_staged` re-entry는 network 없이 `open_verified`로 재검증하고 missing/tampered object는 자동 재취득하지 않는다.
+- 자동 retry·RetryJob·Artifact ingestion·Completion·Worker/dispatcher·API·schema·Alembic은 추가하지 않았다. composition root는 staging 설정이 있을 때만 service를 생성하고 shutdown에서 HTTP client를 닫는다.
+
 ### 구현 — Verified Durable Payload Staging Runtime Foundation
 
 - `VerifiedPayloadStagingPort`와 `LocalFilesystemStagingAdapter`를 구현했다. locator-derived deterministic final key, random partial, bounded streaming SHA-256·size, WAV·FLAC·strict UTF-8 JSON 검증, file `fsync`, exclusive hard-link publish, concurrent reuse와 restart orphan adoption을 제공한다.
