@@ -1,7 +1,7 @@
 # AI-native DAW Product Track Definition of Done
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-26
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 이 Track은 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성이 끝나도 DAW Runtime이 구현된 것으로 보지 않는다. 각 단계의 구현·검증·문서·ADR·Git 증거가 모두 있어야 다음 상태로 승격한다.
@@ -81,7 +81,8 @@
 - [x] Track non-empty 삭제 거부와 trusted WAV·FLAC Artifact duration authority 기반
 - [x] WorkingComposition Service·Product API·expected revision CAS·idempotency replay 구현
 - [x] same-ID Track/Clip restore와 exact split geometry 기반 atomic unsplit/resplit Backend 구현
-- [ ] Frontend undo/redo·동시 편집 recovery 구현
+- [x] Frontend Track/Clip editing·memory Undo/Redo·revision conflict reconcile 구현
+- [ ] multi-user 동시 편집 recovery·persistent history
 
 ## D4. Mixer와 Export — [계획]
 

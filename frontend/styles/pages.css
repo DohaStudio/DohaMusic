@@ -167,7 +167,7 @@
   font-size: 0.75rem;
 }
 
-.collection-page { padding: 34px; display: grid; gap: 24px; }
+.collection-page { min-width: 0; padding: 34px; display: grid; gap: 24px; }
 .collection-header { display: flex; justify-content: space-between; align-items: end; gap: 20px; }
 .collection-header h1 { font-size: clamp(2.4rem, 5vw, 4.5rem); margin: 4px 0; }
 .collection-header p { color: var(--muted); }
@@ -185,7 +185,8 @@
 @keyframes shimmer { to { background-position: -200% 0; } }
 @media (max-width: 800px) { .collection-page { padding: 20px 14px 100px; } .collection-header { align-items: start; } .collection-filters, .collection-editor, .history-row { grid-template-columns: 1fr; } }
 
-.composition-workspace { min-width: 0; display: grid; gap: 22px; }
+.composition-workspace, .composition-ready { min-width: 0; }
+.composition-workspace { display: grid; gap: 22px; }
 .composition-workspace-heading, .composition-summary, .composition-section-heading, .composition-actions, .composition-track header, .composition-track header > div { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .composition-workspace-heading h2, .composition-summary h3, .composition-section-heading h4, .composition-detail-card h4, .composition-artifacts h5 { margin: 4px 0; }
 .composition-workspace-heading > span, .composition-section-heading > span, .composition-track header small, .composition-muted { color: var(--muted); font-size: .78rem; }

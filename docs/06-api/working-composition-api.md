@@ -1,8 +1,8 @@
 # WorkingComposition Product API
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-25
-> 관련 기능: AI-native DAW D3 Clip Editing Backend API
+> 최종 수정일: 2026-08-26
+> 관련 기능: AI-native DAW D3 Clip Editing Backend API와 Frontend consumer
 > 관련 문서: [Service Architecture](../03-architecture/working-composition-service.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Workspace REST API](workspace-rest-api-contract.md), [Composition Read](composition-read-workspace.md)
 
 ## Endpoint
@@ -40,6 +40,8 @@
 ## Frontend history boundary
 
 initialize 성공은 빈 Frontend Undo/Redo history의 시작점이다. checkout 성공은 working arrangement 전체를 교체하는 history barrier이며 checkout 자체는 inverse operation이 아니다. Backend API는 command stack을 저장하거나 checkout 이전 command의 재적용을 허가하지 않는다.
+
+Frontend consumer는 17개 operation을 중앙 API client로 호출한다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip aggregate를 reconcile한다. create/delete는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용하며 네트워크 응답 유실 재시도에는 동일 `Idempotency-Key`를 유지한다.
 
 ## Error
 

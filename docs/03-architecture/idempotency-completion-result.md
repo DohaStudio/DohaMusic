@@ -1,7 +1,7 @@
 # Revision-safe Idempotency Completion Result
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-26
 > 관련 기능: WorkingComposition mutation replay 선행 기반
 > 관련 문서: [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Table Definition](../07-database/table-definition.md)
 
@@ -44,4 +44,5 @@ initialize는 GET-or-create가 아니다. 최초 요청만 revision 0 aggregate�
 - Alembic source revision: `20260825_0022`
 - 실제 사용자 DB migration: [미실행], 현재 `20260810_0017`
 - WorkingComposition Service/Product API: [완료], 17개 operation
-- Composition commit·Frontend·working preview/render: [미구현]
+- Frontend WorkingComposition consumer·memory Undo/Redo: [완료]
+- Composition commit·working preview/render: [미구현]

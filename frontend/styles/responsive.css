@@ -268,3 +268,16 @@ html[data-reduce-motion="true"] * {
   animation: none !important;
   transition: none !important;
 }
+@media (max-width: 720px) {
+  .working-editor-toolbar,
+  .working-add-track,
+  .working-add-clip {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .working-history-controls { flex-wrap: wrap; }
+  .working-history-controls button { flex: 1; justify-content: center; }
+  .working-add-clip { overflow: visible; }
+  .working-add-clip label { min-width: 0; }
+  .working-track-row { grid-template-columns: auto 1fr auto; }
+}

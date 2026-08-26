@@ -5,7 +5,7 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-26
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
@@ -29,6 +29,15 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`를 확정했다. 기존 `DOHA_ARTIFACT_STAGING_ROOT`, actual-byte 검증, file `fsync`와 exclusive hard-link publish primitive를 재사용하고 locator-derived deterministic key로 restart orphan을 adopt한다.
 - byte publish 후 최신 claim·cancel·rights·revocation·revision을 재검증해 `verified_staged` CAS를 수행한다. partial과 orphan cleanup, same-locator replay, missing/tampered object fail-closed, lifecycle 기반 retention과 `cleanup_pending → delete → cleaned` ordering을 고정했다.
 - 별도 staging metadata table·Alembic·object storage 선행 추상화는 필요하지 않다고 판정했다. 이번 변경은 문서-only이며 local adapter, downloader, Artifact ingestion, Completion과 Worker wiring은 아직 미구현이다.
+
+### 추가 — Frontend Clip Editing과 Memory Undo/Redo
+
+- Project Composition 화면에 no-write WorkingComposition GET, 명시적 initialize와 현재 Snapshot checkout을 연결하고 Backend 응답의 `completed_revision` 및 후속 GET aggregate만 canonical state로 사용한다.
+- exact Snapshot AssetVersion을 source로 고르는 Clip create와 Track create·rename·drag reorder·delete, Clip select·drag move·trim-start·trim-end·playhead split·delete UI를 추가했다. pointer move는 local preview만 수행하고 pointer release에서 mutation을 한 번 전송한다.
+- Track/Clip create·delete는 same-ID restore로, split은 original·left·right identity 기반 unsplit/resplit으로 Undo/Redo한다. rename·reorder·move·trim은 absolute before/after 값을 사용하는 strict LIFO memory command stack으로 구현했다.
+- initialize·checkout·Project 변경·revision/structure conflict reconcile은 history boundary이며 refresh 뒤 history를 복원하지 않는다. pending mutation은 직렬화하고 Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z, Ctrl+Y와 accessible 버튼을 제공한다.
+- idempotent mutation별 새 opaque key를 만들고 네트워크 응답 유실 재시도에는 같은 key를 유지한다. structured Product error를 사용자 메시지로 매핑하며 실패한 mutation·Undo는 command stack을 이동시키지 않는다.
+- Backend production code·migration·실제 사용자 DB·Artifact payload·media·Provider는 변경하지 않았다. Track/Clip 고도 Waveform, working preview/render, Composition commit, Mixer는 계속 미구현이다.
 
 ### 추가 — Durable Payload Locator Persistence Foundation
 
