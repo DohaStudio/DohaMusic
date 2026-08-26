@@ -50,8 +50,20 @@ def _result(
         IdempotencyResultType.COMPOSITION_COMMIT: {"composition_snapshot_id": str(uuid4())},
         IdempotencyResultType.TRACK_CREATE: {"track_id": str(uuid4())},
         IdempotencyResultType.TRACK_DELETE: {"track_id": str(uuid4())},
+        IdempotencyResultType.TRACK_RESTORE: {"track_id": str(uuid4())},
         IdempotencyResultType.CLIP_CREATE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_DELETE: {"clip_id": str(uuid4())},
+        IdempotencyResultType.CLIP_RESTORE: {"clip_id": str(uuid4())},
+        IdempotencyResultType.CLIP_UNSPLIT: {
+            "original_clip_id": str(uuid4()),
+            "left_clip_id": str(uuid4()),
+            "right_clip_id": str(uuid4()),
+        },
+        IdempotencyResultType.CLIP_RESPLIT: {
+            "original_clip_id": str(uuid4()),
+            "left_clip_id": str(uuid4()),
+            "right_clip_id": str(uuid4()),
+        },
     }
     return IdempotencyCompletionResult.create(
         completed_revision=revision,
@@ -127,6 +139,50 @@ def test_completion_result_roundtrip_replays_original_revision_and_split_ids(
         assert session.scalar(text("SELECT revision FROM current_aggregate")) == 8
         assert dict(replay.completion_result.result_payload) == dict(first.result_payload)
         assert session.scalar(select(func.count()).select_from(IdempotencyRecord)) == 1
+
+
+@pytest.mark.parametrize(
+    "result_type",
+    [
+        IdempotencyResultType.TRACK_RESTORE,
+        IdempotencyResultType.CLIP_RESTORE,
+        IdempotencyResultType.CLIP_UNSPLIT,
+        IdempotencyResultType.CLIP_RESPLIT,
+    ],
+)
+def test_inverse_result_types_replay_first_identity_and_revision(
+    sessions, result_type: IdempotencyResultType
+) -> None:
+    now = datetime.now(UTC)
+    first = _result(result_type, revision=7)
+    scope = f"inverse:{result_type.value}"
+    with sessions() as session, session.begin():
+        repository = IdempotencyRepository(session)
+        claim = repository.claim_with_result(
+            scope=scope,
+            key="same-key",
+            fingerprint="1" * 64,
+            now=now,
+        )
+        repository.complete_with_result(
+            claim.record,
+            resource_type="working_composition_inverse",
+            resource_id=next(iter(first.result_payload.values())),
+            response_status=200,
+            completion_result=first,
+        )
+
+    with sessions() as session:
+        replay = IdempotencyRepository(session).claim_with_result(
+            scope=scope,
+            key="same-key",
+            fingerprint="1" * 64,
+            now=now,
+        )
+        assert replay.replayed is True
+        assert replay.completion_result == first
+        assert replay.completion_result.completed_revision == 7
+        assert dict(replay.completion_result.result_payload) == dict(first.result_payload)
 
 
 @pytest.mark.parametrize(
@@ -217,15 +273,22 @@ def test_partial_or_unknown_completion_result_fails_closed(sessions) -> None:
         )
 
 
-def test_fingerprint_and_in_progress_conflicts_are_preserved(sessions) -> None:
+def test_inverse_fingerprint_and_in_progress_conflicts_are_preserved(sessions) -> None:
     now = datetime.now(UTC)
     with sessions() as session, session.begin():
         repository = IdempotencyRepository(session)
-        repository.claim(scope="conflict", key="key", fingerprint="e" * 64, now=now)
-        with pytest.raises(ValueError, match="IDEMPOTENCY_IN_PROGRESS"):
-            repository.claim(scope="conflict", key="key", fingerprint="e" * 64, now=now)
-        with pytest.raises(ValueError, match="IDEMPOTENCY_CONFLICT"):
-            repository.claim(scope="conflict", key="key", fingerprint="f" * 64, now=now)
+        for result_type in (
+            IdempotencyResultType.TRACK_RESTORE,
+            IdempotencyResultType.CLIP_RESTORE,
+            IdempotencyResultType.CLIP_UNSPLIT,
+            IdempotencyResultType.CLIP_RESPLIT,
+        ):
+            scope = f"conflict:{result_type.value}"
+            repository.claim(scope=scope, key="key", fingerprint="e" * 64, now=now)
+            with pytest.raises(ValueError, match="IDEMPOTENCY_IN_PROGRESS"):
+                repository.claim(scope=scope, key="key", fingerprint="e" * 64, now=now)
+            with pytest.raises(ValueError, match="IDEMPOTENCY_CONFLICT"):
+                repository.claim(scope=scope, key="key", fingerprint="f" * 64, now=now)
 
 
 def test_result_payload_schema_uuid_and_utf8_size_are_bounded(monkeypatch) -> None:

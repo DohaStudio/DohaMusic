@@ -141,6 +141,31 @@ class CompositionRepository:
         track.deleted_at = utc_now()
         self.session.flush()
 
+    def restore_composition_track(
+        self, track: CompositionTrack, *, target_track_order: int
+    ) -> None:
+        """Restore one Track while atomically rebuilding the active order."""
+
+        tracks = self.list_active_composition_tracks(track.working_composition_id)
+        if track.deleted_at is None:
+            raise ValueError("TRACK_ALREADY_ACTIVE")
+        if not 0 <= target_track_order <= len(tracks):
+            raise ValueError("TRACK_RESTORE_ORDER_INVALID")
+
+        offset = max((item.track_order for item in tracks), default=-1) + len(tracks) + 2
+        for item in tracks:
+            item.track_order += offset
+        self.session.flush()
+
+        ordered = list(tracks)
+        ordered.insert(target_track_order, track)
+        track.track_order = target_track_order
+        track.deleted_at = None
+        self.session.flush()
+        for order, item in enumerate(ordered):
+            item.track_order = order
+        self.session.flush()
+
     def add_composition_clip(self, clip: CompositionClip) -> CompositionClip:
         clip_end = clip.timeline_start + clip.source_out - clip.source_in
         if self.active_clip_overlap_exists(
@@ -239,6 +264,12 @@ class CompositionRepository:
 
     def tombstone_composition_clip(self, clip: CompositionClip) -> None:
         clip.deleted_at = utc_now()
+        self.session.flush()
+
+    def restore_composition_clip(self, clip: CompositionClip) -> None:
+        if clip.deleted_at is None:
+            raise ValueError("CLIP_ALREADY_ACTIVE")
+        clip.deleted_at = None
         self.session.flush()
 
     def count_active_composition_clips(

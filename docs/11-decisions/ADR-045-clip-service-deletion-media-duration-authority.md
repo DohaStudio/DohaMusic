@@ -6,7 +6,7 @@
 > 관련 기능: AI-native DAW D3 Clip Editing Service 선행 기반
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
-> 구현 추적: 2026-08-25 WorkingComposition Service가 active Clip count 기반 `TRACK_NOT_EMPTY`, exact AssetVersion·ProjectAsset·active audio Asset scope, exactly-one eligible Artifact와 persisted trusted `duration_us`를 실제 Clip create transaction에 적용했다. MP3의 `duration_us=NULL` fail-closed 정책은 유지한다.
+> 구현 추적: 2026-08-25 WorkingComposition Service가 active Clip count 기반 `TRACK_NOT_EMPTY`, exact AssetVersion·ProjectAsset·active audio Asset scope, exactly-one eligible Artifact와 persisted trusted `duration_us`를 실제 Clip create transaction에 적용했다. 이어 [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md)의 Clip restore가 현재 eligibility를 재검증하면서 생성 당시 frozen duration을 보존하도록 구현했다. MP3의 `duration_us=NULL` fail-closed 정책은 유지한다.
 
 ## 1. 배경
 
