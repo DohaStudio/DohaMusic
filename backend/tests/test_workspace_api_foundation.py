@@ -206,10 +206,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
 
-    assert len(registered_routes) == 94
-    assert len(api_routes) == 90
-    assert len(openapi_paths) == 71
-    assert len(operation_ids) == 92
+    assert len(registered_routes) == 95
+    assert len(api_routes) == 91
+    assert len(openapi_paths) == 72
+    assert len(operation_ids) == 93
     assert (
         len(
             [
@@ -221,8 +221,8 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         == 33
     )
     assert "/health" in openapi_paths
-    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 49
-    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 37
+    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 50
+    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 38
     v1_operations = {
         (method.upper(), path): operation
         for path, path_item in openapi_paths.items()
@@ -244,6 +244,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         ("DELETE", "/api/v1/projects/{project_id}/assets/{asset_id}"),
         ("GET", "/api/v1/projects/{project_id}/composition"),
         ("PATCH", "/api/v1/projects/{project_id}/composition-selection"),
+        (
+            "GET",
+            "/api/v1/projects/{project_id}/asset-versions/{asset_version_id}/media-source",
+        ),
         ("GET", "/api/v1/assets"),
         ("POST", "/api/v1/assets"),
         ("GET", "/api/v1/assets/{asset_id}"),
@@ -311,7 +315,7 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
             "/api/v1/projects/{project_id}/working-composition/clips/{original_clip_id}/resplit",
         ),
     }
-    assert len({item["operationId"] for item in v1_operations.values()}) == 49
+    assert len({item["operationId"] for item in v1_operations.values()}) == 50
     assert all(item.get("summary") for item in v1_operations.values())
     assert all(item.get("tags") for item in v1_operations.values())
     assert len(duplicate_ids) == 2

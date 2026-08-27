@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -87,6 +88,16 @@ class ClipDetail(_StrictModel):
     source_out: Decimal
     source_duration: Decimal
     split_from_clip_id: UUID | None
+
+
+class ClipMediaSourceDetail(_StrictModel):
+    asset_version_id: UUID
+    artifact_id: UUID
+    media_type: Literal["audio/wav", "audio/flac", "audio/mpeg"]
+    size_bytes: int = Field(gt=0)
+    artifact_checksum: str
+    duration_seconds: Decimal = Field(gt=0)
+    content_url: str = Field(pattern=r"^/api/v1/artifacts/[0-9a-fA-F-]{36}/content$")
 
 
 class WorkingCompositionDetail(_StrictModel):

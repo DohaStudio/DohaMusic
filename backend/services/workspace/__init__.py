@@ -97,6 +97,7 @@ from backend.services.workspace.trusted_media_metadata_service import (
     TrustedMediaMetadataService,
 )
 from backend.services.workspace.working_composition_service import (
+    ClipMediaSource,
     WorkingCompositionAggregate,
     WorkingCompositionError,
     WorkingCompositionErrorCode,
@@ -147,6 +148,7 @@ __all__ = [
     "CompositionSnapshotCursorPage",
     "CompositionTransitionSummary",
     "CompositionWorkspaceAggregate",
+    "ClipMediaSource",
     "CursorPage",
     "InMemoryTrustedPayloadRegistry",
     "IngestedArtifact",

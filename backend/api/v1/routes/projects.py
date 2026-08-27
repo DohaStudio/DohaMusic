@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 
@@ -11,11 +12,13 @@ from backend.api.v1.dependencies import (
     get_composition_service,
     get_effective_owner_id,
     get_request_id,
+    get_working_composition_service,
     get_workspace_service,
 )
 from backend.api.v1.routes.common import (
     map_composition_snapshot_error,
     map_project_error,
+    map_working_composition_error,
     map_workspace_error,
     reject_owner_input,
     relative_next_url,
@@ -26,6 +29,7 @@ from backend.models.workspace import Artifact
 from backend.schemas.workspace import (
     ArtifactDetail,
     AssetVersionDetail,
+    ClipMediaSourceDetail,
     CollectionLinks,
     CollectionResponse,
     CompositionReadItemDetail,
@@ -47,6 +51,7 @@ from backend.schemas.workspace import (
 from backend.services.workspace import (
     CompositionService,
     CompositionWorkspaceAggregate,
+    WorkingCompositionService,
     WorkspaceService,
 )
 
@@ -57,6 +62,9 @@ router = APIRouter(
 )
 WorkspaceServiceDependency = Annotated[WorkspaceService, Depends(get_workspace_service)]
 CompositionServiceDependency = Annotated[CompositionService, Depends(get_composition_service)]
+WorkingCompositionServiceDependency = Annotated[
+    WorkingCompositionService, Depends(get_working_composition_service)
+]
 EffectiveOwnerDependency = Annotated[UUID, Depends(get_effective_owner_id)]
 
 
@@ -173,6 +181,41 @@ def update_project_composition_selection(
         raise map_composition_snapshot_error(exc) from exc
     return SuccessResponse[CompositionSelectionDetail](
         data=CompositionSelectionDetail.model_validate(result),
+        request_id=get_request_id(request),
+    )
+
+
+@router.get(
+    "/{project_id}/asset-versions/{asset_version_id}/media-source",
+    response_model=SuccessResponse[ClipMediaSourceDetail],
+    operation_id="resolve_project_asset_version_media_source",
+    summary="Project Clip source AssetVersion safe media 해석",
+)
+def resolve_project_asset_version_media_source(
+    project_id: UUID,
+    asset_version_id: UUID,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+) -> SuccessResponse[ClipMediaSourceDetail]:
+    try:
+        source = service.resolve_clip_media_source(
+            project_id,
+            asset_version_id,
+            effective_owner_id=effective_owner_id,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return SuccessResponse[ClipMediaSourceDetail](
+        data=ClipMediaSourceDetail(
+            asset_version_id=source.asset_version_id,
+            artifact_id=source.artifact_id,
+            media_type=source.media_type,
+            size_bytes=source.size_bytes,
+            artifact_checksum=source.artifact_checksum,
+            duration_seconds=Decimal(source.duration_us) / Decimal(1_000_000),
+            content_url=source.content_url,
+        ),
         request_id=get_request_id(request),
     )
 

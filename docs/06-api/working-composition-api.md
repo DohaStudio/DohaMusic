@@ -1,7 +1,7 @@
 # WorkingComposition Product API
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-26
+> 최종 수정일: 2026-08-27
 > 관련 기능: AI-native DAW D3 Clip Editing Backend API와 Frontend consumer
 > 관련 문서: [Service Architecture](../03-architecture/working-composition-service.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Workspace REST API](workspace-rest-api-contract.md), [Composition Read](composition-read-workspace.md)
 
@@ -30,6 +30,14 @@
 | `POST` | `/clips/{original_clip_id}/resplit` | 200 | 필수 | 같은 canonical split child를 복원 |
 
 모든 mutation body는 `working_composition_id`와 `expected_revision`을 요구한다. Clip 시간 입력은 decimal seconds이고, source duration·Artifact ID·owner·path·locator는 받지 않는다. replay 응답의 `completed_revision`과 identity는 stored completion result가 authority다.
+
+## Clip media source read
+
+`GET /api/v1/projects/{project_id}/asset-versions/{asset_version_id}/media-source`는 WorkingComposition mutation namespace 밖의 Project-scoped read endpoint다. 요청한 exact AssetVersion만 해석하며 latest/newest/selected fallback과 첫 Artifact 선택을 금지한다.
+
+성공 응답은 `asset_version_id`, `artifact_id`, `media_type`, `size_bytes`, `artifact_checksum`, trusted `duration_seconds`, same-origin `/api/v1/artifacts/{artifact_id}/content`만 포함한다. effective Owner·Workspace·active ProjectAsset·active audio Asset과 현재 eligible한 exactly-one audio Artifact를 검증한다. storage path/root/key, locator, credential, signed URL과 payload byte는 공개하거나 읽지 않는다. 이 GET은 WorkingComposition 존재를 요구하지 않고 revision·idempotency result·DB row를 만들거나 변경하지 않는다.
+
+Artifact role/media allowlist는 Clip create와 같은 `audio|stem`, `audio/wav|audio/flac|audio/mpeg`다. 모든 형식은 persisted positive trusted duration을 요구한다. 현재 trusted ingestion이 MP3 duration을 probe하지 않는 경로에서는 `audio/mpeg`가 이 endpoint를 통해 우회 성공하지 않고 `SOURCE_DURATION_UNAVAILABLE`로 닫힌다.
 
 ## Initialize duplicate
 
@@ -64,6 +72,6 @@ Frontend consumer는 17개 operation을 중앙 API client로 호출한다. Backe
 
 ## Surface 실측
 
-이 Router는 APIRoute 17개, OpenAPI Path 16개, Operation 17개이며 operation ID 중복은 0개다. 전체 application은 Route 94개, APIRoute 90개, `/api/v1` APIRoute 49개, OpenAPI Path 71개, Operation 92개다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며, 새 WorkingComposition operation ID와의 충돌은 0개다.
+WorkingComposition Router는 APIRoute 17개, OpenAPI Path 16개, Operation 17개이며 operation ID 중복은 0개다. Project media source GET을 포함한 전체 application은 Route 95개, APIRoute 91개, `/api/v1` APIRoute 50개, OpenAPI Path 72개, Operation 93개다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며, 새 `resolve_project_asset_version_media_source` operation ID 충돌은 0개다.
 
 이 17개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.

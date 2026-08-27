@@ -5,11 +5,18 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-26
+> 최종 수정일: 2026-08-27
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — AssetVersion-safe Clip Media Resolution Foundation
+
+- Project 범위의 exact `AssetVersion`을 현재 eligible한 exactly-one audio `Artifact`로 해석하는 read-only `GET /api/v1/projects/{project_id}/asset-versions/{asset_version_id}/media-source`를 추가했다.
+- 기존 Clip mutation과 같은 effective Owner·Workspace·active ProjectAsset·active Asset·Artifact kind/media/retention·trusted duration authority를 재사용한다. zero/multiple candidate, revoked 관계, cross-owner·cross-project, unsupported media와 duration 부재는 latest/first fallback 없이 fail-closed한다.
+- 응답은 opaque AssetVersion·Artifact identity, media type, size, checksum, duration과 same-origin Artifact content URL만 공개한다. path·storage key/root·locator·credential·signed URL·raw payload는 해석 응답에 포함하지 않으며 GET은 DB·revision·WorkingComposition을 변경하지 않는다.
+- 기존 Artifact와 ProjectAsset 인덱스로 exact-version·scope query plan을 충족해 schema·Alembic은 변경하지 않았다. 이번 변경은 Track/Clip Waveform의 Backend source foundation만 완료하며 Frontend Waveform·binary endpoint·payload probe·working render는 계속 미구현이다.
 
 ### 구현 — Verified Durable Payload Staging Runtime Foundation
 

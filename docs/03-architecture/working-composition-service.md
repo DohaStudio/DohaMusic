@@ -1,7 +1,7 @@
 # WorkingComposition Atomic Mutation Service
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-26
+> 최종 수정일: 2026-08-27
 > 관련 기능: AI-native DAW D3 Clip Editing Backend와 Frontend consumer
 > 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Product API](../06-api/working-composition-api.md)
 
@@ -16,6 +16,8 @@ Router → WorkingCompositionService → Repository / trusted metadata Service
 ```
 
 GET은 WorkingComposition을 자동 생성하지 않는다. active Track은 `(track_order, track_id)`, active Clip은 Track order 뒤 `(timeline_start, clip_id)` 순서로 반환하고 working duration은 active Clip의 최대 `timeline_end`에서 계산한다.
+
+Project-scoped media source GET도 같은 Service의 trusted source metadata 경계를 재사용하지만 WorkingComposition 존재 여부나 현재 Clip membership에는 의존하지 않는다. exact AssetVersion의 Owner·Workspace·active ProjectAsset·active Asset과 exactly-one eligible audio Artifact를 현재 시점에 fail-closed 검증하고, opaque identity·media facts·trusted duration·same-origin Artifact content URL만 반환한다. 이 경로는 transaction·revision·idempotency completion·payload probe를 만들지 않는다.
 
 ## Initialize 계약
 
@@ -54,6 +56,6 @@ checkout은 같은 Project의 immutable SnapshotTrack/SnapshotClip만 authority�
 
 ## 검증과 범위 밖 항목
 
-격리 SQLite fixture에서 revision race exactly-one success, initialize unique race, inverse replay fidelity, 동일 canonical ID 복원, atomic Track reindex, current source eligibility, exact split geometry, overlap과 forced rollback을 검증했다. source Alembic head는 `20260825_0022`이며 inverse mutation은 기존 tombstone·lineage schema를 사용하므로 새 migration은 없다. 실제 사용자 DB·Artifact payload·media·Provider·GPU에는 접근하지 않았다.
+격리 SQLite fixture에서 revision race exactly-one success, initialize unique race, inverse replay fidelity, 동일 canonical ID 복원, atomic Track reindex, current source eligibility, exact split geometry, overlap과 forced rollback을 검증했다. WorkingComposition source revision은 `20260825_0022`, 현재 repository single head는 별도 PayloadLocator foundation을 포함한 `20260825_0023`이며 inverse mutation과 media source read는 기존 schema를 사용하므로 새 migration은 없다. 실제 사용자 DB·Artifact payload·media·Provider·GPU에는 접근하지 않았다.
 
-initialize는 빈 Frontend history에서 시작하고 checkout은 history barrier다. Backend는 command history나 undo stack을 저장하지 않는다. Frontend는 이 계약을 memory-only command stack과 conflict GET/reconcile로 소비한다. Composition commit, Track/Clip Waveform, working preview/render와 Mixer는 후속 범위다.
+initialize는 빈 Frontend history에서 시작하고 checkout은 history barrier다. Backend는 command history나 undo stack을 저장하지 않는다. Frontend는 이 계약을 memory-only command stack과 conflict GET/reconcile로 소비한다. exact AssetVersion-safe media source Backend foundation은 완료했지만 Track/Clip Waveform Frontend, Composition commit, working preview/render와 Mixer는 후속 범위다.
