@@ -1,7 +1,7 @@
 # WorkingComposition Product API
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-27
+> 최종 수정일: 2026-08-28
 > 관련 기능: AI-native DAW D3 Clip Editing Backend API와 Frontend consumer
 > 관련 문서: [Service Architecture](../03-architecture/working-composition-service.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Workspace REST API](workspace-rest-api-contract.md), [Composition Read](composition-read-workspace.md)
 
@@ -38,6 +38,8 @@
 성공 응답은 `asset_version_id`, `artifact_id`, `media_type`, `size_bytes`, `artifact_checksum`, trusted `duration_seconds`, same-origin `/api/v1/artifacts/{artifact_id}/content`만 포함한다. effective Owner·Workspace·active ProjectAsset·active audio Asset과 현재 eligible한 exactly-one audio Artifact를 검증한다. storage path/root/key, locator, credential, signed URL과 payload byte는 공개하거나 읽지 않는다. 이 GET은 WorkingComposition 존재를 요구하지 않고 revision·idempotency result·DB row를 만들거나 변경하지 않는다.
 
 Artifact role/media allowlist는 Clip create와 같은 `audio|stem`, `audio/wav|audio/flac|audio/mpeg`다. 모든 형식은 persisted positive trusted duration을 요구한다. 현재 trusted ingestion이 MP3 duration을 probe하지 않는 경로에서는 `audio/mpeg`가 이 endpoint를 통해 우회 성공하지 않고 `SOURCE_DURATION_UNAVAILABLE`로 닫힌다.
+
+Frontend는 Clip의 exact `source_asset_version_id`마다 이 endpoint를 공식 API client로 호출하고, 응답의 `content_url`만 기존 `/backend` same-origin proxy로 변환해 D2 Waveform loader에 전달한다. editor-session bounded memory cache가 같은 AssetVersion의 resolve·fetch·decode를 공유하며 Clip은 frozen `source_duration` timebase의 `[source_in, source_out)` projection만 표시한다. resolver·fetch·decode·128 MiB 제한 실패는 Waveform unavailable로 격리하고 Clip mutation은 계속 허용한다. current Snapshot, latest Artifact·AssetVersion, path·locator fallback은 사용하지 않는다.
 
 ## Initialize duplicate
 

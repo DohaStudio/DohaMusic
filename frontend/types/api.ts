@@ -350,6 +350,16 @@ export interface WorkingClipDto {
   split_from_clip_id: string | null;
 }
 
+export interface AssetVersionMediaSourceDto {
+  asset_version_id: string;
+  artifact_id: string;
+  media_type: "audio/wav" | "audio/flac" | "audio/mpeg";
+  size_bytes: number;
+  artifact_checksum: string;
+  duration_seconds: string;
+  content_url: string;
+}
+
 export interface WorkingCompositionDto {
   working_composition_id: string;
   project_id: string;

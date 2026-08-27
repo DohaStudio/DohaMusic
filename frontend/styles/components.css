@@ -748,6 +748,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .working-editor-empty h4 { margin: 0.2rem 0; }
 .working-editor-toolbar span { color: var(--text-muted); font-size: 0.82rem; }
 .working-history-controls button { display: inline-flex; align-items: center; gap: 0.35rem; }
+.working-zoom-controls { display: flex; align-items: center; gap: 0.5rem; }
+.working-zoom-controls output { min-width: 58px; color: var(--text-muted); font: 700 0.72rem/1 ui-monospace, monospace; text-align: center; }
 .working-history-controls svg,
 .working-track-row svg,
 .working-clip-controls svg { width: 1rem; height: 1rem; }
@@ -797,8 +799,14 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .working-clip.selected { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); }
 .working-clip:active { cursor: grabbing; }
-.working-clip small { pointer-events: none; }
-.working-trim-handle { position: absolute; top: 0; bottom: 0; width: 10px; background: var(--accent); cursor: ew-resize; }
+.working-clip strong,
+.working-clip small { position: relative; z-index: 2; pointer-events: none; text-shadow: 0 1px 3px var(--surface); }
+.working-clip-waveform { position: absolute; z-index: 1; inset: 0 10px; display: grid; place-items: center; overflow: hidden; pointer-events: none; }
+.working-clip-waveform svg { width: 100%; height: 100%; display: block; pointer-events: none; }
+.working-clip-waveform path { fill: color-mix(in srgb, var(--accent) 68%, white); opacity: 0.66; }
+.working-clip-waveform > span { color: var(--text-muted); font: 700 0.62rem/1 ui-monospace, monospace; opacity: 0.75; }
+.working-trim-handle { position: absolute; z-index: 3; top: 0; bottom: 0; width: 10px; background: var(--accent); cursor: ew-resize; }
 .working-trim-handle.start { left: 0; }
 .working-trim-handle.end { right: 0; }
+.working-clip-playhead { position: absolute; z-index: 4; top: 0; bottom: 0; width: 2px; background: #ff5b50; box-shadow: 0 0 8px color-mix(in srgb, #ff5b50 70%, transparent); pointer-events: none; }
 .working-clip-controls { margin-top: 0.75rem; flex-wrap: wrap; }

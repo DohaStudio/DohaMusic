@@ -4,6 +4,17 @@ import { dohaApi } from "@/services/doha-api";
 afterEach(() => vi.unstubAllGlobals());
 
 describe("WorkingComposition API client", () => {
+  it("exact AssetVersion media-source resolver가 공식 Project path와 abort signal을 사용한다", async () => {
+    const fetchMock = mockResponses(mediaSource());
+    const controller = new AbortController();
+    await expect(dohaApi.resolveAssetVersionMediaSource("project/1", "version/1", controller.signal))
+      .resolves.toMatchObject({ asset_version_id: "version/1", artifact_id: "artifact-1" });
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "/backend/api/v1/projects/project%2F1/asset-versions/version%2F1/media-source",
+    );
+    expect(fetchMock.mock.calls[0][1].signal).toBeInstanceOf(AbortSignal);
+  });
+
   it("GET과 initialize가 v1 path, explicit body, Idempotency-Key를 사용한다", async () => {
     const fetchMock = mockResponses(working(), initialize());
     await dohaApi.getWorkingComposition("project/1");
@@ -74,3 +85,4 @@ function reorderResult() { return { working_composition_id: "working-1", complet
 function clipResult() { return { clip_id: "clip-1", completed_revision: 5, replayed: false }; }
 function split() { return { original_clip_id: "original", left_clip_id: "left", right_clip_id: "right", completed_revision: 11, replayed: false }; }
 function checkout() { return { working_composition_id: "working-1", base_composition_snapshot_id: "snapshot-1", completed_revision: 11, replayed: false }; }
+function mediaSource() { return { asset_version_id: "version/1", artifact_id: "artifact-1", media_type: "audio/wav", size_bytes: 48, artifact_checksum: "a".repeat(64), duration_seconds: "10", content_url: "/api/v1/artifacts/artifact-1/content" }; }

@@ -2,11 +2,11 @@
 
 > 상태: 승인
 > 작성일: 2026-08-21
-> 최종 수정일: 2026-08-27
+> 최종 수정일: 2026-08-28
 > 관련 기능: AI-native DAW D3 Non-destructive Clip Editing
 > 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
-> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어 WorkingComposition Service와 17개 Product operation을 구현했고 2026-08-26 Frontend Track/Clip editor와 memory Undo/Redo가 이 authority를 소비한다. 2026-08-27에는 exact AssetVersion을 현재 eligible한 exactly-one Artifact와 same-origin content reference로 해석하는 read-only Backend foundation을 구현했다. Snapshot commit·Track/Clip Waveform Frontend·working preview/render는 후속이다.
+> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어 WorkingComposition Service와 17개 Product operation을 구현했고 2026-08-26 Frontend Track/Clip editor와 memory Undo/Redo가 이 authority를 소비한다. 2026-08-27에는 exact AssetVersion을 현재 eligible한 exactly-one Artifact와 same-origin content reference로 해석하는 read-only Backend foundation을 구현했다. 2026-08-28에는 editor-session bounded decode cache와 Clip별 `[source_in, source_out)` Track lane Waveform을 구현했다. Snapshot commit·working preview/render는 후속이다.
 
 ## 1. Context
 
@@ -301,7 +301,7 @@ DELETE /api/v1/projects/{project_id}/working-composition/clips/{clip_id}
 - **Working composition preview**: Track/Clip 배치를 합성해야 하며 후속 multi-track preview/render engine의 책임이다. working edit persistence만으로 audio가 바뀌었다고 표시하지 않는다.
 - **현재 Waveform**: committed Master/Mix Artifact의 overview다.
 - **Clip media source foundation**: Project 범위의 exact source AssetVersion을 active Asset·ProjectAsset·effective Owner와 exactly-one eligible audio Artifact로 다시 검증하고, opaque identity·trusted duration·same-origin Artifact content URL만 반환한다. zero/multiple candidate에는 latest/first fallback을 하지 않으며 GET은 working state와 revision을 변경하지 않는다.
-- **향후 Clip Waveform Frontend**: 위 source를 Clip별로 decode하고 `[source_in, source_out)` 구간을 Track lane에 표시한다.
+- **Clip Waveform Frontend**: 위 source를 exact AssetVersion별로 editor session에서 bounded decode하고, frozen source duration에 맞춘 Clip별 `[source_in, source_out)` 구간만 Track lane에 표시한다. move·trim·split·restore·Undo/Redo·zoom은 파형 command나 새 playback authority를 만들지 않고 canonical geometry의 derived projection으로 갱신한다.
 
 Master Waveform을 Track Clip Waveform으로 재사용하거나 working duration을 Master media duration으로 고정하지 않는다.
 

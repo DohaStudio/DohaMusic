@@ -5,11 +5,18 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-27
+> 최종 수정일: 2026-08-28
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Track/Clip Waveform Frontend
+
+- WorkingComposition Track lane의 각 Clip에 exact `source_asset_version_id → media-source → same-origin Artifact content` 경로를 연결하고 frozen `[source_in, source_out)` source window만 SVG Waveform으로 표시한다. D2 WebAudio loader의 128 MiB 입력, 최대 2,048 peak, bucket당 최대 256 sample 접근과 단일 bounded path를 재사용한다.
+- editor session 범위 최대 64개 memory cache로 같은 AssetVersion의 resolver·fetch·decode를 공유한다. Project·WorkingComposition 변경과 unmount에서 pending 작업을 abort하고 stale completion을 폐기하며 persistent cache·sidecar Artifact·dependency를 추가하지 않았다.
+- move는 동일 projection을 유지하고 trim·split·unsplit·resplit·delete/restore·Undo/Redo와 pending drag는 canonical Clip geometry에서 파생된다. zoom·horizontal scroll·Global Player Playhead는 같은 timeline 좌표계를 사용하며 Waveform은 pointer와 접근성 semantics를 가로채지 않는다.
+- repository-owned segmented WAV를 사용하는 Chromium·tablet·mobile Playwright에서 source-window 차이, same-source request dedup, history identity, zoom/scroll alignment와 resolver·decode failure 중 편집 지속을 검증했다. Backend production code·schema·migration·실제 사용자 DB·media는 변경하지 않았다.
 
 ### 추가 — AssetVersion-safe Clip Media Resolution Foundation
 

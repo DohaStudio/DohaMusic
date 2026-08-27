@@ -1,15 +1,17 @@
 # Frontend 아키텍처
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-26
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Waveform·Richer Playhead [완료], D3 Clip Editing·Memory Undo/Redo [완료]
+> 최종 수정일: 2026-08-28
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료], D3 Clip Editing·Memory Undo/Redo·Track/Clip Waveform [완료]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
 Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
-현재 구조는 생성 Workflow용 Responsive Studio이며 D1 Composition read와 D2 playback Foundation 위에 D3 WorkingComposition Track/Clip editor를 둔다. Backend의 explicit selection과 WorkingComposition aggregate가 canonical truth이고 Frontend는 pending preview·selection과 memory history만 보유한다. 기존 GlobalPlayer와 Master / Mix Waveform은 committed Snapshot playback authority를 유지하며 Track/Clip 고도 Waveform·Section·Mixer, AI Music Director와 Composition QA는 아직 구현되지 않았다.
+현재 구조는 생성 Workflow용 Responsive Studio이며 D1 Composition read와 D2 playback Foundation 위에 D3 WorkingComposition Track/Clip editor와 Clip source-window Waveform을 둔다. Backend의 explicit selection과 WorkingComposition aggregate가 canonical truth이고 Frontend는 pending preview·selection, bounded memory waveform cache와 memory history만 보유한다. 기존 GlobalPlayer와 Master / Mix Waveform은 committed Snapshot playback authority를 유지하며 working preview/render·Section·Mixer, AI Music Director와 Composition QA는 아직 구현되지 않았다.
+
+WorkingComposition Clip Waveform은 `source_asset_version_id`를 Project-scoped media-source endpoint로 해석하고 safe same-origin Artifact content를 D2 WebAudio·bounded peak loader로 한 번 decode한다. editor session의 최대 64개 memory cache가 동일 exact AssetVersion resolve/fetch/decode를 공유하며 Project·WorkingComposition 변경과 unmount에서 pending 요청을 abort한다. 각 Clip은 frozen `source_duration` timebase에서 `[source_in, source_out)`만 투영하고 move·trim·split·same-ID restore·Undo/Redo·zoom은 canonical peak를 재사용한다. 이 시각화는 Track mixdown이나 playback authority가 아니다.
 
 ```mermaid
 flowchart LR
@@ -120,7 +122,7 @@ frontend/
 - committed GlobalPlayer/Master Waveform과 working Clip preview/Waveform은 서로 다른 source·duration authority다. multi-track preview/render가 구현되기 전 working edit가 재생 결과에 반영됐다고 표시하지 않는다.
 - `dohaApi`의 17개 WorkingComposition operation DTO/client, Project Composition의 Track/Clip editor와 strict LIFO memory command stack을 구현했다. initialize·checkout·Project 변경·revision/structure conflict는 history boundary이며 refresh 시 stack은 복원하지 않는다.
 - idempotent logical mutation은 operation별 새 key를 갖고 response loss retry에 같은 key를 유지한다. 성공 응답의 `completed_revision`을 반영한 뒤 GET으로 canonical aggregate를 reconcile하며 실패한 command는 stack을 이동시키지 않는다.
-- Track/Clip 고도 Waveform, working multi-track preview/render, Composition commit과 Mixer는 구현하지 않았다.
+- Track/Clip Waveform은 exact media-source와 bounded editor-session cache를 통해 구현했다. working multi-track preview/render, Composition commit과 Mixer는 구현하지 않았다.
 
 ## API 연결 원칙
 

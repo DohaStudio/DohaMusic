@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Redo2, Scissors, Trash2, Undo2 } from "lucide-react";
+import { Redo2, Scissors, Trash2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button, ErrorAlert, Input } from "@/components/ui";
@@ -9,6 +9,13 @@ import { usePlayerStore } from "@/stores/player-store";
 import { ApiError, userErrorMessage } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
 import type { CompositionReadItemDto, WorkingClipDto, WorkingCompositionDto, WorkingTrackDto } from "@/types/api";
+import { buildWaveformPath, loadWaveformPeaks, type WaveformLoader } from "./waveform";
+import {
+  projectWaveformWindow,
+  useWorkingWaveforms,
+  waveformProjectionSignature,
+  type MediaSourceResolver,
+} from "./working-waveform";
 import {
   executeWorkingCommand,
   MemoryCommandHistory,
@@ -16,28 +23,45 @@ import {
   type WorkingCommand,
 } from "./working-composition-history";
 
-const PIXELS_PER_SECOND = 64;
+const MIN_PIXELS_PER_SECOND = 32;
+const MAX_PIXELS_PER_SECOND = 128;
+const DEFAULT_PIXELS_PER_SECOND = 64;
 
 export function WorkingCompositionEditor({
   projectId,
   snapshotId,
   sources,
+  mediaSourceResolver,
+  waveformLoader = loadWaveformPeaks,
 }: {
   projectId: string;
   snapshotId: string;
   sources: CompositionReadItemDto[];
+  mediaSourceResolver?: MediaSourceResolver;
+  waveformLoader?: WaveformLoader;
 }) {
-  return <WorkingCompositionEditorSession key={projectId} projectId={projectId} snapshotId={snapshotId} sources={sources} />;
+  return <WorkingCompositionEditorSession
+    key={projectId}
+    projectId={projectId}
+    snapshotId={snapshotId}
+    sources={sources}
+    mediaSourceResolver={mediaSourceResolver}
+    waveformLoader={waveformLoader}
+  />;
 }
 
 function WorkingCompositionEditorSession({
   projectId,
   snapshotId,
   sources,
+  mediaSourceResolver,
+  waveformLoader,
 }: {
   projectId: string;
   snapshotId: string;
   sources: CompositionReadItemDto[];
+  mediaSourceResolver?: MediaSourceResolver;
+  waveformLoader: WaveformLoader;
 }) {
   const queryClient = useQueryClient();
   const [history, setHistory] = useState(() => new MemoryCommandHistory());
@@ -52,6 +76,7 @@ function WorkingCompositionEditorSession({
   const [sourceOut, setSourceOut] = useState("10");
   const [timelineStart, setTimelineStart] = useState("0");
   const [draggedTrackId, setDraggedTrackId] = useState<string | null>(null);
+  const [pixelsPerSecond, setPixelsPerSecond] = useState(DEFAULT_PIXELS_PER_SECOND);
   const playhead = usePlayerStore((state) => state.currentTime);
   const queryKey = useMemo(() => ["working-composition", projectId] as const, [projectId]);
   const working = useQuery({
@@ -213,6 +238,21 @@ function WorkingCompositionEditorSession({
           <span>revision {data.revision} · 저장됨 · Undo/Redo는 이 탭의 메모리에만 유지</span>
         </div>
         <div className="working-history-controls">
+          <div className="working-zoom-controls" aria-label="Clip Timeline 확대 및 축소">
+            <button
+              type="button"
+              aria-label="Clip Timeline 축소"
+              disabled={pixelsPerSecond === MIN_PIXELS_PER_SECOND}
+              onClick={() => setPixelsPerSecond((value) => Math.max(MIN_PIXELS_PER_SECOND, value - 16))}
+            ><ZoomOut aria-hidden="true" /></button>
+            <output aria-label="Clip Timeline 배율">{pixelsPerSecond}px/s</output>
+            <button
+              type="button"
+              aria-label="Clip Timeline 확대"
+              disabled={pixelsPerSecond === MAX_PIXELS_PER_SECOND}
+              onClick={() => setPixelsPerSecond((value) => Math.min(MAX_PIXELS_PER_SECOND, value + 16))}
+            ><ZoomIn aria-hidden="true" /></button>
+          </div>
           <button type="button" aria-label="편집 실행 취소" disabled={pending || history.undoStack.length === 0} onClick={() => void runHistory("undo")}><Undo2 aria-hidden="true" /> Undo</button>
           <button type="button" aria-label="편집 다시 실행" disabled={pending || history.redoStack.length === 0} onClick={() => void runHistory("redo")}><Redo2 aria-hidden="true" /> Redo</button>
           <Button type="button" disabled={pending} onClick={() => void mutate(
@@ -292,10 +332,16 @@ function WorkingCompositionEditorSession({
             <Button type="submit" disabled={pending || !sourceVersionId}>Clip 배치</Button>
           </form>
           <ClipLane
+            projectId={projectId}
+            workingCompositionId={data.working_composition_id}
             track={selectedTrack}
             clips={data.clips.filter((clip) => clip.track_id === selectedTrack.track_id)}
             selectedClipId={selectedClipId}
             pending={pending}
+            pixelsPerSecond={pixelsPerSecond}
+            playhead={playhead}
+            mediaSourceResolver={mediaSourceResolver}
+            waveformLoader={waveformLoader}
             onSelect={setSelectedClipId}
             onMove={(clip, next) => void mutate(
               () => dohaApi.moveWorkingClip(projectId, clip.clip_id, { ...base, timeline_start: next }),
@@ -340,18 +386,26 @@ function TrackRow({ track, selected, pending, onSelect, onRename, onDelete, onDr
   </article>;
 }
 
-function ClipLane({ track, clips, selectedClipId, pending, onSelect, onMove, onTrimStart, onTrimEnd }: {
-  track: WorkingTrackDto; clips: WorkingClipDto[]; selectedClipId: string | null; pending: boolean;
+function ClipLane({ projectId, workingCompositionId, track, clips, selectedClipId, pending, pixelsPerSecond, playhead, mediaSourceResolver, waveformLoader, onSelect, onMove, onTrimStart, onTrimEnd }: {
+  projectId: string; workingCompositionId: string; track: WorkingTrackDto; clips: WorkingClipDto[]; selectedClipId: string | null; pending: boolean;
+  pixelsPerSecond: number; playhead: number; mediaSourceResolver?: MediaSourceResolver; waveformLoader: WaveformLoader;
   onSelect: (id: string) => void; onMove: (clip: WorkingClipDto, value: string) => void;
   onTrimStart: (clip: WorkingClipDto, timeline: string, source: string) => void; onTrimEnd: (clip: WorkingClipDto, source: string) => void;
 }) {
+  const waveformFor = useWorkingWaveforms({
+    projectId,
+    workingCompositionId,
+    assetVersionIds: clips.map((clip) => clip.source_asset_version_id),
+    resolver: mediaSourceResolver,
+    loader: waveformLoader,
+  });
   const [preview, setPreview] = useState<{ clipId: string; mode: "move" | "start" | "end"; delta: number } | null>(null);
   const drag = useRef<{ pointerId: number; startX: number; clip: WorkingClipDto; mode: "move" | "start" | "end" } | null>(null);
   const finish = (event: ReactPointerEvent<HTMLElement>, cancelled = false) => {
     const active = drag.current;
     if (!active || active.pointerId !== event.pointerId) return;
     drag.current = null;
-    const delta = (event.clientX - active.startX) / PIXELS_PER_SECOND;
+    const delta = (event.clientX - active.startX) / pixelsPerSecond;
     setPreview(null);
     if (cancelled || Math.abs(delta) < 0.001) return;
     if (active.mode === "move") onMove(active.clip, seconds(Math.max(0, Number(active.clip.timeline_start) + delta)));
@@ -380,22 +434,55 @@ function ClipLane({ track, clips, selectedClipId, pending, onSelect, onMove, onT
   const move = (event: ReactPointerEvent<HTMLElement>) => {
     const active = drag.current;
     if (!active || active.pointerId !== event.pointerId) return;
-    setPreview({ clipId: active.clip.clip_id, mode: active.mode, delta: (event.clientX - active.startX) / PIXELS_PER_SECOND });
+    setPreview({ clipId: active.clip.clip_id, mode: active.mode, delta: (event.clientX - active.startX) / pixelsPerSecond });
   };
-  const width = Math.max(720, ...clips.map((clip) => (Number(clip.timeline_start) + Number(clip.source_out) - Number(clip.source_in)) * PIXELS_PER_SECOND + 80));
-  return <div className="working-clip-scroll"><div className="working-clip-lane" style={{ width }} aria-label={`${track.name} Clip lane`}>
+  const width = Math.max(720, ...clips.map((clip) => (Number(clip.timeline_start) + Number(clip.source_out) - Number(clip.source_in)) * pixelsPerSecond + 80));
+  return <div className="working-clip-scroll" data-testid="working-clip-scroll"><div className="working-clip-lane" style={{ width, backgroundSize: `${pixelsPerSecond}px 100%` }} aria-label={`${track.name} Clip lane`}>
     {clips.map((clip) => {
       const delta = preview?.clipId === clip.clip_id ? preview.delta : 0;
       const startDelta = preview?.mode === "start" ? delta : 0;
       const endDelta = preview?.mode === "end" ? delta : 0;
-      const left = (Number(clip.timeline_start) + (preview?.mode === "move" ? delta : startDelta)) * PIXELS_PER_SECOND;
+      const left = (Number(clip.timeline_start) + (preview?.mode === "move" ? delta : startDelta)) * pixelsPerSecond;
       const duration = Number(clip.source_out) - Number(clip.source_in) - startDelta + endDelta;
-      return <button key={clip.clip_id} type="button" className={`working-clip${selectedClipId === clip.clip_id ? " selected" : ""}`} style={{ left, width: Math.max(duration * PIXELS_PER_SECOND, 24) }} aria-label={`Clip ${shortId(clip.clip_id)} 선택 및 이동`} aria-pressed={selectedClipId === clip.clip_id} onClick={() => onSelect(clip.clip_id)} onPointerDown={(event) => start(event, clip, "move")} onPointerMove={move} onPointerUp={finish} onPointerCancel={(event) => finish(event, true)}>
+      const sourceIn = Number(clip.source_in) + startDelta;
+      const sourceOut = Number(clip.source_out) + endDelta;
+      const waveform = waveformFor(clip.source_asset_version_id);
+      const projection = waveform.status === "ready"
+        ? projectWaveformWindow(
+          waveform.waveform,
+          sourceIn,
+          sourceOut,
+          undefined,
+          Number(clip.source_duration),
+        )
+        : [];
+      return <button key={clip.clip_id} type="button" className={`working-clip${selectedClipId === clip.clip_id ? " selected" : ""}`} style={{ left, width: Math.max(duration * pixelsPerSecond, 24) }} aria-label={`Clip ${shortId(clip.clip_id)} 선택 및 이동`} aria-pressed={selectedClipId === clip.clip_id} onClick={() => onSelect(clip.clip_id)} onPointerDown={(event) => start(event, clip, "move")} onPointerMove={move} onPointerUp={finish} onPointerCancel={(event) => finish(event, true)}>
         <span className="working-trim-handle start" aria-label={`Clip ${shortId(clip.clip_id)} 시작 Trim`} onPointerDown={(event) => start(event, clip, "start")} />
+        <span
+          className={`working-clip-waveform ${waveform.status}`}
+          aria-hidden="true"
+          data-testid={`clip-waveform-${clip.clip_id}`}
+          data-waveform-status={waveform.status}
+          data-source-window={`${seconds(sourceIn)}:${seconds(sourceOut)}`}
+          data-waveform-signature={projection.length ? waveformProjectionSignature(projection) : undefined}
+        >
+          {waveform.status === "loading" && <span>loading</span>}
+          {waveform.status === "unavailable" && <span>unavailable</span>}
+          {waveform.status === "ready" && projection.length > 0 && (
+            <svg viewBox="0 0 1000 64" preserveAspectRatio="none">
+              <path d={buildWaveformPath(projection, 1000, 64)} />
+            </svg>
+          )}
+        </span>
         <strong>{shortId(clip.clip_id)}</strong><small>{seconds(duration)}s</small>
         <span className="working-trim-handle end" aria-label={`Clip ${shortId(clip.clip_id)} 끝 Trim`} onPointerDown={(event) => start(event, clip, "end")} />
       </button>;
     })}
+    <span
+      className="working-clip-playhead"
+      aria-hidden="true"
+      style={{ left: Math.max(0, playhead) * pixelsPerSecond }}
+    />
   </div></div>;
 }
 
