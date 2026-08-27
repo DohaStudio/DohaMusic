@@ -1,7 +1,7 @@
 # 보안 정책
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-27
 > 관련 기능: Storage·Voice·Frontend public contract 보안
 > 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md)
 
@@ -20,6 +20,9 @@ Seed-VC는 명시적으로 동의된 참조 음성의 로컬 기술 검증에만
 Pipeline 생성 요청도 기존 Voice Profile 동의와 `voices/references` Storage 경계를 재검증한다. 성공·실패 metadata에는 Profile ID만 저장하며 참조 음성 절대 경로, prompt·lyrics 원문, 비밀 값은 로그에 남기지 않는다.
 
 ## Frontend와 파일 경로 경계
+
+- Clip media source 해석은 effective Owner·Workspace·Project와 active ProjectAsset을 먼저 검증하고, 요청한 exact AssetVersion의 현재 eligible Artifact가 정확히 하나일 때만 성공한다. zero/multiple·revoked·cross-owner·cross-project는 identity를 노출하지 않고 fail-closed한다.
+- 해석 응답은 opaque AssetVersion·Artifact ID, allowlisted media facts, trusted duration과 same-origin Artifact content 경로만 제공한다. absolute path, storage root/key, locator, signed URL, credential과 raw payload는 반환하지 않으며 실제 content 요청은 기존 Artifact owner·retention·integrity Gate를 다시 통과한다.
 
 - Generation·Stem·Voice Conversion·Pipeline files public response는 내부 절대·상대 `file_path`, Storage root, 임시·모델 경로를 반환하지 않는다.
 - Voice Profile public response도 `reference_file_path`를 반환하지 않는다. 해당 경로는 Backend DB·Worker 내부 경계에만 존재한다.

@@ -1,9 +1,9 @@
 # Workspace REST API Endpoint 목록
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-27
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace Resource 30개, D1 Product API 2개, WorkingComposition Product operation 17개 구현; Job API 5/5, 나머지 34개 Resource Endpoint 계획
+> 구현 상태: Workspace Resource 30개, D1 Product API 2개, WorkingComposition Product operation 17개와 exact AssetVersion media source read 1개 구현; Job API 5/5, 나머지 34개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [D1 Composition Read 계약](composition-read-workspace.md), [WorkingComposition Product API](working-composition-api.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -129,6 +129,14 @@ POST는 `project_id`, 역할별 `asset_version_id`, `processing_chain_id`, Mix S
 ### D3 WorkingComposition Product API — Backend 완료
 
 `/api/v1/projects/{project_id}/working-composition` 아래 GET·initialize·checkout, Track 5개와 Clip 9개로 총 17개 operation을 구현했습니다. Product API이므로 16개 Resource group·64개 Endpoint 분모에는 추가하지 않습니다. 모든 mutation은 expected revision을 사용하고 initialize·checkout·create·split·delete·restore·unsplit/resplit은 revision-safe completion replay를 사용합니다. 전체 path·DTO·오류와 실측 수치는 [WorkingComposition Product API](working-composition-api.md)를 따릅니다.
+
+### D3 Clip media source Product API — Backend foundation 완료
+
+| Method | Path | 성공 | 목적 |
+|---|---|---:|---|
+| `GET` | `/api/v1/projects/{project_id}/asset-versions/{asset_version_id}/media-source` | 200 | exact AssetVersion의 currently eligible exactly-one Artifact와 safe content reference 해석 |
+
+이 read projection도 16개 Resource group·64개 Endpoint 분모에는 추가하지 않습니다. latest/first fallback과 상태 변경 없이 effective Owner·Workspace·ProjectAsset·Asset·Artifact eligibility를 검증하며 세부 응답·오류는 [WorkingComposition Product API](working-composition-api.md)를 따릅니다. Track/Clip Waveform Frontend는 아직 미구현입니다.
 
 ## 9. Job API — 5개
 

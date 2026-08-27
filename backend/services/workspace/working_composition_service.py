@@ -43,6 +43,7 @@ from backend.repositories.workspace import (
     WorkspaceRepository,
 )
 from backend.services.workspace.trusted_media_metadata_service import (
+    TrustedClipSourceMetadata,
     TrustedMediaMetadataError,
     TrustedMediaMetadataErrorCode,
     TrustedMediaMetadataService,
@@ -136,6 +137,17 @@ class WorkingCompositionAggregate:
 
 
 @dataclass(frozen=True, slots=True)
+class ClipMediaSource:
+    asset_version_id: UUID
+    artifact_id: UUID
+    media_type: str
+    size_bytes: int
+    artifact_checksum: str
+    duration_us: int
+    content_url: str
+
+
+@dataclass(frozen=True, slots=True)
 class WorkingMutationResult:
     completed_revision: int
     replayed: bool
@@ -163,6 +175,37 @@ class WorkingCompositionService:
                     WorkingCompositionErrorCode.WORKING_COMPOSITION_NOT_FOUND
                 )
             return self._load_aggregate(repository, working)
+
+    def resolve_clip_media_source(
+        self,
+        project_id: UUID,
+        asset_version_id: UUID,
+        *,
+        effective_owner_id: UUID,
+    ) -> ClipMediaSource:
+        """Resolve one currently eligible exact-version Clip source without payload I/O."""
+
+        _validate_uuid(project_id, "project_id")
+        _validate_uuid(asset_version_id, "asset_version_id")
+        _validate_uuid(effective_owner_id, "effective_owner_id")
+        with self.session_factory() as session:
+            project = self._require_project_scope(session, project_id, effective_owner_id)
+            source = self._resolve_source_metadata(
+                session,
+                project_id=project_id,
+                workspace_id=project.workspace_id,
+                effective_owner_id=effective_owner_id,
+                asset_version_id=asset_version_id,
+            )
+        return ClipMediaSource(
+            asset_version_id=source.asset_version_id,
+            artifact_id=source.artifact_id,
+            media_type=source.media_type,
+            size_bytes=source.size_bytes,
+            artifact_checksum=source.artifact_checksum,
+            duration_us=source.duration_us,
+            content_url=f"/api/v1/artifacts/{source.artifact_id}/content",
+        )
 
     def initialize(
         self,
@@ -1197,6 +1240,23 @@ class WorkingCompositionService:
         effective_owner_id: UUID,
         asset_version_id: UUID,
     ) -> int:
+        return self._resolve_source_metadata(
+            session,
+            project_id=project_id,
+            workspace_id=workspace_id,
+            effective_owner_id=effective_owner_id,
+            asset_version_id=asset_version_id,
+        ).duration_us
+
+    def _resolve_source_metadata(
+        self,
+        session: Session,
+        *,
+        project_id: UUID,
+        workspace_id: UUID,
+        effective_owner_id: UUID,
+        asset_version_id: UUID,
+    ) -> TrustedClipSourceMetadata:
         assets = AssetRepository(session)
         version = assets.get_asset_version(asset_version_id)
         if version is None:
@@ -1213,11 +1273,7 @@ class WorkingCompositionService:
         ):
             raise WorkingCompositionError(WorkingCompositionErrorCode.SOURCE_ASSET_UNAVAILABLE)
         try:
-            return (
-                TrustedMediaMetadataService(assets)
-                .resolve_clip_source(asset_version_id)
-                .duration_us
-            )
+            return TrustedMediaMetadataService(assets).resolve_clip_source(asset_version_id)
         except TrustedMediaMetadataError as error:
             mapping = {
                 TrustedMediaMetadataErrorCode.SOURCE_ARTIFACT_NOT_FOUND: (

@@ -38,6 +38,8 @@ class TrustedClipSourceMetadata:
     asset_version_id: UUID
     artifact_id: UUID
     media_type: str
+    size_bytes: int
+    artifact_checksum: str
     duration_us: int
 
 
@@ -66,5 +68,7 @@ class TrustedMediaMetadataService:
             asset_version_id=asset_version_id,
             artifact_id=artifact.artifact_id,
             media_type=artifact.media_type,
+            size_bytes=artifact.size_bytes,
+            artifact_checksum=artifact.artifact_checksum,
             duration_us=artifact.duration_us,
         )

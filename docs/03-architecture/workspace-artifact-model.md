@@ -1,7 +1,7 @@
 # DohaMusic Workspace Artifact 모델
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-10
+> 최종 수정일: 2026-08-27
 > 관련 기능: AssetVersion 기반 Composition Snapshot, Mix, Export
 > 관련 문서: [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Storage Architecture](storage-architecture.md), [System Architecture](system-architecture.md), [Database Overview](../07-database/database-overview.md), [ADR-029](../11-decisions/ADR-029-dohamusic-workspace-artifact-domain.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)
 
@@ -93,6 +93,8 @@ Export는 선택한 Mix AssetVersion을 WAV·MP3·FLAC 같은 전달 형식으�
 - 로그에는 비밀정보, 개인 음성 내용과 로컬 절대 경로를 기록하지 않는다.
 
 ## 현재 호환 경계
+
+WorkingComposition Clip Waveform 선행 read는 Project와 exact AssetVersion을 입력으로 받아 기존 Artifact eligibility와 trusted `duration_us` 권위를 그대로 재사용한다. active Asset·ProjectAsset·effective Owner/Workspace를 확인한 뒤 eligible audio Artifact가 정확히 하나일 때만 opaque Artifact ID, media facts와 same-origin content endpoint를 반환한다. latest Version·첫 Artifact fallback, storage location·path·locator 공개와 payload probe는 금지한다. 기존 `ProjectAsset` 관계 인덱스와 `ix_artifacts_version_created`가 조회를 지원하므로 새 schema·migration은 없다.
 
 현재 `PipelineExecutor`, `pipeline_jobs`, `pipeline_files`와 `AUDIO_STORAGE_ROOT`는 그대로 유지한다. 기존 `final.wav`, Preview 후보와 metadata를 즉시 이동하거나 새 Asset으로 backfill하지 않는다. Catalog·Resolver·trusted ingestion은 구현했지만 실제 파일 전환은 별도 Inventory·backup·rehearsal·승인과 rollback Gate를 통과한 작업으로 수행한다.
 
