@@ -193,6 +193,34 @@ describe("WorkingComposition editor", () => {
     expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   });
+
+  it("Preview 생성 성공은 편집 revision과 Undo/Redo history를 변경하지 않는다", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    vi.spyOn(dohaApi, "createWorkingPreview").mockResolvedValue({
+      job_id: "job-preview", preview_render_id: "render-preview",
+      working_composition_id: "working-1", rendered_revision: 2,
+      status: "queued", replayed: false,
+    });
+    vi.spyOn(dohaApi, "getWorkspaceJob").mockResolvedValue({
+      job_id: "job-preview", job_type: "working_preview_render", status: "succeeded",
+      project_id: "project-1", composition_snapshot_id: null,
+      provider_id: null, model_manifest_id: null, progress_percent: 100,
+      stage: null, retry_of_job_id: null,
+      inputs: [],
+      outputs: [{ output_role: "working_preview", output_order: 0, artifact_id: "artifact-preview", asset_version_id: "version-preview" }],
+      model_usages: [],
+      error_code: null, error_message: null, error_retryable: null, error_details_id: null,
+      created_at: "2026-08-29T00:00:00Z", started_at: "2026-08-29T00:00:01Z",
+      completed_at: "2026-08-29T00:00:02Z",
+    });
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(await screen.findByRole("button", { name: "Working Preview 만들기" }));
+    await screen.findByRole("button", { name: "Working Preview revision 2 재생" });
+    expect(screen.getByText("revision 2 · 저장됨 · Undo/Redo는 이 탭의 메모리에만 유지")).toBeVisible();
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
+  });
 });
 
 function renderEditor({

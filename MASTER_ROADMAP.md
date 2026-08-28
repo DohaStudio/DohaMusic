@@ -4,7 +4,7 @@
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-28
+> 최종 수정일: 2026-08-29
 > 현재 실행 순서: [ROADMAP](ROADMAP.md)
 > 완료 판정: [Phase DoD](docs/DoD/README.md)
 
@@ -51,7 +51,7 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 |---|---|---|
 | Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현 |
 | AI-native DAW Product Direction | [완료] | PR #94가 `develop`에 병합되어 CURRENT/TARGET/NOT IMPLEMENTED 기준 확정 |
-| Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition·Working Preview Backend foundation, Frontend Track/Clip editing·memory Undo/Redo, exact AssetVersion-safe media source·Track/Clip Waveform 완료; Preview Frontend·Composition commit·Section·Mixer 미구현 |
+| Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition·Working Preview Backend/Frontend integration, Track/Clip editing·memory Undo/Redo, exact AssetVersion-safe media source·Track/Clip Waveform 완료; Composition commit·Section·Mixer 미구현 |
 | Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
 | Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
 
@@ -122,7 +122,7 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·Audio·Cancel·Retry 완료; DAW TARGET과 분리 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | `D0·D1·D2·D3 WorkingComposition·Working Preview Backend foundation·Frontend Clip editing·safe media source·Track/Clip Waveform 완료` | 9개 persistence table·18개 Product operation·memory Undo/Redo·exact version media resolution·Clip source-window Waveform·revision-pinned Preview manifest/Artifact 완료; Preview Frontend·Composition commit·실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | `D0·D1·D2·D3 WorkingComposition·Working Preview Backend/Frontend integration·Clip editing·safe media source·Track/Clip Waveform 완료` | 9개 persistence table·18개 Product operation·memory Undo/Redo·exact version media resolution·Clip source-window Waveform·revision-pinned Preview manifest/Artifact·explicit Preview UI/Job polling/Global Player 완료; Composition commit·실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현, reconciliation 계약 확정; Provider dispatch wiring·durable payload ingestion·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -332,7 +332,9 @@ Track/Clip Waveform Frontend [완료]
   ↓
 Working Preview Backend Foundation [완료]
   ↓
-Working Preview Frontend Integration [다음]
+Working Preview Frontend Integration [완료]
+  ↓
+Composition commit [다음]
 ```
 
 이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 WorkingComposition persistence·Service·Product API·safe media resolution·Preview Backend foundation 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0024` 적용을 뜻하지 않는다.

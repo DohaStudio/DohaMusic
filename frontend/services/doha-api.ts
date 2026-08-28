@@ -24,6 +24,8 @@ import type {
   WorkingReorderResultDto,
   WorkingSplitResultDto,
   WorkingTrackResultDto,
+  WorkingPreviewCreateResultDto,
+  WorkspaceJobDetailDto,
 } from "@/types/api";
 import type {
   VoiceEnrollmentCreateRequest,
@@ -212,6 +214,22 @@ export const dohaApi = {
     ).then((response) => response.data),
   getWorkingComposition: (projectId: string, signal?: AbortSignal) =>
     workspaceData<WorkingCompositionDto>(workingPath(projectId), { signal }),
+  createWorkingPreview: (
+    projectId: string,
+    expectedRevision: number,
+    idempotencyKey: string,
+    signal?: AbortSignal,
+  ) => workspaceData<WorkingPreviewCreateResultDto>(`${workingPath(projectId)}/preview`, {
+    method: "POST",
+    headers: idempotencyHeader(idempotencyKey),
+    body: JSON.stringify({ expected_revision: expectedRevision }),
+    signal,
+  }),
+  getWorkspaceJob: (jobId: string, signal?: AbortSignal) =>
+    workspaceData<WorkspaceJobDetailDto>(
+      `/api/v1/jobs/${encodeURIComponent(jobId)}`,
+      { signal },
+    ),
   resolveAssetVersionMediaSource: (
     projectId: string,
     assetVersionId: string,
@@ -298,4 +316,8 @@ export function getPipelineFileDownloadUrl(jobId: string, fileId: string) {
 
 export function toBackendPublicUrl(url: string | null): string | undefined {
   return url?.startsWith("/api/") ? `/backend${url}` : undefined;
+}
+
+export function getArtifactContentUrl(artifactId: string): string {
+  return `/backend/api/v1/artifacts/${encodeURIComponent(artifactId)}/content`;
 }

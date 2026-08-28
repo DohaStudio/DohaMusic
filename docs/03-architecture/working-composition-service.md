@@ -1,7 +1,7 @@
 # WorkingComposition Atomic Mutation Service
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-28
+> 최종 수정일: 2026-08-29
 > 관련 기능: AI-native DAW D3 Clip Editing Backend와 Frontend consumer
 > 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Product API](../06-api/working-composition-api.md)
 
@@ -60,4 +60,4 @@ checkout은 같은 Project의 immutable SnapshotTrack/SnapshotClip만 authority�
 
 initialize는 빈 Frontend history에서 시작하고 checkout은 history barrier다. Backend는 command history나 undo stack을 저장하지 않는다. Frontend는 이 계약을 memory-only command stack과 conflict GET/reconcile로 소비한다. exact AssetVersion-safe media source를 editor-session bounded decode cache와 Clip별 `[source_in, source_out)` projection으로 연결한 Track/Clip Waveform Frontend까지 완료했다.
 
-명시적 Preview action은 WorkingComposition을 mutation하지 않고 현재 revision의 ordered Track·Clip과 exact Artifact를 전용 durable manifest에 고정한다. Project당 하나의 non-canonical `MIX` Preview Asset을 전용 binding으로 소유하며, 성공 render마다 새 immutable AssetVersion·WAV Artifact와 `working_preview` JobOutput을 claim-owned transaction으로 만든다. 같은 key는 최초 Job을 replay하고 새 action·retry 성공은 기존 결과를 덮어쓰지 않는다. 24시간 뒤 Artifact를 `expired`로 전환해 content를 닫되 AssetVersion·manifest provenance는 보존한다. 상세 authority는 [ADR-052](../11-decisions/ADR-052-working-composition-preview-render-authority.md)를 따른다. Preview Frontend integration, Composition commit과 Mixer는 후속 범위다.
+명시적 Preview action은 WorkingComposition을 mutation하지 않고 현재 revision의 ordered Track·Clip과 exact Artifact를 전용 durable manifest에 고정한다. Project당 하나의 non-canonical `MIX` Preview Asset을 전용 binding으로 소유하며, 성공 render마다 새 immutable AssetVersion·WAV Artifact와 `working_preview` JobOutput을 claim-owned transaction으로 만든다. 같은 key는 최초 Job을 replay하고 새 action·retry 성공은 기존 결과를 덮어쓰지 않는다. 24시간 뒤 Artifact를 `expired`로 전환해 content를 닫되 AssetVersion·manifest provenance는 보존한다. Frontend는 explicit POST, 공식 Job polling, exact output cardinality, stale/rerender와 기존 Global Player handoff로 이 계약을 소비하며 completion 시 자동 재생하지 않는다. 상세 authority는 [ADR-052](../11-decisions/ADR-052-working-composition-preview-render-authority.md)를 따른다. Composition commit과 Mixer는 후속 범위다.

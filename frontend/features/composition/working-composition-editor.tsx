@@ -22,6 +22,7 @@ import {
   newIdempotencyKey,
   type WorkingCommand,
 } from "./working-composition-history";
+import { WorkingPreviewControl } from "./working-preview-control";
 
 const MIN_PIXELS_PER_SECOND = 32;
 const MAX_PIXELS_PER_SECOND = 128;
@@ -212,6 +213,7 @@ function WorkingCompositionEditorSession({
         <h4 id="working-editor-title">Clip 편집 공간</h4>
         <p>아직 WorkingComposition이 없습니다. 자동 생성하지 않으며, 아래 버튼으로 명시적으로 시작합니다.</p>
         {error && <ErrorAlert title="편집 공간을 시작하지 못했습니다." message={error} />}
+        <Button type="button" disabled aria-label="Working Preview 만들기">Preview 만들기</Button>
         <Button type="button" disabled={pending} onClick={() => void initialize()}>
           {pending ? "시작 중…" : "WorkingComposition 시작"}
         </Button>
@@ -264,6 +266,17 @@ function WorkingCompositionEditorSession({
       </header>
       {message && <p className="working-editor-notice" role="status">{message}</p>}
       {error && <ErrorAlert title="편집을 적용하지 못했습니다." message={error} />}
+
+      <WorkingPreviewControl
+        projectId={projectId}
+        workingCompositionId={data.working_composition_id}
+        currentRevision={data.revision}
+        clipCount={data.clips.length}
+        onRevisionConflict={async () => {
+          await reconcile(true);
+          setMessage("최신 편집 상태를 불러왔습니다. Preview를 다시 실행해 주세요.");
+        }}
+      />
 
       <form className="working-add-track" onSubmit={(event) => {
         event.preventDefault();

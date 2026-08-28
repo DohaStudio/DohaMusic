@@ -1,7 +1,7 @@
 # AI-native DAW Product Track Definition of Done
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-28
+> 최종 수정일: 2026-08-29
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 이 Track은 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성이 끝나도 DAW Runtime이 구현된 것으로 보지 않는다. 각 단계의 구현·검증·문서·ADR·Git 증거가 모두 있어야 다음 상태로 승격한다.
@@ -86,7 +86,7 @@
 - [x] Clip별 `[source_in, source_out)` Waveform decode·render와 Track lane 통합
 - [x] revision-pinned Working Preview manifest, Project Preview Asset과 성공별 immutable AssetVersion/Artifact Backend foundation
 - [x] WAV·FLAC·trusted MP3 trim·offset·gap·cross-Track overlap FFmpeg renderer와 bounded cleanup
-- [ ] Working Preview Frontend action·Job polling·stale 표시·Global Player integration
+- [x] Working Preview Frontend action·Job polling·stale 표시·Global Player integration
 - [ ] multi-user 동시 편집 recovery·persistent history
 
 ## D4. Mixer와 Export — [계획]

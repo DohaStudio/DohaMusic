@@ -5,11 +5,19 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-28
+> 최종 수정일: 2026-08-29
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Working Preview Frontend Integration
+
+- WorkingComposition editor에 명시적 Preview action을 추가하고 canonical Backend revision과 opaque `Idempotency-Key`로 `POST /working-composition/preview`를 호출한다. network response loss 재시도는 같은 key를 유지하고 새 사용자 action은 새 key를 사용한다.
+- POST가 반환한 Job ID를 기존 Workspace Job read API로 adaptive polling하며 queued·running·ready·failed·cancelled를 구분하고 terminal·unmount·Project 변경에서 polling을 중단한다. `working_preview` exactly-one Artifact output만 선택하고 first/latest/generic audio fallback은 사용하지 않는다.
+- Preview Artifact는 same-origin content route를 기존 Global Player에 사용자 재생 action으로만 전달한다. 새 audio element와 auto-play는 없으며 playback expiry/unavailable을 안전한 메시지와 rerender affordance로 표시한다.
+- `rendered_revision != current revision`이면 prior Preview를 보존한 채 stale로 표시한다. queued/running 중 edit, rerender, revision conflict GET reconcile, last successful Preview와 refresh 후 idle/no-latest-fallback 경계를 반영했다.
+- Chromium·tablet·mobile stateful Playwright와 API/state/poll/output/component/player 회귀를 추가했다. Backend production code·migration·Alembic `20260828_0024`·실제 사용자 DB/media·background daemon·Composition commit·Mixer는 변경하지 않았다.
 
 ### 추가 — Working Preview Render Backend Foundation
 
