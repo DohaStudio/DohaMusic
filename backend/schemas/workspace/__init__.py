@@ -34,6 +34,8 @@ from backend.schemas.workspace.composition_editing import (
     WorkingCompositionDetail,
     WorkingCompositionInitializeRequest,
     WorkingMutationRequest,
+    WorkingPreviewCreateRequest,
+    WorkingPreviewCreateResult,
 )
 from backend.schemas.workspace.jobs import (
     JobCreateRequest,
@@ -144,6 +146,8 @@ __all__ = [
     "WorkingCompositionDetail",
     "WorkingCompositionInitializeRequest",
     "WorkingMutationRequest",
+    "WorkingPreviewCreateRequest",
+    "WorkingPreviewCreateResult",
     "WorkspaceBootstrapResult",
     "WorkspaceDetail",
     "WorkspaceSummary",

@@ -17,6 +17,19 @@ class WorkingCompositionInitializeRequest(_StrictModel):
     pass
 
 
+class WorkingPreviewCreateRequest(_StrictModel):
+    expected_revision: int = Field(ge=0)
+
+
+class WorkingPreviewCreateResult(_StrictModel):
+    job_id: UUID
+    preview_render_id: UUID
+    working_composition_id: UUID
+    rendered_revision: int = Field(ge=0)
+    status: Literal["queued", "running", "succeeded", "failed", "cancelled"]
+    replayed: bool
+
+
 class WorkingMutationRequest(_StrictModel):
     working_composition_id: UUID
     expected_revision: int = Field(ge=0)

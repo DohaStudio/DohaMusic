@@ -104,6 +104,16 @@ from backend.services.workspace.working_composition_service import (
     WorkingCompositionService,
     WorkingMutationResult,
 )
+from backend.services.workspace.working_preview_service import (
+    WORKING_PREVIEW_JOB_TYPE,
+    WORKING_PREVIEW_OUTPUT_ROLE,
+    WorkingPreviewCompletion,
+    WorkingPreviewCreation,
+    WorkingPreviewError,
+    WorkingPreviewErrorCode,
+    WorkingPreviewService,
+)
+from backend.services.workspace.working_preview_worker_service import WorkingPreviewWorkerService
 from backend.services.workspace.workspace_service import (
     BootstrapWorkspaceResult,
     CompositionTransitionSummary,
@@ -212,5 +222,13 @@ __all__ = [
     "WorkingCompositionService",
     "WorkingMutationResult",
     "WorkspaceService",
+    "WORKING_PREVIEW_JOB_TYPE",
+    "WORKING_PREVIEW_OUTPUT_ROLE",
+    "WorkingPreviewCompletion",
+    "WorkingPreviewCreation",
+    "WorkingPreviewError",
+    "WorkingPreviewErrorCode",
+    "WorkingPreviewService",
+    "WorkingPreviewWorkerService",
     "staged_payload_from_record",
 ]

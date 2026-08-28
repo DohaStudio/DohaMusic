@@ -29,6 +29,12 @@ from backend.models.workspace.composition import (
 from backend.models.workspace.enums import AssetType, JobStatus
 from backend.models.workspace.job import Job, JobInput, JobOutput, ModelUsage
 from backend.models.workspace.payload_locator import PayloadLocator
+from backend.models.workspace.preview import (
+    WorkingPreviewAsset,
+    WorkingPreviewRender,
+    WorkingPreviewRenderClip,
+    WorkingPreviewRenderTrack,
+)
 from backend.models.workspace.provider_job import ProviderJobBinding
 from backend.models.workspace.storage import (
     ARTIFACT_STORAGE_ENTITY_CLASSES,
@@ -60,6 +66,10 @@ WORKSPACE_ENTITY_CLASSES = (
     ModelUsage,
     ProviderJobBinding,
     PayloadLocator,
+    WorkingPreviewAsset,
+    WorkingPreviewRender,
+    WorkingPreviewRenderTrack,
+    WorkingPreviewRenderClip,
     RecordingEnrollment,
     Tag,
     Comment,
@@ -102,5 +112,9 @@ __all__ = [
     "SnapshotItem",
     "Tag",
     "WorkingComposition",
+    "WorkingPreviewAsset",
+    "WorkingPreviewRender",
+    "WorkingPreviewRenderClip",
+    "WorkingPreviewRenderTrack",
     "Workspace",
 ]

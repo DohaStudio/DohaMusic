@@ -14,6 +14,7 @@
 | `GET` | `` | 200 | 없음 | ordered active working aggregate 조회 |
 | `POST` | `/initialize` | 201 | 필수 | 빈 WorkingComposition 최초 생성 |
 | `POST` | `/checkout` | 200 | 필수 | immutable Snapshot arrangement 복원 |
+| `POST` | `/preview` | 202 | 필수 | expected revision의 immutable Preview Job/manifest 생성 |
 | `POST` | `/tracks` | 201 | 필수 | audio Track 생성 |
 | `PATCH` | `/tracks/reorder` | 200 | 없음 | 전체 active Track 절대 순서 적용 |
 | `PATCH` | `/tracks/{track_id}` | 200 | 없음 | Track 이름 절대값 적용 |
@@ -51,7 +52,13 @@ Frontend는 Clip의 exact `source_asset_version_id`마다 이 endpoint를 공식
 
 initialize 성공은 빈 Frontend Undo/Redo history의 시작점이다. checkout 성공은 working arrangement 전체를 교체하는 history barrier이며 checkout 자체는 inverse operation이 아니다. Backend API는 command stack을 저장하거나 checkout 이전 command의 재적용을 허가하지 않는다.
 
-Frontend consumer는 17개 operation을 중앙 API client로 호출한다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip aggregate를 reconcile한다. create/delete는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용하며 네트워크 응답 유실 재시도에는 동일 `Idempotency-Key`를 유지한다.
+Frontend editing consumer는 기존 17개 operation을 중앙 API client로 호출한다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip aggregate를 reconcile한다. create/delete는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용하며 네트워크 응답 유실 재시도에는 동일 `Idempotency-Key`를 유지한다.
+
+## Working Preview
+
+`POST /preview` body는 `expected_revision`만 받는다. 성공은 `202`와 `job_id`, `preview_render_id`, `working_composition_id`, `rendered_revision`, `status=queued`, `replayed`를 반환한다. 같은 key·Project·WorkingComposition·revision은 같은 Job을 replay하고 다른 fingerprint는 `409 IDEMPOTENCY_KEY_REUSED`다. 새 key는 같은 revision에서도 새 explicit Preview action이다.
+
+Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 exact Artifact ID와 integer microseconds geometry를 전용 manifest에 고정한다. worker는 현재 WorkingComposition을 다시 읽지 않는다. 성공 output은 existing Job 조회의 `output_role=working_preview` exact Artifact이며 `/api/v1/artifacts/{artifact_id}/content`로만 재생한다. 응답과 Job settings에는 path·URL·locator를 포함하지 않는다. Preview 전후 WorkingComposition revision·Track·Clip, Snapshot과 Project selection은 변하지 않는다. Preview Frontend consumer는 이번 PR 범위가 아니다.
 
 ## Error
 
@@ -62,18 +69,20 @@ Frontend consumer는 17개 operation을 중앙 API client로 호출한다. Backe
 | 404 | `TRACK_NOT_FOUND`, `CLIP_NOT_FOUND` | 대상이 없거나 다른 working scope |
 | 404 | `COMPOSITION_SNAPSHOT_NOT_FOUND` | Snapshot 없음 또는 다른 Project |
 | 409 | `WORKING_COMPOSITION_ALREADY_EXISTS` | 다른 key의 duplicate initialize |
-| 409 | `WORKING_COMPOSITION_REVISION_CONFLICT` | expected revision CAS 실패 |
+| 409 | `WORKING_COMPOSITION_REVISION_CONFLICT` | expected revision CAS 또는 Preview revision pin 실패 |
+| 409 | `WORKING_PREVIEW_MANIFEST_CONFLICT`, `WORKING_PREVIEW_JOB_STATE_CONFLICT` | Preview binding/manifest 또는 claim-owned completion 상태 충돌 |
 | 409 | `TRACK_NOT_EMPTY`, `TRACK_ALREADY_ACTIVE`, `TRACK_RESTORE_ORDER_INVALID`, `CLIP_ALREADY_ACTIVE`, `CLIP_OVERLAP` | Product invariant 충돌 |
 | 409 | `SPLIT_STRUCTURE_CONFLICT` | split lineage·source·exact geometry 또는 상태가 최초 split 구조와 다름 |
 | 409 | `IDEMPOTENCY_KEY_REUSED`, `IDEMPOTENCY_IN_PROGRESS` | key fingerprint 충돌 또는 처리 중 |
 | 409 | `SOURCE_ASSET_UNAVAILABLE`, `SOURCE_ARTIFACT_AMBIGUOUS`, `SOURCE_DURATION_UNAVAILABLE` | source eligibility fail-closed |
 | 409 | `SNAPSHOT_ARRANGEMENT_NOT_AVAILABLE` | immutable arrangement 없음 |
 | 422 | `INVALID_CLIP_RANGE`, `INVALID_INPUT` | 정규화 이후 입력 범위 오류 |
+| 422 | `WORKING_PREVIEW_EMPTY`, `WORKING_PREVIEW_LIMIT_EXCEEDED`, `WORKING_PREVIEW_SOURCE_UNAVAILABLE`, `WORKING_PREVIEW_OUTPUT_INVALID` | Preview 입력·source·output fail-closed |
 
 오류는 path, storage root, locator, signed URL, credential, DB path, raw exception과 SQL constraint 이름을 반환하지 않는다.
 
 ## Surface 실측
 
-WorkingComposition Router는 APIRoute 17개, OpenAPI Path 16개, Operation 17개이며 operation ID 중복은 0개다. Project media source GET을 포함한 전체 application은 Route 95개, APIRoute 91개, `/api/v1` APIRoute 50개, OpenAPI Path 72개, Operation 93개다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며, 새 `resolve_project_asset_version_media_source` operation ID 충돌은 0개다.
+WorkingComposition Router는 APIRoute 18개, OpenAPI Path 17개, Operation 18개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Preview operation ID 충돌은 0개다.
 
-이 17개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.
+이 18개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.

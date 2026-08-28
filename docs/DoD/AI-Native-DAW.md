@@ -84,6 +84,9 @@
 - [x] Frontend Track/Clip editing·memory Undo/Redo·revision conflict reconcile 구현
 - [x] exact AssetVersion→exactly-one eligible Artifact safe media resolution Backend foundation 구현
 - [x] Clip별 `[source_in, source_out)` Waveform decode·render와 Track lane 통합
+- [x] revision-pinned Working Preview manifest, Project Preview Asset과 성공별 immutable AssetVersion/Artifact Backend foundation
+- [x] WAV·FLAC·trusted MP3 trim·offset·gap·cross-Track overlap FFmpeg renderer와 bounded cleanup
+- [ ] Working Preview Frontend action·Job polling·stale 표시·Global Player integration
 - [ ] multi-user 동시 편집 recovery·persistent history
 
 ## D4. Mixer와 Export — [계획]

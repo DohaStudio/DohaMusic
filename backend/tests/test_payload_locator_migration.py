@@ -17,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260825_0023"
 PREVIOUS_REVISION = "20260825_0022"
 TABLE = "payload_locators"
+HEAD_REVISION = "20260828_0024"
 
 
 def _config(database_url: str) -> Config:
@@ -28,9 +29,9 @@ def _config(database_url: str) -> Config:
 
 def test_payload_locator_metadata_matches_single_successor_revision() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [HEAD_REVISION]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
-    assert len(Base.metadata.tables) == 44
+    assert len(Base.metadata.tables) == 48
 
     table = Base.metadata.tables[TABLE]
     assert {column.name for column in table.columns} >= {

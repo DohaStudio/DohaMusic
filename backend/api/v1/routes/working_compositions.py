@@ -12,9 +12,11 @@ from backend.api.v1.dependencies import (
     get_effective_owner_id,
     get_request_id,
     get_working_composition_service,
+    get_working_preview_service,
 )
 from backend.api.v1.routes.common import (
     map_working_composition_error,
+    map_working_preview_error,
     reject_owner_input,
 )
 from backend.schemas.workspace import (
@@ -41,11 +43,14 @@ from backend.schemas.workspace import (
     WorkingCompositionDetail,
     WorkingCompositionInitializeRequest,
     WorkingMutationRequest,
+    WorkingPreviewCreateRequest,
+    WorkingPreviewCreateResult,
 )
 from backend.services.workspace import (
     WorkingCompositionAggregate,
     WorkingCompositionService,
     WorkingMutationResult,
+    WorkingPreviewService,
 )
 
 router = APIRouter(
@@ -55,6 +60,9 @@ router = APIRouter(
 )
 WorkingCompositionServiceDependency = Annotated[
     WorkingCompositionService, Depends(get_working_composition_service)
+]
+WorkingPreviewServiceDependency = Annotated[
+    WorkingPreviewService, Depends(get_working_preview_service)
 ]
 EffectiveOwnerDependency = Annotated[UUID, Depends(get_effective_owner_id)]
 IdempotencyKeyHeader = Annotated[
@@ -66,6 +74,42 @@ IdempotencyKeyHeader = Annotated[
         description="WorkingComposition mutation을 구분하는 opaque key",
     ),
 ]
+
+
+@router.post(
+    "/preview",
+    response_model=SuccessResponse[WorkingPreviewCreateResult],
+    status_code=status.HTTP_202_ACCEPTED,
+    operation_id="create_working_composition_preview",
+)
+def create_working_composition_preview(
+    project_id: UUID,
+    payload: WorkingPreviewCreateRequest,
+    request: Request,
+    service: WorkingPreviewServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[WorkingPreviewCreateResult]:
+    try:
+        result = service.create_for_owner(
+            project_id=project_id,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise map_working_preview_error(exc) from exc
+    return _success(
+        request,
+        WorkingPreviewCreateResult(
+            job_id=result.job_id,
+            preview_render_id=result.preview_render_id,
+            working_composition_id=result.working_composition_id,
+            rendered_revision=result.rendered_revision,
+            status=result.status.value,
+            replayed=result.replayed,
+        ),
+    )
 
 
 @router.get(

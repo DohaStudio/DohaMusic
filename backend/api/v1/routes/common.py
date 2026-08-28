@@ -17,6 +17,8 @@ from backend.services.workspace import (
     TrustedMediaMetadataError,
     WorkingCompositionError,
     WorkingCompositionErrorCode,
+    WorkingPreviewError,
+    WorkingPreviewErrorCode,
     WorkspaceService,
 )
 
@@ -273,6 +275,25 @@ def map_working_composition_error(exc: Exception) -> AppError:
     if isinstance(exc, TrustedMediaMetadataError):
         return AppError(code=exc.code.value, message=str(exc), status_code=409)
     raise exc
+
+
+def map_working_preview_error(exc: Exception) -> AppError:
+    if isinstance(exc, WorkingPreviewError):
+        not_found = {WorkingPreviewErrorCode.NOT_FOUND}
+        validation = {
+            WorkingPreviewErrorCode.EMPTY,
+            WorkingPreviewErrorCode.LIMIT_EXCEEDED,
+            WorkingPreviewErrorCode.SOURCE_UNAVAILABLE,
+            WorkingPreviewErrorCode.OUTPUT_INVALID,
+        }
+        return AppError(
+            code=exc.code.value,
+            message=str(exc),
+            status_code=404 if exc.code in not_found else 422 if exc.code in validation else 409,
+        )
+    if isinstance(exc, ValueError):
+        return invalid_input(str(exc))
+    return map_working_composition_error(exc)
 
 
 def map_job_error(exc: Exception, *, action: str | None = None) -> AppError:

@@ -19,3 +19,16 @@ Provider polling이 성공 metadata를 반환하면 [Provider Result Ingestion C
 - 동일 Job의 transport retry는 `workspace-job:<job_id>` canonical idempotency key를 재사용한다. 같은 Provider 결과의 Completion UoW replay는 기존 결과를 반환하고 `AssetVersion`·`Artifact`·Catalog·`JobOutput`·`ModelUsage`를 중복 생성하지 않는다.
 - Provider가 `CANCELLED`를 명시적으로 반환하면 cancel marker 유무와 관계없이 Job을 `cancelled`로 종료하며 Completion UoW와 출력 lineage를 생성하지 않는다. 실행 중 marker가 설정된 기존 success race도 cancel 우선이다.
 - 실제 daemon, scheduler, DohaLM·DohaAudio·DohaVocal dispatch 연결·외부 호출과 payload ingestion은 아직 없다. production crash/restart payload 복구용 locator facts와 verified durable local bytes foundation은 구현했지만 downloader와 Worker caller에는 연결하지 않았다.
+
+## Working Preview worker foundation
+
+`working_preview`는 Provider dispatch가 아닌 전용 claim-owned renderer 경계다. Product API가 queued Job과 immutable manifest를 만들고, worker는 manifest의 exact Artifact만 owner·retention·full checksum gate로 연다. 현재 WorkingComposition을 다시 읽거나 caller path/URL을 FFmpeg에 전달하지 않는다.
+
+- runtime bounds: Track 64, Clip 512, duration 30분, input당 128 MiB, output 384 MiB, timeout 300초
+- FFmpeg: argument list, `shell=False`, runtime-owned random temp, WAV·FLAC·trusted MP3 input, PCM16 stereo 48 kHz WAV output
+- cancel/timeout/failure: subprocess와 temp를 정리하고 claim-owned terminal 상태로 끝내며 AssetVersion·Artifact를 만들지 않음
+- success: render 이후 새 Preview AssetVersion을 만들고 trusted ingestion·Catalog verify·exact Artifact JobOutput·PreviewRender 연결·Job success를 단일 transaction으로 확정
+- retry: 실패·취소 원본 manifest를 새 Job/PreviewRender로 복제하고 기존 version을 덮어쓰지 않음
+- retention: 24시간 due scan이 Preview Artifact를 `expired`로 바꾸며 physical GC는 기존 Artifact maintenance 승인이 담당
+
+전용 execution service와 renderer foundation은 구현했지만 process-level background loop/scheduler activation은 이번 PR에서 추가하지 않는다. Frontend polling·stale UI·Global Player 연결도 다음 작업이다.
