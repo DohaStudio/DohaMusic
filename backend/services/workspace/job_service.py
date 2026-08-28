@@ -7,7 +7,7 @@ import json
 import re
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -43,11 +43,17 @@ from backend.models.workspace import (
     JobStatus,
     ModelUsage,
 )
+from backend.models.workspace.preview import (
+    WorkingPreviewRender,
+    WorkingPreviewRenderClip,
+    WorkingPreviewRenderTrack,
+)
 from backend.repositories.idempotency_repository import IdempotencyRepository
 from backend.repositories.workspace import (
     AssetRepository,
     CompositionRepository,
     JobRepository,
+    WorkingPreviewRepository,
     WorkspaceRepository,
 )
 from backend.services.workspace.composition_service import (
@@ -75,6 +81,7 @@ OFFICIAL_JOB_TYPES = frozenset(
         "audio_analysis",
         "mix",
         "export",
+        "working_preview",
     }
 )
 REQUIRED_SNAPSHOT_JOB_TYPES = frozenset({"mix", "export"})
@@ -89,6 +96,7 @@ JOB_INPUT_ROLES: dict[str, tuple[frozenset[str], frozenset[str]]] = {
         frozenset({"vocal", "instrumental", "stem"}),
     ),
     "export": (frozenset({"mix"}), frozenset({"mix"})),
+    "working_preview": (frozenset(), frozenset()),
 }
 BYTE_INPUT_ROLES = frozenset(
     {
@@ -229,6 +237,10 @@ class JobService:
         """향후 공개 Router가 사용할 owner-scoped Job 생성 경계다."""
 
         normalized_type = _normalize_job_type(job_type)
+        if normalized_type == "working_preview":
+            raise ApplicationValidationError(
+                "working_preview Job은 전용 WorkingComposition Preview API로 생성해야 합니다."
+            )
         normalized_inputs = self._normalize_contract_inputs(normalized_type, inputs)
         normalized_settings = _validate_job_settings(settings_snapshot)
         normalized_key = _normalize_idempotency_key(idempotency_key)
@@ -586,6 +598,48 @@ class JobService:
                             asset_version_id=item.asset_version_id,
                             artifact_id=item.artifact_id,
                         )
+                    )
+                if original_type == "working_preview":
+                    previews = WorkingPreviewRepository(session)
+                    original_render = previews.get_render_for_job(original.job_id)
+                    if original_render is None:
+                        raise InvalidStateError("재시도 원본 Working Preview manifest")
+                    retried_render = previews.add_render(
+                        WorkingPreviewRender(
+                            project_id=original_render.project_id,
+                            working_composition_id=original_render.working_composition_id,
+                            rendered_revision=original_render.rendered_revision,
+                            workspace_job_id=retried.job_id,
+                            preview_asset_id=original_render.preview_asset_id,
+                            payload_expires_at=datetime.now(UTC) + timedelta(hours=24),
+                        )
+                    )
+                    previews.add_tracks(
+                        [
+                            WorkingPreviewRenderTrack(
+                                preview_render_id=retried_render.preview_render_id,
+                                track_id=item.track_id,
+                                track_order=item.track_order,
+                            )
+                            for item in previews.list_tracks(original_render.preview_render_id)
+                        ]
+                    )
+                    previews.add_clips(
+                        [
+                            WorkingPreviewRenderClip(
+                                preview_render_id=retried_render.preview_render_id,
+                                clip_id=item.clip_id,
+                                track_id=item.track_id,
+                                canonical_order=item.canonical_order,
+                                source_asset_version_id=item.source_asset_version_id,
+                                source_artifact_id=item.source_artifact_id,
+                                source_in_us=item.source_in_us,
+                                source_out_us=item.source_out_us,
+                                source_duration_us=item.source_duration_us,
+                                timeline_start_us=item.timeline_start_us,
+                            )
+                            for item in previews.list_clips(original_render.preview_render_id)
+                        ]
                     )
                 idempotency_repository.complete(
                     claim.record,

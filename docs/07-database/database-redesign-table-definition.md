@@ -294,6 +294,19 @@ active row의 `(working_composition_id, track_order)`는 partial Unique입니다
 | `source_duration` | bigint | 아니요 | Check | frozen source 길이 μs |
 | `split_from_clip_id` | UUID | 예 |  | frozen parent lineage 값 |
 
+### 4.8A Working Preview persistence
+
+additive revision `20260828_0024`는 canonical Snapshot과 분리된 Preview lifecycle table 네 개를 추가한다.
+
+| Table | 핵심 필드 | 불변식 |
+|---|---|---|
+| `working_preview_assets` | `project_id` PK, `asset_id` Unique FK | Project당 non-canonical Preview Asset 하나, 일반 ProjectAsset binding 없음 |
+| `working_preview_renders` | render ID, Project·WorkingComposition·revision·Job·Preview Asset, nullable completion AssetVersion, payload expiry | Job당 manifest 하나, 성공 AssetVersion당 render 하나 |
+| `working_preview_render_tracks` | render ID, canonical Track ID, order | render 안 Track identity/order Unique |
+| `working_preview_render_clips` | render/Clip/Track, canonical order, exact source AssetVersion·Artifact, source/timeline μs | >16 Clip 손실 없는 exact pin, same-render Track 복합 FK, geometry Check |
+
+`preview_asset_version_id`는 render 성공 전만 nullable이다. 성공 transaction이 새 immutable AssetVersion·Artifact·JobOutput과 함께 연결한다. `artifacts.asset_version_id NOT NULL`은 변경하지 않는다. `payload_expires_at`은 payload retention scan 근거이며 AssetVersion·manifest provenance 삭제 시각이 아니다. 실제 사용자 DB 적용과 backfill은 없다.
+
 ### 4.9 `processing_chains`
 
 ProcessingChain은 순서가 있는 처리 정의입니다.
@@ -566,6 +579,10 @@ History는 별도 감사 Entity이며 현재 상태를 재구성하는 원본 Ta
 | `composition_clips` | `(working_composition_id, clip_id)` | active Timeline, source AssetVersion, split parent |
 | `composition_snapshot_tracks` | snapshot-local ID·canonical ID·order | deterministic frozen order |
 | `composition_snapshot_clips` | `(snapshot_id, canonical_clip_id)` | frozen Timeline, source AssetVersion |
+| `working_preview_assets` | `project_id`, `asset_id` | Project Preview Asset 1:1 binding |
+| `working_preview_renders` | `workspace_job_id`, `preview_asset_version_id` | working/revision와 payload expiry |
+| `working_preview_render_tracks` | `(render_id, track_id)`, `(render_id, track_order)` | immutable ordered manifest |
+| `working_preview_render_clips` | `(render_id, clip_id)`, `(render_id, canonical_order)` | exact Artifact·geometry manifest |
 | `processing_chains` | `(name, chain_version)`, `chain_checksum` | `created_by` |
 | `processing_steps` | `(processing_chain_id, step_order)` | `step_type` |
 | `job_inputs` | `(job_id, input_order)` | `asset_version_id`, `artifact_id` |

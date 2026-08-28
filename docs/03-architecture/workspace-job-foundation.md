@@ -54,8 +54,11 @@ Artifact ────────────┘
 | `audio_analysis` | 선택 | `source_audio` 필수 | DohaMusic `audio_analysis` | `analysis` | `false` | 단계 경계 cooperative |
 | `mix` | 필수 | `vocal`, `instrumental` 필수, `stem` 선택 | DohaMusic `mix` | `mix` | `false` | 단계 경계 cooperative |
 | `export` | 필수 | `mix` 필수 | DohaMusic `export` | `export` | `false` | 단계 경계 cooperative |
+| `working_preview` | 없음 | 전용 durable manifest | DohaMusic FFmpeg timeline renderer | `working_preview` exact Artifact | `true` | subprocess cooperative |
 
 `music_generation`은 prompt-only Instrumental을 지원하므로 Snapshot을 강제하지 않는다. Snapshot을 제공한 Job은 입력 role이 가리키는 Asset lineage가 Snapshot의 exact AssetVersion과 일치해야 한다. `mix`와 `export`는 최종 Workspace 조합과 설정을 재현해야 하므로 Snapshot이 필수다.
+
+`working_preview`는 일반 `POST /jobs`에서 생성하지 않고 WorkingComposition Preview Product API만 생성한다. 최대 512 Clip이라 `JobInput` 16개 제한에 넣지 않으며, `WorkingPreviewRender/Track/Clip`이 revision·order·geometry와 exact Artifact를 durable하게 고정한다. 성공마다 Project 전용 non-canonical Preview Asset 아래 새 AssetVersion/WAV Artifact를 만들며 CompositionSnapshot과 Export lineage는 생성하지 않는다.
 
 네 Vocal Job type의 공개 `job_input`은 `job_type` discriminator를 가진 구조화 입력이다. DohaVocal 요청에는 `provider_id=dohavocal`과 동적 `model_manifest_id`가 필요하다. 검증된 값은 기존 JSON `settings_snapshot`의 서버 예약 키에 불변 snapshot으로 보존하므로 schema·Alembic 변경은 없다. 기존 다른 Provider의 `voice_conversion` 요청은 `job_input` 없이도 기존 계약대로 허용한다.
 
@@ -109,6 +112,8 @@ stateDiagram-v2
 ## 8. Retry와 Idempotency
 
 Retry는 원본 상태를 되돌리지 않고 항상 새 `Job`을 만들며 `retry_of_job_id`로 실패·취소 원본을 가리킨다. Snapshot, ordered input, Job type, settings와 Provider·Manifest 요청은 기본적으로 frozen copy한다. 공개 retry 요청은 변경 body를 받지 않는다. 변경이 필요하면 일반 Job 생성으로 명시한다.
+
+Working Preview retry는 전용 manifest를 새 PreviewRender identity로 exact 복제한다. 현재 WorkingComposition이나 latest Artifact로 재해석하지 않으며, 성공 시 새 immutable Preview AssetVersion을 생성한다.
 
 - `POST /api/v1/jobs`와 `POST /api/v1/jobs/{job_id}/retry`에는 `Idempotency-Key`가 필수다.
 - create fingerprint는 effective owner·Workspace·Project·Job type·Snapshot·role/order로 정규화한 입력·Provider·Manifest·bounded settings를 포함한다.

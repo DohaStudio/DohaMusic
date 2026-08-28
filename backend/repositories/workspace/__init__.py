@@ -19,6 +19,7 @@ from backend.repositories.workspace.payload_locator_repository import (
     PayloadLocatorRepository,
     SqlAlchemyPayloadLocatorPersistence,
 )
+from backend.repositories.workspace.preview_repository import WorkingPreviewRepository
 from backend.repositories.workspace.provider_job_repository import ProviderJobRepository
 from backend.repositories.workspace.workspace_repository import WorkspaceRepository
 
@@ -34,4 +35,5 @@ __all__ = [
     "PayloadLocatorRepositoryPort",
     "SqlAlchemyPayloadLocatorPersistence",
     "WorkspaceRepository",
+    "WorkingPreviewRepository",
 ]

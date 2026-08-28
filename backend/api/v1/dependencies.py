@@ -16,6 +16,7 @@ from backend.services.workspace import (
     CompositionService,
     JobService,
     WorkingCompositionService,
+    WorkingPreviewService,
     WorkspaceService,
 )
 
@@ -85,6 +86,13 @@ def get_working_composition_service(request: Request) -> WorkingCompositionServi
     service = getattr(request.app.state, "working_composition_service", None)
     if not isinstance(service, WorkingCompositionService):
         raise TypeError("WorkingCompositionService가 구성되지 않았습니다.")
+    return service
+
+
+def get_working_preview_service(request: Request) -> WorkingPreviewService:
+    service = getattr(request.app.state, "working_preview_service", None)
+    if not isinstance(service, WorkingPreviewService):
+        raise TypeError("WorkingPreviewService가 구성되지 않았습니다.")
     return service
 
 

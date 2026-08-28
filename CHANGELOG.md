@@ -11,6 +11,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Working Preview Render Backend Foundation
+
+- ADR-052에서 explicit async `working_preview` Job, revision-pinned arbitrary Clip manifest, exact Artifact input과 non-canonical Preview Asset 소유권을 확정했다. Common AssetType·Provider·CompositionSnapshot·current selection·Export lineage는 변경하지 않는다.
+- Project당 전용 Preview Asset 하나를 기존 `MIX` 물리 유형과 별도 `working_preview_assets` binding으로 소유하고, 성공 render마다 같은 Asset 아래 새 immutable AssetVersion·WAV Artifact와 `working_preview` JobOutput을 claim-owned transaction으로 생성한다. `artifacts.asset_version_id NOT NULL`을 유지하며 실패·cancel·timeout에는 empty version을 남기지 않는다.
+- `POST /api/v1/projects/{project_id}/working-composition/preview`를 추가했다. same key·fingerprint는 최초 Job을 replay하고 새 action은 같은 revision에서도 새 Job을 허용한다. manifest는 16개를 넘는 Clip도 ordered Track·Clip, exact source AssetVersion/Artifact와 integer microseconds geometry를 손실 없이 보존한다.
+- FFmpeg renderer는 WAV·FLAC·trusted MP3, trim·offset·silence·cross-Track overlap과 deterministic PCM16 stereo 48 kHz WAV를 지원한다. Track 64, Clip 512, 30분, input 128 MiB, output 384 MiB, timeout 300초를 적용하고 caller path/URL 없이 `shell=False`와 runtime random temp cleanup을 사용한다.
+- Preview payload는 24시간 뒤 `expired`로 전환해 기존 Artifact content gate로 차단하고 AssetVersion·manifest provenance는 유지한다. additive Alembic `20260828_0024`는 Preview table 4개만 추가하며 backfill·기존 Artifact rewrite·실제 사용자 DB/media 적용은 없다. Frontend Preview action·Job polling·stale/Global Player integration은 다음 작업이다.
+
 ### 추가 — Track/Clip Waveform Frontend
 
 - WorkingComposition Track lane의 각 Clip에 exact `source_asset_version_id → media-source → same-origin Artifact content` 경로를 연결하고 frozen `[source_in, source_out)` source window만 SVG Waveform으로 표시한다. D2 WebAudio loader의 128 MiB 입력, 최대 2,048 peak, bucket당 최대 256 sample 접근과 단일 bounded path를 재사용한다.

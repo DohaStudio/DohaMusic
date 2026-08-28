@@ -48,12 +48,14 @@ from backend.services.voice_profile_service import VoiceProfileService
 from backend.services.voice_upload_service import VoiceUploadService
 from backend.services.workspace import (
     ArtifactApplicationService,
+    ArtifactIngestionService,
     AssetService,
     CompositionService,
     JobService,
     PayloadLocatorService,
     PayloadStagingService,
     WorkingCompositionService,
+    WorkingPreviewService,
     WorkspaceService,
 )
 from backend.storage import ArtifactStorageRoots, LocalFilesystemStagingAdapter
@@ -212,6 +214,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.artifact_application_service = ArtifactApplicationService(
             session_factory,
             artifact_roots=artifact_roots,
+        )
+        preview_ingestion_service = (
+            ArtifactIngestionService(
+                session_factory,
+                artifact_roots=artifact_roots,
+                staging_root=resolved_settings.artifact_staging_root,
+            )
+            if artifact_roots is not None
+            else None
+        )
+        app.state.working_preview_service = WorkingPreviewService(
+            session_factory,
+            ingestion_service=preview_ingestion_service,
         )
         payload_staging_adapter = (
             LocalFilesystemStagingAdapter(

@@ -40,6 +40,10 @@ EXPECTED_ENTITY_TABLES = {
     "ModelUsage": "model_usages",
     "ProviderJobBinding": "provider_job_bindings",
     "PayloadLocator": "payload_locators",
+    "WorkingPreviewAsset": "working_preview_assets",
+    "WorkingPreviewRender": "working_preview_renders",
+    "WorkingPreviewRenderTrack": "working_preview_render_tracks",
+    "WorkingPreviewRenderClip": "working_preview_render_clips",
     "RecordingEnrollment": "recording_enrollments",
     "Tag": "tags",
     "Comment": "comments",
@@ -323,6 +327,35 @@ EXPECTED_COLUMNS = {
         "created_at",
         "updated_at",
     },
+    "working_preview_assets": {"project_id", "asset_id"},
+    "working_preview_renders": {
+        "preview_render_id",
+        "project_id",
+        "working_composition_id",
+        "rendered_revision",
+        "workspace_job_id",
+        "preview_asset_id",
+        "preview_asset_version_id",
+        "payload_expires_at",
+        "created_at",
+    },
+    "working_preview_render_tracks": {
+        "preview_render_id",
+        "track_id",
+        "track_order",
+    },
+    "working_preview_render_clips": {
+        "preview_render_id",
+        "clip_id",
+        "track_id",
+        "canonical_order",
+        "source_asset_version_id",
+        "source_artifact_id",
+        "source_in_us",
+        "source_out_us",
+        "source_duration_us",
+        "timeline_start_us",
+    },
     "recording_enrollments": {
         "recording_enrollment_id",
         "workspace_id",
@@ -405,9 +438,9 @@ LEGACY_TABLES = {
 def test_workspace_entity_and_table_names_are_exact() -> None:
     actual = {entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES}
 
-    assert len(WORKSPACE_ENTITY_CLASSES) == 29
+    assert len(WORKSPACE_ENTITY_CLASSES) == 33
     assert actual == EXPECTED_ENTITY_TABLES
-    assert len(set(actual.values())) == 29
+    assert len(set(actual.values())) == 33
 
 
 def test_workspace_table_columns_match_documented_contract() -> None:
@@ -448,7 +481,7 @@ def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     assert target_tables.isdisjoint(LEGACY_TABLES)
     assert storage_tables == {"artifact_storage_locations"}
     assert set(Base.metadata.tables) == target_tables | storage_tables | LEGACY_TABLES
-    assert len(Base.metadata.tables) == 44
+    assert len(Base.metadata.tables) == 48
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

@@ -228,6 +228,8 @@ Entity는 이번 PR에서 변경하지 않지만 `retention_status`에 저장할
 
 공개 DELETE API는 제공하지 않는다. 물리 삭제는 retention policy와 별도 GC·maintenance 승인 흐름에서만 수행한다. GC는 AssetVersion·JobInput·JobOutput·Snapshot·Consent·법적 보존과 계보 참조를 먼저 검사하고, DB row와 감사 이력을 즉시 제거하지 않는다. 실패 시 상태와 안전한 오류 식별자를 남기며 자동 restore나 무관한 Payload 삭제를 수행하지 않는다.
 
+Working Preview는 `music` domain과 기존 trusted ingestion을 사용한다. Project 전용 non-canonical Preview Asset 아래 성공마다 새 AssetVersion과 `asset_version_id NOT NULL` WAV Artifact를 만들고, `WorkingPreviewRender.payload_expires_at`의 24시간 policy가 due 되면 maintenance가 Artifact를 `expired`로 전환한다. AssetVersion·manifest는 stale 판정과 provenance를 위해 남고, physical deletion은 위 GC gate를 우회하지 않는다. Preview용 새 storage domain, public delete 또는 일반 ProjectAsset 노출은 만들지 않는다.
+
 ## 12. Metadata GET 계약
 
 `GET /api/v1/artifacts/{artifact_id}`는 권한 확인 후 다음 공개 필드를 반환한다.

@@ -28,6 +28,12 @@
 | `ASSET_VERSION_CONFLICT` | AssetVersion 번호 또는 불변 생성 계약이 기존 상태와 충돌함 |
 | `PROJECT_ASSET_NOT_FOUND` | 요청한 ProjectAsset 관계가 없거나 Soft Delete됨 |
 | `PROJECT_ASSET_CONFLICT` | 같은 Project와 Asset의 활성 관계가 이미 존재함 |
+| `WORKING_PREVIEW_EMPTY` | active Track·Clip이 없어 Preview duration을 만들 수 없음 |
+| `WORKING_PREVIEW_LIMIT_EXCEEDED` | Track·Clip·duration resource bound 초과 |
+| `WORKING_PREVIEW_SOURCE_UNAVAILABLE` | exact source Artifact의 owner·Project·retention·duration eligibility 실패 |
+| `WORKING_PREVIEW_MANIFEST_CONFLICT` | Preview Asset binding 또는 durable manifest identity 충돌 |
+| `WORKING_PREVIEW_JOB_STATE_CONFLICT` | claim-owned Preview completion 상태 충돌 |
+| `WORKING_PREVIEW_OUTPUT_INVALID` | output WAV 검증·duration·trusted ingestion 실패 |
 | `INVALID_STATE` | 현재 Resource 상태에서 요청을 수행할 수 없음 |
 | `INVALID_KPOP_PRESET` | 지원하지 않는 K-POP Preset |
 | `INVALID_REQUESTED_BPM` | 70~180 범위를 벗어난 목표 BPM |

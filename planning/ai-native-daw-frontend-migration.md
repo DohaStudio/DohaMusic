@@ -88,11 +88,13 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - Waveform·ruler click seek와 draggable Playhead preview/commit, 정밀 hover 시간을 같은 scroll·zoom 좌표계에 연결했다. 별도 audio element와 animation loop는 추가하지 않았다.
 - NEXT: Clip Editing Foundation. LATER: Mixer, AI Segment Editing. 편집 가능한 Track/Clip Waveform·Section marker·range selection·multi-track sync engine은 아직 구현하지 않았다.
 
-### D3 — Non-destructive DAW Editing [계획]
+### D3 — Non-destructive DAW Editing [진행 중]
 
 - split, trim, move, copy, delete, fade, gain, loop를 새 AssetVersion/Snapshot으로 저장한다.
 - undo/redo는 불변 Version 또는 명시적 command history로 구현한다.
 - Gate: 원본 불변, concurrent edit 정책, autosave·crash recovery, 정확한 export 재현.
+
+Backend Working Preview Foundation은 revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact를 구현했다. Frontend integration은 명시적 Preview action, existing Job polling, safe Artifact content 전달, `rendered_revision != current_revision` stale 표시를 추가해야 한다. stale Preview를 자동으로 현재 상태처럼 표시하거나 Global Player source로 교체하지 않으며 사용자가 선택한 뒤에만 단일 playback authority에 연결한다. Preview는 Composition commit·Export가 아니고 Preview 성공으로 editor revision/history를 이동시키지 않는다.
 
 ### D4 — Mixer와 Export [계획]
 
@@ -158,4 +160,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead는 구현돼 Draft 검토 중이다. 편집 가능한 Track/Clip Waveform·Clip·Section·Mixer·AI editing·D3~D9 Runtime은 미구현이다. Backend API·DB·Common Contract·Training·Provider Runtime은 이번 Foundation으로 변경되지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·source-window Waveform은 구현돼 있다. Working Preview Frontend action·Job polling·stale 표시·Global Player 연결, Section·Mixer·AI editing과 D4~D9 Runtime은 미구현이다. 이번 Backend Foundation은 Common Contract·Training·Provider Runtime을 변경하지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.

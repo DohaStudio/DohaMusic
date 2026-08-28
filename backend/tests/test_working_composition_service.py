@@ -674,6 +674,11 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
         ),
         (
             "POST",
+            "/projects/{project_id}/working-composition/preview",
+            "create_working_composition_preview",
+        ),
+        (
+            "POST",
             "/projects/{project_id}/working-composition/tracks",
             "create_working_composition_track",
         ),
@@ -743,10 +748,10 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "resplit_working_composition_clip",
         ),
     }
-    assert len(routes) == 17
-    assert len({path for _, path, _ in surface}) == 16
+    assert len(routes) == 18
+    assert len({path for _, path, _ in surface}) == 17
     operation_ids = [operation_id for _, _, operation_id in surface]
-    assert len(operation_ids) == len(set(operation_ids)) == 17
+    assert len(operation_ids) == len(set(operation_ids)) == 18
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(service, graph) -> None:
