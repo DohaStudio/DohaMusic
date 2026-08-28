@@ -1,7 +1,7 @@
 # Workspace REST API Endpoint 목록
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-27
+> 최종 수정일: 2026-08-28
 > 관련 기능: DohaMusic Workspace REST API 재설계
 > 구현 상태: Workspace Resource 30개, D1 Product API 2개, WorkingComposition Product operation 17개와 exact AssetVersion media source read 1개 구현; Job API 5/5, 나머지 34개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [D1 Composition Read 계약](composition-read-workspace.md), [WorkingComposition Product API](working-composition-api.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
@@ -136,7 +136,7 @@ POST는 `project_id`, 역할별 `asset_version_id`, `processing_chain_id`, Mix S
 |---|---|---:|---|
 | `GET` | `/api/v1/projects/{project_id}/asset-versions/{asset_version_id}/media-source` | 200 | exact AssetVersion의 currently eligible exactly-one Artifact와 safe content reference 해석 |
 
-이 read projection도 16개 Resource group·64개 Endpoint 분모에는 추가하지 않습니다. latest/first fallback과 상태 변경 없이 effective Owner·Workspace·ProjectAsset·Asset·Artifact eligibility를 검증하며 세부 응답·오류는 [WorkingComposition Product API](working-composition-api.md)를 따릅니다. Track/Clip Waveform Frontend는 아직 미구현입니다.
+이 read projection도 16개 Resource group·64개 Endpoint 분모에는 추가하지 않습니다. latest/first fallback과 상태 변경 없이 effective Owner·Workspace·ProjectAsset·Asset·Artifact eligibility를 검증하며 세부 응답·오류는 [WorkingComposition Product API](working-composition-api.md)를 따릅니다. Frontend Track/Clip Waveform은 이 exact source와 same-origin content route만 소비합니다.
 
 ## 9. Job API — 5개
 

@@ -1,8 +1,10 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkingCompositionEditor } from "@/features/composition/working-composition-editor";
+import type { MediaSourceResolver } from "@/features/composition/working-waveform";
+import type { WaveformLoader } from "@/features/composition/waveform";
 import { ApiError } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
 import type { CompositionReadItemDto, WorkingCompositionDto } from "@/types/api";
@@ -10,6 +12,91 @@ import type { CompositionReadItemDto, WorkingCompositionDto } from "@/types/api"
 afterEach(() => vi.restoreAllMocks());
 
 describe("WorkingComposition editor", () => {
+  it("Clip waveform loading, ready와 same-source decode dedup을 표시한다", async () => {
+    const clips = [
+      { ...working.clips[0], clip_id: "clip-left", source_out: "5.000", source_duration: "10.000" },
+      { ...working.clips[0], clip_id: "clip-right", timeline_start: "5.000", source_in: "5.000", source_duration: "10.000" },
+    ];
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue({ ...working, clips });
+    let finish!: (peaks: number[]) => void;
+    const loader = vi.fn<WaveformLoader>(() => new Promise((resolve) => { finish = resolve; }));
+    const resolver = vi.fn<MediaSourceResolver>().mockResolvedValue(mediaSource);
+    renderEditor({ resolver, loader });
+    expect((await screen.findByTestId("clip-waveform-clip-left")).dataset.waveformStatus).toBe("loading");
+    finish([0.1, 0.2, 0.3, 0.4, 0.7, 0.8, 0.9, 1]);
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-left")).toHaveAttribute("data-waveform-status", "ready"));
+    expect(screen.getByTestId("clip-waveform-clip-left").dataset.waveformSignature)
+      .not.toBe(screen.getByTestId("clip-waveform-clip-right").dataset.waveformSignature);
+    expect(resolver).toHaveBeenCalledTimes(1);
+    expect(loader).toHaveBeenCalledTimes(1);
+  });
+
+  it("move는 source projection을 유지하고 trim preview와 zoom은 projection/geometry만 갱신한다", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    const loader = vi.fn<WaveformLoader>().mockResolvedValue([0.1, 0.2, 0.3, 0.4, 0.7, 0.8, 0.9, 1]);
+    renderEditor({ loader });
+    const waveform = await screen.findByTestId("clip-waveform-clip-1");
+    await waitFor(() => expect(waveform).toHaveAttribute("data-waveform-status", "ready"));
+    const clip = screen.getByRole("button", { name: /Clip clip-1 선택 및 이동/ });
+    const initialSignature = waveform.dataset.waveformSignature;
+    const initialLeft = clip.style.left;
+    fireEvent.pointerDown(clip, { pointerId: 11, clientX: 100 });
+    fireEvent.pointerMove(clip, { pointerId: 11, clientX: 164 });
+    expect(clip.style.left).not.toBe(initialLeft);
+    expect(waveform.dataset.waveformSignature).toBe(initialSignature);
+    fireEvent.pointerCancel(clip, { pointerId: 11, clientX: 164 });
+
+    const start = screen.getByLabelText("Clip clip-1 시작 Trim");
+    fireEvent.pointerDown(start, { pointerId: 12, clientX: 100 });
+    fireEvent.pointerMove(clip, { pointerId: 12, clientX: 164 });
+    expect(waveform.dataset.sourceWindow).toBe("1.000:10.000");
+    expect(waveform.dataset.waveformSignature).not.toBe(initialSignature);
+    fireEvent.pointerCancel(clip, { pointerId: 12, clientX: 164 });
+
+    const widthBeforeZoom = clip.style.width;
+    fireEvent.click(screen.getByRole("button", { name: "Clip Timeline 확대" }));
+    expect(clip.style.width).not.toBe(widthBeforeZoom);
+    expect(loader).toHaveBeenCalledTimes(1);
+  });
+
+  it("split child projection과 unsplit/delete/restore 원본 projection을 derived state로 복원한다", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    const loader = vi.fn<WaveformLoader>().mockResolvedValue([0.1, 0.2, 0.3, 0.4, 0.7, 0.8, 0.9, 1]);
+    const { client } = renderEditor({ loader });
+    const original = await screen.findByTestId("clip-waveform-clip-1");
+    await waitFor(() => expect(original).toHaveAttribute("data-waveform-status", "ready"));
+    const originalSignature = original.dataset.waveformSignature;
+    const split = {
+      ...working,
+      revision: 3,
+      clips: [
+        { ...working.clips[0], clip_id: "clip-left", source_out: "5.000", split_from_clip_id: "clip-1" },
+        { ...working.clips[0], clip_id: "clip-right", timeline_start: "5.000", source_in: "5.000", split_from_clip_id: "clip-1" },
+      ],
+    };
+    act(() => client.setQueryData(["working-composition", "project-1"], split));
+    const left = await screen.findByTestId("clip-waveform-clip-left");
+    const right = await screen.findByTestId("clip-waveform-clip-right");
+    expect(left.dataset.waveformSignature).not.toBe(right.dataset.waveformSignature);
+    expect(screen.queryByTestId("clip-waveform-clip-1")).not.toBeInTheDocument();
+
+    act(() => client.setQueryData(["working-composition", "project-1"], { ...working, revision: 4 }));
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-1").dataset.waveformSignature).toBe(originalSignature));
+    act(() => client.setQueryData(["working-composition", "project-1"], { ...working, revision: 5, clips: [] }));
+    await waitFor(() => expect(screen.queryByTestId("clip-waveform-clip-1")).not.toBeInTheDocument());
+    act(() => client.setQueryData(["working-composition", "project-1"], { ...working, revision: 6 }));
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-1").dataset.waveformSignature).toBe(originalSignature));
+    expect(loader).toHaveBeenCalledTimes(1);
+  });
+
+  it("resolver/decode failure를 unavailable로 격리해 Clip 편집 controls를 유지한다", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    renderEditor({ loader: vi.fn<WaveformLoader>().mockRejectedValue(new Error("secret decode")) });
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-1")).toHaveAttribute("data-waveform-status", "unavailable"));
+    expect(screen.getByRole("button", { name: /Clip clip-1 선택 및 이동/ })).toBeEnabled();
+    expect(screen.queryByText("secret decode")).not.toBeInTheDocument();
+  });
+
   it("GET no-data에서 자동 생성하지 않고 explicit initialize 후 revision을 reconcile한다", async () => {
     const get = vi.spyOn(dohaApi, "getWorkingComposition")
       .mockRejectedValueOnce(new ApiError(404, "WORKING_COMPOSITION_NOT_FOUND", "missing"))
@@ -108,9 +195,15 @@ describe("WorkingComposition editor", () => {
   });
 });
 
-function renderEditor() {
+function renderEditor({
+  resolver = vi.fn<MediaSourceResolver>().mockResolvedValue(mediaSource),
+  loader = vi.fn<WaveformLoader>().mockResolvedValue([0.2, 0.8]),
+}: { resolver?: MediaSourceResolver; loader?: WaveformLoader } = {}) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
-  return render(<QueryClientProvider client={client}><WorkingCompositionEditor projectId="project-1" snapshotId="snapshot-1" sources={[source]} /></QueryClientProvider>);
+  return {
+    ...render(<QueryClientProvider client={client}><WorkingCompositionEditor projectId="project-1" snapshotId="snapshot-1" sources={[source]} mediaSourceResolver={resolver} waveformLoader={loader} /></QueryClientProvider>),
+    client,
+  };
 }
 
 const emptyWorking: WorkingCompositionDto = {
@@ -128,4 +221,9 @@ const source: CompositionReadItemDto = {
   snapshot_item_id: "item-1", item_role: "music", sort_order: 0,
   asset_version: { asset_version_id: "version-1", asset_id: "asset-1", version_number: 1, version_origin: "provider", parent_asset_version_id: null, processing_chain_id: null, provider_id: null, model_manifest_id: null, settings_snapshot: {}, created_at: "2026-08-26T00:00:00Z" },
   artifacts: [],
+};
+const mediaSource = {
+  asset_version_id: "version-1", artifact_id: "artifact-1", media_type: "audio/wav" as const,
+  size_bytes: 48, artifact_checksum: "a".repeat(64), duration_seconds: "10",
+  content_url: "/api/v1/artifacts/artifact-1/content",
 };

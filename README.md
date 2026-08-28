@@ -4,7 +4,7 @@
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-27
+> 최종 수정일: 2026-08-28
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -27,7 +27,7 @@ DohaMusic = AI-native DAW
 현재 `develop`에서 확인되는 범위다.
 
 - D1 Composition Read Workspace와 D2 Timeline Playback, Master / Mix Waveform·richer Playhead Foundation은 완료됐다. Project 상세의 선택된 CompositionSnapshot에는 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
-- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)·[ADR-045](docs/11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)·[ADR-050](docs/11-decisions/ADR-050-working-composition-inverse-mutation-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, trusted source duration과 inverse mutation 권위를 확정했다. persistence, atomic mutation Service와 17개 Product operation, Frontend Track/Clip 편집·memory Undo/Redo에 이어 exact AssetVersion-safe media resolution Backend foundation을 구현했다. Track/Clip Waveform UI와 Composition commit은 미구현이다.
+- [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)·[ADR-045](docs/11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md)·[ADR-050](docs/11-decisions/ADR-050-working-composition-inverse-mutation-authority.md)에서 mutable WorkingComposition, canonical Track·Clip, trusted source duration과 inverse mutation 권위를 확정했다. persistence, atomic mutation Service와 17개 Product operation, Frontend Track/Clip 편집·memory Undo/Redo, exact AssetVersion-safe media resolution과 Clip별 source-window Waveform을 구현했다. working preview/render와 Composition commit은 미구현이다.
 - FastAPI Router → Service → Repository → SQLAlchemy 구조와 SQLite·Alembic 기반
 - 생성·Stem·Voice Conversion·Pipeline·Lyrics의 Legacy API와 비동기 작업 흐름
 - Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
@@ -43,7 +43,7 @@ DohaMusic = AI-native DAW
 
 다음은 CURRENT가 아니다.
 
-- Track/Clip Waveform Frontend·Section·Mixer·range selection, persistent history와 Composition commit
+- working preview/render·Section·Mixer·range selection, persistent history와 Composition commit
 - MIDI Track·Piano Roll은 NOT IMPLEMENTED이며 SoundFont engine은 NOT INTEGRATED인 별도 우선순위다.
 - 실제 DohaLM·DohaAudio transport, DohaVocal Worker 연결과 운영 Provider
 - ReferenceAnalysis ingestion Workflow와 Reference Panel
@@ -98,7 +98,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 ## Current Development Track
 
 - AI-native DAW D0 제품 목표 정합화: [완료]
-- 현재 제품 단계: D1 Composition Read Workspace [완료] / D2 Timeline Playback·Waveform·Richer Playhead [완료] / D3 WorkingComposition Backend와 Frontend Clip Editing + memory Undo/Redo [완료] / Track/Clip Waveform safe source Backend [완료] / NEXT: Track/Clip Waveform Frontend
+- 현재 제품 단계: D1 Composition Read Workspace [완료] / D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료] / D3 WorkingComposition Backend·Frontend Clip Editing·memory Undo/Redo·Track/Clip Waveform [완료] / NEXT: working preview/render
 - 병행 Track: AI Provider 저장소 분리, [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md), F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
 
 현재 실행 순서와 `NEXT / LATER`는 [ROADMAP](ROADMAP.md), 장기 Phase·Track·Gate는 [MASTER_ROADMAP](MASTER_ROADMAP.md), 완료 판정은 [DoD](docs/DoD/README.md)를 기준으로 한다.

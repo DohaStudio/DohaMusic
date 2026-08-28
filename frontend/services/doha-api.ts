@@ -1,5 +1,6 @@
 import { apiRequest } from "./api-client";
 import type {
+  AssetVersionMediaSourceDto,
   LyricsCreateDto,
   LyricsDocumentDto,
   LyricsValidationDto,
@@ -211,6 +212,14 @@ export const dohaApi = {
     ).then((response) => response.data),
   getWorkingComposition: (projectId: string, signal?: AbortSignal) =>
     workspaceData<WorkingCompositionDto>(workingPath(projectId), { signal }),
+  resolveAssetVersionMediaSource: (
+    projectId: string,
+    assetVersionId: string,
+    signal?: AbortSignal,
+  ) => workspaceData<AssetVersionMediaSourceDto>(
+    `/api/v1/projects/${encodeURIComponent(projectId)}/asset-versions/${encodeURIComponent(assetVersionId)}/media-source`,
+    { signal },
+  ),
   initializeWorkingComposition: (projectId: string, idempotencyKey: string) =>
     workspaceData<WorkingInitializeResultDto>(`${workingPath(projectId)}/initialize`, {
       method: "POST",
