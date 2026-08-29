@@ -16,6 +16,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import sessionmaker
 
+import backend.services.workspace.working_composition_service as working_composition_module
 from backend.api.exception_handlers import register_exception_handlers
 from backend.api.v1.dependencies import register_request_id_middleware
 from backend.api.v1.routes.working_compositions import router as working_router
@@ -42,6 +43,7 @@ from backend.models.workspace import (
     MusicProject,
     ProjectAsset,
     WorkingComposition,
+    WorkingPreviewRender,
     Workspace,
 )
 from backend.repositories.idempotency_repository import IdempotencyRepository
@@ -674,6 +676,11 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
         ),
         (
             "POST",
+            "/projects/{project_id}/working-composition/commit",
+            "commit_working_composition",
+        ),
+        (
+            "POST",
             "/projects/{project_id}/working-composition/preview",
             "create_working_composition_preview",
         ),
@@ -748,10 +755,10 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "resplit_working_composition_clip",
         ),
     }
-    assert len(routes) == 18
-    assert len({path for _, path, _ in surface}) == 17
+    assert len(routes) == 19
+    assert len({path for _, path, _ in surface}) == 18
     operation_ids = [operation_id for _, _, operation_id in surface]
-    assert len(operation_ids) == len(set(operation_ids)) == 18
+    assert len(operation_ids) == len(set(operation_ids)) == 19
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(service, graph) -> None:
@@ -2158,3 +2165,407 @@ def test_resplit_rejects_changed_geometry_and_revoked_source(
         assert session.get(CompositionClip, left_id).deleted_at is not None
         assert session.get(CompositionClip, right_id).deleted_at is not None
         assert session.get(WorkingComposition, working_id).revision == 4
+
+
+def _assert_empty_commit_has_no_side_effects(
+    service, session_factory, graph, working_id: UUID, revision: int, key: str
+) -> None:
+    with session_factory() as session:
+        completion_count = session.scalar(select(func.count(IdempotencyRecord.id)))
+    with pytest.raises(WorkingCompositionError) as caught:
+        service.commit(
+            graph.project_id,
+            expected_revision=revision,
+            effective_owner_id=graph.owner_id,
+            idempotency_key=key,
+        )
+    assert caught.value.code is WorkingCompositionErrorCode.WORKING_COMPOSITION_EMPTY
+    with session_factory() as session:
+        working = session.get(WorkingComposition, working_id)
+        repository = CompositionRepository(session)
+        assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 0
+        assert session.scalar(select(func.count(CompositionSnapshotTrack.snapshot_track_id))) == 0
+        assert session.scalar(select(func.count(CompositionSnapshotClip.snapshot_clip_id))) == 0
+        assert repository.get_project_selection(graph.project_id) is None
+        assert working is not None
+        assert working.base_composition_snapshot_id is None
+        assert working.revision == revision
+        assert session.scalar(select(func.count(IdempotencyRecord.id))) == completion_count
+
+
+def test_commit_rejects_zero_tracks_and_zero_clips_without_side_effects(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    _assert_empty_commit_has_no_side_effects(
+        service, session_factory, graph, working_id, 0, "empty-no-track"
+    )
+
+
+def test_commit_rejects_track_without_clips_without_side_effects(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    _create_track(service, graph, working_id, 0)
+    _assert_empty_commit_has_no_side_effects(
+        service, session_factory, graph, working_id, 1, "empty-track"
+    )
+
+
+def test_commit_rejects_tombstoned_clips_without_side_effects(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.delete_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="delete-only-clip",
+    )
+    _assert_empty_commit_has_no_side_effects(
+        service, session_factory, graph, working_id, 3, "empty-tombstone"
+    )
+
+
+def test_commit_freezes_canonical_arrangement_selection_base_and_revision(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    first_track = _create_track(
+        service, graph, working_id, 0, key="commit-track-a", name="First"
+    ).identities["track_id"]
+    second_track = _create_track(
+        service, graph, working_id, 1, key="commit-track-b", name="Second"
+    ).identities["track_id"]
+    second_clip = _create_clip(
+        service,
+        graph,
+        working_id,
+        second_track,
+        2,
+        key="commit-clip-b",
+        timeline_start="2",
+    ).identities["clip_id"]
+    first_clip = _create_clip(
+        service, graph, working_id, first_track, 3, key="commit-clip-a"
+    ).identities["clip_id"]
+    with session_factory.begin() as session:
+        session.get(WorkingComposition, working_id).mix_settings = {"master_gain": -3}
+
+    result = service.commit(
+        graph.project_id,
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="commit-success",
+    )
+    snapshot_id = result.identities["composition_snapshot_id"]
+    assert result.identities["working_composition_id"] == working_id
+    assert result.completed_revision == 5
+    assert result.replayed is False
+
+    with session_factory() as session:
+        repository = CompositionRepository(session)
+        snapshot = session.get(CompositionSnapshot, snapshot_id)
+        frozen_tracks = repository.list_snapshot_tracks(snapshot_id)
+        frozen_clips = repository.list_snapshot_clips_for_snapshot(snapshot_id)
+        selection = repository.get_project_selection(graph.project_id)
+        working = session.get(WorkingComposition, working_id)
+        assert snapshot is not None
+        assert snapshot.snapshot_version == 1
+        assert snapshot.mix_settings_snapshot == {"master_gain": -3}
+        assert snapshot.processing_chain_id is None
+        assert snapshot.provider_versions == {}
+        assert snapshot.model_manifest_ids == {}
+        assert [track.canonical_track_id for track in frozen_tracks] == [
+            first_track,
+            second_track,
+        ]
+        assert [track.track_order for track in frozen_tracks] == [0, 1]
+        assert [clip.canonical_clip_id for clip in frozen_clips] == [
+            first_clip,
+            second_clip,
+        ]
+        assert {clip.source_asset_version_id for clip in frozen_clips} == {graph.asset_version_id}
+        assert selection is not None
+        assert selection.selected_composition_snapshot_id == snapshot_id
+        assert working is not None
+        assert working.base_composition_snapshot_id == snapshot_id
+        assert working.revision == 5
+        assert len(repository.list_active_composition_tracks(working_id)) == 2
+        assert len(repository.list_working_composition_clips(working_id)) == 2
+        record = session.scalar(
+            select(IdempotencyRecord).where(
+                IdempotencyRecord.result_type == IdempotencyResultType.COMPOSITION_COMMIT.value
+            )
+        )
+        assert record is not None
+        assert record.result_payload == {"composition_snapshot_id": str(snapshot_id)}
+        assert record.completed_revision == 5
+
+
+def test_commit_replays_first_snapshot_and_rejects_key_reuse_or_stale_revision(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    _create_clip(service, graph, working_id, track_id, 1)
+    first = service.commit(
+        graph.project_id,
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="commit-replay",
+    )
+    replay = service.commit(
+        graph.project_id,
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="commit-replay",
+    )
+    assert replay.replayed is True
+    assert replay.identities == first.identities
+    assert replay.completed_revision == first.completed_revision == 3
+
+    with pytest.raises(IdempotencyConflictError):
+        service.commit(
+            graph.project_id,
+            expected_revision=3,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="commit-replay",
+        )
+    with pytest.raises(WorkingCompositionError) as stale:
+        service.commit(
+            graph.project_id,
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="commit-stale",
+        )
+    assert stale.value.code is WorkingCompositionErrorCode.WORKING_COMPOSITION_REVISION_CONFLICT
+    with session_factory() as session:
+        assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 1
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.COMPOSITION_COMMIT.value
+                )
+            )
+            == 1
+        )
+
+
+def test_commit_history_is_immutable_and_does_not_copy_media_or_preview_state(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    first = service.commit(
+        graph.project_id,
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="commit-immutable-first",
+    )
+    first_snapshot_id = first.identities["composition_snapshot_id"]
+
+    service.move_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        timeline_start="5",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+    )
+    second = service.commit(
+        graph.project_id,
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="commit-immutable-second",
+    )
+
+    with session_factory() as session:
+        repository = CompositionRepository(session)
+        history = repository.list_project_snapshots(graph.project_id)
+        first_clips = repository.list_snapshot_clips_for_snapshot(first_snapshot_id)
+        second_clips = repository.list_snapshot_clips_for_snapshot(
+            second.identities["composition_snapshot_id"]
+        )
+        assert [snapshot.composition_snapshot_id for snapshot in history] == [
+            second.identities["composition_snapshot_id"],
+            first_snapshot_id,
+        ]
+        assert [snapshot.snapshot_version for snapshot in history] == [2, 1]
+        assert [clip.timeline_start for clip in first_clips] == [0]
+        assert [clip.timeline_start for clip in second_clips] == [5_000_000]
+        assert session.scalar(select(func.count(AssetVersion.asset_version_id))) == 1
+        assert session.scalar(select(func.count(Artifact.artifact_id))) == 1
+        assert session.scalar(select(func.count(WorkingPreviewRender.preview_render_id))) == 0
+        assert all(snapshot.processing_chain_id is None for snapshot in history)
+
+
+@pytest.mark.parametrize(
+    "failure_point",
+    [
+        "revision",
+        "snapshot",
+        "snapshot_track",
+        "snapshot_clip",
+        "selection",
+        "base",
+        "completion",
+    ],
+)
+def test_commit_forced_failures_roll_back_every_transaction_stage(
+    service, session_factory, graph, monkeypatch, failure_point
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    _create_clip(service, graph, working_id, track_id, 1)
+
+    def fail_after(method):
+        def failing(*args, **kwargs):
+            method(*args, **kwargs)
+            raise RuntimeError(f"forced commit failure after {failure_point}")
+
+        return failing
+
+    if failure_point == "revision":
+        monkeypatch.setattr(
+            service,
+            "_increment_revision",
+            fail_after(service._increment_revision),
+        )
+    elif failure_point == "snapshot":
+        monkeypatch.setattr(
+            CompositionRepository,
+            "add_snapshot",
+            fail_after(CompositionRepository.add_snapshot),
+        )
+    elif failure_point == "snapshot_track":
+        monkeypatch.setattr(
+            CompositionRepository,
+            "add_snapshot_track",
+            fail_after(CompositionRepository.add_snapshot_track),
+        )
+    elif failure_point == "snapshot_clip":
+        monkeypatch.setattr(
+            CompositionRepository,
+            "add_snapshot_clip",
+            fail_after(CompositionRepository.add_snapshot_clip),
+        )
+    elif failure_point == "selection":
+        monkeypatch.setattr(
+            CompositionRepository,
+            "set_project_selection",
+            fail_after(CompositionRepository.set_project_selection),
+        )
+    elif failure_point == "base":
+        monkeypatch.setattr(
+            CompositionRepository,
+            "flush",
+            fail_after(CompositionRepository.flush),
+        )
+    else:
+        monkeypatch.setattr(
+            working_composition_module,
+            "_complete_result",
+            fail_after(working_composition_module._complete_result),
+        )
+
+    with pytest.raises(RuntimeError, match="forced commit failure"):
+        service.commit(
+            graph.project_id,
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key=f"commit-failed-{failure_point}",
+        )
+    with session_factory() as session:
+        repository = CompositionRepository(session)
+        working = session.get(WorkingComposition, working_id)
+        assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 0
+        assert session.scalar(select(func.count(CompositionSnapshotTrack.snapshot_track_id))) == 0
+        assert session.scalar(select(func.count(CompositionSnapshotClip.snapshot_clip_id))) == 0
+        assert repository.get_project_selection(graph.project_id) is None
+        assert working is not None
+        assert working.base_composition_snapshot_id is None
+        assert working.revision == 2
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.key_hash
+                    == IdempotencyRepository.hash_key(f"commit-failed-{failure_point}")
+                )
+            )
+            == 0
+        )
+
+
+def test_concurrent_commit_expected_revision_creates_exactly_one_snapshot(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    _create_clip(service, graph, working_id, track_id, 1)
+
+    def commit(key: str):
+        try:
+            return service.commit(
+                graph.project_id,
+                expected_revision=2,
+                effective_owner_id=graph.owner_id,
+                idempotency_key=key,
+            )
+        except WorkingCompositionError as error:
+            return error
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(executor.map(commit, ["commit-race-a", "commit-race-b"]))
+    successes = [result for result in results if not isinstance(result, Exception)]
+    failures = [result for result in results if isinstance(result, WorkingCompositionError)]
+    assert len(successes) == 1
+    assert len(failures) == 1
+    assert failures[0].code is WorkingCompositionErrorCode.WORKING_COMPOSITION_REVISION_CONFLICT
+    with session_factory() as session:
+        assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 1
+        assert session.scalar(select(func.count(CompositionSnapshotTrack.snapshot_track_id))) == 1
+        assert session.scalar(select(func.count(CompositionSnapshotClip.snapshot_clip_id))) == 1
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.COMPOSITION_COMMIT.value
+                )
+            )
+            == 1
+        )
+
+
+def test_commit_product_api_returns_structured_success_and_empty_error(
+    working_client, service, graph
+) -> None:
+    working_id = _initialize(service, graph, "commit-api-init").identities["working_composition_id"]
+    base = f"/api/v1/projects/{graph.project_id}/working-composition"
+    empty = working_client.post(
+        f"{base}/commit",
+        json={"expected_revision": 0},
+        headers={"Idempotency-Key": "commit-api-empty"},
+    )
+    assert empty.status_code == 409
+    assert empty.json()["error"]["error_code"] == "WORKING_COMPOSITION_EMPTY"
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    _create_clip(service, graph, working_id, track_id, 1)
+    response = working_client.post(
+        f"{base}/commit",
+        json={"expected_revision": 2},
+        headers={"Idempotency-Key": "commit-api-success"},
+    )
+    assert response.status_code == 201
+    assert response.json()["data"] == {
+        "working_composition_id": str(working_id),
+        "composition_snapshot_id": response.json()["data"]["composition_snapshot_id"],
+        "completed_revision": 3,
+        "replayed": False,
+    }

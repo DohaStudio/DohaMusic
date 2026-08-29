@@ -321,9 +321,18 @@ class CompositionRepository:
     def list_snapshot_clips_for_snapshot(self, snapshot_id: UUID) -> list[CompositionSnapshotClip]:
         statement = (
             select(CompositionSnapshotClip)
+            .join(
+                CompositionSnapshotTrack,
+                and_(
+                    CompositionSnapshotTrack.composition_snapshot_id
+                    == CompositionSnapshotClip.composition_snapshot_id,
+                    CompositionSnapshotTrack.snapshot_track_id
+                    == CompositionSnapshotClip.snapshot_track_id,
+                ),
+            )
             .where(CompositionSnapshotClip.composition_snapshot_id == snapshot_id)
             .order_by(
-                CompositionSnapshotClip.snapshot_track_id,
+                CompositionSnapshotTrack.track_order,
                 CompositionSnapshotClip.timeline_start,
                 CompositionSnapshotClip.snapshot_clip_id,
             )

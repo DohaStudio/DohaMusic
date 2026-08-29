@@ -100,15 +100,20 @@ function WorkingCompositionEditorSession({
     return canonical;
   }, [clearHistory, projectId, queryClient, queryKey]);
 
-  const fail = useCallback(async (cause: unknown) => {
+  const fail = useCallback(async (cause: unknown, preserveHistory = false) => {
     const apiError = cause instanceof ApiError ? cause : null;
     if (apiError?.code === "WORKING_COMPOSITION_REVISION_CONFLICT"
       || apiError?.code === "SPLIT_STRUCTURE_CONFLICT"
       || apiError?.code === "NETWORK_ERROR"
       || apiError?.code === "REQUEST_TIMEOUT") {
       try {
-        await reconcile(true);
-        setMessage("서버의 최신 편집 상태를 불러왔습니다. Undo/Redo 기록은 초기화되었습니다.");
+        const clear = !preserveHistory
+          || apiError?.code === "WORKING_COMPOSITION_REVISION_CONFLICT"
+          || apiError?.code === "SPLIT_STRUCTURE_CONFLICT";
+        await reconcile(clear);
+        setMessage(clear
+          ? "서버의 최신 편집 상태를 불러왔습니다. Undo/Redo 기록은 초기화되었습니다."
+          : "서버의 최신 편집 상태를 불러왔습니다. 기존 Undo/Redo 기록은 유지됩니다.");
       } catch {
         // The original structured error remains the useful failure.
       }
@@ -120,6 +125,7 @@ function WorkingCompositionEditorSession({
     operation: () => Promise<T>,
     command?: (result: T, before: WorkingCompositionDto) => WorkingCommand,
     clearAfter = false,
+    preserveHistoryOnFailure = false,
   ) {
     if (!data || pending) return false;
     setPending(true);
@@ -128,7 +134,8 @@ function WorkingCompositionEditorSession({
     try {
       const result = await operation();
       queryClient.setQueryData<WorkingCompositionDto>(queryKey, { ...data, revision: result.completed_revision });
-      await reconcile(clearAfter);
+      if (clearAfter) clearHistory();
+      await reconcile(false);
       if (command) {
         setHistory((current) => {
           const next = copyHistory(current);
@@ -138,7 +145,7 @@ function WorkingCompositionEditorSession({
       }
       return true;
     } catch (cause) {
-      await fail(cause);
+      await fail(cause, preserveHistoryOnFailure);
       return false;
     } finally {
       setPending(false);
@@ -162,6 +169,26 @@ function WorkingCompositionEditorSession({
     } finally {
       setPending(false);
     }
+  }
+
+  async function commitComposition() {
+    if (!data || pending || data.clips.length === 0) return;
+    const success = await mutate(
+      () => withIdempotency((key) => dohaApi.commitWorkingComposition(
+        projectId,
+        data.revision,
+        key,
+      )),
+      undefined,
+      true,
+      true,
+    );
+    if (!success) return;
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["project-composition", projectId] }),
+      queryClient.invalidateQueries({ queryKey: ["project-composition-snapshots", projectId] }),
+    ]);
+    setMessage("현재 편집 상태를 새 버전으로 저장했습니다. Undo/Redo 기록이 초기화되었습니다.");
   }
 
   async function runHistory(direction: "undo" | "redo") {
@@ -257,6 +284,11 @@ function WorkingCompositionEditorSession({
           </div>
           <button type="button" aria-label="편집 실행 취소" disabled={pending || history.undoStack.length === 0} onClick={() => void runHistory("undo")}><Undo2 aria-hidden="true" /> Undo</button>
           <button type="button" aria-label="편집 다시 실행" disabled={pending || history.redoStack.length === 0} onClick={() => void runHistory("redo")}><Redo2 aria-hidden="true" /> Redo</button>
+          <Button
+            type="button"
+            disabled={pending || data.clips.length === 0}
+            onClick={() => void commitComposition()}
+          >현재 편집 상태를 새 버전으로 저장</Button>
           <Button type="button" disabled={pending} onClick={() => void mutate(
             () => withIdempotency((key) => dohaApi.checkoutWorkingComposition(projectId, { ...base, composition_snapshot_id: snapshotId }, key)),
             undefined,
@@ -266,6 +298,9 @@ function WorkingCompositionEditorSession({
       </header>
       {message && <p className="working-editor-notice" role="status">{message}</p>}
       {error && <ErrorAlert title="편집을 적용하지 못했습니다." message={error} />}
+      {data.clips.length === 0 && (
+        <p className="working-editor-notice">활성 Clip을 하나 이상 배치하면 새 버전으로 저장할 수 있습니다.</p>
+      )}
 
       <WorkingPreviewControl
         projectId={projectId}
@@ -516,6 +551,7 @@ function workingErrorMessage(error: unknown): string {
     const messages: Record<string, string> = {
       WORKING_COMPOSITION_ALREADY_EXISTS: "이미 편집 공간이 있습니다. 서버 상태를 다시 불러왔습니다.",
       WORKING_COMPOSITION_REVISION_CONFLICT: "다른 변경으로 revision이 달라졌습니다.",
+      WORKING_COMPOSITION_EMPTY: "활성 Clip을 하나 이상 배치한 뒤 새 버전으로 저장해 주세요.",
       TRACK_NOT_EMPTY: "Clip이 있는 Track은 삭제할 수 없습니다.",
       CLIP_OVERLAP: "같은 Track의 다른 Clip과 겹칩니다.",
       INVALID_CLIP_RANGE: "Clip 시간 범위를 확인해 주세요.",

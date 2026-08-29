@@ -21,6 +21,10 @@ class WorkingPreviewCreateRequest(_StrictModel):
     expected_revision: int = Field(ge=0)
 
 
+class WorkingCompositionCommitRequest(_StrictModel):
+    expected_revision: int = Field(ge=0)
+
+
 class WorkingPreviewCreateResult(_StrictModel):
     job_id: UUID
     preview_render_id: UUID
@@ -133,6 +137,13 @@ class InitializeResult(_StrictModel):
 class CheckoutResult(_StrictModel):
     working_composition_id: UUID
     base_composition_snapshot_id: UUID
+    completed_revision: int = Field(ge=0)
+    replayed: bool
+
+
+class CompositionCommitResult(_StrictModel):
+    working_composition_id: UUID
+    composition_snapshot_id: UUID
     completed_revision: int = Field(ge=0)
     replayed: bool
 
