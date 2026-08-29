@@ -2,11 +2,11 @@
 
 > 상태: 승인
 > 작성일: 2026-08-21
-> 최종 수정일: 2026-08-29
+> 최종 수정일: 2026-08-30
 > 관련 기능: AI-native DAW D3 Non-destructive Clip Editing
 > 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
-> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어 WorkingComposition Service와 17개 Product operation을 구현했고 2026-08-26 Frontend Track/Clip editor와 memory Undo/Redo가 이 authority를 소비한다. 2026-08-27에는 exact AssetVersion을 현재 eligible한 exactly-one Artifact와 same-origin content reference로 해석하는 read-only Backend foundation을 구현했다. 2026-08-28에는 editor-session bounded decode cache와 Clip별 `[source_in, source_out)` Track lane Waveform을 구현했고 [ADR-052](ADR-052-working-composition-preview-render-authority.md)의 Preview Backend foundation과 18번째 Product operation을 추가했다. 2026-08-29에는 explicit Preview action, 공식 Job polling, stale/rerender와 Global Player handoff를 갖춘 Frontend integration을 구현했다. Snapshot commit은 후속이다.
+> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어 WorkingComposition Service와 17개 Product operation을 구현했고 2026-08-26 Frontend Track/Clip editor와 memory Undo/Redo가 이 authority를 소비한다. 2026-08-27에는 exact AssetVersion media-source foundation을, 2026-08-28에는 Clip별 Waveform과 [ADR-052](ADR-052-working-composition-preview-render-authority.md)의 Preview Backend foundation을 추가했다. 2026-08-29에는 Preview Frontend와 Composition Commit을 구현했다. 2026-08-30에는 explicit destination Clip Copy, `CLIP_COPY` replay와 copied-ID delete/restore Undo/Redo를 추가해 WorkingComposition Product operation은 20개가 됐다. 이 구현은 기존 schema와 Alembic `20260828_0024`를 재사용한다.
 
 ## 1. Context
 
@@ -133,6 +133,7 @@ timeline_end = timeline_start + clip_duration
 - **Trim start**: `source_in`과 `timeline_start`를 함께 변경해 선택한 source 구간의 Timeline 위치를 표현한다.
 - **Trim end**: `source_out`만 변경한다.
 - **Delete**: Clip reference만 inactive로 만든다. AssetVersion·Artifact·storage payload는 삭제하지 않는다.
+- **Copy**: active source Clip의 exact AssetVersion과 frozen `source_in`·`source_out`·`source_duration`을 그대로 복제해 서버 발급 새 `clip_id`를 만든다. 요청은 active same-WorkingComposition `target_track_id`와 0 이상 `target_timeline_start`를 명시하며 원본은 변경하지 않는다. copied Clip은 split lineage가 아니므로 `split_from_clip_id=null`이다. split child도 동일 규칙으로 복사한다.
 - **Track reorder**: `track_order`를 충돌 없는 연속 값으로 한 transaction에서 재배치한다.
 
 V1은 같은 Track의 active Clip overlap을 **DENY**한다. `[start, end)`에서 한 Clip의 `timeline_end ==` 다른 Clip의 `timeline_start`인 인접 배치는 허용한다. 다른 Track끼리의 시간 중첩은 허용한다. crossfade·layering이 구현되면 명시적 Mix policy와 함께 재검토한다.

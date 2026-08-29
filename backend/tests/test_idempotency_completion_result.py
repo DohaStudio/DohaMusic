@@ -52,6 +52,7 @@ def _result(
         IdempotencyResultType.TRACK_DELETE: {"track_id": str(uuid4())},
         IdempotencyResultType.TRACK_RESTORE: {"track_id": str(uuid4())},
         IdempotencyResultType.CLIP_CREATE: {"clip_id": str(uuid4())},
+        IdempotencyResultType.CLIP_COPY: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_DELETE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_RESTORE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_UNSPLIT: {

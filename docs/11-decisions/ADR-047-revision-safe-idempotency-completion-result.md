@@ -2,7 +2,7 @@
 
 > 상태: 승인
 > 작성일: 2026-08-25
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-08-30
 > 관련 기능: AI-native DAW D3 WorkingComposition mutation 선행 기반
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [Idempotency Completion Result](../03-architecture/idempotency-completion-result.md), [Database Table Definition](../07-database/table-definition.md)
 
@@ -35,9 +35,10 @@ V1 result type은 다음 여덟 개만 허용한다.
 - `TRACK_RESTORE`
 - `CLIP_CREATE`, `CLIP_SPLIT`, `CLIP_DELETE`, `CLIP_RESTORE`
 - `CLIP_UNSPLIT`, `CLIP_RESPLIT`
+- `CLIP_COPY`
 - `COMPOSITION_COMMIT`
 
-각 payload는 계약에 정의된 canonical UUID key만 허용한다. split은 `original_clip_id`, `left_clip_id`, `right_clip_id`를 보존한다. checkout은 `working_composition_id`, `base_composition_snapshot_id`, commit은 `composition_snapshot_id`를 보존한다. payload는 canonical UTF-8 JSON 기준 8,192 bytes 이하이고 arbitrary key, aggregate dump, path, locator, credential, signed URL, Provider response를 허용하지 않는다.
+각 payload는 계약에 정의된 canonical UUID key만 허용한다. split은 `original_clip_id`, `left_clip_id`, `right_clip_id`를 보존한다. checkout은 `working_composition_id`, `base_composition_snapshot_id`, copy는 최초 서버 발급 `clip_id`, commit은 `composition_snapshot_id`를 보존한다. payload는 canonical UTF-8 JSON 기준 8,192 bytes 이하이고 arbitrary key, aggregate dump, path, locator, credential, signed URL, Provider response를 허용하지 않는다.
 
 ## 4. Replay와 실패
 

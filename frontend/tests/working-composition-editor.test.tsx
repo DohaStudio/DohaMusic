@@ -154,6 +154,88 @@ describe("WorkingComposition editor", () => {
     expect(move).not.toHaveBeenCalled();
   });
 
+  it("Clip Copy는 선택과 명시적 목적지가 모두 있어야 활성화되고 새 ID를 history에 기록한다", async () => {
+    const copied = {
+      ...working,
+      revision: 3,
+      clips: [
+        ...working.clips,
+        { ...working.clips[0], clip_id: "clip-copy", timeline_start: "10.000" },
+      ],
+      timeline_duration: "20.000",
+    };
+    vi.spyOn(dohaApi, "getWorkingComposition")
+      .mockResolvedValueOnce(working)
+      .mockResolvedValueOnce(copied)
+      .mockResolvedValueOnce({ ...copied, revision: 4, clips: working.clips });
+    const copy = vi.spyOn(dohaApi, "copyWorkingClip").mockResolvedValue({
+      clip_id: "clip-copy", completed_revision: 3, replayed: false,
+    });
+    const remove = vi.spyOn(dohaApi, "deleteWorkingClip").mockResolvedValue({
+      clip_id: "clip-copy", completed_revision: 4, replayed: false,
+    });
+    const loader = vi.fn<WaveformLoader>().mockResolvedValue([0.1, 0.4, 0.8, 0.2]);
+    const user = userEvent.setup();
+    renderEditor({ loader });
+    const copyButton = await screen.findByRole("button", { name: "선택 Clip을 명시한 위치에 복사" });
+    expect(copyButton).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: /Clip clip-1/ }));
+    expect(screen.getByLabelText("Copy 대상 Track")).toHaveValue("track-1");
+    expect(copyButton).toBeDisabled();
+    await user.type(screen.getByLabelText("Copy Timeline start"), "10");
+    expect(copyButton).toBeEnabled();
+    await user.click(copyButton);
+    await screen.findByText("Clip을 10s 위치에 복사했습니다.");
+    expect(copy).toHaveBeenCalledWith(
+      "project-1",
+      "clip-1",
+      {
+        working_composition_id: "working-1",
+        expected_revision: 2,
+        target_track_id: "track-1",
+        target_timeline_start: "10",
+      },
+      expect.stringMatching(/[0-9a-f-]{36}/),
+    );
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-copy"))
+      .toHaveAttribute("data-waveform-status", "ready"));
+    expect(loader).toHaveBeenCalledTimes(1);
+    await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
+    await waitFor(() => expect(remove).toHaveBeenCalledWith(
+      "project-1", "clip-copy", expect.objectContaining({ expected_revision: 3 }), expect.any(String),
+    ));
+  });
+
+  it("Clip Copy response-loss retry는 같은 key를 재사용하고 revision conflict는 history를 비운다", async () => {
+    const copied = {
+      ...working,
+      revision: 3,
+      clips: [...working.clips, { ...working.clips[0], clip_id: "clip-copy", timeline_start: "10.000" }],
+    };
+    vi.spyOn(dohaApi, "getWorkingComposition")
+      .mockResolvedValueOnce(working)
+      .mockResolvedValueOnce(copied)
+      .mockResolvedValueOnce({ ...copied, revision: 8 });
+    const copy = vi.spyOn(dohaApi, "copyWorkingClip")
+      .mockRejectedValueOnce(new ApiError(0, "NETWORK_ERROR", "lost"))
+      .mockResolvedValueOnce({ clip_id: "clip-copy", completed_revision: 3, replayed: true })
+      .mockRejectedValueOnce(new ApiError(409, "WORKING_COMPOSITION_REVISION_CONFLICT", "stale"));
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(await screen.findByRole("button", { name: /Clip clip-1/ }));
+    await user.type(screen.getByLabelText("Copy Timeline start"), "10");
+    await user.click(screen.getByRole("button", { name: "선택 Clip을 명시한 위치에 복사" }));
+    await screen.findByText("Clip을 10s 위치에 복사했습니다.");
+    expect(copy).toHaveBeenCalledTimes(2);
+    expect(copy.mock.calls[0][3]).toBe(copy.mock.calls[1][3]);
+    await user.clear(screen.getByLabelText("Copy Timeline start"));
+    await user.type(screen.getByLabelText("Copy Timeline start"), "20");
+    await user.click(screen.getByRole("button", { name: "선택 Clip을 명시한 위치에 복사" }));
+    await waitFor(() => expect(screen.getByText(/revision 8/)).toBeVisible());
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
+  });
+
   it("revision conflict는 GET reconcile하고 Undo/Redo 버튼을 비운다", async () => {
     const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Renamed" }] };
     const external = { ...renamed, revision: 7, tracks: [{ ...working.tracks[0], name: "External" }] };

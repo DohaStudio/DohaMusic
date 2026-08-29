@@ -265,6 +265,8 @@ export const dohaApi = {
     workspaceData<WorkingTrackResultDto>(`${workingPath(projectId)}/tracks/${encodeURIComponent(trackId)}/restore`, mutationInit("POST", body, idempotencyKey)),
   createWorkingClip: (projectId: string, body: WorkingBase & { track_id: string; source_asset_version_id: string; timeline_start: string; source_in: string; source_out: string }, idempotencyKey: string) =>
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips`, mutationInit("POST", body, idempotencyKey)),
+  copyWorkingClip: (projectId: string, clipId: string, body: WorkingBase & { target_track_id: string; target_timeline_start: string }, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/copy`, mutationInit("POST", body, idempotencyKey)),
   moveWorkingClip: (projectId: string, clipId: string, body: WorkingBase & { timeline_start: string }) =>
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/move`, mutationInit("PATCH", body)),
   trimWorkingClipStart: (projectId: string, clipId: string, body: WorkingBase & { timeline_start: string; source_in: string }) =>

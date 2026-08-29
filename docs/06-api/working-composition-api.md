@@ -1,7 +1,7 @@
 # WorkingComposition Product API
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-29
+> 최종 수정일: 2026-08-30
 > 관련 기능: AI-native DAW D3 Clip Editing Backend API와 Frontend consumer
 > 관련 문서: [Service Architecture](../03-architecture/working-composition-service.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Workspace REST API](workspace-rest-api-contract.md), [Composition Read](composition-read-workspace.md)
 
@@ -22,6 +22,7 @@
 | `DELETE` | `/tracks/{track_id}` | 200 | 필수 | 빈 Track tombstone |
 | `POST` | `/tracks/{track_id}/restore` | 200 | 필수 | canonical Track을 지정 order로 복원 |
 | `POST` | `/clips` | 201 | 필수 | exact AssetVersion Clip 생성 |
+| `POST` | `/clips/{clip_id}/copy` | 201 | 필수 | source geometry를 explicit Track·timeline 목적지에 새 canonical ID로 복제 |
 | `PATCH` | `/clips/{clip_id}/move` | 200 | 없음 | Timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-start` | 200 | 없음 | source/timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-end` | 200 | 없음 | source 끝 절대값 적용 |
@@ -32,6 +33,8 @@
 | `POST` | `/clips/{original_clip_id}/resplit` | 200 | 필수 | 같은 canonical split child를 복원 |
 
 일반 edit mutation body는 `working_composition_id`와 `expected_revision`을 요구한다. Project당 하나인 working aggregate를 확정하는 `/commit`과 별도 render action인 `/preview` body는 `expected_revision`만 받는다. Clip 시간 입력은 decimal seconds이고, source duration·Artifact ID·owner·path·locator는 받지 않는다. replay 응답의 `completed_revision`과 identity는 stored completion result가 authority다.
+
+Clip Copy body는 추가로 `target_track_id`, `target_timeline_start`만 받는다. `source_asset_version_id`, `source_in`, `source_out`, `source_duration`은 Backend가 active source Clip에서 읽으며 extra field는 strict validation으로 거부한다. same-key replay는 최초 copied `clip_id`와 completed revision을 반환하고 새 Clip을 만들지 않는다.
 
 ## Composition Commit
 
@@ -61,7 +64,7 @@ Frontend는 Clip의 exact `source_asset_version_id`마다 이 endpoint를 공식
 
 initialize 성공은 빈 Frontend Undo/Redo history의 시작점이다. checkout 성공은 working arrangement 전체를 교체하는 history barrier이며 checkout 자체는 inverse operation이 아니다. Commit 성공과 same-key replay 성공도 새 base의 history barrier로 Undo·Redo stack을 비우며 Commit 자체는 Undo/Redo command가 아니다. 실패한 Commit은 history를 비우지 않는다. 단, revision·split structure conflict는 Commit barrier가 아니라 기존 conflict GET/reconcile authority에 따라 history를 초기화한다. 과거 committed version 이동은 explicit checkout을 사용한다. Backend API는 command stack을 저장하지 않는다.
 
-Frontend editing consumer는 19개 Product operation을 중앙 API client로 호출한다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip 및 Composition selection을 reconcile한다. create/delete는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용하며 네트워크 응답 유실 재시도에는 동일 `Idempotency-Key`를 유지한다.
+Frontend editing consumer는 20개 Product operation을 중앙 API client로 호출한다. Copy는 명시적으로 보이는 target Track·Timeline 입력 또는 사용자가 누른 Playhead 적용 action 뒤에만 활성화되며 OS clipboard shortcut이나 숨은 placement fallback을 사용하지 않는다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip 및 Composition selection을 reconcile한다. create/delete/copy는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용하며 네트워크 응답 유실 재시도에는 동일 `Idempotency-Key`를 유지한다.
 
 ## Working Preview
 
@@ -93,6 +96,6 @@ Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 
 
 ## Surface 실측
 
-WorkingComposition Router는 APIRoute 19개, OpenAPI Path 18개, Operation 19개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Commit operation ID 충돌은 0개다.
+WorkingComposition Router는 APIRoute 20개, OpenAPI Path 19개, Operation 20개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Clip Copy operation ID 충돌은 0개다.
 
-이 19개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.
+이 20개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.
