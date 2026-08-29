@@ -81,6 +81,26 @@ describe("WorkingComposition API client", () => {
     expect(headersAt(fetchMock, 6).get("Idempotency-Key")).toBe("split-key");
   });
 
+  it("Clip Copy는 명시적 목적지만 전송하고 source geometry는 전송하지 않는다", async () => {
+    const fetchMock = mockResponses(clipResult());
+    const body = {
+      working_composition_id: "working-1",
+      expected_revision: 4,
+      target_track_id: "track-2",
+      target_timeline_start: "8.250",
+    };
+    await dohaApi.copyWorkingClip("project/1", "clip/1", body, "copy-key");
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "/backend/api/v1/projects/project%2F1/working-composition/clips/clip%2F1/copy",
+    );
+    expect(fetchMock.mock.calls[0][1].method).toBe("POST");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual(body);
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty("source_asset_version_id");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty("source_in");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty("source_out");
+    expect(headersAt(fetchMock, 0).get("Idempotency-Key")).toBe("copy-key");
+  });
+
   it("checkout/unsplit/resplit이 history identity와 새 key를 전달한다", async () => {
     const fetchMock = mockResponses(checkout(), split(), split());
     const base = { working_composition_id: "working-1", expected_revision: 10 };

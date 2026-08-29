@@ -20,6 +20,7 @@ class IdempotencyResultType(StrEnum):
     TRACK_DELETE = "TRACK_DELETE"
     TRACK_RESTORE = "TRACK_RESTORE"
     CLIP_CREATE = "CLIP_CREATE"
+    CLIP_COPY = "CLIP_COPY"
     CLIP_SPLIT = "CLIP_SPLIT"
     CLIP_DELETE = "CLIP_DELETE"
     CLIP_RESTORE = "CLIP_RESTORE"
@@ -37,6 +38,7 @@ _RESULT_PAYLOAD_KEYS: dict[IdempotencyResultType, frozenset[str]] = {
     IdempotencyResultType.TRACK_DELETE: frozenset({"track_id"}),
     IdempotencyResultType.TRACK_RESTORE: frozenset({"track_id"}),
     IdempotencyResultType.CLIP_CREATE: frozenset({"clip_id"}),
+    IdempotencyResultType.CLIP_COPY: frozenset({"clip_id"}),
     IdempotencyResultType.CLIP_SPLIT: frozenset(
         {"original_clip_id", "left_clip_id", "right_clip_id"}
     ),

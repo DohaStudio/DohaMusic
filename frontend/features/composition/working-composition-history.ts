@@ -7,6 +7,7 @@ export type WorkingCommand =
   | { type: "TRACK_REORDER"; before: string[]; after: string[] }
   | { type: "TRACK_DELETE"; trackId: string; trackOrder: number }
   | { type: "CLIP_CREATE"; clipId: string }
+  | { type: "CLIP_COPY"; sourceClipId: string; copiedClipId: string; targetTrackId: string; targetTimelineStart: string }
   | { type: "CLIP_MOVE"; clipId: string; before: string; after: string }
   | { type: "CLIP_TRIM_START"; clipId: string; before: ClipStart; after: ClipStart }
   | { type: "CLIP_TRIM_END"; clipId: string; before: string; after: string }
@@ -90,6 +91,10 @@ export async function executeWorkingCommand(
       return revisionOf(direction === "undo"
         ? await withIdempotency(context, (key) => dohaApi.deleteWorkingClip(context.projectId, command.clipId, base, key))
         : await withIdempotency(context, (key) => dohaApi.restoreWorkingClip(context.projectId, command.clipId, base, key)));
+    case "CLIP_COPY":
+      return revisionOf(direction === "undo"
+        ? await withIdempotency(context, (key) => dohaApi.deleteWorkingClip(context.projectId, command.copiedClipId, base, key))
+        : await withIdempotency(context, (key) => dohaApi.restoreWorkingClip(context.projectId, command.copiedClipId, base, key)));
     case "CLIP_DELETE":
       return revisionOf(direction === "undo"
         ? await withIdempotency(context, (key) => dohaApi.restoreWorkingClip(context.projectId, command.clipId, base, key))

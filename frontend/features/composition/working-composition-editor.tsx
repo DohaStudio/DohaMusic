@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Redo2, Scissors, Trash2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
+import { Copy, Redo2, Scissors, Trash2, Undo2, ZoomIn, ZoomOut } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { Button, ErrorAlert, Input } from "@/components/ui";
@@ -76,6 +76,8 @@ function WorkingCompositionEditorSession({
   const [sourceIn, setSourceIn] = useState("0");
   const [sourceOut, setSourceOut] = useState("10");
   const [timelineStart, setTimelineStart] = useState("0");
+  const [copyTargetTrackId, setCopyTargetTrackId] = useState("");
+  const [copyTimelineStart, setCopyTimelineStart] = useState("");
   const [draggedTrackId, setDraggedTrackId] = useState<string | null>(null);
   const [pixelsPerSecond, setPixelsPerSecond] = useState(DEFAULT_PIXELS_PER_SECOND);
   const playhead = usePlayerStore((state) => state.currentTime);
@@ -189,6 +191,38 @@ function WorkingCompositionEditorSession({
       queryClient.invalidateQueries({ queryKey: ["project-composition-snapshots", projectId] }),
     ]);
     setMessage("현재 편집 상태를 새 버전으로 저장했습니다. Undo/Redo 기록이 초기화되었습니다.");
+  }
+
+  async function copySelectedClip() {
+    if (!data || !selectedClip || pending || !copyTargetTrackId || copyTimelineStart === "") return;
+    let copiedClipId: string | null = null;
+    const success = await mutate(
+      () => withIdempotency((key) => dohaApi.copyWorkingClip(
+        projectId,
+        selectedClip.clip_id,
+        {
+          working_composition_id: data.working_composition_id,
+          expected_revision: data.revision,
+          target_track_id: copyTargetTrackId,
+          target_timeline_start: copyTimelineStart,
+        },
+        key,
+      )).then((result) => {
+        copiedClipId = result.clip_id;
+        return result;
+      }),
+      (result) => ({
+        type: "CLIP_COPY",
+        sourceClipId: selectedClip.clip_id,
+        copiedClipId: result.clip_id,
+        targetTrackId: copyTargetTrackId,
+        targetTimelineStart: copyTimelineStart,
+      }),
+    );
+    if (success && copiedClipId) {
+      setSelectedClipId(copiedClipId);
+      setMessage(`Clip을 ${copyTimelineStart}s 위치에 복사했습니다.`);
+    }
   }
 
   async function runHistory(direction: "undo" | "redo") {
@@ -390,7 +424,12 @@ function WorkingCompositionEditorSession({
             playhead={playhead}
             mediaSourceResolver={mediaSourceResolver}
             waveformLoader={waveformLoader}
-            onSelect={setSelectedClipId}
+            onSelect={(clipId) => {
+              const clip = data.clips.find((item) => item.clip_id === clipId);
+              setSelectedClipId(clipId);
+              setCopyTargetTrackId(clip?.track_id ?? "");
+              setCopyTimelineStart("");
+            }}
             onMove={(clip, next) => void mutate(
               () => dohaApi.moveWorkingClip(projectId, clip.clip_id, { ...base, timeline_start: next }),
               () => ({ type: "CLIP_MOVE", clipId: clip.clip_id, before: clip.timeline_start, after: next }),
@@ -420,6 +459,54 @@ function WorkingCompositionEditorSession({
           ).then((success) => { if (success) setSelectedClipId(null); })}><Trash2 aria-hidden="true" /> Clip 삭제</Button>
         </div>
       )}
+      <div className="working-clip-controls" aria-label="Clip Copy destination">
+        <strong>Clip Copy</strong>
+        <p id="clip-copy-help">
+          {!selectedClip
+            ? "Copy할 Clip을 먼저 선택하세요."
+            : copyTimelineStart === ""
+              ? "대상 Track과 Timeline 위치를 명시하거나 현재 Playhead를 사용하세요."
+              : `대상 위치 ${copyTimelineStart}s를 확인한 뒤 복사하세요.`}
+        </p>
+        <label>
+          Copy 대상 Track
+          <select
+            aria-label="Copy 대상 Track"
+            value={copyTargetTrackId}
+            disabled={pending || !selectedClip}
+            onChange={(event) => setCopyTargetTrackId(event.target.value)}
+          >
+            <option value="">Track 선택</option>
+            {data.tracks.map((track) => (
+              <option key={track.track_id} value={track.track_id}>{track.name}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Copy Timeline start
+          <Input
+            aria-label="Copy Timeline start"
+            type="number"
+            min="0"
+            step="0.001"
+            value={copyTimelineStart}
+            disabled={pending || !selectedClip}
+            onChange={(event) => setCopyTimelineStart(event.target.value)}
+          />
+        </label>
+        <Button
+          type="button"
+          disabled={pending || !selectedClip}
+          onClick={() => setCopyTimelineStart(seconds(playhead))}
+        >현재 Playhead {seconds(playhead)}s 사용</Button>
+        <Button
+          type="button"
+          aria-label="선택 Clip을 명시한 위치에 복사"
+          aria-describedby="clip-copy-help"
+          disabled={pending || !selectedClip || !copyTargetTrackId || copyTimelineStart === "" || Number(copyTimelineStart) < 0}
+          onClick={() => void copySelectedClip()}
+        ><Copy aria-hidden="true" /> Clip 복사</Button>
+      </div>
     </section>
   );
 }

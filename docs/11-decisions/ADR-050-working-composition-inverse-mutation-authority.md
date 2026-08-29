@@ -2,11 +2,11 @@
 
 > 상태: 승인
 > 작성일: 2026-08-25
-> 최종 수정일: 2026-08-26
+> 최종 수정일: 2026-08-30
 > 관련 기능: AI-native DAW D3 Backend inverse mutation과 Frontend Undo/Redo 경계
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md), [WorkingComposition Service](../03-architecture/working-composition-service.md), [Product API](../06-api/working-composition-api.md)
 
-> 구현 추적: 2026-08-29 Track/Clip restore와 atomic unsplit/resplit Backend, Frontend strict LIFO memory command history와 Composition Commit history barrier를 구현했다. initialize·checkout·Commit·Project 변경·conflict reconcile boundary, same-ID undo/redo와 response revision authority를 소비한다.
+> 구현 추적: 2026-08-29 Track/Clip restore와 atomic unsplit/resplit Backend, Frontend strict LIFO memory command history와 Composition Commit history barrier를 구현했다. 2026-08-30 Clip Copy command를 추가해 undo는 copied `clip_id`를 delete하고 redo는 같은 ID를 restore한다. initialize·checkout·Commit·Project 변경·conflict reconcile boundary, same-ID undo/redo와 response revision authority를 소비한다.
 
 ## 1. 배경
 
@@ -68,6 +68,7 @@ left.split_from_clip_id = right.split_from_clip_id = original.clip_id
 - Commit 실패는 기존 history를 보존한다. 단, revision·split structure conflict는 Commit barrier가 아니라 기존 conflict GET/reconcile authority에 따라 history를 초기화한다. 과거 committed state로 이동할 때는 Commit undo가 아니라 explicit Snapshot checkout을 사용하고, commit 다음의 첫 edit부터 새 memory history를 시작한다.
 - Backend는 command stack, cursor, redo branch 또는 사용자별 history를 저장하지 않는다.
 - Frontend는 성공 응답의 canonical ID와 completed revision으로 command를 구성하고, conflict 시 GET/reconcile한다.
+- Clip Copy 성공 command는 source ID, 서버 발급 copied ID, explicit target Track과 timeline position을 기록한다. Undo는 copied ID만 delete하고 Redo는 copy endpoint를 재호출하지 않은 채 같은 copied ID를 restore한다. 실패한 Copy·Undo·Redo는 stack을 이동시키거나 local Clip을 강제 변경하지 않는다.
 
 ## 4. 선택 이유와 대안
 

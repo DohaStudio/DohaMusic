@@ -12,6 +12,7 @@ from backend.schemas.workspace.common import (
 )
 from backend.schemas.workspace.composition_editing import (
     CheckoutResult,
+    ClipCopyRequest,
     ClipCreateRequest,
     ClipDetail,
     ClipMediaSourceDetail,
@@ -94,6 +95,7 @@ __all__ = [
     "CheckoutResult",
     "CompositionCommitResult",
     "ClipCreateRequest",
+    "ClipCopyRequest",
     "ClipDetail",
     "ClipMediaSourceDetail",
     "ClipMoveRequest",

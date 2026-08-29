@@ -5,11 +5,18 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-29
+> 최종 수정일: 2026-08-30
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Clip Copy
+
+- `POST /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/copy`를 추가했다. active source Clip의 exact AssetVersion과 frozen source range/duration을 유지하고 명시적 target Track·timeline position에 서버 발급 새 canonical Clip ID를 생성한다. source row와 split lineage는 변경하지 않으며 copied `split_from_clip_id`는 `null`이다.
+- current Asset·AssetVersion·ProjectAsset·exactly-one Artifact eligibility, same-WorkingComposition active Track, same-Track overlap·adjacency와 expected revision CAS를 fail-closed 재검증한다. `CLIP_COPY` completion은 최초 copied ID와 completed revision을 replay하며 key conflict·response loss·concurrent race·네 transaction stage rollback을 검증한다.
+- Frontend editor에 visible target Track·Timeline destination과 explicit Playhead 적용 action을 추가했다. Copy 성공은 새 ID를 선택하고 memory history에 push하며 Undo는 copied ID delete, Redo는 같은 ID restore를 사용한다. OS clipboard shortcut, implicit placement, auto Preview와 auto Commit은 추가하지 않았다.
+- split child Copy와 copied Clip Snapshot commit identity, exact geometry, Waveform exact AssetVersion cache 재사용을 회귀 검증했다. 기존 schema를 재사용해 migration은 0개이고 Alembic head는 `20260828_0024`이며 실제 사용자 DB·media에는 접근하지 않았다.
 
 ### 추가 — Composition Commit
 

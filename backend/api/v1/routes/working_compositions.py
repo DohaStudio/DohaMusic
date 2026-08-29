@@ -21,6 +21,7 @@ from backend.api.v1.routes.common import (
 )
 from backend.schemas.workspace import (
     CheckoutResult,
+    ClipCopyRequest,
     ClipCreateRequest,
     ClipDetail,
     ClipMoveRequest,
@@ -408,6 +409,37 @@ def create_clip(
             timeline_start=payload.timeline_start,
             source_in=payload.source_in,
             source_out=payload.source_out,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(request, _clip_result(result))
+
+
+@router.post(
+    "/clips/{clip_id}/copy",
+    response_model=SuccessResponse[ClipMutationResult],
+    status_code=status.HTTP_201_CREATED,
+    operation_id="copy_working_composition_clip",
+)
+def copy_clip(
+    project_id: UUID,
+    clip_id: UUID,
+    payload: ClipCopyRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[ClipMutationResult]:
+    try:
+        result = service.copy_clip(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            clip_id=clip_id,
+            target_track_id=payload.target_track_id,
+            target_timeline_start=payload.target_timeline_start,
             expected_revision=payload.expected_revision,
             effective_owner_id=effective_owner_id,
             idempotency_key=idempotency_key,

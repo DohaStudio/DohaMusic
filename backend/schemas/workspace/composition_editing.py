@@ -67,6 +67,11 @@ class ClipCreateRequest(WorkingMutationRequest):
     source_out: Decimal = Field(gt=0)
 
 
+class ClipCopyRequest(WorkingMutationRequest):
+    target_track_id: UUID
+    target_timeline_start: Decimal = Field(ge=0)
+
+
 class ClipMoveRequest(WorkingMutationRequest):
     timeline_start: Decimal = Field(ge=0)
 

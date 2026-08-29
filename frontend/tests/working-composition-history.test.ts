@@ -74,6 +74,31 @@ describe("WorkingComposition memory command history", () => {
     expect(trimEnd).toHaveBeenCalledWith("project-1", "clip-1", expect.objectContaining({ source_out: "8" }));
   });
 
+  it("Clip Copy undo/redo는 복사본의 동일 ID를 delete/restore한다", async () => {
+    const remove = vi.spyOn(dohaApi, "deleteWorkingClip").mockResolvedValue({
+      clip_id: "copied-1", completed_revision: 3, replayed: false,
+    });
+    const restore = vi.spyOn(dohaApi, "restoreWorkingClip").mockResolvedValue({
+      clip_id: "copied-1", completed_revision: 4, replayed: false,
+    });
+    const command = {
+      type: "CLIP_COPY" as const,
+      sourceClipId: "source-1",
+      copiedClipId: "copied-1",
+      targetTrackId: "track-2",
+      targetTimelineStart: "8.250",
+    };
+    await executeWorkingCommand(command, "undo", context(2));
+    await executeWorkingCommand(command, "redo", context(3));
+    expect(remove).toHaveBeenCalledWith(
+      "project-1", "copied-1", expect.objectContaining({ expected_revision: 2 }), expect.any(String),
+    );
+    expect(restore).toHaveBeenCalledWith(
+      "project-1", "copied-1", expect.objectContaining({ expected_revision: 3 }), expect.any(String),
+    );
+    expect(remove).not.toHaveBeenCalledWith("project-1", "source-1", expect.anything(), expect.anything());
+  });
+
   it("split undo/redo가 exact original/left/right ID로 unsplit/resplit한다", async () => {
     const unsplit = vi.spyOn(dohaApi, "unsplitWorkingClip").mockResolvedValue(splitResult(8));
     const resplit = vi.spyOn(dohaApi, "resplitWorkingClip").mockResolvedValue(splitResult(9));

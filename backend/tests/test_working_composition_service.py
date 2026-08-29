@@ -715,6 +715,11 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "create_working_composition_clip",
         ),
         (
+            "POST",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/copy",
+            "copy_working_composition_clip",
+        ),
+        (
             "PATCH",
             "/projects/{project_id}/working-composition/clips/{clip_id}/move",
             "move_working_composition_clip",
@@ -755,10 +760,10 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "resplit_working_composition_clip",
         ),
     }
-    assert len(routes) == 19
-    assert len({path for _, path, _ in surface}) == 18
+    assert len(routes) == 20
+    assert len({path for _, path, _ in surface}) == 19
     operation_ids = [operation_id for _, _, operation_id in surface]
-    assert len(operation_ids) == len(set(operation_ids)) == 19
+    assert len(operation_ids) == len(set(operation_ids)) == 20
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(service, graph) -> None:
@@ -2165,6 +2170,406 @@ def test_resplit_rejects_changed_geometry_and_revoked_source(
         assert session.get(CompositionClip, left_id).deleted_at is not None
         assert session.get(CompositionClip, right_id).deleted_at is not None
         assert session.get(WorkingComposition, working_id).revision == 4
+
+
+def test_clip_copy_preserves_source_geometry_supports_explicit_destinations_and_replay(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    source_track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    target_track_id = _create_track(
+        service, graph, working_id, 1, key="copy-target-track", name="Target"
+    ).identities["track_id"]
+    source_clip_id = _create_clip(service, graph, working_id, source_track_id, 2).identities[
+        "clip_id"
+    ]
+
+    first = service.copy_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=source_clip_id,
+        target_track_id=source_track_id,
+        target_timeline_start="4",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="copy-adjacent",
+    )
+    replay = service.copy_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=source_clip_id,
+        target_track_id=source_track_id,
+        target_timeline_start="4",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="copy-adjacent",
+    )
+    assert first.identities["clip_id"] != source_clip_id
+    assert replay.identities == first.identities
+    assert replay.completed_revision == first.completed_revision == 4
+    assert replay.replayed is True
+
+    cross_track = service.copy_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=source_clip_id,
+        target_track_id=target_track_id,
+        target_timeline_start="0",
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="copy-cross-track",
+    )
+    assert cross_track.identities["clip_id"] not in {
+        source_clip_id,
+        first.identities["clip_id"],
+    }
+
+    with pytest.raises(IdempotencyConflictError):
+        service.copy_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=source_clip_id,
+            target_track_id=target_track_id,
+            target_timeline_start="5",
+            expected_revision=4,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="copy-cross-track",
+        )
+    with pytest.raises(WorkingCompositionError) as overlap:
+        service.copy_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=source_clip_id,
+            target_track_id=source_track_id,
+            target_timeline_start="3",
+            expected_revision=5,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="copy-overlap",
+        )
+    assert overlap.value.code is WorkingCompositionErrorCode.CLIP_OVERLAP
+
+    with session_factory() as session:
+        source = session.get(CompositionClip, source_clip_id)
+        adjacent = session.get(CompositionClip, first.identities["clip_id"])
+        cross = session.get(CompositionClip, cross_track.identities["clip_id"])
+        frozen = (
+            source.source_asset_version_id,
+            source.source_in,
+            source.source_out,
+            source.source_duration,
+        )
+        assert (
+            adjacent.source_asset_version_id,
+            adjacent.source_in,
+            adjacent.source_out,
+            adjacent.source_duration,
+        ) == frozen
+        assert (
+            cross.source_asset_version_id,
+            cross.source_in,
+            cross.source_out,
+            cross.source_duration,
+        ) == frozen
+        assert source.track_id == source_track_id and source.timeline_start == 0
+        assert adjacent.track_id == source_track_id and adjacent.timeline_start == 4_000_000
+        assert cross.track_id == target_track_id and cross.timeline_start == 0
+        assert adjacent.split_from_clip_id is None and cross.split_from_clip_id is None
+        assert session.get(WorkingComposition, working_id).revision == 5
+        assert session.scalar(select(func.count(CompositionClip.clip_id))) == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_COPY.value
+                )
+            )
+            == 2
+        )
+
+
+def test_clip_copy_rejects_tombstones_invalid_target_stale_revision_and_revoked_source(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    source_clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    with pytest.raises(WorkingCompositionError) as stale:
+        service.copy_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=source_clip_id,
+            target_track_id=track_id,
+            target_timeline_start="4",
+            expected_revision=1,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="copy-stale",
+        )
+    assert stale.value.code is WorkingCompositionErrorCode.WORKING_COMPOSITION_REVISION_CONFLICT
+    with pytest.raises(WorkingCompositionError) as target:
+        service.copy_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=source_clip_id,
+            target_track_id=uuid4(),
+            target_timeline_start="4",
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="copy-invalid-target",
+        )
+    assert target.value.code is WorkingCompositionErrorCode.TRACK_NOT_FOUND
+
+    with session_factory.begin() as session:
+        link = session.scalar(
+            select(ProjectAsset).where(ProjectAsset.project_id == graph.project_id)
+        )
+        link.deleted_at = datetime.now(UTC)
+    with pytest.raises(WorkingCompositionError) as unavailable:
+        service.copy_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=source_clip_id,
+            target_track_id=track_id,
+            target_timeline_start="4",
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="copy-revoked",
+        )
+    assert unavailable.value.code is WorkingCompositionErrorCode.SOURCE_ASSET_UNAVAILABLE
+    with session_factory.begin() as session:
+        link = session.scalar(
+            select(ProjectAsset).where(ProjectAsset.project_id == graph.project_id)
+        )
+        link.deleted_at = None
+    service.delete_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=source_clip_id,
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="copy-source-delete",
+    )
+    with pytest.raises(WorkingCompositionError) as tombstone:
+        service.copy_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=source_clip_id,
+            target_track_id=track_id,
+            target_timeline_start="4",
+            expected_revision=3,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="copy-tombstone",
+        )
+    assert tombstone.value.code is WorkingCompositionErrorCode.CLIP_NOT_FOUND
+    with session_factory() as session:
+        assert session.scalar(select(func.count(CompositionClip.clip_id))) == 1
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_COPY.value
+                )
+            )
+            == 0
+        )
+
+
+@pytest.mark.parametrize("failure_point", ["eligibility", "insert", "revision", "completion"])
+def test_clip_copy_forced_failures_roll_back_all_rows(
+    service, session_factory, graph, monkeypatch, failure_point
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    source_clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    def fail_after(method):
+        def failing(*args, **kwargs):
+            method(*args, **kwargs)
+            raise RuntimeError(f"forced copy failure after {failure_point}")
+
+        return failing
+
+    if failure_point == "eligibility":
+        monkeypatch.setattr(
+            service, "_validate_restore_source", fail_after(service._validate_restore_source)
+        )
+    elif failure_point == "insert":
+        monkeypatch.setattr(
+            CompositionRepository,
+            "add_composition_clip",
+            fail_after(CompositionRepository.add_composition_clip),
+        )
+    elif failure_point == "revision":
+        monkeypatch.setattr(service, "_increment_revision", fail_after(service._increment_revision))
+    else:
+        monkeypatch.setattr(
+            working_composition_module,
+            "_complete_result",
+            fail_after(working_composition_module._complete_result),
+        )
+
+    with pytest.raises(RuntimeError, match="forced copy failure"):
+        service.copy_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=source_clip_id,
+            target_track_id=track_id,
+            target_timeline_start="4",
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key=f"copy-failed-{failure_point}",
+        )
+    with session_factory() as session:
+        assert session.scalar(select(func.count(CompositionClip.clip_id))) == 1
+        assert session.get(WorkingComposition, working_id).revision == 2
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_COPY.value
+                )
+            )
+            == 0
+        )
+
+
+def test_concurrent_clip_copy_expected_revision_creates_exactly_one_clip(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    source_clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    def copy(key: str):
+        try:
+            return service.copy_clip(
+                graph.project_id,
+                working_composition_id=working_id,
+                clip_id=source_clip_id,
+                target_track_id=track_id,
+                target_timeline_start="4",
+                expected_revision=2,
+                effective_owner_id=graph.owner_id,
+                idempotency_key=key,
+            )
+        except WorkingCompositionError as error:
+            return error
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(executor.map(copy, ["copy-race-a", "copy-race-b"]))
+    successes = [result for result in results if not isinstance(result, Exception)]
+    failures = [result for result in results if isinstance(result, WorkingCompositionError)]
+    assert len(successes) == len(failures) == 1
+    assert failures[0].code is WorkingCompositionErrorCode.WORKING_COMPOSITION_REVISION_CONFLICT
+    with session_factory() as session:
+        assert session.scalar(select(func.count(CompositionClip.clip_id))) == 2
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_COPY.value
+                )
+            )
+            == 1
+        )
+
+
+def test_clip_copy_product_api_is_strict_and_returns_new_identity(
+    working_client, service, graph
+) -> None:
+    working_id = _initialize(service, graph, "copy-api-init").identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    source_clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    path = f"/api/v1/projects/{graph.project_id}/working-composition/clips/{source_clip_id}/copy"
+    body = {
+        "working_composition_id": str(working_id),
+        "expected_revision": 2,
+        "target_track_id": str(track_id),
+        "target_timeline_start": "4",
+    }
+    response = working_client.post(path, json=body, headers={"Idempotency-Key": "copy-api"})
+    assert response.status_code == 201
+    assert response.json()["data"] == {
+        "clip_id": response.json()["data"]["clip_id"],
+        "completed_revision": 3,
+        "replayed": False,
+    }
+    assert response.json()["data"]["clip_id"] != str(source_clip_id)
+    forbidden = working_client.post(
+        path,
+        json={
+            **body,
+            "expected_revision": 3,
+            "source_asset_version_id": str(graph.asset_version_id),
+        },
+        headers={"Idempotency-Key": "copy-api-forbidden"},
+    )
+    assert forbidden.status_code == 422
+
+
+def test_split_child_copy_drops_lineage_and_commit_freezes_copied_identity(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    original_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    split = service.split_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        split_at="2",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="copy-child-split",
+    )
+    child_id = split.identities["left_clip_id"]
+    copied = service.copy_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=child_id,
+        target_track_id=track_id,
+        target_timeline_start="4",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="copy-split-child",
+    )
+    copied_id = copied.identities["clip_id"]
+    committed = service.commit(
+        graph.project_id,
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="commit-copied-child",
+    )
+    with session_factory() as session:
+        child = session.get(CompositionClip, child_id)
+        copied_clip = session.get(CompositionClip, copied_id)
+        assert child.split_from_clip_id == original_id
+        assert copied_clip.split_from_clip_id is None
+        assert copied_clip.source_asset_version_id == child.source_asset_version_id
+        assert (copied_clip.source_in, copied_clip.source_out, copied_clip.source_duration) == (
+            child.source_in,
+            child.source_out,
+            child.source_duration,
+        )
+        snapshot_clip = session.scalar(
+            select(CompositionSnapshotClip).where(
+                CompositionSnapshotClip.composition_snapshot_id
+                == committed.identities["composition_snapshot_id"],
+                CompositionSnapshotClip.canonical_clip_id == copied_id,
+            )
+        )
+        assert snapshot_clip is not None
+        assert snapshot_clip.canonical_clip_id == copied_id
+        assert snapshot_clip.source_asset_version_id == copied_clip.source_asset_version_id
+        assert (
+            snapshot_clip.source_in,
+            snapshot_clip.source_out,
+            snapshot_clip.source_duration,
+            snapshot_clip.split_from_clip_id,
+        ) == (
+            copied_clip.source_in,
+            copied_clip.source_out,
+            copied_clip.source_duration,
+            None,
+        )
 
 
 def _assert_empty_commit_has_no_side_effects(

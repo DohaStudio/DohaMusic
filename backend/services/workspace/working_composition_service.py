@@ -755,6 +755,82 @@ class WorkingCompositionService:
             changes=lambda clip: {"timeline_start": start_us},
         )
 
+    def copy_clip(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        clip_id: UUID,
+        target_track_id: UUID,
+        target_timeline_start: object,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        """Copy one active Clip to an explicit destination with a new identity."""
+
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        _validate_uuid(clip_id, "clip_id")
+        _validate_uuid(target_track_id, "target_track_id")
+        target_start_us = _seconds_to_microseconds(target_timeline_start, "target_timeline_start")
+        operation = IdempotencyResultType.CLIP_COPY
+
+        def mutate(
+            repository: CompositionRepository,
+            session: Session,
+            working: WorkingComposition,
+        ) -> UUID:
+            source = self._require_clip(repository, working, clip_id)
+            self._require_track(repository, working, target_track_id)
+            self._validate_restore_source(
+                session,
+                project_id=project_id,
+                effective_owner_id=effective_owner_id,
+                clip=source,
+            )
+            _validate_clip_range(
+                timeline_start=target_start_us,
+                source_in=source.source_in,
+                source_out=source.source_out,
+                source_duration=source.source_duration,
+            )
+            copied = CompositionClip(
+                working_composition_id=working.working_composition_id,
+                track_id=target_track_id,
+                source_asset_version_id=source.source_asset_version_id,
+                timeline_start=target_start_us,
+                source_in=source.source_in,
+                source_out=source.source_out,
+                source_duration=source.source_duration,
+                split_from_clip_id=None,
+            )
+            try:
+                repository.add_composition_clip(copied)
+            except ValueError:
+                raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP) from None
+            return copied.clip_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=clip_id,
+            body={
+                "target_track_id": str(target_track_id),
+                "target_timeline_start_us": target_start_us,
+            },
+            mutate=mutate,
+            payload=lambda identity: {"clip_id": identity},
+            resource_type="composition_clip",
+            resource_id=lambda identity: identity,
+            response_status=201,
+        )
+
     def trim_clip_start(
         self,
         project_id: UUID,

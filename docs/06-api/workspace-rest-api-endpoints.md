@@ -1,9 +1,9 @@
 # Workspace REST API Endpoint 목록
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-28
+> 최종 수정일: 2026-08-30
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace Resource 30개, D1 Product API 2개, WorkingComposition Product operation 18개와 exact AssetVersion media source read 1개 구현; Job API 5/5, 나머지 34개 Resource Endpoint 계획
+> 구현 상태: Workspace Resource 30개, D1 Product API 2개, WorkingComposition Product operation 19개와 exact AssetVersion media source read 1개 구현; Job API 5/5, 나머지 34개 Resource Endpoint 계획
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [D1 Composition Read 계약](composition-read-workspace.md), [WorkingComposition Product API](working-composition-api.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
