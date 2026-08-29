@@ -283,4 +283,9 @@ html[data-reduce-motion="true"] * {
   .working-add-clip { overflow: visible; }
   .working-add-clip label { min-width: 0; }
   .working-track-row { grid-template-columns: auto 1fr auto; }
+  .working-preview-heading,
+  .working-preview-actions { align-items: stretch; flex-direction: column; }
+  .working-preview-heading .button,
+  .working-preview-actions .button { width: 100%; justify-content: center; }
+  .working-preview-status { grid-template-columns: 1fr; }
 }

@@ -1,7 +1,7 @@
 # WorkingComposition Product API
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-28
+> 최종 수정일: 2026-08-29
 > 관련 기능: AI-native DAW D3 Clip Editing Backend API와 Frontend consumer
 > 관련 문서: [Service Architecture](../03-architecture/working-composition-service.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Workspace REST API](workspace-rest-api-contract.md), [Composition Read](composition-read-workspace.md)
 
@@ -58,7 +58,7 @@ Frontend editing consumer는 기존 17개 operation을 중앙 API client로 호�
 
 `POST /preview` body는 `expected_revision`만 받는다. 성공은 `202`와 `job_id`, `preview_render_id`, `working_composition_id`, `rendered_revision`, `status=queued`, `replayed`를 반환한다. 같은 key·Project·WorkingComposition·revision은 같은 Job을 replay하고 다른 fingerprint는 `409 IDEMPOTENCY_KEY_REUSED`다. 새 key는 같은 revision에서도 새 explicit Preview action이다.
 
-Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 exact Artifact ID와 integer microseconds geometry를 전용 manifest에 고정한다. worker는 현재 WorkingComposition을 다시 읽지 않는다. 성공 output은 existing Job 조회의 `output_role=working_preview` exact Artifact이며 `/api/v1/artifacts/{artifact_id}/content`로만 재생한다. 응답과 Job settings에는 path·URL·locator를 포함하지 않는다. Preview 전후 WorkingComposition revision·Track·Clip, Snapshot과 Project selection은 변하지 않는다. Preview Frontend consumer는 이번 PR 범위가 아니다.
+Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 exact Artifact ID와 integer microseconds geometry를 전용 manifest에 고정한다. worker는 현재 WorkingComposition을 다시 읽지 않는다. 성공 output은 existing Job 조회의 `output_role=working_preview` exactly-one Artifact이며 `/api/v1/artifacts/{artifact_id}/content`로만 재생한다. 응답과 Job settings에는 path·URL·locator를 포함하지 않는다. Preview 전후 WorkingComposition revision·Track·Clip, Snapshot과 Project selection은 변하지 않는다. Frontend는 POST 응답의 Job ID를 adaptive polling하고 terminal에서 중단하며, 같은 logical response-loss retry에 같은 key를 사용한다. 성공 결과는 사용자 재생 action에서만 기존 Global Player로 전달하고 auto-play하지 않는다. `rendered_revision`이 current revision과 다르면 stale로 표시하고 새 explicit action으로 rerender한다. 공식 latest Preview endpoint가 없으므로 refresh 뒤 idle이며 목록 API에서 latest를 추측하지 않는다.
 
 ## Error
 

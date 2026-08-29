@@ -2,11 +2,11 @@
 
 > 상태: 승인
 > 작성일: 2026-08-21
-> 최종 수정일: 2026-08-28
+> 최종 수정일: 2026-08-29
 > 관련 기능: AI-native DAW D3 Non-destructive Clip Editing
 > 관련 문서: [ADR-035](ADR-035-d1-composition-read-authority.md), [ADR-045](ADR-045-clip-service-deletion-media-duration-authority.md), [CompositionSnapshot 기반](../06-api/composition-snapshot-foundation.md), [목표 아키텍처](../03-architecture/ai-native-daw-target-architecture.md), [Clip Domain DoD](../DoD/Clip-Domain-Persistence.md)
 
-> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어 WorkingComposition Service와 17개 Product operation을 구현했고 2026-08-26 Frontend Track/Clip editor와 memory Undo/Redo가 이 authority를 소비한다. 2026-08-27에는 exact AssetVersion을 현재 eligible한 exactly-one Artifact와 same-origin content reference로 해석하는 read-only Backend foundation을 구현했다. 2026-08-28에는 editor-session bounded decode cache와 Clip별 `[source_in, source_out)` Track lane Waveform을 구현했고 [ADR-052](ADR-052-working-composition-preview-render-authority.md)의 Preview Backend foundation과 18번째 Product operation을 추가했다. Preview Frontend와 Snapshot commit은 후속이다.
+> 구현 추적: 2026-08-24에 mutable 3개·immutable 2개 table, integer microseconds, FK/CHECK/Index와 Repository foundation을 Alembic `20260824_0020`으로 구현했다. 2026-08-25에는 ADR-045의 Track 삭제·trusted duration 기반을 `20260824_0021`, [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md)의 완료 revision·복수 identity replay 기반을 `20260825_0022`로 구현했다. 이어 WorkingComposition Service와 17개 Product operation을 구현했고 2026-08-26 Frontend Track/Clip editor와 memory Undo/Redo가 이 authority를 소비한다. 2026-08-27에는 exact AssetVersion을 현재 eligible한 exactly-one Artifact와 same-origin content reference로 해석하는 read-only Backend foundation을 구현했다. 2026-08-28에는 editor-session bounded decode cache와 Clip별 `[source_in, source_out)` Track lane Waveform을 구현했고 [ADR-052](ADR-052-working-composition-preview-render-authority.md)의 Preview Backend foundation과 18번째 Product operation을 추가했다. 2026-08-29에는 explicit Preview action, 공식 Job polling, stale/rerender와 Global Player handoff를 갖춘 Frontend integration을 구현했다. Snapshot commit은 후속이다.
 
 ## 1. Context
 
@@ -298,7 +298,7 @@ DELETE /api/v1/projects/{project_id}/working-composition/clips/{clip_id}
 ## 14. Playback and Waveform boundary
 
 - **Committed playback**: 현재 GlobalPlayer가 명시적으로 선택된 Snapshot의 canonical Master/Mix Artifact를 재생한다.
-- **Working composition preview**: Track/Clip 배치를 합성해야 하며 후속 multi-track preview/render engine의 책임이다. working edit persistence만으로 audio가 바뀌었다고 표시하지 않는다.
+- **Working composition preview**: Track/Clip 배치는 ADR-052의 revision-pinned Preview renderer가 합성한다. working edit persistence만으로 audio가 바뀌었다고 표시하지 않고 성공한 explicit Preview 결과만 별도 재생한다.
 - **현재 Waveform**: committed Master/Mix Artifact의 overview다.
 - **Clip media source foundation**: Project 범위의 exact source AssetVersion을 active Asset·ProjectAsset·effective Owner와 exactly-one eligible audio Artifact로 다시 검증하고, opaque identity·trusted duration·same-origin Artifact content URL만 반환한다. zero/multiple candidate에는 latest/first fallback을 하지 않으며 GET은 working state와 revision을 변경하지 않는다.
 - **Clip Waveform Frontend**: 위 source를 exact AssetVersion별로 editor session에서 bounded decode하고, frozen source duration에 맞춘 Clip별 `[source_in, source_out)` 구간만 Track lane에 표시한다. move·trim·split·restore·Undo/Redo·zoom은 파형 command나 새 playback authority를 만들지 않고 canonical geometry의 derived projection으로 갱신한다.
@@ -333,7 +333,7 @@ MIDI source가 도입되면 exact AssetVersion이 versioned MIDI payload 또는 
 - mutable 3개와 immutable snapshot 2개 table, Alembic, Repository·Service·API 구현이 필요하다.
 - exact source duration을 서버에서 검증하는 Artifact media metadata/probe 경계가 구현되어야 한다.
 - 기존 Snapshot에는 arrangement가 없으므로 자동 합성 없이 명시적 unavailable/migration 정책이 필요하다.
-- committed playback과 working preview가 분리되므로 multi-track preview/render 전에는 편집 결과를 즉시 들을 수 없다.
+- committed playback과 working preview는 분리된다. 편집 결과는 explicit Preview render 성공 뒤에만 별도로 들을 수 있고 committed Snapshot 결과로 취급하지 않는다.
 - refresh 뒤 Undo/Redo history는 복원되지 않는다.
 
 ## 18. Rejected alternatives
@@ -359,8 +359,9 @@ MIDI source가 도입되면 exact AssetVersion이 versioned MIDI payload 또는 
 4. product API와 OpenAPI/error contract
 5. Frontend Clip Editing Foundation과 memory Undo/Redo
 6. exact AssetVersion-safe media resolution Backend foundation
-7. Track/Clip Waveform Frontend, working preview/render, Mixer
-8. MIDI/Instrument editing은 별도 Track
+7. Track/Clip Waveform Frontend와 Working Preview integration
+8. Composition commit, Mixer
+9. MIDI/Instrument editing은 별도 Track
 
 ## 20. Revisit conditions
 

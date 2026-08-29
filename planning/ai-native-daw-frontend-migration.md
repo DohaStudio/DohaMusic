@@ -1,7 +1,7 @@
 # AI-native DAW Frontend 전환 계획
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-21
+> 최종 수정일: 2026-08-29
 > 관련 기능: Responsive Studio MVP에서 AI-native DAW로의 단계적 전환
 > 관련 문서: [제품 방향](../docs/02-product/ai-native-daw-product-direction.md), [목표 아키텍처](../docs/03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../docs/06-api/composition-read-workspace.md), [기존 Frontend Roadmap](frontend-roadmap.md), [DohaLM 연동](../docs/03-architecture/dohalm-integration.md)
 
@@ -94,7 +94,7 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - undo/redo는 불변 Version 또는 명시적 command history로 구현한다.
 - Gate: 원본 불변, concurrent edit 정책, autosave·crash recovery, 정확한 export 재현.
 
-Backend Working Preview Foundation은 revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact를 구현했다. Frontend integration은 명시적 Preview action, existing Job polling, safe Artifact content 전달, `rendered_revision != current_revision` stale 표시를 추가해야 한다. stale Preview를 자동으로 현재 상태처럼 표시하거나 Global Player source로 교체하지 않으며 사용자가 선택한 뒤에만 단일 playback authority에 연결한다. Preview는 Composition commit·Export가 아니고 Preview 성공으로 editor revision/history를 이동시키지 않는다.
+Working Preview Backend/Frontend integration은 revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact, 명시적 Preview action, existing Job polling, safe Artifact content 전달과 `rendered_revision != current_revision` stale 표시를 구현했다. stale Preview를 자동으로 현재 상태처럼 표시하거나 Global Player source로 교체하지 않으며 사용자가 재생을 선택한 뒤에만 단일 playback authority에 연결한다. Preview는 Composition commit·Export가 아니고 Preview 성공으로 editor revision/history를 이동시키지 않는다. 공식 latest Preview read API가 없으므로 refresh 뒤 session은 idle이며 AssetVersion·Artifact·Job 목록에서 latest를 추측하지 않는다.
 
 ### D4 — Mixer와 Export [계획]
 
@@ -160,4 +160,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·source-window Waveform은 구현돼 있다. Working Preview Frontend action·Job polling·stale 표시·Global Player 연결, Section·Mixer·AI editing과 D4~D9 Runtime은 미구현이다. 이번 Backend Foundation은 Common Contract·Training·Provider Runtime을 변경하지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·source-window Waveform·Working Preview action/Job polling/stale/Global Player 연결은 구현돼 있다. Composition commit, Section·Mixer·AI editing과 D4~D9 Runtime은 미구현이다. 이번 Frontend integration은 Backend·migration·Common Contract·Training·Provider Runtime을 변경하지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.

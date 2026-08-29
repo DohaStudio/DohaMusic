@@ -403,3 +403,68 @@ export interface WorkingSplitResultDto extends WorkingMutationResultDto {
   left_clip_id: string;
   right_clip_id: string;
 }
+
+export type WorkspaceJobStatusDto =
+  | "queued"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "cancelled";
+
+export interface WorkingPreviewCreateResultDto {
+  job_id: string;
+  preview_render_id: string;
+  working_composition_id: string;
+  rendered_revision: number;
+  status: WorkspaceJobStatusDto;
+  replayed: boolean;
+}
+
+export interface WorkspaceJobOutputDto {
+  output_role: string | null;
+  output_order: number;
+  asset_version_id: string | null;
+  artifact_id: string | null;
+}
+
+export interface WorkspaceJobInputDto {
+  input_role: string | null;
+  input_order: number;
+  asset_version_id: string | null;
+  artifact_id: string | null;
+}
+
+export interface WorkspaceJobModelUsageDto {
+  provider_id: string;
+  model_manifest_id: string;
+  model_id: string;
+  model_version: string;
+  checkpoint_version: string | null;
+  api_contract_version: string;
+  license_status: string;
+  commercial_usage_status: string;
+  asset_version_id: string | null;
+}
+
+export interface WorkspaceJobDetailDto {
+  job_id: string;
+  project_id: string;
+  composition_snapshot_id: string | null;
+  job_type: string;
+  status: WorkspaceJobStatusDto;
+  provider_id: string | null;
+  model_manifest_id: string | null;
+  progress_percent: string | number | null;
+  stage: string | null;
+  retry_of_job_id: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  inputs: WorkspaceJobInputDto[];
+  outputs: WorkspaceJobOutputDto[];
+  model_usages: WorkspaceJobModelUsageDto[];
+  error_code: string | null;
+  error_message: string | null;
+  error_retryable: boolean | null;
+  error_details_id: string | null;
+}
