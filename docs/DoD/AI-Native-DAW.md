@@ -75,7 +75,7 @@
 - [x] split identity·revision concurrency·Undo/Redo ownership·overlap·duration 정책
 - [x] Backend split·trim·move·delete와 Track create·rename·reorder·delete
 - [ ] Frontend copy·fade·gain·loop와 편집 UI
-- [ ] 원본 불변 AssetVersion·CompositionSnapshot commit
+- [x] 원본 불변 AssetVersion lineage·canonical Track/Clip CompositionSnapshot commit
 - [x] WorkingComposition·Track·Clip·SnapshotTrack·SnapshotClip ORM과 additive Alembic 구현
 - [x] exact microseconds·FK·lineage·overlap helper·revision·Repository rollback 회귀 검증
 - [x] Track non-empty 삭제 거부와 trusted WAV·FLAC Artifact duration authority 기반

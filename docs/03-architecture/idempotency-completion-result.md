@@ -43,6 +43,7 @@ initialize는 GET-or-create가 아니다. 최초 요청만 revision 0 aggregate�
 - Revision-safe Idempotency Foundation: [완료]
 - Alembic source revision: `20260825_0022`
 - 실제 사용자 DB migration: [미실행], 현재 `20260810_0017`
-- WorkingComposition Service/Product API: [완료], 17개 operation
+- WorkingComposition Service/Product API: [완료], 19개 operation
 - Frontend WorkingComposition consumer·memory Undo/Redo: [완료]
-- Working preview/render: [Backend foundation 구현] 같은 key replay는 최초 Job을 반환하고 새 action·retry는 새 Job identity를 사용한다. Composition commit은 [미구현]
+- Working preview/render: [완료] 같은 key replay는 최초 Job을 반환하고 새 action·retry는 새 Job identity를 사용한다.
+- Composition commit: [완료] `COMPOSITION_COMMIT` payload의 최초 `composition_snapshot_id`와 `completed_revision`을 aggregate 재조회 없이 replay한다.

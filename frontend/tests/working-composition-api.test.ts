@@ -37,6 +37,17 @@ describe("WorkingComposition API client", () => {
     expect(fetchMock.mock.calls[1][0]).toBe("/backend/api/v1/jobs/job%2F1");
   });
 
+  it("Composition Commit이 expected revision과 Idempotency-Key만 전달한다", async () => {
+    const fetchMock = mockResponses(commit());
+    await dohaApi.commitWorkingComposition("project/1", 7, "commit-key");
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "/backend/api/v1/projects/project%2F1/working-composition/commit",
+    );
+    expect(fetchMock.mock.calls[0][1].method).toBe("POST");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ expected_revision: 7 });
+    expect(headersAt(fetchMock, 0).get("Idempotency-Key")).toBe("commit-key");
+  });
+
   it("Track mutations가 expected_revision과 필요한 idempotency header를 전달한다", async () => {
     const fetchMock = mockResponses(trackResult(), trackResult(), reorderResult(), trackResult(), trackResult());
     const base = { working_composition_id: "working-1", expected_revision: 7 };
@@ -98,6 +109,7 @@ function reorderResult() { return { working_composition_id: "working-1", complet
 function clipResult() { return { clip_id: "clip-1", completed_revision: 5, replayed: false }; }
 function split() { return { original_clip_id: "original", left_clip_id: "left", right_clip_id: "right", completed_revision: 11, replayed: false }; }
 function checkout() { return { working_composition_id: "working-1", base_composition_snapshot_id: "snapshot-1", completed_revision: 11, replayed: false }; }
+function commit() { return { working_composition_id: "working-1", composition_snapshot_id: "snapshot-2", completed_revision: 8, replayed: false }; }
 function mediaSource() { return { asset_version_id: "version/1", artifact_id: "artifact-1", media_type: "audio/wav", size_bytes: 48, artifact_checksum: "a".repeat(64), duration_seconds: "10", content_url: "/api/v1/artifacts/artifact-1/content" }; }
 function preview() { return { job_id: "job-1", preview_render_id: "render-1", working_composition_id: "working-1", rendered_revision: 7, status: "queued", replayed: false }; }
 function job() { return { job_id: "job-1", project_id: "project-1", composition_snapshot_id: null, job_type: "working_preview", status: "succeeded", provider_id: null, model_manifest_id: null, progress_percent: 100, stage: null, retry_of_job_id: null, created_at: "2026-08-29T00:00:00Z", started_at: null, completed_at: "2026-08-29T00:00:01Z", inputs: [], outputs: [{ output_role: "working_preview", output_order: 0, asset_version_id: null, artifact_id: "artifact-1" }], model_usages: [], error_code: null, error_message: null, error_retryable: null, error_details_id: null }; }

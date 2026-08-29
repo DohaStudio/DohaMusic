@@ -235,6 +235,10 @@ WorkingComposition at expected revision R
 
 이 전체는 하나의 Service-owned transaction이다. 기존 Snapshot N은 변경하지 않는다. commit mutation은 새 Snapshot 선택을 명시적으로 요청하는 동작이므로 ADR-035의 “Snapshot 생성이 selection을 암묵 변경하지 않는다”는 원칙과 충돌하지 않는다. 일반 Snapshot Resource POST는 계속 selection을 변경하지 않는다.
 
+Commit은 active Clip이 하나 이상일 때만 허용한다. Track만 있거나 active Clip이 0개이거나 tombstone Clip만 남은 경우 `WORKING_COMPOSITION_EMPTY`로 fail-closed한다. 이 실패는 Snapshot·SnapshotTrack·SnapshotClip·Project selection·WorkingComposition base·revision·성공 completion result를 모두 0건 변경한다. 0초 immutable Snapshot은 만들지 않는다.
+
+Commit은 Frontend가 보낸 arrangement를 신뢰하지 않고 Backend canonical active Track·Clip만 deterministic order로 고정한다. tombstone은 제외하고 Clip의 exact `source_asset_version_id`, frozen source range·duration, timeline geometry와 기존 lineage field를 그대로 보존한다. 이는 현재 working geometry를 versioning하는 동작이며 새로운 Artifact resolution이나 current source eligibility 재검증을 추가하지 않는다.
+
 Commit은 audio render가 아니다. 편집에 맞는 새 Mix Artifact가 없으면 이전 Master/Mix를 새 Snapshot의 canonical playback source로 복사하지 않는다. 새 Snapshot의 committed playback은 `NO_CANONICAL_PLAYBACK_SOURCE`가 될 수 있으며 후속 render/export가 새 exact Mix AssetVersion을 만들 때 별도 Snapshot commit으로 연결한다.
 
 ## 10. Transactions and rollback

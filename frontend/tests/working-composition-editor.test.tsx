@@ -194,6 +194,91 @@ describe("WorkingComposition editor", () => {
     expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   });
 
+  it("빈 WorkingComposition은 Commit을 비활성화하고 이유를 안내한다", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(emptyWorking);
+    renderEditor();
+    expect(await screen.findByRole("button", { name: "현재 편집 상태를 새 버전으로 저장" }))
+      .toBeDisabled();
+    expect(screen.getByText("활성 Clip을 하나 이상 배치하면 새 버전으로 저장할 수 있습니다."))
+      .toBeVisible();
+  });
+
+  it("Commit 성공만 history barrier가 되고 다음 edit부터 새 history를 시작한다", async () => {
+    const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Before commit" }] };
+    const committed = { ...renamed, revision: 4, base_composition_snapshot_id: "snapshot-2" };
+    const afterCommitEdit = { ...committed, revision: 5, tracks: [{ ...working.tracks[0], name: "After commit" }] };
+    vi.spyOn(dohaApi, "getWorkingComposition")
+      .mockResolvedValueOnce(working)
+      .mockResolvedValueOnce(renamed)
+      .mockResolvedValueOnce(committed)
+      .mockResolvedValueOnce(afterCommitEdit);
+    vi.spyOn(dohaApi, "renameWorkingTrack")
+      .mockResolvedValueOnce({ track_id: "track-1", completed_revision: 3, replayed: false })
+      .mockResolvedValueOnce({ track_id: "track-1", completed_revision: 5, replayed: false });
+    const commit = vi.spyOn(dohaApi, "commitWorkingComposition").mockResolvedValue({
+      working_composition_id: "working-1",
+      composition_snapshot_id: "snapshot-2",
+      completed_revision: 4,
+      replayed: false,
+    });
+    const user = userEvent.setup();
+    renderEditor();
+    const input = await screen.findByLabelText("Track 1 Track 이름");
+    await user.clear(input);
+    await user.type(input, "Before commit");
+    fireEvent.blur(input);
+    await waitFor(() => expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled());
+
+    await user.click(screen.getByRole("button", { name: "현재 편집 상태를 새 버전으로 저장" }));
+    await screen.findByText("현재 편집 상태를 새 버전으로 저장했습니다. Undo/Redo 기록이 초기화되었습니다.");
+    expect(commit).toHaveBeenCalledWith("project-1", 3, expect.stringMatching(/[0-9a-f-]{36}/));
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
+
+    const afterCommitInput = screen.getByLabelText("Before commit Track 이름");
+    await user.clear(afterCommitInput);
+    await user.type(afterCommitInput, "After commit");
+    fireEvent.blur(afterCommitInput);
+    await waitFor(() => expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled());
+  });
+
+  it("Commit 실패는 기존 history를 보존하고 response-loss retry는 같은 key를 사용한다", async () => {
+    const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Pending" }] };
+    vi.spyOn(dohaApi, "getWorkingComposition")
+      .mockResolvedValueOnce(working)
+      .mockResolvedValueOnce(renamed)
+      .mockResolvedValueOnce({ ...renamed, revision: 4, base_composition_snapshot_id: "snapshot-2" });
+    vi.spyOn(dohaApi, "renameWorkingTrack").mockResolvedValue({
+      track_id: "track-1", completed_revision: 3, replayed: false,
+    });
+    const commit = vi.spyOn(dohaApi, "commitWorkingComposition")
+      .mockRejectedValueOnce(new ApiError(500, "COMMIT_FAILED", "failed"))
+      .mockRejectedValueOnce(new ApiError(0, "NETWORK_ERROR", "lost"))
+      .mockResolvedValueOnce({
+        working_composition_id: "working-1",
+        composition_snapshot_id: "snapshot-2",
+        completed_revision: 4,
+        replayed: true,
+      });
+    const user = userEvent.setup();
+    renderEditor();
+    const input = await screen.findByLabelText("Track 1 Track 이름");
+    await user.clear(input);
+    await user.type(input, "Pending");
+    fireEvent.blur(input);
+    await waitFor(() => expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled());
+
+    await user.click(screen.getByRole("button", { name: "현재 편집 상태를 새 버전으로 저장" }));
+    await waitFor(() => expect(commit).toHaveBeenCalledTimes(1));
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: "현재 편집 상태를 새 버전으로 저장" }));
+    await screen.findByText("현재 편집 상태를 새 버전으로 저장했습니다. Undo/Redo 기록이 초기화되었습니다.");
+    expect(commit).toHaveBeenCalledTimes(3);
+    expect(commit.mock.calls[1][2]).toBe(commit.mock.calls[2][2]);
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+  });
+
   it("Preview 생성 성공은 편집 revision과 Undo/Redo history를 변경하지 않는다", async () => {
     vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
     vi.spyOn(dohaApi, "createWorkingPreview").mockResolvedValue({

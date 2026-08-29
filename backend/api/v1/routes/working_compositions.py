@@ -29,6 +29,7 @@ from backend.schemas.workspace import (
     ClipToggleRequest,
     ClipTrimEndRequest,
     ClipTrimStartRequest,
+    CompositionCommitResult,
     InitializeResult,
     ReorderTracksResult,
     SplitClipResult,
@@ -40,6 +41,7 @@ from backend.schemas.workspace import (
     TrackReorderRequest,
     TrackRestoreRequest,
     WorkingCompositionCheckoutRequest,
+    WorkingCompositionCommitRequest,
     WorkingCompositionDetail,
     WorkingCompositionInitializeRequest,
     WorkingMutationRequest,
@@ -158,6 +160,40 @@ def initialize_working_composition(
         request,
         InitializeResult(
             working_composition_id=result.identities["working_composition_id"],
+            completed_revision=result.completed_revision,
+            replayed=result.replayed,
+        ),
+    )
+
+
+@router.post(
+    "/commit",
+    response_model=SuccessResponse[CompositionCommitResult],
+    status_code=status.HTTP_201_CREATED,
+    operation_id="commit_working_composition",
+)
+def commit_working_composition(
+    project_id: UUID,
+    payload: WorkingCompositionCommitRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[CompositionCommitResult]:
+    try:
+        result = service.commit(
+            project_id,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(
+        request,
+        CompositionCommitResult(
+            working_composition_id=result.identities["working_composition_id"],
+            composition_snapshot_id=result.identities["composition_snapshot_id"],
             completed_revision=result.completed_revision,
             replayed=result.replayed,
         ),

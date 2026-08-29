@@ -18,6 +18,7 @@ import type {
   CompositionSnapshotSummaryDto,
   CompositionWorkspaceDto,
   WorkingCheckoutResultDto,
+  WorkingCommitResultDto,
   WorkingClipResultDto,
   WorkingCompositionDto,
   WorkingInitializeResultDto,
@@ -246,6 +247,12 @@ export const dohaApi = {
     }),
   checkoutWorkingComposition: (projectId: string, body: WorkingBase & { composition_snapshot_id: string }, idempotencyKey: string) =>
     workspaceData<WorkingCheckoutResultDto>(`${workingPath(projectId)}/checkout`, mutationInit("POST", body, idempotencyKey)),
+  commitWorkingComposition: (projectId: string, expectedRevision: number, idempotencyKey: string) =>
+    workspaceData<WorkingCommitResultDto>(`${workingPath(projectId)}/commit`, mutationInit(
+      "POST",
+      { expected_revision: expectedRevision },
+      idempotencyKey,
+    )),
   createWorkingTrack: (projectId: string, body: WorkingBase & { name: string }, idempotencyKey: string) =>
     workspaceData<WorkingTrackResultDto>(`${workingPath(projectId)}/tracks`, mutationInit("POST", body, idempotencyKey)),
   renameWorkingTrack: (projectId: string, trackId: string, body: WorkingBase & { name: string }) =>

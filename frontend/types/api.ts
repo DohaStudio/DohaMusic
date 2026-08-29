@@ -381,8 +381,13 @@ export interface WorkingInitializeResultDto extends WorkingMutationResultDto {
 }
 
 export interface WorkingCheckoutResultDto extends WorkingMutationResultDto {
+    working_composition_id: string;
+    base_composition_snapshot_id: string;
+}
+
+export interface WorkingCommitResultDto extends WorkingMutationResultDto {
   working_composition_id: string;
-  base_composition_snapshot_id: string;
+  composition_snapshot_id: string;
 }
 
 export interface WorkingTrackResultDto extends WorkingMutationResultDto {

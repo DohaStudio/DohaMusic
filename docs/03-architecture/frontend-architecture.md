@@ -2,7 +2,7 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-29
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료], D3 Clip Editing·Memory Undo/Redo·Track/Clip Waveform·Working Preview Integration [완료]
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료], D3 Clip Editing·Memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit Integration [완료]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
@@ -120,9 +120,9 @@ frontend/
 - canonical Track·Clip과 durable edit state는 [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)의 Backend WorkingComposition이 소유한다. `projection_id`, component UUID, React state와 Web Storage를 canonical ID/persistence로 사용하지 않는다.
 - Frontend drag 중 preview, hover, selection과 Undo/Redo command stack만 memory state다. 성공한 move·trim·split·delete는 `expected_revision`과 함께 서버 mutation으로 반영하며 refresh 뒤 server state를 다시 읽는다.
 - committed GlobalPlayer/Master Waveform과 working Clip preview/Waveform은 서로 다른 source·duration authority다. Working Preview는 revision-pinned render가 성공하고 사용자가 재생을 선택한 경우에만 working edit의 별도 결과로 표시하며 committed playback으로 위장하지 않는다.
-- `dohaApi`의 17개 WorkingComposition operation DTO/client, Project Composition의 Track/Clip editor와 strict LIFO memory command stack을 구현했다. initialize·checkout·Project 변경·revision/structure conflict는 history boundary이며 refresh 시 stack은 복원하지 않는다.
+- `dohaApi`의 19개 WorkingComposition Product operation DTO/client, Project Composition의 Track/Clip editor와 strict LIFO memory command stack을 구현했다. initialize·checkout·성공한 Composition Commit·Project 변경·revision/structure conflict는 history boundary이며 refresh 시 stack은 복원하지 않는다. Commit 실패는 stack을 보존하고 Commit 자체는 Undo/Redo command로 넣지 않는다.
 - idempotent logical mutation은 operation별 새 key를 갖고 response loss retry에 같은 key를 유지한다. 성공 응답의 `completed_revision`을 반영한 뒤 GET으로 canonical aggregate를 reconcile하며 실패한 command는 stack을 이동시키지 않는다.
-- Track/Clip Waveform은 exact media-source와 bounded editor-session cache를 통해 구현했다. Working Preview는 explicit POST, adaptive Workspace Job polling, exact `working_preview` Artifact output, stale/rerender와 기존 Global Player handoff를 사용한다. completion은 auto-play하지 않고 refresh 뒤 공식 latest read가 없으므로 session은 idle로 시작한다. Composition commit과 Mixer는 구현하지 않았다.
+- Track/Clip Waveform은 exact media-source와 bounded editor-session cache를 통해 구현했다. Working Preview는 explicit POST, adaptive Workspace Job polling, exact `working_preview` Artifact output, stale/rerender와 기존 Global Player handoff를 사용한다. completion은 auto-play하지 않고 refresh 뒤 공식 latest read가 없으므로 session은 idle로 시작한다. Composition Commit action은 active Clip이 있을 때만 활성화하고 성공 시 working revision·Composition selection/history를 refetch하며 history를 비운다. 기존 Preview는 stale로 표시하고 Global Player를 자동 전환하지 않는다. Mixer는 구현하지 않았다.
 
 ## API 연결 원칙
 

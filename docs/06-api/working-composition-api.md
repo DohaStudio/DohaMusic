@@ -14,6 +14,7 @@
 | `GET` | `` | 200 | 없음 | ordered active working aggregate 조회 |
 | `POST` | `/initialize` | 201 | 필수 | 빈 WorkingComposition 최초 생성 |
 | `POST` | `/checkout` | 200 | 필수 | immutable Snapshot arrangement 복원 |
+| `POST` | `/commit` | 201 | 필수 | canonical working arrangement를 새 immutable Snapshot으로 확정 |
 | `POST` | `/preview` | 202 | 필수 | expected revision의 immutable Preview Job/manifest 생성 |
 | `POST` | `/tracks` | 201 | 필수 | audio Track 생성 |
 | `PATCH` | `/tracks/reorder` | 200 | 없음 | 전체 active Track 절대 순서 적용 |
@@ -30,7 +31,15 @@
 | `POST` | `/clips/{original_clip_id}/unsplit` | 200 | 필수 | exact split child를 tombstone하고 original 복원 |
 | `POST` | `/clips/{original_clip_id}/resplit` | 200 | 필수 | 같은 canonical split child를 복원 |
 
-모든 mutation body는 `working_composition_id`와 `expected_revision`을 요구한다. Clip 시간 입력은 decimal seconds이고, source duration·Artifact ID·owner·path·locator는 받지 않는다. replay 응답의 `completed_revision`과 identity는 stored completion result가 authority다.
+일반 edit mutation body는 `working_composition_id`와 `expected_revision`을 요구한다. Project당 하나인 working aggregate를 확정하는 `/commit`과 별도 render action인 `/preview` body는 `expected_revision`만 받는다. Clip 시간 입력은 decimal seconds이고, source duration·Artifact ID·owner·path·locator는 받지 않는다. replay 응답의 `completed_revision`과 identity는 stored completion result가 authority다.
+
+## Composition Commit
+
+`POST /commit`은 Backend canonical active Track·Clip, exact AssetVersion, frozen source geometry와 WorkingComposition mix settings를 deterministic order로 새 CompositionSnapshot·SnapshotTrack·SnapshotClip에 고정한다. 같은 transaction에서 Project explicit selection과 WorkingComposition base를 새 Snapshot으로 바꾸고 revision을 정확히 1 증가시킨다. 응답은 `working_composition_id`, `composition_snapshot_id`, `completed_revision`, `replayed`다.
+
+active Clip이 0개면 Track 존재 여부와 무관하게 `409 WORKING_COMPOSITION_EMPTY`다. tombstone Clip은 세지 않으며 Snapshot·selection·base·revision·성공 completion을 변경하지 않는다. same key·same fingerprint는 최초 Snapshot ID와 completed revision을 replay하며 새 Snapshot과 aggregate 재계산은 0건이다.
+
+Commit은 render·Preview·Export·Mixer가 아니다. Artifact·AssetVersion을 생성하거나 이전 Master/Mix와 Preview output을 새 Snapshot으로 복사하지 않는다. 따라서 선택된 새 Snapshot에 canonical playback source가 없어도 Commit은 성공하며 Composition consumer는 `NO_CANONICAL_PLAYBACK_SOURCE` 상태를 허용한다. 기존 Preview는 보존하되 revision 증가로 stale이 되고 자동 rerender·player source switch는 하지 않는다.
 
 ## Clip media source read
 
@@ -50,9 +59,9 @@ Frontend는 Clip의 exact `source_asset_version_id`마다 이 endpoint를 공식
 
 ## Frontend history boundary
 
-initialize 성공은 빈 Frontend Undo/Redo history의 시작점이다. checkout 성공은 working arrangement 전체를 교체하는 history barrier이며 checkout 자체는 inverse operation이 아니다. Backend API는 command stack을 저장하거나 checkout 이전 command의 재적용을 허가하지 않는다.
+initialize 성공은 빈 Frontend Undo/Redo history의 시작점이다. checkout 성공은 working arrangement 전체를 교체하는 history barrier이며 checkout 자체는 inverse operation이 아니다. Commit 성공과 same-key replay 성공도 새 base의 history barrier로 Undo·Redo stack을 비우며 Commit 자체는 Undo/Redo command가 아니다. 실패한 Commit은 history를 비우지 않는다. 단, revision·split structure conflict는 Commit barrier가 아니라 기존 conflict GET/reconcile authority에 따라 history를 초기화한다. 과거 committed version 이동은 explicit checkout을 사용한다. Backend API는 command stack을 저장하지 않는다.
 
-Frontend editing consumer는 기존 17개 operation을 중앙 API client로 호출한다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip aggregate를 reconcile한다. create/delete는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용하며 네트워크 응답 유실 재시도에는 동일 `Idempotency-Key`를 유지한다.
+Frontend editing consumer는 19개 Product operation을 중앙 API client로 호출한다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip 및 Composition selection을 reconcile한다. create/delete는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용하며 네트워크 응답 유실 재시도에는 동일 `Idempotency-Key`를 유지한다.
 
 ## Working Preview
 
@@ -70,6 +79,7 @@ Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 
 | 404 | `COMPOSITION_SNAPSHOT_NOT_FOUND` | Snapshot 없음 또는 다른 Project |
 | 409 | `WORKING_COMPOSITION_ALREADY_EXISTS` | 다른 key의 duplicate initialize |
 | 409 | `WORKING_COMPOSITION_REVISION_CONFLICT` | expected revision CAS 또는 Preview revision pin 실패 |
+| 409 | `WORKING_COMPOSITION_EMPTY` | active Clip 0개인 Commit 거부 |
 | 409 | `WORKING_PREVIEW_MANIFEST_CONFLICT`, `WORKING_PREVIEW_JOB_STATE_CONFLICT` | Preview binding/manifest 또는 claim-owned completion 상태 충돌 |
 | 409 | `TRACK_NOT_EMPTY`, `TRACK_ALREADY_ACTIVE`, `TRACK_RESTORE_ORDER_INVALID`, `CLIP_ALREADY_ACTIVE`, `CLIP_OVERLAP` | Product invariant 충돌 |
 | 409 | `SPLIT_STRUCTURE_CONFLICT` | split lineage·source·exact geometry 또는 상태가 최초 split 구조와 다름 |
@@ -83,6 +93,6 @@ Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 
 
 ## Surface 실측
 
-WorkingComposition Router는 APIRoute 18개, OpenAPI Path 17개, Operation 18개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Preview operation ID 충돌은 0개다.
+WorkingComposition Router는 APIRoute 19개, OpenAPI Path 18개, Operation 19개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Commit operation ID 충돌은 0개다.
 
-이 18개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.
+이 19개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.

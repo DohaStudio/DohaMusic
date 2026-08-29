@@ -29,6 +29,9 @@ from backend.core.idempotency_completion import (
 from backend.models.workspace import (
     AssetType,
     CompositionClip,
+    CompositionSnapshot,
+    CompositionSnapshotClip,
+    CompositionSnapshotTrack,
     CompositionTrack,
     MusicProject,
     WorkingComposition,
@@ -69,6 +72,7 @@ class WorkingCompositionErrorCode(StrEnum):
     WORKING_COMPOSITION_NOT_FOUND = "WORKING_COMPOSITION_NOT_FOUND"
     WORKING_COMPOSITION_ALREADY_EXISTS = "WORKING_COMPOSITION_ALREADY_EXISTS"
     WORKING_COMPOSITION_REVISION_CONFLICT = "WORKING_COMPOSITION_REVISION_CONFLICT"
+    WORKING_COMPOSITION_EMPTY = "WORKING_COMPOSITION_EMPTY"
     TRACK_NOT_FOUND = "TRACK_NOT_FOUND"
     TRACK_NOT_EMPTY = "TRACK_NOT_EMPTY"
     TRACK_ALREADY_ACTIVE = "TRACK_ALREADY_ACTIVE"
@@ -85,6 +89,9 @@ class WorkingCompositionErrorCode(StrEnum):
 
 
 _SAFE_ERROR_MESSAGES = {
+    WorkingCompositionErrorCode.WORKING_COMPOSITION_EMPTY: (
+        "활성 Clip이 없는 WorkingComposition은 Commit할 수 없습니다."
+    ),
     WorkingCompositionErrorCode.WORKING_COMPOSITION_NOT_FOUND: (
         "WorkingComposition을 찾을 수 없습니다."
     ),
@@ -271,6 +278,133 @@ class WorkingCompositionService:
                     WorkingCompositionErrorCode.WORKING_COMPOSITION_ALREADY_EXISTS
                 ) from None
             raise
+
+    def commit(
+        self,
+        project_id: UUID,
+        *,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        """Freeze the canonical working arrangement as one new immutable Snapshot."""
+
+        _validate_uuid(project_id, "project_id")
+        _validate_uuid(effective_owner_id, "effective_owner_id")
+        if type(expected_revision) is not int or expected_revision < 0:
+            raise ApplicationValidationError("expected_revision은 0 이상의 정수여야 합니다.")
+        key = _normalize_idempotency_key(idempotency_key)
+        operation = IdempotencyResultType.COMPOSITION_COMMIT
+
+        with self.session_factory() as session, session.begin():
+            self._require_project_scope(session, project_id, effective_owner_id)
+            repository = CompositionRepository(session)
+            working = repository.get_project_working_composition(project_id)
+            if working is None:
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.WORKING_COMPOSITION_NOT_FOUND
+                )
+            fingerprint = _fingerprint(
+                effective_owner_id=effective_owner_id,
+                project_id=project_id,
+                working_composition_id=working.working_composition_id,
+                operation=operation.value,
+                expected_revision=expected_revision,
+                target_identity=None,
+                body={},
+            )
+            scope = (
+                f"working-composition:{effective_owner_id}:{project_id}:"
+                f"{working.working_composition_id}:{operation.value}"
+            )
+            idempotency = IdempotencyRepository(session)
+            claim = _claim_with_result(
+                idempotency,
+                scope=scope,
+                key=key,
+                fingerprint=fingerprint,
+            )
+            replay = _replay_result(claim, operation)
+            if replay is not None:
+                return WorkingMutationResult(
+                    completed_revision=replay.completed_revision,
+                    replayed=True,
+                    result_type=replay.result_type,
+                    identities={
+                        **replay.identities,
+                        "working_composition_id": working.working_composition_id,
+                    },
+                )
+
+            _require_expected_revision(working, expected_revision)
+            tracks = repository.list_active_composition_tracks(working.working_composition_id)
+            clips = repository.list_working_composition_clips(working.working_composition_id)
+            if not clips:
+                raise WorkingCompositionError(WorkingCompositionErrorCode.WORKING_COMPOSITION_EMPTY)
+            revision = self._increment_revision(
+                repository, working.working_composition_id, expected_revision
+            )
+
+            snapshot = repository.add_snapshot(
+                CompositionSnapshot(
+                    project_id=project_id,
+                    snapshot_version=repository.get_next_snapshot_version(project_id),
+                    processing_chain_id=None,
+                    mix_settings_snapshot=dict(working.mix_settings),
+                    provider_versions={},
+                    model_manifest_ids={},
+                    created_by=effective_owner_id,
+                )
+            )
+            snapshot_track_ids: dict[UUID, UUID] = {}
+            for track in tracks:
+                frozen = repository.add_snapshot_track(
+                    CompositionSnapshotTrack(
+                        composition_snapshot_id=snapshot.composition_snapshot_id,
+                        canonical_track_id=track.track_id,
+                        track_type=track.track_type,
+                        name=track.name,
+                        track_order=track.track_order,
+                    )
+                )
+                snapshot_track_ids[track.track_id] = frozen.snapshot_track_id
+            for clip in clips:
+                repository.add_snapshot_clip(
+                    CompositionSnapshotClip(
+                        composition_snapshot_id=snapshot.composition_snapshot_id,
+                        snapshot_track_id=snapshot_track_ids[clip.track_id],
+                        canonical_clip_id=clip.clip_id,
+                        source_asset_version_id=clip.source_asset_version_id,
+                        timeline_start=clip.timeline_start,
+                        source_in=clip.source_in,
+                        source_out=clip.source_out,
+                        source_duration=clip.source_duration,
+                        split_from_clip_id=clip.split_from_clip_id,
+                    )
+                )
+
+            repository.set_project_selection(project_id, snapshot.composition_snapshot_id)
+            working.base_composition_snapshot_id = snapshot.composition_snapshot_id
+            repository.flush()
+            completed = _complete_result(
+                idempotency,
+                claim,
+                completed_revision=revision,
+                result_type=operation,
+                payload={"composition_snapshot_id": snapshot.composition_snapshot_id},
+                resource_type="composition_snapshot",
+                resource_id=snapshot.composition_snapshot_id,
+                response_status=201,
+            )
+            return WorkingMutationResult(
+                completed_revision=completed.completed_revision,
+                replayed=False,
+                result_type=completed.result_type,
+                identities={
+                    **completed.identities,
+                    "working_composition_id": working.working_composition_id,
+                },
+            )
 
     def checkout(
         self,

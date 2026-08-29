@@ -11,6 +11,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Composition Commit
+
+- `POST /api/v1/projects/{project_id}/working-composition/commit`을 추가해 Backend canonical active Track·Clip, exact AssetVersion, frozen geometry와 mix settings를 새 immutable CompositionSnapshot·SnapshotTrack·SnapshotClip에 고정한다. Project selection·WorkingComposition base·revision `+1`·`COMPOSITION_COMMIT` completion은 한 Service transaction이다.
+- active Clip 0개는 `WORKING_COMPOSITION_EMPTY`로 거부하고 Snapshot·selection·base·revision·성공 completion을 0건 보장한다. same-key response-loss retry는 최초 Snapshot ID와 completed revision을 replay하며 새 Snapshot을 만들지 않는다.
+- Commit은 render가 아니므로 Preview·Master/Mix Artifact와 AssetVersion을 복사하거나 생성하지 않는다. 새 Snapshot의 canonical playback source가 없어도 성공하고 기존 Working Preview는 revision 차이로 stale이 되며 Global Player를 자동 전환하지 않는다.
+- Frontend editor에 “현재 편집 상태를 새 버전으로 저장” action을 추가했다. empty/pending 상태를 명시적으로 비활성화하고 성공 뒤 Composition selection과 working aggregate를 reconcile하며 Undo/Redo stack을 비운다. 실패는 history를 보존하고 과거 committed version 이동은 기존 Snapshot checkout을 사용한다.
+- 기존 schema와 `COMPOSITION_COMMIT` typed completion을 재사용해 migration은 추가하지 않았고 Alembic head는 `20260828_0024`다. 실제 사용자 DB·media·Provider·GPU·background daemon은 변경하지 않았다.
+
 ### 추가 — Working Preview Frontend Integration
 
 - WorkingComposition editor에 명시적 Preview action을 추가하고 canonical Backend revision과 opaque `Idempotency-Key`로 `POST /working-composition/preview`를 호출한다. network response loss 재시도는 같은 key를 유지하고 새 사용자 action은 새 key를 사용한다.

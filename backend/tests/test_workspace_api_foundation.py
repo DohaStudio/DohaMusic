@@ -206,10 +206,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
 
-    assert len(registered_routes) == 96
-    assert len(api_routes) == 92
-    assert len(openapi_paths) == 73
-    assert len(operation_ids) == 94
+    assert len(registered_routes) == 97
+    assert len(api_routes) == 93
+    assert len(openapi_paths) == 74
+    assert len(operation_ids) == 95
     assert (
         len(
             [
@@ -221,8 +221,8 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         == 33
     )
     assert "/health" in openapi_paths
-    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 51
-    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 39
+    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 52
+    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 40
     v1_operations = {
         (method.upper(), path): operation
         for path, path_item in openapi_paths.items()
@@ -270,6 +270,7 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         ("GET", "/api/v1/projects/{project_id}/working-composition"),
         ("POST", "/api/v1/projects/{project_id}/working-composition/initialize"),
         ("POST", "/api/v1/projects/{project_id}/working-composition/checkout"),
+        ("POST", "/api/v1/projects/{project_id}/working-composition/commit"),
         ("POST", "/api/v1/projects/{project_id}/working-composition/preview"),
         ("POST", "/api/v1/projects/{project_id}/working-composition/tracks"),
         ("PATCH", "/api/v1/projects/{project_id}/working-composition/tracks/reorder"),
@@ -316,7 +317,7 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
             "/api/v1/projects/{project_id}/working-composition/clips/{original_clip_id}/resplit",
         ),
     }
-    assert len({item["operationId"] for item in v1_operations.values()}) == 51
+    assert len({item["operationId"] for item in v1_operations.values()}) == 52
     assert all(item.get("summary") for item in v1_operations.values())
     assert all(item.get("tags") for item in v1_operations.values())
     assert len(duplicate_ids) == 2
