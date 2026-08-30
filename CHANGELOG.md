@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Clip Gain Backend Foundation
+
+- ADR-053에서 D3 Clip별 static `gain_db`를 기본 `0.00 dB`, `0.01 dB` 해상도, inclusive `-24.00..+24.00 dB`로 확정했다. mute sentinel은 사용하지 않고 Track/Master Gain·Pan·Mute·Solo는 D4로 분리했다.
+- revision-safe `PATCH /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/gain`과 `CLIP_GAIN_UPDATE` completion을 추가했다. Copy·Split은 Gain을 상속하고 delete/restore·move/trim은 보존하며 split lineage Gain divergence의 unsplit/resplit은 fail-closed rollback한다.
+- CompositionClip·SnapshotClip·WorkingPreviewRenderClip에 Gain을 보존하고 Preview manifest schema 2와 FFmpeg static dB DSP를 추가했다. Commit은 Gain을 freeze하고 Preview는 source trim 뒤 Gain, timeline placement, Track mix 순으로 적용하며 Waveform cache는 변경하지 않는다.
+- additive Alembic `20260830_0025`와 upgrade/downgrade, range, replay, CAS, identity, Preview amplitude·pinning 및 회귀 테스트를 추가했다. 실제 사용자 DB·media·Common Contract·Provider·Dataset·Training·GPU와 Frontend production code는 변경하지 않았다.
+
 ### 추가 — Clip Copy
 
 - `POST /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/copy`를 추가했다. active source Clip의 exact AssetVersion과 frozen source range/duration을 유지하고 명시적 target Track·timeline position에 서버 발급 새 canonical Clip ID를 생성한다. source row와 split lineage는 변경하지 않으며 copied `split_from_clip_id`는 `null`이다.

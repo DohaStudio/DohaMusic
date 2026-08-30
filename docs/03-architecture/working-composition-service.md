@@ -3,7 +3,7 @@
 > 문서 상태: [완료]
 > 최종 수정일: 2026-08-30
 > 관련 기능: AI-native DAW D3 Clip Editing Backend와 Frontend consumer
-> 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Product API](../06-api/working-composition-api.md)
+> 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-047](../11-decisions/ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [ADR-053](../11-decisions/ADR-053-clip-gain-authority.md), [Product API](../06-api/working-composition-api.md)
 
 ## 책임과 계층
 
@@ -49,6 +49,7 @@ checkout·Track create/delete/restore·Clip create/copy/split/delete/restore/uns
 - create·move·trim·split·checkout은 같은 Track의 `[start,end)` overlap을 거부하고 adjacency와 cross-Track overlap을 허용한다.
 - split은 original을 tombstone하고 두 새 canonical ID에 `split_from_clip_id=original`을 기록한다.
 - Clip copy는 active source row에서 exact AssetVersion과 frozen source geometry를 읽고, 명시한 active target Track·timeline position에 서버 발급 새 canonical ID를 생성한다. source body 입력·implicit placement·latest Version fallback은 없고 copied row의 `split_from_clip_id`는 항상 `null`이다. 현재 source eligibility와 기존 overlap authority를 다시 검증한다.
+- Clip Gain은 exact `NUMERIC(5,2)`, 기본 `0.00 dB`, 양 끝 포함 `-24.00..+24.00 dB`의 absolute mutation이다. Copy와 Split child는 source Gain을 상속하고 delete/restore는 값을 보존하며 move/trim은 변경하지 않는다. original·left·right Gain이 다르면 unsplit/resplit은 `SPLIT_STRUCTURE_CONFLICT`로 전체 rollback해 편집을 조용히 잃지 않는다.
 - delete는 tombstone만 만들고 AssetVersion·Artifact·payload를 변경하지 않는다.
 - Clip restore는 같은 canonical ID와 생성 당시 frozen geometry·`source_duration`을 유지하되, 현재 ProjectAsset·AssetVersion·Asset·eligible Artifact와 parent Track 활성 상태 및 overlap을 다시 fail-closed 검증한다.
 - unsplit은 정확히 최초 split geometry를 유지하는 두 active child만 tombstone하고 original을 복원한다. resplit은 같은 조건의 두 tombstone child를 같은 canonical ID로 복원한다. 이동·trim·삭제·lineage/source 변경 등 구조 drift가 있으면 `SPLIT_STRUCTURE_CONFLICT`다.
@@ -63,8 +64,10 @@ Commit은 audio·file·Provider I/O, Preview render, Master/Mix 복사나 새 As
 
 Clip Copy는 exact geometry·new identity·response-loss replay·split child·Snapshot freeze·concurrent CAS와 eligibility/insert/revision/completion 강제 rollback을 별도 회귀 테스트로 검증한다.
 
-격리 SQLite fixture에서 revision race exactly-one success, initialize unique race, inverse replay fidelity, 동일 canonical ID 복원, atomic Track reindex, current source eligibility, exact split geometry, overlap과 forced rollback을 검증했다. WorkingComposition mutation source revision은 `20260825_0022`이고 현재 repository single head는 Working Preview manifest를 추가한 `20260828_0024`다. inverse mutation과 media source read 자체는 기존 schema를 사용하며 실제 사용자 DB·Provider·GPU에는 접근하지 않았다.
+격리 SQLite fixture에서 revision race exactly-one success, initialize unique race, inverse replay fidelity, 동일 canonical ID 복원, atomic Track reindex, current source eligibility, exact split geometry, Clip Gain inheritance/divergence, overlap과 forced rollback을 검증했다. 현재 repository single head는 세 Clip table에 Gain을 추가한 `20260830_0025`다. 실제 사용자 DB·Provider·GPU에는 접근하지 않았다.
 
 initialize는 빈 Frontend history에서 시작하고 checkout과 성공한 Composition Commit은 history barrier다. Commit 자체는 Undo command가 아니며 과거 committed state 이동은 checkout을 사용한다. Backend는 command history나 undo stack을 저장하지 않는다. Frontend는 이 계약을 memory-only command stack과 conflict GET/reconcile로 소비한다. exact AssetVersion-safe media source를 editor-session bounded decode cache와 Clip별 `[source_in, source_out)` projection으로 연결한 Track/Clip Waveform Frontend까지 완료했다.
 
 명시적 Preview action은 WorkingComposition을 mutation하지 않고 현재 revision의 ordered Track·Clip과 exact Artifact를 전용 durable manifest에 고정한다. Project당 하나의 non-canonical `MIX` Preview Asset을 전용 binding으로 소유하며, 성공 render마다 새 immutable AssetVersion·WAV Artifact와 `working_preview` JobOutput을 claim-owned transaction으로 만든다. 같은 key는 최초 Job을 replay하고 새 action·retry 성공은 기존 결과를 덮어쓰지 않는다. 24시간 뒤 Artifact를 `expired`로 전환해 content를 닫되 AssetVersion·manifest provenance는 보존한다. Frontend는 explicit POST, 공식 Job polling, exact output cardinality, stale/rerender와 기존 Global Player handoff로 이 계약을 소비하며 completion 시 자동 재생하지 않는다. Commit 뒤 기존 Preview는 보존되지만 revision 차이로 stale이다. 상세 authority는 [ADR-052](../11-decisions/ADR-052-working-composition-preview-render-authority.md)를 따른다. Mixer는 후속 범위다.
+
+Preview manifest schema 2는 Clip별 `gain_db`를 immutable하게 pin한다. renderer는 source decode/trim 뒤 static dB Gain을 적용하고 timeline placement와 Track mix를 수행한다. 이후 Working Gain mutation은 기존 manifest·Artifact를 바꾸지 않으며 Preview·Commit을 자동 생성하지 않는다. Commit은 active Gain을 SnapshotClip에 고정한다. Waveform은 source-shape projection을 유지해 Gain mutation으로 decode cache나 peak를 다시 만들지 않는다.

@@ -252,7 +252,10 @@ def map_working_composition_error(exc: Exception) -> AppError:
             WorkingCompositionErrorCode.TRACK_NOT_FOUND,
             WorkingCompositionErrorCode.CLIP_NOT_FOUND,
         }
-        validation = {WorkingCompositionErrorCode.INVALID_CLIP_RANGE}
+        validation = {
+            WorkingCompositionErrorCode.INVALID_CLIP_RANGE,
+            WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE,
+        }
         return AppError(
             code=exc.code.value,
             message=str(exc),

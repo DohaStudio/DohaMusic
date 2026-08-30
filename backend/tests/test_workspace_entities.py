@@ -169,6 +169,7 @@ EXPECTED_COLUMNS = {
         "source_in",
         "source_out",
         "source_duration",
+        "gain_db",
         "split_from_clip_id",
         "created_at",
         "updated_at",
@@ -192,6 +193,7 @@ EXPECTED_COLUMNS = {
         "source_in",
         "source_out",
         "source_duration",
+        "gain_db",
         "split_from_clip_id",
     },
     "project_composition_selections": {
@@ -355,6 +357,7 @@ EXPECTED_COLUMNS = {
         "source_out_us",
         "source_duration_us",
         "timeline_start_us",
+        "gain_db",
     },
     "recording_enrollments": {
         "recording_enrollment_id",

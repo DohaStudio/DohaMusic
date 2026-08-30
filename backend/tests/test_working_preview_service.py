@@ -5,6 +5,7 @@ from __future__ import annotations
 import wave
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -194,7 +195,33 @@ def test_create_pins_more_than_sixteen_clips_without_composition_mutation(
         assert len(clips) == 17
         assert [item.canonical_order for item in clips] == list(range(17))
         assert {item.source_artifact_id for item in clips} == {graph.source_artifact_id}
+        assert {item.gain_db for item in clips} == {Decimal("0.00")}
         assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 0
+
+
+def test_preview_manifest_pins_gain_without_rereading_working_clip(preview_graph) -> None:
+    factory, graph, _ = preview_graph
+    with factory.begin() as session:
+        source = session.scalar(
+            select(CompositionClip).where(
+                CompositionClip.working_composition_id == graph.working_id
+            )
+        )
+        assert source is not None
+        source.gain_db = Decimal("6.00")
+        source_clip_id = source.clip_id
+
+    created = _create(WorkingPreviewService(factory), graph, "gain-pinned")
+    with factory.begin() as session:
+        source = session.get(CompositionClip, source_clip_id)
+        assert source is not None
+        source.gain_db = Decimal("-6.00")
+    with factory() as session:
+        pinned = session.get(
+            WorkingPreviewRenderClip,
+            {"preview_render_id": created.preview_render_id, "clip_id": source_clip_id},
+        )
+        assert pinned is not None and pinned.gain_db == Decimal("6.00")
 
 
 def test_preview_product_api_returns_async_job_without_locator_exposure(preview_graph) -> None:
@@ -309,6 +336,7 @@ def test_retry_clones_exact_manifest_without_overwriting_version(preview_graph) 
         assert [item.source_artifact_id for item in retry_clips] == [
             item.source_artifact_id for item in original_clips
         ]
+        assert [item.gain_db for item in retry_clips] == [item.gain_db for item in original_clips]
 
 
 def test_success_atomically_creates_version_artifact_and_job_output(preview_graph) -> None:

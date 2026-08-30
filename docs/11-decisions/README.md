@@ -56,6 +56,7 @@
 | [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md) | WorkingComposition same-ID restore·exact split inverse mutation과 history boundary | 승인 |
 | [ADR-051](ADR-051-verified-durable-staging-authority.md) | locator-derived local publish·restart adoption·cleanup의 verified byte authority | 승인, adapter 구현 대기 |
 | [ADR-052](ADR-052-working-composition-preview-render-authority.md) | revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact 수명주기 | 승인, Backend foundation 구현 |
+| [ADR-053](ADR-053-clip-gain-authority.md) | Clip별 static Gain, split inverse·Preview DSP·Commit freeze 계약 | 승인, Backend foundation 구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

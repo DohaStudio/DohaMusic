@@ -257,6 +257,7 @@ active row의 `(working_composition_id, track_order)`는 partial Unique입니다
 | `source_in` | bigint | 아니요 | Check | 0 이상 source 시작 μs |
 | `source_out` | bigint | 아니요 | Check | `source_in`보다 큰 끝 μs |
 | `source_duration` | bigint | 아니요 | Check | 양수이며 `source_out` 이상인 고정 source 길이 μs |
+| `gain_db` | decimal(5,2) | 아니요 | Check | 기본 `0.00`, `-24.00..+24.00 dB` static Clip Gain |
 | `split_from_clip_id` | UUID | 예 | same-composition FK, Index | immediate split parent identity |
 | `created_at` | timestamp | 아니요 |  | 생성 시각 |
 | `updated_at` | timestamp | 아니요 |  | 수정 시각 |
@@ -292,6 +293,7 @@ active row의 `(working_composition_id, track_order)`는 partial Unique입니다
 | `source_in` | bigint | 아니요 | Check | frozen source 시작 μs |
 | `source_out` | bigint | 아니요 | Check | frozen source 끝 μs |
 | `source_duration` | bigint | 아니요 | Check | frozen source 길이 μs |
+| `gain_db` | decimal(5,2) | 아니요 | Check | frozen Clip Gain, `-24.00..+24.00 dB` |
 | `split_from_clip_id` | UUID | 예 |  | frozen parent lineage 값 |
 
 ### 4.8A Working Preview persistence
@@ -303,9 +305,11 @@ additive revision `20260828_0024`는 canonical Snapshot과 분리된 Preview lif
 | `working_preview_assets` | `project_id` PK, `asset_id` Unique FK | Project당 non-canonical Preview Asset 하나, 일반 ProjectAsset binding 없음 |
 | `working_preview_renders` | render ID, Project·WorkingComposition·revision·Job·Preview Asset, nullable completion AssetVersion, payload expiry | Job당 manifest 하나, 성공 AssetVersion당 render 하나 |
 | `working_preview_render_tracks` | render ID, canonical Track ID, order | render 안 Track identity/order Unique |
-| `working_preview_render_clips` | render/Clip/Track, canonical order, exact source AssetVersion·Artifact, source/timeline μs | >16 Clip 손실 없는 exact pin, same-render Track 복합 FK, geometry Check |
+| `working_preview_render_clips` | render/Clip/Track, canonical order, exact source AssetVersion·Artifact, source/timeline μs, `gain_db` | >16 Clip 손실 없는 exact pin, same-render Track 복합 FK, geometry·Gain Check |
 
 `preview_asset_version_id`는 render 성공 전만 nullable이다. 성공 transaction이 새 immutable AssetVersion·Artifact·JobOutput과 함께 연결한다. `artifacts.asset_version_id NOT NULL`은 변경하지 않는다. `payload_expires_at`은 payload retention scan 근거이며 AssetVersion·manifest provenance 삭제 시각이 아니다. 실제 사용자 DB 적용과 backfill은 없다.
+
+additive revision `20260830_0025`는 `composition_clips`, `composition_snapshot_clips`, `working_preview_render_clips`에 non-null `gain_db`, server default `0.00`과 inclusive 범위 CHECK를 추가한다. table 수는 48개로 유지되며 실제 사용자 DB에는 적용하지 않았다.
 
 ### 4.9 `processing_chains`
 

@@ -56,6 +56,9 @@ IDEMPOTENCY_TTL_HOURS = 24
 MAX_IDEMPOTENCY_KEY_LENGTH = 128
 MAX_TRACK_NAME_LENGTH = 200
 MICROSECONDS_PER_SECOND = Decimal(1000000)
+MIN_CLIP_GAIN_DB = Decimal("-24.00")
+MAX_CLIP_GAIN_DB = Decimal("24.00")
+CLIP_GAIN_DB_QUANTUM = Decimal("0.01")
 AUDIO_ASSET_TYPES = frozenset(
     {
         AssetType.MUSIC,
@@ -80,6 +83,7 @@ class WorkingCompositionErrorCode(StrEnum):
     CLIP_NOT_FOUND = "CLIP_NOT_FOUND"
     CLIP_ALREADY_ACTIVE = "CLIP_ALREADY_ACTIVE"
     CLIP_OVERLAP = "CLIP_OVERLAP"
+    CLIP_GAIN_OUT_OF_RANGE = "CLIP_GAIN_OUT_OF_RANGE"
     SPLIT_STRUCTURE_CONFLICT = "SPLIT_STRUCTURE_CONFLICT"
     INVALID_CLIP_RANGE = "INVALID_CLIP_RANGE"
     SOURCE_ASSET_UNAVAILABLE = "SOURCE_ASSET_UNAVAILABLE"
@@ -110,6 +114,9 @@ _SAFE_ERROR_MESSAGES = {
     WorkingCompositionErrorCode.CLIP_NOT_FOUND: "Clip을 찾을 수 없습니다.",
     WorkingCompositionErrorCode.CLIP_ALREADY_ACTIVE: "Clip이 이미 활성 상태입니다.",
     WorkingCompositionErrorCode.CLIP_OVERLAP: "같은 Track의 활성 Clip은 겹칠 수 없습니다.",
+    WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE: (
+        "Clip Gain은 -24.00 dB 이상 24.00 dB 이하의 0.01 dB 단위 유한값이어야 합니다."
+    ),
     WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT: (
         "Split 원본과 child의 canonical geometry가 일치하지 않습니다."
     ),
@@ -379,6 +386,7 @@ class WorkingCompositionService:
                         source_in=clip.source_in,
                         source_out=clip.source_out,
                         source_duration=clip.source_duration,
+                        gain_db=clip.gain_db,
                         split_from_clip_id=clip.split_from_clip_id,
                     )
                 )
@@ -755,6 +763,52 @@ class WorkingCompositionService:
             changes=lambda clip: {"timeline_start": start_us},
         )
 
+    def set_clip_gain(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        clip_id: UUID,
+        gain_db: object,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        """Persist one absolute Clip-level static gain value."""
+
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        _validate_uuid(clip_id, "clip_id")
+        normalized_gain = _normalize_clip_gain_db(gain_db)
+        operation = IdempotencyResultType.CLIP_GAIN_UPDATE
+
+        def mutate(
+            repository: CompositionRepository,
+            _session: Session,
+            working: WorkingComposition,
+        ) -> UUID:
+            clip = self._require_clip(repository, working, clip_id)
+            clip.gain_db = normalized_gain
+            repository.flush()
+            return clip.clip_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=clip_id,
+            body={"gain_db": f"{normalized_gain:.2f}"},
+            mutate=mutate,
+            payload=lambda identity: {"clip_id": identity},
+            resource_type="composition_clip",
+            resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
     def copy_clip(
         self,
         project_id: UUID,
@@ -807,6 +861,7 @@ class WorkingCompositionService:
                 source_in=source.source_in,
                 source_out=source.source_out,
                 source_duration=source.source_duration,
+                gain_db=source.gain_db,
                 split_from_clip_id=None,
             )
             try:
@@ -916,6 +971,7 @@ class WorkingCompositionService:
                 source_in=original.source_in,
                 source_out=source_split,
                 source_duration=original.source_duration,
+                gain_db=original.gain_db,
                 split_from_clip_id=original.clip_id,
             )
             right = CompositionClip(
@@ -926,6 +982,7 @@ class WorkingCompositionService:
                 source_in=source_split,
                 source_out=original.source_out,
                 source_duration=original.source_duration,
+                gain_db=original.gain_db,
                 split_from_clip_id=original.clip_id,
             )
             try:
@@ -1397,6 +1454,7 @@ class WorkingCompositionService:
                 "source_in": source.source_in,
                 "source_out": source.source_out,
                 "source_duration": source.source_duration,
+                "gain_db": source.gain_db,
                 "split_from_clip_id": source.split_from_clip_id,
             }
             if target is None:
@@ -1823,6 +1881,24 @@ def _validate_clip_range(
         raise WorkingCompositionError(WorkingCompositionErrorCode.INVALID_CLIP_RANGE)
 
 
+def _normalize_clip_gain_db(value: object) -> Decimal:
+    if isinstance(value, (bool, str)):
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE)
+    try:
+        gain = value if isinstance(value, Decimal) else Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE) from None
+    if not gain.is_finite():
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE)
+    try:
+        quantized = gain.quantize(CLIP_GAIN_DB_QUANTUM)
+    except InvalidOperation:
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE) from None
+    if gain != quantized or not MIN_CLIP_GAIN_DB <= quantized <= MAX_CLIP_GAIN_DB:
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE)
+    return quantized
+
+
 def _split_geometry_matches(
     original: CompositionClip,
     left: CompositionClip,
@@ -1842,6 +1918,8 @@ def _split_geometry_matches(
         and right.source_asset_version_id == original.source_asset_version_id
         and left.source_duration == original.source_duration
         and right.source_duration == original.source_duration
+        and left.gain_db == original.gain_db
+        and right.gain_db == original.gain_db
         and left.source_in == original.source_in
         and left.source_out == right.source_in
         and right.source_out == original.source_out

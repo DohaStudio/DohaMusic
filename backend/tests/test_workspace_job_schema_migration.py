@@ -20,7 +20,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260810_0017"
 PREVIOUS_REVISION = "20260809_0016"
-SOURCE_HEAD = "20260828_0024"
+SOURCE_HEAD = "20260830_0025"
 PUBLIC_INDEXES = {
     "ix_jobs_workspace_keyset": (
         "workspace_id",

@@ -75,6 +75,7 @@ class WorkingPreviewWorkerService:
                     source_in_us=item.source_in_us,
                     source_out_us=item.source_out_us,
                     timeline_start_us=item.timeline_start_us,
+                    gain_db=item.gain_db,
                 )
                 for item in clips
             )

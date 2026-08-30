@@ -15,6 +15,7 @@ from backend.db.session import create_database_engine
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260828_0024"
+SOURCE_HEAD = "20260830_0025"
 PREVIOUS_REVISION = "20260825_0023"
 TABLES = {
     "working_preview_assets",
@@ -33,7 +34,7 @@ def _config(database_url: str) -> Config:
 
 def test_preview_metadata_and_single_head() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [SOURCE_HEAD]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
     assert set(Base.metadata.tables) >= TABLES
     artifact_fk = Base.metadata.tables["artifacts"].c.asset_version_id

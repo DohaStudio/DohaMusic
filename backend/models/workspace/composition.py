@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -13,6 +14,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     Integer,
+    Numeric,
     String,
     UniqueConstraint,
     Uuid,
@@ -196,6 +198,10 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
             "source_out <= source_duration",
             name="ck_composition_clips_range_within_source",
         ),
+        CheckConstraint(
+            "gain_db >= -24.00 AND gain_db <= 24.00",
+            name="ck_composition_clips_gain_db_range",
+        ),
         UniqueConstraint(
             "working_composition_id",
             "clip_id",
@@ -249,6 +255,9 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
     source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    gain_db: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default=text("0.00")
+    )
     split_from_clip_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
 
 
@@ -323,6 +332,10 @@ class CompositionSnapshotClip(Base):
             "source_out <= source_duration",
             name="ck_composition_snapshot_clips_range_within_source",
         ),
+        CheckConstraint(
+            "gain_db >= -24.00 AND gain_db <= 24.00",
+            name="ck_composition_snapshot_clips_gain_db_range",
+        ),
         UniqueConstraint(
             "composition_snapshot_id",
             "canonical_clip_id",
@@ -366,6 +379,9 @@ class CompositionSnapshotClip(Base):
     source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    gain_db: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default=text("0.00")
+    )
     split_from_clip_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
 
 

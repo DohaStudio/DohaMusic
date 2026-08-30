@@ -24,6 +24,7 @@ from backend.schemas.workspace import (
     ClipCopyRequest,
     ClipCreateRequest,
     ClipDetail,
+    ClipGainUpdateRequest,
     ClipMoveRequest,
     ClipMutationResult,
     ClipSplitRequest,
@@ -477,6 +478,35 @@ def move_clip(
 
 
 @router.patch(
+    "/clips/{clip_id}/gain",
+    response_model=SuccessResponse[ClipMutationResult],
+    operation_id="update_working_composition_clip_gain",
+)
+def update_clip_gain(
+    project_id: UUID,
+    clip_id: UUID,
+    payload: ClipGainUpdateRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[ClipMutationResult]:
+    try:
+        result = service.set_clip_gain(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            clip_id=clip_id,
+            gain_db=payload.gain_db,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(request, _clip_result(result))
+
+
+@router.patch(
     "/clips/{clip_id}/trim-start",
     response_model=SuccessResponse[ClipMutationResult],
     operation_id="trim_working_composition_clip_start",
@@ -767,6 +797,7 @@ def _aggregate_detail(
                 source_in=_seconds(clip.source_in),
                 source_out=_seconds(clip.source_out),
                 source_duration=_seconds(clip.source_duration),
+                gain_db=clip.gain_db,
                 split_from_clip_id=clip.split_from_clip_id,
             )
             for clip in aggregate.clips
