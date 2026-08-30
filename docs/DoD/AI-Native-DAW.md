@@ -75,7 +75,8 @@
 - [x] split identity·revision concurrency·Undo/Redo ownership·overlap·duration 정책
 - [x] Backend split·trim·move·delete와 Track create·rename·reorder·delete
 - [x] Frontend explicit Clip Copy와 copied-ID same-ID Undo/Redo
-- [ ] Frontend fade·gain·loop와 편집 UI
+- [x] Clip별 static Gain authority·persistence·revision-safe Product API·Preview DSP·Commit freeze Backend foundation
+- [ ] Frontend Clip Gain·fade·loop 편집 UI
 - [x] 원본 불변 AssetVersion lineage·canonical Track/Clip CompositionSnapshot commit
 - [x] WorkingComposition·Track·Clip·SnapshotTrack·SnapshotClip ORM과 additive Alembic 구현
 - [x] exact microseconds·FK·lineage·overlap helper·revision·Repository rollback 회귀 검증

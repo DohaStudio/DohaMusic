@@ -37,7 +37,7 @@ flowchart LR
 
 D1-A Backend read path인 `Project Composition aggregate → CompositionService → Workspace Repository → Workspace DB`를 구현했다. D1-Transition은 기존 persistence에 project-level selected Snapshot authority가 없음을 확인하고 `NO_PREEXISTING_SELECTION_AUTHORITY`로 고정했다. Bootstrap Service transaction에서 active Workspace의 Project·Snapshot·selection을 단일 batch로 검사하지만 selection row를 생성하거나 바꾸지 않는다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다. D1-B Frontend는 이 aggregate와 selection PATCH를 Project 상세에서 소비하며, 실제 사용자 DB 전환은 여전히 별도 승인 TARGET이다.
 
-[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 mutable WorkingComposition과 canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 설계했다. ADR-045·047·050·052 authority와 schema·Repository·trusted duration·idempotency foundation, [atomic mutation Service](working-composition-service.md), 20개 Product operation, Frontend Track/Clip editing·explicit Clip Copy·memory Undo/Redo, exact source-window Waveform, Working Preview 및 Composition Commit Backend/Frontend integration을 구현했다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
+[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 mutable WorkingComposition과 canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 설계했다. ADR-045·047·050·052·053 authority와 schema·Repository·trusted duration·idempotency foundation, [atomic mutation Service](working-composition-service.md), 21개 Product operation, Frontend Track/Clip editing·explicit Clip Copy·memory Undo/Redo, exact source-window Waveform, Working Preview 및 Composition Commit Backend/Frontend integration과 Clip Gain Backend foundation을 구현했다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
 
 ## 3. TARGET — 제품 Runtime
 
@@ -200,7 +200,7 @@ flowchart LR
 
 | 영역 | 현재 Gap |
 |---|---|
-| Composition edit model | ADR-040·ADR-050·ADR-052와 9개 persistence table·Service·20개 Product operation, Frontend explicit Clip Copy UI·memory Undo/Redo·Working Preview·Composition Commit Backend/Frontend integration 구현 |
+| Composition edit model | ADR-040·ADR-050·ADR-052·ADR-053과 9개 persistence table·Service·21개 Product operation, Frontend explicit Clip Copy UI·memory Undo/Redo·Working Preview·Composition Commit Backend/Frontend integration·Clip Gain Backend foundation 구현 |
 | Provider orchestration | 외부 DohaLM·DohaAudio·DohaVocal 실제 transport 미구현 |
 | Candidate workflow | 다중 후보 저장·비교·선택·commit 미구현 |
 | Composition QA | CompositionEvaluationRun, 통합 Report, RevisionPlan 실행 미구현 |

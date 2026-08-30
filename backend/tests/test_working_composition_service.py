@@ -6,6 +6,7 @@ import shutil
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -726,6 +727,11 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
         ),
         (
             "PATCH",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/gain",
+            "update_working_composition_clip_gain",
+        ),
+        (
+            "PATCH",
             "/projects/{project_id}/working-composition/clips/{clip_id}/trim-start",
             "trim_working_composition_clip_start",
         ),
@@ -760,10 +766,10 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "resplit_working_composition_clip",
         ),
     }
-    assert len(routes) == 20
-    assert len({path for _, path, _ in surface}) == 19
+    assert len(routes) == 21
+    assert len({path for _, path, _ in surface}) == 20
     operation_ids = [operation_id for _, _, operation_id in surface]
-    assert len(operation_ids) == len(set(operation_ids)) == 20
+    assert len(operation_ids) == len(set(operation_ids)) == 21
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(service, graph) -> None:
@@ -2974,3 +2980,444 @@ def test_commit_product_api_returns_structured_success_and_empty_error(
         "completed_revision": 3,
         "replayed": False,
     }
+
+
+def test_clip_gain_defaults_persists_replays_and_changes_only_gain(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    with session_factory() as session:
+        before = session.get(CompositionClip, clip_id)
+        assert before is not None and before.gain_db == Decimal("0.00")
+        geometry = (
+            before.track_id,
+            before.source_asset_version_id,
+            before.timeline_start,
+            before.source_in,
+            before.source_out,
+            before.source_duration,
+        )
+
+    first = service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        gain_db=Decimal("3.25"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-first",
+    )
+    service.rename_track(
+        graph.project_id,
+        working_composition_id=working_id,
+        track_id=track_id,
+        name="Gain replay barrier",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+    )
+    replay = service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        gain_db=Decimal("3.25"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-first",
+    )
+    assert first.completed_revision == replay.completed_revision == 3
+    assert replay.replayed is True
+    assert replay.identities == {"clip_id": clip_id}
+    with pytest.raises(IdempotencyConflictError):
+        service.set_clip_gain(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            gain_db=Decimal("3.26"),
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="gain-first",
+        )
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        working = session.get(WorkingComposition, working_id)
+        record = session.scalar(
+            select(IdempotencyRecord).where(
+                IdempotencyRecord.result_type == IdempotencyResultType.CLIP_GAIN_UPDATE.value
+            )
+        )
+        assert clip is not None and clip.gain_db == Decimal("3.25")
+        assert geometry == (
+            clip.track_id,
+            clip.source_asset_version_id,
+            clip.timeline_start,
+            clip.source_in,
+            clip.source_out,
+            clip.source_duration,
+        )
+        assert working is not None and working.revision == 4
+        assert record is not None and record.completed_revision == 3
+        assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 0
+        assert session.scalar(select(func.count(WorkingPreviewRender.preview_render_id))) == 0
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        Decimal("-24.01"),
+        Decimal("24.01"),
+        Decimal("0.001"),
+        Decimal("NaN"),
+        Decimal("Infinity"),
+        Decimal("1e999999"),
+        "3.00",
+    ],
+)
+def test_clip_gain_rejects_noncanonical_values_without_mutation(
+    service, session_factory, graph, value
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    with pytest.raises(WorkingCompositionError) as caught:
+        service.set_clip_gain(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            gain_db=value,
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="gain-invalid",
+        )
+    assert caught.value.code is WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE
+    with session_factory() as session:
+        assert session.get(CompositionClip, clip_id).gain_db == Decimal("0.00")
+        assert session.get(WorkingComposition, working_id).revision == 2
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_GAIN_UPDATE.value
+                )
+            )
+            == 0
+        )
+
+
+def test_clip_gain_absolute_updates_support_same_identity_undo_redo(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    for expected_revision, gain_db, key in (
+        (2, Decimal("-24.00"), "gain-command-initial"),
+        (3, Decimal("24.00"), "gain-command-after"),
+        (4, Decimal("-24.00"), "gain-command-undo"),
+        (5, Decimal("24.00"), "gain-command-redo"),
+    ):
+        result = service.set_clip_gain(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            gain_db=gain_db,
+            expected_revision=expected_revision,
+            effective_owner_id=graph.owner_id,
+            idempotency_key=key,
+        )
+        assert result.identities == {"clip_id": clip_id}
+        assert result.completed_revision == expected_revision + 1
+
+    with session_factory() as session:
+        assert session.get(CompositionClip, clip_id).gain_db == Decimal("24.00")
+        assert session.get(WorkingComposition, working_id).revision == 6
+
+
+def test_clip_gain_copy_split_restore_and_unsplit_structure_semantics(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    original_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        gain_db=Decimal("6.00"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-before-split",
+    )
+    copied = service.copy_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        target_track_id=track_id,
+        target_timeline_start="5",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-copy",
+    )
+    copied_id = copied.identities["clip_id"]
+    split = service.split_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        split_at="2",
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-split",
+    )
+    left_id = split.identities["left_clip_id"]
+    right_id = split.identities["right_clip_id"]
+    with session_factory() as session:
+        assert {
+            session.get(CompositionClip, identity).gain_db
+            for identity in (original_id, copied_id, left_id, right_id)
+        } == {Decimal("6.00")}
+
+    service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=left_id,
+        gain_db=Decimal("-2.00"),
+        expected_revision=5,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-left-diverge",
+    )
+    with pytest.raises(WorkingCompositionError) as conflict:
+        service.unsplit_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            original_clip_id=original_id,
+            left_clip_id=left_id,
+            right_clip_id=right_id,
+            expected_revision=6,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="gain-unsplit-conflict",
+        )
+    assert conflict.value.code is WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT
+    with session_factory() as session:
+        assert session.get(WorkingComposition, working_id).revision == 6
+        assert session.get(CompositionClip, original_id).deleted_at is not None
+        assert session.get(CompositionClip, left_id).deleted_at is None
+        assert session.get(CompositionClip, right_id).deleted_at is None
+
+    service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=left_id,
+        gain_db=Decimal("6.00"),
+        expected_revision=6,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-left-restore",
+    )
+    service.unsplit_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        original_clip_id=original_id,
+        left_clip_id=left_id,
+        right_clip_id=right_id,
+        expected_revision=7,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-unsplit-success",
+    )
+    service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        gain_db=Decimal("1.00"),
+        expected_revision=8,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-original-diverge",
+    )
+    with pytest.raises(WorkingCompositionError) as resplit_conflict:
+        service.resplit_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            original_clip_id=original_id,
+            left_clip_id=left_id,
+            right_clip_id=right_id,
+            expected_revision=9,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="gain-resplit-conflict",
+        )
+    assert resplit_conflict.value.code is WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT
+
+
+def test_clip_gain_delete_restore_preserves_identity_value_and_revision(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        gain_db=Decimal("-8.00"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-before-delete",
+    )
+    service.delete_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-delete",
+    )
+    restored = service.restore_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-restore",
+    )
+    assert restored.identities == {"clip_id": clip_id}
+    assert restored.completed_revision == 5
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip is not None and clip.deleted_at is None
+        assert clip.gain_db == Decimal("-8.00")
+
+
+def test_concurrent_clip_gain_expected_revision_allows_exactly_one_update(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    def update(value: Decimal, key: str):
+        try:
+            return service.set_clip_gain(
+                graph.project_id,
+                working_composition_id=working_id,
+                clip_id=clip_id,
+                gain_db=value,
+                expected_revision=2,
+                effective_owner_id=graph.owner_id,
+                idempotency_key=key,
+            )
+        except WorkingCompositionError as error:
+            return error
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(
+            executor.map(
+                lambda item: update(*item),
+                ((Decimal("1.00"), "gain-race-a"), (Decimal("2.00"), "gain-race-b")),
+            )
+        )
+    successes = [result for result in results if not isinstance(result, Exception)]
+    failures = [result for result in results if isinstance(result, WorkingCompositionError)]
+    assert len(successes) == len(failures) == 1
+    assert failures[0].code is WorkingCompositionErrorCode.WORKING_COMPOSITION_REVISION_CONFLICT
+    with session_factory() as session:
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert session.get(CompositionClip, clip_id).gain_db in {
+            Decimal("1.00"),
+            Decimal("2.00"),
+        }
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_GAIN_UPDATE.value
+                )
+            )
+            == 1
+        )
+
+
+def test_clip_gain_commit_freezes_and_checkout_restores_snapshot_value(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        gain_db=Decimal("4.50"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-before-commit",
+    )
+    committed = service.commit(
+        graph.project_id,
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-commit",
+    )
+    snapshot_id = committed.identities["composition_snapshot_id"]
+    service.set_clip_gain(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        gain_db=Decimal("-3.00"),
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-after-commit",
+    )
+    with session_factory() as session:
+        frozen = session.scalar(
+            select(CompositionSnapshotClip).where(
+                CompositionSnapshotClip.composition_snapshot_id == snapshot_id,
+                CompositionSnapshotClip.canonical_clip_id == clip_id,
+            )
+        )
+        assert frozen is not None and frozen.gain_db == Decimal("4.50")
+        assert session.get(CompositionClip, clip_id).gain_db == Decimal("-3.00")
+
+    service.checkout(
+        graph.project_id,
+        working_composition_id=working_id,
+        composition_snapshot_id=snapshot_id,
+        expected_revision=5,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="gain-checkout",
+    )
+    with session_factory() as session:
+        assert session.get(CompositionClip, clip_id).gain_db == Decimal("4.50")
+
+
+def test_clip_gain_product_api_is_strict_and_returns_canonical_gain(
+    working_client, service, graph
+) -> None:
+    working_id = _initialize(service, graph, "gain-api-init").identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    path = f"/api/v1/projects/{graph.project_id}/working-composition/clips/{clip_id}/gain"
+    payload = {
+        "working_composition_id": str(working_id),
+        "expected_revision": 2,
+        "gain_db": 2.5,
+    }
+    response = working_client.patch(path, json=payload, headers={"Idempotency-Key": "gain-api"})
+    assert response.status_code == 200
+    assert response.json()["data"] == {
+        "clip_id": str(clip_id),
+        "completed_revision": 3,
+        "replayed": False,
+    }
+    read = working_client.get(f"/api/v1/projects/{graph.project_id}/working-composition")
+    assert read.json()["data"]["clips"][0]["gain_db"] == "2.50"
+
+    out_of_range = working_client.patch(
+        path,
+        json={**payload, "expected_revision": 3, "gain_db": 24.01},
+        headers={"Idempotency-Key": "gain-api-invalid"},
+    )
+    assert out_of_range.status_code == 422
+    assert out_of_range.json()["error"]["error_code"] == "CLIP_GAIN_OUT_OF_RANGE"
+    string_value = working_client.patch(
+        path,
+        json={**payload, "expected_revision": 3, "gain_db": "2.50"},
+        headers={"Idempotency-Key": "gain-api-string"},
+    )
+    assert string_value.status_code == 422

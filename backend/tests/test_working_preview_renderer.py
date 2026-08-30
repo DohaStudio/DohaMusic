@@ -8,6 +8,7 @@ import struct
 import subprocess
 import wave
 from contextlib import contextmanager
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -198,6 +199,92 @@ def test_renderer_cancellation_terminates_process_and_cleans_temp(
         pass
     assert process.terminated is True
     assert list(temp_root.iterdir()) == []
+
+
+def test_renderer_applies_pinned_clip_gain_with_deterministic_amplitude(
+    tmp_path: Path,
+) -> None:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        pytest.skip("FFmpeg runtime is unavailable")
+    artifact_id = uuid4()
+    source = tmp_path / "gain-source.wav"
+    _tone_wav(source, duration_frames=4_800)
+    payload = source.read_bytes()
+
+    @contextmanager
+    def open_artifact(candidate: UUID):
+        assert candidate == artifact_id
+        yield len(payload), io.BytesIO(payload)
+
+    renderer = FfmpegWorkingCompositionPreviewRenderer(
+        ffmpeg_executable=ffmpeg,
+        temp_root=tmp_path / "gain-runtime",
+        open_artifact=open_artifact,
+    )
+
+    def peak(gain_db: Decimal) -> int:
+        clip = PreviewRenderClip(
+            clip_id=uuid4(),
+            track_order=0,
+            canonical_order=0,
+            artifact_id=artifact_id,
+            source_in_us=0,
+            source_out_us=100_000,
+            timeline_start_us=0,
+            gain_db=gain_db,
+        )
+        with (
+            renderer.render([clip], track_count=1) as rendered,
+            wave.open(str(rendered.path), "rb") as output,
+        ):
+            frames = output.readframes(output.getnframes())
+        return max(abs(sample) for sample in struct.unpack(f"<{len(frames) // 2}h", frames))
+
+    unity = peak(Decimal("0.00"))
+    attenuated = peak(Decimal("-6.02"))
+    boosted = peak(Decimal("6.02"))
+    assert attenuated / unity == pytest.approx(10 ** (-6.02 / 20), rel=0.03)
+    assert boosted / unity == pytest.approx(10 ** (6.02 / 20), rel=0.03)
+
+
+@pytest.mark.parametrize("gain_db", [Decimal("-24.01"), Decimal("24.01"), Decimal("NaN")])
+def test_renderer_rejects_invalid_manifest_gain_before_opening_artifact(
+    tmp_path: Path, gain_db: Decimal
+) -> None:
+    called = False
+
+    @contextmanager
+    def open_artifact(_artifact_id: UUID):
+        nonlocal called
+        called = True
+        yield 1, io.BytesIO(b"x")
+
+    renderer = FfmpegWorkingCompositionPreviewRenderer(
+        ffmpeg_executable="ffmpeg",
+        temp_root=tmp_path,
+        open_artifact=open_artifact,
+    )
+    with (
+        pytest.raises(PreviewRenderError, match="WORKING_PREVIEW_GEOMETRY_INVALID"),
+        renderer.render(
+            [
+                PreviewRenderClip(
+                    clip_id=uuid4(),
+                    track_order=0,
+                    canonical_order=0,
+                    artifact_id=uuid4(),
+                    source_in_us=0,
+                    source_out_us=1,
+                    timeline_start_us=0,
+                    gain_db=gain_db,
+                )
+            ],
+            track_count=1,
+        ),
+    ):
+        pass
+    assert called is False
 
 
 def _tone_wav(path: Path, *, duration_frames: int) -> None:

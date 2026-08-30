@@ -6,7 +6,7 @@ from decimal import Decimal
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class _StrictModel(BaseModel):
@@ -76,6 +76,17 @@ class ClipMoveRequest(WorkingMutationRequest):
     timeline_start: Decimal = Field(ge=0)
 
 
+class ClipGainUpdateRequest(WorkingMutationRequest):
+    gain_db: Decimal
+
+    @field_validator("gain_db", mode="before")
+    @classmethod
+    def reject_non_numeric_json_values(cls, value: object) -> object:
+        if isinstance(value, (str, bool)):
+            raise ValueError("gain_db는 JSON number여야 합니다.")
+        return value
+
+
 class ClipTrimStartRequest(WorkingMutationRequest):
     timeline_start: Decimal = Field(ge=0)
     source_in: Decimal = Field(ge=0)
@@ -109,6 +120,7 @@ class ClipDetail(_StrictModel):
     source_in: Decimal
     source_out: Decimal
     source_duration: Decimal
+    gain_db: Decimal
     split_from_clip_id: UUID | None
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy import (
@@ -12,6 +13,7 @@ from sqlalchemy import (
     ForeignKeyConstraint,
     Index,
     Integer,
+    Numeric,
     UniqueConstraint,
     Uuid,
 )
@@ -108,6 +110,10 @@ class WorkingPreviewRenderClip(Base):
         CheckConstraint(
             "timeline_start_us >= 0", name="ck_working_preview_clip_non_negative_timeline"
         ),
+        CheckConstraint(
+            "gain_db >= -24.00 AND gain_db <= 24.00",
+            name="ck_working_preview_clip_gain_db_range",
+        ),
         UniqueConstraint(
             "preview_render_id", "canonical_order", name="uq_working_preview_clip_order"
         ),
@@ -137,3 +143,6 @@ class WorkingPreviewRenderClip(Base):
     source_out_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     timeline_start_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    gain_db: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
+    )

@@ -42,9 +42,10 @@
 - [x] memory Undo/Redo command stack과 initialize·checkout·commit·conflict history boundary 검증
 - [x] Track/Clip Waveform과 Working Preview Backend/Frontend integration
 - [x] 관련 Draft PR 검토·Ready 전환·`develop` 병합
-- [ ] Frontend Fade·Gain·Loop 편집 UI
+- [x] Clip Gain authority·persistence·Product API·Preview render·Snapshot freeze Backend foundation
+- [ ] Frontend Clip Gain·Fade·Loop 편집 UI
 - [ ] multi-user recovery·persistent history
 
 ## 판정
 
-`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, `Backend Inverse Mutation`, Frontend Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit은 COMPLETE다. 전체 D3는 Fade·Gain·Loop·multi-user recovery·persistent history가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.
+`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, `Backend Inverse Mutation`, Frontend Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit과 Clip Gain Backend foundation은 COMPLETE다. 전체 D3는 Clip Gain UI·Fade·Loop·multi-user recovery·persistent history가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.

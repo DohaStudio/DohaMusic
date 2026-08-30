@@ -206,10 +206,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
 
-    assert len(registered_routes) == 98
-    assert len(api_routes) == 94
-    assert len(openapi_paths) == 75
-    assert len(operation_ids) == 96
+    assert len(registered_routes) == 99
+    assert len(api_routes) == 95
+    assert len(openapi_paths) == 76
+    assert len(operation_ids) == 97
     assert (
         len(
             [
@@ -221,8 +221,8 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         == 33
     )
     assert "/health" in openapi_paths
-    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 53
-    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 41
+    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 54
+    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 42
     v1_operations = {
         (method.upper(), path): operation
         for path, path_item in openapi_paths.items()
@@ -294,6 +294,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         ),
         (
             "PATCH",
+            "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}/gain",
+        ),
+        (
+            "PATCH",
             "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}/trim-start",
         ),
         (
@@ -318,7 +322,7 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
             "/api/v1/projects/{project_id}/working-composition/clips/{original_clip_id}/resplit",
         ),
     }
-    assert len({item["operationId"] for item in v1_operations.values()}) == 53
+    assert len({item["operationId"] for item in v1_operations.values()}) == 54
     assert all(item.get("summary") for item in v1_operations.values())
     assert all(item.get("tags") for item in v1_operations.values())
     assert len(duplicate_ids) == 2

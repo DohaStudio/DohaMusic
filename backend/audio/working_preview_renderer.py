@@ -9,6 +9,7 @@ import time
 from collections.abc import Callable, Iterator, Sequence
 from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
 from typing import BinaryIO, Protocol
 from uuid import UUID
@@ -20,10 +21,23 @@ MAX_PREVIEW_INPUT_BYTES = 128 * 1024 * 1024
 MAX_PREVIEW_OUTPUT_BYTES = 384 * 1024 * 1024
 PREVIEW_RENDER_TIMEOUT_SECONDS = 300
 PREVIEW_SAMPLE_RATE = 48_000
+MIN_CLIP_GAIN_DB = Decimal("-24.00")
+MAX_CLIP_GAIN_DB = Decimal("24.00")
+CLIP_GAIN_DB_QUANTUM = Decimal("0.01")
 
 
 class PreviewRenderError(RuntimeError):
     pass
+
+
+def _is_valid_clip_gain_db(value: object) -> bool:
+    if not isinstance(value, Decimal) or not value.is_finite():
+        return False
+    try:
+        quantized = value.quantize(CLIP_GAIN_DB_QUANTUM)
+    except InvalidOperation:
+        return False
+    return value == quantized and MIN_CLIP_GAIN_DB <= value <= MAX_CLIP_GAIN_DB
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +49,7 @@ class PreviewRenderClip:
     source_in_us: int
     source_out_us: int
     timeline_start_us: int
+    gain_db: Decimal = Decimal("0.00")
 
 
 @dataclass(frozen=True, slots=True)
@@ -158,6 +173,7 @@ def _validate_manifest(
     if len({item.clip_id for item in ordered}) != len(ordered):
         raise PreviewRenderError("WORKING_PREVIEW_CLIP_DUPLICATE")
     for item in ordered:
+        gain_db = item.gain_db
         if (
             item.track_order < 0
             or item.canonical_order < 0
@@ -166,6 +182,7 @@ def _validate_manifest(
             or item.timeline_start_us < 0
             or item.timeline_start_us + item.source_out_us - item.source_in_us
             > MAX_PREVIEW_DURATION_US
+            or not _is_valid_clip_gain_db(gain_db)
         ):
             raise PreviewRenderError("WORKING_PREVIEW_GEOMETRY_INVALID")
     return ordered
@@ -194,6 +211,7 @@ def _ffmpeg_command(
         filters.append(
             f"[{index}:a]atrim=start={_seconds(clip.source_in_us)}:end={_seconds(clip.source_out_us)},"
             f"asetpts=PTS-STARTPTS,aresample={PREVIEW_SAMPLE_RATE},aformat=sample_fmts=fltp:channel_layouts=stereo,"
+            f"volume={clip.gain_db:.2f}dB,"
             f"adelay={delay_samples}S:all=1[{label}]"
         )
         labels.append(f"[{label}]")

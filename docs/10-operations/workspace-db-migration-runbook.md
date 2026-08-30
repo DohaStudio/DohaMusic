@@ -3,12 +3,12 @@
 > 문서 상태: [역사 기준 + 재사용 Runbook]
 > 최종 수정일: 2026-08-25
 > 관련 기능: SQLite 사용자 DB additive Migration 승인 절차
-> 구현 상태: `20260801_0011 → 20260806_0012` 원형 절차; source head `20260828_0024` 적용은 대상·checksum·Gate를 새 실행 기록으로 갱신해야 함
+> 구현 상태: `20260801_0011 → 20260806_0012` 원형 절차; source head `20260830_0025` 적용은 대상·checksum·Gate를 새 실행 기록으로 갱신해야 함
 > 관련 문서: [Preflight 체크리스트](workspace-db-preflight-checklist.md), [Backup·Rollback 정책](workspace-db-backup-rollback-policy.md), [Migration 전략](../07-database/database-redesign-migration-strategy.md), [Preflight 검증](../../reports/validation/VALIDATION-WORKSPACE-DB-MIGRATION-PREFLIGHT.md), [SQLite 안전 제어 검증](../../reports/validation/VALIDATION-SQLITE-MIGRATION-SAFETY.md)
 
 ## 1. 목적과 강제 중단 조건
 
-이 Runbook 본문은 `20260801_0011`에서 `20260806_0012`로 올린 최초 적용 절차의 역사 기준입니다. 현재 source head는 `20260828_0024`, 실제 사용자 DB는 `20260810_0017`이며 아래 revision·checksum 예시는 새 Migration에 그대로 재사용하지 않습니다. `0018`~`0024` 적용은 별도 Inventory·backup·rehearsal·사용자 승인 기록에서 대상 revision과 모든 Gate를 다시 확정해야 합니다.
+이 Runbook 본문은 `20260801_0011`에서 `20260806_0012`로 올린 최초 적용 절차의 역사 기준입니다. 현재 source head는 `20260830_0025`, 실제 사용자 DB는 `20260810_0017`이며 아래 revision·checksum 예시는 새 Migration에 그대로 재사용하지 않습니다. `0018`~`0025` 적용은 별도 Inventory·backup·rehearsal·사용자 승인 기록에서 대상 revision과 모든 Gate를 다시 확정해야 합니다.
 
 다음 중 하나라도 충족하면 적용을 시작하거나 계속하지 않습니다.
 

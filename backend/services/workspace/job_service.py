@@ -637,6 +637,7 @@ class JobService:
                                 source_out_us=item.source_out_us,
                                 source_duration_us=item.source_duration_us,
                                 timeline_start_us=item.timeline_start_us,
+                                gain_db=item.gain_db,
                             )
                             for item in previews.list_clips(original_render.preview_render_id)
                         ]
