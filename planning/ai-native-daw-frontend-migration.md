@@ -1,7 +1,7 @@
 # AI-native DAW Frontend 전환 계획
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-29
+> 최종 수정일: 2026-08-30
 > 관련 기능: Responsive Studio MVP에서 AI-native DAW로의 단계적 전환
 > 관련 문서: [제품 방향](../docs/02-product/ai-native-daw-product-direction.md), [목표 아키텍처](../docs/03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../docs/06-api/composition-read-workspace.md), [기존 Frontend Roadmap](frontend-roadmap.md), [DohaLM 연동](../docs/03-architecture/dohalm-integration.md)
 
@@ -160,4 +160,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·source-window Waveform·Working Preview action/Job polling/stale/Global Player 연결은 구현돼 있다. Composition commit, Section·Mixer·AI editing과 D4~D9 Runtime은 미구현이다. 이번 Frontend integration은 Backend·migration·Common Contract·Training·Provider Runtime을 변경하지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·source-window Waveform·Working Preview Backend/Frontend integration·Composition Commit은 구현돼 있다. Fade·Gain·Loop·persistent history·multi-user recovery, Section·Mixer·AI editing과 D4~D9 잔여 Runtime은 미구현이다. 이번 Frontend integration은 Backend·migration·Common Contract·Training·Provider Runtime을 변경하지 않는다. 기존 F0~F5 완료와 F6 진행 상태도 변경하지 않는다.
