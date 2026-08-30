@@ -1,7 +1,7 @@
 ﻿# Clip Domain / Persistence Design Definition of Done
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-30
+> 최종 수정일: 2026-08-31
 > 관련 기능: AI-native DAW D3 Clip Editing 선행 설계
 > 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [AI-native DAW DoD](AI-Native-DAW.md), [Master Roadmap](../../MASTER_ROADMAP.md)
 
@@ -43,9 +43,10 @@
 - [x] Track/Clip Waveform과 Working Preview Backend/Frontend integration
 - [x] 관련 Draft PR 검토·Ready 전환·`develop` 병합
 - [x] Clip Gain authority·persistence·Product API·Preview render·Snapshot freeze Backend foundation
-- [ ] Frontend Clip Gain·Fade·Loop 편집 UI
+- [x] Frontend Clip Gain control·absolute mutation·memory Undo/Redo·Preview stale integration
+- [ ] Frontend Fade·Loop 편집 UI
 - [ ] multi-user recovery·persistent history
 
 ## 판정
 
-`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, `Backend Inverse Mutation`, Frontend Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit과 Clip Gain Backend foundation은 COMPLETE다. 전체 D3는 Clip Gain UI·Fade·Loop·multi-user recovery·persistent history가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.
+`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, `Backend Inverse Mutation`, Frontend Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit과 Clip Gain Backend/Frontend integration은 COMPLETE다. 전체 D3는 Fade·Loop·multi-user recovery·persistent history가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.

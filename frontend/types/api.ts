@@ -347,6 +347,7 @@ export interface WorkingClipDto {
   source_in: string;
   source_out: string;
   source_duration: string;
+  gain_db: string;
   split_from_clip_id: string | null;
 }
 

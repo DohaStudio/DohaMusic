@@ -857,3 +857,21 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .working-trim-handle.end { right: 0; }
 .working-clip-playhead { position: absolute; z-index: 4; top: 0; bottom: 0; width: 2px; background: #ff5b50; box-shadow: 0 0 8px color-mix(in srgb, #ff5b50 70%, transparent); pointer-events: none; }
 .working-clip-controls { margin-top: 0.75rem; flex-wrap: wrap; }
+.working-clip-gain {
+  min-width: min(100%, 34rem);
+  display: grid;
+  grid-template-columns: auto minmax(10rem, 1fr) auto minmax(6.5rem, 8rem) auto;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+.working-clip-gain legend { padding: 0 0.35rem; font-weight: 800; }
+.working-clip-gain label { font-size: 0.76rem; font-weight: 700; }
+.working-clip-gain input[type="range"] { min-width: 10rem; accent-color: var(--accent); }
+.working-clip-gain output { min-width: 5.6rem; font: 800 0.82rem/1 ui-monospace, monospace; text-align: center; }
+.working-clip-gain small { grid-column: 2 / -1; color: var(--text-muted); }
+.working-clip-gain .field-error,
+.working-gain-error { color: #ffb0aa; }

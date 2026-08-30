@@ -1,15 +1,15 @@
 # Frontend 아키텍처
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-30
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료], D3 Clip Editing·Clip Copy·Memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit Integration [완료]
+> 최종 수정일: 2026-08-31
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료], D3 Clip Editing·Clip Copy·Memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit·Clip Gain Integration [완료]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
 Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
-현재 구조는 생성 Workflow용 Responsive Studio이며 D1 Composition read와 D2 playback Foundation 위에 D3 WorkingComposition Track/Clip editor, Clip source-window Waveform과 Working Preview control을 둔다. Backend의 explicit selection과 WorkingComposition aggregate가 canonical truth이고 Frontend는 pending preview·selection, bounded memory waveform cache와 memory history만 보유한다. 기존 GlobalPlayer는 committed Snapshot과 사용자가 선택한 rendered Preview의 단일 playback authority를 유지한다. Section·Mixer, AI Music Director와 Composition QA는 아직 구현되지 않았다.
+현재 구조는 생성 Workflow용 Responsive Studio이며 D1 Composition read와 D2 playback Foundation 위에 D3 WorkingComposition Track/Clip editor, Clip source-window Waveform, selected Clip Gain과 Working Preview control을 둔다. Backend의 explicit selection과 WorkingComposition aggregate가 canonical truth이고 Frontend는 pending preview·selection, bounded memory waveform cache와 memory history만 보유한다. Gain drag는 control 숫자만 local preview하고 WebAudio·waveform을 변경하지 않으며 완료 시 canonical absolute mutation 한 번을 실행한다. 기존 GlobalPlayer는 committed Snapshot과 사용자가 선택한 rendered Preview의 단일 playback authority를 유지한다. Fade·Loop·Section·Mixer, AI Music Director와 Composition QA는 아직 구현되지 않았다.
 
 WorkingComposition Clip Waveform은 `source_asset_version_id`를 Project-scoped media-source endpoint로 해석하고 safe same-origin Artifact content를 D2 WebAudio·bounded peak loader로 한 번 decode한다. editor session의 최대 64개 memory cache가 동일 exact AssetVersion resolve/fetch/decode를 공유하며 Project·WorkingComposition 변경과 unmount에서 pending 요청을 abort한다. 각 Clip은 frozen `source_duration` timebase에서 `[source_in, source_out)`만 투영하고 move·trim·split·same-ID restore·Undo/Redo·zoom은 canonical peak를 재사용한다. 이 시각화는 Track mixdown이나 playback authority가 아니다.
 

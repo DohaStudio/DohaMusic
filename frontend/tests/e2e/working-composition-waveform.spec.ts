@@ -26,6 +26,7 @@ type Clip = {
   source_in: string;
   source_out: string;
   source_duration: string;
+  gain_db: string;
   split_from_clip_id: string | null;
 };
 
@@ -393,6 +394,7 @@ function clip(id: string, timelineStart: string, sourceIn: string, sourceOut: st
     source_in: sourceIn,
     source_out: sourceOut,
     source_duration: "8.000",
+    gain_db: "0.00",
     split_from_clip_id: null,
   };
 }

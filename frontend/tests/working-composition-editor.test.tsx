@@ -236,6 +236,159 @@ describe("WorkingComposition editor", () => {
     expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   });
 
+  it("Clip Gain drag는 local value만 preview하고 pointerup 한 번으로 PATCH와 Preview stale을 만든다", async () => {
+    const afterGain = { ...working, revision: 3, clips: [{ ...working.clips[0], gain_db: "3.00" }] };
+    const afterUndo = { ...working, revision: 4 };
+    const afterRedo = { ...working, revision: 5, clips: [{ ...working.clips[0], gain_db: "3.00" }] };
+    vi.spyOn(dohaApi, "getWorkingComposition")
+      .mockResolvedValueOnce(working)
+      .mockResolvedValueOnce(afterGain)
+      .mockResolvedValueOnce(afterUndo)
+      .mockResolvedValueOnce(afterRedo);
+    const update = vi.spyOn(dohaApi, "updateWorkingClipGain")
+      .mockRejectedValueOnce(new ApiError(0, "NETWORK_ERROR", "lost"))
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 3, replayed: true })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 4, replayed: false })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 5, replayed: false });
+    vi.spyOn(dohaApi, "createWorkingPreview").mockResolvedValue({
+      job_id: "job-preview", preview_render_id: "render-preview",
+      working_composition_id: "working-1", rendered_revision: 2,
+      status: "queued", replayed: false,
+    });
+    vi.spyOn(dohaApi, "getWorkspaceJob").mockResolvedValue({
+      job_id: "job-preview", job_type: "working_preview_render", status: "succeeded",
+      project_id: "project-1", composition_snapshot_id: null,
+      provider_id: null, model_manifest_id: null, progress_percent: 100,
+      stage: null, retry_of_job_id: null, inputs: [],
+      outputs: [{ output_role: "working_preview", output_order: 0, artifact_id: "artifact-preview", asset_version_id: "version-preview" }],
+      model_usages: [], error_code: null, error_message: null, error_retryable: null, error_details_id: null,
+      created_at: "2026-08-29T00:00:00Z", started_at: null, completed_at: "2026-08-29T00:00:01Z",
+    });
+    const resolver = vi.fn<MediaSourceResolver>().mockResolvedValue(mediaSource);
+    const loader = vi.fn<WaveformLoader>().mockResolvedValue([0.2, 0.8]);
+    const user = userEvent.setup();
+    renderEditor({ resolver, loader });
+    await user.click(await screen.findByRole("button", { name: "Working Preview 만들기" }));
+    await screen.findByRole("button", { name: "Working Preview revision 2 재생" });
+    await user.click(screen.getByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const slider = screen.getByRole("slider", { name: "Clip gain" });
+    expect(slider).toHaveAttribute("min", "-24");
+    expect(slider).toHaveAttribute("max", "24");
+    expect(slider).toHaveAttribute("step", "0.01");
+    expect(screen.getByText("0.00 dB")).toBeVisible();
+    fireEvent.change(slider, { target: { value: "2.00" } });
+    fireEvent.pointerCancel(slider, { pointerId: 1 });
+    expect(screen.getByText("0.00 dB")).toBeVisible();
+    expect(update).not.toHaveBeenCalled();
+    fireEvent.change(slider, { target: { value: "1.00" } });
+    fireEvent.change(slider, { target: { value: "2.00" } });
+    fireEvent.change(slider, { target: { value: "3.00" } });
+    expect(screen.getByText("+3.00 dB")).toBeVisible();
+    expect(update).not.toHaveBeenCalled();
+    fireEvent.pointerUp(slider, { pointerId: 1 });
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
+    expect(update.mock.calls[0][2]).toMatchObject({ expected_revision: 2, gain_db: 3 });
+    expect(update.mock.calls[0][3]).toBe(update.mock.calls[1][3]);
+    expect(screen.getByText("Preview가 최신 편집본과 다릅니다.")).toBeVisible();
+    expect(vi.mocked(dohaApi.createWorkingPreview)).toHaveBeenCalledTimes(1);
+    expect(resolver).toHaveBeenCalledTimes(1);
+    expect(loader).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(3));
+    expect(update.mock.calls[2][1]).toBe("clip-1");
+    expect(update.mock.calls[2][2].gain_db).toBe(0);
+    await user.click(screen.getByRole("button", { name: "편집 다시 실행" }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(4));
+    expect(update.mock.calls[3][1]).toBe("clip-1");
+    expect(update.mock.calls[3][2].gain_db).toBe(3);
+    expect(update.mock.calls[2][3]).not.toBe(update.mock.calls[3][3]);
+  });
+
+  it("pending Clip A Gain response는 선택된 Clip B control에 leak하지 않는다", async () => {
+    const twoClips = {
+      ...working,
+      clips: [
+        { ...working.clips[0], gain_db: "3.00" },
+        { ...working.clips[0], clip_id: "clip-2", timeline_start: "12.000", gain_db: "-4.00" },
+      ],
+      timeline_duration: "22.000",
+    };
+    const after = {
+      ...twoClips,
+      revision: 3,
+      clips: [{ ...twoClips.clips[0], gain_db: "5.00" }, twoClips.clips[1]],
+    };
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValueOnce(twoClips).mockResolvedValueOnce(after);
+    let finish!: (value: { clip_id: string; completed_revision: number; replayed: boolean }) => void;
+    vi.spyOn(dohaApi, "updateWorkingClipGain").mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const input = screen.getByLabelText("Clip gain exact value");
+    await user.clear(input);
+    await user.type(input, "5");
+    fireEvent.blur(input);
+    await user.click(screen.getByRole("button", { name: /Clip clip-2 선택 및 이동/ }));
+    expect(screen.getByLabelText("Clip gain exact value")).toHaveValue(-4);
+    finish({ clip_id: "clip-1", completed_revision: 3, replayed: false });
+    await waitFor(() => expect(screen.getByText(/revision 3/)).toBeVisible());
+    expect(screen.getByLabelText("Clip gain exact value")).toHaveValue(-4);
+  });
+
+  it("Clip Gain exact input/reset은 bounds를 지키고 backend failure에서 canonical 값으로 돌아간다", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    const update = vi.spyOn(dohaApi, "updateWorkingClipGain")
+      .mockRejectedValue(new ApiError(422, "CLIP_GAIN_OUT_OF_RANGE", "raw backend detail"));
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const input = screen.getByLabelText("Clip gain exact value");
+    expect(input).toHaveValue(0);
+    expect(screen.getByRole("button", { name: "Clip gain을 0 dB로 재설정" })).toBeDisabled();
+
+    await user.clear(input);
+    await user.type(input, "24.001");
+    fireEvent.blur(input);
+    expect(await screen.findByText(/0.01 dB 단위로 입력/)).toBeVisible();
+    expect(update).not.toHaveBeenCalled();
+    expect(input).toHaveValue(0);
+
+    await user.clear(input);
+    await user.type(input, "-3.25");
+    fireEvent.blur(input);
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText(/-24.00 dB부터 \+24.00 dB/)).toBeVisible();
+    expect(screen.queryByText("raw backend detail")).not.toBeInTheDocument();
+    expect(input).toHaveValue(0);
+  });
+
+  it("Clip Gain revision conflict는 GET reconcile하고 selected Clip canonical 값과 history를 갱신한다", async () => {
+    const changed = { ...working, revision: 3, clips: [{ ...working.clips[0], gain_db: "3.00" }] };
+    const external = { ...working, revision: 8, clips: [{ ...working.clips[0], gain_db: "-2.00" }] };
+    vi.spyOn(dohaApi, "getWorkingComposition")
+      .mockResolvedValueOnce(working)
+      .mockResolvedValueOnce(changed)
+      .mockResolvedValueOnce(external);
+    vi.spyOn(dohaApi, "updateWorkingClipGain")
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 3, replayed: false })
+      .mockRejectedValueOnce(new ApiError(409, "WORKING_COMPOSITION_REVISION_CONFLICT", "stale"));
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const input = screen.getByLabelText("Clip gain exact value");
+    await user.clear(input);
+    await user.type(input, "3");
+    fireEvent.blur(input);
+    await waitFor(() => expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled());
+    await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
+    expect(await screen.findByText(/Undo\/Redo 기록은 초기화/)).toBeVisible();
+    expect(screen.getByText("-2.00 dB")).toBeVisible();
+    expect(screen.getByLabelText("Clip gain exact value")).toHaveValue(-2);
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
+  });
+
   it("revision conflict는 GET reconcile하고 Undo/Redo 버튼을 비운다", async () => {
     const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Renamed" }] };
     const external = { ...renamed, revision: 7, tracks: [{ ...working.tracks[0], name: "External" }] };
@@ -409,7 +562,7 @@ const working: WorkingCompositionDto = {
   ...emptyWorking,
   revision: 2,
   tracks: [{ track_id: "track-1", track_type: "audio", name: "Track 1", track_order: 0 }],
-  clips: [{ clip_id: "clip-1", track_id: "track-1", source_asset_version_id: "version-1", timeline_start: "0.000", source_in: "0.000", source_out: "10.000", source_duration: "10.000", split_from_clip_id: null }],
+  clips: [{ clip_id: "clip-1", track_id: "track-1", source_asset_version_id: "version-1", timeline_start: "0.000", source_in: "0.000", source_out: "10.000", source_duration: "10.000", gain_db: "0.00", split_from_clip_id: null }],
   timeline_duration: "10.000",
 };
 const source: CompositionReadItemDto = {

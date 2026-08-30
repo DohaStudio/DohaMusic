@@ -1,7 +1,7 @@
 # AI-native DAW Frontend 전환 계획
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-30
+> 최종 수정일: 2026-08-31
 > 관련 기능: Responsive Studio MVP에서 AI-native DAW로의 단계적 전환
 > 관련 문서: [제품 방향](../docs/02-product/ai-native-daw-product-direction.md), [목표 아키텍처](../docs/03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../docs/06-api/composition-read-workspace.md), [기존 Frontend Roadmap](frontend-roadmap.md), [DohaLM 연동](../docs/03-architecture/dohalm-integration.md)
 
@@ -96,7 +96,7 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 
 Working Preview Backend/Frontend integration은 revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact, 명시적 Preview action, existing Job polling, safe Artifact content 전달과 `rendered_revision != current_revision` stale 표시를 구현했다. stale Preview를 자동으로 현재 상태처럼 표시하거나 Global Player source로 교체하지 않으며 사용자가 재생을 선택한 뒤에만 단일 playback authority에 연결한다. Preview는 Composition commit·Export가 아니고 Preview 성공으로 editor revision/history를 이동시키지 않는다. 공식 latest Preview read API가 없으므로 refresh 뒤 session은 idle이며 AssetVersion·Artifact·Job 목록에서 latest를 추측하지 않는다.
 
-Clip Gain Backend foundation은 canonical `gain_db`, revision-safe mutation, Copy/Split/restore identity, Snapshot freeze와 Preview static dB DSP를 구현했다. Frontend production code와 Gain control·Undo/Redo command는 아직 추가하지 않았으며 Track/Master Gain·Pan·Mute·Solo는 D4 Mixer gate다.
+Clip Gain Backend foundation의 canonical `gain_db`, revision-safe mutation, Copy/Split/restore identity, Snapshot freeze와 Preview static dB DSP를 Frontend가 소비한다. selected Clip inspector는 `-24.00..+24.00 dB`, `0.01 dB` control과 0 dB reset을 제공하고 drag 중 숫자만 preview한 뒤 종료 시 absolute mutation 한 번을 보낸다. Gain memory Undo/Redo는 same Clip ID의 before/after absolute 값을 사용하며 Preview stale·Commit/checkout history barrier를 유지한다. Track/Master Gain·Pan·Mute·Solo는 D4 Mixer gate다.
 
 ### D4 — Mixer와 Export [계획]
 
@@ -162,4 +162,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·source-window Waveform·Working Preview Backend/Frontend integration·Composition Commit은 구현돼 있다. Clip Gain은 Backend foundation만 구현됐고 Gain UI·Fade·Loop·persistent history·multi-user recovery, Section·Mixer·AI editing과 D4~D9 잔여 Runtime은 미구현이다. 기존 F0~F5 완료와 F6 진행 상태는 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·source-window Waveform·Working Preview·Composition Commit·Clip Gain Backend/Frontend integration은 구현돼 있다. Fade·Loop·persistent history·multi-user recovery, Section·Mixer·AI editing과 D4~D9 잔여 Runtime은 미구현이다. 기존 F0~F5 완료와 F6 진행 상태는 변경하지 않는다.

@@ -205,7 +205,7 @@ test("explicit cross-Track Copy preserves source, waveform, revision and makes P
   const copied = backend.clips.find((clip) => clip.clip_id === copiedClipId)!;
   expect(copied).toMatchObject({
     source_asset_version_id: versionId, source_in: "0.000", source_out: "2.000",
-    source_duration: "2.000", split_from_clip_id: null, track_id: targetTrackId,
+    source_duration: "2.000", gain_db: sourceClip().gain_db, split_from_clip_id: null, track_id: targetTrackId,
   });
   expect(backend.revision).toBe(4);
   expect(await page.getByTestId(`clip-waveform-${copiedClipId}`).getAttribute("data-waveform-signature"))
@@ -280,7 +280,7 @@ function sourceClip() {
   return {
     clip_id: sourceClipId, track_id: sourceTrackId, source_asset_version_id: versionId,
     timeline_start: "0.000", source_in: "0.000", source_out: "2.000",
-    source_duration: "2.000", split_from_clip_id: null as string | null,
+    source_duration: "2.000", gain_db: "0.00", split_from_clip_id: null as string | null,
   };
 }
 
