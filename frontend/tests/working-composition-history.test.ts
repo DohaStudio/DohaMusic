@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { dohaApi } from "@/services/doha-api";
+import { ApiError } from "@/services/api-client";
 import { executeWorkingCommand, MemoryCommandHistory } from "@/features/composition/working-composition-history";
 
 describe("WorkingComposition memory command history", () => {
@@ -97,6 +98,53 @@ describe("WorkingComposition memory command history", () => {
       "project-1", "copied-1", expect.objectContaining({ expected_revision: 3 }), expect.any(String),
     );
     expect(remove).not.toHaveBeenCalledWith("project-1", "source-1", expect.anything(), expect.anything());
+  });
+
+  it("Clip Gain Undo/Redo는 같은 Clip ID와 absolute before/after 값을 사용한다", async () => {
+    const update = vi.spyOn(dohaApi, "updateWorkingClipGain")
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 8, replayed: false })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 9, replayed: false });
+    const command = {
+      type: "CLIP_GAIN" as const,
+      clipId: "clip-1",
+      beforeGainDb: "0.00",
+      afterGainDb: "3.00",
+    };
+    await executeWorkingCommand(command, "undo", context(7));
+    await executeWorkingCommand(command, "redo", context(8));
+    expect(update.mock.calls.map((call) => call[1])).toEqual(["clip-1", "clip-1"]);
+    expect(update.mock.calls.map((call) => call[2].gain_db)).toEqual([0, 3]);
+    expect(update.mock.calls.map((call) => call[2].expected_revision)).toEqual([7, 8]);
+    expect(update.mock.calls[0][3]).not.toBe(update.mock.calls[1][3]);
+  });
+
+  it("Clip Gain response-loss retry는 same key를 쓰고 실패한 Undo/Redo는 stack을 보존한다", async () => {
+    const history = new MemoryCommandHistory();
+    const command = {
+      type: "CLIP_GAIN" as const,
+      clipId: "clip-1",
+      beforeGainDb: "0.00",
+      afterGainDb: "3.00",
+    };
+    history.push(command);
+    const update = vi.spyOn(dohaApi, "updateWorkingClipGain")
+      .mockRejectedValueOnce(new ApiError(0, "NETWORK_ERROR", "lost"))
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 8, replayed: true });
+    await executeWorkingCommand(command, "undo", context(7));
+    expect(update.mock.calls[0][3]).toBe(update.mock.calls[1][3]);
+    expect(history.undoStack).toEqual([command]);
+    expect(history.redoStack).toEqual([]);
+
+    update.mockReset();
+    update.mockRejectedValue(new Error("gain undo failed"));
+    await expect(executeWorkingCommand(command, "undo", context(7))).rejects.toThrow("gain undo failed");
+    expect(history.undoStack).toEqual([command]);
+    expect(history.redoStack).toEqual([]);
+
+    history.completeUndo();
+    await expect(executeWorkingCommand(command, "redo", context(8))).rejects.toThrow("gain undo failed");
+    expect(history.undoStack).toEqual([]);
+    expect(history.redoStack).toEqual([command]);
   });
 
   it("split undo/redo가 exact original/left/right ID로 unsplit/resplit한다", async () => {

@@ -9,6 +9,7 @@ export type WorkingCommand =
   | { type: "CLIP_CREATE"; clipId: string }
   | { type: "CLIP_COPY"; sourceClipId: string; copiedClipId: string; targetTrackId: string; targetTimelineStart: string }
   | { type: "CLIP_MOVE"; clipId: string; before: string; after: string }
+  | { type: "CLIP_GAIN"; clipId: string; beforeGainDb: string; afterGainDb: string }
   | { type: "CLIP_TRIM_START"; clipId: string; before: ClipStart; after: ClipStart }
   | { type: "CLIP_TRIM_END"; clipId: string; before: string; after: string }
   | { type: "CLIP_DELETE"; clipId: string }
@@ -104,6 +105,13 @@ export async function executeWorkingCommand(
         ...base,
         timeline_start: direction === "undo" ? command.before : command.after,
       }));
+    case "CLIP_GAIN":
+      return revisionOf(await withIdempotency(context, (key) => dohaApi.updateWorkingClipGain(
+        context.projectId,
+        command.clipId,
+        { ...base, gain_db: Number(direction === "undo" ? command.beforeGainDb : command.afterGainDb) },
+        key,
+      )));
     case "CLIP_TRIM_START": {
       const value = direction === "undo" ? command.before : command.after;
       return revisionOf(await dohaApi.trimWorkingClipStart(context.projectId, command.clipId, {

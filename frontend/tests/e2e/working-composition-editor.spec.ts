@@ -26,6 +26,7 @@ type Clip = {
   source_in: string;
   source_out: string;
   source_duration: string;
+  gain_db: string;
   split_from_clip_id: string | null;
 };
 
@@ -184,6 +185,7 @@ class StatefulWorkingBackend {
         source_in: decimal(body.source_in),
         source_out: decimal(body.source_out),
         source_duration: "30.000",
+        gain_db: "0.00",
         split_from_clip_id: null,
       };
       this.clips.push(clip);

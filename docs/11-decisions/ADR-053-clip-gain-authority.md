@@ -2,10 +2,10 @@
 
 > 상태: 승인, Backend foundation 구현
 > 작성일: 2026-08-30
-> 최종 수정일: 2026-08-30
+> 최종 수정일: 2026-08-31
 > 관련 기능: AI-native DAW D3 Clip Gain
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md), [ADR-052](ADR-052-working-composition-preview-render-authority.md), [WorkingComposition Service](../03-architecture/working-composition-service.md), [Product API](../06-api/working-composition-api.md)
-> 구현 추적: additive Alembic `20260830_0025`, `CLIP_GAIN_UPDATE` mutation, Preview manifest schema 2와 FFmpeg static gain을 구현했다. 실제 사용자 DB와 Frontend Gain UI는 변경하지 않았다.
+> 구현 추적: additive Alembic `20260830_0025`, `CLIP_GAIN_UPDATE` mutation, Preview manifest schema 2와 FFmpeg static gain을 구현했다. 2026-08-31에는 selected Clip Gain slider·exact input·0 dB reset, absolute memory Undo/Redo, revision reconcile과 Preview stale Frontend consumer를 구현했다. 실제 사용자 DB는 변경하지 않았다.
 
 ## 배경
 

@@ -1,7 +1,7 @@
 # AI-native DAW Product Track Definition of Done
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-30
+> 최종 수정일: 2026-08-31
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md), [제품 방향](../02-product/ai-native-daw-product-direction.md), [D1 Composition Read 계약](../06-api/composition-read-workspace.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Frontend 전환 계획](../../planning/ai-native-daw-frontend-migration.md)
 
 이 Track은 Phase 8 Responsive Studio MVP 완료와 분리한다. D0 문서 정합성이 끝나도 DAW Runtime이 구현된 것으로 보지 않는다. 각 단계의 구현·검증·문서·ADR·Git 증거가 모두 있어야 다음 상태로 승격한다.
@@ -76,7 +76,8 @@
 - [x] Backend split·trim·move·delete와 Track create·rename·reorder·delete
 - [x] Frontend explicit Clip Copy와 copied-ID same-ID Undo/Redo
 - [x] Clip별 static Gain authority·persistence·revision-safe Product API·Preview DSP·Commit freeze Backend foundation
-- [ ] Frontend Clip Gain·fade·loop 편집 UI
+- [x] Frontend selected Clip Gain slider·exact input·reset과 absolute memory Undo/Redo
+- [ ] Frontend fade·loop 편집 UI
 - [x] 원본 불변 AssetVersion lineage·canonical Track/Clip CompositionSnapshot commit
 - [x] WorkingComposition·Track·Clip·SnapshotTrack·SnapshotClip ORM과 additive Alembic 구현
 - [x] exact microseconds·FK·lineage·overlap helper·revision·Repository rollback 회귀 검증

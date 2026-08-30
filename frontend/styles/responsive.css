@@ -288,4 +288,16 @@ html[data-reduce-motion="true"] * {
   .working-preview-heading .button,
   .working-preview-actions .button { width: 100%; justify-content: center; }
   .working-preview-status { grid-template-columns: 1fr; }
+  .working-clip-controls { align-items: stretch; flex-direction: column; }
+  .working-clip-gain {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: 1fr auto;
+  }
+  .working-clip-gain label,
+  .working-clip-gain input[type="range"],
+  .working-clip-gain input[type="number"],
+  .working-clip-gain small { grid-column: 1 / -1; width: 100%; }
+  .working-clip-gain output { grid-column: 1; grid-row: auto; text-align: left; }
+  .working-clip-gain .button { grid-column: 2; min-width: 0; }
 }

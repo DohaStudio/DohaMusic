@@ -27,6 +27,9 @@ import { WorkingPreviewControl } from "./working-preview-control";
 const MIN_PIXELS_PER_SECOND = 32;
 const MAX_PIXELS_PER_SECOND = 128;
 const DEFAULT_PIXELS_PER_SECOND = 64;
+const MIN_CLIP_GAIN_DB = -24;
+const MAX_CLIP_GAIN_DB = 24;
+const CLIP_GAIN_STEP_DB = 0.01;
 
 export function WorkingCompositionEditor({
   projectId,
@@ -449,6 +452,26 @@ function WorkingCompositionEditorSession({
       {selectedClip && (
         <div className="working-clip-controls" aria-label="선택 Clip 편집">
           <strong>선택 Clip {shortId(selectedClip.clip_id)}</strong>
+          <ClipGainControl
+            key={`${selectedClip.clip_id}:${selectedClip.gain_db}`}
+            clipId={selectedClip.clip_id}
+            canonicalGainDb={selectedClip.gain_db}
+            pending={pending}
+            onCommit={(nextGainDb) => mutate(
+              () => withIdempotency((key) => dohaApi.updateWorkingClipGain(
+                projectId,
+                selectedClip.clip_id,
+                { ...base, gain_db: Number(nextGainDb) },
+                key,
+              )),
+              () => ({
+                type: "CLIP_GAIN",
+                clipId: selectedClip.clip_id,
+                beforeGainDb: selectedClip.gain_db,
+                afterGainDb: nextGainDb,
+              }),
+            )}
+          />
           <Button type="button" disabled={pending || !(selectedSplitAt > Number(selectedClip.source_in) && selectedSplitAt < Number(selectedClip.source_out))} onClick={() => void mutate(
             () => withIdempotency((key) => dohaApi.splitWorkingClip(projectId, selectedClip.clip_id, { ...base, split_at: seconds(selectedSplitAt) }, key)),
             (result) => ({ type: "CLIP_SPLIT", originalClipId: result.original_clip_id, leftClipId: result.left_clip_id, rightClipId: result.right_clip_id }),
@@ -508,6 +531,104 @@ function WorkingCompositionEditorSession({
         ><Copy aria-hidden="true" /> Clip 복사</Button>
       </div>
     </section>
+  );
+}
+
+function ClipGainControl({ clipId, canonicalGainDb, pending, onCommit }: {
+  clipId: string;
+  canonicalGainDb: string;
+  pending: boolean;
+  onCommit: (gainDb: string) => Promise<boolean>;
+}) {
+  const canonical = canonicalizeGainDb(canonicalGainDb);
+  const [draft, setDraft] = useState(canonical ?? canonicalGainDb);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const committing = useRef(false);
+
+  if (!canonical) {
+    return <p className="working-gain-error" role="alert">Clip Gain 값을 표시할 수 없습니다.</p>;
+  }
+
+  const commit = async (rawValue: string) => {
+    if (pending || committing.current) return;
+    const next = canonicalizeGainDb(rawValue);
+    if (!next) {
+      setDraft(canonical);
+      setLocalError("Clip Gain은 -24.00 dB부터 +24.00 dB까지 0.01 dB 단위로 입력해 주세요.");
+      return;
+    }
+    setDraft(next);
+    setLocalError(null);
+    if (next === canonical) return;
+    committing.current = true;
+    const success = await onCommit(next);
+    committing.current = false;
+    if (!success) setDraft(canonical);
+  };
+
+  return (
+    <fieldset className="working-clip-gain" disabled={pending}>
+      <legend>Clip gain</legend>
+      <label htmlFor={`clip-gain-slider-${clipId}`}>Clip gain slider</label>
+      <input
+        id={`clip-gain-slider-${clipId}`}
+        aria-label="Clip gain"
+        type="range"
+        min={MIN_CLIP_GAIN_DB}
+        max={MAX_CLIP_GAIN_DB}
+        step={CLIP_GAIN_STEP_DB}
+        value={canonicalizeGainDb(draft) ?? canonical}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          setLocalError(null);
+        }}
+        onPointerUp={(event) => void commit(event.currentTarget.value)}
+        onPointerCancel={() => {
+          setDraft(canonical);
+          setLocalError(null);
+        }}
+        onKeyUp={(event) => {
+          if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End", "PageUp", "PageDown"].includes(event.key)) {
+            void commit(event.currentTarget.value);
+          }
+        }}
+      />
+      <output htmlFor={`clip-gain-slider-${clipId} clip-gain-input-${clipId}`} aria-live="polite">
+        {formatGainDb(canonicalizeGainDb(draft) ?? canonical)}
+      </output>
+      <label htmlFor={`clip-gain-input-${clipId}`}>Clip gain exact value</label>
+      <Input
+        id={`clip-gain-input-${clipId}`}
+        aria-label="Clip gain exact value"
+        type="number"
+        inputMode="decimal"
+        min={MIN_CLIP_GAIN_DB}
+        max={MAX_CLIP_GAIN_DB}
+        step={CLIP_GAIN_STEP_DB}
+        value={draft}
+        onChange={(event) => {
+          setDraft(event.target.value);
+          setLocalError(null);
+        }}
+        onBlur={(event) => void commit(event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+          if (event.key === "Escape") {
+            setDraft(canonical);
+            setLocalError(null);
+            event.currentTarget.blur();
+          }
+        }}
+      />
+      <Button
+        type="button"
+        aria-label="Clip gain을 0 dB로 재설정"
+        disabled={pending || canonical === "0.00"}
+        onClick={() => void commit("0.00")}
+      >0 dB reset</Button>
+      <small>-24.00 dB to +24.00 dB · 0.01 dB</small>
+      {localError && <small className="field-error" role="alert">{localError}</small>}
+    </fieldset>
   );
 }
 
@@ -646,6 +767,7 @@ function workingErrorMessage(error: unknown): string {
       SOURCE_ARTIFACT_AMBIGUOUS: "사용 가능한 source Artifact를 하나로 확정할 수 없습니다.",
       SOURCE_DURATION_UNAVAILABLE: "신뢰할 수 있는 source 길이가 없습니다.",
       SPLIT_STRUCTURE_CONFLICT: "Split 이후 구조가 달라져 Undo/Redo할 수 없습니다.",
+      CLIP_GAIN_OUT_OF_RANGE: "Clip Gain은 -24.00 dB부터 +24.00 dB까지 0.01 dB 단위로 설정해 주세요.",
       IDEMPOTENCY_KEY_REUSED: "동일 요청 키가 다른 편집에 사용되었습니다.",
       IDEMPOTENCY_IN_PROGRESS: "같은 편집 요청이 아직 처리 중입니다.",
     };
@@ -655,6 +777,17 @@ function workingErrorMessage(error: unknown): string {
 }
 
 function seconds(value: number): string { return Math.max(0, value).toFixed(3); }
+function canonicalizeGainDb(value: string): string | null {
+  const trimmed = value.trim();
+  if (!/^[+-]?(?:\d+|\d*\.\d{1,2})$/.test(trimmed)) return null;
+  const number = Number(trimmed);
+  if (!Number.isFinite(number) || number < MIN_CLIP_GAIN_DB || number > MAX_CLIP_GAIN_DB) return null;
+  return number.toFixed(2);
+}
+function formatGainDb(value: string): string {
+  const number = Number(value);
+  return `${number > 0 ? "+" : ""}${number.toFixed(2)} dB`;
+}
 function shortId(value: string): string { return value.slice(0, 8); }
 function moveBefore(items: string[], source: string, target: string): string[] {
   const next = items.filter((item) => item !== source);

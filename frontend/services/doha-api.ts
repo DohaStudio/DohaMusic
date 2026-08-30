@@ -269,6 +269,8 @@ export const dohaApi = {
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/copy`, mutationInit("POST", body, idempotencyKey)),
   moveWorkingClip: (projectId: string, clipId: string, body: WorkingBase & { timeline_start: string }) =>
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/move`, mutationInit("PATCH", body)),
+  updateWorkingClipGain: (projectId: string, clipId: string, body: WorkingBase & { gain_db: number }, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/gain`, mutationInit("PATCH", body, idempotencyKey)),
   trimWorkingClipStart: (projectId: string, clipId: string, body: WorkingBase & { timeline_start: string; source_in: string }) =>
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/trim-start`, mutationInit("PATCH", body)),
   trimWorkingClipEnd: (projectId: string, clipId: string, body: WorkingBase & { source_out: string }) =>
