@@ -27,6 +27,8 @@ type Clip = {
   source_out: string;
   source_duration: string;
   gain_db: string;
+  fade_in: string;
+  fade_out: string;
   split_from_clip_id: string | null;
 };
 
@@ -186,6 +188,8 @@ class StatefulWorkingBackend {
         source_out: decimal(body.source_out),
         source_duration: "30.000",
         gain_db: "0.00",
+        fade_in: "0",
+        fade_out: "0",
         split_from_clip_id: null,
       };
       this.clips.push(clip);

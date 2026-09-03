@@ -121,6 +121,29 @@ describe("WorkingComposition API client", () => {
     expect(headersAt(fetchMock, 0).get("Idempotency-Key")).toBe("gain-key");
   });
 
+  it("Clip Fade PATCH는 두 absolute numeric seconds, revision과 Idempotency-Key를 전달한다", async () => {
+    const fetchMock = mockResponses(clipResult());
+    await dohaApi.updateWorkingClipFade("project/1", "clip/1", {
+      working_composition_id: "working-1",
+      expected_revision: 7,
+      fade_in: 0.123456,
+      fade_out: 0.75,
+    }, "fade-key");
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      "/backend/api/v1/projects/project%2F1/working-composition/clips/clip%2F1/fade",
+    );
+    expect(fetchMock.mock.calls[0][1].method).toBe("PATCH");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({
+      working_composition_id: "working-1",
+      expected_revision: 7,
+      fade_in: 0.123456,
+      fade_out: 0.75,
+    });
+    expect(typeof JSON.parse(fetchMock.mock.calls[0][1].body).fade_in).toBe("number");
+    expect(typeof JSON.parse(fetchMock.mock.calls[0][1].body).fade_out).toBe("number");
+    expect(headersAt(fetchMock, 0).get("Idempotency-Key")).toBe("fade-key");
+  });
+
   it("checkout/unsplit/resplit이 history identity와 새 key를 전달한다", async () => {
     const fetchMock = mockResponses(checkout(), split(), split());
     const base = { working_composition_id: "working-1", expected_revision: 10 };

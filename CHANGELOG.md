@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Clip Fade Frontend UI
+
+- selected Clip inspector에 `fade_in`·`fade_out` canonical seconds를 최대 소수 6자리 exact numeric input으로 추가했다. 두 값의 합이 Clip duration을 넘으면 묵시적 clamp 없이 local validation을 표시하고 mutation하지 않는다.
+- 중앙 WorkingComposition API client와 `completed_revision` authority, same-key response-loss retry를 연결하고 absolute before/after Fade pair를 기존 Gain과 같은 strict LIFO memory Undo/Redo stack에서 처리한다.
+- Preview stale·explicit Preview, Commit/Checkout history barrier, Clip·Project race 격리, safe error와 desktop/tablet/mobile 접근성을 Vitest와 Playwright로 검증했다. Frontend WebAudio·Waveform source, Backend production code·migration·실제 사용자 DB/media는 변경하지 않았다.
+
 ### 추가 — Clip Fade Backend Foundation
 
 - ADR-054에서 D3 Clip-relative `fade_in`·`fade_out`을 integer microseconds, 기본 0, 최대 6자리 decimal seconds와 고정 linear-amplitude curve로 확정했다. 두 Fade 합은 Clip duration 이하여야 하며 자동 clamp는 하지 않는다.

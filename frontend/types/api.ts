@@ -348,6 +348,8 @@ export interface WorkingClipDto {
   source_out: string;
   source_duration: string;
   gain_db: string;
+  fade_in: string;
+  fade_out: string;
   split_from_clip_id: string | null;
 }
 

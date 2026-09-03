@@ -389,6 +389,140 @@ describe("WorkingComposition editor", () => {
     expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   });
 
+  it("Clip Fade exact input은 6자리 precision과 invariant를 지키고 response-loss/Undo/Redo를 absolute pair로 처리한다", async () => {
+    const afterFade = { ...working, revision: 3, clips: [{ ...working.clips[0], fade_in: "0.123456", fade_out: "0.75" }] };
+    const afterUndo = { ...working, revision: 4 };
+    const afterRedo = { ...afterFade, revision: 5 };
+    vi.spyOn(dohaApi, "getWorkingComposition")
+      .mockResolvedValueOnce(working)
+      .mockResolvedValueOnce(afterFade)
+      .mockResolvedValueOnce(afterUndo)
+      .mockResolvedValueOnce(afterRedo);
+    const update = vi.spyOn(dohaApi, "updateWorkingClipFade")
+      .mockRejectedValueOnce(new ApiError(0, "NETWORK_ERROR", "lost"))
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 3, replayed: true })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 4, replayed: false })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 5, replayed: false });
+    const user = userEvent.setup();
+    renderEditor();
+    await user.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const fadeIn = screen.getByLabelText("Fade In exact value");
+    const fadeOut = screen.getByLabelText("Fade Out exact value");
+    expect(fadeIn).toHaveValue(0);
+    expect(fadeOut).toHaveValue(0);
+    expect(fadeIn).toHaveAttribute("step", "0.000001");
+    expect(fadeIn).toHaveAttribute("max", "10");
+
+    fireEvent.change(fadeIn, { target: { value: "-1" } });
+    fireEvent.blur(fadeIn);
+    expect(await screen.findByText(/0 이상의 초 단위 숫자/)).toBeVisible();
+    expect(update).not.toHaveBeenCalled();
+
+    fireEvent.change(fadeIn, { target: { value: "9.5" } });
+    fireEvent.change(fadeOut, { target: { value: "1" } });
+    fireEvent.blur(fadeOut);
+    expect((await screen.findAllByText(/합은 Clip 길이 10초 이하/)).at(-1)).toBeVisible();
+    expect(update).not.toHaveBeenCalled();
+
+    fireEvent.change(fadeIn, { target: { value: "0.123456" } });
+    fireEvent.change(fadeOut, { target: { value: "0.75" } });
+    fireEvent.blur(fadeOut);
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
+    expect(update.mock.calls[0][2]).toMatchObject({ expected_revision: 2, fade_in: 0.123456, fade_out: 0.75 });
+    expect(update.mock.calls[0][3]).toBe(update.mock.calls[1][3]);
+    expect(screen.getByLabelText("Fade In exact value")).toHaveValue(0.123456);
+    expect(screen.getByLabelText("Fade Out exact value")).toHaveValue(0.75);
+
+    await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(3));
+    expect(update.mock.calls[2][2]).toMatchObject({ expected_revision: 3, fade_in: 0, fade_out: 0 });
+    await user.click(screen.getByRole("button", { name: "편집 다시 실행" }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(4));
+    expect(update.mock.calls[3][2]).toMatchObject({ expected_revision: 4, fade_in: 0.123456, fade_out: 0.75 });
+    expect(update.mock.calls[2][3]).not.toBe(update.mock.calls[3][3]);
+  });
+
+  it("Clip Fade Backend 422는 clamp 없이 safe error를 표시하고 failed forward history를 만들지 않는다", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    const update = vi.spyOn(dohaApi, "updateWorkingClipFade")
+      .mockRejectedValue(new ApiError(422, "CLIP_FADE_OUT_OF_RANGE", "raw SQL/path detail"));
+    renderEditor();
+    fireEvent.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const fadeIn = screen.getByLabelText("Fade In exact value");
+    fireEvent.change(fadeIn, { target: { value: "0.5" } });
+    fireEvent.blur(fadeIn);
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText(/합이 Clip 길이를 넘지 않도록/)).toBeVisible();
+    expect(screen.queryByText(/raw SQL\/path detail/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Fade In exact value")).toHaveValue(0);
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+  });
+
+  it("pending Clip A Fade response는 selected Clip B Fade draft를 덮지 않는다", async () => {
+    const twoClips = {
+      ...working,
+      clips: [
+        { ...working.clips[0], fade_in: "0.1", fade_out: "0.2" },
+        { ...working.clips[0], clip_id: "clip-2", timeline_start: "12.000", fade_in: "0.3", fade_out: "0.4" },
+      ],
+      timeline_duration: "22.000",
+    };
+    const after = {
+      ...twoClips,
+      revision: 3,
+      clips: [{ ...twoClips.clips[0], fade_in: "0.5" }, twoClips.clips[1]],
+    };
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValueOnce(twoClips).mockResolvedValueOnce(after);
+    let finish!: (value: { clip_id: string; completed_revision: number; replayed: boolean }) => void;
+    vi.spyOn(dohaApi, "updateWorkingClipFade").mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    renderEditor();
+    fireEvent.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const inputA = screen.getByLabelText("Fade In exact value");
+    fireEvent.change(inputA, { target: { value: "0.5" } });
+    fireEvent.blur(inputA);
+    expect(screen.getByLabelText("Fade In exact value")).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: /Clip clip-2 선택 및 이동/ }));
+    expect(screen.getByLabelText("Fade In exact value")).toHaveValue(0.3);
+    finish({ clip_id: "clip-1", completed_revision: 3, replayed: false });
+    await waitFor(() => expect(screen.getByText(/revision 3/)).toBeVisible());
+    expect(screen.getByLabelText("Fade In exact value")).toHaveValue(0.3);
+    expect(screen.getByLabelText("Fade Out exact value")).toHaveValue(0.4);
+  });
+
+  it("Project A pending Fade response는 Project B editor state를 오염시키지 않는다", async () => {
+    const projectB = {
+      ...working,
+      project_id: "project-2",
+      working_composition_id: "working-2",
+      revision: 9,
+      clips: [{ ...working.clips[0], clip_id: "clip-b", fade_in: "0.75", fade_out: "1.25" }],
+    };
+    vi.spyOn(dohaApi, "getWorkingComposition").mockImplementation(async (projectId) => projectId === "project-2" ? projectB : working);
+    let finish!: (value: { clip_id: string; completed_revision: number; replayed: boolean }) => void;
+    vi.spyOn(dohaApi, "updateWorkingClipFade").mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    const view = render(
+      <QueryClientProvider client={client}>
+        <WorkingCompositionEditor projectId="project-1" snapshotId="snapshot-1" sources={[source]} />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    const inputA = screen.getByLabelText("Fade In exact value");
+    fireEvent.change(inputA, { target: { value: "0.5" } });
+    fireEvent.blur(inputA);
+    view.rerender(
+      <QueryClientProvider client={client}>
+        <WorkingCompositionEditor projectId="project-2" snapshotId="snapshot-2" sources={[source]} />
+      </QueryClientProvider>,
+    );
+    fireEvent.click(await screen.findByRole("button", { name: /Clip clip-b 선택 및 이동/ }));
+    expect(screen.getByLabelText("Fade In exact value")).toHaveValue(0.75);
+    finish({ clip_id: "clip-1", completed_revision: 3, replayed: false });
+    await waitFor(() => expect(screen.getByText(/revision 9/)).toBeVisible());
+    expect(screen.getByLabelText("Fade In exact value")).toHaveValue(0.75);
+    expect(screen.getByLabelText("Fade Out exact value")).toHaveValue(1.25);
+  });
+
   it("revision conflict는 GET reconcile하고 Undo/Redo 버튼을 비운다", async () => {
     const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Renamed" }] };
     const external = { ...renamed, revision: 7, tracks: [{ ...working.tracks[0], name: "External" }] };
@@ -562,7 +696,7 @@ const working: WorkingCompositionDto = {
   ...emptyWorking,
   revision: 2,
   tracks: [{ track_id: "track-1", track_type: "audio", name: "Track 1", track_order: 0 }],
-  clips: [{ clip_id: "clip-1", track_id: "track-1", source_asset_version_id: "version-1", timeline_start: "0.000", source_in: "0.000", source_out: "10.000", source_duration: "10.000", gain_db: "0.00", split_from_clip_id: null }],
+  clips: [{ clip_id: "clip-1", track_id: "track-1", source_asset_version_id: "version-1", timeline_start: "0.000", source_in: "0.000", source_out: "10.000", source_duration: "10.000", gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null }],
   timeline_duration: "10.000",
 };
 const source: CompositionReadItemDto = {

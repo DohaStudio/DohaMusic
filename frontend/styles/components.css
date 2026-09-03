@@ -875,3 +875,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .working-clip-gain small { grid-column: 2 / -1; color: var(--text-muted); }
 .working-clip-gain .field-error,
 .working-gain-error { color: #ffb0aa; }
+.working-clip-fade {
+  min-width: min(100%, 38rem);
+  display: grid;
+  grid-template-columns: auto minmax(7rem, 10rem) minmax(5rem, auto);
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+.working-clip-fade legend { padding: 0 0.35rem; font-weight: 800; }
+.working-clip-fade label { font-size: 0.76rem; font-weight: 700; }
+.working-clip-fade output { min-width: 5rem; font: 800 0.82rem/1 ui-monospace, monospace; }
+.working-clip-fade small { grid-column: 1 / -1; color: var(--text-muted); }
+.working-clip-fade .field-error,
+.working-fade-error { color: #ffb0aa; }

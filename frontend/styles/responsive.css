@@ -300,4 +300,11 @@ html[data-reduce-motion="true"] * {
   .working-clip-gain small { grid-column: 1 / -1; width: 100%; }
   .working-clip-gain output { grid-column: 1; grid-row: auto; text-align: left; }
   .working-clip-gain .button { grid-column: 2; min-width: 0; }
+  .working-clip-fade {
+    width: 100%;
+    min-width: 0;
+    grid-template-columns: 1fr minmax(5rem, auto);
+  }
+  .working-clip-fade label,
+  .working-clip-fade small { grid-column: 1 / -1; width: 100%; }
 }
