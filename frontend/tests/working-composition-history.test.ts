@@ -147,6 +147,83 @@ describe("WorkingComposition memory command history", () => {
     expect(history.redoStack).toEqual([command]);
   });
 
+  it("Clip Fade Undo/Redo는 같은 Clip ID와 absolute before/after pair를 사용한다", async () => {
+    const update = vi.spyOn(dohaApi, "updateWorkingClipFade")
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 8, replayed: false })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 9, replayed: false });
+    const command = {
+      type: "CLIP_FADE" as const,
+      clipId: "clip-1",
+      before: { fadeIn: "0.125", fadeOut: "0.25" },
+      after: { fadeIn: "0.500001", fadeOut: "0.75" },
+    };
+    await executeWorkingCommand(command, "undo", context(7));
+    await executeWorkingCommand(command, "redo", context(8));
+    expect(update.mock.calls.map((call) => call[1])).toEqual(["clip-1", "clip-1"]);
+    expect(update.mock.calls.map((call) => call[2])).toEqual([
+      { working_composition_id: "working-1", expected_revision: 7, fade_in: 0.125, fade_out: 0.25 },
+      { working_composition_id: "working-1", expected_revision: 8, fade_in: 0.500001, fade_out: 0.75 },
+    ]);
+    expect(update.mock.calls[0][3]).not.toBe(update.mock.calls[1][3]);
+  });
+
+  it("Clip Fade response-loss Undo/Redo retry는 logical command별 same key를 사용한다", async () => {
+    const command = {
+      type: "CLIP_FADE" as const,
+      clipId: "clip-1",
+      before: { fadeIn: "0", fadeOut: "0" },
+      after: { fadeIn: "0.5", fadeOut: "0.25" },
+    };
+    const update = vi.spyOn(dohaApi, "updateWorkingClipFade")
+      .mockRejectedValueOnce(new ApiError(0, "NETWORK_ERROR", "lost undo"))
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 8, replayed: true })
+      .mockRejectedValueOnce(new ApiError(0, "REQUEST_TIMEOUT", "lost redo"))
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 9, replayed: true });
+    await executeWorkingCommand(command, "undo", context(7));
+    await executeWorkingCommand(command, "redo", context(8));
+    expect(update.mock.calls[0][3]).toBe(update.mock.calls[1][3]);
+    expect(update.mock.calls[2][3]).toBe(update.mock.calls[3][3]);
+    expect(update.mock.calls[1][3]).not.toBe(update.mock.calls[2][3]);
+  });
+
+  it("실패한 Clip Fade Undo/Redo는 각 stack top을 그대로 보존한다", async () => {
+    const history = new MemoryCommandHistory();
+    const command = {
+      type: "CLIP_FADE" as const,
+      clipId: "clip-1",
+      before: { fadeIn: "0", fadeOut: "0" },
+      after: { fadeIn: "0.5", fadeOut: "0.25" },
+    };
+    history.push(command);
+    vi.spyOn(dohaApi, "updateWorkingClipFade").mockRejectedValue(new Error("fade failed"));
+    await expect(executeWorkingCommand(command, "undo", context(7))).rejects.toThrow("fade failed");
+    expect(history.undoStack).toEqual([command]);
+    expect(history.redoStack).toEqual([]);
+    history.completeUndo();
+    await expect(executeWorkingCommand(command, "redo", context(8))).rejects.toThrow("fade failed");
+    expect(history.undoStack).toEqual([]);
+    expect(history.redoStack).toEqual([command]);
+  });
+
+  it("Gain과 Fade command는 하나의 strict LIFO stack에서 교차 이동한다", () => {
+    const history = new MemoryCommandHistory();
+    const gain = { type: "CLIP_GAIN" as const, clipId: "clip-1", beforeGainDb: "0.00", afterGainDb: "3.00" };
+    const fadeA = { type: "CLIP_FADE" as const, clipId: "clip-1", before: { fadeIn: "0", fadeOut: "0" }, after: { fadeIn: "0.5", fadeOut: "0" } };
+    const fadeB = { type: "CLIP_FADE" as const, clipId: "clip-1", before: { fadeIn: "0.5", fadeOut: "0" }, after: { fadeIn: "0.5", fadeOut: "0.25" } };
+    history.push(fadeA);
+    history.push(gain);
+    history.push(fadeB);
+    expect(history.undoStack.map((item) => item.type)).toEqual(["CLIP_FADE", "CLIP_GAIN", "CLIP_FADE"]);
+    history.completeUndo();
+    history.completeUndo();
+    history.completeUndo();
+    expect(history.redoStack.map((item) => item.type)).toEqual(["CLIP_FADE", "CLIP_GAIN", "CLIP_FADE"]);
+    history.completeRedo();
+    history.completeRedo();
+    history.completeRedo();
+    expect(history.undoStack).toEqual([fadeA, gain, fadeB]);
+  });
+
   it("split undo/redo가 exact original/left/right ID로 unsplit/resplit한다", async () => {
     const unsplit = vi.spyOn(dohaApi, "unsplitWorkingClip").mockResolvedValue(splitResult(8));
     const resplit = vi.spyOn(dohaApi, "resplitWorkingClip").mockResolvedValue(splitResult(9));

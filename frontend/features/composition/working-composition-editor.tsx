@@ -30,6 +30,7 @@ const DEFAULT_PIXELS_PER_SECOND = 64;
 const MIN_CLIP_GAIN_DB = -24;
 const MAX_CLIP_GAIN_DB = 24;
 const CLIP_GAIN_STEP_DB = 0.01;
+const CLIP_FADE_STEP_SECONDS = 0.000001;
 
 export function WorkingCompositionEditor({
   projectId,
@@ -472,6 +473,28 @@ function WorkingCompositionEditorSession({
               }),
             )}
           />
+          <ClipFadeControl
+            key={`${selectedClip.clip_id}:${selectedClip.fade_in}:${selectedClip.fade_out}:${selectedClip.source_in}:${selectedClip.source_out}`}
+            clipId={selectedClip.clip_id}
+            canonicalFadeIn={selectedClip.fade_in}
+            canonicalFadeOut={selectedClip.fade_out}
+            clipDuration={Number(selectedClip.source_out) - Number(selectedClip.source_in)}
+            pending={pending}
+            onCommit={(nextFadeIn, nextFadeOut) => mutate(
+              () => withIdempotency((key) => dohaApi.updateWorkingClipFade(
+                projectId,
+                selectedClip.clip_id,
+                { ...base, fade_in: Number(nextFadeIn), fade_out: Number(nextFadeOut) },
+                key,
+              )),
+              () => ({
+                type: "CLIP_FADE",
+                clipId: selectedClip.clip_id,
+                before: { fadeIn: selectedClip.fade_in, fadeOut: selectedClip.fade_out },
+                after: { fadeIn: nextFadeIn, fadeOut: nextFadeOut },
+              }),
+            )}
+          />
           <Button type="button" disabled={pending || !(selectedSplitAt > Number(selectedClip.source_in) && selectedSplitAt < Number(selectedClip.source_out))} onClick={() => void mutate(
             () => withIdempotency((key) => dohaApi.splitWorkingClip(projectId, selectedClip.clip_id, { ...base, split_at: seconds(selectedSplitAt) }, key)),
             (result) => ({ type: "CLIP_SPLIT", originalClipId: result.original_clip_id, leftClipId: result.left_clip_id, rightClipId: result.right_clip_id }),
@@ -632,6 +655,142 @@ function ClipGainControl({ clipId, canonicalGainDb, pending, onCommit }: {
   );
 }
 
+function ClipFadeControl({
+  clipId,
+  canonicalFadeIn,
+  canonicalFadeOut,
+  clipDuration,
+  pending,
+  onCommit,
+}: {
+  clipId: string;
+  canonicalFadeIn: string;
+  canonicalFadeOut: string;
+  clipDuration: number;
+  pending: boolean;
+  onCommit: (fadeIn: string, fadeOut: string) => Promise<boolean>;
+}) {
+  const canonicalIn = canonicalizeFadeSeconds(canonicalFadeIn);
+  const canonicalOut = canonicalizeFadeSeconds(canonicalFadeOut);
+  const validDuration = Number.isFinite(clipDuration) && clipDuration > 0;
+  const [draftIn, setDraftIn] = useState(canonicalIn ?? canonicalFadeIn);
+  const [draftOut, setDraftOut] = useState(canonicalOut ?? canonicalFadeOut);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const committing = useRef(false);
+  const helpId = `clip-fade-help-${clipId}`;
+  const errorId = `clip-fade-error-${clipId}`;
+
+  if (!canonicalIn || !canonicalOut || !validDuration) {
+    return <p className="working-fade-error" role="alert">Clip Fade 값을 표시할 수 없습니다.</p>;
+  }
+
+  const validate = (rawIn: string, rawOut: string) => {
+    const fadeIn = canonicalizeFadeSeconds(rawIn);
+    const fadeOut = canonicalizeFadeSeconds(rawOut);
+    if (!fadeIn || !fadeOut) {
+      return { error: "Fade는 0 이상의 초 단위 숫자로 소수점 이하 최대 6자리까지 입력해 주세요." } as const;
+    }
+    const clipDurationMicroseconds = Math.round(clipDuration * 1_000_000);
+    if (fadeSecondsToMicroseconds(fadeIn) + fadeSecondsToMicroseconds(fadeOut) > clipDurationMicroseconds) {
+      return { error: `Fade In과 Fade Out의 합은 Clip 길이 ${formatFadeSeconds(clipDuration)}초 이하여야 합니다.` } as const;
+    }
+    return { fadeIn, fadeOut } as const;
+  };
+
+  const commit = async (nextIn: string, nextOut: string) => {
+    if (pending || committing.current) return;
+    const validated = validate(nextIn, nextOut);
+    if ("error" in validated && validated.error) {
+      setLocalError(validated.error);
+      return;
+    }
+    setDraftIn(validated.fadeIn);
+    setDraftOut(validated.fadeOut);
+    setLocalError(null);
+    if (Number(validated.fadeIn) === Number(canonicalIn)
+      && Number(validated.fadeOut) === Number(canonicalOut)) return;
+    committing.current = true;
+    const success = await onCommit(validated.fadeIn, validated.fadeOut);
+    committing.current = false;
+    if (!success) {
+      setDraftIn(canonicalIn);
+      setDraftOut(canonicalOut);
+    }
+  };
+
+  const draftInValue = canonicalizeFadeSeconds(draftIn);
+  const draftOutValue = canonicalizeFadeSeconds(draftOut);
+  const describedBy = localError ? `${helpId} ${errorId}` : helpId;
+
+  return (
+    <fieldset className="working-clip-fade" disabled={pending} aria-describedby={describedBy}>
+      <legend>Clip fade</legend>
+      <label htmlFor={`clip-fade-in-${clipId}`}>Fade In</label>
+      <Input
+        id={`clip-fade-in-${clipId}`}
+        aria-label="Fade In exact value"
+        aria-invalid={Boolean(localError)}
+        aria-describedby={describedBy}
+        type="number"
+        inputMode="decimal"
+        min="0"
+        max={Math.max(0, clipDuration - Number(draftOutValue ?? canonicalOut))}
+        step={CLIP_FADE_STEP_SECONDS}
+        value={draftIn}
+        onChange={(event) => {
+          setDraftIn(event.target.value);
+          setLocalError(null);
+        }}
+        onBlur={(event) => void commit(event.currentTarget.value, draftOut)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+          if (event.key === "Escape") {
+            setDraftIn(canonicalIn);
+            setDraftOut(canonicalOut);
+            setLocalError(null);
+            event.currentTarget.blur();
+          }
+        }}
+      />
+      <output htmlFor={`clip-fade-in-${clipId}`} aria-live="polite">
+        {draftInValue ?? draftIn} s
+      </output>
+      <label htmlFor={`clip-fade-out-${clipId}`}>Fade Out</label>
+      <Input
+        id={`clip-fade-out-${clipId}`}
+        aria-label="Fade Out exact value"
+        aria-invalid={Boolean(localError)}
+        aria-describedby={describedBy}
+        type="number"
+        inputMode="decimal"
+        min="0"
+        max={Math.max(0, clipDuration - Number(draftInValue ?? canonicalIn))}
+        step={CLIP_FADE_STEP_SECONDS}
+        value={draftOut}
+        onChange={(event) => {
+          setDraftOut(event.target.value);
+          setLocalError(null);
+        }}
+        onBlur={(event) => void commit(draftIn, event.currentTarget.value)}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") event.currentTarget.blur();
+          if (event.key === "Escape") {
+            setDraftIn(canonicalIn);
+            setDraftOut(canonicalOut);
+            setLocalError(null);
+            event.currentTarget.blur();
+          }
+        }}
+      />
+      <output htmlFor={`clip-fade-out-${clipId}`} aria-live="polite">
+        {draftOutValue ?? draftOut} s
+      </output>
+      <small id={helpId}>초 단위 · 각 값 최대 소수 6자리 · 두 Fade의 합은 Clip 길이 {formatFadeSeconds(clipDuration)}초 이하</small>
+      {localError && <small id={errorId} className="field-error" role="alert">{localError}</small>}
+    </fieldset>
+  );
+}
+
 function TrackRow({ track, selected, pending, onSelect, onRename, onDelete, onDragStart, onDrop }: {
   track: WorkingTrackDto; selected: boolean; pending: boolean; onSelect: () => void; onRename: (name: string) => void; onDelete: () => void; onDragStart: () => void; onDrop: () => void;
 }) {
@@ -761,6 +920,8 @@ function workingErrorMessage(error: unknown): string {
       WORKING_COMPOSITION_REVISION_CONFLICT: "다른 변경으로 revision이 달라졌습니다.",
       WORKING_COMPOSITION_EMPTY: "활성 Clip을 하나 이상 배치한 뒤 새 버전으로 저장해 주세요.",
       TRACK_NOT_EMPTY: "Clip이 있는 Track은 삭제할 수 없습니다.",
+      TRACK_NOT_FOUND: "선택한 Track을 찾을 수 없습니다. 최신 편집 상태를 다시 확인해 주세요.",
+      CLIP_NOT_FOUND: "선택한 Clip을 찾을 수 없습니다. 최신 편집 상태를 다시 확인해 주세요.",
       CLIP_OVERLAP: "같은 Track의 다른 Clip과 겹칩니다.",
       INVALID_CLIP_RANGE: "Clip 시간 범위를 확인해 주세요.",
       SOURCE_ASSET_UNAVAILABLE: "선택한 source AssetVersion을 현재 사용할 수 없습니다.",
@@ -768,6 +929,8 @@ function workingErrorMessage(error: unknown): string {
       SOURCE_DURATION_UNAVAILABLE: "신뢰할 수 있는 source 길이가 없습니다.",
       SPLIT_STRUCTURE_CONFLICT: "Split 이후 구조가 달라져 Undo/Redo할 수 없습니다.",
       CLIP_GAIN_OUT_OF_RANGE: "Clip Gain은 -24.00 dB부터 +24.00 dB까지 0.01 dB 단위로 설정해 주세요.",
+      CLIP_FADE_OUT_OF_RANGE: "Fade In과 Fade Out의 합이 Clip 길이를 넘지 않도록 설정해 주세요.",
+      INVALID_INPUT: "Fade 또는 Clip 입력값을 확인해 주세요.",
       IDEMPOTENCY_KEY_REUSED: "동일 요청 키가 다른 편집에 사용되었습니다.",
       IDEMPOTENCY_IN_PROGRESS: "같은 편집 요청이 아직 처리 중입니다.",
     };
@@ -787,6 +950,20 @@ function canonicalizeGainDb(value: string): string | null {
 function formatGainDb(value: string): string {
   const number = Number(value);
   return `${number > 0 ? "+" : ""}${number.toFixed(2)} dB`;
+}
+function canonicalizeFadeSeconds(value: string): string | null {
+  const trimmed = value.trim();
+  if (!/^(?:\d+|\d*\.\d{1,6})$/.test(trimmed)) return null;
+  const number = Number(trimmed);
+  if (!Number.isFinite(number) || number < 0) return null;
+  return trimmed.startsWith(".") ? `0${trimmed}` : trimmed;
+}
+function formatFadeSeconds(value: number): string {
+  return Number.isInteger(value) ? String(value) : value.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+}
+function fadeSecondsToMicroseconds(value: string): number {
+  const [whole, fraction = ""] = value.split(".");
+  return Number(whole) * 1_000_000 + Number(fraction.padEnd(6, "0"));
 }
 function shortId(value: string): string { return value.slice(0, 8); }
 function moveBefore(items: string[], source: string, target: string): string[] {

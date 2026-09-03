@@ -107,7 +107,7 @@ class PreviewBackend {
       revision: this.revision,
       mix_settings: {},
       tracks: [{ track_id: trackId, track_type: "audio", name: this.title, track_order: 0 }],
-      clips: [{ clip_id: clipId, track_id: trackId, source_asset_version_id: assetVersionId, timeline_start: "0.000", source_in: "0.000", source_out: "2.000", source_duration: "2.000", gain_db: "0.00", split_from_clip_id: null }],
+      clips: [{ clip_id: clipId, track_id: trackId, source_asset_version_id: assetVersionId, timeline_start: "0.000", source_in: "0.000", source_out: "2.000", source_duration: "2.000", gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null }],
       timeline_duration: "2.000",
     };
   }

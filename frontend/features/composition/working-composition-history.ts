@@ -10,6 +10,7 @@ export type WorkingCommand =
   | { type: "CLIP_COPY"; sourceClipId: string; copiedClipId: string; targetTrackId: string; targetTimelineStart: string }
   | { type: "CLIP_MOVE"; clipId: string; before: string; after: string }
   | { type: "CLIP_GAIN"; clipId: string; beforeGainDb: string; afterGainDb: string }
+  | { type: "CLIP_FADE"; clipId: string; before: ClipFade; after: ClipFade }
   | { type: "CLIP_TRIM_START"; clipId: string; before: ClipStart; after: ClipStart }
   | { type: "CLIP_TRIM_END"; clipId: string; before: string; after: string }
   | { type: "CLIP_DELETE"; clipId: string }
@@ -18,6 +19,11 @@ export type WorkingCommand =
 export interface ClipStart {
   timelineStart: string;
   sourceIn: string;
+}
+
+export interface ClipFade {
+  fadeIn: string;
+  fadeOut: string;
 }
 
 export interface CommandContext {
@@ -112,6 +118,15 @@ export async function executeWorkingCommand(
         { ...base, gain_db: Number(direction === "undo" ? command.beforeGainDb : command.afterGainDb) },
         key,
       )));
+    case "CLIP_FADE": {
+      const value = direction === "undo" ? command.before : command.after;
+      return revisionOf(await withIdempotency(context, (key) => dohaApi.updateWorkingClipFade(
+        context.projectId,
+        command.clipId,
+        { ...base, fade_in: Number(value.fadeIn), fade_out: Number(value.fadeOut) },
+        key,
+      )));
+    }
     case "CLIP_TRIM_START": {
       const value = direction === "undo" ? command.before : command.after;
       return revisionOf(await dohaApi.trimWorkingClipStart(context.projectId, command.clipId, {

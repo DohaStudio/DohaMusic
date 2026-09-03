@@ -24,6 +24,8 @@ type Clip = {
   source_out: string;
   source_duration: string;
   gain_db: string;
+  fade_in: string;
+  fade_out: string;
   split_from_clip_id: string | null;
 };
 
@@ -387,7 +389,7 @@ function clip(id: string, timeline: string, sourceIn: string, sourceOut: string,
   return {
     clip_id: id, track_id: trackId, source_asset_version_id: versionId,
     timeline_start: timeline, source_in: sourceIn, source_out: sourceOut,
-    source_duration: "8.000", gain_db: gainDb, split_from_clip_id: null,
+    source_duration: "8.000", gain_db: gainDb, fade_in: "0", fade_out: "0", split_from_clip_id: null,
   };
 }
 

@@ -42,6 +42,8 @@ Clip Gain body는 `working_composition_id`, `expected_revision`, numeric `gain_d
 
 Clip Fade body는 `working_composition_id`, `expected_revision`, numeric `fade_in`, `fade_out`을 decimal seconds로 받는다. 각 값은 finite·non-negative이고 최대 소수점 6자리이며 합은 현재 Clip duration 이하여야 한다. string, boolean, NaN, Infinity와 묵시적 clamp는 허용하지 않는다. 성공은 `clip_id`, 최초 `completed_revision`, `replayed`를 반환하며 Snapshot·Preview·Artifact를 자동 생성하지 않는다. aggregate Clip detail은 canonical seconds `fade_in`, `fade_out`을 반환한다.
 
+Frontend selected Clip inspector는 aggregate의 canonical Fade를 초 단위 exact numeric input으로 표시한다. local validation은 음수·비수치·6자리 초과·duration invariant 위반을 mutation 전에 안내하되 Backend 422를 최종 authority로 유지한다. 승인된 blur/Enter commit에서만 두 absolute 값을 중앙 client로 전송하고, same-key response-loss retry와 absolute memory Undo/Redo를 기존 Gain history·Preview stale·Commit/Checkout barrier에 통합한다. Frontend는 Fade DSP, Preview 자동 생성 또는 Waveform source 변형을 수행하지 않는다.
+
 ## Composition Commit
 
 `POST /commit`은 Backend canonical active Track·Clip, exact AssetVersion, frozen source geometry와 WorkingComposition mix settings를 deterministic order로 새 CompositionSnapshot·SnapshotTrack·SnapshotClip에 고정한다. 같은 transaction에서 Project explicit selection과 WorkingComposition base를 새 Snapshot으로 바꾸고 revision을 정확히 1 증가시킨다. 응답은 `working_composition_id`, `composition_snapshot_id`, `completed_revision`, `replayed`다.

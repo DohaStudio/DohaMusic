@@ -1,11 +1,11 @@
 # ADR-054 — Clip Fade Authority
 
-> 상태: 승인, Backend foundation 구현
+> 상태: 승인, Backend/Frontend 구현
 > 작성일: 2026-09-03
 > 최종 수정일: 2026-09-03
 > 관련 기능: AI-native DAW D3 Clip Fade
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-047](ADR-047-revision-safe-idempotency-completion-result.md), [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md), [ADR-052](ADR-052-working-composition-preview-render-authority.md), [ADR-053](ADR-053-clip-gain-authority.md), [WorkingComposition Service](../03-architecture/working-composition-service.md), [Product API](../06-api/working-composition-api.md)
-> 구현 추적: additive Alembic `20260903_0026`, `CLIP_FADE_UPDATE` mutation, Preview manifest schema 3과 FFmpeg linear-amplitude Fade를 구현했다. 실제 사용자 DB·media와 Frontend production code는 변경하지 않았다.
+> 구현 추적: additive Alembic `20260903_0026`, `CLIP_FADE_UPDATE` mutation, Preview manifest schema 3과 FFmpeg linear-amplitude Fade를 구현했다. Frontend selected Clip exact numeric control, absolute memory Undo/Redo, same-key retry, Preview stale와 Commit/Checkout barrier 통합을 추가했으며 실제 사용자 DB·media는 변경하지 않았다.
 
 ## 배경
 
@@ -75,7 +75,7 @@ Clip-relative duration과 integer microseconds는 기존 canonical geometry와 �
 
 ## 영향
 
-WorkingComposition Product operation은 22개, OpenAPI Path는 21개가 된다. Preview manifest schema는 3, source head는 `20260903_0026`이 된다. Frontend는 응답의 `fade_in`, `fade_out`을 읽을 수 있지만 이 gate에는 Fade control이나 Undo/Redo command를 추가하지 않는다.
+WorkingComposition Product operation은 22개, OpenAPI Path는 21개다. Preview manifest schema는 3, source head는 `20260903_0026`이다. Frontend는 응답의 `fade_in`, `fade_out`을 exact seconds로 표시하고 commit boundary에서 absolute pair mutation을 수행하며 기존 strict LIFO memory history를 사용한다.
 
 ## 마이그레이션
 
@@ -83,7 +83,7 @@ WorkingComposition Product operation은 22개, OpenAPI Path는 21개가 된다. 
 
 ## 재검토 조건
 
-Fade curve 선택, automation, crossfade/layering, Track/Master DSP 또는 Frontend Fade UI를 설계할 때 재검토한다. 기존 Snapshot/Preview 재현성을 깨는 재해석은 허용하지 않는다.
+Fade curve 선택, automation, crossfade/layering 또는 Track/Master DSP를 설계할 때 재검토한다. 기존 Snapshot/Preview 재현성을 깨는 재해석은 허용하지 않는다.
 
 ## 관련 PR
 
