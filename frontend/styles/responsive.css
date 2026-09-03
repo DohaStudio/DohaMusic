@@ -124,7 +124,7 @@
     height: 70px;
     position: fixed;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     bottom: 0;
     left: 0;
     right: 0;
@@ -164,6 +164,8 @@
   .workspace-title {
     text-align: left;
   }
+  .studio-daw-entry { align-items: stretch; flex-direction: column; }
+  .studio-daw-entry .button { width: 100%; justify-content: center; }
   .workspace-title h1,
   .page-heading h1 {
     font-size: 2rem;

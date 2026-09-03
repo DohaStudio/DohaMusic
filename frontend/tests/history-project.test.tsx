@@ -35,6 +35,16 @@ describe("History and Projects", () => {
     await waitFor(() => expect(dohaApi.createProject).toHaveBeenCalledWith({ title: "Album", description: undefined }));
   });
 
+  it("Project card를 exact Project DAW route에 연결한다", async () => {
+    vi.mocked(dohaApi.getProjects).mockResolvedValue([{
+      id: "project-1", title: "Album", description: "Edit", created_at: "2026-07-31", updated_at: "2026-07-31", job_count: 1,
+    }]);
+    render(<ProjectList />);
+
+    expect(await screen.findByRole("link", { name: "DAW에서 편집" })).toHaveAttribute("href", "/projects/project-1");
+    expect(screen.getByRole("heading", { name: "프로젝트에서 곡을 편집하세요" })).toBeVisible();
+  });
+
   it("History에 K-POP 설정 요약을 안전하게 표시한다", async () => {
     vi.mocked(dohaApi.getHistory).mockResolvedValue([{
       job_id: "job", project_id: "project", title: "Dance", status: "COMPLETED", created_at: "2026-07-31", duration: 30, voice_profile_name: "Voice", has_audio: false, can_cancel: false, can_retry: false, retry_of_job_id: "source",

@@ -7,7 +7,7 @@
 
 ## 1. CURRENT — 유지할 MVP
 
-현재 `frontend/app`에는 Landing과 `studio`, `lyrics`, `voice`, `generation/[jobId]`, `result/[jobId]`, `history`, `projects`, `projects/[id]`, `settings`, `about`가 있다. D1-B는 새 Route 없이 `projects/[id]`에 Backend-authoritative Composition read를 연결한다. 이 화면들은 다음 기능을 검증한다.
+현재 `frontend/app`에는 Landing과 `studio`, `lyrics`, `voice`, `generation/[jobId]`, `result/[jobId]`, `history`, `projects`, `projects/[id]`, `settings`, `about`가 있다. `/studio`는 새 음악 생성 workflow이고 `/projects`는 DAW Project 선택, `/projects/[id]`는 Backend-authoritative Composition read·Timeline·WorkingComposition Editor가 있는 실제 편집 화면이다. Desktop·Mobile navigation과 Studio CTA는 새 `/daw` Route나 Project fallback 없이 이 경로를 연결한다. 이 화면들은 다음 기능을 검증한다.
 
 - 음악 설정·가사·Voice Profile·Review 기반 Pipeline 제출
 - Lyrics 생성·검증·Revision
@@ -17,7 +17,7 @@
 - History·Project 탐색과 Result 재진입
 - Project Composition의 `empty`, 명시 Snapshot 선택, `ready` Track projection·exact AssetVersion 조회
 
-현재 화면의 `Studio`, `waveform`, `timeline`, `Mixer` 표현은 편집 가능한 DAW 구현을 의미하지 않는다. 특히 F4의 waveform과 transport는 결과 재생 경험이며 Track/Clip 편집기가 아니다.
+기존 `/studio`와 Result의 waveform·transport 표현만으로 편집 가능한 DAW를 의미하지 않는다. 실제 DAW는 `/projects/[id]`의 Composition Timeline과 WorkingComposition Editor이며 Result는 응답에 authoritative `project_id`가 있을 때만 해당 Project CTA를 표시한다.
 
 ## 2. TARGET — Frontend 정보 구조
 

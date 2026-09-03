@@ -17,14 +17,15 @@ import { ApiStatus } from "./api-status";
 import { GlobalPlayer } from "@/features/player/global-player";
 
 const nav = [
-  { href: "/studio", label: "음악 만들기", icon: SlidersHorizontal },
-  { href: "/lyrics", label: "가사 만들기", icon: BookOpenText },
-  { href: "/voice", label: "내 목소리", icon: Mic2 },
-  { href: "/history", label: "만든 음악", icon: History },
-  { href: "/projects", label: "프로젝트", icon: FolderKanban },
+  { href: "/studio", label: "음악 만들기", mobileLabel: "만들기", icon: SlidersHorizontal },
+  { href: "/lyrics", label: "가사 만들기", mobileLabel: "가사", icon: BookOpenText },
+  { href: "/voice", label: "내 목소리", mobileLabel: "목소리", icon: Mic2 },
+  { href: "/history", label: "만든 음악", mobileLabel: "음악", icon: History },
+  { href: "/projects", label: "프로젝트 · DAW", mobileLabel: "DAW", icon: FolderKanban },
   { href: "/settings", label: "설정", icon: Settings2 },
   { href: "/about", label: "서비스 소개", icon: Info },
 ];
+const mobileNav = nav.slice(0, 5);
 export function AppShell({
   children,
   context,
@@ -43,6 +44,7 @@ export function AppShell({
               key={href}
               href={href}
               className={path.startsWith(href) ? "active" : ""}
+              aria-current={path.startsWith(href) ? "page" : undefined}
             >
               <Icon size={19} />
               <span>{label}</span>
@@ -73,14 +75,16 @@ export function AppShell({
       </aside>
       <GlobalPlayer />
       <nav className="mobile-nav" aria-label="모바일 메뉴">
-        {nav.slice(0, 4).map(({ href, label, icon: Icon }) => (
+        {mobileNav.map(({ href, label, mobileLabel, icon: Icon }) => (
           <Link
             key={href}
             href={href}
             className={path.startsWith(href) ? "active" : ""}
+            aria-label={label}
+            aria-current={path.startsWith(href) ? "page" : undefined}
           >
             <Icon />
-            <span>{label}</span>
+            <span>{mobileLabel ?? label}</span>
           </Link>
         ))}
       </nav>

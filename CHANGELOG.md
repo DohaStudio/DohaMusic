@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Studio·DAW Navigation과 Onboarding
+
+- Next dev를 `127.0.0.1`로 열었을 때 dev asset origin 차단으로 hydration되지 않아 Onboarding `닫기`가 동작하지 않던 문제를 허용된 loopback origin과 명시적 Zustand persist hydration gate로 수정했다. 닫기·Escape·첫 음악 만들기는 완료 상태를 보존하고 dialog focus를 안전하게 복원한다.
+- `/studio`를 새 음악 생성 workflow로 명확히 하고 Desktop·Mobile `프로젝트 · DAW`, Studio secondary CTA, Project card의 `DAW에서 편집`, Project 상세의 사용자-facing DAW heading을 연결했다. Pipeline 응답에 authoritative `project_id`가 있는 Result만 exact Project CTA를 표시하며 implicit Project fallback은 추가하지 않았다.
+- Backend production·API semantics·migration·실제 사용자 DB/media와 WorkingComposition·Gain·Fade·Preview·Commit authority는 변경하지 않았다. D3는 `[진행 중]`이며 다음 gate는 Loop Authority / Foundation이다.
+
 ### 추가 — Clip Fade Frontend UI
 
 - selected Clip inspector에 `fade_in`·`fade_out` canonical seconds를 최대 소수 6자리 exact numeric input으로 추가했다. 두 값의 합이 Clip duration을 넘으면 묵시적 clamp 없이 local validation을 표시하고 mutation하지 않는다.

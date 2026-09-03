@@ -32,10 +32,10 @@ export function CompositionWorkspace({ projectId }: { projectId: string }) {
     <section className="surface-card composition-workspace" aria-labelledby="composition-workspace-title">
       <header className="composition-workspace-heading">
         <div>
-          <p className="eyebrow">COMPOSITION WORKSPACE</p>
-          <h2 id="composition-workspace-title">현재 Composition</h2>
+          <p className="eyebrow">DAW EDITOR</p>
+          <h2 id="composition-workspace-title">곡 편집</h2>
         </div>
-        <span>Backend selection authority</span>
+        <span>트랙과 클립을 편집하고 미리듣기와 버전을 관리합니다.</span>
       </header>
       {composition.isPending && <CompositionLoading />}
       {composition.error && (

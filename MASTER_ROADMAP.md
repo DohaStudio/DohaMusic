@@ -49,13 +49,15 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 
 | 범위 | 상태 | 사실 기준 |
 |---|---|---|
-| Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현 |
+| Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현; `/studio` 생성과 `/projects/{id}` DAW 역할 및 Desktop·Mobile 진입 UX 구분 |
 | AI-native DAW Product Direction | [완료] | PR #94가 `develop`에 병합되어 CURRENT/TARGET/NOT IMPLEMENTED 기준 확정 |
 | Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade Backend/Frontend integration, Track/Clip editing·explicit Clip Copy·memory Undo/Redo, exact AssetVersion-safe media source·Track/Clip Waveform 완료; Loop·persistent history·multi-user recovery·Section·Mixer 미구현 |
 | Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
 | Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
 
 Phase 8 완료는 로컬 Responsive Studio MVP 범위다. 장기 제품은 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md)과 [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md)의 독립 Track으로 관리하며 기존 Phase 8 진행률을 소급 변경하지 않는다.
+
+Studio↔DAW navigation 정리는 기존 두 Track을 합치지 않는다. `/studio`는 생성 workflow, `/projects/{project_id}`는 Backend-authoritative Composition state를 소비하는 DAW이며 이 UX 정리로 D3 상태나 완료율을 변경하지 않는다.
 
 > 목적: DohaMusic 전체 Phase, 실제 진행 상태, 완료 기준과 다음 작업을 한곳에서 관리한다.
 > 관련 문서: [Phase DoD](docs/DoD/README.md), [실행 로드맵](ROADMAP.md), [작업 지침](AGENTS.md), [ADR](docs/11-decisions/README.md), [변경 이력](CHANGELOG.md)
