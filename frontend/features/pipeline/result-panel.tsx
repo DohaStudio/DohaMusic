@@ -157,6 +157,11 @@ export function ResultPanel({ jobId }: { jobId: string }) {
         >
           같은 설정으로 새 음악 만들기
         </Link>
+        {job.project_id && (
+          <Link className="button secondary" href={`/projects/${encodeURIComponent(job.project_id)}`}>
+            프로젝트에서 편집
+          </Link>
+        )}
       </div>
     </section>
   );

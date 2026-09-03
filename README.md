@@ -33,8 +33,9 @@ DohaMusic = AI-native DAW
 - Workspace·MusicProject·ProjectAsset·Asset·AssetVersion·Artifact·CompositionSnapshot·Job 도메인과 공개 API 기반
 - local Artifact Catalog·Resolver·Trusted Ingestion·무결성·reconciliation 기반
 - Next.js Responsive Studio MVP
-  - `/studio`, `/lyrics`, `/voice`, `/generation/[jobId]`, `/result/[jobId]`
-  - `/history`, `/projects`, `/projects/[id]`, `/settings`, `/about`
+  - `/studio`는 새 음악 생성 workflow이며 `/lyrics`, `/voice`, `/generation/[jobId]`, `/result/[jobId]`와 연결된다.
+  - `/projects`는 DAW Project 목록, `/projects/[id]`는 Composition Timeline·WorkingComposition Editor가 있는 실제 DAW 편집 진입점이다.
+  - `/history`, `/settings`, `/about`
 - 프로젝트·생성 이력, WAV 재생·다운로드, Pipeline cancel·retry, Guided Voice Enrollment
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter

@@ -152,6 +152,8 @@ describe("D1-B Composition Workspace", () => {
     vi.spyOn(dohaApi, "getProjectComposition").mockResolvedValue(base);
     renderComposition();
     expect(await screen.findByText("아직 Composition Snapshot이 없습니다.")).toBeVisible();
+    expect(screen.getByRole("heading", { name: "곡 편집" })).toBeVisible();
+    expect(screen.getByText("DAW EDITOR")).toBeVisible();
     expect(screen.queryByRole("radio")).not.toBeInTheDocument();
     expect(screen.queryByText("현재 선택")).not.toBeInTheDocument();
     expect(screen.queryByText("Master / Mix")).not.toBeInTheDocument();

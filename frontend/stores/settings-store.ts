@@ -27,6 +27,7 @@ export const useSettingsStore = create<SettingsState>()(
       name: "doha-studio-settings",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ reducedMotion: state.reducedMotion, onboardingCompleted: state.onboardingCompleted }),
+      skipHydration: true,
     },
   ),
 );

@@ -40,6 +40,8 @@ DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic�
 
 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md)과 [Frontend 전환 계획](planning/ai-native-daw-frontend-migration.md)에 따라 현재 Responsive Studio MVP를 장기 제품 Runtime으로 단계적으로 전환한다.
 
+현재 `/studio`는 새 음악 생성 workflow이고 `/projects/{project_id}`는 Project Composition/DAW 편집 화면이다. Desktop·Mobile의 `프로젝트 · DAW`, Studio secondary CTA와 authoritative `project_id`가 있는 Result CTA가 이 두 역할을 연결하며 Project를 추측하거나 Composition state를 자동 변경하지 않는다.
+
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
 2. D1·D2 `[완료]`: Composition Read의 Workspace 권위와 Project 상세 연결, 읽기 전용 Timeline·Track lane·단일 Mix playback·실제 media duration·Playhead·Master/Mix Waveform·seek·scroll·zoom·keyboard 기반을 완료했다. 실제 DB 승인은 별도 유지한다.
 3. D3 `[진행 중]`: ADR-040·045·047·050·052·053·054의 WorkingComposition/Preview/Clip Gain·Fade authority, 9개 persistence table, atomic mutation Service와 22개 Product operation, Frontend Track/Clip editing·explicit Clip Copy·memory Undo/Redo, exact AssetVersion-safe media source·Clip별 source-window Waveform, Working Preview·Composition Commit과 Clip Gain/Fade Backend/Frontend integration을 구현했다. Loop·persistent history·multi-user recovery는 남아 있으며 D4 Mixer·독립 Export는 `[계획]`이다.

@@ -81,6 +81,21 @@
   max-width: 720px;
   margin: auto;
 }
+.studio-daw-entry {
+  max-width: 720px;
+  margin: -14px auto 28px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #141414;
+}
+.studio-daw-entry > div { display: grid; gap: 4px; }
+.studio-daw-entry span { color: var(--muted); font-size: .82rem; }
+.studio-daw-entry .button { flex: none; }
 .form-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
