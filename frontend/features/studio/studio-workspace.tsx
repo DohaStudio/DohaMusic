@@ -25,7 +25,7 @@ export function StudioWorkspace() {
           <strong>이미 만든 곡을 편집하고 싶나요?</strong>
           <span>프로젝트의 DAW에서 트랙과 클립, 미리듣기와 버전을 관리할 수 있습니다.</span>
         </div>
-        <Link className="button secondary" href="/projects">프로젝트에서 편집하기</Link>
+        <Link className="button secondary" href="/projects?mode=daw">DAW에서 편집하기</Link>
       </aside>
       {step === "settings" && <MusicSettingsStep />}
       {step === "lyrics" && <LyricsStep />}

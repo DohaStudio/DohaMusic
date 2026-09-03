@@ -159,7 +159,7 @@ export function ResultPanel({ jobId }: { jobId: string }) {
         </Link>
         {job.project_id && (
           <Link className="button secondary" href={`/projects/${encodeURIComponent(job.project_id)}`}>
-            프로젝트에서 편집
+            DAW에서 편집
           </Link>
         )}
       </div>

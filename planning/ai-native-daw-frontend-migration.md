@@ -7,7 +7,7 @@
 
 ## 1. CURRENT — 유지할 MVP
 
-현재 `frontend/app`에는 Landing과 `studio`, `lyrics`, `voice`, `generation/[jobId]`, `result/[jobId]`, `history`, `projects`, `projects/[id]`, `settings`, `about`가 있다. `/studio`는 새 음악 생성 workflow이고 `/projects`는 DAW Project 선택, `/projects/[id]`는 Backend-authoritative Composition read·Timeline·WorkingComposition Editor가 있는 실제 편집 화면이다. Desktop·Mobile navigation과 Studio CTA는 새 `/daw` Route나 Project fallback 없이 이 경로를 연결한다. 이 화면들은 다음 기능을 검증한다.
+현재 `frontend/app`에는 Landing과 `studio`, `lyrics`, `voice`, `generation/[jobId]`, `result/[jobId]`, `history`, `projects`, `projects/[id]`, `settings`, `about`가 있다. `/studio`는 새 음악 생성 workflow, `/projects`는 일반 Project 관리, `/projects?mode=daw`는 명시적 DAW Project 선택이며 `/projects/[id]`는 Backend-authoritative Composition read·Timeline·WorkingComposition Editor가 있는 실제 편집 화면이다. Desktop·Mobile navigation과 Studio CTA는 새 `/daw` Route나 Project fallback 없이 이 경로를 연결한다. 이 화면들은 다음 기능을 검증한다.
 
 - 음악 설정·가사·Voice Profile·Review 기반 Pipeline 제출
 - Lyrics 생성·검증·Revision

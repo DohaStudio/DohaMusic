@@ -70,7 +70,7 @@
 
 ## D3. Non-destructive DAW Editing — [진행 중]
 
-접근 경로는 `/projects`의 명시적 Project 선택과 `/projects/{project_id}`이며 `/studio`는 별도의 새 음악 생성 workflow다. Navigation은 이 역할을 안내할 뿐 Project·Snapshot·WorkingComposition을 추측하거나 자동 선택하지 않는다.
+일반 Project 관리는 `/projects`, DAW 진입은 `/projects?mode=daw`의 명시적 Project 선택과 `/projects/{project_id}` 편집으로 분리하며 `/studio`는 별도의 새 음악 생성 workflow다. Navigation은 이 역할을 안내할 뿐 Project·Snapshot·WorkingComposition을 추측하거나 자동 선택하지 않는다.
 
 - [x] canonical Track·Clip·WorkingComposition authority와 persistence ADR
 - [x] mutable working state와 immutable Snapshot commit·schema extension 경계
