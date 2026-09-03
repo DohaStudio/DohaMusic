@@ -76,6 +76,8 @@ class WorkingPreviewWorkerService:
                     source_out_us=item.source_out_us,
                     timeline_start_us=item.timeline_start_us,
                     gain_db=item.gain_db,
+                    fade_in_us=item.fade_in_us,
+                    fade_out_us=item.fade_out_us,
                 )
                 for item in clips
             )

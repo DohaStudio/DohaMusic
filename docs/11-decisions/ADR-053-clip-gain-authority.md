@@ -45,7 +45,7 @@ Gain을 Track/Master mix setting이나 transient Frontend state에 두면 Clip c
 
 - Preview 요청 시 current Clip Gain을 immutable manifest에 pin한다. 이후 WorkingComposition Gain mutation은 기존 Preview manifest와 결과를 바꾸지 않는다.
 - renderer 순서는 source decode/trim → static Clip Gain → timeline delay/placement → Track mix다. 선형 배율은 `10^(gain_db/20)`이며 FFmpeg의 dB volume filter로 적용한다.
-- 향후 Fade envelope는 static Clip Gain 뒤, Track mix 전에 적용한다. Track/Master DSP는 D4 authority 뒤에 추가한다.
+- [ADR-054](ADR-054-clip-fade-authority.md)의 Fade envelope는 static Clip Gain 뒤, Track mix 전에 적용한다. Track/Master DSP는 D4 authority 뒤에 추가한다.
 - Gain은 waveform source-shape cache key가 아니며 Waveform peak를 재계산하거나 시각 진폭으로 자동 scaling하지 않는다.
 - Composition Commit은 active Clip의 Gain을 immutable SnapshotClip에 그대로 고정한다. Commit은 render가 아니며 Preview/Export를 자동 생성하지 않는다.
 

@@ -255,6 +255,7 @@ def map_working_composition_error(exc: Exception) -> AppError:
         validation = {
             WorkingCompositionErrorCode.INVALID_CLIP_RANGE,
             WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE,
+            WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE,
         }
         return AppError(
             code=exc.code.value,

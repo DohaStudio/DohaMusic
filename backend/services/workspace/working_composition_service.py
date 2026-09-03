@@ -84,6 +84,7 @@ class WorkingCompositionErrorCode(StrEnum):
     CLIP_ALREADY_ACTIVE = "CLIP_ALREADY_ACTIVE"
     CLIP_OVERLAP = "CLIP_OVERLAP"
     CLIP_GAIN_OUT_OF_RANGE = "CLIP_GAIN_OUT_OF_RANGE"
+    CLIP_FADE_OUT_OF_RANGE = "CLIP_FADE_OUT_OF_RANGE"
     SPLIT_STRUCTURE_CONFLICT = "SPLIT_STRUCTURE_CONFLICT"
     INVALID_CLIP_RANGE = "INVALID_CLIP_RANGE"
     SOURCE_ASSET_UNAVAILABLE = "SOURCE_ASSET_UNAVAILABLE"
@@ -116,6 +117,9 @@ _SAFE_ERROR_MESSAGES = {
     WorkingCompositionErrorCode.CLIP_OVERLAP: "같은 Track의 활성 Clip은 겹칠 수 없습니다.",
     WorkingCompositionErrorCode.CLIP_GAIN_OUT_OF_RANGE: (
         "Clip Gain은 -24.00 dB 이상 24.00 dB 이하의 0.01 dB 단위 유한값이어야 합니다."
+    ),
+    WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE: (
+        "Clip Fade는 0 이상이며 합이 Clip 길이 이하인 0.000001초 단위 유한값이어야 합니다."
     ),
     WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT: (
         "Split 원본과 child의 canonical geometry가 일치하지 않습니다."
@@ -387,6 +391,8 @@ class WorkingCompositionService:
                         source_out=clip.source_out,
                         source_duration=clip.source_duration,
                         gain_db=clip.gain_db,
+                        fade_in=clip.fade_in,
+                        fade_out=clip.fade_out,
                         split_from_clip_id=clip.split_from_clip_id,
                     )
                 )
@@ -809,6 +815,60 @@ class WorkingCompositionService:
             response_status=200,
         )
 
+    def set_clip_fade(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        clip_id: UUID,
+        fade_in: object,
+        fade_out: object,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        """Persist one absolute Clip-level linear fade envelope."""
+
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        _validate_uuid(clip_id, "clip_id")
+        fade_in_us = _normalize_fade_duration(fade_in)
+        fade_out_us = _normalize_fade_duration(fade_out)
+        operation = IdempotencyResultType.CLIP_FADE_UPDATE
+
+        def mutate(
+            repository: CompositionRepository,
+            _session: Session,
+            working: WorkingComposition,
+        ) -> UUID:
+            clip = self._require_clip(repository, working, clip_id)
+            _validate_clip_fade(
+                fade_in=fade_in_us,
+                fade_out=fade_out_us,
+                clip_duration=clip.source_out - clip.source_in,
+            )
+            clip.fade_in = fade_in_us
+            clip.fade_out = fade_out_us
+            repository.flush()
+            return clip.clip_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=clip_id,
+            body={"fade_in_us": fade_in_us, "fade_out_us": fade_out_us},
+            mutate=mutate,
+            payload=lambda identity: {"clip_id": identity},
+            resource_type="composition_clip",
+            resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
     def copy_clip(
         self,
         project_id: UUID,
@@ -862,6 +922,8 @@ class WorkingCompositionService:
                 source_out=source.source_out,
                 source_duration=source.source_duration,
                 gain_db=source.gain_db,
+                fade_in=source.fade_in,
+                fade_out=source.fade_out,
                 split_from_clip_id=None,
             )
             try:
@@ -962,6 +1024,10 @@ class WorkingCompositionService:
             if not original.timeline_start < split_at_us < timeline_end:
                 raise WorkingCompositionError(WorkingCompositionErrorCode.INVALID_CLIP_RANGE)
             source_split = original.source_in + (split_at_us - original.timeline_start)
+            split_offset = source_split - original.source_in
+            clip_duration = original.source_out - original.source_in
+            if split_offset < original.fade_in or split_offset > clip_duration - original.fade_out:
+                raise WorkingCompositionError(WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT)
             repository.tombstone_composition_clip(original)
             left = CompositionClip(
                 working_composition_id=working.working_composition_id,
@@ -972,6 +1038,8 @@ class WorkingCompositionService:
                 source_out=source_split,
                 source_duration=original.source_duration,
                 gain_db=original.gain_db,
+                fade_in=original.fade_in,
+                fade_out=0,
                 split_from_clip_id=original.clip_id,
             )
             right = CompositionClip(
@@ -983,6 +1051,8 @@ class WorkingCompositionService:
                 source_out=original.source_out,
                 source_duration=original.source_duration,
                 gain_db=original.gain_db,
+                fade_in=0,
+                fade_out=original.fade_out,
                 split_from_clip_id=original.clip_id,
             )
             try:
@@ -1291,6 +1361,11 @@ class WorkingCompositionService:
                 source_out=source_out,
                 source_duration=clip.source_duration,
             )
+            _validate_clip_fade(
+                fade_in=clip.fade_in,
+                fade_out=clip.fade_out,
+                clip_duration=source_out - source_in,
+            )
             timeline_end = timeline_start + source_out - source_in
             if repository.active_clip_overlap_exists(
                 working_composition_id=working.working_composition_id,
@@ -1455,6 +1530,8 @@ class WorkingCompositionService:
                 "source_out": source.source_out,
                 "source_duration": source.source_duration,
                 "gain_db": source.gain_db,
+                "fade_in": source.fade_in,
+                "fade_out": source.fade_out,
                 "split_from_clip_id": source.split_from_clip_id,
             }
             if target is None:
@@ -1899,6 +1976,26 @@ def _normalize_clip_gain_db(value: object) -> Decimal:
     return quantized
 
 
+def _normalize_fade_duration(value: object) -> int:
+    if isinstance(value, (bool, str)):
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE)
+    try:
+        duration = value if isinstance(value, Decimal) else Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE) from None
+    if not duration.is_finite() or duration < 0:
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE)
+    microseconds = duration * MICROSECONDS_PER_SECOND
+    if microseconds != microseconds.to_integral_value():
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE)
+    return int(microseconds)
+
+
+def _validate_clip_fade(*, fade_in: int, fade_out: int, clip_duration: int) -> None:
+    if fade_in < 0 or fade_out < 0 or fade_in + fade_out > clip_duration:
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE)
+
+
 def _split_geometry_matches(
     original: CompositionClip,
     left: CompositionClip,
@@ -1920,6 +2017,10 @@ def _split_geometry_matches(
         and right.source_duration == original.source_duration
         and left.gain_db == original.gain_db
         and right.gain_db == original.gain_db
+        and left.fade_in == original.fade_in
+        and left.fade_out == 0
+        and right.fade_in == 0
+        and right.fade_out == original.fade_out
         and left.source_in == original.source_in
         and left.source_out == right.source_in
         and right.source_out == original.source_out

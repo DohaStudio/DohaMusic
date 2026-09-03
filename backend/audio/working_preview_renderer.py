@@ -50,6 +50,8 @@ class PreviewRenderClip:
     source_out_us: int
     timeline_start_us: int
     gain_db: Decimal = Decimal("0.00")
+    fade_in_us: int = 0
+    fade_out_us: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -174,6 +176,7 @@ def _validate_manifest(
         raise PreviewRenderError("WORKING_PREVIEW_CLIP_DUPLICATE")
     for item in ordered:
         gain_db = item.gain_db
+        clip_duration_us = item.source_out_us - item.source_in_us
         if (
             item.track_order < 0
             or item.canonical_order < 0
@@ -183,6 +186,9 @@ def _validate_manifest(
             or item.timeline_start_us + item.source_out_us - item.source_in_us
             > MAX_PREVIEW_DURATION_US
             or not _is_valid_clip_gain_db(gain_db)
+            or item.fade_in_us < 0
+            or item.fade_out_us < 0
+            or item.fade_in_us + item.fade_out_us > clip_duration_us
         ):
             raise PreviewRenderError("WORKING_PREVIEW_GEOMETRY_INVALID")
     return ordered
@@ -208,12 +214,21 @@ def _ffmpeg_command(
     for index, clip in enumerate(clips):
         label = f"c{index}"
         delay_samples = (clip.timeline_start_us * PREVIEW_SAMPLE_RATE + 500_000) // 1_000_000
-        filters.append(
+        clip_duration_us = clip.source_out_us - clip.source_in_us
+        clip_filters = (
             f"[{index}:a]atrim=start={_seconds(clip.source_in_us)}:end={_seconds(clip.source_out_us)},"
             f"asetpts=PTS-STARTPTS,aresample={PREVIEW_SAMPLE_RATE},aformat=sample_fmts=fltp:channel_layouts=stereo,"
-            f"volume={clip.gain_db:.2f}dB,"
-            f"adelay={delay_samples}S:all=1[{label}]"
+            f"volume={clip.gain_db:.2f}dB"
         )
+        if clip.fade_in_us:
+            clip_filters += f",afade=t=in:st=0:d={_seconds(clip.fade_in_us)}:curve=tri"
+        if clip.fade_out_us:
+            fade_out_start_us = clip_duration_us - clip.fade_out_us
+            clip_filters += (
+                f",afade=t=out:st={_seconds(fade_out_start_us)}:"
+                f"d={_seconds(clip.fade_out_us)}:curve=tri"
+            )
+        filters.append(f"{clip_filters},adelay={delay_samples}S:all=1[{label}]")
         labels.append(f"[{label}]")
     filters.append(
         f"{''.join(labels)}amix=inputs={len(labels)}:duration=longest:normalize=0,"

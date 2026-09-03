@@ -57,6 +57,7 @@
 | [ADR-051](ADR-051-verified-durable-staging-authority.md) | locator-derived local publish·restart adoption·cleanup의 verified byte authority | 승인, adapter 구현 대기 |
 | [ADR-052](ADR-052-working-composition-preview-render-authority.md) | revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact 수명주기 | 승인, Backend foundation 구현 |
 | [ADR-053](ADR-053-clip-gain-authority.md) | Clip별 static Gain, split inverse·Preview DSP·Commit freeze 계약 | 승인, Backend foundation 구현 |
+| [ADR-054](ADR-054-clip-fade-authority.md) | Clip-relative linear Fade, geometry·inverse identity·Preview DSP·Commit freeze 계약 | 승인, Backend foundation 구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -83,6 +84,7 @@
 - [ADR-031 — Workspace 중심 REST API 계약](ADR-031-workspace-rest-api-contract.md): Asset·Version·Artifact·Snapshot·Job 중심 `/api/v1` 계약과 Orchestrator 전용 Provider API, cursor·Idempotency·단계적 Legacy 전환을 제안한다.
 - [ADR-035 — D1 Composition Read 권위와 Projection 계약](ADR-035-d1-composition-read-authority.md): Workspace read authority, explicit Project selection, snapshot-local Track projection, Section 비가용 상태와 Project aggregate GET을 결정한다.
 - [ADR-040 — Canonical Track·Clip과 Working Composition 권위](ADR-040-canonical-track-clip-working-composition-authority.md): Project당 하나의 mutable WorkingComposition, canonical Track·Clip identity, exact AssetVersion, revision·atomic edit와 별도 불변 Snapshot Track/Clip commit 경계를 결정한다.
+- [ADR-054 — Clip Fade Authority](ADR-054-clip-fade-authority.md): Clip-relative microsecond Fade, fixed linear curve, fail-closed geometry와 Snapshot·Preview 재현 계약을 승인한다.
 - [ADR-047 — Revision-safe Idempotency Completion Result 권위](ADR-047-revision-safe-idempotency-completion-result.md): 기존 resource replay를 보존하면서 완료 revision과 operation별 복수 identity를 bounded versioned JSON으로 원자 저장한다.
 - [ADR-045 — Clip Service 삭제 의미와 신뢰된 미디어 길이 권위](ADR-045-clip-service-deletion-media-duration-authority.md): non-empty Track 삭제 거부와 trusted ingestion이 저장한 exact duration, exact-one Artifact fail-closed 경계를 결정한다.
 - [ADR-050 — WorkingComposition Inverse Mutation 권위](ADR-050-working-composition-inverse-mutation-authority.md): same-ID Track/Clip restore, exact split geometry 기반 unsplit/resplit과 Frontend history boundary를 결정한다.

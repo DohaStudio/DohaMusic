@@ -196,6 +196,9 @@ def test_create_pins_more_than_sixteen_clips_without_composition_mutation(
         assert [item.canonical_order for item in clips] == list(range(17))
         assert {item.source_artifact_id for item in clips} == {graph.source_artifact_id}
         assert {item.gain_db for item in clips} == {Decimal("0.00")}
+        assert {(item.fade_in_us, item.fade_out_us) for item in clips} == {(0, 0)}
+        job = session.get(Job, result.job_id)
+        assert job is not None and job.settings_snapshot == {"manifest_schema": 3}
         assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 0
 
 
@@ -222,6 +225,34 @@ def test_preview_manifest_pins_gain_without_rereading_working_clip(preview_graph
             {"preview_render_id": created.preview_render_id, "clip_id": source_clip_id},
         )
         assert pinned is not None and pinned.gain_db == Decimal("6.00")
+
+
+def test_preview_manifest_pins_fade_without_rereading_working_clip(preview_graph) -> None:
+    factory, graph, _ = preview_graph
+    with factory.begin() as session:
+        source = session.scalar(
+            select(CompositionClip).where(
+                CompositionClip.working_composition_id == graph.working_id
+            )
+        )
+        assert source is not None
+        source.fade_in = 250_001
+        source.fade_out = 499_999
+        source_clip_id = source.clip_id
+
+    created = _create(WorkingPreviewService(factory), graph, "fade-pinned")
+    with factory.begin() as session:
+        source = session.get(CompositionClip, source_clip_id)
+        assert source is not None
+        source.fade_in = 0
+        source.fade_out = 0
+    with factory() as session:
+        pinned = session.get(
+            WorkingPreviewRenderClip,
+            {"preview_render_id": created.preview_render_id, "clip_id": source_clip_id},
+        )
+        assert pinned is not None
+        assert (pinned.fade_in_us, pinned.fade_out_us) == (250_001, 499_999)
 
 
 def test_preview_product_api_returns_async_job_without_locator_exposure(preview_graph) -> None:
@@ -337,6 +368,9 @@ def test_retry_clones_exact_manifest_without_overwriting_version(preview_graph) 
             item.source_artifact_id for item in original_clips
         ]
         assert [item.gain_db for item in retry_clips] == [item.gain_db for item in original_clips]
+        assert [(item.fade_in_us, item.fade_out_us) for item in retry_clips] == [
+            (item.fade_in_us, item.fade_out_us) for item in original_clips
+        ]
 
 
 def test_success_atomically_creates_version_artifact_and_job_output(preview_graph) -> None:

@@ -54,6 +54,7 @@ def _result(
         IdempotencyResultType.CLIP_CREATE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_COPY: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_GAIN_UPDATE: {"clip_id": str(uuid4())},
+        IdempotencyResultType.CLIP_FADE_UPDATE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_DELETE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_RESTORE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_UNSPLIT: {

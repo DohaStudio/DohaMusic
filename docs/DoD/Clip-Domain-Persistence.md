@@ -1,9 +1,9 @@
 ﻿# Clip Domain / Persistence Design Definition of Done
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-31
+> 최종 수정일: 2026-09-03
 > 관련 기능: AI-native DAW D3 Clip Editing 선행 설계
-> 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [AI-native DAW DoD](AI-Native-DAW.md), [Master Roadmap](../../MASTER_ROADMAP.md)
+> 관련 문서: [ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-045](../11-decisions/ADR-045-clip-service-deletion-media-duration-authority.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [ADR-054](../11-decisions/ADR-054-clip-fade-authority.md), [AI-native DAW DoD](AI-Native-DAW.md), [Master Roadmap](../../MASTER_ROADMAP.md)
 
 이 문서는 Clip Editing 구현 완료가 아니라 구현을 시작하기 위한 Domain/Persistence 결정 완료를 판정한다. ORM·Alembic·API·Frontend·테스트는 모두 후속 범위다.
 
@@ -44,9 +44,10 @@
 - [x] 관련 Draft PR 검토·Ready 전환·`develop` 병합
 - [x] Clip Gain authority·persistence·Product API·Preview render·Snapshot freeze Backend foundation
 - [x] Frontend Clip Gain control·absolute mutation·memory Undo/Redo·Preview stale integration
+- [x] Clip Fade authority·persistence·absolute mutation·inverse identity·Preview render·Snapshot freeze Backend foundation
 - [ ] Frontend Fade·Loop 편집 UI
 - [ ] multi-user recovery·persistent history
 
 ## 판정
 
-`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, `Backend Inverse Mutation`, Frontend Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit과 Clip Gain Backend/Frontend integration은 COMPLETE다. 전체 D3는 Fade·Loop·multi-user recovery·persistent history가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.
+`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, `Backend Inverse Mutation`, Frontend Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit, Clip Gain Backend/Frontend integration과 Clip Fade Backend foundation은 COMPLETE다. 전체 D3는 Fade Frontend·Loop·multi-user recovery·persistent history가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.

@@ -170,6 +170,8 @@ EXPECTED_COLUMNS = {
         "source_out",
         "source_duration",
         "gain_db",
+        "fade_in",
+        "fade_out",
         "split_from_clip_id",
         "created_at",
         "updated_at",
@@ -194,6 +196,8 @@ EXPECTED_COLUMNS = {
         "source_out",
         "source_duration",
         "gain_db",
+        "fade_in",
+        "fade_out",
         "split_from_clip_id",
     },
     "project_composition_selections": {
@@ -358,6 +362,8 @@ EXPECTED_COLUMNS = {
         "source_duration_us",
         "timeline_start_us",
         "gain_db",
+        "fade_in_us",
+        "fade_out_us",
     },
     "recording_enrollments": {
         "recording_enrollment_id",

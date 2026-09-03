@@ -202,6 +202,14 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
             "gain_db >= -24.00 AND gain_db <= 24.00",
             name="ck_composition_clips_gain_db_range",
         ),
+        CheckConstraint(
+            "fade_in >= 0",
+            name="ck_composition_clips_fade_in_non_negative",
+        ),
+        CheckConstraint(
+            "fade_out >= 0 AND fade_in + fade_out <= source_out - source_in",
+            name="ck_composition_clips_fade_range",
+        ),
         UniqueConstraint(
             "working_composition_id",
             "clip_id",
@@ -257,6 +265,12 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
     gain_db: Mapped[Decimal] = mapped_column(
         Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default=text("0.00")
+    )
+    fade_in: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default=text("0")
+    )
+    fade_out: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default=text("0")
     )
     split_from_clip_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
 
@@ -336,6 +350,14 @@ class CompositionSnapshotClip(Base):
             "gain_db >= -24.00 AND gain_db <= 24.00",
             name="ck_composition_snapshot_clips_gain_db_range",
         ),
+        CheckConstraint(
+            "fade_in >= 0",
+            name="ck_composition_snapshot_clips_fade_in_non_negative",
+        ),
+        CheckConstraint(
+            "fade_out >= 0 AND fade_in + fade_out <= source_out - source_in",
+            name="ck_composition_snapshot_clips_fade_range",
+        ),
         UniqueConstraint(
             "composition_snapshot_id",
             "canonical_clip_id",
@@ -381,6 +403,12 @@ class CompositionSnapshotClip(Base):
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
     gain_db: Mapped[Decimal] = mapped_column(
         Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default=text("0.00")
+    )
+    fade_in: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default=text("0")
+    )
+    fade_out: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default=text("0")
     )
     split_from_clip_id: Mapped[UUID | None] = mapped_column(Uuid(as_uuid=True), nullable=True)
 

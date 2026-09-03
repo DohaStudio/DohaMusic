@@ -1,9 +1,9 @@
 # WorkingComposition Product API
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-31
+> 최종 수정일: 2026-09-03
 > 관련 기능: AI-native DAW D3 Clip Editing Backend API와 Frontend consumer
-> 관련 문서: [Service Architecture](../03-architecture/working-composition-service.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [Workspace REST API](workspace-rest-api-contract.md), [Composition Read](composition-read-workspace.md)
+> 관련 문서: [Service Architecture](../03-architecture/working-composition-service.md), [ADR-050](../11-decisions/ADR-050-working-composition-inverse-mutation-authority.md), [ADR-054](../11-decisions/ADR-054-clip-fade-authority.md), [Workspace REST API](workspace-rest-api-contract.md), [Composition Read](composition-read-workspace.md)
 
 ## Endpoint
 
@@ -24,6 +24,7 @@
 | `POST` | `/clips` | 201 | 필수 | exact AssetVersion Clip 생성 |
 | `POST` | `/clips/{clip_id}/copy` | 201 | 필수 | source geometry를 explicit Track·timeline 목적지에 새 canonical ID로 복제 |
 | `PATCH` | `/clips/{clip_id}/gain` | 200 | 필수 | Clip static `gain_db` 절대값 적용 |
+| `PATCH` | `/clips/{clip_id}/fade` | 200 | 필수 | Clip-relative `fade_in`·`fade_out` 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/move` | 200 | 없음 | Timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-start` | 200 | 없음 | source/timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-end` | 200 | 없음 | source 끝 절대값 적용 |
@@ -38,6 +39,8 @@
 Clip Copy body는 추가로 `target_track_id`, `target_timeline_start`만 받는다. `source_asset_version_id`, `source_in`, `source_out`, `source_duration`은 Backend가 active source Clip에서 읽으며 extra field는 strict validation으로 거부한다. same-key replay는 최초 copied `clip_id`와 completed revision을 반환하고 새 Clip을 만들지 않는다.
 
 Clip Gain body는 `working_composition_id`, `expected_revision`, numeric `gain_db`를 받는다. `gain_db`는 finite exact decimal, `0.01 dB` 해상도와 양 끝 포함 `-24.00..+24.00 dB`여야 하며 string, `-Infinity`와 mute sentinel은 허용하지 않는다. 성공은 `clip_id`, 최초 `completed_revision`, `replayed`를 반환하며 Snapshot·Preview·Artifact를 자동 생성하지 않는다.
+
+Clip Fade body는 `working_composition_id`, `expected_revision`, numeric `fade_in`, `fade_out`을 decimal seconds로 받는다. 각 값은 finite·non-negative이고 최대 소수점 6자리이며 합은 현재 Clip duration 이하여야 한다. string, boolean, NaN, Infinity와 묵시적 clamp는 허용하지 않는다. 성공은 `clip_id`, 최초 `completed_revision`, `replayed`를 반환하며 Snapshot·Preview·Artifact를 자동 생성하지 않는다. aggregate Clip detail은 canonical seconds `fade_in`, `fade_out`을 반환한다.
 
 ## Composition Commit
 
@@ -67,7 +70,7 @@ Frontend는 Clip의 exact `source_asset_version_id`마다 이 endpoint를 공식
 
 initialize 성공은 빈 Frontend Undo/Redo history의 시작점이다. checkout 성공은 working arrangement 전체를 교체하는 history barrier이며 checkout 자체는 inverse operation이 아니다. Commit 성공과 same-key replay 성공도 새 base의 history barrier로 Undo·Redo stack을 비우며 Commit 자체는 Undo/Redo command가 아니다. 실패한 Commit은 history를 비우지 않는다. 단, revision·split structure conflict는 Commit barrier가 아니라 기존 conflict GET/reconcile authority에 따라 history를 초기화한다. 과거 committed version 이동은 explicit checkout을 사용한다. Backend API는 command stack을 저장하지 않는다.
 
-Frontend editing consumer는 21개 operation을 중앙 API client로 호출한다. Clip Gain은 selected Clip의 canonical `gain_db`를 표시하고 slider drag 중 숫자만 preview한 뒤 pointer/key commit에서 numeric absolute value를 한 번 전송한다. Gain memory command는 same Clip ID와 absolute before/after 값을 저장하며 Undo/Redo마다 새 key, response-loss retry에는 같은 key를 사용한다. Copy는 명시적으로 보이는 target Track·Timeline 입력 또는 사용자가 누른 Playhead 적용 action 뒤에만 활성화되며 OS clipboard shortcut이나 숨은 placement fallback을 사용하지 않는다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip 및 Composition selection을 reconcile한다. create/delete/copy는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용한다.
+Frontend editing consumer는 기존 21개 operation을 중앙 API client로 호출한다. Backend의 22번째 Fade operation은 다음 Frontend gate 전까지 production UI에서 호출하지 않는다. Clip Gain은 selected Clip의 canonical `gain_db`를 표시하고 slider drag 중 숫자만 preview한 뒤 pointer/key commit에서 numeric absolute value를 한 번 전송한다. Gain memory command는 same Clip ID와 absolute before/after 값을 저장하며 Undo/Redo마다 새 key, response-loss retry에는 같은 key를 사용한다. Copy는 명시적으로 보이는 target Track·Timeline 입력 또는 사용자가 누른 Playhead 적용 action 뒤에만 활성화되며 OS clipboard shortcut이나 숨은 placement fallback을 사용하지 않는다. Backend 응답의 `completed_revision`을 local increment 없이 반영하고 GET으로 canonical Track·Clip 및 Composition selection을 reconcile한다. create/delete/copy는 same-ID restore, split은 stored original·left·right identity의 unsplit/resplit을 사용한다.
 
 ## Working Preview
 
@@ -92,13 +95,13 @@ Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 
 | 409 | `IDEMPOTENCY_KEY_REUSED`, `IDEMPOTENCY_IN_PROGRESS` | key fingerprint 충돌 또는 처리 중 |
 | 409 | `SOURCE_ASSET_UNAVAILABLE`, `SOURCE_ARTIFACT_AMBIGUOUS`, `SOURCE_DURATION_UNAVAILABLE` | source eligibility fail-closed |
 | 409 | `SNAPSHOT_ARRANGEMENT_NOT_AVAILABLE` | immutable arrangement 없음 |
-| 422 | `INVALID_CLIP_RANGE`, `CLIP_GAIN_OUT_OF_RANGE`, `INVALID_INPUT` | 정규화 이후 Clip geometry·Gain 입력 범위 오류 |
+| 422 | `INVALID_CLIP_RANGE`, `CLIP_GAIN_OUT_OF_RANGE`, `CLIP_FADE_OUT_OF_RANGE`, `INVALID_INPUT` | 정규화 이후 Clip geometry·Gain·Fade 입력 범위 오류 |
 | 422 | `WORKING_PREVIEW_EMPTY`, `WORKING_PREVIEW_LIMIT_EXCEEDED`, `WORKING_PREVIEW_SOURCE_UNAVAILABLE`, `WORKING_PREVIEW_OUTPUT_INVALID` | Preview 입력·source·output fail-closed |
 
 오류는 path, storage root, locator, signed URL, credential, DB path, raw exception과 SQL constraint 이름을 반환하지 않는다.
 
 ## Surface 실측
 
-WorkingComposition Router는 APIRoute 21개, OpenAPI Path 20개, Operation 21개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Clip Gain operation ID 충돌은 0개다.
+WorkingComposition Router는 APIRoute 22개, OpenAPI Path 21개, Operation 22개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Clip Fade operation ID 충돌은 0개다.
 
-이 21개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.
+이 22개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.

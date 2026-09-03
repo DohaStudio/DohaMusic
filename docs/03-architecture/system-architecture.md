@@ -3,7 +3,7 @@
 > 문서 역할: 현재 시스템 연결과 상세 Architecture 탐색의 Canonical Authority
 > 문서 목적: 구현된 구성요소와 향후 확장 경계를 정의한다.
 > 현재 상태: **Legacy·Responsive Studio MVP 구현 / DohaVocal Consumer Contract·HTTP Transport Foundation 구현 / AI-native DAW Product Runtime·Production Provider 전환 [계획]**
-> 최종 수정일: 2026-08-24
+> 최종 수정일: 2026-09-03
 > 관련 문서: [현재·목표 아키텍처](ai-native-daw-target-architecture.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [DohaLM 연동](dohalm-integration.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [Workspace Artifact 모델](workspace-artifact-model.md)
 
 이 문서는 상위 연결과 CURRENT 경계를 설명한다. AI-native DAW의 상세 TARGET Workflow와 NOT IMPLEMENTED 목록은 [목표 아키텍처](ai-native-daw-target-architecture.md), 개별 API·DB·Artifact 계약은 연결된 상세 문서를 Authority로 사용한다.
@@ -14,7 +14,7 @@
 | DohaLM·DohaAudio·DohaVocal 책임 | DohaVocal strict DTO·HTTP Transport Foundation 존재, Worker·Artifact production 통합 미구현, 로컬 호환 Adapter 유지 | [DohaVocal Consumer Contract](dohavocal-consumer-contract.md), [저장소와 Provider 경계](repository-provider-boundaries.md) |
 | Workspace·AssetVersion·Artifact | Entity·Service·공개 API와 local Storage 기반 존재 | [Workspace Artifact 모델](workspace-artifact-model.md), [Storage 계약](artifact-storage-contract.md) |
 | Job | Legacy ThreadPool과 Workspace Job 실행 기반·API 존재 | Provider dispatch wiring·background daemon 미구현 |
-| CompositionSnapshot | 불변 Snapshot Entity·Application·API, Working/Track/Clip persistence·atomic mutation Service·21개 Product API와 Frontend Clip Copy·Commit, Clip Gain Backend foundation 존재 | Gain UI·Fade·Loop·Section·Mixer 미구현 |
+| CompositionSnapshot | 불변 Snapshot Entity·Application·API, Working/Track/Clip persistence·atomic mutation Service·22개 Product API와 Frontend Clip Copy·Commit·Gain UI, Clip Fade Backend foundation 존재 | Fade UI·Loop·Section·Mixer 미구현 |
 | MusicIntent | 문서상 Common Contract 재사용 기준, Runtime 미연결 | DohaLM 제안 → DohaMusic orchestration → Provider 실행 |
 | ReferenceAnalysis | Runtime·ingestion 미구현 | 허용 Reference → FeatureRecord → planning context |
 | LearningCandidate | review·Dataset 연결 미구현 | RightsMetadata·TrainingEligibility·DatasetVersion Gate |

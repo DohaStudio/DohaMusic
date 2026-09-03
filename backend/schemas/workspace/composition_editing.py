@@ -87,6 +87,18 @@ class ClipGainUpdateRequest(WorkingMutationRequest):
         return value
 
 
+class ClipFadeUpdateRequest(WorkingMutationRequest):
+    fade_in: Decimal
+    fade_out: Decimal
+
+    @field_validator("fade_in", "fade_out", mode="before")
+    @classmethod
+    def reject_non_numeric_json_values(cls, value: object) -> object:
+        if isinstance(value, (str, bool)):
+            raise ValueError("Fade duration은 JSON number여야 합니다.")
+        return value
+
+
 class ClipTrimStartRequest(WorkingMutationRequest):
     timeline_start: Decimal = Field(ge=0)
     source_in: Decimal = Field(ge=0)
@@ -121,6 +133,8 @@ class ClipDetail(_StrictModel):
     source_out: Decimal
     source_duration: Decimal
     gain_db: Decimal
+    fade_in: Decimal
+    fade_out: Decimal
     split_from_clip_id: UUID | None
 
 

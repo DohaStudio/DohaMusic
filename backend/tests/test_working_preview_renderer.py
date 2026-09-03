@@ -287,6 +287,99 @@ def test_renderer_rejects_invalid_manifest_gain_before_opening_artifact(
     assert called is False
 
 
+def test_renderer_applies_static_gain_then_linear_fade_deterministically(
+    tmp_path: Path,
+) -> None:
+    ffmpeg = shutil.which("ffmpeg")
+    if ffmpeg is None:
+        pytest.skip("FFmpeg runtime is unavailable")
+    artifact_id = uuid4()
+    source = tmp_path / "fade-source.wav"
+    _tone_wav(source, duration_frames=9_600)
+    payload = source.read_bytes()
+
+    @contextmanager
+    def open_artifact(candidate: UUID):
+        assert candidate == artifact_id
+        yield len(payload), io.BytesIO(payload)
+
+    renderer = FfmpegWorkingCompositionPreviewRenderer(
+        ffmpeg_executable=ffmpeg,
+        temp_root=tmp_path / "fade-runtime",
+        open_artifact=open_artifact,
+    )
+    clip = PreviewRenderClip(
+        clip_id=uuid4(),
+        track_order=0,
+        canonical_order=0,
+        artifact_id=artifact_id,
+        source_in_us=0,
+        source_out_us=200_000,
+        timeline_start_us=0,
+        gain_db=Decimal("-6.02"),
+        fade_in_us=50_000,
+        fade_out_us=50_000,
+    )
+
+    rendered_payloads: list[bytes] = []
+    for _ in range(2):
+        with renderer.render([clip], track_count=1) as rendered:
+            rendered_payloads.append(rendered.path.read_bytes())
+            with wave.open(str(rendered.path), "rb") as output:
+                frames = output.readframes(output.getnframes())
+        samples = struct.unpack(f"<{len(frames) // 2}h", frames)
+        early_peak = max(abs(value) for value in samples[: 480 * 2])
+        middle_peak = max(abs(value) for value in samples[3_000 * 2 : 4_000 * 2])
+        late_peak = max(abs(value) for value in samples[-480 * 2 :])
+        assert middle_peak == pytest.approx(8_000 * 10 ** (-6.02 / 20), rel=0.03)
+        assert early_peak < middle_peak * 0.25
+        assert late_peak < middle_peak * 0.25
+    assert rendered_payloads[0] == rendered_payloads[1]
+
+
+@pytest.mark.parametrize(
+    ("fade_in_us", "fade_out_us"),
+    [(-1, 0), (0, -1), (500_001, 500_000)],
+)
+def test_renderer_rejects_invalid_fade_before_opening_artifact(
+    tmp_path: Path, fade_in_us: int, fade_out_us: int
+) -> None:
+    called = False
+
+    @contextmanager
+    def open_artifact(_artifact_id: UUID):
+        nonlocal called
+        called = True
+        yield 1, io.BytesIO(b"x")
+
+    renderer = FfmpegWorkingCompositionPreviewRenderer(
+        ffmpeg_executable="ffmpeg",
+        temp_root=tmp_path,
+        open_artifact=open_artifact,
+    )
+    with (
+        pytest.raises(PreviewRenderError, match="WORKING_PREVIEW_GEOMETRY_INVALID"),
+        renderer.render(
+            [
+                PreviewRenderClip(
+                    clip_id=uuid4(),
+                    track_order=0,
+                    canonical_order=0,
+                    artifact_id=uuid4(),
+                    source_in_us=0,
+                    source_out_us=1_000_000,
+                    timeline_start_us=0,
+                    fade_in_us=fade_in_us,
+                    fade_out_us=fade_out_us,
+                )
+            ],
+            track_count=1,
+        ),
+    ):
+        pass
+    assert called is False
+
+
 def _tone_wav(path: Path, *, duration_frames: int) -> None:
     samples = bytearray()
     for frame in range(duration_frames):
