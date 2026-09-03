@@ -2,15 +2,15 @@
 
 > 문서 상태: [진행 중]
 > 문서 분류: **TRANSITION / PARTIALLY IMPLEMENTED**
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-09-03
 > 관련 기능: 현행 DohaMusic DB에서 Asset 중심 목표 DB로 단계적 전환
-> 완료된 전환 기반: source Workspace 도메인 Entity/Table 28개·Catalog 1개, revisions `0012`~`0022`, Bootstrap exact revision·D1 Transition Gate
+> 완료된 전환 기반: source Workspace 도메인 Entity/Table 33개·Catalog 1개, revisions `0012`~`0026`, Bootstrap exact revision·D1 Transition Gate
 > 미구현 전환: 실제 DB migration·Bootstrap·data backfill·dual write·Runtime read source 전환·Legacy 제거·파일 이동
 > 관련 문서: [재설계 개요](database-redesign-overview.md), [목표 ERD](database-redesign-erd.md), [목표 Table Definition](database-redesign-table-definition.md), [현재 ERD](erd.md), [Migration 검증 보고서](../../reports/validation/VALIDATION-WORKSPACE-ALEMBIC-MIGRATION.md), [실제 적용 Runbook](../10-operations/workspace-db-migration-runbook.md)
 
 ## 1. 현재 기준
 
-Alembic source head는 Clip Gain foundation을 추가한 `20260830_0025`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `0018`은 selection, `0019`는 Provider Job binding, `0020`은 Clip persistence Table, `0021`은 nullable `artifacts.duration_us`, `0022`는 nullable completion result Column 4개, `0023`은 빈 `payload_locators` table과 binding scope index, `0024`는 빈 Working Preview binding·render·Track·Clip manifest table, `0025`는 세 Clip table의 non-null `gain_db`와 범위 CHECK를 추가합니다. `0021`~`0025`는 Payload probe·결과 fabrication·media backfill·rewrite를 수행하지 않습니다. Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head는 Clip Fade foundation을 추가한 `20260903_0026`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `0018`은 selection, `0019`는 Provider Job binding, `0020`은 Clip persistence Table, `0021`은 nullable `artifacts.duration_us`, `0022`는 nullable completion result Column 4개, `0023`은 빈 `payload_locators` table과 binding scope index, `0024`는 빈 Working Preview binding·render·Track·Clip manifest table, `0025`는 세 Clip table의 non-null `gain_db`와 범위 CHECK, `0026`은 같은 table의 non-null integer Fade와 범위 CHECK를 추가합니다. `0021`~`0026`은 Payload probe·결과 fabrication·media backfill·rewrite를 수행하지 않습니다. Runtime Table 14개가 계속 source of truth입니다.
 
 명시적 Bootstrap CLI의 fail-closed revision Gate는 source `20260825_0022`와 D1 selection Table·PK·unique·same-Project FK·Snapshot identity Index를 정확히 요구합니다. 실제 사용자 DB `20260810_0017`에는 migration을 적용하지 않았으므로 현재 Bootstrap 대상이 아닙니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
 

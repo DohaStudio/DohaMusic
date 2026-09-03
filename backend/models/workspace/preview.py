@@ -114,6 +114,14 @@ class WorkingPreviewRenderClip(Base):
             "gain_db >= -24.00 AND gain_db <= 24.00",
             name="ck_working_preview_clip_gain_db_range",
         ),
+        CheckConstraint(
+            "fade_in_us >= 0",
+            name="ck_working_preview_clip_fade_in_non_negative",
+        ),
+        CheckConstraint(
+            "fade_out_us >= 0 AND fade_in_us + fade_out_us <= source_out_us - source_in_us",
+            name="ck_working_preview_clip_fade_range",
+        ),
         UniqueConstraint(
             "preview_render_id", "canonical_order", name="uq_working_preview_clip_order"
         ),
@@ -145,4 +153,10 @@ class WorkingPreviewRenderClip(Base):
     timeline_start_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     gain_db: Mapped[Decimal] = mapped_column(
         Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
+    )
+    fade_in_us: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
+    fade_out_us: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
     )

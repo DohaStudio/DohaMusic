@@ -5,11 +5,18 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-08-31
+> 최종 수정일: 2026-09-03
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가 — Clip Fade Backend Foundation
+
+- ADR-054에서 D3 Clip-relative `fade_in`·`fade_out`을 integer microseconds, 기본 0, 최대 6자리 decimal seconds와 고정 linear-amplitude curve로 확정했다. 두 Fade 합은 Clip duration 이하여야 하며 자동 clamp는 하지 않는다.
+- revision-safe `PATCH /api/v1/projects/{project_id}/working-composition/clips/{clip_id}/fade`와 `CLIP_FADE_UPDATE` completion을 추가했다. Copy·Move·delete/restore는 Fade를 보존하고 Split은 active Fade 구간을 거부한 뒤 left의 Fade-in과 right의 Fade-out만 보존하며, canonical projection이 다른 unsplit/resplit은 fail-closed rollback한다.
+- CompositionClip·SnapshotClip·WorkingPreviewRenderClip에 Fade를 보존하고 Preview manifest schema 3과 FFmpeg static Gain 뒤 linear Fade DSP를 추가했다. Commit·Checkout은 exact Fade를 freeze/restore하고 기존 Preview manifest는 Working mutation 뒤에도 불변이다.
+- additive Alembic `20260903_0026`과 upgrade/downgrade, default·range·precision, replay·CAS, inverse identity, Preview audio envelope·pinning 및 회귀 테스트를 추가했다. 실제 사용자 DB·media·Common Contract·Provider·Dataset·Training·GPU와 Frontend production code는 변경하지 않았다.
 
 ### 추가 — Clip Gain Frontend UI
 

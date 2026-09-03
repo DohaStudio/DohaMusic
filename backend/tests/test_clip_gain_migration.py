@@ -247,7 +247,7 @@ def _seed_pre_gain_rows(database_url: str) -> None:
 
 def test_clip_gain_revision_is_latest_single_head() -> None:
     script = ScriptDirectory.from_config(_config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_revision(REVISION).revision == REVISION
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
 
 

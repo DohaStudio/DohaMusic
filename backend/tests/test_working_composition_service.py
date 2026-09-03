@@ -25,6 +25,7 @@ from backend.core.exceptions import (
     IdempotencyConflictError,
     IdempotencyInProgressError,
     ResourceNotFoundError,
+    WorkspaceBootstrapRequiredError,
 )
 from backend.core.idempotency_completion import IdempotencyResultType
 from backend.db.base import Base
@@ -732,6 +733,11 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
         ),
         (
             "PATCH",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/fade",
+            "update_working_composition_clip_fade",
+        ),
+        (
+            "PATCH",
             "/projects/{project_id}/working-composition/clips/{clip_id}/trim-start",
             "trim_working_composition_clip_start",
         ),
@@ -766,10 +772,10 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "resplit_working_composition_clip",
         ),
     }
-    assert len(routes) == 21
-    assert len({path for _, path, _ in surface}) == 20
+    assert len(routes) == 22
+    assert len({path for _, path, _ in surface}) == 21
     operation_ids = [operation_id for _, _, operation_id in surface]
-    assert len(operation_ids) == len(set(operation_ids)) == 21
+    assert len(operation_ids) == len(set(operation_ids)) == 22
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(service, graph) -> None:
@@ -3421,3 +3427,632 @@ def test_clip_gain_product_api_is_strict_and_returns_canonical_gain(
         headers={"Idempotency-Key": "gain-api-string"},
     )
     assert string_value.status_code == 422
+
+
+def test_clip_fade_defaults_replays_and_changes_only_fade(service, session_factory, graph) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    with session_factory() as session:
+        before = session.get(CompositionClip, clip_id)
+        assert before is not None
+        assert (before.fade_in, before.fade_out) == (0, 0)
+        stable = (
+            before.track_id,
+            before.source_asset_version_id,
+            before.timeline_start,
+            before.source_in,
+            before.source_out,
+            before.source_duration,
+            before.gain_db,
+        )
+
+    first = service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        fade_in=Decimal("1.000001"),
+        fade_out=Decimal("0.999999"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-first",
+    )
+    service.rename_track(
+        graph.project_id,
+        working_composition_id=working_id,
+        track_id=track_id,
+        name="Fade replay barrier",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+    )
+    replay = service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        fade_in=Decimal("1.000001"),
+        fade_out=Decimal("0.999999"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-first",
+    )
+    assert first.completed_revision == replay.completed_revision == 3
+    assert replay.replayed is True
+    assert replay.identities == {"clip_id": clip_id}
+    with pytest.raises(IdempotencyConflictError):
+        service.set_clip_fade(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            fade_in=Decimal("1.00"),
+            fade_out=Decimal("1.00"),
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="fade-first",
+        )
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        working = session.get(WorkingComposition, working_id)
+        assert clip is not None and (clip.fade_in, clip.fade_out) == (1_000_001, 999_999)
+        assert stable == (
+            clip.track_id,
+            clip.source_asset_version_id,
+            clip.timeline_start,
+            clip.source_in,
+            clip.source_out,
+            clip.source_duration,
+            clip.gain_db,
+        )
+        assert working is not None and working.revision == 4
+        record = session.scalar(
+            select(IdempotencyRecord).where(
+                IdempotencyRecord.result_type == IdempotencyResultType.CLIP_FADE_UPDATE.value
+            )
+        )
+        assert record is not None and record.completed_revision == 3
+        assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 0
+        assert session.scalar(select(func.count(WorkingPreviewRender.preview_render_id))) == 0
+
+
+@pytest.mark.parametrize(
+    ("fade_in", "fade_out"),
+    [
+        (Decimal("-0.000001"), Decimal("0")),
+        (Decimal("0"), Decimal("-0.000001")),
+        (Decimal("0.0000001"), Decimal("0")),
+        (Decimal("NaN"), Decimal("0")),
+        (Decimal("Infinity"), Decimal("0")),
+        (Decimal("3"), Decimal("2")),
+        ("1.00", Decimal("0")),
+    ],
+)
+def test_clip_fade_rejects_invalid_values_without_mutation(
+    service, session_factory, graph, fade_in, fade_out
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    with pytest.raises(WorkingCompositionError) as caught:
+        service.set_clip_fade(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            fade_in=fade_in,
+            fade_out=fade_out,
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="fade-invalid",
+        )
+    assert caught.value.code is WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip is not None and (clip.fade_in, clip.fade_out) == (0, 0)
+        assert session.get(WorkingComposition, working_id).revision == 2
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_FADE_UPDATE.value
+                )
+            )
+            == 0
+        )
+
+
+def test_clip_fade_copy_split_restore_trim_and_inverse_semantics(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    original_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        fade_in=Decimal("1"),
+        fade_out=Decimal("1"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-before-copy",
+    )
+    copied = service.copy_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        target_track_id=track_id,
+        target_timeline_start="5",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-copy",
+    )
+    split = service.split_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        split_at="2",
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-split",
+    )
+    left_id = split.identities["left_clip_id"]
+    right_id = split.identities["right_clip_id"]
+    with session_factory() as session:
+        assert (
+            session.get(CompositionClip, copied.identities["clip_id"]).fade_in,
+            session.get(CompositionClip, copied.identities["clip_id"]).fade_out,
+        ) == (
+            1_000_000,
+            1_000_000,
+        )
+        assert (
+            session.get(CompositionClip, left_id).fade_in,
+            session.get(CompositionClip, left_id).fade_out,
+        ) == (1_000_000, 0)
+        assert (
+            session.get(CompositionClip, right_id).fade_in,
+            session.get(CompositionClip, right_id).fade_out,
+        ) == (0, 1_000_000)
+
+    service.unsplit_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        original_clip_id=original_id,
+        left_clip_id=left_id,
+        right_clip_id=right_id,
+        expected_revision=5,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-unsplit",
+    )
+    service.resplit_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        original_clip_id=original_id,
+        left_clip_id=left_id,
+        right_clip_id=right_id,
+        expected_revision=6,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-resplit",
+    )
+    service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=left_id,
+        fade_in=Decimal("0.5"),
+        fade_out=Decimal("0"),
+        expected_revision=7,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-child-diverge",
+    )
+    with pytest.raises(WorkingCompositionError) as conflict:
+        service.unsplit_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            original_clip_id=original_id,
+            left_clip_id=left_id,
+            right_clip_id=right_id,
+            expected_revision=8,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="fade-unsplit-conflict",
+        )
+    assert conflict.value.code is WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT
+    with session_factory() as session:
+        assert session.get(WorkingComposition, working_id).revision == 8
+        assert session.get(CompositionClip, original_id).deleted_at is not None
+        assert session.get(CompositionClip, left_id).deleted_at is None
+        assert session.get(CompositionClip, right_id).deleted_at is None
+
+
+def test_clip_fade_split_and_trim_fail_closed_without_implicit_clamp(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        fade_in=Decimal("1"),
+        fade_out=Decimal("1"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-boundary",
+    )
+    for split_at in (Decimal("0.5"), Decimal("3.5")):
+        with pytest.raises(WorkingCompositionError) as conflict:
+            service.split_clip(
+                graph.project_id,
+                working_composition_id=working_id,
+                clip_id=clip_id,
+                split_at=split_at,
+                expected_revision=3,
+                effective_owner_id=graph.owner_id,
+                idempotency_key=f"fade-split-{split_at}",
+            )
+        assert conflict.value.code is WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT
+    with pytest.raises(WorkingCompositionError) as trimmed:
+        service.trim_clip_end(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            source_out=Decimal("1.999999"),
+            expected_revision=3,
+            effective_owner_id=graph.owner_id,
+        )
+    assert trimmed.value.code is WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE
+    moved = service.move_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        timeline_start=Decimal("1"),
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+    )
+    assert moved.completed_revision == 4
+    service.delete_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-delete",
+    )
+    service.restore_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        expected_revision=5,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-restore",
+    )
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip is not None and (clip.fade_in, clip.fade_out) == (1_000_000, 1_000_000)
+        assert clip.timeline_start == 1_000_000
+
+
+def test_clip_fade_commit_freezes_and_checkout_restores_exact_envelope(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        fade_in=Decimal("0.500001"),
+        fade_out=Decimal("0.749999"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-before-commit",
+    )
+    committed = service.commit(
+        graph.project_id,
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-commit",
+    )
+    snapshot_id = committed.identities["composition_snapshot_id"]
+    service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        fade_in=Decimal("0"),
+        fade_out=Decimal("0"),
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-after-commit",
+    )
+    with session_factory() as session:
+        frozen = session.scalar(
+            select(CompositionSnapshotClip).where(
+                CompositionSnapshotClip.composition_snapshot_id == snapshot_id,
+                CompositionSnapshotClip.canonical_clip_id == clip_id,
+            )
+        )
+        assert frozen is not None
+        assert (frozen.fade_in, frozen.fade_out) == (500_001, 749_999)
+        assert (
+            session.get(CompositionClip, clip_id).fade_in,
+            session.get(CompositionClip, clip_id).fade_out,
+        ) == (0, 0)
+    service.checkout(
+        graph.project_id,
+        working_composition_id=working_id,
+        composition_snapshot_id=snapshot_id,
+        expected_revision=5,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-checkout",
+    )
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip is not None and (clip.fade_in, clip.fade_out) == (500_001, 749_999)
+
+
+def test_clip_fade_product_api_is_strict_and_returns_canonical_values(
+    working_client, service, graph
+) -> None:
+    working_id = _initialize(service, graph, "fade-api-init").identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    path = f"/api/v1/projects/{graph.project_id}/working-composition/clips/{clip_id}/fade"
+    payload = {
+        "working_composition_id": str(working_id),
+        "expected_revision": 2,
+        "fade_in": 0.500001,
+        "fade_out": 0.75,
+    }
+    response = working_client.patch(path, json=payload, headers={"Idempotency-Key": "fade-api"})
+    assert response.status_code == 200
+    assert response.json()["data"] == {
+        "clip_id": str(clip_id),
+        "completed_revision": 3,
+        "replayed": False,
+    }
+    read = working_client.get(f"/api/v1/projects/{graph.project_id}/working-composition")
+    assert read.json()["data"]["clips"][0]["fade_in"] == "0.500001"
+    assert read.json()["data"]["clips"][0]["fade_out"] == "0.75"
+    string_value = working_client.patch(
+        path,
+        json={**payload, "expected_revision": 3, "fade_in": "0.5"},
+        headers={"Idempotency-Key": "fade-api-string"},
+    )
+    assert string_value.status_code == 422
+    invalid_sum = working_client.patch(
+        path,
+        json={**payload, "expected_revision": 3, "fade_in": 3, "fade_out": 2},
+        headers={"Idempotency-Key": "fade-api-sum"},
+    )
+    assert invalid_sum.status_code == 422
+    assert invalid_sum.json()["error"]["error_code"] == "CLIP_FADE_OUT_OF_RANGE"
+
+
+def test_clip_fade_concurrent_cas_and_forced_completion_failure_are_atomic(
+    service, session_factory, graph, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    def update(value: Decimal, key: str):
+        try:
+            return service.set_clip_fade(
+                graph.project_id,
+                working_composition_id=working_id,
+                clip_id=clip_id,
+                fade_in=value,
+                fade_out=Decimal("0"),
+                expected_revision=2,
+                effective_owner_id=graph.owner_id,
+                idempotency_key=key,
+            )
+        except WorkingCompositionError as error:
+            return error
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        results = list(
+            executor.map(
+                lambda item: update(*item),
+                ((Decimal("1"), "fade-race-a"), (Decimal("2"), "fade-race-b")),
+            )
+        )
+    successes = [result for result in results if not isinstance(result, Exception)]
+    failures = [result for result in results if isinstance(result, WorkingCompositionError)]
+    assert len(successes) == len(failures) == 1
+    assert failures[0].code is WorkingCompositionErrorCode.WORKING_COMPOSITION_REVISION_CONFLICT
+
+    original_complete = IdempotencyRepository.complete_with_result
+
+    def fail_completion(*_args, **_kwargs):
+        raise RuntimeError("forced completion failure")
+
+    monkeypatch.setattr(IdempotencyRepository, "complete_with_result", fail_completion)
+    with pytest.raises(RuntimeError, match="forced completion failure"):
+        service.set_clip_fade(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            fade_in=Decimal("0.25"),
+            fade_out=Decimal("0.25"),
+            expected_revision=3,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="fade-forced-failure",
+        )
+    monkeypatch.setattr(IdempotencyRepository, "complete_with_result", original_complete)
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip is not None and clip.fade_in in {1_000_000, 2_000_000}
+        assert clip.fade_out == 0
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_FADE_UPDATE.value
+                )
+            )
+            == 1
+        )
+
+
+def test_clip_fade_rejects_missing_and_tombstoned_clip_without_completion(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    for candidate, key in ((uuid4(), "fade-missing"), (clip_id, "fade-deleted")):
+        if candidate == clip_id:
+            service.delete_clip(
+                graph.project_id,
+                working_composition_id=working_id,
+                clip_id=clip_id,
+                expected_revision=2,
+                effective_owner_id=graph.owner_id,
+                idempotency_key="fade-delete-before-update",
+            )
+            expected_revision = 3
+        else:
+            expected_revision = 2
+        with pytest.raises(WorkingCompositionError) as caught:
+            service.set_clip_fade(
+                graph.project_id,
+                working_composition_id=working_id,
+                clip_id=candidate,
+                fade_in=Decimal("0.5"),
+                fade_out=Decimal("0.5"),
+                expected_revision=expected_revision,
+                effective_owner_id=graph.owner_id,
+                idempotency_key=key,
+            )
+        assert caught.value.code is WorkingCompositionErrorCode.CLIP_NOT_FOUND
+    with session_factory() as session:
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_FADE_UPDATE.value
+                )
+            )
+            == 0
+        )
+
+
+def test_clip_fade_rejects_cross_scope_and_stale_revision_without_completion(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    attempts = (
+        (uuid4(), working_id, graph.owner_id, 2, "fade-cross-project", ResourceNotFoundError),
+        (
+            graph.project_id,
+            uuid4(),
+            graph.owner_id,
+            2,
+            "fade-cross-working",
+            WorkingCompositionError,
+        ),
+        (
+            graph.project_id,
+            working_id,
+            uuid4(),
+            2,
+            "fade-cross-owner",
+            WorkspaceBootstrapRequiredError,
+        ),
+        (
+            graph.project_id,
+            working_id,
+            graph.owner_id,
+            1,
+            "fade-stale",
+            WorkingCompositionError,
+        ),
+    )
+    for project_id, candidate_working_id, owner_id, revision, key, error_type in attempts:
+        with pytest.raises(error_type):
+            service.set_clip_fade(
+                project_id,
+                working_composition_id=candidate_working_id,
+                clip_id=clip_id,
+                fade_in=Decimal("0.5"),
+                fade_out=Decimal("0.5"),
+                expected_revision=revision,
+                effective_owner_id=owner_id,
+                idempotency_key=key,
+            )
+
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip is not None and (clip.fade_in, clip.fade_out) == (0, 0)
+        assert session.get(WorkingComposition, working_id).revision == 2
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_FADE_UPDATE.value
+                )
+            )
+            == 0
+        )
+
+
+def test_clip_fade_resplit_rejects_tombstoned_child_divergence(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    original_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_fade(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        fade_in=Decimal("1"),
+        fade_out=Decimal("1"),
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-resplit-original",
+    )
+    split = service.split_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=original_id,
+        split_at=Decimal("2"),
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-resplit-split",
+    )
+    left_id = split.identities["left_clip_id"]
+    right_id = split.identities["right_clip_id"]
+    service.unsplit_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        original_clip_id=original_id,
+        left_clip_id=left_id,
+        right_clip_id=right_id,
+        expected_revision=4,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="fade-resplit-unsplit",
+    )
+    with session_factory.begin() as session:
+        left = session.get(CompositionClip, left_id)
+        assert left is not None and left.deleted_at is not None
+        left.fade_in = 500_000
+
+    with pytest.raises(WorkingCompositionError) as conflict:
+        service.resplit_clip(
+            graph.project_id,
+            working_composition_id=working_id,
+            original_clip_id=original_id,
+            left_clip_id=left_id,
+            right_clip_id=right_id,
+            expected_revision=5,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="fade-resplit-diverged",
+        )
+    assert conflict.value.code is WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT
+    with session_factory() as session:
+        assert session.get(WorkingComposition, working_id).revision == 5
+        assert session.get(CompositionClip, original_id).deleted_at is None
+        assert session.get(CompositionClip, left_id).deleted_at is not None
+        assert session.get(CompositionClip, right_id).deleted_at is not None

@@ -247,7 +247,7 @@ class WorkingPreviewService:
                         model_manifest_id=None,
                         progress_percent=0,
                         stage=None,
-                        settings_snapshot={"manifest_schema": 2},
+                        settings_snapshot={"manifest_schema": 3},
                         retry_of_job_id=None,
                         requested_by=effective_owner_id,
                         attempt=0,
@@ -288,6 +288,8 @@ class WorkingPreviewService:
                             source_duration_us=clip.source_duration,
                             timeline_start_us=clip.timeline_start,
                             gain_db=clip.gain_db,
+                            fade_in_us=clip.fade_in,
+                            fade_out_us=clip.fade_out,
                         )
                         for order, (clip, source) in enumerate(
                             zip(clips, exact_sources, strict=True)
