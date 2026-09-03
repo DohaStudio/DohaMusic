@@ -1,7 +1,8 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
+  AudioWaveform,
   BookOpenText,
   CircleUserRound,
   Info,
@@ -11,21 +12,30 @@ import {
   Settings2,
   SlidersHorizontal,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 import { Brand } from "./brand";
 import { ApiStatus } from "./api-status";
 import { GlobalPlayer } from "@/features/player/global-player";
 
-const nav = [
+type NavigationItem = {
+  href: string;
+  label: string;
+  mobileLabel?: string;
+  icon: typeof SlidersHorizontal;
+  kind?: "daw" | "projects";
+};
+
+const nav: NavigationItem[] = [
   { href: "/studio", label: "음악 만들기", mobileLabel: "만들기", icon: SlidersHorizontal },
+  { href: "/projects?mode=daw", label: "DAW 편집", mobileLabel: "DAW", icon: AudioWaveform, kind: "daw" },
   { href: "/lyrics", label: "가사 만들기", mobileLabel: "가사", icon: BookOpenText },
   { href: "/voice", label: "내 목소리", mobileLabel: "목소리", icon: Mic2 },
   { href: "/history", label: "만든 음악", mobileLabel: "음악", icon: History },
-  { href: "/projects", label: "프로젝트 · DAW", mobileLabel: "DAW", icon: FolderKanban },
+  { href: "/projects", label: "프로젝트", mobileLabel: "프로젝트", icon: FolderKanban, kind: "projects" },
   { href: "/settings", label: "설정", icon: Settings2 },
   { href: "/about", label: "서비스 소개", icon: Info },
 ];
-const mobileNav = nav.slice(0, 5);
+const mobileNav = [nav[0], nav[1], nav[4], nav[5], nav[3]];
 export function AppShell({
   children,
   context,
@@ -33,23 +43,14 @@ export function AppShell({
   children: ReactNode;
   context?: ReactNode;
 }) {
-  const path = usePathname();
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <Brand />
         <nav aria-label="주요 메뉴">
-          {nav.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className={path.startsWith(href) ? "active" : ""}
-              aria-current={path.startsWith(href) ? "page" : undefined}
-            >
-              <Icon size={19} />
-              <span>{label}</span>
-            </Link>
-          ))}
+          <Suspense fallback={<StaticNavigationLinks items={nav} />}>
+            <NavigationLinks items={nav} />
+          </Suspense>
         </nav>
         <div className="sidebar-foot">
           <CircleUserRound />
@@ -75,21 +76,47 @@ export function AppShell({
       </aside>
       <GlobalPlayer />
       <nav className="mobile-nav" aria-label="모바일 메뉴">
-        {mobileNav.map(({ href, label, mobileLabel, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className={path.startsWith(href) ? "active" : ""}
-            aria-label={label}
-            aria-current={path.startsWith(href) ? "page" : undefined}
-          >
-            <Icon />
-            <span>{mobileLabel ?? label}</span>
-          </Link>
-        ))}
+        <Suspense fallback={<StaticNavigationLinks items={mobileNav} mobile />}>
+          <NavigationLinks items={mobileNav} mobile />
+        </Suspense>
       </nav>
     </div>
   );
+}
+
+function NavigationLinks({ items, mobile = false }: { items: NavigationItem[]; mobile?: boolean }) {
+  const path = usePathname();
+  const searchParams = useSearchParams();
+  const dawIntent = path === "/projects" && searchParams.get("mode") === "daw";
+  const projectDetail = path.startsWith("/projects/");
+  return items.map(({ href, label, mobileLabel, icon: Icon, kind }) => {
+    const current = kind === "daw"
+      ? dawIntent || projectDetail
+      : kind === "projects"
+        ? path === "/projects" && !dawIntent
+        : path.startsWith(href);
+    return (
+      <Link
+        key={href}
+        href={href}
+        className={current ? "active" : ""}
+        aria-label={label}
+        aria-current={current ? "page" : undefined}
+      >
+        <Icon size={mobile ? undefined : 19} />
+        <span>{mobile ? mobileLabel ?? label : label}</span>
+      </Link>
+    );
+  });
+}
+
+function StaticNavigationLinks({ items, mobile = false }: { items: NavigationItem[]; mobile?: boolean }) {
+  return items.map(({ href, label, mobileLabel, icon: Icon }) => (
+    <Link key={href} href={href} aria-label={label}>
+      <Icon size={mobile ? undefined : 19} />
+      <span>{mobile ? mobileLabel ?? label : label}</span>
+    </Link>
+  ));
 }
 function ContextDefault() {
   return (

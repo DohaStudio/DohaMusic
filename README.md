@@ -34,7 +34,7 @@ DohaMusic = AI-native DAW
 - local Artifact Catalog·Resolver·Trusted Ingestion·무결성·reconciliation 기반
 - Next.js Responsive Studio MVP
   - `/studio`는 새 음악 생성 workflow이며 `/lyrics`, `/voice`, `/generation/[jobId]`, `/result/[jobId]`와 연결된다.
-  - `/projects`는 DAW Project 목록, `/projects/[id]`는 Composition Timeline·WorkingComposition Editor가 있는 실제 DAW 편집 진입점이다.
+  - `/projects`는 일반 Project 관리, `/projects?mode=daw`는 명시적 DAW Project 선택, `/projects/[id]`는 Composition Timeline·WorkingComposition Editor가 있는 실제 DAW 편집 진입점이다.
   - `/history`, `/settings`, `/about`
 - 프로젝트·생성 이력, WAV 재생·다운로드, Pipeline cancel·retry, Guided Voice Enrollment
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석

@@ -175,7 +175,7 @@ test("History에서 Result와 Player로 다시 이동한다", async ({ page }) =
   await expect(page.getByText("예상 템포는 약 119.8 BPM입니다.")).toBeVisible();
   await expect(page.getByRole("heading", { name: "후렴 후보" })).toBeVisible();
   await expect(page.getByText("00:12~00:27")).toBeVisible();
-  await expect(page.getByRole("link", { name: "프로젝트에서 편집" })).toHaveAttribute("href", "/projects/project-001");
+  await expect(page.getByRole("link", { name: "DAW에서 편집" })).toHaveAttribute("href", "/projects/project-001");
 });
 
 test("PARTIAL 분석과 구형 Result fallback을 안전하게 표시한다", async ({ page }) => {
@@ -192,7 +192,7 @@ test("PARTIAL 분석과 구형 Result fallback을 안전하게 표시한다", as
   );
   await page.reload();
   await expect(page.getByText("이 음원에는 품질 분석 정보가 없습니다.")).toBeVisible();
-  await expect(page.getByRole("link", { name: "프로젝트에서 편집" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "DAW에서 편집" })).toHaveCount(0);
 });
 
 test("History와 Project에서 분석 상태를 간결하게 표시한다", async ({ page }) => {

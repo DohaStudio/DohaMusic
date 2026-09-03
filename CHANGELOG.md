@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 — Project·DAW Navigation 분리
+
+- Desktop·Mobile AppShell에서 일반 `프로젝트` 관리(`/projects`)와 `DAW 편집` 진입(`/projects?mode=daw`)을 별도 navigation entry로 분리하고 query·nested Project에 따른 단일 `aria-current` 규칙을 적용했다.
+- DAW entry와 Studio CTA는 Project를 추측하지 않고 명시적 선택 화면을 표시하며, 같은 Project list를 재사용해 일반 mode의 `프로젝트 열기`와 DAW mode의 `DAW 열기`를 exact `/projects/{project_id}`로 연결한다. authoritative `project_id`가 있는 Result direct CTA는 `DAW에서 편집`으로 명확히 했다.
+- Backend production·API semantics·migration·실제 사용자 DB/media와 WorkingComposition·Gain·Fade·Preview·Commit authority는 변경하지 않았다. D3는 `[진행 중]`이며 다음 gate는 Loop Authority / Foundation이다.
+
 ### 수정 — Studio·DAW Navigation과 Onboarding
 
 - Next dev를 `127.0.0.1`로 열었을 때 dev asset origin 차단으로 hydration되지 않아 Onboarding `닫기`가 동작하지 않던 문제를 허용된 loopback origin과 명시적 Zustand persist hydration gate로 수정했다. 닫기·Escape·첫 음악 만들기는 완료 상태를 보존하고 dialog focus를 안전하게 복원한다.
