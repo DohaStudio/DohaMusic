@@ -11,6 +11,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서
+
+- ADR-055에서 Clip source window와 timeline duration을 분리하고 loop phase를 canonical microseconds로 저장하는 Split·Trim·Fade·Preview·Snapshot·migration architecture를 확정했다.
+
 ### 수정 — Project·DAW Navigation 분리
 
 - Desktop·Mobile AppShell에서 일반 `프로젝트` 관리(`/projects`)와 `DAW 편집` 진입(`/projects?mode=daw`)을 별도 navigation entry로 분리하고 query·nested Project에 따른 단일 `aria-current` 규칙을 적용했다.

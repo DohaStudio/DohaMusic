@@ -84,7 +84,7 @@ Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition ato
 
 ## 현재 우선 작업
 
-**최우선 NEXT:** Loop Authority / Foundation 단일 D3 gate를 진행한다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다. 실제 사용자 DB `0017 → 0026` 전환은 별도 승인 Gate로 유지하며, Workspace Job background daemon activation은 별도 Track이다.
+**최우선 NEXT:** ADR-055가 확정한 `timeline_duration + loop_enabled + loop_phase` geometry에 따라 Loop Authority / Foundation 구현 단일 D3 gate를 진행한다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다. 실제 사용자 DB `0017 → 0026` 전환은 별도 승인 Gate로 유지하며, Workspace Job background daemon activation은 별도 Track이다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
