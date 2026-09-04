@@ -185,7 +185,7 @@ class WorkingPreviewService:
                 tracks = compositions.list_active_composition_tracks(working.working_composition_id)
                 clips = compositions.list_working_composition_clips(working.working_composition_id)
                 duration_us = max(
-                    (clip.timeline_start + clip.source_out - clip.source_in for clip in clips),
+                    (clip.timeline_start + clip.timeline_duration for clip in clips),
                     default=0,
                 )
                 if not tracks or not clips or duration_us <= 0:
@@ -247,7 +247,7 @@ class WorkingPreviewService:
                         model_manifest_id=None,
                         progress_percent=0,
                         stage=None,
-                        settings_snapshot={"manifest_schema": 3},
+                        settings_snapshot={"manifest_schema": 4},
                         retry_of_job_id=None,
                         requested_by=effective_owner_id,
                         attempt=0,
@@ -287,6 +287,9 @@ class WorkingPreviewService:
                             source_out_us=clip.source_out,
                             source_duration_us=clip.source_duration,
                             timeline_start_us=clip.timeline_start,
+                            timeline_duration_us=clip.timeline_duration,
+                            loop_enabled=clip.loop_enabled,
+                            loop_phase_us=clip.loop_phase,
                             gain_db=clip.gain_db,
                             fade_in_us=clip.fade_in,
                             fade_out_us=clip.fade_out,

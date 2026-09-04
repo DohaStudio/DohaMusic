@@ -8,6 +8,7 @@ from uuid import UUID
 
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     CheckConstraint,
     ForeignKey,
     ForeignKeyConstraint,
@@ -119,7 +120,7 @@ class WorkingPreviewRenderClip(Base):
             name="ck_working_preview_clip_fade_in_non_negative",
         ),
         CheckConstraint(
-            "fade_out_us >= 0 AND fade_in_us + fade_out_us <= source_out_us - source_in_us",
+            "fade_out_us >= 0 AND fade_in_us + fade_out_us <= timeline_duration_us",
             name="ck_working_preview_clip_fade_range",
         ),
         UniqueConstraint(
@@ -151,6 +152,20 @@ class WorkingPreviewRenderClip(Base):
     source_out_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
     timeline_start_us: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    timeline_duration_us: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False,
+        default=lambda context: (
+            context.get_current_parameters()["source_out_us"]
+            - context.get_current_parameters()["source_in_us"]
+        ),
+    )
+    loop_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="0"
+    )
+    loop_phase_us: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
     gain_db: Mapped[Decimal] = mapped_column(
         Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default="0.00"
     )

@@ -9,6 +9,7 @@ from uuid import UUID
 from sqlalchemy import (
     JSON,
     BigInteger,
+    Boolean,
     CheckConstraint,
     ForeignKey,
     ForeignKeyConstraint,
@@ -195,6 +196,16 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
         CheckConstraint("source_duration > 0", name="ck_composition_clips_positive_duration"),
         CheckConstraint("source_out > source_in", name="ck_composition_clips_non_empty_range"),
         CheckConstraint(
+            "timeline_duration > 0", name="ck_composition_clips_positive_timeline_duration"
+        ),
+        CheckConstraint("loop_phase >= 0", name="ck_composition_clips_non_negative_loop_phase"),
+        CheckConstraint(
+            "(loop_enabled AND loop_phase < source_out - source_in) OR "
+            "(NOT loop_enabled AND timeline_duration = source_out - source_in "
+            "AND loop_phase = 0)",
+            name="ck_composition_clips_loop_geometry",
+        ),
+        CheckConstraint(
             "source_out <= source_duration",
             name="ck_composition_clips_range_within_source",
         ),
@@ -207,7 +218,7 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
             name="ck_composition_clips_fade_in_non_negative",
         ),
         CheckConstraint(
-            "fade_out >= 0 AND fade_in + fade_out <= source_out - source_in",
+            "fade_out >= 0 AND fade_in + fade_out <= timeline_duration",
             name="ck_composition_clips_fade_range",
         ),
         UniqueConstraint(
@@ -263,6 +274,20 @@ class CompositionClip(TimestampMixin, SoftDeleteMixin, Base):
     source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    timeline_duration: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False,
+        default=lambda context: (
+            context.get_current_parameters()["source_out"]
+            - context.get_current_parameters()["source_in"]
+        ),
+    )
+    loop_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("0")
+    )
+    loop_phase: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default=text("0")
+    )
     gain_db: Mapped[Decimal] = mapped_column(
         Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default=text("0.00")
     )
@@ -343,6 +368,18 @@ class CompositionSnapshotClip(Base):
             name="ck_composition_snapshot_clips_non_empty_range",
         ),
         CheckConstraint(
+            "timeline_duration > 0", name="ck_composition_snapshot_clips_positive_timeline_duration"
+        ),
+        CheckConstraint(
+            "loop_phase >= 0", name="ck_composition_snapshot_clips_non_negative_loop_phase"
+        ),
+        CheckConstraint(
+            "(loop_enabled AND loop_phase < source_out - source_in) OR "
+            "(NOT loop_enabled AND timeline_duration = source_out - source_in "
+            "AND loop_phase = 0)",
+            name="ck_composition_snapshot_clips_loop_geometry",
+        ),
+        CheckConstraint(
             "source_out <= source_duration",
             name="ck_composition_snapshot_clips_range_within_source",
         ),
@@ -355,7 +392,7 @@ class CompositionSnapshotClip(Base):
             name="ck_composition_snapshot_clips_fade_in_non_negative",
         ),
         CheckConstraint(
-            "fade_out >= 0 AND fade_in + fade_out <= source_out - source_in",
+            "fade_out >= 0 AND fade_in + fade_out <= timeline_duration",
             name="ck_composition_snapshot_clips_fade_range",
         ),
         UniqueConstraint(
@@ -401,6 +438,20 @@ class CompositionSnapshotClip(Base):
     source_in: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_out: Mapped[int] = mapped_column(BigInteger, nullable=False)
     source_duration: Mapped[int] = mapped_column(BigInteger, nullable=False)
+    timeline_duration: Mapped[int] = mapped_column(
+        BigInteger,
+        nullable=False,
+        default=lambda context: (
+            context.get_current_parameters()["source_out"]
+            - context.get_current_parameters()["source_in"]
+        ),
+    )
+    loop_enabled: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=text("0")
+    )
+    loop_phase: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default=text("0")
+    )
     gain_db: Mapped[Decimal] = mapped_column(
         Numeric(5, 2), nullable=False, default=Decimal("0.00"), server_default=text("0.00")
     )

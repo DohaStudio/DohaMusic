@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260825_0023"
 PREVIOUS_REVISION = "20260825_0022"
 TABLE = "payload_locators"
-HEAD_REVISION = "20260903_0026"
+HEAD_REVISION = "20260905_0027"
 
 
 def _config(database_url: str) -> Config:

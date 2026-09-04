@@ -1,4 +1,4 @@
-﻿# Asset 중심 데이터베이스 Migration 전략
+# Asset 중심 데이터베이스 Migration 전략
 
 > 문서 상태: [진행 중]
 > 문서 분류: **TRANSITION / PARTIALLY IMPLEMENTED**
@@ -10,7 +10,7 @@
 
 ## 1. 현재 기준
 
-Alembic source head는 Clip Fade foundation을 추가한 `20260903_0026`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `0018`은 selection, `0019`는 Provider Job binding, `0020`은 Clip persistence Table, `0021`은 nullable `artifacts.duration_us`, `0022`는 nullable completion result Column 4개, `0023`은 빈 `payload_locators` table과 binding scope index, `0024`는 빈 Working Preview binding·render·Track·Clip manifest table, `0025`는 세 Clip table의 non-null `gain_db`와 범위 CHECK, `0026`은 같은 table의 non-null integer Fade와 범위 CHECK를 추가합니다. `0021`~`0026`은 Payload probe·결과 fabrication·media backfill·rewrite를 수행하지 않습니다. Runtime Table 14개가 계속 source of truth입니다.
+Alembic source head는 Clip Loop foundation을 추가한 `20260905_0027`이고 실제 사용자 DB revision은 `20260810_0017`입니다. `0018`은 selection, `0019`는 Provider Job binding, `0020`은 Clip persistence Table, `0021`은 nullable `artifacts.duration_us`, `0022`는 nullable completion result Column 4개, `0023`은 빈 `payload_locators` table과 binding scope index, `0024`는 빈 Working Preview binding·render·Track·Clip manifest table, `0025`는 세 Clip table의 non-null `gain_db`와 범위 CHECK, `0026`은 같은 table의 non-null integer Fade와 범위 CHECK를 추가하고 `0027`은 canonical timeline duration·Loop enable·phase를 deterministic backfill하며 Fade CHECK를 timeline duration authority로 교체합니다. `0021`~`0027`은 Payload probe·결과 fabrication·media backfill·rewrite를 수행하지 않습니다. Runtime Table 14개가 계속 source of truth입니다.
 
 명시적 Bootstrap CLI의 fail-closed revision Gate는 source `20260825_0022`와 D1 selection Table·PK·unique·same-Project FK·Snapshot identity Index를 정확히 요구합니다. 실제 사용자 DB `20260810_0017`에는 migration을 적용하지 않았으므로 현재 Bootstrap 대상이 아닙니다. minimum revision이나 일반 Alembic DAG 호환 판정은 도입하지 않았으며 실제 Bootstrap·backfill은 수행하지 않았습니다.
 

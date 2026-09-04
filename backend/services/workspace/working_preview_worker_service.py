@@ -66,6 +66,7 @@ class WorkingPreviewWorkerService:
             tracks = WorkingPreviewRepository(session).list_tracks(render.preview_render_id)
             clips = WorkingPreviewRepository(session).list_clips(render.preview_render_id)
             track_orders = {item.track_id: item.track_order for item in tracks}
+            manifest_schema = job.settings_snapshot.get("manifest_schema")
             render_clips = tuple(
                 PreviewRenderClip(
                     clip_id=item.clip_id,
@@ -75,6 +76,10 @@ class WorkingPreviewWorkerService:
                     source_in_us=item.source_in_us,
                     source_out_us=item.source_out_us,
                     timeline_start_us=item.timeline_start_us,
+                    timeline_duration_us=item.timeline_duration_us,
+                    loop_enabled=item.loop_enabled,
+                    loop_phase_us=item.loop_phase_us,
+                    manifest_schema=manifest_schema,
                     gain_db=item.gain_db,
                     fade_in_us=item.fade_in_us,
                     fade_out_us=item.fade_out_us,

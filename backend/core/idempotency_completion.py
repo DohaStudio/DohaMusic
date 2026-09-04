@@ -23,6 +23,7 @@ class IdempotencyResultType(StrEnum):
     CLIP_COPY = "CLIP_COPY"
     CLIP_GAIN_UPDATE = "CLIP_GAIN_UPDATE"
     CLIP_FADE_UPDATE = "CLIP_FADE_UPDATE"
+    CLIP_LOOP_UPDATE = "CLIP_LOOP_UPDATE"
     CLIP_SPLIT = "CLIP_SPLIT"
     CLIP_DELETE = "CLIP_DELETE"
     CLIP_RESTORE = "CLIP_RESTORE"
@@ -43,6 +44,7 @@ _RESULT_PAYLOAD_KEYS: dict[IdempotencyResultType, frozenset[str]] = {
     IdempotencyResultType.CLIP_COPY: frozenset({"clip_id"}),
     IdempotencyResultType.CLIP_GAIN_UPDATE: frozenset({"clip_id"}),
     IdempotencyResultType.CLIP_FADE_UPDATE: frozenset({"clip_id"}),
+    IdempotencyResultType.CLIP_LOOP_UPDATE: frozenset({"clip_id"}),
     IdempotencyResultType.CLIP_SPLIT: frozenset(
         {"original_clip_id", "left_clip_id", "right_clip_id"}
     ),

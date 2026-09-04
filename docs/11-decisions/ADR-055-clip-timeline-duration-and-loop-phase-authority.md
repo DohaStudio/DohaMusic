@@ -113,11 +113,11 @@ Preview schema 4는 `timeline_duration_us`, `loop_enabled`, `loop_phase_us`를 �
 
 ## Persistence and migration plan
 
-후속 additive migration은 `composition_clips`, `composition_snapshot_clips`, `working_preview_render_clips`에 세 field를 추가한다. 기존 row는 `timeline_duration = source_out - source_in`, `loop_enabled = false`, `loop_phase = 0`으로 deterministic backfill한다. 기존 Snapshot row 의미는 바뀌지 않는다. 현재 `20260903_0026`에서 단일 successor를 만들고 downgrade는 새 column/check만 제거한다. 이 ADR에서는 migration이나 실제 DB를 변경하지 않는다.
+additive migration `20260905_0027`은 `composition_clips`, `composition_snapshot_clips`, `working_preview_render_clips`에 세 field를 추가한다. 기존 row는 `timeline_duration = source_out - source_in`, `loop_enabled = false`, `loop_phase = 0`으로 deterministic backfill한다. 기존 Snapshot row 의미는 바뀌지 않으며 downgrade는 새 column/check만 제거한다. 실제 사용자 DB에는 적용하지 않았다.
 
 ## API impact
 
-후속 Loop mutation은 기존 expected revision CAS, Idempotency-Key, typed completion과 Service-owned transaction을 재사용한다. 최소 request는 absolute `loop_enabled`와 `timeline_duration`을 받는다. 외부 consumer가 phase를 임의 지정하지 않으며 phase는 create/enable에서 0, split/trim에서 위 수식으로만 생성한다. Disable은 phase 0과 `timeline_duration = W`인 canonical 결과를 명시적으로 요구하며 구조를 clamp하지 않는다.
+Loop mutation은 기존 expected revision CAS, Idempotency-Key, typed completion과 Service-owned transaction을 재사용한다. 최소 request는 absolute `loop_enabled`와 `timeline_duration`을 받는다. 외부 consumer가 phase를 임의 지정하지 않으며 phase는 create/enable에서 0, split/trim에서 위 수식으로만 생성한다. Disable caller는 `timeline_duration = W`를 명시적으로 제출해야 하며 다른 값은 `422 CLIP_LOOP_GEOMETRY_INVALID`로 side effect 없이 거부한다. Backend는 제출된 duration을 무시하거나 clamp하지 않고 request fingerprint에도 포함한다. 유효한 disable 결과의 phase는 0이다.
 
 필요한 새 오류는 입력/geometry용 `CLIP_LOOP_GEOMETRY_INVALID` 하나로 제한한다. 기존 revision, idempotency, source, overlap 및 `SPLIT_STRUCTURE_CONFLICT`를 재사용한다.
 
@@ -141,4 +141,4 @@ Loop-off backfill은 기존 duration, Gain, Fade, Copy, Split, Trim, Preview, Co
 
 ## Consequences
 
-세 Clip persistence 경계와 renderer는 source span 대신 explicit timeline duration을 사용해야 한다. Loop phase는 structural operation의 canonical 결과가 되어 복잡성이 늘지만 source window를 변형하거나 consumer가 phase를 추측하는 더 큰 위험을 제거한다. Loop Backend foundation과 Frontend integration은 별도 후속 작업이다.
+세 Clip persistence 경계와 renderer는 source span 대신 explicit timeline duration을 사용한다. Loop phase는 structural operation의 canonical 결과가 되어 복잡성이 늘지만 source window를 변형하거나 consumer가 phase를 추측하는 더 큰 위험을 제거한다. Loop Backend foundation은 구현됐고 Frontend integration은 별도 후속 작업이다.

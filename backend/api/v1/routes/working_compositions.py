@@ -26,6 +26,7 @@ from backend.schemas.workspace import (
     ClipDetail,
     ClipFadeUpdateRequest,
     ClipGainUpdateRequest,
+    ClipLoopUpdateRequest,
     ClipMoveRequest,
     ClipMutationResult,
     ClipSplitRequest,
@@ -538,6 +539,36 @@ def update_clip_fade(
 
 
 @router.patch(
+    "/clips/{clip_id}/loop",
+    response_model=SuccessResponse[ClipMutationResult],
+    operation_id="update_working_composition_clip_loop",
+)
+def update_clip_loop(
+    project_id: UUID,
+    clip_id: UUID,
+    payload: ClipLoopUpdateRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[ClipMutationResult]:
+    try:
+        result = service.set_clip_loop(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            clip_id=clip_id,
+            loop_enabled=payload.loop_enabled,
+            timeline_duration=payload.timeline_duration,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(request, _clip_result(result))
+
+
+@router.patch(
     "/clips/{clip_id}/trim-start",
     response_model=SuccessResponse[ClipMutationResult],
     operation_id="trim_working_composition_clip_start",
@@ -828,6 +859,9 @@ def _aggregate_detail(
                 source_in=_seconds(clip.source_in),
                 source_out=_seconds(clip.source_out),
                 source_duration=_seconds(clip.source_duration),
+                timeline_duration=_seconds(clip.timeline_duration),
+                loop_enabled=clip.loop_enabled,
+                loop_phase=_seconds(clip.loop_phase),
                 gain_db=clip.gain_db,
                 fade_in=_seconds(clip.fade_in),
                 fade_out=_seconds(clip.fade_out),

@@ -81,6 +81,7 @@
 - [x] Frontend selected Clip Gain slider·exact input·reset과 absolute memory Undo/Redo
 - [x] Clip별 linear Fade authority·persistence·revision-safe Product API·Preview DSP·Commit/Checkout freeze Backend foundation
 - [x] Frontend selected Clip Fade exact input·absolute memory Undo/Redo·Preview stale 통합
+- [x] Clip `timeline_duration`·Loop phase authority, persistence·revision-safe Product API·Preview schema 4·deterministic renderer Backend foundation
 - [ ] Frontend loop 편집 UI
 - [x] 원본 불변 AssetVersion lineage·canonical Track/Clip CompositionSnapshot commit
 - [x] WorkingComposition·Track·Clip·SnapshotTrack·SnapshotClip ORM과 additive Alembic 구현

@@ -85,6 +85,7 @@ class WorkingCompositionErrorCode(StrEnum):
     CLIP_OVERLAP = "CLIP_OVERLAP"
     CLIP_GAIN_OUT_OF_RANGE = "CLIP_GAIN_OUT_OF_RANGE"
     CLIP_FADE_OUT_OF_RANGE = "CLIP_FADE_OUT_OF_RANGE"
+    CLIP_LOOP_GEOMETRY_INVALID = "CLIP_LOOP_GEOMETRY_INVALID"
     SPLIT_STRUCTURE_CONFLICT = "SPLIT_STRUCTURE_CONFLICT"
     INVALID_CLIP_RANGE = "INVALID_CLIP_RANGE"
     SOURCE_ASSET_UNAVAILABLE = "SOURCE_ASSET_UNAVAILABLE"
@@ -121,6 +122,7 @@ _SAFE_ERROR_MESSAGES = {
     WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE: (
         "Clip Fade는 0 이상이며 합이 Clip 길이 이하인 0.000001초 단위 유한값이어야 합니다."
     ),
+    WorkingCompositionErrorCode.CLIP_LOOP_GEOMETRY_INVALID: "Clip Loop geometry is invalid.",
     WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT: (
         "Split 원본과 child의 canonical geometry가 일치하지 않습니다."
     ),
@@ -390,6 +392,9 @@ class WorkingCompositionService:
                         source_in=clip.source_in,
                         source_out=clip.source_out,
                         source_duration=clip.source_duration,
+                        timeline_duration=clip.timeline_duration,
+                        loop_enabled=clip.loop_enabled,
+                        loop_phase=clip.loop_phase,
                         gain_db=clip.gain_db,
                         fade_in=clip.fade_in,
                         fade_out=clip.fade_out,
@@ -723,6 +728,9 @@ class WorkingCompositionService:
                 source_in=source_in_us,
                 source_out=source_out_us,
                 source_duration=source_duration,
+                timeline_duration=source_out_us - source_in_us,
+                loop_enabled=False,
+                loop_phase=0,
                 split_from_clip_id=None,
             )
             try:
@@ -849,7 +857,7 @@ class WorkingCompositionService:
             _validate_clip_fade(
                 fade_in=fade_in_us,
                 fade_out=fade_out_us,
-                clip_duration=clip.source_out - clip.source_in,
+                clip_duration=clip.timeline_duration,
             )
             clip.fade_in = fade_in_us
             clip.fade_out = fade_out_us
@@ -862,6 +870,68 @@ class WorkingCompositionService:
             operation=operation,
             target_identity=clip_id,
             body={"fade_in_us": fade_in_us, "fade_out_us": fade_out_us},
+            mutate=mutate,
+            payload=lambda identity: {"clip_id": identity},
+            resource_type="composition_clip",
+            resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
+    def set_clip_loop(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        clip_id: UUID,
+        loop_enabled: bool,
+        timeline_duration: object,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        _validate_uuid(clip_id, "clip_id")
+        duration_us = _seconds_to_microseconds(timeline_duration, "timeline_duration")
+        operation = IdempotencyResultType.CLIP_LOOP_UPDATE
+
+        def mutate(
+            repository: CompositionRepository, _session: Session, working: WorkingComposition
+        ) -> UUID:
+            clip = self._require_clip(repository, working, clip_id)
+            window = clip.source_out - clip.source_in
+            if duration_us <= 0 or (not loop_enabled and duration_us != window):
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.CLIP_LOOP_GEOMETRY_INVALID
+                )
+            _validate_clip_fade(
+                fade_in=clip.fade_in, fade_out=clip.fade_out, clip_duration=duration_us
+            )
+            end = clip.timeline_start + duration_us
+            if repository.active_clip_overlap_exists(
+                working_composition_id=working.working_composition_id,
+                track_id=clip.track_id,
+                timeline_start=clip.timeline_start,
+                timeline_end=end,
+                exclude_clip_id=clip.clip_id,
+            ):
+                raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP)
+            clip.loop_enabled = loop_enabled
+            clip.timeline_duration = duration_us
+            clip.loop_phase = 0
+            repository.flush()
+            return clip.clip_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=clip_id,
+            body={"loop_enabled": loop_enabled, "timeline_duration_us": duration_us},
             mutate=mutate,
             payload=lambda identity: {"clip_id": identity},
             resource_type="composition_clip",
@@ -921,6 +991,9 @@ class WorkingCompositionService:
                 source_in=source.source_in,
                 source_out=source.source_out,
                 source_duration=source.source_duration,
+                timeline_duration=source.timeline_duration,
+                loop_enabled=source.loop_enabled,
+                loop_phase=source.loop_phase,
                 gain_db=source.gain_db,
                 fade_in=source.fade_in,
                 fade_out=source.fade_out,
@@ -967,10 +1040,9 @@ class WorkingCompositionService:
             clip_id=clip_id,
             expected_revision=expected_revision,
             effective_owner_id=effective_owner_id,
-            changes=lambda clip: {
-                "timeline_start": start_us,
-                "source_in": source_in_us,
-            },
+            changes=lambda clip: _trim_start_changes(
+                clip, timeline_start=start_us, source_in=source_in_us
+            ),
         )
 
     def trim_clip_end(
@@ -990,7 +1062,7 @@ class WorkingCompositionService:
             clip_id=clip_id,
             expected_revision=expected_revision,
             effective_owner_id=effective_owner_id,
-            changes=lambda clip: {"source_out": source_out_us},
+            changes=lambda clip: _trim_end_changes(clip, source_out=source_out_us),
         )
 
     def split_clip(
@@ -1020,12 +1092,12 @@ class WorkingCompositionService:
             working: WorkingComposition,
         ) -> tuple[UUID, UUID, UUID]:
             original = self._require_clip(repository, working, clip_id)
-            timeline_end = original.timeline_start + (original.source_out - original.source_in)
+            timeline_end = original.timeline_start + original.timeline_duration
             if not original.timeline_start < split_at_us < timeline_end:
                 raise WorkingCompositionError(WorkingCompositionErrorCode.INVALID_CLIP_RANGE)
-            source_split = original.source_in + (split_at_us - original.timeline_start)
-            split_offset = source_split - original.source_in
-            clip_duration = original.source_out - original.source_in
+            split_offset = split_at_us - original.timeline_start
+            source_split = original.source_in + split_offset
+            clip_duration = original.timeline_duration
             if split_offset < original.fade_in or split_offset > clip_duration - original.fade_out:
                 raise WorkingCompositionError(WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT)
             repository.tombstone_composition_clip(original)
@@ -1035,8 +1107,11 @@ class WorkingCompositionService:
                 source_asset_version_id=original.source_asset_version_id,
                 timeline_start=original.timeline_start,
                 source_in=original.source_in,
-                source_out=source_split,
+                source_out=original.source_out if original.loop_enabled else source_split,
                 source_duration=original.source_duration,
+                timeline_duration=split_offset,
+                loop_enabled=original.loop_enabled,
+                loop_phase=original.loop_phase,
                 gain_db=original.gain_db,
                 fade_in=original.fade_in,
                 fade_out=0,
@@ -1047,9 +1122,17 @@ class WorkingCompositionService:
                 track_id=original.track_id,
                 source_asset_version_id=original.source_asset_version_id,
                 timeline_start=split_at_us,
-                source_in=source_split,
+                source_in=original.source_in if original.loop_enabled else source_split,
                 source_out=original.source_out,
                 source_duration=original.source_duration,
+                timeline_duration=original.timeline_duration - split_offset,
+                loop_enabled=original.loop_enabled,
+                loop_phase=(
+                    (original.loop_phase + split_offset)
+                    % (original.source_out - original.source_in)
+                    if original.loop_enabled
+                    else 0
+                ),
                 gain_db=original.gain_db,
                 fade_in=0,
                 fade_out=original.fade_out,
@@ -1154,7 +1237,7 @@ class WorkingCompositionService:
                 effective_owner_id=effective_owner_id,
                 clip=clip,
             )
-            timeline_end = clip.timeline_start + clip.source_out - clip.source_in
+            timeline_end = clip.timeline_start + clip.timeline_duration
             if repository.active_clip_overlap_exists(
                 working_composition_id=working.working_composition_id,
                 track_id=clip.track_id,
@@ -1287,7 +1370,7 @@ class WorkingCompositionService:
             if activate_original:
                 repository.tombstone_composition_clip(left)
                 repository.tombstone_composition_clip(right)
-                original_end = original.timeline_start + original.source_out - original.source_in
+                original_end = original.timeline_start + original.timeline_duration
                 if repository.active_clip_overlap_exists(
                     working_composition_id=working.working_composition_id,
                     track_id=original.track_id,
@@ -1299,7 +1382,7 @@ class WorkingCompositionService:
             else:
                 repository.tombstone_composition_clip(original)
                 for child in (left, right):
-                    child_end = child.timeline_start + child.source_out - child.source_in
+                    child_end = child.timeline_start + child.timeline_duration
                     if repository.active_clip_overlap_exists(
                         working_composition_id=working.working_composition_id,
                         track_id=child.track_id,
@@ -1361,12 +1444,22 @@ class WorkingCompositionService:
                 source_out=source_out,
                 source_duration=clip.source_duration,
             )
+            timeline_duration = values.get("timeline_duration", clip.timeline_duration)
+            loop_enabled = bool(values.get("loop_enabled", clip.loop_enabled))
+            loop_phase = values.get("loop_phase", clip.loop_phase)
+            _validate_loop_geometry(
+                source_in=source_in,
+                source_out=source_out,
+                timeline_duration=timeline_duration,
+                loop_enabled=loop_enabled,
+                loop_phase=loop_phase,
+            )
             _validate_clip_fade(
                 fade_in=clip.fade_in,
                 fade_out=clip.fade_out,
-                clip_duration=source_out - source_in,
+                clip_duration=timeline_duration,
             )
-            timeline_end = timeline_start + source_out - source_in
+            timeline_end = timeline_start + timeline_duration
             if repository.active_clip_overlap_exists(
                 working_composition_id=working.working_composition_id,
                 track_id=clip.track_id,
@@ -1529,6 +1622,9 @@ class WorkingCompositionService:
                 "source_in": source.source_in,
                 "source_out": source.source_out,
                 "source_duration": source.source_duration,
+                "timeline_duration": source.timeline_duration,
+                "loop_enabled": source.loop_enabled,
+                "loop_phase": source.loop_phase,
                 "gain_db": source.gain_db,
                 "fade_in": source.fade_in,
                 "fade_out": source.fade_out,
@@ -1568,7 +1664,7 @@ class WorkingCompositionService:
             )
             interval = (
                 clip.timeline_start,
-                clip.timeline_start + clip.source_out - clip.source_in,
+                clip.timeline_start + clip.timeline_duration,
             )
             by_track.setdefault(clip.snapshot_track_id, []).append(interval)
         for intervals in by_track.values():
@@ -1781,7 +1877,7 @@ class WorkingCompositionService:
         tracks = repository.list_active_composition_tracks(working.working_composition_id)
         clips = repository.list_working_composition_clips(working.working_composition_id)
         duration = max(
-            (clip.timeline_start + clip.source_out - clip.source_in for clip in clips),
+            (clip.timeline_start + clip.timeline_duration for clip in clips),
             default=0,
         )
         return WorkingCompositionAggregate(
@@ -1994,6 +2090,45 @@ def _normalize_fade_duration(value: object) -> int:
 def _validate_clip_fade(*, fade_in: int, fade_out: int, clip_duration: int) -> None:
     if fade_in < 0 or fade_out < 0 or fade_in + fade_out > clip_duration:
         raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_FADE_OUT_OF_RANGE)
+
+
+def _validate_loop_geometry(
+    *, source_in: int, source_out: int, timeline_duration: int, loop_enabled: bool, loop_phase: int
+) -> None:
+    window = source_out - source_in
+    if timeline_duration <= 0 or loop_phase < 0 or loop_phase >= window:
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_LOOP_GEOMETRY_INVALID)
+    if not loop_enabled and (timeline_duration != window or loop_phase != 0):
+        raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_LOOP_GEOMETRY_INVALID)
+
+
+def _trim_start_changes(
+    clip: CompositionClip, *, timeline_start: int, source_in: int
+) -> dict[str, int]:
+    advance = timeline_start - clip.timeline_start
+    if clip.loop_enabled:
+        return {
+            "timeline_start": timeline_start,
+            "timeline_duration": clip.timeline_duration - advance,
+            "loop_phase": (clip.loop_phase + advance) % (clip.source_out - clip.source_in),
+        }
+    return {
+        "timeline_start": timeline_start,
+        "source_in": source_in,
+        "timeline_duration": clip.source_out - source_in,
+        "loop_phase": 0,
+    }
+
+
+def _trim_end_changes(clip: CompositionClip, *, source_out: int) -> dict[str, int]:
+    if clip.loop_enabled:
+        reduction = clip.source_out - source_out
+        return {"timeline_duration": clip.timeline_duration - reduction}
+    return {
+        "source_out": source_out,
+        "timeline_duration": source_out - clip.source_in,
+        "loop_phase": 0,
+    }
 
 
 def _split_geometry_matches(
