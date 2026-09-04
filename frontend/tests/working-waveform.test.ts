@@ -83,6 +83,20 @@ describe("Working Clip waveform projection", () => {
   it("frozen Clip source_duration을 명시적으로 projection timebase로 사용한다", () => {
     expect(projectWaveformWindow(canonical, 0, 4, 2048, 16)).toEqual([0.1, 0.2]);
   });
+  it("aborted request cache can be retried with a clean request", async () => {
+    const resolver = vi.fn().mockResolvedValue(mediaSource("version-1", "artifact-1"));
+    const loader = vi.fn()
+      .mockRejectedValueOnce(new DOMException("Aborted", "AbortError"))
+      .mockResolvedValueOnce([0.1, 0.2, 0.3]);
+    const session = new WorkingWaveformSession("project-1", resolver, loader);
+
+    await expect(session.load("version-1")).rejects.toMatchObject({ name: "AbortError" });
+    const success = await session.load("version-1");
+
+    expect(success.assetVersionId).toBe("version-1");
+    expect(loader).toHaveBeenCalledTimes(2);
+    session.dispose();
+  });
 });
 
 describe("Working waveform session cache", () => {

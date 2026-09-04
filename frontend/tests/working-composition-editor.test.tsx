@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { StrictMode } from "react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { WorkingCompositionEditor } from "@/features/composition/working-composition-editor";
@@ -675,15 +676,106 @@ describe("WorkingComposition editor", () => {
     expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   });
+  it("StrictMode remount recovers clip waveform after aborted request", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    const resolver = vi.fn<MediaSourceResolver>().mockResolvedValue(mediaSource);
+    const loader = vi.fn<WaveformLoader>()
+      .mockRejectedValueOnce(new DOMException("Aborted", "AbortError"))
+      .mockResolvedValueOnce([0.1, 0.2, 0.3, 0.4]);
+    const { client, unmount } = renderEditor({ resolver, loader, strict: true });
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-1")).toHaveAttribute("data-waveform-status", "loading"));
+    unmount();
+    const secondRender = render(
+      <StrictMode>
+        <QueryClientProvider client={client}>
+          <WorkingCompositionEditor
+            projectId="project-1"
+            snapshotId="snapshot-1"
+            sources={[source]}
+            mediaSourceResolver={resolver}
+            waveformLoader={loader}
+          />
+        </QueryClientProvider>
+      </StrictMode>,
+    );
+    await waitFor(() => expect(secondRender.getByTestId("clip-waveform-clip-1")).toHaveAttribute("data-waveform-status", "ready"));
+    expect(loader).toHaveBeenCalledTimes(2);
+  });
+
+  it("clip race keeps latest clip waveform state after old request resolves", async () => {
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    const resolver = vi.fn<MediaSourceResolver>()
+      .mockImplementation(async (_, assetVersionId: string) => ({ ...mediaSource, asset_version_id: assetVersionId }));
+    const loader = vi.fn<WaveformLoader>()
+      .mockRejectedValueOnce(new DOMException("Aborted", "AbortError"))
+      .mockResolvedValue([0.3, 0.4]);
+    const { client } = renderEditor({ resolver, loader });
+    await waitFor(() => expect(loader).toHaveBeenCalledTimes(1));
+    act(() => {
+      client.setQueryData(["working-composition", "project-1"], {
+        ...working,
+        revision: 3,
+        clips: [{ ...working.clips[0], clip_id: "clip-2", source_asset_version_id: "version-2", timeline_start: "0.000", source_in: "0.000", source_out: "10.000", source_duration: "10.000" }],
+      });
+    });
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-2")).toHaveAttribute("data-waveform-status", "ready"));
+    expect(screen.queryByTestId("clip-waveform-clip-1")).not.toBeInTheDocument();
+    expect(loader).toHaveBeenCalledTimes(2);
+  });
+
+  it("project race keeps latest project clip waveform state after old project resolves", async () => {
+    const projectTwo: WorkingCompositionDto = {
+      ...working,
+      working_composition_id: "working-2",
+      project_id: "project-2",
+      revision: 9,
+      clips: [{ ...working.clips[0], clip_id: "clip-b", source_asset_version_id: "version-2", source_in: "0.000", source_out: "10.000", source_duration: "10.000" }],
+    };
+    vi.spyOn(dohaApi, "getWorkingComposition").mockImplementation(async (projectId) => projectId === "project-2" ? projectTwo : working);
+    const resolver = vi.fn<MediaSourceResolver>()
+      .mockImplementation(async (_, assetVersionId: string) => ({
+        ...mediaSource,
+        asset_version_id: assetVersionId,
+        artifact_id: assetVersionId,
+      }));
+    const loader = vi.fn<WaveformLoader>()
+      .mockRejectedValueOnce(new DOMException("Aborted", "AbortError"))
+      .mockResolvedValue([0.3, 0.4]);
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+    const editor = (projectId: string) => (
+      <QueryClientProvider client={client}>
+        <WorkingCompositionEditor
+          projectId={projectId}
+          snapshotId={projectId === "project-2" ? "snapshot-2" : "snapshot-1"}
+          sources={[source, { ...source, asset_version: { ...source.asset_version, asset_version_id: "version-2" } }]}
+          mediaSourceResolver={resolver}
+          waveformLoader={loader}
+        />
+      </QueryClientProvider>
+    );
+    const { rerender } = render(editor("project-1"));
+    await waitFor(() => expect(loader).toHaveBeenCalledTimes(1));
+    rerender(editor("project-2"));
+    await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-b")).toHaveAttribute("data-waveform-status", "ready"));
+    expect(screen.queryByTestId("clip-waveform-clip-1")).not.toBeInTheDocument();
+    expect(loader).toHaveBeenCalledTimes(2);
+    client.clear();
+  });
 });
 
 function renderEditor({
   resolver = vi.fn<MediaSourceResolver>().mockResolvedValue(mediaSource),
   loader = vi.fn<WaveformLoader>().mockResolvedValue([0.2, 0.8]),
-}: { resolver?: MediaSourceResolver; loader?: WaveformLoader } = {}) {
+  strict = false,
+}: { resolver?: MediaSourceResolver; loader?: WaveformLoader; strict?: boolean } = {}) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const editor = (
+    <QueryClientProvider client={client}>
+      <WorkingCompositionEditor projectId="project-1" snapshotId="snapshot-1" sources={[source]} mediaSourceResolver={resolver} waveformLoader={loader} />
+    </QueryClientProvider>
+  );
   return {
-    ...render(<QueryClientProvider client={client}><WorkingCompositionEditor projectId="project-1" snapshotId="snapshot-1" sources={[source]} mediaSourceResolver={resolver} waveformLoader={loader} /></QueryClientProvider>),
+    ...render(strict ? <StrictMode>{editor}</StrictMode> : editor),
     client,
   };
 }
