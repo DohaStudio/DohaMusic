@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { dohaApi, toBackendPublicUrl } from "@/services/doha-api";
 import type { AssetVersionMediaSourceDto } from "@/types/api";
 import {
@@ -31,6 +31,7 @@ interface CacheEntry {
   controller: AbortController;
   promise: Promise<CanonicalWorkingWaveform>;
   settled: boolean;
+  wasAborted: boolean;
   lastUsed: number;
 }
 
@@ -49,8 +50,15 @@ export class WorkingWaveformSession {
   load(assetVersionId: string): Promise<CanonicalWorkingWaveform> {
     const existing = this.entries.get(assetVersionId);
     if (existing) {
-      existing.lastUsed = ++this.clock;
-      return existing.promise;
+      if (existing.settled && !existing.wasAborted) {
+        existing.lastUsed = ++this.clock;
+        return existing.promise;
+      }
+      if (!existing.settled && !existing.controller.signal.aborted) {
+        existing.lastUsed = ++this.clock;
+        return existing.promise;
+      }
+      this.entries.delete(assetVersionId);
     }
     if (this.disposed) return Promise.reject(abortError());
     this.evictForCapacity();
@@ -62,10 +70,15 @@ export class WorkingWaveformSession {
     const entry: CacheEntry = {
       controller,
       settled: false,
+      wasAborted: false,
       lastUsed: ++this.clock,
       promise: Promise.resolve(undefined as never),
     };
     entry.promise = this.resolveAndDecode(assetVersionId, controller.signal)
+      .catch((error) => {
+        if (isAbortError(error) || this.disposed || controller.signal.aborted) entry.wasAborted = true;
+        throw error;
+      })
       .finally(() => { entry.settled = true; });
     this.entries.set(assetVersionId, entry);
     return entry.promise;
@@ -81,6 +94,10 @@ export class WorkingWaveformSession {
     this.disposed = true;
     for (const entry of this.entries.values()) entry.controller.abort();
     this.entries.clear();
+  }
+
+  activate(): void {
+    this.disposed = false;
   }
 
   private evictForCapacity(): void {
@@ -155,6 +172,7 @@ export function useWorkingWaveforms({
     () => new WorkingWaveformSession(projectId, resolver, loader, workingCompositionId),
     [loader, projectId, resolver, workingCompositionId],
   );
+  const requestIdRef = useRef(0);
   const [loaded, setLoaded] = useState<{
     session: WorkingWaveformSession;
     states: Map<string, WorkingWaveformState>;
@@ -166,21 +184,23 @@ export function useWorkingWaveforms({
   );
 
   useEffect(() => {
+    session.activate();
     return () => session.dispose();
   }, [session]);
 
   useEffect(() => {
     let active = true;
+    const requestId = ++requestIdRef.current;
     for (const assetVersionId of uniqueIds) {
       void session.load(assetVersionId).then((waveform) => {
-        if (!active) return;
+        if (!active || requestIdRef.current !== requestId) return;
         setLoaded((current) => {
           const states = current.session === session ? new Map(current.states) : new Map();
           states.set(assetVersionId, { status: "ready", waveform });
           return { session, states };
         });
       }).catch((error: unknown) => {
-        if (!active || isAbortError(error)) return;
+        if (!active || requestIdRef.current !== requestId || isAbortError(error)) return;
         setLoaded((current) => {
           const states = current.session === session ? new Map(current.states) : new Map();
           states.set(assetVersionId, { status: "unavailable" });
@@ -257,7 +277,19 @@ export function waveformProjectionSignature(peaks: number[]): string {
 }
 
 function isAbortError(error: unknown): boolean {
-  return error instanceof DOMException && error.name === "AbortError";
+  const message = typeof error === "object" && error !== null
+    ? String((error as { message?: unknown }).message ?? "")
+    : "";
+  return !!(
+    (error instanceof DOMException && error.name === "AbortError")
+    || (error instanceof Error && error.name === "AbortError")
+    || (error instanceof Error && (error as Error & { code?: unknown }).code === "ERR_ABORTED")
+    || (typeof error === "object" && error !== null && (error as { name?: unknown }).name === "AbortError")
+    || (typeof error === "object" && error !== null && (error as { code?: unknown }).code === "ERR_ABORTED")
+    || (typeof error === "object" && error !== null && (error as { name?: unknown }).name === "TypeError" && message.includes("abort"))
+    || (typeof error === "object" && error !== null && (error as { code?: unknown }).code === "DOMException" && message.includes("abort"))
+    || message.toLowerCase().includes("abort")
+  );
 }
 
 function abortError(): DOMException {
