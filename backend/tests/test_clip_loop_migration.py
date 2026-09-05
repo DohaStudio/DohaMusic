@@ -95,6 +95,17 @@ def test_clip_loop_downgrade_and_reupgrade_has_no_schema_drift(tmp_path: Path) -
             assert f"loop_phase{suffix}" not in columns
     engine.dispose()
 
+    command.upgrade(config, REVISION)
+    engine = create_database_engine(database_url)
+    with engine.connect() as connection:
+        for table, suffix in TABLES:
+            columns = {item["name"] for item in inspect(connection).get_columns(table)}
+            assert {f"timeline_duration{suffix}", "loop_enabled", f"loop_phase{suffix}"} <= columns
+            assert connection.execute(text(f"SELECT count(*) FROM {table}")).scalar_one() == 1
+        assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
+        assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
+    engine.dispose()
+
 
 def test_working_preview_loop_fade_constraints_downgrade_portably(tmp_path: Path) -> None:
     database_url = f"sqlite:///{(tmp_path / 'clip-loop-portable.db').as_posix()}"
@@ -179,13 +190,19 @@ def test_working_preview_loop_fade_constraints_downgrade_portably(tmp_path: Path
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
         assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
     engine.dispose()
+
+
+def test_clip_gain_constraint_downgrade_has_no_dangling_reference(tmp_path: Path) -> None:
+    database_url = f"sqlite:///{(tmp_path / 'clip-gain-portable.db').as_posix()}"
+    config = _config(database_url)
     command.upgrade(config, REVISION)
+    command.downgrade(config, "20260828_0024")
     engine = create_database_engine(database_url)
     with engine.connect() as connection:
-        for table, suffix in TABLES:
+        for table, _suffix in TABLES:
             columns = {item["name"] for item in inspect(connection).get_columns(table)}
-            assert {f"timeline_duration{suffix}", "loop_enabled", f"loop_phase{suffix}"} <= columns
-            assert connection.execute(text(f"SELECT count(*) FROM {table}")).scalar_one() == 1
+            assert "gain_db" not in columns
+            assert "gain_db" not in _table_sql(connection, table)
         assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
         assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
     engine.dispose()

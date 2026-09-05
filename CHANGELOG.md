@@ -38,7 +38,7 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - ADR-055에 따라 `timeline_duration`, `loop_enabled`, `loop_phase`를 Working Clip·Snapshot Clip·Working Preview Clip의 canonical geometry로 구현했다. Loop-enabled fragment는 `timeline_duration < source window`를 허용하며 Split·Trim은 phase continuity equation을 적용한다.
 - absolute Loop mutation은 `expected_revision`, `Idempotency-Key`, `loop_enabled`, `timeline_duration`을 사용한다. Disable caller는 `timeline_duration = source_out - source_in`을 제출해야 하며 다른 값은 묵시적 정규화 없이 `422 CLIP_LOOP_GEOMETRY_INVALID`로 거부한다.
 - additive Alembic `20260905_0027`, deterministic backfill, Preview manifest schema 4와 schema 1~3 fallback, source window→loop expansion→Gain→full-timeline Fade renderer를 추가했다. 실제 사용자 DB·media와 Frontend production code는 변경하지 않았으며 다음 gate는 Loop Frontend Integration이다.
-- SQLite downgrade는 Fade CHECK를 먼저 제거한 뒤 batch table recreation으로 Fade column을 제거해 SQLite version·platform에 따른 dangling constraint 실패를 방지한다.
+- SQLite downgrade는 Gain·Fade CHECK를 먼저 제거한 뒤 batch table recreation으로 해당 column을 제거해 SQLite version·platform에 따른 dangling constraint 실패를 방지한다.
 
 ### 추가 — Clip Fade Backend Foundation
 
