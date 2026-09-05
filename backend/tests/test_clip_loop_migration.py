@@ -21,6 +21,13 @@ TABLES = (
 )
 
 
+def _table_sql(connection, table: str) -> str:
+    return connection.execute(
+        text("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = :name"),
+        {"name": table},
+    ).scalar_one()
+
+
 def test_clip_loop_upgrade_backfills_working_snapshot_and_preview_rows(tmp_path: Path) -> None:
     database_url = f"sqlite:///{(tmp_path / 'clip-loop.db').as_posix()}"
     config = _config(database_url)
@@ -86,6 +93,91 @@ def test_clip_loop_downgrade_and_reupgrade_has_no_schema_drift(tmp_path: Path) -
             assert f"timeline_duration{suffix}" not in columns
             assert "loop_enabled" not in columns
             assert f"loop_phase{suffix}" not in columns
+    engine.dispose()
+
+
+def test_working_preview_loop_fade_constraints_downgrade_portably(tmp_path: Path) -> None:
+    database_url = f"sqlite:///{(tmp_path / 'clip-loop-portable.db').as_posix()}"
+    config = _config(database_url)
+    command.upgrade(config, "20260830_0025")
+    _seed_pre_gain_rows(database_url)
+    command.upgrade(config, PREVIOUS)
+    command.upgrade(config, REVISION)
+
+    engine = create_database_engine(database_url)
+    with engine.connect() as connection:
+        row_0027 = (
+            connection.execute(text("SELECT * FROM working_preview_render_clips")).mappings().one()
+        )
+        sql_0027 = _table_sql(connection, "working_preview_render_clips")
+        assert {
+            "fade_in_us",
+            "fade_out_us",
+            "timeline_duration_us",
+            "loop_enabled",
+            "loop_phase_us",
+        } <= set(row_0027)
+        assert "fade_in_us + fade_out_us <= timeline_duration_us" in sql_0027
+    engine.dispose()
+
+    command.downgrade(config, PREVIOUS)
+    engine = create_database_engine(database_url)
+    with engine.connect() as connection:
+        row_0026 = (
+            connection.execute(text("SELECT * FROM working_preview_render_clips")).mappings().one()
+        )
+        sql_0026 = _table_sql(connection, "working_preview_render_clips")
+        assert {"fade_in_us", "fade_out_us"} <= set(row_0026)
+        assert {
+            "timeline_duration_us",
+            "loop_enabled",
+            "loop_phase_us",
+        }.isdisjoint(row_0026)
+        assert "fade_in_us + fade_out_us <= source_out_us - source_in_us" in sql_0026
+        for key in row_0026:
+            assert row_0026[key] == row_0027[key]
+    engine.dispose()
+
+    command.downgrade(config, "20260830_0025")
+    engine = create_database_engine(database_url)
+    with engine.connect() as connection:
+        row_0025 = (
+            connection.execute(text("SELECT * FROM working_preview_render_clips")).mappings().one()
+        )
+        sql_0025 = _table_sql(connection, "working_preview_render_clips")
+        assert {
+            "fade_in_us",
+            "fade_out_us",
+            "timeline_duration_us",
+            "loop_enabled",
+            "loop_phase_us",
+        }.isdisjoint(row_0025)
+        assert all(
+            token not in sql_0025
+            for token in (
+                "fade_in_us",
+                "fade_out_us",
+                "timeline_duration_us",
+                "loop_enabled",
+                "loop_phase_us",
+            )
+        )
+        for key in row_0025:
+            assert row_0025[key] == row_0027[key]
+        assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
+        assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
+    engine.dispose()
+
+    command.upgrade(config, PREVIOUS)
+    command.upgrade(config, REVISION)
+    engine = create_database_engine(database_url)
+    with engine.connect() as connection:
+        row_reupgraded = (
+            connection.execute(text("SELECT * FROM working_preview_render_clips")).mappings().one()
+        )
+        assert row_reupgraded == row_0027
+        assert connection.exec_driver_sql("PRAGMA foreign_key_check").all() == []
+        assert connection.exec_driver_sql("PRAGMA integrity_check").scalar_one() == "ok"
     engine.dispose()
     command.upgrade(config, REVISION)
     engine = create_database_engine(database_url)

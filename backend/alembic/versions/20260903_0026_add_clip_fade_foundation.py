@@ -84,11 +84,33 @@ def downgrade() -> None:
     """Clip Fade column과 전용 CHECK만 역순으로 제거한다."""
 
     connection = op.get_bind()
+    if connection.dialect.name == "sqlite":
+        for table_name, fade_in, fade_out, _duration, _in_constraint, _range_constraint in reversed(
+            TABLES
+        ):
+            metadata = sa.MetaData()
+            reflected = sa.Table(table_name, metadata, autoload_with=connection)
+            for constraint in tuple(reflected.constraints):
+                sql = str(getattr(constraint, "sqltext", ""))
+                if isinstance(constraint, sa.CheckConstraint) and (
+                    fade_in in sql or fade_out in sql
+                ):
+                    reflected.constraints.remove(constraint)
+            for column in reflected.columns:
+                for constraint in tuple(column.constraints):
+                    sql = str(getattr(constraint, "sqltext", ""))
+                    if isinstance(constraint, sa.CheckConstraint) and (
+                        fade_in in sql or fade_out in sql
+                    ):
+                        column.constraints.remove(constraint)
+            with op.batch_alter_table(table_name, recreate="always", copy_from=reflected) as batch:
+                batch.drop_column(fade_out)
+                batch.drop_column(fade_in)
+        return
     for table_name, fade_in, fade_out, _duration, in_constraint, range_constraint in reversed(
         TABLES
     ):
-        if connection.dialect.name != "sqlite":
-            op.drop_constraint(range_constraint, table_name, type_="check")
-            op.drop_constraint(in_constraint, table_name, type_="check")
+        op.drop_constraint(range_constraint, table_name, type_="check")
+        op.drop_constraint(in_constraint, table_name, type_="check")
         op.drop_column(table_name, fade_out)
         op.drop_column(table_name, fade_in)
