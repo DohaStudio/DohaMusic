@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { PersistentHistoryFixture } from "./support/persistent-history-fixture";
 
 const projectId = "clip-copy-e2e";
 const workingId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -25,6 +26,10 @@ class CopyBackend {
   loseNextCopyResponse = false;
   rejectNextCopyRevision = false;
   private completions = new Map<string, { clip: Clip; revision: number }>();
+  history = new PersistentHistoryFixture(workingId, {
+    get: () => this.revision,
+    increment: () => ++this.revision,
+  });
 
   async install(page: Page) {
     await page.route("**/backend/**", (route) => this.handle(route));
@@ -41,6 +46,15 @@ class CopyBackend {
     }
     if (path === `/backend/api/v1/projects/${projectId}/working-composition` && method === "GET") {
       return this.ok(route, { data: this.working() });
+    }
+    if (path.endsWith("/working-composition/history") && method === "GET") {
+      return this.ok(route, { data: this.history.projection() });
+    }
+    if (path.endsWith("/working-composition/history/undo") && method === "POST") {
+      return this.history.mutate(route, "undo");
+    }
+    if (path.endsWith("/working-composition/history/redo") && method === "POST") {
+      return this.history.mutate(route, "redo");
     }
     if (path === `/backend/api/v1/projects/${projectId}/asset-versions/${versionId}/media-source`) {
       return this.ok(route, { data: mediaSource() });
@@ -71,6 +85,7 @@ class CopyBackend {
       if (body.expected_revision !== this.revision) return this.error(route, 409, "WORKING_COMPOSITION_REVISION_CONFLICT");
       this.commitPosts += 1;
       this.committedIds = this.clips.map((clip) => clip.clip_id);
+      this.history.barrier();
       this.revision += 1;
       return this.ok(route, { data: {
         working_composition_id: workingId, composition_snapshot_id: "snapshot-copy",
@@ -112,6 +127,7 @@ class CopyBackend {
       split_from_clip_id: null,
     };
     this.clips.push(copied);
+    this.history.barrier();
     this.revision += 1;
     if (key) this.completions.set(key, { clip: copied, revision: this.revision });
     if (this.loseNextCopyResponse) {
@@ -126,6 +142,7 @@ class CopyBackend {
     if (index < 0) return this.error(route, 404, "CLIP_NOT_FOUND");
     const [clip] = this.clips.splice(index, 1);
     this.tombstones.set(id, clip);
+    this.history.barrier();
     this.revision += 1;
     return this.ok(route, { data: { clip_id: id, completed_revision: this.revision, replayed: false } });
   }
@@ -135,6 +152,7 @@ class CopyBackend {
     if (!clip) return this.error(route, 409, "CLIP_ALREADY_ACTIVE");
     this.tombstones.delete(id);
     this.clips.push(clip);
+    this.history.barrier();
     this.revision += 1;
     return this.ok(route, { data: { clip_id: id, completed_revision: this.revision, replayed: false } });
   }
@@ -217,7 +235,7 @@ test("explicit cross-Track Copy preserves source, waveform, revision and makes P
   expect(pageErrors).toEqual([]);
 });
 
-test("Copy response loss replays the same ID and Undo/Redo restores that ID", async ({ page }) => {
+test("Copy response loss replays the same ID and establishes a history barrier", async ({ page }) => {
   const backend = new CopyBackend();
   backend.loseNextCopyResponse = true;
   await backend.install(page);
@@ -232,11 +250,8 @@ test("Copy response loss replays the same ID and Undo/Redo restores that ID", as
   expect(backend.copyPosts[0].key).toBe(backend.copyPosts[1].key);
   expect(backend.clips.filter((clip) => clip.clip_id === copiedClipId)).toHaveLength(1);
 
-  await page.getByRole("button", { name: "편집 실행 취소" }).click();
-  await expect(page.getByTestId(`clip-waveform-${copiedClipId}`)).toHaveCount(0);
-  expect(backend.tombstones.has(copiedClipId)).toBe(true);
-  await page.getByRole("button", { name: "편집 다시 실행" }).click();
-  await expect(page.getByTestId(`clip-waveform-${copiedClipId}`)).toBeVisible();
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   expect(backend.clips.some((clip) => clip.clip_id === copiedClipId)).toBe(true);
   expect(backend.copyPosts).toHaveLength(2);
 });

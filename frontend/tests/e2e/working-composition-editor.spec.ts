@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page, type Route } from "@playwright/test";
+import { PersistentHistoryFixture } from "./support/persistent-history-fixture";
 
 const IDS = {
   working: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -57,6 +58,10 @@ class StatefulWorkingBackend {
   loseNextClipCreateResponse = false;
   advanceBeforeNextMutation = false;
   expectedResponseLosses = 0;
+  history = new PersistentHistoryFixture(IDS.working, {
+    get: () => this.revision,
+    increment: () => ++this.revision,
+  });
 
   async install(page: Page) {
     await page.route("**/backend/**", (route) => this.handle(route));
@@ -113,6 +118,11 @@ class StatefulWorkingBackend {
       if (!this.workingExists) return this.error(route, 404, "WORKING_COMPOSITION_NOT_FOUND");
       return this.data(route, { data: this.snapshot() });
     }
+    if (method === "GET" && relative === "/history") {
+      return this.data(route, { data: this.history.projection() });
+    }
+    if (method === "POST" && relative === "/history/undo") return this.history.mutate(route, "undo");
+    if (method === "POST" && relative === "/history/redo") return this.history.mutate(route, "redo");
 
     if (idempotencyKey && this.completions.has(idempotencyKey)) {
       return this.data(route, { data: { ...this.completions.get(idempotencyKey), replayed: true } });
@@ -121,6 +131,7 @@ class StatefulWorkingBackend {
     if (relative === "/initialize" && method === "POST") {
       this.workingExists = true;
       this.revision = 0;
+      this.history.barrier();
       const result = { working_composition_id: IDS.working, completed_revision: 0, replayed: false };
       this.remember(idempotencyKey, result);
       return this.data(route, { data: result });
@@ -138,20 +149,31 @@ class StatefulWorkingBackend {
     if (relative === "/checkout" && method === "POST") {
       this.tracks = [];
       this.clips = [];
+      this.history.barrier();
       return this.mutated(route, idempotencyKey, {
         working_composition_id: IDS.working,
         base_composition_snapshot_id: snapshotId,
       });
     }
 
+    if (relative === "/commit" && method === "POST") {
+      this.history.barrier();
+      return this.mutated(route, idempotencyKey, {
+        working_composition_id: IDS.working,
+        composition_snapshot_id: "snapshot-persistent-history",
+      });
+    }
+
     if (relative === "/tracks" && method === "POST") {
       const trackId = [IDS.track1, IDS.track2, IDS.track3][this.createTrackIndex++] ?? crypto.randomUUID();
       this.tracks.push({ track_id: trackId, track_type: "audio", name: String(body.name), track_order: this.tracks.length });
+      this.history.barrier();
       return this.mutated(route, idempotencyKey, { track_id: trackId });
     }
     if (relative === "/tracks/reorder" && method === "PATCH") {
       const ordered = body.ordered_track_ids as string[];
       this.tracks = ordered.map((id, index) => ({ ...this.requiredTrack(id), track_order: index }));
+      this.history.barrier();
       return this.mutated(route, idempotencyKey, { working_composition_id: IDS.working });
     }
 
@@ -165,10 +187,19 @@ class StatefulWorkingBackend {
         this.tracks.splice(target, 0, { ...restored });
         this.reindexTracks();
         this.tombstonedTracks.delete(trackId);
+        this.history.barrier();
         return this.mutated(route, idempotencyKey, { track_id: trackId });
       }
       if (method === "PATCH") {
-        this.requiredTrack(trackId).name = String(body.name);
+        const track = this.requiredTrack(trackId);
+        const before = track.name;
+        const after = String(body.name);
+        track.name = after;
+        this.history.append({
+          clipId: IDS.original,
+          applyBefore: () => { this.requiredTrack(trackId).name = before; },
+          applyAfter: () => { this.requiredTrack(trackId).name = after; },
+        });
         return this.mutated(route, idempotencyKey, { track_id: trackId });
       }
       if (method === "DELETE") {
@@ -176,6 +207,7 @@ class StatefulWorkingBackend {
         const [removed] = this.tracks.splice(index, 1);
         this.tombstonedTracks.set(trackId, { ...removed });
         this.reindexTracks();
+        this.history.barrier();
         return this.mutated(route, idempotencyKey, { track_id: trackId });
       }
     }
@@ -199,6 +231,7 @@ class StatefulWorkingBackend {
         split_from_clip_id: null,
       };
       this.clips.push(clip);
+      this.history.barrier();
       const loseResponse = this.loseNextClipCreateResponse;
       this.loseNextClipCreateResponse = false;
       return this.mutated(route, idempotencyKey, { clip_id: clipId }, loseResponse);
@@ -209,20 +242,28 @@ class StatefulWorkingBackend {
       const clipId = decodeURIComponent(clipMatch[1]);
       const operation = clipMatch[2];
       if (operation === "move" && method === "PATCH") {
-        this.requiredClip(clipId).timeline_start = decimal(body.timeline_start);
+        const clip = this.requiredClip(clipId);
+        const before = { ...clip };
+        clip.timeline_start = decimal(body.timeline_start);
+        const after = { ...clip };
+        this.appendClipHistory(clipId, before, after);
         return this.mutated(route, idempotencyKey, { clip_id: clipId });
       }
       if (operation === "trim-start" && method === "PATCH") {
         const clip = this.requiredClip(clipId);
+        const before = { ...clip };
         clip.timeline_start = decimal(body.timeline_start);
         clip.source_in = decimal(body.source_in);
         clip.timeline_duration = decimal(Number(clip.source_out) - Number(clip.source_in));
+        this.appendClipHistory(clipId, before, { ...clip });
         return this.mutated(route, idempotencyKey, { clip_id: clipId });
       }
       if (operation === "trim-end" && method === "PATCH") {
         const clip = this.requiredClip(clipId);
+        const before = { ...clip };
         clip.source_out = decimal(body.source_out);
         clip.timeline_duration = decimal(Number(clip.source_out) - Number(clip.source_in));
+        this.appendClipHistory(clipId, before, { ...clip });
         return this.mutated(route, idempotencyKey, { clip_id: clipId });
       }
       if (operation === "split" && method === "POST") {
@@ -240,6 +281,7 @@ class StatefulWorkingBackend {
         this.clips = this.clips.filter((clip) => clip.clip_id !== clipId);
         this.clips.push(left, right);
         this.splitLineage.set(clipId, { original, left: { ...left }, right: { ...right } });
+        this.history.barrier();
         return this.mutated(route, idempotencyKey, { original_clip_id: clipId, left_clip_id: IDS.left, right_clip_id: IDS.right });
       }
       if (operation === "unsplit" && method === "POST") {
@@ -248,6 +290,7 @@ class StatefulWorkingBackend {
         expect(body.right_clip_id).toBe(lineage.right.clip_id);
         this.clips = this.clips.filter((clip) => ![lineage.left.clip_id, lineage.right.clip_id].includes(clip.clip_id));
         this.clips.push({ ...lineage.original });
+        this.history.barrier();
         return this.mutated(route, idempotencyKey, { original_clip_id: clipId, left_clip_id: lineage.left.clip_id, right_clip_id: lineage.right.clip_id });
       }
       if (operation === "resplit" && method === "POST") {
@@ -256,6 +299,7 @@ class StatefulWorkingBackend {
         expect(body.right_clip_id).toBe(lineage.right.clip_id);
         this.clips = this.clips.filter((clip) => clip.clip_id !== clipId);
         this.clips.push({ ...lineage.left }, { ...lineage.right });
+        this.history.barrier();
         return this.mutated(route, idempotencyKey, { original_clip_id: clipId, left_clip_id: lineage.left.clip_id, right_clip_id: lineage.right.clip_id });
       }
       if (operation === "restore" && method === "POST") {
@@ -263,14 +307,35 @@ class StatefulWorkingBackend {
         if (!restored) return this.error(route, 409, "CLIP_RESTORE_CONFLICT");
         this.clips.push({ ...restored });
         this.tombstonedClips.delete(clipId);
+        this.history.barrier();
         return this.mutated(route, idempotencyKey, { clip_id: clipId });
       }
       if (!operation && method === "DELETE") {
         const removed = this.requiredClip(clipId);
         this.clips = this.clips.filter((clip) => clip.clip_id !== clipId);
         this.tombstonedClips.set(clipId, { ...removed });
+        this.history.barrier();
         return this.mutated(route, idempotencyKey, { clip_id: clipId });
       }
+    }
+
+    const dspMatch = relative.match(/^\/clips\/([^/]+)\/(gain|fade|loop)$/);
+    if (dspMatch && method === "PATCH") {
+      const clipId = decodeURIComponent(dspMatch[1]);
+      const clip = this.requiredClip(clipId);
+      const before = { ...clip };
+      if (dspMatch[2] === "gain") clip.gain_db = Number(body.gain_db).toFixed(2);
+      if (dspMatch[2] === "fade") {
+        clip.fade_in = String(body.fade_in);
+        clip.fade_out = String(body.fade_out);
+      }
+      if (dspMatch[2] === "loop") {
+        clip.loop_enabled = Boolean(body.loop_enabled);
+        clip.timeline_duration = decimal(body.timeline_duration);
+        clip.loop_phase = clip.loop_enabled ? clip.loop_phase : "0";
+      }
+      this.appendClipHistory(clipId, before, { ...clip });
+      return this.mutated(route, idempotencyKey, { clip_id: clipId });
     }
 
     return this.error(route, 404, "TEST_OPERATION_NOT_IMPLEMENTED");
@@ -303,6 +368,14 @@ class StatefulWorkingBackend {
 
   private remember(key: string | null, result: Record<string, unknown>) {
     if (key) this.completions.set(key, { ...result });
+  }
+
+  private appendClipHistory(clipId: string, before: Clip, after: Clip) {
+    this.history.append({
+      clipId,
+      applyBefore: () => Object.assign(this.requiredClip(clipId), before),
+      applyAfter: () => Object.assign(this.requiredClip(clipId), after),
+    });
   }
 
   private requiredTrack(id: string) {
@@ -399,15 +472,22 @@ test("WorkingComposition 48개 semantic scenario와 responsive control을 실제
 
   await page.getByRole("button", { name: "Lead Track 삭제" }).click();
   await expectRevision(page, 5);
-  await undo(page);
+  await browserMutation(page, `${workingBase}/tracks/${IDS.track1}/restore`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 5, target_track_order: 1,
+  });
   await expectRevision(page, 6);
   expect(backend.tracks.map((track) => track.track_id)).toEqual([IDS.track2, IDS.track1]);
-  await redo(page);
+  await browserMutation(page, `${workingBase}/tracks/${IDS.track1}`, "DELETE", {
+    working_composition_id: IDS.working, expected_revision: 6,
+  });
   await expectRevision(page, 7);
   expect(backend.tracks.some((track) => track.track_id === IDS.track1)).toBe(false);
-  await undo(page);
+  await browserMutation(page, `${workingBase}/tracks/${IDS.track1}/restore`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 7, target_track_order: 1,
+  });
   await expectRevision(page, 8);
   expect(backend.tracks[1]).toMatchObject({ track_id: IDS.track1, track_order: 1 });
+  await expectHistoryEmpty(page);
 
   await page.getByRole("button", { name: "Lead Track 선택" }).click();
   await expect(page.getByLabel("Clip source AssetVersion")).toHaveValue(IDS.assetVersion);
@@ -444,28 +524,47 @@ test("WorkingComposition 48개 semantic scenario와 responsive control을 실제
   await page.getByRole("button", { name: /Playhead에서 Split/ }).click();
   await expectRevision(page, 13);
   expect(backend.clips.map((clip) => clip.clip_id).sort()).toEqual([IDS.left, IDS.right].sort());
-  await undo(page);
+  await expectHistoryEmpty(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.original}/unsplit`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 13,
+    left_clip_id: IDS.left, right_clip_id: IDS.right,
+  });
   await expectRevision(page, 14);
   expect(backend.clips.map((clip) => clip.clip_id)).toEqual([IDS.original]);
-  await redo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.original}/resplit`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 14,
+    left_clip_id: IDS.left, right_clip_id: IDS.right,
+  });
   await expectRevision(page, 15);
   expect(backend.clips.map((clip) => clip.clip_id).sort()).toEqual([IDS.left, IDS.right].sort());
 
+  await page.getByRole("button", { name: "Lead Track 선택" }).click();
   await page.getByRole("button", { name: /Clip 66666666 선택 및 이동/ }).click();
   await page.getByRole("button", { name: /Clip 삭제/ }).click();
   await expectRevision(page, 16);
-  await undo(page);
+  await expectHistoryEmpty(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.left}/restore`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 16,
+  });
   await expectRevision(page, 17);
   expect(backend.clips.some((clip) => clip.clip_id === IDS.left)).toBe(true);
-  await redo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.left}`, "DELETE", {
+    working_composition_id: IDS.working, expected_revision: 17,
+  });
   await expectRevision(page, 18);
-  await undo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.left}/restore`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 18,
+  });
   await expectRevision(page, 19);
   expect(backend.clips.filter((clip) => clip.clip_id === IDS.left)).toHaveLength(1);
 
-  await undo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.original}/unsplit`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 19,
+    left_clip_id: IDS.left, right_clip_id: IDS.right,
+  });
   await expectRevision(page, 20);
   expect(backend.clips.map((clip) => clip.clip_id)).toEqual([IDS.original]);
+  await page.getByRole("button", { name: "Lead Track 선택" }).click();
   await page.getByRole("button", { name: /Clip 44444444 선택 및 이동/ }).click();
   await setPlayhead(page, splitPlayhead(backend.requiredClipForTest(IDS.original)));
   await page.getByRole("button", { name: /Playhead에서 Split/ }).click();
@@ -482,14 +581,27 @@ test("WorkingComposition 48개 semantic scenario와 responsive control을 실제
   await expectRevision(page, 24);
   await undo(page);
   await expectRevision(page, 25);
-  await undo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.original}/unsplit`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 25,
+    left_clip_id: IDS.left, right_clip_id: IDS.right,
+  });
   await expectRevision(page, 26);
   expect(backend.clips.map((clip) => clip.clip_id)).toEqual([IDS.original]);
-  await redo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.original}/resplit`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 26,
+    left_clip_id: IDS.left, right_clip_id: IDS.right,
+  });
   await expectRevision(page, 27);
-  await redo(page);
+  await expectHistoryEmpty(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.left}/move`, "PATCH", {
+    working_composition_id: IDS.working, expected_revision: 27,
+    timeline_start: finalGeometry.timeline_start,
+  });
   await expectRevision(page, 28);
-  await redo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.left}/trim-start`, "PATCH", {
+    working_composition_id: IDS.working, expected_revision: 28,
+    timeline_start: finalGeometry.timeline_start, source_in: finalGeometry.source_in,
+  });
   await expectRevision(page, 29);
   expect(backend.clips.find((clip) => clip.clip_id === IDS.left)).toEqual(finalGeometry);
 
@@ -544,19 +656,22 @@ test("WorkingComposition 48개 semantic scenario와 responsive control을 실제
   await page.reload();
   await expectRevision(page, 38);
   await expect(page.getByLabel("Canonical After Refresh Track 이름")).toBeVisible();
-  await expectHistoryEmpty(page);
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled();
 
   const canonicalInput = page.getByLabel("Canonical After Refresh Track 이름");
   await canonicalInput.fill("History Before Conflict");
   await canonicalInput.blur();
   await expectRevision(page, 39);
+  const workspaceReadsBeforeConflict = backend.count("/working-composition", "GET");
+  const historyReadsBeforeConflict = backend.count("/history", "GET");
   backend.advanceBeforeNextMutation = true;
   const conflictingInput = page.getByLabel("History Before Conflict Track 이름");
   await conflictingInput.fill("Stale Rename");
   await conflictingInput.blur();
   await expectRevision(page, 40);
-  await expect(page.getByText(/Undo\/Redo 기록은 초기화/)).toBeVisible();
-  await expectHistoryEmpty(page);
+  expect(backend.count("/working-composition", "GET")).toBeGreaterThan(workspaceReadsBeforeConflict);
+  expect(backend.count("/history", "GET")).toBeGreaterThan(historyReadsBeforeConflict);
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled();
   expect(backend.requests.filter((item) => item.path.endsWith(`/tracks/${IDS.track3}`) && item.method === "PATCH" && item.body.name === "Stale Rename")).toHaveLength(1);
 
   expect(backend.clips.filter((clip) => clip.clip_id === IDS.left)).toHaveLength(0);
@@ -567,6 +682,63 @@ test("WorkingComposition 48개 semantic scenario와 responsive control을 실제
   expect(consoleErrors.some((message) => message.includes("ERR_FAILED"))).toBe(true);
   expect(consoleErrors.some((message) => message.includes("409"))).toBe(true);
   expect(failedRequests).toHaveLength(backend.expectedResponseLosses);
+});
+
+test("Gain, Fade, Loop persistent history는 reload 후에도 nonzero phase를 strict LIFO로 복원한다", async ({ page }) => {
+  const backend = new StatefulWorkingBackend();
+  backend.workingExists = true;
+  backend.revision = 3;
+  backend.tracks = [{ track_id: IDS.track1, track_type: "audio", name: "DSP", track_order: 0 }];
+  backend.clips = [{
+    clip_id: IDS.original, track_id: IDS.track1, source_asset_version_id: IDS.assetVersion,
+    timeline_start: "0.000", source_in: "0.000", source_out: "8.000", source_duration: "30.000",
+    timeline_duration: "8.000", loop_enabled: true, loop_phase: "1.25",
+    gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null,
+  }];
+  await backend.install(page);
+  await page.goto(`/projects/${projectId}`);
+  await page.getByRole("button", { name: "DSP Track 선택" }).click();
+  await page.getByRole("button", { name: /Clip 44444444 선택 및 이동/ }).click();
+
+  const gain = page.getByLabel("Clip gain exact value");
+  const fadeIn = page.getByLabel("Fade In exact value");
+  const loopDuration = page.getByLabel("Clip loop timeline duration");
+  await gain.fill("3"); await gain.blur();
+  await fadeIn.fill("0.5"); await fadeIn.blur();
+  await loopDuration.fill("4"); await loopDuration.blur();
+  await expectRevision(page, 6);
+  expect(backend.history.projection()).toMatchObject({ cursor: 3, command_count: 3, can_undo: true, can_redo: false });
+
+  await undo(page);
+  expect(backend.requiredClipForTest(IDS.original)).toMatchObject({ loop_enabled: true, timeline_duration: "8.000", loop_phase: "1.25" });
+  await page.reload();
+  expect(backend.history.projection()).toMatchObject({ cursor: 2, command_count: 3, can_undo: true, can_redo: true });
+  await undo(page);
+  expect(backend.requiredClipForTest(IDS.original).fade_in).toBe("0");
+  await page.reload();
+  expect(backend.history.projection()).toMatchObject({ cursor: 1, command_count: 3, can_undo: true, can_redo: true });
+  await undo(page);
+  expect(backend.requiredClipForTest(IDS.original).gain_db).toBe("0.00");
+  await redo(page);
+  await redo(page);
+  await redo(page);
+  expect(backend.requiredClipForTest(IDS.original)).toMatchObject({
+    gain_db: "3.00", fade_in: "0.5", loop_enabled: true, timeline_duration: "4.000", loop_phase: "1.25",
+  });
+  expect(backend.count(`/${IDS.original}/gain`, "PATCH")).toBe(1);
+  expect(backend.count(`/${IDS.original}/fade`, "PATCH")).toBe(1);
+  expect(backend.count(`/${IDS.original}/loop`, "PATCH")).toBe(1);
+  expect(backend.count(`/${IDS.original}/loop/restore`)).toBe(0);
+
+  await undo(page);
+  await page.getByRole("button", { name: "DSP Track 선택" }).click();
+  await page.getByRole("button", { name: /Clip 44444444 선택 및 이동/ }).click();
+  await gain.fill("6"); await gain.blur();
+  await expect(page.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
+  expect(backend.history.projection()).toMatchObject({ cursor: 3, command_count: 3, can_redo: false });
+  await page.getByRole("button", { name: "현재 편집 상태를 새 버전으로 저장" }).click();
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+  expect(backend.history.projection()).toMatchObject({ cursor: 0, command_count: 0, can_undo: false, can_redo: false });
 });
 
 async function responsiveSmoke(page: Page, backend: StatefulWorkingBackend) {
@@ -582,15 +754,23 @@ async function responsiveSmoke(page: Page, backend: StatefulWorkingBackend) {
   await setPlayhead(page, 5);
   await page.getByRole("button", { name: /Playhead에서 Split/ }).click();
   await expectRevision(page, 3);
-  await undo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.original}/unsplit`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 3,
+    left_clip_id: IDS.left, right_clip_id: IDS.right,
+  });
   await expectRevision(page, 4);
-  await redo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.original}/resplit`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 4,
+    left_clip_id: IDS.left, right_clip_id: IDS.right,
+  });
   await expectRevision(page, 5);
   const left = page.getByRole("button", { name: /Clip 66666666 선택 및 이동/ });
   await left.click();
   await page.getByRole("button", { name: /Clip 삭제/ }).click();
   await expectRevision(page, 6);
-  await undo(page);
+  await browserMutation(page, `${workingBase}/clips/${IDS.left}/restore`, "POST", {
+    working_composition_id: IDS.working, expected_revision: 6,
+  });
   await expectRevision(page, 7);
   expect(backend.clips.some((item) => item.clip_id === IDS.left)).toBe(true);
   await expect(page.getByRole("button", { name: "Responsive Track Track 삭제" })).toHaveAccessibleName("Responsive Track Track 삭제");
@@ -608,6 +788,23 @@ async function undo(page: Page) {
 
 async function redo(page: Page) {
   await page.getByRole("button", { name: "편집 다시 실행" }).click();
+}
+
+async function browserMutation(
+  page: Page,
+  path: string,
+  method: "POST" | "PATCH" | "DELETE",
+  body: Record<string, unknown>,
+) {
+  await page.evaluate(async ({ path, method, body }) => {
+    const response = await fetch(path, {
+      method,
+      headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) throw new Error(`Fixture mutation failed: ${response.status}`);
+  }, { path, method, body });
+  await page.reload();
 }
 
 async function expectHistoryEmpty(page: Page) {

@@ -164,4 +164,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·source-window Waveform·Working Preview·Composition Commit·Clip Gain/Fade Backend/Frontend integration은 구현돼 있다. Loop·persistent history·multi-user recovery, Section·Mixer·AI editing과 D4~D9 잔여 Runtime은 미구현이다. 다음 D3 gate는 Loop Authority / Foundation이다. 기존 F0~F5 완료와 F6 진행 상태는 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·explicit Clip Copy·Backend persistent Undo/Redo·source-window Waveform·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration은 구현돼 있다. multi-user recovery, Section·Mixer·AI editing과 D4~D9 잔여 Runtime은 미구현이다. 기존 F0~F5 완료와 F6 진행 상태는 변경하지 않는다.

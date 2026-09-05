@@ -26,6 +26,7 @@ import type {
   WorkingSplitResultDto,
   WorkingTrackResultDto,
   WorkingPreviewCreateResultDto,
+  WorkingHistoryDetailDto,
   WorkspaceJobDetailDto,
 } from "@/types/api";
 import type {
@@ -215,6 +216,15 @@ export const dohaApi = {
     ).then((response) => response.data),
   getWorkingComposition: (projectId: string, signal?: AbortSignal) =>
     workspaceData<WorkingCompositionDto>(workingPath(projectId), { signal }),
+  getWorkingCompositionHistory: (projectId: string, workingCompositionId: string, signal?: AbortSignal) =>
+    workspaceData<WorkingHistoryDetailDto>(
+      `${workingPath(projectId)}/history?working_composition_id=${encodeURIComponent(workingCompositionId)}`,
+      { signal },
+    ),
+  undoWorkingCompositionHistory: (projectId: string, body: WorkingBase, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/history/undo`, mutationInit("POST", body, idempotencyKey)),
+  redoWorkingCompositionHistory: (projectId: string, body: WorkingBase, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/history/redo`, mutationInit("POST", body, idempotencyKey)),
   createWorkingPreview: (
     projectId: string,
     expectedRevision: number,

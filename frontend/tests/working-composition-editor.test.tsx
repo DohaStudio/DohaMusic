@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { StrictMode } from "react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkingCompositionEditor } from "@/features/composition/working-composition-editor";
 import type { MediaSourceResolver } from "@/features/composition/working-waveform";
 import type { WaveformLoader } from "@/features/composition/waveform";
@@ -11,6 +11,11 @@ import { dohaApi } from "@/services/doha-api";
 import type { CompositionReadItemDto, WorkingCompositionDto } from "@/types/api";
 
 afterEach(() => vi.restoreAllMocks());
+beforeEach(() => {
+  vi.spyOn(dohaApi, "getWorkingCompositionHistory").mockResolvedValue({
+    ...historyBoth(),
+  });
+});
 
 describe("WorkingComposition editor", () => {
   it("Clip waveform loading, ready와 same-source decode dedup을 표시한다", async () => {
@@ -172,9 +177,9 @@ describe("WorkingComposition editor", () => {
     const copy = vi.spyOn(dohaApi, "copyWorkingClip").mockResolvedValue({
       clip_id: "clip-copy", completed_revision: 3, replayed: false,
     });
-    const remove = vi.spyOn(dohaApi, "deleteWorkingClip").mockResolvedValue({
-      clip_id: "clip-copy", completed_revision: 4, replayed: false,
-    });
+    vi.mocked(dohaApi.getWorkingCompositionHistory)
+      .mockResolvedValueOnce(historyBoth())
+      .mockResolvedValueOnce(historyBarrier(3));
     const loader = vi.fn<WaveformLoader>().mockResolvedValue([0.1, 0.4, 0.8, 0.2]);
     const user = userEvent.setup();
     renderEditor({ loader });
@@ -201,10 +206,8 @@ describe("WorkingComposition editor", () => {
     await waitFor(() => expect(screen.getByTestId("clip-waveform-clip-copy"))
       .toHaveAttribute("data-waveform-status", "ready"));
     expect(loader).toHaveBeenCalledTimes(1);
-    await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
-    await waitFor(() => expect(remove).toHaveBeenCalledWith(
-      "project-1", "clip-copy", expect.objectContaining({ expected_revision: 3 }), expect.any(String),
-    ));
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   });
 
   it("Clip Copy response-loss retry는 같은 key를 재사용하고 revision conflict는 history를 비운다", async () => {
@@ -213,6 +216,7 @@ describe("WorkingComposition editor", () => {
       revision: 3,
       clips: [...working.clips, { ...working.clips[0], clip_id: "clip-copy", timeline_start: "10.000" }],
     };
+    vi.mocked(dohaApi.getWorkingCompositionHistory).mockResolvedValueOnce(historyBoth()).mockResolvedValueOnce(historyBarrier(3)).mockResolvedValueOnce(historyBarrier(8));
     vi.spyOn(dohaApi, "getWorkingComposition")
       .mockResolvedValueOnce(working)
       .mockResolvedValueOnce(copied)
@@ -251,6 +255,10 @@ describe("WorkingComposition editor", () => {
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 3, replayed: true })
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 4, replayed: false })
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 5, replayed: false });
+    const undoGain = vi.spyOn(dohaApi, "undoWorkingCompositionHistory")
+      .mockResolvedValue({ clip_id: "clip-1", completed_revision: 4, replayed: false });
+    const redoGain = vi.spyOn(dohaApi, "redoWorkingCompositionHistory")
+      .mockResolvedValue({ clip_id: "clip-1", completed_revision: 5, replayed: false });
     vi.spyOn(dohaApi, "createWorkingPreview").mockResolvedValue({
       job_id: "job-preview", preview_render_id: "render-preview",
       working_composition_id: "working-1", rendered_revision: 2,
@@ -296,14 +304,15 @@ describe("WorkingComposition editor", () => {
     expect(loader).toHaveBeenCalledTimes(1);
 
     await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
-    await waitFor(() => expect(update).toHaveBeenCalledTimes(3));
-    expect(update.mock.calls[2][1]).toBe("clip-1");
-    expect(update.mock.calls[2][2].gain_db).toBe(0);
+    await waitFor(() => expect(undoGain).toHaveBeenCalledWith(
+      "project-1", { working_composition_id: "working-1", expected_revision: 3 }, expect.any(String),
+    ));
+    expect(update).toHaveBeenCalledTimes(2);
     await user.click(screen.getByRole("button", { name: "편집 다시 실행" }));
-    await waitFor(() => expect(update).toHaveBeenCalledTimes(4));
-    expect(update.mock.calls[3][1]).toBe("clip-1");
-    expect(update.mock.calls[3][2].gain_db).toBe(3);
-    expect(update.mock.calls[2][3]).not.toBe(update.mock.calls[3][3]);
+    await waitFor(() => expect(redoGain).toHaveBeenCalledWith(
+      "project-1", { working_composition_id: "working-1", expected_revision: 4 }, expect.any(String),
+    ));
+    expect(update).toHaveBeenCalledTimes(2);
   });
 
   it("pending Clip A Gain response는 선택된 Clip B control에 leak하지 않는다", async () => {
@@ -367,6 +376,7 @@ describe("WorkingComposition editor", () => {
   it("Clip Gain revision conflict는 GET reconcile하고 selected Clip canonical 값과 history를 갱신한다", async () => {
     const changed = { ...working, revision: 3, clips: [{ ...working.clips[0], gain_db: "3.00" }] };
     const external = { ...working, revision: 8, clips: [{ ...working.clips[0], gain_db: "-2.00" }] };
+    vi.mocked(dohaApi.getWorkingCompositionHistory).mockResolvedValueOnce(historyBoth()).mockResolvedValueOnce(historyBoth(3)).mockResolvedValueOnce(historyBarrier(8));
     vi.spyOn(dohaApi, "getWorkingComposition")
       .mockResolvedValueOnce(working)
       .mockResolvedValueOnce(changed)
@@ -383,7 +393,7 @@ describe("WorkingComposition editor", () => {
     fireEvent.blur(input);
     await waitFor(() => expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled());
     await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
-    expect(await screen.findByText(/Undo\/Redo 기록은 초기화/)).toBeVisible();
+    expect(await screen.findByText(/최신 편집 상태와 Undo\/Redo 기록/)).toBeVisible();
     expect(screen.getByText("-2.00 dB")).toBeVisible();
     expect(screen.getByLabelText("Clip gain exact value")).toHaveValue(-2);
     expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
@@ -404,6 +414,10 @@ describe("WorkingComposition editor", () => {
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 3, replayed: true })
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 4, replayed: false })
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 5, replayed: false });
+    const undoFade = vi.spyOn(dohaApi, "undoWorkingCompositionHistory")
+      .mockResolvedValue({ clip_id: "clip-1", completed_revision: 4, replayed: false });
+    const redoFade = vi.spyOn(dohaApi, "redoWorkingCompositionHistory")
+      .mockResolvedValue({ clip_id: "clip-1", completed_revision: 5, replayed: false });
     const user = userEvent.setup();
     renderEditor();
     await user.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
@@ -435,12 +449,15 @@ describe("WorkingComposition editor", () => {
     expect(screen.getByLabelText("Fade Out exact value")).toHaveValue(0.75);
 
     await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
-    await waitFor(() => expect(update).toHaveBeenCalledTimes(3));
-    expect(update.mock.calls[2][2]).toMatchObject({ expected_revision: 3, fade_in: 0, fade_out: 0 });
+    await waitFor(() => expect(undoFade).toHaveBeenCalledWith(
+      "project-1", { working_composition_id: "working-1", expected_revision: 3 }, expect.any(String),
+    ));
+    expect(update).toHaveBeenCalledTimes(2);
     await user.click(screen.getByRole("button", { name: "편집 다시 실행" }));
-    await waitFor(() => expect(update).toHaveBeenCalledTimes(4));
-    expect(update.mock.calls[3][2]).toMatchObject({ expected_revision: 4, fade_in: 0.123456, fade_out: 0.75 });
-    expect(update.mock.calls[2][3]).not.toBe(update.mock.calls[3][3]);
+    await waitFor(() => expect(redoFade).toHaveBeenCalledWith(
+      "project-1", { working_composition_id: "working-1", expected_revision: 4 }, expect.any(String),
+    ));
+    expect(update).toHaveBeenCalledTimes(2);
   });
 
   it("Clip Fade Backend 422는 clamp 없이 safe error를 표시하고 failed forward history를 만들지 않는다", async () => {
@@ -456,7 +473,7 @@ describe("WorkingComposition editor", () => {
     expect(await screen.findByText(/합이 Clip 길이를 넘지 않도록/)).toBeVisible();
     expect(screen.queryByText(/raw SQL\/path detail/)).not.toBeInTheDocument();
     expect(screen.getByLabelText("Fade In exact value")).toHaveValue(0);
-    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled();
   });
 
   it("Clip Loop는 typing 중 mutation하지 않고 canonical response와 history restore를 사용한다", async () => {
@@ -467,7 +484,8 @@ describe("WorkingComposition editor", () => {
     const update = vi.spyOn(dohaApi, "updateWorkingClipLoop")
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 3, replayed: false })
       .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 4, replayed: false });
-    const restore = vi.spyOn(dohaApi, "restoreWorkingClipLoop").mockResolvedValue({ clip_id: "clip-1", completed_revision: 5, replayed: false });
+    const undoLoop = vi.spyOn(dohaApi, "undoWorkingCompositionHistory").mockResolvedValue({ clip_id: "clip-1", completed_revision: 5, replayed: false });
+    const restore = vi.spyOn(dohaApi, "restoreWorkingClipLoop");
     fireEvent.click((renderEditor(), await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ })));
     fireEvent.click(screen.getByRole("switch", { name: "Clip loop enabled" }));
     await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
@@ -480,8 +498,10 @@ describe("WorkingComposition editor", () => {
     await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
     expect(update.mock.calls[1][2]).toMatchObject({ loop_enabled: true, timeline_duration: 1.5 });
     await userEvent.setup().click(screen.getByRole("button", { name: "편집 실행 취소" }));
-    await waitFor(() => expect(restore).toHaveBeenCalledTimes(1));
-    expect(restore.mock.calls[0][2]).toMatchObject({ loop_enabled: true, timeline_duration: 4, loop_phase: 0 });
+    await waitFor(() => expect(undoLoop).toHaveBeenCalledWith(
+      "project-1", { working_composition_id: "working-1", expected_revision: 4 }, expect.any(String),
+    ));
+    expect(restore).not.toHaveBeenCalled();
   });
 
   it("Loop disable은 current D가 아니라 exact source window W를 한 번 제출한다", async () => {
@@ -564,6 +584,7 @@ describe("WorkingComposition editor", () => {
   it("revision conflict는 GET reconcile하고 Undo/Redo 버튼을 비운다", async () => {
     const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Renamed" }] };
     const external = { ...renamed, revision: 7, tracks: [{ ...working.tracks[0], name: "External" }] };
+    vi.mocked(dohaApi.getWorkingCompositionHistory).mockResolvedValueOnce(historyBoth()).mockResolvedValueOnce(historyBoth(3)).mockResolvedValueOnce(historyBarrier(7));
     vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValueOnce(working).mockResolvedValueOnce(renamed).mockResolvedValueOnce(external);
     vi.spyOn(dohaApi, "renameWorkingTrack")
       .mockResolvedValueOnce({ track_id: "track-1", completed_revision: 3, replayed: false })
@@ -576,7 +597,7 @@ describe("WorkingComposition editor", () => {
     fireEvent.blur(input);
     await waitFor(() => expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled());
     await user.click(screen.getByRole("button", { name: "편집 실행 취소" }));
-    expect(await screen.findByText(/Undo\/Redo 기록은 초기화/)).toBeVisible();
+    expect(await screen.findByText(/최신 편집 상태와 Undo\/Redo 기록/)).toBeVisible();
     expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
     expect(screen.getByText(/revision 7/)).toBeVisible();
@@ -585,6 +606,7 @@ describe("WorkingComposition editor", () => {
   it("checkout 성공은 history barrier로 Undo/Redo stack을 비운다", async () => {
     const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Renamed" }] };
     const checkedOut = { ...emptyWorking, revision: 4, base_composition_snapshot_id: "snapshot-1" };
+    vi.mocked(dohaApi.getWorkingCompositionHistory).mockResolvedValueOnce(historyBoth()).mockResolvedValueOnce(historyBoth(3)).mockResolvedValueOnce(historyBarrier(4));
     vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValueOnce(working).mockResolvedValueOnce(renamed).mockResolvedValueOnce(checkedOut);
     vi.spyOn(dohaApi, "renameWorkingTrack").mockResolvedValue({ track_id: "track-1", completed_revision: 3, replayed: false });
     vi.spyOn(dohaApi, "checkoutWorkingComposition").mockResolvedValue({ working_composition_id: "working-1", base_composition_snapshot_id: "snapshot-1", completed_revision: 4, replayed: false });
@@ -614,6 +636,7 @@ describe("WorkingComposition editor", () => {
     const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Before commit" }] };
     const committed = { ...renamed, revision: 4, base_composition_snapshot_id: "snapshot-2" };
     const afterCommitEdit = { ...committed, revision: 5, tracks: [{ ...working.tracks[0], name: "After commit" }] };
+    vi.mocked(dohaApi.getWorkingCompositionHistory).mockResolvedValueOnce(historyBoth()).mockResolvedValueOnce(historyBoth(3)).mockResolvedValueOnce(historyBarrier(4)).mockResolvedValueOnce(historyBoth(5));
     vi.spyOn(dohaApi, "getWorkingComposition")
       .mockResolvedValueOnce(working)
       .mockResolvedValueOnce(renamed)
@@ -651,6 +674,7 @@ describe("WorkingComposition editor", () => {
 
   it("Commit 실패는 기존 history를 보존하고 response-loss retry는 같은 key를 사용한다", async () => {
     const renamed = { ...working, revision: 3, tracks: [{ ...working.tracks[0], name: "Pending" }] };
+    vi.mocked(dohaApi.getWorkingCompositionHistory).mockResolvedValueOnce(historyBoth()).mockResolvedValueOnce(historyBoth(3)).mockResolvedValueOnce(historyBarrier(4));
     vi.spyOn(dohaApi, "getWorkingComposition")
       .mockResolvedValueOnce(working)
       .mockResolvedValueOnce(renamed)
@@ -688,6 +712,7 @@ describe("WorkingComposition editor", () => {
 
   it("Preview 생성 성공은 편집 revision과 Undo/Redo history를 변경하지 않는다", async () => {
     vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValue(working);
+    vi.mocked(dohaApi.getWorkingCompositionHistory).mockResolvedValue(historyBarrier(2));
     vi.spyOn(dohaApi, "createWorkingPreview").mockResolvedValue({
       job_id: "job-preview", preview_render_id: "render-preview",
       working_composition_id: "working-1", rendered_revision: 2,
@@ -709,7 +734,7 @@ describe("WorkingComposition editor", () => {
     renderEditor();
     await user.click(await screen.findByRole("button", { name: "Working Preview 만들기" }));
     await screen.findByRole("button", { name: "Working Preview revision 2 재생" });
-    expect(screen.getByText("revision 2 · 저장됨 · Undo/Redo는 이 탭의 메모리에만 유지")).toBeVisible();
+    expect(screen.getByText("revision 2 · 저장됨 · Undo/Redo 기록은 서버에 안전하게 보존")).toBeVisible();
     expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "편집 다시 실행" })).toBeDisabled();
   });
@@ -815,6 +840,13 @@ function renderEditor({
     ...render(strict ? <StrictMode>{editor}</StrictMode> : editor),
     client,
   };
+}
+
+function historyBoth(revision = 2) {
+  return { working_composition_id: "working-1", revision, cursor: 1, command_count: 2, can_undo: true, can_redo: true };
+}
+function historyBarrier(revision: number) {
+  return { working_composition_id: "working-1", revision, cursor: 0, command_count: 0, can_undo: false, can_redo: false };
 }
 
 const emptyWorking: WorkingCompositionDto = {

@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { PersistentHistoryFixture } from "./support/persistent-history-fixture";
 
 const projectId = "project-preview-1";
 const secondProjectId = "project-preview-2";
@@ -22,7 +23,10 @@ class PreviewBackend {
   terminal: JobStatus = "succeeded";
   holdJob = false;
   previewExpired = false;
+  workspaceReads = 0;
+  historyReads = 0;
   private completionByKey = new Map<string, { jobId: string; revision: number }>();
+  private histories = new Map<string, PersistentHistoryFixture>();
 
   async install(page: Page) {
     await page.route("**/backend/**", (route) => this.handle(route));
@@ -38,8 +42,19 @@ class PreviewBackend {
     const compositionMatch = path.match(/^\/backend\/api\/v1\/projects\/(project-preview-[12])\/composition$/);
     if (compositionMatch) return this.ok(route, { data: composition(compositionMatch[1]) });
     const workingMatch = path.match(/^\/backend\/api\/v1\/projects\/(project-preview-[12])\/working-composition$/);
-    if (workingMatch && method === "GET") return this.ok(route, { data: this.working(workingMatch[1]) });
+    if (workingMatch && method === "GET") {
+      this.workspaceReads += 1;
+      return this.ok(route, { data: this.working(workingMatch[1]) });
+    }
     if (workingMatch && method === "PATCH") return this.error(route, 405, "METHOD_NOT_ALLOWED");
+    const historyMatch = path.match(/^\/backend\/api\/v1\/projects\/(project-preview-[12])\/working-composition\/history(?:\/(undo|redo))?$/);
+    if (historyMatch && method === "GET" && !historyMatch[2]) {
+      this.historyReads += 1;
+      return this.ok(route, { data: this.historyFor(historyMatch[1]).projection() });
+    }
+    if (historyMatch && method === "POST" && historyMatch[2]) {
+      return this.historyFor(historyMatch[1]).mutate(route, historyMatch[2] as "undo" | "redo");
+    }
     const mediaMatch = path.match(/^\/backend\/api\/v1\/projects\/(project-preview-[12])\/asset-versions\/[^/]+\/media-source$/);
     if (mediaMatch) return this.ok(route, { data: mediaSource() });
     if (path === `/backend/api/v1/artifacts/${artifactId}/content`) {
@@ -92,7 +107,14 @@ class PreviewBackend {
     if (renameMatch && method === "PATCH") {
       const body = request.postDataJSON() as { name: string; expected_revision: number };
       if (body.expected_revision !== this.revision) return this.error(route, 409, "WORKING_COMPOSITION_REVISION_CONFLICT");
-      this.title = body.name;
+      const before = this.title;
+      const after = body.name;
+      this.title = after;
+      this.historyFor(renameMatch[1]).append({
+        clipId,
+        applyBefore: () => { this.title = before; },
+        applyAfter: () => { this.title = after; },
+      });
       this.revision += 1;
       return this.ok(route, { data: { track_id: trackId, completed_revision: this.revision, replayed: false } });
     }
@@ -110,6 +132,18 @@ class PreviewBackend {
       clips: [{ clip_id: clipId, track_id: trackId, source_asset_version_id: assetVersionId, timeline_start: "0.000", source_in: "0.000", source_out: "2.000", source_duration: "2.000", timeline_duration: "2.000", loop_enabled: false, loop_phase: "0", gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null }],
       timeline_duration: "2.000",
     };
+  }
+
+  historyFor(project: string) {
+    let history = this.histories.get(project);
+    if (!history) {
+      history = new PersistentHistoryFixture(workingId, {
+        get: () => this.revision,
+        increment: () => ++this.revision,
+      });
+      this.histories.set(project, history);
+    }
+    return history;
   }
 
   private ok(route: Route, json: unknown, status = 200) { return route.fulfill({ status, json }); }
@@ -158,10 +192,15 @@ test("explicit Preview, polling, Global Player, stale, rerender와 refresh autho
   await expect(page.getByText(/revision 5/).first()).toBeVisible();
   await expect(page.getByText("Preview가 최신 편집본과 다릅니다.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Working Preview revision 4 재생" })).toBeEnabled();
+  await page.getByRole("button", { name: "편집 실행 취소" }).click();
+  await expect(page.getByLabel("Preview Track Track 이름")).toBeVisible();
+  await expect(page.getByText("Preview가 최신 편집본과 다릅니다.")).toBeVisible();
+  await page.getByRole("button", { name: "편집 다시 실행" }).click();
+  await expect(page.getByLabel("Edited Preview Track Track 이름")).toBeVisible();
   await page.getByRole("button", { name: "Preview 다시 만들기" }).click();
   await expect(page.getByText("재생 준비됨", { exact: true })).toBeVisible({ timeout: 10_000 });
   expect(backend.previewPosts).toHaveLength(2);
-  expect(backend.previewPosts[1].revision).toBe(5);
+  expect(backend.previewPosts[1].revision).toBe(7);
   expect(backend.previewPosts[1].key).not.toBe(backend.previewPosts[0].key);
   await expect(page.getByText("Preview가 최신 편집본과 다릅니다.")).toHaveCount(0);
 
@@ -185,9 +224,13 @@ test("response-loss same-key, revision conflict, failed/cancelled, expiry와 Pro
   expect(backend.previewPosts[0].key).toBe(backend.previewPosts[1].key);
 
   backend.revisionConflict = true;
+  const workspaceReadsBeforeConflict = backend.workspaceReads;
+  const historyReadsBeforeConflict = backend.historyReads;
   await page.getByRole("button", { name: "Preview 다시 만들기" }).click();
   await expect(page.getByText(/최신 revision을 확인한 뒤/)).toBeVisible();
   await expect(page.getByText(/revision 5/).first()).toBeVisible();
+  expect(backend.workspaceReads).toBeGreaterThan(workspaceReadsBeforeConflict);
+  expect(backend.historyReads).toBeGreaterThan(historyReadsBeforeConflict);
   expect(backend.previewPosts).toHaveLength(3);
 
   backend.terminal = "failed";

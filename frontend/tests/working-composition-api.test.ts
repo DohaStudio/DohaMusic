@@ -171,6 +171,24 @@ describe("WorkingComposition API client", () => {
     expect(headersAt(fetchMock, 1).get("Idempotency-Key")).toBe("undo-key");
     expect(headersAt(fetchMock, 2).get("Idempotency-Key")).toBe("redo-key");
   });
+
+  it("persistent history GET/Undo/Redo uses Backend authority endpoints and minimal payloads", async () => {
+    const fetchMock = mockResponses(
+      { working_composition_id: "working-1", revision: 7, cursor: 2, command_count: 3, can_undo: true, can_redo: true },
+      clipResult(),
+      clipResult(),
+    );
+    const history = await dohaApi.getWorkingCompositionHistory("project/1", "working/1");
+    const body = { working_composition_id: "working-1", expected_revision: 7 };
+    await dohaApi.undoWorkingCompositionHistory("project/1", body, "undo-key");
+    await dohaApi.redoWorkingCompositionHistory("project/1", body, "redo-key");
+    expect(history.can_undo).toBe(true);
+    expect(fetchMock.mock.calls[0][0]).toBe("/backend/api/v1/projects/project%2F1/working-composition/history?working_composition_id=working%2F1");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual(body);
+    expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual(body);
+    expect(headersAt(fetchMock, 1).get("Idempotency-Key")).toBe("undo-key");
+    expect(headersAt(fetchMock, 2).get("Idempotency-Key")).toBe("redo-key");
+  });
 });
 
 function mockResponses(...data: object[]) {

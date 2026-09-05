@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { PersistentHistoryFixture } from "./support/persistent-history-fixture";
 
 const projectId = "project-fade";
 const snapshotId = "snapshot-fade";
@@ -27,6 +28,10 @@ class FadeBackend {
   resolverRequests = 0;
   contentRequests = 0;
   loseNextFadeResponse = false;
+  history = new PersistentHistoryFixture(workingId, {
+    get: () => this.revision,
+    increment: () => ++this.revision,
+  });
 
   install(page: Page) { return page.route("**/backend/**", (route) => this.handle(route)); }
 
@@ -56,6 +61,9 @@ class FadeBackend {
     if (!path.startsWith(workingBase)) return route.fulfill({ status: 404, json: { error: { code: "TEST_ROUTE_NOT_FOUND" } } });
     const relative = path.slice(workingBase.length);
     if (method === "GET" && relative === "") return this.ok(route, { data: this.snapshot() });
+    if (method === "GET" && relative === "/history") return this.ok(route, { data: this.history.projection() });
+    if (method === "POST" && relative === "/history/undo") return this.history.mutate(route, "undo");
+    if (method === "POST" && relative === "/history/redo") return this.history.mutate(route, "redo");
     if (relative === "/preview" && method === "POST") {
       this.previewPosts += 1;
       return this.ok(route, { data: {
@@ -66,10 +74,12 @@ class FadeBackend {
     }
     if (relative === "/commit" && method === "POST") {
       this.committedClip = { ...this.clip };
+      this.history.barrier();
       return this.mutated(route, key, { working_composition_id: workingId, composition_snapshot_id: "snapshot-fade-2" });
     }
     if (relative === "/checkout" && method === "POST") {
       this.clip = { ...this.committedClip };
+      this.history.barrier();
       return this.mutated(route, key, { working_composition_id: workingId, base_composition_snapshot_id: "snapshot-fade-2" });
     }
     const fadeAttempt = relative === `/clips/${clipId}/fade` && method === "PATCH";
@@ -79,15 +89,29 @@ class FadeBackend {
     }
     if (body.expected_revision !== this.revision) return this.error(route, 409, "WORKING_COMPOSITION_REVISION_CONFLICT");
     if (fadeAttempt) {
+      const before = { fade_in: this.clip.fade_in, fade_out: this.clip.fade_out };
+      const after = { fade_in: String(body.fade_in), fade_out: String(body.fade_out) };
       this.clip.fade_in = String(body.fade_in);
       this.clip.fade_out = String(body.fade_out);
+      this.history.append({
+        clipId,
+        applyBefore: () => Object.assign(this.clip, before),
+        applyAfter: () => Object.assign(this.clip, after),
+      });
       const lose = this.loseNextFadeResponse;
       this.loseNextFadeResponse = false;
       return this.mutated(route, key, { clip_id: clipId }, lose);
     }
     if (relative === `/clips/${clipId}/gain` && method === "PATCH") {
       this.gainRequests.push({ body, key });
-      this.clip.gain_db = Number(body.gain_db).toFixed(2);
+      const before = this.clip.gain_db;
+      const after = Number(body.gain_db).toFixed(2);
+      this.clip.gain_db = after;
+      this.history.append({
+        clipId,
+        applyBefore: () => { this.clip.gain_db = before; },
+        applyAfter: () => { this.clip.gain_db = after; },
+      });
       return this.mutated(route, key, { clip_id: clipId });
     }
     return this.error(route, 404, "TEST_OPERATION_NOT_IMPLEMENTED");
