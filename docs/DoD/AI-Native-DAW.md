@@ -72,6 +72,11 @@
 
 일반 Project 관리는 `/projects`, DAW 진입은 `/projects?mode=daw`의 명시적 Project 선택과 `/projects/{project_id}` 편집으로 분리하며 `/studio`는 별도의 새 음악 생성 workflow다. Navigation은 이 역할을 안내할 뿐 Project·Snapshot·WorkingComposition을 추측하거나 자동 선택하지 않는다.
 
+- [x] selected Clip Loop toggle과 canonical `timeline_duration` exact input
+- [x] normal Loop mutation의 phase 입력 금지와 disable `D=W` absolute request
+- [x] phase 포함 absolute memory Undo/Redo의 전용 history restore endpoint 사용
+- [x] Clip width·Fade invariant의 timeline duration authority와 Waveform/DSP 비영향 회귀
+
 - [x] canonical Track·Clip·WorkingComposition authority와 persistence ADR
 - [x] mutable working state와 immutable Snapshot commit·schema extension 경계
 - [x] split identity·revision concurrency·Undo/Redo ownership·overlap·duration 정책

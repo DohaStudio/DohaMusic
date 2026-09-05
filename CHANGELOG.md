@@ -11,6 +11,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 — Clip Loop Frontend Integration
+
+- selected Clip inspector에 canonical Loop toggle과 `timeline_duration` exact input을 추가하고, normal mutation과 phase 포함 history restore를 분리했다.
+- Loop 변경을 Gain/Fade와 같은 memory history, revision reconcile, Preview stale 및 Commit/Checkout history boundary에 통합했다. Waveform와 WebAudio DSP는 변경하지 않았다.
+
 ### 문서
 
 - ADR-055에서 Clip source window와 timeline duration을 분리하고 loop phase를 canonical microseconds로 저장하는 Split·Trim·Fade·Preview·Snapshot·migration architecture를 확정했다.

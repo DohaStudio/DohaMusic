@@ -23,6 +23,9 @@ type Clip = {
   source_in: string;
   source_out: string;
   source_duration: string;
+  timeline_duration: string;
+  loop_enabled: boolean;
+  loop_phase: string;
   gain_db: string;
   fade_in: string;
   fade_out: string;
@@ -154,12 +157,13 @@ class GainBackend {
     if (operation === "split" && method === "POST") {
       const original = { ...this.requiredClip(clipId) };
       const splitAt = Number(body.split_at);
-      const left = { ...original, clip_id: leftId, source_out: splitAt.toFixed(3), split_from_clip_id: original.clip_id };
+      const left = { ...original, clip_id: leftId, source_out: splitAt.toFixed(3), timeline_duration: (splitAt - Number(original.source_in)).toFixed(3), split_from_clip_id: original.clip_id };
       const right = {
         ...original,
         clip_id: rightId,
         timeline_start: (Number(original.timeline_start) + splitAt - Number(original.source_in)).toFixed(3),
         source_in: splitAt.toFixed(3),
+        timeline_duration: (Number(original.source_out) - splitAt).toFixed(3),
         split_from_clip_id: original.clip_id,
       };
       this.lineage = { original, left: { ...left }, right: { ...right } };
@@ -389,7 +393,8 @@ function clip(id: string, timeline: string, sourceIn: string, sourceOut: string,
   return {
     clip_id: id, track_id: trackId, source_asset_version_id: versionId,
     timeline_start: timeline, source_in: sourceIn, source_out: sourceOut,
-    source_duration: "8.000", gain_db: gainDb, fade_in: "0", fade_out: "0", split_from_clip_id: null,
+    source_duration: "8.000", timeline_duration: (Number(sourceOut) - Number(sourceIn)).toFixed(3), loop_enabled: false, loop_phase: "0",
+    gain_db: gainDb, fade_in: "0", fade_out: "0", split_from_clip_id: null,
   };
 }
 

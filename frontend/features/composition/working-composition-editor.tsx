@@ -129,7 +129,7 @@ function WorkingCompositionEditorSession({
 
   async function mutate<T extends { completed_revision: number }>(
     operation: () => Promise<T>,
-    command?: (result: T, before: WorkingCompositionDto) => WorkingCommand,
+    command?: (result: T, before: WorkingCompositionDto, canonical: WorkingCompositionDto) => WorkingCommand,
     clearAfter = false,
     preserveHistoryOnFailure = false,
   ) {
@@ -141,11 +141,11 @@ function WorkingCompositionEditorSession({
       const result = await operation();
       queryClient.setQueryData<WorkingCompositionDto>(queryKey, { ...data, revision: result.completed_revision });
       if (clearAfter) clearHistory();
-      await reconcile(false);
+      const canonical = await reconcile(false);
       if (command) {
         setHistory((current) => {
           const next = copyHistory(current);
-          next.push(command(result, data));
+          next.push(command(result, data, canonical));
           return next;
         });
       }
@@ -474,11 +474,11 @@ function WorkingCompositionEditorSession({
             )}
           />
           <ClipFadeControl
-            key={`${selectedClip.clip_id}:${selectedClip.fade_in}:${selectedClip.fade_out}:${selectedClip.source_in}:${selectedClip.source_out}`}
+            key={`${selectedClip.clip_id}:${selectedClip.fade_in}:${selectedClip.fade_out}:${selectedClip.timeline_duration}`}
             clipId={selectedClip.clip_id}
             canonicalFadeIn={selectedClip.fade_in}
             canonicalFadeOut={selectedClip.fade_out}
-            clipDuration={Number(selectedClip.source_out) - Number(selectedClip.source_in)}
+            clipDuration={Number(selectedClip.timeline_duration)}
             pending={pending}
             onCommit={(nextFadeIn, nextFadeOut) => mutate(
               () => withIdempotency((key) => dohaApi.updateWorkingClipFade(
@@ -493,6 +493,36 @@ function WorkingCompositionEditorSession({
                 before: { fadeIn: selectedClip.fade_in, fadeOut: selectedClip.fade_out },
                 after: { fadeIn: nextFadeIn, fadeOut: nextFadeOut },
               }),
+            )}
+          />
+          <ClipLoopControl
+            key={`${selectedClip.clip_id}:${selectedClip.loop_enabled}:${selectedClip.timeline_duration}:${selectedClip.fade_in}:${selectedClip.fade_out}`}
+            clipId={selectedClip.clip_id}
+            enabled={selectedClip.loop_enabled}
+            timelineDuration={selectedClip.timeline_duration}
+            sourceWindow={microsecondsToSeconds(
+              secondsToMicroseconds(selectedClip.source_out) - secondsToMicroseconds(selectedClip.source_in),
+            )}
+            fadeIn={selectedClip.fade_in}
+            fadeOut={selectedClip.fade_out}
+            pending={pending}
+            onCommit={(enabled, timelineDuration) => mutate(
+              () => withIdempotency((key) => dohaApi.updateWorkingClipLoop(
+                projectId,
+                selectedClip.clip_id,
+                { ...base, loop_enabled: enabled, timeline_duration: Number(timelineDuration) },
+                key,
+              )),
+              (_result, before, canonical) => {
+                const beforeClip = before.clips.find((clip) => clip.clip_id === selectedClip.clip_id)!;
+                const afterClip = canonical.clips.find((clip) => clip.clip_id === selectedClip.clip_id)!;
+                return {
+                  type: "CLIP_LOOP",
+                  clipId: selectedClip.clip_id,
+                  before: clipLoopState(beforeClip),
+                  after: clipLoopState(afterClip),
+                };
+              },
             )}
           />
           <Button type="button" disabled={pending || !(selectedSplitAt > Number(selectedClip.source_in) && selectedSplitAt < Number(selectedClip.source_out))} onClick={() => void mutate(
@@ -791,6 +821,84 @@ function ClipFadeControl({
   );
 }
 
+function ClipLoopControl({ clipId, enabled, timelineDuration, sourceWindow, fadeIn, fadeOut, pending, onCommit }: {
+  clipId: string;
+  enabled: boolean;
+  timelineDuration: string;
+  sourceWindow: string;
+  fadeIn: string;
+  fadeOut: string;
+  pending: boolean;
+  onCommit: (enabled: boolean, timelineDuration: string) => Promise<boolean>;
+}) {
+  const canonical = canonicalizePositiveSeconds(timelineDuration);
+  const [draft, setDraft] = useState(canonical ?? timelineDuration);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const committing = useRef(false);
+  const helpId = `clip-loop-help-${clipId}`;
+  const errorId = `clip-loop-error-${clipId}`;
+
+  if (!canonical) return <p className="working-loop-error" role="alert">Clip Loop 값을 표시할 수 없습니다.</p>;
+
+  const commitDuration = async (raw: string) => {
+    if (!enabled || pending || committing.current) return;
+    const next = canonicalizePositiveSeconds(raw);
+    if (!next) {
+      setLocalError("Timeline Duration은 0보다 큰 초 단위 숫자로 소수점 이하 최대 6자리까지 입력해 주세요.");
+      return;
+    }
+    if (secondsToMicroseconds(fadeIn) + secondsToMicroseconds(fadeOut) > secondsToMicroseconds(next)) {
+      setLocalError("Timeline Duration은 Fade In과 Fade Out의 합보다 짧을 수 없습니다.");
+      return;
+    }
+    setDraft(next);
+    setLocalError(null);
+    if (secondsToMicroseconds(next) === secondsToMicroseconds(canonical)) return;
+    committing.current = true;
+    const success = await onCommit(true, next);
+    committing.current = false;
+    if (!success) setDraft(canonical);
+  };
+
+  return <fieldset className="working-clip-loop" disabled={pending} aria-describedby={localError ? `${helpId} ${errorId}` : helpId}>
+    <legend>Clip loop</legend>
+    <label htmlFor={`clip-loop-enabled-${clipId}`}>Loop</label>
+    <input
+      id={`clip-loop-enabled-${clipId}`}
+      aria-label="Clip loop enabled"
+      type="checkbox"
+      role="switch"
+      checked={enabled}
+      onChange={(event) => void onCommit(event.currentTarget.checked, event.currentTarget.checked ? canonical : sourceWindow)}
+    />
+    <label htmlFor={`clip-loop-duration-${clipId}`}>Timeline Duration</label>
+    <Input
+      id={`clip-loop-duration-${clipId}`}
+      aria-label="Clip loop timeline duration"
+      aria-invalid={Boolean(localError)}
+      type="number"
+      inputMode="decimal"
+      min="0.000001"
+      step="0.000001"
+      value={draft}
+      disabled={pending || !enabled}
+      onChange={(event) => { setDraft(event.target.value); setLocalError(null); }}
+      onBlur={(event) => void commitDuration(event.currentTarget.value)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") event.currentTarget.blur();
+        if (event.key === "Escape") {
+          setDraft(canonical);
+          setLocalError(null);
+          event.currentTarget.blur();
+        }
+      }}
+    />
+    <output htmlFor={`clip-loop-duration-${clipId}`}>{draft} s</output>
+    <small id={helpId}>Loop가 켜진 동안 source window보다 짧거나 같거나 긴 duration을 사용할 수 있습니다.</small>
+    {localError && <small id={errorId} className="field-error" role="alert">{localError}</small>}
+  </fieldset>;
+}
+
 function TrackRow({ track, selected, pending, onSelect, onRename, onDelete, onDragStart, onDrop }: {
   track: WorkingTrackDto; selected: boolean; pending: boolean; onSelect: () => void; onRename: (name: string) => void; onDelete: () => void; onDragStart: () => void; onDrop: () => void;
 }) {
@@ -851,14 +959,14 @@ function ClipLane({ projectId, workingCompositionId, track, clips, selectedClipI
     if (!active || active.pointerId !== event.pointerId) return;
     setPreview({ clipId: active.clip.clip_id, mode: active.mode, delta: (event.clientX - active.startX) / pixelsPerSecond });
   };
-  const width = Math.max(720, ...clips.map((clip) => (Number(clip.timeline_start) + Number(clip.source_out) - Number(clip.source_in)) * pixelsPerSecond + 80));
+  const width = Math.max(720, ...clips.map((clip) => (Number(clip.timeline_start) + Number(clip.timeline_duration)) * pixelsPerSecond + 80));
   return <div className="working-clip-scroll" data-testid="working-clip-scroll"><div className="working-clip-lane" style={{ width, backgroundSize: `${pixelsPerSecond}px 100%` }} aria-label={`${track.name} Clip lane`}>
     {clips.map((clip) => {
       const delta = preview?.clipId === clip.clip_id ? preview.delta : 0;
       const startDelta = preview?.mode === "start" ? delta : 0;
       const endDelta = preview?.mode === "end" ? delta : 0;
       const left = (Number(clip.timeline_start) + (preview?.mode === "move" ? delta : startDelta)) * pixelsPerSecond;
-      const duration = Number(clip.source_out) - Number(clip.source_in) - startDelta + endDelta;
+      const duration = Number(clip.timeline_duration) - startDelta + endDelta;
       const sourceIn = Number(clip.source_in) + startDelta;
       const sourceOut = Number(clip.source_out) + endDelta;
       const waveform = waveformFor(clip.source_asset_version_id);
@@ -930,6 +1038,7 @@ function workingErrorMessage(error: unknown): string {
       SPLIT_STRUCTURE_CONFLICT: "Split 이후 구조가 달라져 Undo/Redo할 수 없습니다.",
       CLIP_GAIN_OUT_OF_RANGE: "Clip Gain은 -24.00 dB부터 +24.00 dB까지 0.01 dB 단위로 설정해 주세요.",
       CLIP_FADE_OUT_OF_RANGE: "Fade In과 Fade Out의 합이 Clip 길이를 넘지 않도록 설정해 주세요.",
+      CLIP_LOOP_GEOMETRY_INVALID: "Loop와 Timeline Duration 값을 확인해 주세요.",
       INVALID_INPUT: "Fade 또는 Clip 입력값을 확인해 주세요.",
       IDEMPOTENCY_KEY_REUSED: "동일 요청 키가 다른 편집에 사용되었습니다.",
       IDEMPOTENCY_IN_PROGRESS: "같은 편집 요청이 아직 처리 중입니다.",
@@ -958,12 +1067,25 @@ function canonicalizeFadeSeconds(value: string): string | null {
   if (!Number.isFinite(number) || number < 0) return null;
   return trimmed.startsWith(".") ? `0${trimmed}` : trimmed;
 }
+function canonicalizePositiveSeconds(value: string): string | null {
+  const canonical = canonicalizeFadeSeconds(value);
+  return canonical && secondsToMicroseconds(canonical) > 0 ? canonical : null;
+}
 function formatFadeSeconds(value: number): string {
   return Number.isInteger(value) ? String(value) : value.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
 }
 function fadeSecondsToMicroseconds(value: string): number {
   const [whole, fraction = ""] = value.split(".");
   return Number(whole) * 1_000_000 + Number(fraction.padEnd(6, "0"));
+}
+function secondsToMicroseconds(value: string): number { return fadeSecondsToMicroseconds(value); }
+function microsecondsToSeconds(value: number): string {
+  const whole = Math.floor(value / 1_000_000);
+  const fraction = String(value % 1_000_000).padStart(6, "0").replace(/0+$/, "");
+  return fraction ? `${whole}.${fraction}` : String(whole);
+}
+function clipLoopState(clip: WorkingClipDto) {
+  return { enabled: clip.loop_enabled, timelineDuration: clip.timeline_duration, phase: clip.loop_phase };
 }
 function shortId(value: string): string { return value.slice(0, 8); }
 function moveBefore(items: string[], source: string, target: string): string[] {

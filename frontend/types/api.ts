@@ -347,6 +347,9 @@ export interface WorkingClipDto {
   source_in: string;
   source_out: string;
   source_duration: string;
+  timeline_duration: string;
+  loop_enabled: boolean;
+  loop_phase: string;
   gain_db: string;
   fade_in: string;
   fade_out: string;

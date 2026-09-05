@@ -459,6 +459,43 @@ describe("WorkingComposition editor", () => {
     expect(screen.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
   });
 
+  it("Clip Loop는 typing 중 mutation하지 않고 canonical response와 history restore를 사용한다", async () => {
+    const looped = { ...working, revision: 3, clips: [{ ...working.clips[0], loop_enabled: true, timeline_duration: "4", loop_phase: "0" }] };
+    const resized = { ...working, revision: 4, clips: [{ ...working.clips[0], loop_enabled: true, timeline_duration: "1.5", loop_phase: "0" }] };
+    const restored = { ...working, revision: 5 };
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValueOnce(working).mockResolvedValueOnce(looped).mockResolvedValueOnce(resized).mockResolvedValueOnce(restored);
+    const update = vi.spyOn(dohaApi, "updateWorkingClipLoop")
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 3, replayed: false })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 4, replayed: false });
+    const restore = vi.spyOn(dohaApi, "restoreWorkingClipLoop").mockResolvedValue({ clip_id: "clip-1", completed_revision: 5, replayed: false });
+    fireEvent.click((renderEditor(), await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ })));
+    fireEvent.click(screen.getByRole("switch", { name: "Clip loop enabled" }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(update.mock.calls[0][2]).toMatchObject({ loop_enabled: true, timeline_duration: 10 });
+    expect(update.mock.calls[0][2]).not.toHaveProperty("loop_phase");
+    const duration = screen.getByLabelText("Clip loop timeline duration");
+    fireEvent.change(duration, { target: { value: "1.5" } });
+    expect(update).toHaveBeenCalledTimes(1);
+    fireEvent.blur(duration);
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(2));
+    expect(update.mock.calls[1][2]).toMatchObject({ loop_enabled: true, timeline_duration: 1.5 });
+    await userEvent.setup().click(screen.getByRole("button", { name: "편집 실행 취소" }));
+    await waitFor(() => expect(restore).toHaveBeenCalledTimes(1));
+    expect(restore.mock.calls[0][2]).toMatchObject({ loop_enabled: true, timeline_duration: 4, loop_phase: 0 });
+  });
+
+  it("Loop disable은 current D가 아니라 exact source window W를 한 번 제출한다", async () => {
+    const looped = { ...working, clips: [{ ...working.clips[0], loop_enabled: true, timeline_duration: "17.25", loop_phase: "1.25" }] };
+    const disabled = { ...working, revision: 3 };
+    vi.spyOn(dohaApi, "getWorkingComposition").mockResolvedValueOnce(looped).mockResolvedValueOnce(disabled);
+    const update = vi.spyOn(dohaApi, "updateWorkingClipLoop").mockResolvedValue({ clip_id: "clip-1", completed_revision: 3, replayed: false });
+    renderEditor();
+    fireEvent.click(await screen.findByRole("button", { name: /Clip clip-1 선택 및 이동/ }));
+    fireEvent.click(screen.getByRole("switch", { name: "Clip loop enabled" }));
+    await waitFor(() => expect(update).toHaveBeenCalledTimes(1));
+    expect(update.mock.calls[0][2]).toMatchObject({ loop_enabled: false, timeline_duration: 10 });
+  });
+
   it("pending Clip A Fade response는 selected Clip B Fade draft를 덮지 않는다", async () => {
     const twoClips = {
       ...working,
@@ -788,7 +825,7 @@ const working: WorkingCompositionDto = {
   ...emptyWorking,
   revision: 2,
   tracks: [{ track_id: "track-1", track_type: "audio", name: "Track 1", track_order: 0 }],
-  clips: [{ clip_id: "clip-1", track_id: "track-1", source_asset_version_id: "version-1", timeline_start: "0.000", source_in: "0.000", source_out: "10.000", source_duration: "10.000", gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null }],
+  clips: [{ clip_id: "clip-1", track_id: "track-1", source_asset_version_id: "version-1", timeline_start: "0.000", source_in: "0.000", source_out: "10.000", source_duration: "10.000", timeline_duration: "10.000", loop_enabled: false, loop_phase: "0", gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null }],
   timeline_duration: "10.000",
 };
 const source: CompositionReadItemDto = {

@@ -309,4 +309,7 @@ html[data-reduce-motion="true"] * {
   }
   .working-clip-fade label,
   .working-clip-fade small { grid-column: 1 / -1; width: 100%; }
+  .working-clip-loop { width: 100%; min-width: 0; grid-template-columns: auto 1fr; }
+  .working-clip-loop label,
+  .working-clip-loop small { grid-column: 1 / -1; width: 100%; }
 }

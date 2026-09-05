@@ -350,7 +350,11 @@ Fade Frontend Integration [완료]
 
 Loop Authority / Foundation [완료]
 
-Loop Frontend Integration [다음]
+Loop Frontend Integration [완료]
+
+Loop History Phase Restore Authority [완료]
+
+Persistent History Authority / Foundation [다음]
 ```
 
 이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 WorkingComposition persistence·Service·Product API·safe media resolution·Preview·Clip Gain/Fade Backend/Frontend 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0026` 적용을 뜻하지 않는다.

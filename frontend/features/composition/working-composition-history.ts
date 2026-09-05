@@ -11,6 +11,7 @@ export type WorkingCommand =
   | { type: "CLIP_MOVE"; clipId: string; before: string; after: string }
   | { type: "CLIP_GAIN"; clipId: string; beforeGainDb: string; afterGainDb: string }
   | { type: "CLIP_FADE"; clipId: string; before: ClipFade; after: ClipFade }
+  | { type: "CLIP_LOOP"; clipId: string; before: ClipLoop; after: ClipLoop }
   | { type: "CLIP_TRIM_START"; clipId: string; before: ClipStart; after: ClipStart }
   | { type: "CLIP_TRIM_END"; clipId: string; before: string; after: string }
   | { type: "CLIP_DELETE"; clipId: string }
@@ -24,6 +25,12 @@ export interface ClipStart {
 export interface ClipFade {
   fadeIn: string;
   fadeOut: string;
+}
+
+export interface ClipLoop {
+  enabled: boolean;
+  timelineDuration: string;
+  phase: string;
 }
 
 export interface CommandContext {
@@ -124,6 +131,20 @@ export async function executeWorkingCommand(
         context.projectId,
         command.clipId,
         { ...base, fade_in: Number(value.fadeIn), fade_out: Number(value.fadeOut) },
+        key,
+      )));
+    }
+    case "CLIP_LOOP": {
+      const value = direction === "undo" ? command.before : command.after;
+      return revisionOf(await withIdempotency(context, (key) => dohaApi.restoreWorkingClipLoop(
+        context.projectId,
+        command.clipId,
+        {
+          ...base,
+          loop_enabled: value.enabled,
+          timeline_duration: Number(value.timelineDuration),
+          loop_phase: Number(value.phase),
+        },
         key,
       )));
     }

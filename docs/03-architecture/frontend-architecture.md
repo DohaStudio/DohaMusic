@@ -2,14 +2,14 @@
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-09-03
-> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료], D3 Clip Editing·Clip Copy·Memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit·Clip Gain/Fade Integration [완료]
+> 관련 기능: Phase 8 Doha Studio, F6 Guided Voice Enrollment Frontend, D1 Composition Read [완료], D2 Timeline Playback [완료], D3 Clip Editing·Gain/Fade/Loop Integration [완료]
 > 관련 문서: [Frontend Overview](frontend-overview.md), [AI-native DAW 전환 계획](../../planning/ai-native-daw-frontend-migration.md), [Clip Domain ADR](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md), [Studio UX Flow](studio-ux-flow.md), [Voice Enrollment API](../06-api/voice-enrollment-api.md), [Frontend Roadmap](../../planning/frontend-roadmap.md), [ADR-017](../11-decisions/ADR-017-frontend-technology-stack.md)
 
 ## 아키텍처 목표
 
 Next.js App Router 기반 `frontend/`에서 화면, 기능, 서버 상태, 전역 Player와 디자인 토큰을 분리한다. 현재 MVP는 FastAPI의 Health·Lyrics·Voice Profile·Voice Enrollment·Pipeline·Audio content/download 계약을 연결하며 Backend 계약은 [API 개요](../06-api/api-overview.md)를 사실 기준으로 사용한다.
 
-현재 `/studio`는 생성 Workflow용 Responsive Studio이고 실제 DAW는 `/projects/{project_id}`의 Composition Timeline·WorkingComposition Editor다. AppShell Desktop·Mobile navigation은 일반 `프로젝트`의 `/projects`와 `DAW 편집`의 `/projects?mode=daw`를 별도 entry와 단일 active state로 제공한다. Studio CTA는 DAW selection mode로 연결하며 Project를 자동 추측하지 않는다. Result는 Pipeline 응답의 authoritative `project_id`가 있을 때만 exact Project CTA를 제공한다. D1 Composition read와 D2 playback Foundation 위에 D3 WorkingComposition Track/Clip editor, Clip source-window Waveform, selected Clip Gain/Fade와 Working Preview control을 둔다. Backend의 explicit selection과 WorkingComposition aggregate가 canonical truth이고 Frontend는 pending preview·selection, bounded memory waveform cache와 memory history만 보유한다. Gain drag는 control 숫자만 local preview하고 Fade exact input은 최대 소수 6자리와 canonical timeline duration invariant를 검증한 뒤 commit boundary에서 absolute mutation을 실행한다. 두 control 모두 WebAudio·waveform을 변경하지 않는다. 기존 GlobalPlayer는 committed Snapshot과 사용자가 선택한 rendered Preview의 단일 playback authority를 유지한다. Loop Backend Foundation은 구현됐지만 Loop UI·persistent history·multi-user recovery·Section·Mixer, AI Music Director와 Composition QA는 아직 구현되지 않았다.
+현재 `/studio`는 생성 Workflow용 Responsive Studio이고 실제 DAW는 `/projects/{project_id}`의 Composition Timeline·WorkingComposition Editor다. Backend WorkingComposition aggregate가 canonical truth이며 selected Clip inspector는 Gain, Fade와 Loop absolute state를 편집한다. Loop toggle과 duration input은 normal endpoint를 사용하고 phase는 표시하거나 계산하지 않는다. Undo/Redo만 canonical before/after phase를 전용 restore endpoint로 왕복한다. Clip 폭과 Fade invariant는 `timeline_duration`을 따르며 Waveform source/cache와 WebAudio DSP는 Loop 변경의 영향을 받지 않는다. persistent history·multi-user recovery·Section·Mixer는 아직 구현되지 않았다.
 
 Onboarding은 `doha-studio-settings`의 persisted completion을 명시적으로 hydration한 뒤 dialog를 노출한다. local development에서 `127.0.0.1`로 접근할 때 Next dev assets가 hydration 전에 차단되지 않도록 해당 loopback origin만 `allowedDevOrigins`에 허용하며, 닫기와 Escape는 동일한 완료 action과 focus 복원을 사용한다.
 
