@@ -99,6 +99,11 @@ class ClipFadeUpdateRequest(WorkingMutationRequest):
         return value
 
 
+class ClipLoopUpdateRequest(WorkingMutationRequest):
+    loop_enabled: bool
+    timeline_duration: Decimal = Field(gt=0)
+
+
 class ClipTrimStartRequest(WorkingMutationRequest):
     timeline_start: Decimal = Field(ge=0)
     source_in: Decimal = Field(ge=0)
@@ -132,6 +137,9 @@ class ClipDetail(_StrictModel):
     source_in: Decimal
     source_out: Decimal
     source_duration: Decimal
+    timeline_duration: Decimal
+    loop_enabled: bool
+    loop_phase: Decimal
     gain_db: Decimal
     fade_in: Decimal
     fade_out: Decimal

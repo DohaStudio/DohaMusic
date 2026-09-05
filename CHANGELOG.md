@@ -11,23 +11,34 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서
+
+- ADR-055에서 Clip source window와 timeline duration을 분리하고 loop phase를 canonical microseconds로 저장하는 Split·Trim·Fade·Preview·Snapshot·migration architecture를 확정했다.
+
 ### 수정 — Project·DAW Navigation 분리
 
 - Desktop·Mobile AppShell에서 일반 `프로젝트` 관리(`/projects`)와 `DAW 편집` 진입(`/projects?mode=daw`)을 별도 navigation entry로 분리하고 query·nested Project에 따른 단일 `aria-current` 규칙을 적용했다.
 - DAW entry와 Studio CTA는 Project를 추측하지 않고 명시적 선택 화면을 표시하며, 같은 Project list를 재사용해 일반 mode의 `프로젝트 열기`와 DAW mode의 `DAW 열기`를 exact `/projects/{project_id}`로 연결한다. authoritative `project_id`가 있는 Result direct CTA는 `DAW에서 편집`으로 명확히 했다.
-- Backend production·API semantics·migration·실제 사용자 DB/media와 WorkingComposition·Gain·Fade·Preview·Commit authority는 변경하지 않았다. D3는 `[진행 중]`이며 다음 gate는 Loop Authority / Foundation이다.
+- Backend production·API semantics·migration·실제 사용자 DB/media와 WorkingComposition·Gain·Fade·Preview·Commit authority는 변경하지 않았다. D3는 `[진행 중]`이며 당시 다음 gate는 Loop Authority / Foundation이었다.
 
 ### 수정 — Studio·DAW Navigation과 Onboarding
 
 - Next dev를 `127.0.0.1`로 열었을 때 dev asset origin 차단으로 hydration되지 않아 Onboarding `닫기`가 동작하지 않던 문제를 허용된 loopback origin과 명시적 Zustand persist hydration gate로 수정했다. 닫기·Escape·첫 음악 만들기는 완료 상태를 보존하고 dialog focus를 안전하게 복원한다.
 - `/studio`를 새 음악 생성 workflow로 명확히 하고 Desktop·Mobile `프로젝트 · DAW`, Studio secondary CTA, Project card의 `DAW에서 편집`, Project 상세의 사용자-facing DAW heading을 연결했다. Pipeline 응답에 authoritative `project_id`가 있는 Result만 exact Project CTA를 표시하며 implicit Project fallback은 추가하지 않았다.
-- Backend production·API semantics·migration·실제 사용자 DB/media와 WorkingComposition·Gain·Fade·Preview·Commit authority는 변경하지 않았다. D3는 `[진행 중]`이며 다음 gate는 Loop Authority / Foundation이다.
+- Backend production·API semantics·migration·실제 사용자 DB/media와 WorkingComposition·Gain·Fade·Preview·Commit authority는 변경하지 않았다. D3는 `[진행 중]`이며 당시 다음 gate는 Loop Authority / Foundation이었다.
 
 ### 추가 — Clip Fade Frontend UI
 
 - selected Clip inspector에 `fade_in`·`fade_out` canonical seconds를 최대 소수 6자리 exact numeric input으로 추가했다. 두 값의 합이 Clip duration을 넘으면 묵시적 clamp 없이 local validation을 표시하고 mutation하지 않는다.
 - 중앙 WorkingComposition API client와 `completed_revision` authority, same-key response-loss retry를 연결하고 absolute before/after Fade pair를 기존 Gain과 같은 strict LIFO memory Undo/Redo stack에서 처리한다.
 - Preview stale·explicit Preview, Commit/Checkout history barrier, Clip·Project race 격리, safe error와 desktop/tablet/mobile 접근성을 Vitest와 Playwright로 검증했다. Frontend WebAudio·Waveform source, Backend production code·migration·실제 사용자 DB/media는 변경하지 않았다.
+
+### 추가 — Clip Loop Authority Backend Foundation
+
+- ADR-055에 따라 `timeline_duration`, `loop_enabled`, `loop_phase`를 Working Clip·Snapshot Clip·Working Preview Clip의 canonical geometry로 구현했다. Loop-enabled fragment는 `timeline_duration < source window`를 허용하며 Split·Trim은 phase continuity equation을 적용한다.
+- absolute Loop mutation은 `expected_revision`, `Idempotency-Key`, `loop_enabled`, `timeline_duration`을 사용한다. Disable caller는 `timeline_duration = source_out - source_in`을 제출해야 하며 다른 값은 묵시적 정규화 없이 `422 CLIP_LOOP_GEOMETRY_INVALID`로 거부한다.
+- additive Alembic `20260905_0027`, deterministic backfill, Preview manifest schema 4와 schema 1~3 fallback, source window→loop expansion→Gain→full-timeline Fade renderer를 추가했다. 실제 사용자 DB·media와 Frontend production code는 변경하지 않았으며 다음 gate는 Loop Frontend Integration이다.
+- SQLite downgrade는 Gain·Fade CHECK를 먼저 제거한 뒤 batch table recreation으로 해당 column을 제거해 SQLite version·platform에 따른 dangling constraint 실패를 방지한다.
 
 ### 추가 — Clip Fade Backend Foundation
 

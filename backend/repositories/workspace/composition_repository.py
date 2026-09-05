@@ -167,7 +167,11 @@ class CompositionRepository:
         self.session.flush()
 
     def add_composition_clip(self, clip: CompositionClip) -> CompositionClip:
-        clip_end = clip.timeline_start + clip.source_out - clip.source_in
+        if clip.timeline_duration is None:
+            clip.timeline_duration = clip.source_out - clip.source_in
+            clip.loop_enabled = False
+            clip.loop_phase = 0
+        clip_end = clip.timeline_start + clip.timeline_duration
         if self.active_clip_overlap_exists(
             working_composition_id=clip.working_composition_id,
             track_id=clip.track_id,
@@ -207,9 +211,7 @@ class CompositionRepository:
 
         if timeline_start < 0 or timeline_end <= timeline_start:
             raise ValueError("검사할 Timeline 구간이 유효하지 않습니다.")
-        existing_end = CompositionClip.timeline_start + (
-            CompositionClip.source_out - CompositionClip.source_in
-        )
+        existing_end = CompositionClip.timeline_start + CompositionClip.timeline_duration
         statement = select(CompositionClip.clip_id).where(
             CompositionClip.working_composition_id == working_composition_id,
             CompositionClip.track_id == track_id,

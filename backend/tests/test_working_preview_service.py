@@ -198,7 +198,7 @@ def test_create_pins_more_than_sixteen_clips_without_composition_mutation(
         assert {item.gain_db for item in clips} == {Decimal("0.00")}
         assert {(item.fade_in_us, item.fade_out_us) for item in clips} == {(0, 0)}
         job = session.get(Job, result.job_id)
-        assert job is not None and job.settings_snapshot == {"manifest_schema": 3}
+        assert job is not None and job.settings_snapshot == {"manifest_schema": 4}
         assert session.scalar(select(func.count(CompositionSnapshot.composition_snapshot_id))) == 0
 
 

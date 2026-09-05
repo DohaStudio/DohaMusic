@@ -59,7 +59,22 @@ def downgrade() -> None:
     """Clip Gain Column만 역순으로 제거한다."""
 
     connection = op.get_bind()
+    if connection.dialect.name == "sqlite":
+        for table_name, _constraint_name in reversed(TABLES):
+            metadata = sa.MetaData()
+            reflected = sa.Table(table_name, metadata, autoload_with=connection)
+            for constraint in tuple(reflected.constraints):
+                sql = str(getattr(constraint, "sqltext", ""))
+                if isinstance(constraint, sa.CheckConstraint) and "gain_db" in sql:
+                    reflected.constraints.remove(constraint)
+            for column in reflected.columns:
+                for constraint in tuple(column.constraints):
+                    sql = str(getattr(constraint, "sqltext", ""))
+                    if isinstance(constraint, sa.CheckConstraint) and "gain_db" in sql:
+                        column.constraints.remove(constraint)
+            with op.batch_alter_table(table_name, recreate="always", copy_from=reflected) as batch:
+                batch.drop_column("gain_db")
+        return
     for table_name, constraint_name in reversed(TABLES):
-        if connection.dialect.name != "sqlite":
-            op.drop_constraint(constraint_name, table_name, type_="check")
+        op.drop_constraint(constraint_name, table_name, type_="check")
         op.drop_column(table_name, "gain_db")

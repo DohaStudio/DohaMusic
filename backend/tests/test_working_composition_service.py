@@ -738,6 +738,11 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
         ),
         (
             "PATCH",
+            "/projects/{project_id}/working-composition/clips/{clip_id}/loop",
+            "update_working_composition_clip_loop",
+        ),
+        (
+            "PATCH",
             "/projects/{project_id}/working-composition/clips/{clip_id}/trim-start",
             "trim_working_composition_clip_start",
         ),
@@ -772,10 +777,10 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "resplit_working_composition_clip",
         ),
     }
-    assert len(routes) == 22
-    assert len({path for _, path, _ in surface}) == 21
+    assert len(routes) == 23
+    assert len({path for _, path, _ in surface}) == 22
     operation_ids = [operation_id for _, _, operation_id in surface]
-    assert len(operation_ids) == len(set(operation_ids)) == 22
+    assert len(operation_ids) == len(set(operation_ids)) == 23
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(service, graph) -> None:
@@ -2067,8 +2072,10 @@ def test_unsplit_rejects_each_persisted_structural_drift_without_partial_state(
                 right.timeline_start += 1
             elif drift == "left_trimmed":
                 left.source_out -= 1
+                left.timeline_duration -= 1
             elif drift == "right_trimmed":
                 right.source_in += 1
+                right.timeline_duration -= 1
             elif drift == "source_mismatch":
                 left.source_asset_version_id = other_version_id
             elif drift == "wrong_lineage":
@@ -2110,12 +2117,16 @@ def test_unsplit_rejects_each_persisted_structural_drift_without_partial_state(
             left.timeline_start = 0
             left.source_in = 0
             left.source_out = 2_000_000
+            left.timeline_duration = 2_000_000
+            left.loop_phase = 0
             left.source_asset_version_id = graph.asset_version_id
             left.split_from_clip_id = original_id
             right.deleted_at = None
             right.timeline_start = 2_000_000
             right.source_in = 2_000_000
             right.source_out = 4_000_000
+            right.timeline_duration = 2_000_000
+            right.loop_phase = 0
 
 
 def test_resplit_rejects_changed_geometry_and_revoked_source(
@@ -4056,3 +4067,283 @@ def test_clip_fade_resplit_rejects_tombstoned_child_divergence(
         assert session.get(CompositionClip, original_id).deleted_at is None
         assert session.get(CompositionClip, left_id).deleted_at is not None
         assert session.get(CompositionClip, right_id).deleted_at is not None
+
+
+@pytest.mark.parametrize("duration", ["2", "4", "6"])
+def test_clip_loop_enable_accepts_short_equal_and_long_duration(
+    service, session_factory, graph, duration
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    result = service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=True,
+        timeline_duration=duration,
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key=f"enable-{duration}",
+    )
+    assert result.completed_revision == 3
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip.loop_enabled is True
+        assert clip.timeline_duration == int(duration) * 1_000_000
+        assert clip.loop_phase == 0
+
+
+@pytest.mark.parametrize("duration", ["2", "6"])
+def test_clip_loop_disable_rejects_noncanonical_duration_without_side_effects(
+    service, session_factory, graph, duration
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    with pytest.raises(WorkingCompositionError) as caught:
+        service.set_clip_loop(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            loop_enabled=False,
+            timeline_duration=duration,
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key=f"disable-invalid-{duration}",
+        )
+    assert caught.value.code is WorkingCompositionErrorCode.CLIP_LOOP_GEOMETRY_INVALID
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert (clip.loop_enabled, clip.timeline_duration, clip.loop_phase) == (
+            False,
+            4_000_000,
+            0,
+        )
+        assert session.get(WorkingComposition, working_id).revision == 2
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_LOOP_UPDATE.value
+                )
+            )
+            == 0
+        )
+
+
+def test_clip_loop_valid_disable_replays_and_fingerprint_conflicts(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    first = service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=False,
+        timeline_duration="4",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="disable-valid",
+    )
+    replay = service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=False,
+        timeline_duration="4",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="disable-valid",
+    )
+    assert first.completed_revision == replay.completed_revision == 3
+    assert replay.replayed is True
+    with pytest.raises(IdempotencyConflictError):
+        service.set_clip_loop(
+            graph.project_id,
+            working_composition_id=working_id,
+            clip_id=clip_id,
+            loop_enabled=False,
+            timeline_duration="3",
+            expected_revision=2,
+            effective_owner_id=graph.owner_id,
+            idempotency_key="disable-valid",
+        )
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert (clip.loop_enabled, clip.timeline_duration, clip.loop_phase) == (
+            False,
+            4_000_000,
+            0,
+        )
+
+
+def test_clip_loop_disable_response_loss_retry_has_one_mutation_and_completion(
+    service, session_factory, graph
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+
+    lost_response = service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=False,
+        timeline_duration="4",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="disable-response-loss",
+    )
+    retry = service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=False,
+        timeline_duration="4",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="disable-response-loss",
+    )
+
+    assert retry.replayed is True
+    assert retry.completed_revision == lost_response.completed_revision == 3
+    assert retry.identities == lost_response.identities
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert (clip.loop_enabled, clip.timeline_duration, clip.loop_phase) == (
+            False,
+            4_000_000,
+            0,
+        )
+        assert session.get(WorkingComposition, working_id).revision == 3
+        assert (
+            session.scalar(
+                select(func.count(IdempotencyRecord.id)).where(
+                    IdempotencyRecord.result_type == IdempotencyResultType.CLIP_LOOP_UPDATE.value
+                )
+            )
+            == 1
+        )
+
+
+@pytest.mark.parametrize(
+    ("phase", "split_at", "expected_right_phase"),
+    [(0, "1", 1_000_000), (1_000_000, "1", 2_000_000), (3_000_000, "2", 1_000_000)],
+)
+def test_clip_loop_split_preserves_phase_equation_and_short_fragments(
+    service, session_factory, graph, phase, split_at, expected_right_phase
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=True,
+        timeline_duration="6",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key=f"split-enable-{phase}",
+    )
+    with session_factory.begin() as session:
+        session.get(CompositionClip, clip_id).loop_phase = phase
+
+    service.split_clip(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        split_at=split_at,
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+        idempotency_key=f"split-phase-{phase}",
+    )
+    with session_factory() as session:
+        children = session.scalars(
+            select(CompositionClip)
+            .where(CompositionClip.split_from_clip_id == clip_id)
+            .order_by(CompositionClip.timeline_start)
+        ).all()
+        left, right = children
+        split_us = int(Decimal(split_at) * 1_000_000)
+        assert (left.timeline_duration, left.loop_phase) == (split_us, phase)
+        assert (right.timeline_duration, right.loop_phase) == (
+            6_000_000 - split_us,
+            expected_right_phase,
+        )
+        assert left.timeline_duration < left.source_out - left.source_in
+
+
+@pytest.mark.parametrize(
+    ("phase", "trim_start", "expected_phase"),
+    [(0, "1", 1_000_000), (1_000_000, "1", 2_000_000), (3_000_000, "2", 1_000_000)],
+)
+def test_clip_loop_trim_start_advances_phase_and_allows_short_result(
+    service, session_factory, graph, phase, trim_start, expected_phase
+) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=True,
+        timeline_duration="3",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key=f"trim-start-enable-{phase}",
+    )
+    with session_factory.begin() as session:
+        session.get(CompositionClip, clip_id).loop_phase = phase
+
+    service.trim_clip_start(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        timeline_start=trim_start,
+        source_in="0",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+    )
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        trim_us = int(Decimal(trim_start) * 1_000_000)
+        assert clip.timeline_start == trim_us
+        assert clip.timeline_duration == 3_000_000 - trim_us
+        assert clip.loop_phase == expected_phase
+        assert clip.timeline_duration < clip.source_out - clip.source_in
+
+
+def test_clip_loop_trim_end_keeps_timeline_start_and_phase(service, session_factory, graph) -> None:
+    working_id = _initialize(service, graph).identities["working_composition_id"]
+    track_id = _create_track(service, graph, working_id, 0).identities["track_id"]
+    clip_id = _create_clip(service, graph, working_id, track_id, 1).identities["clip_id"]
+    service.set_clip_loop(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        loop_enabled=True,
+        timeline_duration="6",
+        expected_revision=2,
+        effective_owner_id=graph.owner_id,
+        idempotency_key="trim-end-enable",
+    )
+    with session_factory.begin() as session:
+        session.get(CompositionClip, clip_id).loop_phase = 3_000_000
+
+    service.trim_clip_end(
+        graph.project_id,
+        working_composition_id=working_id,
+        clip_id=clip_id,
+        source_out="2",
+        expected_revision=3,
+        effective_owner_id=graph.owner_id,
+    )
+    with session_factory() as session:
+        clip = session.get(CompositionClip, clip_id)
+        assert clip.timeline_start == 0
+        assert clip.timeline_duration == 4_000_000
+        assert clip.loop_phase == 3_000_000

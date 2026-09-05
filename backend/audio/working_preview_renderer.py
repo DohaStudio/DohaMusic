@@ -49,6 +49,10 @@ class PreviewRenderClip:
     source_in_us: int
     source_out_us: int
     timeline_start_us: int
+    timeline_duration_us: int | None = None
+    manifest_schema: int = 3
+    loop_enabled: bool = False
+    loop_phase_us: int = 0
     gain_db: Decimal = Decimal("0.00")
     fade_in_us: int = 0
     fade_out_us: int = 0
@@ -114,9 +118,7 @@ class FfmpegWorkingCompositionPreviewRenderer:
                     if target.stat().st_size != size_bytes:
                         raise PreviewRenderError("WORKING_PREVIEW_INPUT_SIZE_MISMATCH")
                 inputs.append(target)
-            duration_us = max(
-                item.timeline_start_us + item.source_out_us - item.source_in_us for item in ordered
-            )
+            duration_us = max(item.timeline_start_us + _geometry(item)[0] for item in ordered)
             output = root / "preview.wav"
             command = _ffmpeg_command(
                 self._ffmpeg, inputs, ordered, output=output, duration_us=duration_us
@@ -176,19 +178,26 @@ def _validate_manifest(
         raise PreviewRenderError("WORKING_PREVIEW_CLIP_DUPLICATE")
     for item in ordered:
         gain_db = item.gain_db
-        clip_duration_us = item.source_out_us - item.source_in_us
+        source_window_us = item.source_out_us - item.source_in_us
+        timeline_duration_us, loop_enabled, loop_phase_us = _geometry(item)
         if (
             item.track_order < 0
             or item.canonical_order < 0
             or item.source_in_us < 0
             or item.source_out_us <= item.source_in_us
             or item.timeline_start_us < 0
-            or item.timeline_start_us + item.source_out_us - item.source_in_us
-            > MAX_PREVIEW_DURATION_US
+            or timeline_duration_us <= 0
+            or item.timeline_start_us + timeline_duration_us > MAX_PREVIEW_DURATION_US
             or not _is_valid_clip_gain_db(gain_db)
             or item.fade_in_us < 0
             or item.fade_out_us < 0
-            or item.fade_in_us + item.fade_out_us > clip_duration_us
+            or loop_phase_us < 0
+            or loop_phase_us >= source_window_us
+            or (
+                not loop_enabled
+                and (timeline_duration_us != source_window_us or loop_phase_us != 0)
+            )
+            or item.fade_in_us + item.fade_out_us > timeline_duration_us
         ):
             raise PreviewRenderError("WORKING_PREVIEW_GEOMETRY_INVALID")
     return ordered
@@ -214,12 +223,23 @@ def _ffmpeg_command(
     for index, clip in enumerate(clips):
         label = f"c{index}"
         delay_samples = (clip.timeline_start_us * PREVIEW_SAMPLE_RATE + 500_000) // 1_000_000
-        clip_duration_us = clip.source_out_us - clip.source_in_us
+        clip_duration_us, loop_enabled, loop_phase_us = _geometry(clip)
         clip_filters = (
             f"[{index}:a]atrim=start={_seconds(clip.source_in_us)}:end={_seconds(clip.source_out_us)},"
             f"asetpts=PTS-STARTPTS,aresample={PREVIEW_SAMPLE_RATE},aformat=sample_fmts=fltp:channel_layouts=stereo,"
             f"volume={clip.gain_db:.2f}dB"
         )
+        if loop_enabled:
+            window_samples = max(
+                1, (clip.source_out_us - clip.source_in_us) * PREVIEW_SAMPLE_RATE // 1_000_000
+            )
+            clip_filters += (
+                f",aloop=loop=-1:size={window_samples},"
+                f"atrim=start={_seconds(loop_phase_us)}:duration={_seconds(clip_duration_us)},"
+                "asetpts=PTS-STARTPTS"
+            )
+        else:
+            clip_filters += f",atrim=duration={_seconds(clip_duration_us)}"
         if clip.fade_in_us:
             clip_filters += f",afade=t=in:st=0:d={_seconds(clip.fade_in_us)}:curve=tri"
         if clip.fade_out_us:
@@ -250,3 +270,12 @@ def _ffmpeg_command(
         ]
     )
     return command
+
+
+def _geometry(clip: PreviewRenderClip) -> tuple[int, bool, int]:
+    source_window_us = clip.source_out_us - clip.source_in_us
+    if clip.manifest_schema in {1, 2, 3}:
+        return source_window_us, False, 0
+    if clip.manifest_schema != 4 or clip.timeline_duration_us is None:
+        raise PreviewRenderError("WORKING_PREVIEW_SCHEMA_INVALID")
+    return clip.timeline_duration_us, clip.loop_enabled, clip.loop_phase_us

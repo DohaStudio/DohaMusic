@@ -25,6 +25,7 @@
 | `POST` | `/clips/{clip_id}/copy` | 201 | 필수 | source geometry를 explicit Track·timeline 목적지에 새 canonical ID로 복제 |
 | `PATCH` | `/clips/{clip_id}/gain` | 200 | 필수 | Clip static `gain_db` 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/fade` | 200 | 필수 | Clip-relative `fade_in`·`fade_out` 절대값 적용 |
+| `PATCH` | `/clips/{clip_id}/loop` | 200 | 필수 | Clip `loop_enabled`·`timeline_duration` 절대 상태 적용 |
 | `PATCH` | `/clips/{clip_id}/move` | 200 | 없음 | Timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-start` | 200 | 없음 | source/timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-end` | 200 | 없음 | source 끝 절대값 적용 |
@@ -40,7 +41,9 @@ Clip Copy body는 추가로 `target_track_id`, `target_timeline_start`만 받는
 
 Clip Gain body는 `working_composition_id`, `expected_revision`, numeric `gain_db`를 받는다. `gain_db`는 finite exact decimal, `0.01 dB` 해상도와 양 끝 포함 `-24.00..+24.00 dB`여야 하며 string, `-Infinity`와 mute sentinel은 허용하지 않는다. 성공은 `clip_id`, 최초 `completed_revision`, `replayed`를 반환하며 Snapshot·Preview·Artifact를 자동 생성하지 않는다.
 
-Clip Fade body는 `working_composition_id`, `expected_revision`, numeric `fade_in`, `fade_out`을 decimal seconds로 받는다. 각 값은 finite·non-negative이고 최대 소수점 6자리이며 합은 현재 Clip duration 이하여야 한다. string, boolean, NaN, Infinity와 묵시적 clamp는 허용하지 않는다. 성공은 `clip_id`, 최초 `completed_revision`, `replayed`를 반환하며 Snapshot·Preview·Artifact를 자동 생성하지 않는다. aggregate Clip detail은 canonical seconds `fade_in`, `fade_out`을 반환한다.
+Clip Fade body는 `working_composition_id`, `expected_revision`, numeric `fade_in`, `fade_out`을 decimal seconds로 받는다. 각 값은 finite·non-negative이고 최대 소수점 6자리이며 합은 canonical `timeline_duration` 이하여야 한다. string, boolean, NaN, Infinity와 묵시적 clamp는 허용하지 않는다. 성공은 `clip_id`, 최초 `completed_revision`, `replayed`를 반환하며 Snapshot·Preview·Artifact를 자동 생성하지 않는다. aggregate Clip detail은 canonical seconds `fade_in`, `fade_out`을 반환한다.
+
+Clip Loop body는 `working_composition_id`, `expected_revision`, boolean `loop_enabled`, numeric `timeline_duration`을 받으며 `loop_phase` 입력은 금지한다. Enable은 positive duration을 허용하므로 `D < W`, `D = W`, `D > W`가 모두 유효하다. Disable은 absolute-state request로 caller가 `D = W = source_out - source_in`을 명시해야 하며 불일치는 `422 CLIP_LOOP_GEOMETRY_INVALID`다. Backend는 duration을 무시하거나 canonicalize하지 않고 fingerprint에 두 Loop field를 포함한다. 유효한 disable 결과는 loop false, `D = W`, phase 0이다.
 
 Frontend selected Clip inspector는 aggregate의 canonical Fade를 초 단위 exact numeric input으로 표시한다. local validation은 음수·비수치·6자리 초과·duration invariant 위반을 mutation 전에 안내하되 Backend 422를 최종 authority로 유지한다. 승인된 blur/Enter commit에서만 두 absolute 값을 중앙 client로 전송하고, same-key response-loss retry와 absolute memory Undo/Redo를 기존 Gain history·Preview stale·Commit/Checkout barrier에 통합한다. Frontend는 Fade DSP, Preview 자동 생성 또는 Waveform source 변형을 수행하지 않는다.
 

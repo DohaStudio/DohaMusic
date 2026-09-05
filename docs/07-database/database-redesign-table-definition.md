@@ -257,9 +257,12 @@ active row의 `(working_composition_id, track_order)`는 partial Unique입니다
 | `source_in` | bigint | 아니요 | Check | 0 이상 source 시작 μs |
 | `source_out` | bigint | 아니요 | Check | `source_in`보다 큰 끝 μs |
 | `source_duration` | bigint | 아니요 | Check | 양수이며 `source_out` 이상인 고정 source 길이 μs |
+| `timeline_duration` | bigint | 아니요 | Check | 양수인 canonical Timeline 길이 μs; Loop off에서는 source span과 동일 |
+| `loop_enabled` | boolean | 아니요 | Check | 기본 false인 반복 상태 |
+| `loop_phase` | bigint | 아니요 | Check | source window 내부 canonical phase μs |
 | `gain_db` | decimal(5,2) | 아니요 | Check | 기본 `0.00`, `-24.00..+24.00 dB` static Clip Gain |
 | `fade_in` | bigint | 아니요 | Check | 기본 0, Clip-relative Fade-in μs |
-| `fade_out` | bigint | 아니요 | Check | 기본 0, `fade_in + fade_out <= source_out - source_in` |
+| `fade_out` | bigint | 아니요 | Check | 기본 0, `fade_in + fade_out <= timeline_duration` |
 | `split_from_clip_id` | UUID | 예 | same-composition FK, Index | immediate split parent identity |
 | `created_at` | timestamp | 아니요 |  | 생성 시각 |
 | `updated_at` | timestamp | 아니요 |  | 수정 시각 |
@@ -309,13 +312,15 @@ additive revision `20260828_0024`는 canonical Snapshot과 분리된 Preview lif
 | `working_preview_assets` | `project_id` PK, `asset_id` Unique FK | Project당 non-canonical Preview Asset 하나, 일반 ProjectAsset binding 없음 |
 | `working_preview_renders` | render ID, Project·WorkingComposition·revision·Job·Preview Asset, nullable completion AssetVersion, payload expiry | Job당 manifest 하나, 성공 AssetVersion당 render 하나 |
 | `working_preview_render_tracks` | render ID, canonical Track ID, order | render 안 Track identity/order Unique |
-| `working_preview_render_clips` | render/Clip/Track, canonical order, exact source AssetVersion·Artifact, source/timeline μs, `gain_db`, `fade_in_us`, `fade_out_us` | >16 Clip 손실 없는 exact pin, same-render Track 복합 FK, geometry·Gain·Fade Check |
+| `working_preview_render_clips` | render/Clip/Track, canonical order, exact source AssetVersion·Artifact, source/timeline μs, `timeline_duration_us`, `loop_enabled`, `loop_phase_us`, Gain·Fade | >16 Clip 손실 없는 schema 4 exact pin, same-render Track 복합 FK, geometry·Gain·Fade Check |
 
 `preview_asset_version_id`는 render 성공 전만 nullable이다. 성공 transaction이 새 immutable AssetVersion·Artifact·JobOutput과 함께 연결한다. `artifacts.asset_version_id NOT NULL`은 변경하지 않는다. `payload_expires_at`은 payload retention scan 근거이며 AssetVersion·manifest provenance 삭제 시각이 아니다. 실제 사용자 DB 적용과 backfill은 없다.
 
 additive revision `20260830_0025`는 `composition_clips`, `composition_snapshot_clips`, `working_preview_render_clips`에 non-null `gain_db`, server default `0.00`과 inclusive 범위 CHECK를 추가한다. table 수는 48개로 유지되며 실제 사용자 DB에는 적용하지 않았다.
 
 additive revision `20260903_0026`은 같은 세 table에 non-null integer Fade column, server default 0과 non-negative·합계 duration 범위 CHECK를 추가한다. table 수는 48개로 유지되며 실제 사용자 DB에는 적용하지 않았다.
+
+additive revision `20260905_0027`은 같은 세 table에 canonical timeline duration, Loop enable과 phase를 추가하고 기존 row를 source span, loop false, phase 0으로 deterministic backfill한다. Fade CHECK authority는 timeline duration으로 교체하며 table 수는 48개로 유지되고 실제 사용자 DB에는 적용하지 않았다.
 
 ### 4.9 `processing_chains`
 
