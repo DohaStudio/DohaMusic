@@ -668,8 +668,14 @@ def test_snapshot_routes_are_immutable_and_openapi_is_exact(client: TestClient) 
     duplicates = {
         operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
-    assert len(schema["paths"]) == 78
-    assert len(operation_ids) == 99
+    loop_restore_path = (
+        "/api/v1/projects/{project_id}/working-composition/clips/{clip_id}/loop/restore"
+    )
+    assert schema["paths"][loop_restore_path]["post"]["operationId"] == (
+        "restore_working_composition_clip_loop_state"
+    )
+    assert len(schema["paths"]) == 79
+    assert len(operation_ids) == 100
     assert {operation_id.rsplit("_", maxsplit=1)[0] for operation_id in duplicates} == {
         "get_pipeline_file_content_api_pipelines__job_id__files__file_id__content",
         "download_pipeline_file_api_pipelines__job_id__files__file_id__download",
