@@ -69,6 +69,8 @@ def _workspace_tables() -> set[str]:
             "working_preview_render_tracks",
             "working_preview_renders",
             "working_compositions",
+            "working_composition_history_entries",
+            "working_composition_history_states",
         }
     }
 
@@ -175,6 +177,8 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
             "working_preview_render_tracks",
             "working_preview_renders",
             "working_compositions",
+            "working_composition_history_entries",
+            "working_composition_history_states",
         }
     )
     engine = create_database_engine(database_url)
@@ -207,6 +211,8 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
             "working_preview_render_tracks",
             "working_preview_renders",
             "working_compositions",
+            "working_composition_history_entries",
+            "working_composition_history_states",
         }
     )
     assert workspace_foreign_keys == 39

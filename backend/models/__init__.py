@@ -46,6 +46,8 @@ from backend.models.workspace import (
     SnapshotItem,
     Tag,
     WorkingComposition,
+    WorkingCompositionHistoryEntry,
+    WorkingCompositionHistoryState,
     Workspace,
 )
 
@@ -95,5 +97,7 @@ __all__ = [
     "VoiceProfile",
     "VoiceSample",
     "WorkingComposition",
+    "WorkingCompositionHistoryEntry",
+    "WorkingCompositionHistoryState",
     "Workspace",
 ]

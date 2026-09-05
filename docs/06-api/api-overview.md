@@ -16,6 +16,7 @@ DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/ap
 - [CompositionSnapshot 기반](composition-snapshot-foundation.md)
 - [D1 Composition Read Workspace 계약](composition-read-workspace.md)
 - [WorkingComposition·Working Preview Product API](working-composition-api.md)
+- [Persistent WorkingComposition History API](persistent-working-history-api.md)
 - [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)
 - [Provider API 계약](provider-api-contract.md)
 - [API 전환 전략](api-contract-migration-strategy.md)

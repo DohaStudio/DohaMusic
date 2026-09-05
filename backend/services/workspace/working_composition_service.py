@@ -42,6 +42,7 @@ from backend.repositories.idempotency_repository import (
 )
 from backend.repositories.workspace import (
     AssetRepository,
+    CompositionHistoryRepository,
     CompositionRepository,
     WorkspaceRepository,
 )
@@ -86,6 +87,8 @@ class WorkingCompositionErrorCode(StrEnum):
     CLIP_GAIN_OUT_OF_RANGE = "CLIP_GAIN_OUT_OF_RANGE"
     CLIP_FADE_OUT_OF_RANGE = "CLIP_FADE_OUT_OF_RANGE"
     CLIP_LOOP_GEOMETRY_INVALID = "CLIP_LOOP_GEOMETRY_INVALID"
+    WORKING_HISTORY_EMPTY = "WORKING_HISTORY_EMPTY"
+    WORKING_HISTORY_STRUCTURE_CONFLICT = "WORKING_HISTORY_STRUCTURE_CONFLICT"
     SPLIT_STRUCTURE_CONFLICT = "SPLIT_STRUCTURE_CONFLICT"
     INVALID_CLIP_RANGE = "INVALID_CLIP_RANGE"
     SOURCE_ASSET_UNAVAILABLE = "SOURCE_ASSET_UNAVAILABLE"
@@ -123,6 +126,12 @@ _SAFE_ERROR_MESSAGES = {
         "Clip Fade는 0 이상이며 합이 Clip 길이 이하인 0.000001초 단위 유한값이어야 합니다."
     ),
     WorkingCompositionErrorCode.CLIP_LOOP_GEOMETRY_INVALID: "Clip Loop geometry is invalid.",
+    WorkingCompositionErrorCode.WORKING_HISTORY_EMPTY: (
+        "No WorkingComposition history command is available."
+    ),
+    WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT: (
+        "The history target no longer has compatible structure."
+    ),
     WorkingCompositionErrorCode.SPLIT_STRUCTURE_CONFLICT: (
         "Split 원본과 child의 canonical geometry가 일치하지 않습니다."
     ),
@@ -195,6 +204,173 @@ class WorkingCompositionService:
                     WorkingCompositionErrorCode.WORKING_COMPOSITION_NOT_FOUND
                 )
             return self._load_aggregate(repository, working)
+
+    def get_history_state(
+        self, project_id: UUID, *, working_composition_id: UUID, effective_owner_id: UUID
+    ) -> dict[str, object]:
+        with self.session_factory() as session:
+            self._require_project_scope(session, project_id, effective_owner_id)
+            repository = CompositionRepository(session)
+            working = self._require_working(repository, project_id, working_composition_id)
+            cursor, maximum = CompositionHistoryRepository(session).read_state(
+                working_composition_id
+            )
+            return {
+                "working_composition_id": working_composition_id,
+                "revision": working.revision,
+                "cursor": cursor,
+                "command_count": maximum,
+                "can_undo": cursor > 0,
+                "can_redo": cursor < maximum,
+            }
+
+    def undo_history(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        return self._move_history_cursor(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+            redo=False,
+        )
+
+    def redo_history(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        return self._move_history_cursor(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+            idempotency_key=idempotency_key,
+            redo=True,
+        )
+
+    def _move_history_cursor(
+        self,
+        *,
+        project_id: UUID,
+        working_composition_id: UUID,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+        redo: bool,
+    ) -> WorkingMutationResult:
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        operation = (
+            IdempotencyResultType.WORKING_HISTORY_REDO
+            if redo
+            else IdempotencyResultType.WORKING_HISTORY_UNDO
+        )
+
+        def mutate(
+            repository: CompositionRepository, session: Session, working: WorkingComposition
+        ) -> UUID:
+            history = CompositionHistoryRepository(session)
+            entry = (
+                history.current_redo(working_composition_id)
+                if redo
+                else history.current_undo(working_composition_id)
+            )
+            if entry is None:
+                raise WorkingCompositionError(WorkingCompositionErrorCode.WORKING_HISTORY_EMPTY)
+            clip = repository.get_composition_clip(working_composition_id, entry.clip_id)
+            if clip is None:
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+                )
+            self._apply_history_clip_state(
+                repository,
+                working,
+                clip,
+                entry.command_type,
+                entry.after_state if redo else entry.before_state,
+            )
+            history.move_cursor(working_composition_id, 1 if redo else -1)
+            return clip.clip_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=None,
+            body={},
+            mutate=mutate,
+            payload=lambda identity: {"clip_id": identity},
+            resource_type="composition_clip",
+            resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
+    def _apply_history_clip_state(
+        self,
+        repository: CompositionRepository,
+        working: WorkingComposition,
+        clip: CompositionClip,
+        command_type: str,
+        state: Mapping[str, object],
+    ) -> None:
+        if command_type == "CLIP_GAIN":
+            clip.gain_db = _normalize_clip_gain_db(Decimal(str(state["gain_db"])))
+        elif command_type == "CLIP_FADE":
+            fade_in = int(state["fade_in"])
+            fade_out = int(state["fade_out"])
+            _validate_clip_fade(
+                fade_in=fade_in, fade_out=fade_out, clip_duration=clip.timeline_duration
+            )
+            clip.fade_in, clip.fade_out = fade_in, fade_out
+        elif command_type == "CLIP_LOOP":
+            duration = int(state["timeline_duration"])
+            phase = int(state["loop_phase"])
+            enabled = bool(state["loop_enabled"])
+            window = clip.source_out - clip.source_in
+            if (
+                duration <= 0
+                or phase < 0
+                or phase >= window
+                or (not enabled and (duration != window or phase != 0))
+            ):
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+                )
+            _validate_clip_fade(
+                fade_in=clip.fade_in, fade_out=clip.fade_out, clip_duration=duration
+            )
+            if repository.active_clip_overlap_exists(
+                working_composition_id=working.working_composition_id,
+                track_id=clip.track_id,
+                timeline_start=clip.timeline_start,
+                timeline_end=clip.timeline_start + duration,
+                exclude_clip_id=clip.clip_id,
+            ):
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+                )
+            clip.loop_enabled, clip.timeline_duration, clip.loop_phase = enabled, duration, phase
+        else:
+            raise WorkingCompositionError(
+                WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+            )
+        repository.flush()
 
     def resolve_clip_media_source(
         self,
@@ -404,6 +580,7 @@ class WorkingCompositionService:
 
             repository.set_project_selection(project_id, snapshot.composition_snapshot_id)
             working.base_composition_snapshot_id = snapshot.composition_snapshot_id
+            CompositionHistoryRepository(session).clear(working.working_composition_id)
             repository.flush()
             completed = _complete_result(
                 idempotency,
@@ -450,8 +627,9 @@ class WorkingCompositionService:
             operation=operation,
             target_identity=composition_snapshot_id,
             body=body,
-            mutate=lambda repository, _session, working: self._checkout_rows(
+            mutate=lambda repository, session, working: self._checkout_rows_with_history_barrier(
                 repository,
+                session,
                 working,
                 composition_snapshot_id=composition_snapshot_id,
             ),
@@ -806,8 +984,16 @@ class WorkingCompositionService:
             working: WorkingComposition,
         ) -> UUID:
             clip = self._require_clip(repository, working, clip_id)
+            before = {"gain_db": f"{clip.gain_db:.2f}"}
             clip.gain_db = normalized_gain
             repository.flush()
+            CompositionHistoryRepository(_session).append(
+                working_composition_id=working.working_composition_id,
+                command_type="CLIP_GAIN",
+                clip_id=clip.clip_id,
+                before_state=before,
+                after_state={"gain_db": f"{normalized_gain:.2f}"},
+            )
             return clip.clip_id
 
         return self._run_idempotent_mutation(
@@ -854,6 +1040,7 @@ class WorkingCompositionService:
             working: WorkingComposition,
         ) -> UUID:
             clip = self._require_clip(repository, working, clip_id)
+            before = {"fade_in": clip.fade_in, "fade_out": clip.fade_out}
             _validate_clip_fade(
                 fade_in=fade_in_us,
                 fade_out=fade_out_us,
@@ -862,6 +1049,13 @@ class WorkingCompositionService:
             clip.fade_in = fade_in_us
             clip.fade_out = fade_out_us
             repository.flush()
+            CompositionHistoryRepository(_session).append(
+                working_composition_id=working.working_composition_id,
+                command_type="CLIP_FADE",
+                clip_id=clip.clip_id,
+                before_state=before,
+                after_state={"fade_in": fade_in_us, "fade_out": fade_out_us},
+            )
             return clip.clip_id
 
         return self._run_idempotent_mutation(
@@ -903,6 +1097,11 @@ class WorkingCompositionService:
             repository: CompositionRepository, _session: Session, working: WorkingComposition
         ) -> UUID:
             clip = self._require_clip(repository, working, clip_id)
+            before = {
+                "loop_enabled": clip.loop_enabled,
+                "timeline_duration": clip.timeline_duration,
+                "loop_phase": clip.loop_phase,
+            }
             window = clip.source_out - clip.source_in
             if duration_us <= 0 or (not loop_enabled and duration_us != window):
                 raise WorkingCompositionError(
@@ -925,6 +1124,17 @@ class WorkingCompositionService:
             if not loop_enabled or not clip.loop_enabled:
                 clip.loop_phase = 0
             repository.flush()
+            CompositionHistoryRepository(_session).append(
+                working_composition_id=working.working_composition_id,
+                command_type="CLIP_LOOP",
+                clip_id=clip.clip_id,
+                before_state=before,
+                after_state={
+                    "loop_enabled": clip.loop_enabled,
+                    "timeline_duration": clip.timeline_duration,
+                    "loop_phase": clip.loop_phase,
+                },
+            )
             return clip.clip_id
 
         return self._run_idempotent_mutation(
@@ -1564,6 +1774,7 @@ class WorkingCompositionService:
             working = self._require_working(repository, project_id, working_composition_id)
             _require_expected_revision(working, expected_revision)
             identity = mutate(repository, working)
+            CompositionHistoryRepository(session).clear(working_composition_id)
             revision = self._increment_revision(
                 repository, working_composition_id, expected_revision
             )
@@ -1621,6 +1832,15 @@ class WorkingCompositionService:
             working = self._require_working(repository, project_id, working_composition_id)
             _require_expected_revision(working, expected_revision)
             identity = mutate(repository, session, working)
+            if operation not in {
+                IdempotencyResultType.CLIP_GAIN_UPDATE,
+                IdempotencyResultType.CLIP_FADE_UPDATE,
+                IdempotencyResultType.CLIP_LOOP_UPDATE,
+                IdempotencyResultType.WORKING_HISTORY_UNDO,
+                IdempotencyResultType.WORKING_HISTORY_REDO,
+                IdempotencyResultType.WORKING_COMPOSITION_CHECKOUT,
+            }:
+                CompositionHistoryRepository(session).clear(working_composition_id)
             revision = self._increment_revision(
                 repository, working_composition_id, expected_revision
             )
@@ -1635,6 +1855,20 @@ class WorkingCompositionService:
                 resource_id=resource_id(identity),
                 response_status=response_status,
             )
+
+    def _checkout_rows_with_history_barrier(
+        self,
+        repository: CompositionRepository,
+        session: Session,
+        working: WorkingComposition,
+        *,
+        composition_snapshot_id: UUID,
+    ) -> UUID:
+        identity = self._checkout_rows(
+            repository, working, composition_snapshot_id=composition_snapshot_id
+        )
+        CompositionHistoryRepository(session).clear(working.working_composition_id)
+        return identity
 
     def _checkout_rows(
         self,

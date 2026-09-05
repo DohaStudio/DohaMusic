@@ -7,6 +7,9 @@ from backend.repositories.workspace.asset_repository import AssetRepository
 from backend.repositories.workspace.collaboration_repository import (
     CollaborationRepository,
 )
+from backend.repositories.workspace.composition_history_repository import (
+    CompositionHistoryRepository,
+)
 from backend.repositories.workspace.composition_repository import (
     CompositionRepository,
 )
@@ -28,6 +31,7 @@ __all__ = [
     "ArtifactStorageRepository",
     "CollaborationRepository",
     "CompositionRepository",
+    "CompositionHistoryRepository",
     "JobRepository",
     "ProviderJobRepository",
     "PayloadLocatorPersistencePort",

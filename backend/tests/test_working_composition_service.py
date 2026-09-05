@@ -45,6 +45,8 @@ from backend.models.workspace import (
     MusicProject,
     ProjectAsset,
     WorkingComposition,
+    WorkingCompositionHistoryEntry,
+    WorkingCompositionHistoryState,
     WorkingPreviewRender,
     Workspace,
 )
@@ -73,6 +75,9 @@ def schema_template(tmp_path_factory) -> Path:
     template = tmp_path_factory.mktemp("working-schema") / "template.db"
     engine = create_database_engine(f"sqlite:///{template.as_posix()}")
     tables = [entity.__table__ for entity in WORKSPACE_ENTITY_CLASSES]
+    tables.extend(
+        [WorkingCompositionHistoryState.__table__, WorkingCompositionHistoryEntry.__table__]
+    )
     tables.append(IdempotencyRecord.__table__)
     Base.metadata.create_all(engine, tables=tables)
     engine.dispose()
@@ -663,6 +668,21 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
     assert surface == {
         (
             "GET",
+            "/projects/{project_id}/working-composition/history",
+            "get_working_composition_history",
+        ),
+        (
+            "POST",
+            "/projects/{project_id}/working-composition/history/undo",
+            "undo_working_composition_history",
+        ),
+        (
+            "POST",
+            "/projects/{project_id}/working-composition/history/redo",
+            "redo_working_composition_history",
+        ),
+        (
+            "GET",
             "/projects/{project_id}/working-composition",
             "get_working_composition",
         ),
@@ -782,10 +802,10 @@ def test_router_and_openapi_counts_are_exact_without_new_duplicate_ids() -> None
             "resplit_working_composition_clip",
         ),
     }
-    assert len(routes) == 24
-    assert len({path for _, path, _ in surface}) == 23
+    assert len(routes) == 27
+    assert len({path for _, path, _ in surface}) == 26
     operation_ids = [operation_id for _, _, operation_id in surface]
-    assert len(operation_ids) == len(set(operation_ids)) == 24
+    assert len(operation_ids) == len(set(operation_ids)) == 27
 
 
 def test_track_reorder_is_contiguous_and_empty_track_delete_replays(service, graph) -> None:
