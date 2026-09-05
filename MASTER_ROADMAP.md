@@ -51,7 +51,7 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 |---|---|---|
 | Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현; `/studio` 생성, `/projects` Project 관리, `/projects?mode=daw` DAW Project 선택과 `/projects/{id}` 편집 역할 구분 |
 | AI-native DAW Product Direction | [완료] | PR #94가 `develop`에 병합되어 CURRENT/TARGET/NOT IMPLEMENTED 기준 확정 |
-| Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade Backend/Frontend integration, Track/Clip editing·explicit Clip Copy·memory Undo/Redo, exact AssetVersion-safe media source·Track/Clip Waveform 완료; Loop·persistent history·multi-user recovery·Section·Mixer 미구현 |
+| Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration, Track/Clip editing·explicit Clip Copy·persistent Undo/Redo, exact AssetVersion-safe media source·Track/Clip Waveform 완료; multi-user recovery·Section·Mixer 미구현 |
 | Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
 | Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
 
@@ -124,7 +124,7 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | 7. Doha Voice | [계획] | `░░░░░░░░░░ 0%` | Dataset·LoRA·Fine Tuning 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·Audio·Cancel·Retry 완료; DAW TARGET과 분리 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | `D0·D1·D2·D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade Backend/Frontend integration·Clip editing·Clip Copy·safe media source·Track/Clip Waveform 완료` | 9개 persistence table·22개 Product operation·memory Undo/Redo·exact version media resolution·Clip source-window Waveform·revision-pinned Preview·immutable Commit·static Clip Gain/Fade UI 완료; Loop·persistent history·multi-user recovery·실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | `D0·D1·D2·D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration·Clip editing·Clip Copy·safe media source·Track/Clip Waveform·persistent history 완료` | Backend journal/cursor Undo/Redo·exact version media resolution·Clip source-window Waveform·revision-pinned Preview·immutable Commit·static Clip Gain/Fade와 Loop UI 완료; multi-user recovery·실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현, reconciliation 계약 확정; Provider dispatch wiring·durable payload ingestion·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -135,7 +135,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency, PayloadLocator, Working Preview와 Clip Gain·Fade·Loop Backend Foundation을 구현해 source metadata는 48개 Table·Alembic `20260905_0027`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency, PayloadLocator, Working Preview와 Clip Gain·Fade·Loop·persistent history Backend Foundation을 구현해 source metadata는 50개 Table·Alembic `20260905_0028`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 
@@ -326,7 +326,7 @@ Revision-safe Idempotency Foundation [완료]
   ↓
 WorkingComposition Service + Product API [완료]
   ↓
-Frontend Clip Editing + memory Undo/Redo [완료]
+Frontend Clip Editing [완료]
   ↓
 AssetVersion-safe media source Backend [완료]
   ↓
@@ -354,7 +354,11 @@ Loop Frontend Integration [완료]
 
 Loop History Phase Restore Authority [완료]
 
-Persistent History Authority / Foundation [다음]
+Persistent History Authority / Foundation [완료]
+
+Persistent History Frontend Integration [완료]
+
+Multi-user 동시 편집 recovery [다음]
 ```
 
-이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 WorkingComposition persistence·Service·Product API·safe media resolution·Preview·Clip Gain/Fade Backend/Frontend 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0026` 적용을 뜻하지 않는다.
+이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 WorkingComposition persistence·Service·Product API·safe media resolution·Preview·Clip Gain/Fade/Loop·persistent history Backend/Frontend 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0028` 적용을 뜻하지 않는다.

@@ -16,12 +16,7 @@ import {
   waveformProjectionSignature,
   type MediaSourceResolver,
 } from "./working-waveform";
-import {
-  executeWorkingCommand,
-  MemoryCommandHistory,
-  newIdempotencyKey,
-  type WorkingCommand,
-} from "./working-composition-history";
+import { newIdempotencyKey } from "./working-composition-history";
 import { WorkingPreviewControl } from "./working-preview-control";
 
 const MIN_PIXELS_PER_SECOND = 32;
@@ -69,7 +64,6 @@ function WorkingCompositionEditorSession({
   waveformLoader: WaveformLoader;
 }) {
   const queryClient = useQueryClient();
-  const [history, setHistory] = useState(() => new MemoryCommandHistory());
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -94,32 +88,38 @@ function WorkingCompositionEditorSession({
   const noWorkingComposition = working.error instanceof ApiError
     && working.error.code === "WORKING_COMPOSITION_NOT_FOUND";
   const data = working.data;
+  const historyKey = useMemo(
+    () => ["working-composition-history", projectId, data?.working_composition_id] as const,
+    [data?.working_composition_id, projectId],
+  );
+  const history = useQuery({
+    queryKey: historyKey,
+    queryFn: ({ signal }) => dohaApi.getWorkingCompositionHistory(projectId, data!.working_composition_id, signal),
+    enabled: Boolean(data),
+    retry: false,
+  });
 
-  const clearHistory = useCallback(() => {
-    setHistory(new MemoryCommandHistory());
-  }, []);
-
-  const reconcile = useCallback(async (clear = false) => {
+  const reconcile = useCallback(async () => {
     const canonical = await dohaApi.getWorkingComposition(projectId);
     queryClient.setQueryData(queryKey, canonical);
-    if (clear) clearHistory();
+    const canonicalHistory = await dohaApi.getWorkingCompositionHistory(projectId, canonical.working_composition_id);
+    queryClient.setQueryData(
+      ["working-composition-history", projectId, canonical.working_composition_id],
+      canonicalHistory,
+    );
     return canonical;
-  }, [clearHistory, projectId, queryClient, queryKey]);
+  }, [projectId, queryClient, queryKey]);
 
   const fail = useCallback(async (cause: unknown, preserveHistory = false) => {
+    void preserveHistory;
     const apiError = cause instanceof ApiError ? cause : null;
     if (apiError?.code === "WORKING_COMPOSITION_REVISION_CONFLICT"
       || apiError?.code === "SPLIT_STRUCTURE_CONFLICT"
       || apiError?.code === "NETWORK_ERROR"
       || apiError?.code === "REQUEST_TIMEOUT") {
       try {
-        const clear = !preserveHistory
-          || apiError?.code === "WORKING_COMPOSITION_REVISION_CONFLICT"
-          || apiError?.code === "SPLIT_STRUCTURE_CONFLICT";
-        await reconcile(clear);
-        setMessage(clear
-          ? "서버의 최신 편집 상태를 불러왔습니다. Undo/Redo 기록은 초기화되었습니다."
-          : "서버의 최신 편집 상태를 불러왔습니다. 기존 Undo/Redo 기록은 유지됩니다.");
+        await reconcile();
+        setMessage("서버의 최신 편집 상태와 Undo/Redo 기록을 불러왔습니다.");
       } catch {
         // The original structured error remains the useful failure.
       }
@@ -129,10 +129,16 @@ function WorkingCompositionEditorSession({
 
   async function mutate<T extends { completed_revision: number }>(
     operation: () => Promise<T>,
-    command?: (result: T, before: WorkingCompositionDto, canonical: WorkingCompositionDto) => WorkingCommand,
-    clearAfter = false,
+    _legacyHistoryMetadata?: (
+      result: T,
+      before: WorkingCompositionDto,
+      canonical: WorkingCompositionDto,
+    ) => unknown,
+    _clearAfter = false,
     preserveHistoryOnFailure = false,
   ) {
+    void _clearAfter;
+    void preserveHistoryOnFailure;
     if (!data || pending) return false;
     setPending(true);
     setError(null);
@@ -140,15 +146,7 @@ function WorkingCompositionEditorSession({
     try {
       const result = await operation();
       queryClient.setQueryData<WorkingCompositionDto>(queryKey, { ...data, revision: result.completed_revision });
-      if (clearAfter) clearHistory();
-      const canonical = await reconcile(false);
-      if (command) {
-        setHistory((current) => {
-          const next = copyHistory(current);
-          next.push(command(result, data, canonical));
-          return next;
-        });
-      }
+      await reconcile();
       return true;
     } catch (cause) {
       await fail(cause, preserveHistoryOnFailure);
@@ -165,11 +163,11 @@ function WorkingCompositionEditorSession({
     const key = newIdempotencyKey();
     try {
       const result = await retryIdempotent(() => dohaApi.initializeWorkingComposition(projectId, key));
-      await reconcile(true);
+      await reconcile();
       setMessage(`편집 공간을 시작했습니다. revision ${result.completed_revision}`);
     } catch (cause) {
       if (cause instanceof ApiError && cause.code === "WORKING_COMPOSITION_ALREADY_EXISTS") {
-        try { await reconcile(true); } catch { /* retain product conflict */ }
+        try { await reconcile(); } catch { /* retain product conflict */ }
       }
       await fail(cause);
     } finally {
@@ -231,26 +229,20 @@ function WorkingCompositionEditorSession({
 
   async function runHistory(direction: "undo" | "redo") {
     if (!data || pending) return;
-    const stack = direction === "undo" ? history.undoStack : history.redoStack;
-    const command = stack.at(-1);
-    if (!command) return;
+    if (direction === "undo" ? !history.data?.can_undo : !history.data?.can_redo) return;
     setPending(true);
     setError(null);
     try {
-      const result = await executeWorkingCommand(command, direction, {
+      const operation = direction === "undo"
+        ? dohaApi.undoWorkingCompositionHistory
+        : dohaApi.redoWorkingCompositionHistory;
+      const result = await withIdempotency((key) => operation(
         projectId,
-        workingCompositionId: data.working_composition_id,
-        revision: data.revision,
-        createKey: newIdempotencyKey,
-      });
-      queryClient.setQueryData<WorkingCompositionDto>(queryKey, { ...data, revision: result.completedRevision });
-      await reconcile(false);
-      setHistory((current) => {
-        const next = copyHistory(current);
-        if (direction === "undo") next.completeUndo();
-        else next.completeRedo();
-        return next;
-      });
+        { working_composition_id: data.working_composition_id, expected_revision: data.revision },
+        key,
+      ));
+      queryClient.setQueryData<WorkingCompositionDto>(queryKey, { ...data, revision: result.completed_revision });
+      await reconcile();
     } catch (cause) {
       await fail(cause);
     } finally {
@@ -302,7 +294,7 @@ function WorkingCompositionEditorSession({
         <div>
           <p className="eyebrow">WORKING COMPOSITION</p>
           <h4 id="working-editor-title">Track / Clip Editor</h4>
-          <span>revision {data.revision} · 저장됨 · Undo/Redo는 이 탭의 메모리에만 유지</span>
+          <span>revision {data.revision} · 저장됨 · Undo/Redo 기록은 서버에 안전하게 보존</span>
         </div>
         <div className="working-history-controls">
           <div className="working-zoom-controls" aria-label="Clip Timeline 확대 및 축소">
@@ -320,8 +312,8 @@ function WorkingCompositionEditorSession({
               onClick={() => setPixelsPerSecond((value) => Math.min(MAX_PIXELS_PER_SECOND, value + 16))}
             ><ZoomIn aria-hidden="true" /></button>
           </div>
-          <button type="button" aria-label="편집 실행 취소" disabled={pending || history.undoStack.length === 0} onClick={() => void runHistory("undo")}><Undo2 aria-hidden="true" /> Undo</button>
-          <button type="button" aria-label="편집 다시 실행" disabled={pending || history.redoStack.length === 0} onClick={() => void runHistory("redo")}><Redo2 aria-hidden="true" /> Redo</button>
+          <button type="button" aria-label="편집 실행 취소" disabled={pending || !history.data?.can_undo} onClick={() => void runHistory("undo")}><Undo2 aria-hidden="true" /> Undo</button>
+          <button type="button" aria-label="편집 다시 실행" disabled={pending || !history.data?.can_redo} onClick={() => void runHistory("redo")}><Redo2 aria-hidden="true" /> Redo</button>
           <Button
             type="button"
             disabled={pending || data.clips.length === 0}
@@ -346,7 +338,7 @@ function WorkingCompositionEditorSession({
         currentRevision={data.revision}
         clipCount={data.clips.length}
         onRevisionConflict={async () => {
-          await reconcile(true);
+          await reconcile();
           setMessage("최신 편집 상태를 불러왔습니다. Preview를 다시 실행해 주세요.");
         }}
       />
@@ -1095,11 +1087,4 @@ function moveBefore(items: string[], source: string, target: string): string[] {
 }
 function isEditableTarget(target: EventTarget | null): boolean {
   return target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
-}
-
-function copyHistory(source: MemoryCommandHistory): MemoryCommandHistory {
-  const history = new MemoryCommandHistory();
-  history.undoStack = [...source.undoStack];
-  history.redoStack = [...source.redoStack];
-  return history;
 }

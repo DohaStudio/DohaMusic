@@ -74,7 +74,7 @@
 
 - [x] selected Clip Loop toggle과 canonical `timeline_duration` exact input
 - [x] normal Loop mutation의 phase 입력 금지와 disable `D=W` absolute request
-- [x] phase 포함 absolute memory Undo/Redo의 전용 history restore endpoint 사용
+- [x] Backend persistent history journal/cursor 기반 phase 포함 Undo/Redo와 Frontend history intent 사용
 - [x] Clip width·Fade invariant의 timeline duration authority와 Waveform/DSP 비영향 회귀
 
 - [x] canonical Track·Clip·WorkingComposition authority와 persistence ADR
@@ -83,24 +83,25 @@
 - [x] Backend split·trim·move·delete와 Track create·rename·reorder·delete
 - [x] Frontend explicit Clip Copy와 copied-ID same-ID Undo/Redo
 - [x] Clip별 static Gain authority·persistence·revision-safe Product API·Preview DSP·Commit freeze Backend foundation
-- [x] Frontend selected Clip Gain slider·exact input·reset과 absolute memory Undo/Redo
+- [x] Frontend selected Clip Gain slider·exact input·reset과 Backend persistent Undo/Redo
 - [x] Clip별 linear Fade authority·persistence·revision-safe Product API·Preview DSP·Commit/Checkout freeze Backend foundation
-- [x] Frontend selected Clip Fade exact input·absolute memory Undo/Redo·Preview stale 통합
+- [x] Frontend selected Clip Fade exact input·Backend persistent Undo/Redo·Preview stale 통합
 - [x] Clip `timeline_duration`·Loop phase authority, persistence·revision-safe Product API·Preview schema 4·deterministic renderer Backend foundation
-- [ ] Frontend loop 편집 UI
+- [x] Frontend loop 편집 UI와 Backend persistent history integration
 - [x] 원본 불변 AssetVersion lineage·canonical Track/Clip CompositionSnapshot commit
 - [x] WorkingComposition·Track·Clip·SnapshotTrack·SnapshotClip ORM과 additive Alembic 구현
 - [x] exact microseconds·FK·lineage·overlap helper·revision·Repository rollback 회귀 검증
 - [x] Track non-empty 삭제 거부와 trusted WAV·FLAC Artifact duration authority 기반
 - [x] WorkingComposition Service·Product API·expected revision CAS·idempotency replay 구현
 - [x] same-ID Track/Clip restore와 exact split geometry 기반 atomic unsplit/resplit Backend 구현
-- [x] Frontend Track/Clip editing·memory Undo/Redo·revision conflict reconcile 구현
+- [x] Frontend Track/Clip editing·Backend persistent Undo/Redo·revision conflict reconcile 구현
 - [x] exact AssetVersion→exactly-one eligible Artifact safe media resolution Backend foundation 구현
 - [x] Clip별 `[source_in, source_out)` Waveform decode·render와 Track lane 통합
 - [x] revision-pinned Working Preview manifest, Project Preview Asset과 성공별 immutable AssetVersion/Artifact Backend foundation
 - [x] WAV·FLAC·trusted MP3 trim·offset·gap·cross-Track overlap FFmpeg renderer와 bounded cleanup
 - [x] Working Preview Frontend action·Job polling·stale 표시·Global Player integration
-- [ ] multi-user 동시 편집 recovery·persistent history
+- [x] single-user persistent history journal/cursor·reload recovery
+- [ ] multi-user 동시 편집 recovery
 
 ## D4. Mixer와 Export — [계획]
 

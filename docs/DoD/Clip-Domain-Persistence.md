@@ -19,7 +19,7 @@
 - [x] 별도 immutable SnapshotTrack/SnapshotClip schema extension 필요성 결정
 - [x] Service-owned transaction, atomic split·commit과 rollback 0건 기준 결정
 - [x] 필수 revision optimistic concurrency와 mutation idempotency 정책 결정
-- [x] Frontend memory Undo/Redo와 server resulting-state persistence 소유권 결정
+- [x] Backend persistent history journal/cursor와 Frontend undo/redo intent 소유권 결정
 - [x] same-Track overlap DENY와 derived working timeline duration 결정
 - [x] committed playback·working preview, Master/Mix·Clip Waveform 경계 결정
 - [x] product-only edit operation과 신규 Common Contract schema 0건 결정
@@ -39,15 +39,15 @@
 - [x] same-ID Track/Clip restore·exact split geometry unsplit/resplit·history barrier authority와 Backend 구현
 - [x] Composition commit transaction과 atomic rollback 테스트
 - [x] Frontend Clip move·trim·split·delete·copy·Track reorder
-- [x] memory Undo/Redo command stack과 initialize·checkout·commit·conflict history boundary 검증
+- [x] persistent Undo/Redo journal/cursor와 initialize·checkout·commit·conflict history boundary 검증
 - [x] Track/Clip Waveform과 Working Preview Backend/Frontend integration
 - [x] 관련 Draft PR 검토·Ready 전환·`develop` 병합
 - [x] Clip Gain authority·persistence·Product API·Preview render·Snapshot freeze Backend foundation
-- [x] Frontend Clip Gain control·absolute mutation·memory Undo/Redo·Preview stale integration
+- [x] Frontend Clip Gain control·absolute mutation·Backend persistent Undo/Redo·Preview stale integration
 - [x] Clip Fade authority·persistence·absolute mutation·inverse identity·Preview render·Snapshot freeze Backend foundation
 - [ ] Frontend Fade·Loop 편집 UI
 - [ ] multi-user recovery·persistent history
 
 ## 판정
 
-`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, `Backend Inverse Mutation`, Frontend Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit, Clip Gain Backend/Frontend integration과 Clip Fade Backend foundation은 COMPLETE다. 전체 D3는 Fade Frontend·Loop·multi-user recovery·persistent history가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.
+`Clip Domain/Persistence Design`, `Clip Persistence Foundation`, `Clip Service Authority Foundation`, `Revision-safe Idempotency Foundation`, `WorkingComposition Service + Product API`, Frontend Track/Clip 편집·explicit Clip Copy·Backend persistent Undo/Redo·Track/Clip Waveform·Working Preview·Composition Commit과 Clip Gain/Fade/Loop Backend/Frontend integration은 COMPLETE다. 전체 D3는 multi-user recovery가 남아 `[진행 중]`이며, 실제 사용자 DB migration은 완료로 표시하지 않는다.

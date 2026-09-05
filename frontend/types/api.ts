@@ -377,6 +377,15 @@ export interface WorkingCompositionDto {
   timeline_duration: string;
 }
 
+export interface WorkingHistoryDetailDto {
+  working_composition_id: string;
+  revision: number;
+  cursor: number;
+  command_count: number;
+  can_undo: boolean;
+  can_redo: boolean;
+}
+
 export interface WorkingMutationResultDto {
   completed_revision: number;
   replayed: boolean;

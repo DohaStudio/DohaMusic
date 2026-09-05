@@ -6,7 +6,7 @@
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
-SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 소스 head는 Clip Fade foundation을 추가한 `20260905_0027`이고 실제 사용자 DB는 `20260810_0017`이다. 애플리케이션 startup의 자동 Migration은 기본 비활성화이며 `DOHAMUSIC_AUTO_MIGRATE=true`를 명시한 경우에만 기존 `upgrade head`를 실행한다. 사용자 DB에는 opt-in을 사용하지 않고 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
+SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 소스 head는 persistent WorkingComposition history를 추가한 `20260905_0028`이고 실제 사용자 DB는 `20260810_0017`이다. 애플리케이션 startup의 자동 Migration은 기본 비활성화이며 `DOHAMUSIC_AUTO_MIGRATE=true`를 명시한 경우에만 기존 `upgrade head`를 실행한다. 사용자 DB에는 opt-in을 사용하지 않고 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
 
 승인 전에는 기본 URL로 `upgrade head`를 실행하지 않습니다. revision 확인과 실제 적용 명령은 Runbook의 경로 확인·backup·FK Gate를 통과한 실행 기록에서만 사용합니다.
 
@@ -59,7 +59,7 @@ Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동
 
 ## CURRENT Workspace/Domain DB와 TARGET — [부분 구현]
 
-DohaStudio Common Specification을 기준으로 source Entity 33개와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata는 `20260905_0027` 기준 48개 Application Table이고 실제 사용자 DB는 `20260810_0017` 기준 36개다. `0021`과 `0022`는 Table 수를 늘리지 않고 각각 nullable trusted Artifact duration과 versioned idempotency completion result를 추가하고 `0023`은 PayloadLocator 1개, `0024`는 Working Preview 4개 table, `0025`는 세 Clip table의 Gain column, `0026`은 같은 table의 Fade column을 추가한다. Workspace Resource API 30개와 별도 Product aggregate API, Job API 5개도 구현했다.
+DohaStudio Common Specification을 기준으로 source Entity 33개와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata는 `20260905_0028` 기준 50개 Application Table이고 실제 사용자 DB는 `20260810_0017` 기준 36개다. `0021`과 `0022`는 Table 수를 늘리지 않고 각각 nullable trusted Artifact duration과 versioned idempotency completion result를 추가하고 `0023`은 PayloadLocator 1개, `0024`는 Working Preview 4개 table, `0025`는 세 Clip table의 Gain column, `0026`은 같은 table의 Fade column, `0027`은 Loop geometry column, `0028`은 persistent history state·entry 2개 table을 추가한다. Workspace Resource API 30개와 별도 Product aggregate API, Job API 5개도 구현했다.
 
 이 구조는 물리 schema와 일부 Application 계층에서는 CURRENT다. 그러나 신규 Workspace Table backfill·dual write·Runtime read 전환과 Legacy 동결·제거는 수행하지 않았으므로 제품 실행의 source of truth라는 의미에서는 여전히 TARGET이다. Provider dispatch wiring과 background daemon도 미구현이며 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
 

@@ -1,9 +1,9 @@
 # AI-native DAW Frontend 전환 계획
 
-> 2026-09-05 상태: Loop History Phase Restore Authority와 Loop Frontend Integration을 완료했다. selected Clip inspector는 canonical Loop state를 소비하고, normal mutation은 phase를 보내지 않으며 memory Undo/Redo만 전용 restore endpoint로 phase를 왕복한다. 다음 권위는 Persistent History Authority / Foundation이다.
+> 2026-09-06 상태: Persistent History Authority / Foundation과 Frontend Integration을 완료했다. Frontend는 Backend history projection과 undo/redo intent를 소비하며 persisted journal/cursor와 canonical WorkingComposition을 reconcile한다. Loop nonzero phase도 Frontend의 직접 restore 호출 없이 Backend history authority가 복원한다. 다음 D3 권위는 multi-user 동시 편집 recovery다.
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-09-03
+> 최종 수정일: 2026-09-06
 > 관련 기능: Responsive Studio MVP에서 AI-native DAW로의 단계적 전환
 > 관련 문서: [제품 방향](../docs/02-product/ai-native-daw-product-direction.md), [목표 아키텍처](../docs/03-architecture/ai-native-daw-target-architecture.md), [D1 Composition Read 계약](../docs/06-api/composition-read-workspace.md), [기존 Frontend Roadmap](frontend-roadmap.md), [DohaLM 연동](../docs/03-architecture/dohalm-integration.md)
 
@@ -88,7 +88,7 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 - keyboard·accessible label·focus-visible·Desktop/Mobile horizontal overflow와 media error 상태를 검증했다.
 - 같은 canonical safe Artifact를 128 MiB 이하로 제한해 Browser decode하고 최대 2,048개 peak의 단일 SVG path로 Master / Mix Waveform overview를 표시한다. source 변경·unmount abort와 stale 결과 폐기, decode 실패의 playback 격리를 적용했다.
 - Waveform·ruler click seek와 draggable Playhead preview/commit, 정밀 hover 시간을 같은 scroll·zoom 좌표계에 연결했다. 별도 audio element와 animation loop는 추가하지 않았다.
-- NEXT: Clip Editing Foundation. LATER: Mixer, AI Segment Editing. 편집 가능한 Track/Clip Waveform·Section marker·range selection·multi-track sync engine은 아직 구현하지 않았다.
+- Clip Editing Foundation과 편집 가능한 Track/Clip Waveform은 완료했다. LATER: Section marker·range selection·multi-track sync engine, Mixer, AI Segment Editing.
 
 ### D3 — Non-destructive DAW Editing [진행 중]
 
@@ -98,7 +98,7 @@ Desktop은 Timeline·Inspector·Mixer를 동시에 제공하고 Mobile은 조회
 
 Working Preview Backend/Frontend integration은 revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact, 명시적 Preview action, existing Job polling, safe Artifact content 전달과 `rendered_revision != current_revision` stale 표시를 구현했다. stale Preview를 자동으로 현재 상태처럼 표시하거나 Global Player source로 교체하지 않으며 사용자가 재생을 선택한 뒤에만 단일 playback authority에 연결한다. Preview는 Composition commit·Export가 아니고 Preview 성공으로 editor revision/history를 이동시키지 않는다. 공식 latest Preview read API가 없으므로 refresh 뒤 session은 idle이며 AssetVersion·Artifact·Job 목록에서 latest를 추측하지 않는다.
 
-Clip Gain Backend foundation의 canonical `gain_db`, revision-safe mutation, Copy/Split/restore identity, Snapshot freeze와 Preview static dB DSP를 Frontend가 소비한다. selected Clip inspector는 `-24.00..+24.00 dB`, `0.01 dB` control과 0 dB reset을 제공하고 drag 중 숫자만 preview한 뒤 종료 시 absolute mutation 한 번을 보낸다. Gain memory Undo/Redo는 same Clip ID의 before/after absolute 값을 사용하며 Preview stale·Commit/checkout history barrier를 유지한다. Track/Master Gain·Pan·Mute·Solo는 D4 Mixer gate다.
+Clip Gain Backend foundation의 canonical `gain_db`, revision-safe mutation, Copy/Split/restore identity, Snapshot freeze와 Preview static dB DSP를 Frontend가 소비한다. selected Clip inspector는 `-24.00..+24.00 dB`, `0.01 dB` control과 0 dB reset을 제공하고 drag 중 숫자만 preview한 뒤 종료 시 absolute mutation 한 번을 보낸다. Gain Undo/Redo는 Backend persistent history journal/cursor를 authority로 사용하며 Preview stale·Commit/checkout history barrier를 유지한다. Track/Master Gain·Pan·Mute·Solo는 D4 Mixer gate다.
 
 ### D4 — Mixer와 Export [계획]
 
@@ -164,4 +164,4 @@ Gate 미충족 시 DohaLM Frontend는 독립 개발/Runtime 검증용으로 유�
 
 ## 6. NOT IMPLEMENTED
 
-D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·explicit Clip Copy·memory Undo/Redo·source-window Waveform·Working Preview·Composition Commit·Clip Gain/Fade Backend/Frontend integration은 구현돼 있다. Loop·persistent history·multi-user recovery, Section·Mixer·AI editing과 D4~D9 잔여 Runtime은 미구현이다. 다음 D3 gate는 Loop Authority / Foundation이다. 기존 F0~F5 완료와 F6 진행 상태는 변경하지 않는다.
+D1 Composition Read와 D2 Timeline Playback Foundation의 Frontend Runtime, 읽기 전용 Master / Mix Waveform·richer Playhead와 D3 Track/Clip 편집·explicit Clip Copy·Backend persistent Undo/Redo·source-window Waveform·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration은 구현돼 있다. multi-user recovery, Section·Mixer·AI editing과 D4~D9 잔여 Runtime은 미구현이다. 기존 F0~F5 완료와 F6 진행 상태는 변경하지 않는다.

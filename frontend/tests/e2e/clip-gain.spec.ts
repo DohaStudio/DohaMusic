@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { PersistentHistoryFixture } from "./support/persistent-history-fixture";
 
 const projectId = "project-gain";
 const snapshotId = "snapshot-gain";
@@ -53,6 +54,12 @@ class GainBackend {
   rejectNextGain = false;
   conflictNextGain: string | null = null;
   committedClips: Clip[] = [];
+  historyUndoPosts = 0;
+  historyRedoPosts = 0;
+  history = new PersistentHistoryFixture(workingId, {
+    get: () => this.revision,
+    increment: () => ++this.revision,
+  });
 
   async install(page: Page) {
     await page.route("**/backend/**", (route) => this.handle(route));
@@ -92,6 +99,15 @@ class GainBackend {
 
     const relative = path.slice(workingBase.length);
     if (method === "GET" && relative === "") return this.ok(route, { data: this.snapshot() });
+    if (method === "GET" && relative === "/history") return this.ok(route, { data: this.history.projection() });
+    if (method === "POST" && relative === "/history/undo") {
+      this.historyUndoPosts += 1;
+      return this.history.mutate(route, "undo");
+    }
+    if (method === "POST" && relative === "/history/redo") {
+      this.historyRedoPosts += 1;
+      return this.history.mutate(route, "redo");
+    }
     const gainAttempt = relative.match(/^\/clips\/([^/]+)\/gain$/);
     if (gainAttempt && method === "PATCH") {
       this.gainRequests.push({ clipId: decodeURIComponent(gainAttempt[1]), body, key });
@@ -110,12 +126,14 @@ class GainBackend {
     if (relative === "/commit" && method === "POST") {
       this.commitPosts += 1;
       this.committedClips = this.clips.map((item) => ({ ...item }));
+      this.history.barrier();
       return this.mutated(route, key, {
         working_composition_id: workingId, composition_snapshot_id: "snapshot-gain-2",
       });
     }
     if (relative === "/checkout" && method === "POST") {
       this.clips = this.committedClips.map((item) => ({ ...item }));
+      this.history.barrier();
       return this.mutated(route, key, {
         working_composition_id: workingId, base_composition_snapshot_id: "snapshot-gain-2",
       });
@@ -138,7 +156,14 @@ class GainBackend {
         this.revision += 1;
         return this.error(route, 409, "WORKING_COMPOSITION_REVISION_CONFLICT");
       }
-      this.requiredClip(clipId).gain_db = Number(body.gain_db).toFixed(2);
+      const before = this.requiredClip(clipId).gain_db;
+      const after = Number(body.gain_db).toFixed(2);
+      this.requiredClip(clipId).gain_db = after;
+      this.history.append({
+        clipId,
+        applyBefore: () => { this.requiredClip(clipId).gain_db = before; },
+        applyAfter: () => { this.requiredClip(clipId).gain_db = after; },
+      });
       const lose = this.loseNextGainResponse;
       this.loseNextGainResponse = false;
       return this.mutated(route, key, { clip_id: clipId }, lose);
@@ -152,6 +177,7 @@ class GainBackend {
         timeline_start: Number(body.target_timeline_start).toFixed(3),
         split_from_clip_id: null,
       });
+      this.history.barrier();
       return this.mutated(route, key, { clip_id: copiedId });
     }
     if (operation === "split" && method === "POST") {
@@ -168,6 +194,7 @@ class GainBackend {
       };
       this.lineage = { original, left: { ...left }, right: { ...right } };
       this.clips = this.clips.filter((item) => item.clip_id !== clipId).concat(left, right);
+      this.history.barrier();
       return this.mutated(route, key, { original_clip_id: clipId, left_clip_id: leftId, right_clip_id: rightId });
     }
     if (operation === "unsplit" && method === "POST") {
@@ -190,12 +217,14 @@ class GainBackend {
       if (!restored) return this.error(route, 409, "CLIP_RESTORE_CONFLICT");
       this.clips.push({ ...restored });
       this.tombstones.delete(clipId);
+      this.history.barrier();
       return this.mutated(route, key, { clip_id: clipId });
     }
     if (!operation && method === "DELETE") {
       const removed = this.requiredClip(clipId);
       this.clips = this.clips.filter((item) => item.clip_id !== clipId);
       this.tombstones.set(clipId, { ...removed });
+      this.history.barrier();
       return this.mutated(route, key, { clip_id: clipId });
     }
     return this.error(route, 404, "TEST_OPERATION_NOT_IMPLEMENTED");
@@ -308,11 +337,12 @@ test("Clip Gain absolute mutation, history, identity, stale Preview와 fail-clos
 
   await page.getByRole("button", { name: "편집 실행 취소" }).click();
   await expect(input).toHaveValue("0.00");
-  expect(backend.gainRequests.at(-1)).toMatchObject({ clipId: originalId, body: { gain_db: 0 } });
+  expect(backend.historyUndoPosts).toBe(1);
+  expect(backend.gainRequests).toHaveLength(2);
   await page.getByRole("button", { name: "편집 다시 실행" }).click();
   await expect(input).toHaveValue("3.00");
-  expect(backend.gainRequests.at(-1)).toMatchObject({ clipId: originalId, body: { gain_db: 3 } });
-  expect(backend.gainRequests.at(-1)!.key).not.toBe(backend.gainRequests.at(-2)!.key);
+  expect(backend.historyRedoPosts).toBe(1);
+  expect(backend.gainRequests).toHaveLength(2);
 
   await page.getByRole("button", { name: "Clip gain을 0 dB로 재설정" }).click();
   await expect(input).toHaveValue("0.00");
@@ -335,7 +365,7 @@ test("Clip Gain absolute mutation, history, identity, stale Preview와 fail-clos
   await exactGain(page, "1.00");
   await expect(input).toHaveValue("-2.00");
   expect(backend.gainRequests).toHaveLength(beforeConflict + 1);
-  await expect(page.getByText(/Undo\/Redo 기록은 초기화/)).toBeVisible();
+  await expect(page.getByText(/최신 편집 상태와 Undo\/Redo 기록/)).toBeVisible();
 
   await page.getByLabel("Copy 대상 Track").selectOption(trackId);
   await page.getByLabel("Copy Timeline start").fill("3");
@@ -343,28 +373,25 @@ test("Clip Gain absolute mutation, history, identity, stale Preview와 fail-clos
   await page.getByRole("button", { name: /Clip 33333333 선택 및 이동/ }).click();
   await expect(page.getByLabel("Clip gain exact value")).toHaveValue("-2.00");
   expect(backend.clips.find((item) => item.clip_id === copiedId)?.gain_db).toBe("-2.00");
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
 
   await setPlayhead(page, 4);
   await page.getByRole("button", { name: /Playhead에서 Split/ }).click();
   expect(backend.clips.find((item) => item.clip_id === leftId)?.gain_db).toBe("-2.00");
   expect(backend.clips.find((item) => item.clip_id === rightId)?.gain_db).toBe("-2.00");
-  backend.forceSplitDivergence();
-  await page.getByRole("button", { name: "편집 실행 취소" }).click();
-  await expect(page.locator(".alert-error")).toContainText("Split 이후 구조가 달라져 Undo/Redo할 수 없습니다.");
-  expect(backend.clips.find((item) => item.clip_id === leftId)?.gain_db).toBe("1.00");
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
   expect(backend.clips.find((item) => item.clip_id === rightId)?.gain_db).toBe("-2.00");
 
   await page.getByRole("button", { name: /Clip 44444444 선택 및 이동/ }).click();
   await page.getByRole("button", { name: /Clip 삭제/ }).click();
-  await page.getByRole("button", { name: "편집 실행 취소" }).click();
-  await page.getByRole("button", { name: /Clip 44444444 선택 및 이동/ }).click();
-  await expect(page.getByLabel("Clip gain exact value")).toHaveValue("1.00");
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+  await page.getByRole("button", { name: /Clip 55555555 선택 및 이동/ }).click();
 
   await exactGain(page, "2.50");
   await page.getByRole("button", { name: "현재 편집 상태를 새 버전으로 저장" }).click();
   await expect(page.getByText(/Undo\/Redo 기록이 초기화/)).toBeVisible();
   await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
-  expect(backend.committedClips.find((item) => item.clip_id === leftId)?.gain_db).toBe("2.50");
+  expect(backend.committedClips.find((item) => item.clip_id === rightId)?.gain_db).toBe("2.50");
   await exactGain(page, "4.00");
   await page.getByRole("button", { name: "현재 Snapshot Checkout" }).click();
   await expect(page.getByLabel("Clip gain exact value")).toHaveValue("2.50");

@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page, type Route } from "@playwright/test";
+import { PersistentHistoryFixture } from "./support/persistent-history-fixture";
 
 const IDS = {
   working: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
@@ -47,6 +48,10 @@ class WaveformBackend {
   ];
   tombstones = new Map<string, Clip>();
   lineage: { original: Clip; left: Clip; right: Clip } | null = null;
+  history = new PersistentHistoryFixture(IDS.working, {
+    get: () => this.revision,
+    increment: () => ++this.revision,
+  });
 
   async install(page: Page) {
     await page.route("**/backend/**", (route) => this.handle(route));
@@ -104,6 +109,9 @@ class WaveformBackend {
     }
     const relative = path.slice(workingBase.length);
     if (method === "GET" && relative === "") return this.data(route, { data: this.snapshot() });
+    if (method === "GET" && relative === "/history") return this.data(route, { data: this.history.projection() });
+    if (method === "POST" && relative === "/history/undo") return this.history.mutate(route, "undo");
+    if (method === "POST" && relative === "/history/redo") return this.history.mutate(route, "redo");
     if (Number(body.expected_revision) !== this.revision) {
       return this.error(route, 409, "WORKING_COMPOSITION_REVISION_CONFLICT");
     }
@@ -114,20 +122,27 @@ class WaveformBackend {
     const clipId = decodeURIComponent(match[1]);
     const operation = match[2];
     if (operation === "move" && method === "PATCH") {
-      this.requiredClip(clipId).timeline_start = decimal(body.timeline_start);
+      const current = this.requiredClip(clipId);
+      const before = { ...current };
+      current.timeline_start = decimal(body.timeline_start);
+      this.appendHistory(clipId, before, { ...current });
       return this.mutated(route, { clip_id: clipId });
     }
     if (operation === "trim-start" && method === "PATCH") {
       const current = this.requiredClip(clipId);
+      const before = { ...current };
       current.timeline_start = decimal(body.timeline_start);
       current.source_in = decimal(body.source_in);
       current.timeline_duration = decimal(Number(current.source_out) - Number(current.source_in));
+      this.appendHistory(clipId, before, { ...current });
       return this.mutated(route, { clip_id: clipId });
     }
     if (operation === "trim-end" && method === "PATCH") {
       const current = this.requiredClip(clipId);
+      const before = { ...current };
       current.source_out = decimal(body.source_out);
       current.timeline_duration = decimal(Number(current.source_out) - Number(current.source_in));
+      this.appendHistory(clipId, before, { ...current });
       return this.mutated(route, { clip_id: clipId });
     }
     if (operation === "split" && method === "POST") {
@@ -144,18 +159,21 @@ class WaveformBackend {
       };
       this.clips = this.clips.filter((item) => item.clip_id !== clipId).concat(left, right);
       this.lineage = { original, left: { ...left }, right: { ...right } };
+      this.history.barrier();
       return this.mutated(route, { original_clip_id: clipId, left_clip_id: IDS.left, right_clip_id: IDS.right });
     }
     if (operation === "unsplit" && method === "POST" && this.lineage) {
       this.clips = this.clips
         .filter((item) => ![this.lineage!.left.clip_id, this.lineage!.right.clip_id].includes(item.clip_id))
         .concat({ ...this.lineage.original });
+      this.history.barrier();
       return this.mutated(route, { original_clip_id: clipId, left_clip_id: IDS.left, right_clip_id: IDS.right });
     }
     if (operation === "resplit" && method === "POST" && this.lineage) {
       this.clips = this.clips
         .filter((item) => item.clip_id !== clipId)
         .concat({ ...this.lineage.left }, { ...this.lineage.right });
+      this.history.barrier();
       return this.mutated(route, { original_clip_id: clipId, left_clip_id: IDS.left, right_clip_id: IDS.right });
     }
     if (operation === "restore" && method === "POST") {
@@ -163,12 +181,14 @@ class WaveformBackend {
       if (!restored) return this.error(route, 409, "CLIP_RESTORE_CONFLICT");
       this.clips.push({ ...restored });
       this.tombstones.delete(clipId);
+      this.history.barrier();
       return this.mutated(route, { clip_id: clipId });
     }
     if (!operation && method === "DELETE") {
       const removed = { ...this.requiredClip(clipId) };
       this.clips = this.clips.filter((item) => item.clip_id !== clipId);
       this.tombstones.set(clipId, removed);
+      this.history.barrier();
       return this.mutated(route, { clip_id: clipId });
     }
     return this.error(route, 404, "TEST_OPERATION_NOT_IMPLEMENTED");
@@ -199,6 +219,14 @@ class WaveformBackend {
   private mutated(route: Route, result: Record<string, unknown>) {
     this.revision += 1;
     return this.data(route, { data: { ...result, completed_revision: this.revision, replayed: false } });
+  }
+
+  private appendHistory(clipId: string, before: Clip, after: Clip) {
+    this.history.append({
+      clipId,
+      applyBefore: () => Object.assign(this.requiredClip(clipId), before),
+      applyAfter: () => Object.assign(this.requiredClip(clipId), after),
+    });
   }
 
   private data(route: Route, json: unknown) { return route.fulfill({ status: 200, json }); }
@@ -275,7 +303,6 @@ test("exact AssetVersion Clip waveform projection과 editing history를 실제 m
   await expectRevision(page, 9);
   expect(await signature(waveform(page, IDS.second))).toBe(afterEndSignature);
 
-  const originalSignature = await signature(firstWaveform);
   await clipButton(page, IDS.first).click();
   await setPlayhead(page, 2);
   await page.getByRole("button", { name: /Playhead에서 Split/ }).click();
@@ -287,21 +314,15 @@ test("exact AssetVersion Clip waveform projection과 editing history를 실제 m
   const rightSignature = await signature(waveform(page, IDS.right));
   expect(leftSignature).not.toBe(rightSignature);
 
-  await undo(page);
-  await expectRevision(page, 11);
-  expect(await signature(waveform(page, IDS.first))).toBe(originalSignature);
-  await redo(page);
-  await expectRevision(page, 12);
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
   expect(await signature(waveform(page, IDS.left))).toBe(leftSignature);
   expect(await signature(waveform(page, IDS.right))).toBe(rightSignature);
 
   await clipButton(page, IDS.left).click();
   await page.getByRole("button", { name: /Clip 삭제/ }).click();
-  await expectRevision(page, 13);
+  await expectRevision(page, 11);
   await expect(waveform(page, IDS.left)).toHaveCount(0);
-  await undo(page);
-  await expectRevision(page, 14);
-  expect(await signature(waveform(page, IDS.left))).toBe(leftSignature);
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
 
   const fetchesBeforeGeometryOnlyChanges = backend.contentRequests;
   const resolverBeforeGeometryOnlyChanges = backend.resolverRequests;
@@ -355,10 +376,7 @@ async function responsiveWaveformSmoke(page: Page, backend: WaveformBackend) {
   await clipButton(page, IDS.left).click();
   await page.getByRole("button", { name: /Clip 삭제/ }).click();
   await expectRevision(page, 6);
-  await undo(page);
-  await expectRevision(page, 7);
-  await redo(page);
-  await expectRevision(page, 8);
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
   expect(backend.resolverRequests).toBe(1);
   expect(backend.contentRequests).toBe(1);
 }

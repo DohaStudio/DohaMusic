@@ -1,4 +1,5 @@
 import { expect, test, type Page, type Route } from "@playwright/test";
+import { PersistentHistoryFixture } from "./support/persistent-history-fixture";
 
 const projectId = "composition-commit-e2e";
 const workingId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -21,6 +22,10 @@ class CommitBackend {
   loseNextResponse = false;
   rejectNextCommit: "COMMIT_FAILED" | "WORKING_COMPOSITION_REVISION_CONFLICT" | null = null;
   private completions = new Map<string, { snapshotId: string; revision: number }>();
+  history = new PersistentHistoryFixture(workingId, {
+    get: () => this.revision,
+    increment: () => ++this.revision,
+  });
 
   async install(page: Page) {
     await page.route("**/backend/**", (route) => this.handle(route));
@@ -39,6 +44,15 @@ class CommitBackend {
     if (path === `/backend/api/v1/projects/${projectId}/working-composition` && method === "GET") {
       return this.ok(route, { data: this.working() });
     }
+    if (path.endsWith("/working-composition/history") && method === "GET") {
+      return this.ok(route, { data: this.history.projection() });
+    }
+    if (path.endsWith("/working-composition/history/undo") && method === "POST") {
+      return this.history.mutate(route, "undo");
+    }
+    if (path.endsWith("/working-composition/history/redo") && method === "POST") {
+      return this.history.mutate(route, "redo");
+    }
     if (path === `/backend/api/v1/projects/${projectId}/asset-versions/${versionId}/media-source`) {
       return this.ok(route, { data: mediaSource() });
     }
@@ -51,7 +65,14 @@ class CommitBackend {
       if (body.expected_revision !== this.revision) {
         return this.error(route, 409, "WORKING_COMPOSITION_REVISION_CONFLICT");
       }
-      this.trackName = body.name;
+      const before = this.trackName;
+      const after = body.name;
+      this.trackName = after;
+      this.history.append({
+        clipId,
+        applyBefore: () => { this.trackName = before; },
+        applyAfter: () => { this.trackName = after; },
+      });
       this.revision += 1;
       return this.ok(route, { data: { track_id: trackId, completed_revision: this.revision, replayed: false } });
     }
@@ -76,6 +97,7 @@ class CommitBackend {
       this.revision = completion.revision;
       this.baseSnapshotId = completion.snapshotId;
       this.selectedSnapshotId = completion.snapshotId;
+      this.history.barrier();
       if (key) this.completions.set(key, completion);
       if (this.loseNextResponse) {
         this.loseNextResponse = false;
