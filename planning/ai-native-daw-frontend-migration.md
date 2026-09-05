@@ -1,6 +1,6 @@
 # AI-native DAW Frontend 전환 계획
 
-> 2026-09-05 상태: Loop Frontend Integration을 완료했다. selected Clip inspector는 canonical Loop state를 소비하고, normal mutation은 phase를 보내지 않으며 memory Undo/Redo만 전용 restore endpoint로 phase를 왕복한다. 다음 권위는 Loop History Phase Restore Authority다.
+> 2026-09-05 상태: Loop History Phase Restore Authority와 Loop Frontend Integration을 완료했다. selected Clip inspector는 canonical Loop state를 소비하고, normal mutation은 phase를 보내지 않으며 memory Undo/Redo만 전용 restore endpoint로 phase를 왕복한다. 다음 권위는 Persistent History Authority / Foundation이다.
 
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-09-03
