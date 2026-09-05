@@ -26,6 +26,7 @@
 | `PATCH` | `/clips/{clip_id}/gain` | 200 | 필수 | Clip static `gain_db` 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/fade` | 200 | 필수 | Clip-relative `fade_in`·`fade_out` 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/loop` | 200 | 필수 | Clip `loop_enabled`·`timeline_duration` 절대 상태 적용 |
+| `POST` | `/clips/{clip_id}/loop/restore` | 200 | 필수 | Undo/Redo용 canonical Loop state exact 복원 |
 | `PATCH` | `/clips/{clip_id}/move` | 200 | 없음 | Timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-start` | 200 | 없음 | source/timeline 시작 절대값 적용 |
 | `PATCH` | `/clips/{clip_id}/trim-end` | 200 | 없음 | source 끝 절대값 적용 |
@@ -43,7 +44,9 @@ Clip Gain body는 `working_composition_id`, `expected_revision`, numeric `gain_d
 
 Clip Fade body는 `working_composition_id`, `expected_revision`, numeric `fade_in`, `fade_out`을 decimal seconds로 받는다. 각 값은 finite·non-negative이고 최대 소수점 6자리이며 합은 canonical `timeline_duration` 이하여야 한다. string, boolean, NaN, Infinity와 묵시적 clamp는 허용하지 않는다. 성공은 `clip_id`, 최초 `completed_revision`, `replayed`를 반환하며 Snapshot·Preview·Artifact를 자동 생성하지 않는다. aggregate Clip detail은 canonical seconds `fade_in`, `fade_out`을 반환한다.
 
-Clip Loop body는 `working_composition_id`, `expected_revision`, boolean `loop_enabled`, numeric `timeline_duration`을 받으며 `loop_phase` 입력은 금지한다. Enable은 positive duration을 허용하므로 `D < W`, `D = W`, `D > W`가 모두 유효하다. Disable은 absolute-state request로 caller가 `D = W = source_out - source_in`을 명시해야 하며 불일치는 `422 CLIP_LOOP_GEOMETRY_INVALID`다. Backend는 duration을 무시하거나 canonicalize하지 않고 fingerprint에 두 Loop field를 포함한다. 유효한 disable 결과는 loop false, `D = W`, phase 0이다.
+Clip Loop body는 `working_composition_id`, `expected_revision`, boolean `loop_enabled`, numeric `timeline_duration`을 받으며 `loop_phase` 입력은 금지한다. Off에서 Enable하면 phase 0, On 상태의 duration update는 현재 canonical phase 보존이다. Enable은 positive duration을 허용하므로 `D < W`, `D = W`, `D > W`가 모두 유효하다. Disable은 absolute-state request로 caller가 `D = W = source_out - source_in`을 명시해야 하며 불일치는 `422 CLIP_LOOP_GEOMETRY_INVALID`다. Backend는 duration을 무시하거나 canonicalize하지 않고 fingerprint에 두 Loop field를 포함한다. 유효한 disable 결과는 loop false, `D = W`, phase 0이다.
+
+Loop history restore body는 `working_composition_id`, `expected_revision`, `loop_enabled`, `timeline_duration`, `loop_phase`의 전체 canonical state를 받는다. 이는 일반 UI value mutation이 아니라 Frontend-owned Undo/Redo command 전용 authority다. Disabled restore는 `D=W, P=0`, enabled restore는 `D>0, 0<=P<W`만 허용하며 phase를 포함한 fingerprint, revision CAS, typed completion과 same-key replay를 적용한다. Backend command stack과 DB schema는 추가하지 않는다.
 
 Frontend selected Clip inspector는 aggregate의 canonical Fade를 초 단위 exact numeric input으로 표시한다. local validation은 음수·비수치·6자리 초과·duration invariant 위반을 mutation 전에 안내하되 Backend 422를 최종 authority로 유지한다. 승인된 blur/Enter commit에서만 두 absolute 값을 중앙 client로 전송하고, same-key response-loss retry와 absolute memory Undo/Redo를 기존 Gain history·Preview stale·Commit/Checkout barrier에 통합한다. Frontend는 Fade DSP, Preview 자동 생성 또는 Waveform source 변형을 수행하지 않는다.
 
@@ -107,6 +110,6 @@ Job 생성은 현재 source eligibility를 재검증해 >16개도 손실 없이 
 
 ## Surface 실측
 
-WorkingComposition Router는 APIRoute 22개, OpenAPI Path 21개, Operation 22개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Clip Fade operation ID 충돌은 0개다.
+WorkingComposition Router는 APIRoute 24개, OpenAPI Path 23개, Operation 24개이며 operation ID 중복은 0개다. 전체 application 실측은 최종 OpenAPI Gate 결과를 따른다. 기존 Legacy Pipeline의 GET/HEAD 병합 route 두 곳에서 발생하던 global duplicate operation ID warning 2종은 이 작업 범위에서 변경하지 않았으며 새 Loop restore operation ID 충돌은 0개다.
 
 이 22개는 Product API이므로 Workspace Resource Endpoint 30/64 분모에는 포함하지 않는다.

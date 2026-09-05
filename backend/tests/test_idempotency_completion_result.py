@@ -56,6 +56,7 @@ def _result(
         IdempotencyResultType.CLIP_GAIN_UPDATE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_FADE_UPDATE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_LOOP_UPDATE: {"clip_id": str(uuid4())},
+        IdempotencyResultType.CLIP_LOOP_RESTORE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_DELETE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_RESTORE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_UNSPLIT: {
@@ -150,6 +151,7 @@ def test_completion_result_roundtrip_replays_original_revision_and_split_ids(
     [
         IdempotencyResultType.TRACK_RESTORE,
         IdempotencyResultType.CLIP_RESTORE,
+        IdempotencyResultType.CLIP_LOOP_RESTORE,
         IdempotencyResultType.CLIP_UNSPLIT,
         IdempotencyResultType.CLIP_RESPLIT,
     ],
