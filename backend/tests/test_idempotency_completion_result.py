@@ -57,6 +57,8 @@ def _result(
         IdempotencyResultType.CLIP_FADE_UPDATE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_LOOP_UPDATE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_LOOP_RESTORE: {"clip_id": str(uuid4())},
+        IdempotencyResultType.WORKING_HISTORY_UNDO: {"clip_id": str(uuid4())},
+        IdempotencyResultType.WORKING_HISTORY_REDO: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_DELETE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_RESTORE: {"clip_id": str(uuid4())},
         IdempotencyResultType.CLIP_UNSPLIT: {

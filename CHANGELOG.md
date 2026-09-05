@@ -11,6 +11,8 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+- Backend가 Clip Gain/Fade/Loop의 canonical 전후 상태를 원자적으로 기록하는 persistent WorkingComposition history journal, cursor, undo/redo API와 migration 0028을 추가했다.
+
 ### 추가 — Clip Loop Frontend Integration
 
 - selected Clip inspector에 canonical Loop toggle과 `timeline_duration` exact input을 추가하고, normal mutation과 phase 포함 history restore를 분리했다.

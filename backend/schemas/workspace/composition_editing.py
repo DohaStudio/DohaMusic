@@ -39,6 +39,19 @@ class WorkingMutationRequest(_StrictModel):
     expected_revision: int = Field(ge=0)
 
 
+class WorkingHistoryMutationRequest(WorkingMutationRequest):
+    pass
+
+
+class WorkingHistoryDetail(_StrictModel):
+    working_composition_id: UUID
+    revision: int = Field(ge=0)
+    cursor: int = Field(ge=0)
+    command_count: int = Field(ge=0)
+    can_undo: bool
+    can_redo: bool
+
+
 class WorkingCompositionCheckoutRequest(WorkingMutationRequest):
     composition_snapshot_id: UUID
 

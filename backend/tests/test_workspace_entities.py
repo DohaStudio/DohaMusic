@@ -498,8 +498,14 @@ def test_workspace_metadata_coexists_with_legacy_tables() -> None:
 
     assert target_tables.isdisjoint(LEGACY_TABLES)
     assert storage_tables == {"artifact_storage_locations"}
-    assert set(Base.metadata.tables) == target_tables | storage_tables | LEGACY_TABLES
-    assert len(Base.metadata.tables) == 48
+    history_tables = {
+        "working_composition_history_entries",
+        "working_composition_history_states",
+    }
+    assert set(Base.metadata.tables) == (
+        target_tables | storage_tables | LEGACY_TABLES | history_tables
+    )
+    assert len(Base.metadata.tables) == 50
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

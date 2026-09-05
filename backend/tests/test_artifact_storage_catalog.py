@@ -184,7 +184,7 @@ def test_catalog_metadata_constraints_match_contract() -> None:
         if constraint.__class__.__name__ == "CheckConstraint"
     }
 
-    assert len(Base.metadata.tables) == 48
+    assert len(Base.metadata.tables) == 50
     assert foreign_key.target_fullname == "artifacts.artifact_id"
     assert foreign_key.ondelete == "RESTRICT"
     assert unique_constraints == {

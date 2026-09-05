@@ -49,6 +49,8 @@ from backend.schemas.workspace import (
     WorkingCompositionCommitRequest,
     WorkingCompositionDetail,
     WorkingCompositionInitializeRequest,
+    WorkingHistoryDetail,
+    WorkingHistoryMutationRequest,
     WorkingMutationRequest,
     WorkingPreviewCreateRequest,
     WorkingPreviewCreateResult,
@@ -81,6 +83,89 @@ IdempotencyKeyHeader = Annotated[
         description="WorkingComposition mutation을 구분하는 opaque key",
     ),
 ]
+
+
+@router.get(
+    "/history",
+    response_model=SuccessResponse[WorkingHistoryDetail],
+    operation_id="get_working_composition_history",
+)
+def get_working_composition_history(
+    project_id: UUID,
+    working_composition_id: UUID,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+) -> SuccessResponse[WorkingHistoryDetail]:
+    try:
+        state = service.get_history_state(
+            project_id,
+            working_composition_id=working_composition_id,
+            effective_owner_id=effective_owner_id,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(request, WorkingHistoryDetail(**state))
+
+
+def _history_mutation(
+    project_id: UUID,
+    payload: WorkingHistoryMutationRequest,
+    request: Request,
+    service: WorkingCompositionService,
+    owner_id: UUID,
+    key: str,
+    *,
+    redo: bool,
+):
+    try:
+        operation = service.redo_history if redo else service.undo_history
+        result = operation(
+            project_id,
+            working_composition_id=payload.working_composition_id,
+            expected_revision=payload.expected_revision,
+            effective_owner_id=owner_id,
+            idempotency_key=key,
+        )
+    except Exception as exc:
+        raise map_working_composition_error(exc) from exc
+    return _success(request, _clip_result(result))
+
+
+@router.post(
+    "/history/undo",
+    response_model=SuccessResponse[ClipMutationResult],
+    operation_id="undo_working_composition_history",
+)
+def undo_working_composition_history(
+    project_id: UUID,
+    payload: WorkingHistoryMutationRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[ClipMutationResult]:
+    return _history_mutation(
+        project_id, payload, request, service, effective_owner_id, idempotency_key, redo=False
+    )
+
+
+@router.post(
+    "/history/redo",
+    response_model=SuccessResponse[ClipMutationResult],
+    operation_id="redo_working_composition_history",
+)
+def redo_working_composition_history(
+    project_id: UUID,
+    payload: WorkingHistoryMutationRequest,
+    request: Request,
+    service: WorkingCompositionServiceDependency,
+    effective_owner_id: EffectiveOwnerDependency,
+    idempotency_key: IdempotencyKeyHeader,
+) -> SuccessResponse[ClipMutationResult]:
+    return _history_mutation(
+        project_id, payload, request, service, effective_owner_id, idempotency_key, redo=True
+    )
 
 
 @router.post(

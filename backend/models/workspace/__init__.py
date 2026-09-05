@@ -26,6 +26,10 @@ from backend.models.workspace.composition import (
     SnapshotItem,
     WorkingComposition,
 )
+from backend.models.workspace.composition_history import (
+    WorkingCompositionHistoryEntry,
+    WorkingCompositionHistoryState,
+)
 from backend.models.workspace.enums import AssetType, JobStatus
 from backend.models.workspace.job import Job, JobInput, JobOutput, ModelUsage
 from backend.models.workspace.payload_locator import PayloadLocator
@@ -112,6 +116,8 @@ __all__ = [
     "SnapshotItem",
     "Tag",
     "WorkingComposition",
+    "WorkingCompositionHistoryEntry",
+    "WorkingCompositionHistoryState",
     "WorkingPreviewAsset",
     "WorkingPreviewRender",
     "WorkingPreviewRenderClip",
