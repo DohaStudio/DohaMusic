@@ -33,11 +33,11 @@ flowchart LR
 
 현재 Pipeline은 로컬 Adapter와 Mock 중심의 Compatibility Workflow다. Workspace AssetVersion·Artifact·CompositionSnapshot·Job 기반과 일부 Resource API가 별도로 구현되어 있으나 기존 Pipeline 전체의 source of truth를 대체하지 않았다. 외부 DohaAudio·DohaVocal 실제 transport와 DohaLM 제품 통합도 미구현이다.
 
-현재 Frontend는 생성 Wizard와 결과 탐색, Project별 Composition read projection, WorkingComposition Track/Clip editing·explicit Clip Copy·memory Undo/Redo, Working Preview와 Composition Commit integration을 제공한다. ready 화면은 단일 Global Player 권위의 committed Timeline·Master/Mix Waveform과 별도로 canonical working Track/Clip, exact source-window Waveform과 revision-pinned rendered Preview를 표시한다. 다중 Track Mixer, AI 후보 선택과 Composition QA 화면은 없다.
+현재 Frontend는 생성 Wizard와 결과 탐색, Project별 Composition read projection, WorkingComposition Track/Clip editing·explicit Clip Copy·Backend persistent Undo/Redo, Working Preview와 Composition Commit integration을 제공한다. ready 화면은 단일 Global Player 권위의 committed Timeline·Master/Mix Waveform과 별도로 canonical working Track/Clip, exact source-window Waveform과 revision-pinned rendered Preview를 표시한다. 다중 Track Mixer, AI 후보 선택과 Composition QA 화면은 없다.
 
 D1-A Backend read path인 `Project Composition aggregate → CompositionService → Workspace Repository → Workspace DB`를 구현했다. D1-Transition은 기존 persistence에 project-level selected Snapshot authority가 없음을 확인하고 `NO_PREEXISTING_SELECTION_AUTHORITY`로 고정했다. Bootstrap Service transaction에서 active Workspace의 Project·Snapshot·selection을 단일 batch로 검사하지만 selection row를 생성하거나 바꾸지 않는다. Legacy Runtime은 migration input이지 aggregate fallback authority가 아니며 GET은 bootstrap·backfill·selection 변경을 수행하지 않는다. Project의 explicit selected Snapshot을 current로 사용하고, SnapshotItem 기반 Track projection과 Section 비가용 상태를 [ADR-035](../11-decisions/ADR-035-d1-composition-read-authority.md)에 따라 분리한다. D1-B Frontend는 이 aggregate와 selection PATCH를 Project 상세에서 소비하며, 실제 사용자 DB 전환은 여전히 별도 승인 TARGET이다.
 
-[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 mutable WorkingComposition과 canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 설계했다. ADR-045·047·050·052·053·054·055 authority와 schema·Repository·trusted duration·idempotency foundation, [atomic mutation Service](working-composition-service.md), 23개 Product operation, Frontend Track/Clip editing·explicit Clip Copy·memory Undo/Redo, exact source-window Waveform, Working Preview 및 Composition Commit Backend/Frontend integration과 Clip Gain/Fade/Loop를 구현했다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
+[ADR-040](../11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)은 mutable WorkingComposition과 canonical Track·Clip, exact AssetVersion과 불변 Snapshot commit 경계를 설계했다. ADR-045·047·050·052·053·054·055·056 authority와 schema·Repository·trusted duration·idempotency foundation, [atomic mutation Service](working-composition-service.md), Frontend Track/Clip editing·explicit Clip Copy·Backend persistent Undo/Redo, exact source-window Waveform, Working Preview 및 Composition Commit Backend/Frontend integration과 Clip Gain/Fade/Loop를 구현했다. D1 snapshot-local projection은 계속 canonical Track이 아니다.
 
 ## 3. TARGET — 제품 Runtime
 
@@ -200,7 +200,7 @@ flowchart LR
 
 | 영역 | 현재 Gap |
 |---|---|
-| Composition edit model | ADR-040·ADR-050·ADR-052·ADR-053·ADR-054·ADR-055와 9개 persistence table·Service·23개 Product operation, Frontend explicit Clip Copy UI·memory Undo/Redo·Working Preview·Composition Commit 및 Clip Gain/Fade/Loop Backend/Frontend integration 구현 |
+| Composition edit model | ADR-040·ADR-050·ADR-052·ADR-053·ADR-054·ADR-055·ADR-056와 persistent history journal/cursor, Frontend explicit Clip Copy UI·Backend Undo/Redo·Working Preview·Composition Commit 및 Clip Gain/Fade/Loop Backend/Frontend integration 구현 |
 | Provider orchestration | 외부 DohaLM·DohaAudio·DohaVocal 실제 transport 미구현 |
 | Candidate workflow | 다중 후보 저장·비교·선택·commit 미구현 |
 | Composition QA | CompositionEvaluationRun, 통합 Report, RevisionPlan 실행 미구현 |
@@ -213,7 +213,7 @@ flowchart LR
 
 구현 전에 별도 ADR 또는 versioned 계약 검토가 필요한 항목이다.
 
-- canonical Section identity와 편집 표현. canonical Track·Clip·WorkingComposition Backend, basic Timeline UI·memory Undo/Redo, Track/Clip Waveform, Working Preview와 Composition Commit Backend/Frontend integration은 구현했다.
+- canonical Section identity와 편집 표현. canonical Track·Clip·WorkingComposition Backend, basic Timeline UI·Backend persistent Undo/Redo, Track/Clip Waveform, Working Preview와 Composition Commit Backend/Frontend integration은 구현했다.
 - `CompositionEvaluationRun`의 제품 수명주기·저장·API 및 Common Contract 승격 필요성
 - QA issue의 Track·Section·time range deep-link 형식
 - `MusicIntent.target`에서 실제로 부족함이 입증될 때의 `clip_id`, `bar_range`, `beat_range` 최소 확장

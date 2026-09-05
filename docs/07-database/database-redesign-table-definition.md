@@ -322,6 +322,8 @@ additive revision `20260903_0026`은 같은 세 table에 non-null integer Fade c
 
 additive revision `20260905_0027`은 같은 세 table에 canonical timeline duration, Loop enable과 phase를 추가하고 기존 row를 source span, loop false, phase 0으로 deterministic backfill한다. Fade CHECK authority는 timeline duration으로 교체하며 table 수는 48개로 유지되고 실제 사용자 DB에는 적용하지 않았다.
 
+additive revision `20260905_0028`은 `working_composition_history_states`와 `working_composition_history_entries`를 추가해 persisted cursor와 immutable before/after command journal을 저장한다. source metadata는 50개 table이며 실제 사용자 DB에는 적용하지 않았다.
+
 ### 4.9 `processing_chains`
 
 ProcessingChain은 순서가 있는 처리 정의입니다.

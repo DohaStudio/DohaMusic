@@ -135,7 +135,7 @@ K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency, PayloadLocator, Working Preview와 Clip Gain·Fade·Loop Backend Foundation을 구현해 source metadata는 48개 Table·Alembic `20260905_0027`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency, PayloadLocator, Working Preview와 Clip Gain·Fade·Loop·persistent history Backend Foundation을 구현해 source metadata는 50개 Table·Alembic `20260905_0028`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 
@@ -326,7 +326,7 @@ Revision-safe Idempotency Foundation [완료]
   ↓
 WorkingComposition Service + Product API [완료]
   ↓
-Frontend Clip Editing + memory Undo/Redo [완료]
+Frontend Clip Editing [완료]
   ↓
 AssetVersion-safe media source Backend [완료]
   ↓
@@ -354,7 +354,11 @@ Loop Frontend Integration [완료]
 
 Loop History Phase Restore Authority [완료]
 
-Persistent History Authority / Foundation [다음]
+Persistent History Authority / Foundation [완료]
+
+Persistent History Frontend Integration [완료]
+
+Multi-user 동시 편집 recovery [다음]
 ```
 
-이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 WorkingComposition persistence·Service·Product API·safe media resolution·Preview·Clip Gain/Fade Backend/Frontend 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0026` 적용을 뜻하지 않는다.
+이 순서는 기존 Phase·품질 평가·Provider 분리 Track을 취소하지 않는다. D1-B와 WorkingComposition persistence·Service·Product API·safe media resolution·Preview·Clip Gain/Fade/Loop·persistent history Backend/Frontend 완료는 source·격리 fixture 기준이며 실제 사용자 DB `0017 → 0028` 적용을 뜻하지 않는다.

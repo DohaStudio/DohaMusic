@@ -44,11 +44,11 @@ DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic�
 
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
 2. D1·D2 `[완료]`: Composition Read의 Workspace 권위와 Project 상세 연결, 읽기 전용 Timeline·Track lane·단일 Mix playback·실제 media duration·Playhead·Master/Mix Waveform·seek·scroll·zoom·keyboard 기반을 완료했다. 실제 DB 승인은 별도 유지한다.
-3. D3 `[진행 중]`: ADR-040·045·047·050·052·053·054의 WorkingComposition/Preview/Clip Gain·Fade authority, 9개 persistence table, atomic mutation Service와 22개 Product operation, Frontend Track/Clip editing·explicit Clip Copy·memory Undo/Redo, exact AssetVersion-safe media source·Clip별 source-window Waveform, Working Preview·Composition Commit과 Clip Gain/Fade Backend/Frontend integration을 구현했다. Loop·persistent history·multi-user recovery는 남아 있으며 D4 Mixer·독립 Export는 `[계획]`이다.
+3. D3 `[진행 중]`: ADR-040·045·047·050·052·053·054·055·056의 WorkingComposition/Preview/Clip Gain·Fade·Loop와 persistent history authority, atomic mutation Service, Frontend Track/Clip editing·explicit Clip Copy·Backend journal/cursor Undo/Redo, exact AssetVersion-safe media source·Clip별 source-window Waveform, Working Preview·Composition Commit을 구현했다. multi-user recovery는 남아 있으며 D4 Mixer·독립 Export는 `[계획]`이다.
 4. D5~D7 `[계획]`: AI Music Director·Candidate A/B, Reference Panel, Composition Evaluation/QA를 연결한다.
 5. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
 
-Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition atomic mutation Service·22개 Product operation을 구현했다. Frontend는 exact AssetVersion Clip create와 explicit destination Copy, Track/Clip mutation, response revision 기반 reconcile, same-ID restore·unsplit/resplit memory Undo/Redo, Clip별 `[source_in, source_out)` Waveform, Working Preview·Composition Commit과 selected Clip Gain·Fade control을 소비한다. Gain drag는 숫자만 local preview하고 Fade는 최대 소수 6자리 exact seconds를 validation한 뒤 commit boundary에서 absolute mutation을 보내며 waveform/audio를 임의 변경하지 않는다. Backend는 exact AssetVersion lineage·canonical geometry·Clip Gain·Fade를 immutable Snapshot과 revision-pinned Working Preview manifest에 고정하고 Preview renderer에 static dB Gain 뒤 linear-amplitude Fade를 적용한다. Provider·Training·Dataset·GPU·Common Contract는 변경하지 않았고 Loop·persistent history·multi-user recovery·Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
+Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition atomic mutation Service를 구현했다. Frontend는 exact AssetVersion Clip create와 explicit destination Copy, Track/Clip mutation, response revision 기반 reconcile, Backend persistent history projection과 undo/redo intent, Clip별 `[source_in, source_out)` Waveform, Working Preview·Composition Commit과 selected Clip Gain·Fade·Loop control을 소비한다. Gain drag는 숫자만 local preview하고 Fade와 Loop는 canonical 값을 validation한 뒤 absolute mutation을 보내며 waveform/audio를 임의 변경하지 않는다. Backend는 exact AssetVersion lineage·canonical geometry·Clip Gain·Fade·Loop를 immutable Snapshot과 revision-pinned Working Preview manifest에 고정한다. Provider·Training·Dataset·GPU·Common Contract는 변경하지 않았고 multi-user recovery·Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
 
 > 문서 상태: [운영 중]
 > 최종 수정일: 2026-09-03
@@ -84,7 +84,7 @@ Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition ato
 
 ## 현재 우선 작업
 
-**최우선 NEXT:** ADR-055의 Loop Backend Foundation, Loop History Phase Restore Authority와 Frontend Integration을 완료했다. 다음 단일 D3 gate는 Persistent History Authority / Foundation이다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다. 실제 사용자 DB `0017 → 0027` 전환은 별도 승인 Gate로 유지하며, Workspace Job background daemon activation은 별도 Track이다.
+**최우선 NEXT:** Persistent History Authority / Foundation과 Frontend Integration까지 완료했다. 다음 단일 D3 gate는 multi-user 동시 편집 recovery다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다. 실제 사용자 DB `0017 → 0028` 전환은 별도 승인 Gate로 유지하며, Workspace Job background daemon activation은 별도 Track이다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.
