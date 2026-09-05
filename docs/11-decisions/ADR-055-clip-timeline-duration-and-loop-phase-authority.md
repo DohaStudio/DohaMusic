@@ -6,6 +6,8 @@
 > 관련 기능: AI-native DAW D3 Clip Loop geometry foundation
 > 관련 문서: [ADR-040](ADR-040-canonical-track-clip-working-composition-authority.md), [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md), [ADR-052](ADR-052-working-composition-preview-render-authority.md), [ADR-053](ADR-053-clip-gain-authority.md), [ADR-054](ADR-054-clip-fade-authority.md)
 
+Frontend consumer는 canonical `timeline_duration`, `loop_enabled`, `loop_phase`를 모두 읽지만 phase를 표시하거나 계산하지 않는다. 일반 Loop mutation은 enabled와 duration만 보내며, memory Undo/Redo만 absolute before/after phase를 전용 restore endpoint로 전송한다. Clip timeline width와 Fade validation은 source span이 아니라 canonical timeline duration을 따른다.
+
 ## Context
 
 현재 Clip은 `timeline_start`, `source_in`, `source_out`, `source_duration`을 저장하며 `source_out - source_in`을 timeline duration으로도 사용한다. 이 결합으로 2초 source window를 7초 timeline에 반복하는 상태와 split/trim 뒤의 source phase를 표현할 수 없다.

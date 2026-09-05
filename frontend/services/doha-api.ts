@@ -273,6 +273,10 @@ export const dohaApi = {
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/gain`, mutationInit("PATCH", body, idempotencyKey)),
   updateWorkingClipFade: (projectId: string, clipId: string, body: WorkingBase & { fade_in: number; fade_out: number }, idempotencyKey: string) =>
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/fade`, mutationInit("PATCH", body, idempotencyKey)),
+  updateWorkingClipLoop: (projectId: string, clipId: string, body: WorkingBase & { loop_enabled: boolean; timeline_duration: number }, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/loop`, mutationInit("PATCH", body, idempotencyKey)),
+  restoreWorkingClipLoop: (projectId: string, clipId: string, body: WorkingBase & { loop_enabled: boolean; timeline_duration: number; loop_phase: number }, idempotencyKey: string) =>
+    workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/loop/restore`, mutationInit("POST", body, idempotencyKey)),
   trimWorkingClipStart: (projectId: string, clipId: string, body: WorkingBase & { timeline_start: string; source_in: string }) =>
     workspaceData<WorkingClipResultDto>(`${workingPath(projectId)}/clips/${encodeURIComponent(clipId)}/trim-start`, mutationInit("PATCH", body)),
   trimWorkingClipEnd: (projectId: string, clipId: string, body: WorkingBase & { source_out: string }) =>

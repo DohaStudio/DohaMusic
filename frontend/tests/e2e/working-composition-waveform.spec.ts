@@ -26,6 +26,9 @@ type Clip = {
   source_in: string;
   source_out: string;
   source_duration: string;
+  timeline_duration: string;
+  loop_enabled: boolean;
+  loop_phase: string;
   gain_db: string;
   fade_in: string;
   fade_out: string;
@@ -118,21 +121,25 @@ class WaveformBackend {
       const current = this.requiredClip(clipId);
       current.timeline_start = decimal(body.timeline_start);
       current.source_in = decimal(body.source_in);
+      current.timeline_duration = decimal(Number(current.source_out) - Number(current.source_in));
       return this.mutated(route, { clip_id: clipId });
     }
     if (operation === "trim-end" && method === "PATCH") {
-      this.requiredClip(clipId).source_out = decimal(body.source_out);
+      const current = this.requiredClip(clipId);
+      current.source_out = decimal(body.source_out);
+      current.timeline_duration = decimal(Number(current.source_out) - Number(current.source_in));
       return this.mutated(route, { clip_id: clipId });
     }
     if (operation === "split" && method === "POST") {
       const original = { ...this.requiredClip(clipId) };
       const splitAt = Number(body.split_at);
-      const left = { ...original, clip_id: IDS.left, source_out: decimal(splitAt), split_from_clip_id: original.clip_id };
+      const left = { ...original, clip_id: IDS.left, source_out: decimal(splitAt), timeline_duration: decimal(splitAt - Number(original.source_in)), split_from_clip_id: original.clip_id };
       const right = {
         ...original,
         clip_id: IDS.right,
         timeline_start: decimal(Number(original.timeline_start) + splitAt - Number(original.source_in)),
         source_in: decimal(splitAt),
+        timeline_duration: decimal(Number(original.source_out) - splitAt),
         split_from_clip_id: original.clip_id,
       };
       this.clips = this.clips.filter((item) => item.clip_id !== clipId).concat(left, right);
@@ -396,6 +403,9 @@ function clip(id: string, timelineStart: string, sourceIn: string, sourceOut: st
     source_in: sourceIn,
     source_out: sourceOut,
     source_duration: "8.000",
+    timeline_duration: decimal(Number(sourceOut) - Number(sourceIn)),
+    loop_enabled: false,
+    loop_phase: "0",
     gain_db: "0.00",
     fade_in: "0",
     fade_out: "0",

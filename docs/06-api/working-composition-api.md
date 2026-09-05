@@ -48,7 +48,7 @@ Clip Loop body는 `working_composition_id`, `expected_revision`, boolean `loop_e
 
 Loop history restore body는 `working_composition_id`, `expected_revision`, `loop_enabled`, `timeline_duration`, `loop_phase`의 전체 canonical state를 받는다. 이는 일반 UI value mutation이 아니라 Frontend-owned Undo/Redo command 전용 authority다. Disabled restore는 `D=W, P=0`, enabled restore는 `D>0, 0<=P<W`만 허용하며 phase를 포함한 fingerprint, revision CAS, typed completion과 same-key replay를 적용한다. Backend command stack과 DB schema는 추가하지 않는다.
 
-Frontend selected Clip inspector는 aggregate의 canonical Fade를 초 단위 exact numeric input으로 표시한다. local validation은 음수·비수치·6자리 초과·duration invariant 위반을 mutation 전에 안내하되 Backend 422를 최종 authority로 유지한다. 승인된 blur/Enter commit에서만 두 absolute 값을 중앙 client로 전송하고, same-key response-loss retry와 absolute memory Undo/Redo를 기존 Gain history·Preview stale·Commit/Checkout barrier에 통합한다. Frontend는 Fade DSP, Preview 자동 생성 또는 Waveform source 변형을 수행하지 않는다.
+Frontend selected Clip inspector는 canonical Fade와 Loop를 표시한다. Loop duration은 enabled일 때만 편집하며 typing은 mutation 0, blur/Enter는 valid mutation 1, Escape는 canonical draft 복원이다. Disable은 exact source window `W`를 제출하고 normal request에는 phase를 넣지 않는다. Undo/Redo만 phase 포함 전용 restore를 사용한다. Backend 422가 최종 authority이며 Frontend는 clamp, phase 계산, Fade/Loop DSP, Preview 자동 생성 또는 Waveform source 변형을 수행하지 않는다.
 
 ## Composition Commit
 

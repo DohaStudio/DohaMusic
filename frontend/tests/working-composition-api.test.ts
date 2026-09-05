@@ -144,6 +144,21 @@ describe("WorkingComposition API client", () => {
     expect(headersAt(fetchMock, 0).get("Idempotency-Key")).toBe("fade-key");
   });
 
+  it("Clip Loop normal PATCH와 history restore POST가 분리된 absolute contract를 사용한다", async () => {
+    const fetchMock = mockResponses(clipResult(), clipResult());
+    const base = { working_composition_id: "working-1", expected_revision: 7 };
+    await dohaApi.updateWorkingClipLoop("project/1", "clip/1", { ...base, loop_enabled: true, timeline_duration: 2.5 }, "loop-key");
+    await dohaApi.restoreWorkingClipLoop("project/1", "clip/1", { ...base, loop_enabled: true, timeline_duration: 2.5, loop_phase: 0.75 }, "restore-key");
+    expect(fetchMock.mock.calls[0][0]).toBe("/backend/api/v1/projects/project%2F1/working-composition/clips/clip%2F1/loop");
+    expect(fetchMock.mock.calls[0][1].method).toBe("PATCH");
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ ...base, loop_enabled: true, timeline_duration: 2.5 });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).not.toHaveProperty("loop_phase");
+    expect(headersAt(fetchMock, 0).get("Idempotency-Key")).toBe("loop-key");
+    expect(fetchMock.mock.calls[1][0]).toBe("/backend/api/v1/projects/project%2F1/working-composition/clips/clip%2F1/loop/restore");
+    expect(fetchMock.mock.calls[1][1].method).toBe("POST");
+    expect(JSON.parse(fetchMock.mock.calls[1][1].body)).toEqual({ ...base, loop_enabled: true, timeline_duration: 2.5, loop_phase: 0.75 });
+  });
+
   it("checkout/unsplit/resplit이 history identity와 새 key를 전달한다", async () => {
     const fetchMock = mockResponses(checkout(), split(), split());
     const base = { working_composition_id: "working-1", expected_revision: 10 };

@@ -224,6 +224,32 @@ describe("WorkingComposition memory command history", () => {
     expect(history.undoStack).toEqual([fadeA, gain, fadeB]);
   });
 
+  it("Clip Loop Undo/Redo는 phase를 포함한 canonical absolute state를 restore한다", async () => {
+    const restore = vi.spyOn(dohaApi, "restoreWorkingClipLoop")
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 8, replayed: false })
+      .mockResolvedValueOnce({ clip_id: "clip-1", completed_revision: 9, replayed: false });
+    const command = {
+      type: "CLIP_LOOP" as const, clipId: "clip-1",
+      before: { enabled: true, timelineDuration: "3.5", phase: "0.75" },
+      after: { enabled: false, timelineDuration: "2", phase: "0" },
+    };
+    await executeWorkingCommand(command, "undo", context(7));
+    await executeWorkingCommand(command, "redo", context(8));
+    expect(restore.mock.calls.map((call) => call[2])).toEqual([
+      { working_composition_id: "working-1", expected_revision: 7, loop_enabled: true, timeline_duration: 3.5, loop_phase: 0.75 },
+      { working_composition_id: "working-1", expected_revision: 8, loop_enabled: false, timeline_duration: 2, loop_phase: 0 },
+    ]);
+    expect(restore.mock.calls[0][3]).not.toBe(restore.mock.calls[1][3]);
+  });
+
+  it("Gain/Fade/Loop는 하나의 strict LIFO stack을 유지한다", () => {
+    const history = new MemoryCommandHistory();
+    history.push({ type: "CLIP_GAIN", clipId: "clip-1", beforeGainDb: "0", afterGainDb: "1" });
+    history.push({ type: "CLIP_FADE", clipId: "clip-1", before: { fadeIn: "0", fadeOut: "0" }, after: { fadeIn: "1", fadeOut: "0" } });
+    history.push({ type: "CLIP_LOOP", clipId: "clip-1", before: { enabled: false, timelineDuration: "2", phase: "0" }, after: { enabled: true, timelineDuration: "5", phase: "0" } });
+    expect(history.undoStack.map((item) => item.type)).toEqual(["CLIP_GAIN", "CLIP_FADE", "CLIP_LOOP"]);
+  });
+
   it("split undo/redo가 exact original/left/right ID로 unsplit/resplit한다", async () => {
     const unsplit = vi.spyOn(dohaApi, "unsplitWorkingClip").mockResolvedValue(splitResult(8));
     const resplit = vi.spyOn(dohaApi, "resplitWorkingClip").mockResolvedValue(splitResult(9));

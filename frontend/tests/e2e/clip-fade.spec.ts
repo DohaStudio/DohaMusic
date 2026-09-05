@@ -15,7 +15,8 @@ class FadeBackend {
   clip = {
     clip_id: clipId, track_id: trackId, source_asset_version_id: versionId,
     timeline_start: "0.000", source_in: "0.000", source_out: "8.000",
-    source_duration: "8.000", gain_db: "0.00", fade_in: "0.125", fade_out: "0.25",
+    source_duration: "8.000", timeline_duration: "8.000", loop_enabled: false, loop_phase: "0",
+    gain_db: "0.00", fade_in: "0.125", fade_out: "0.25",
     split_from_clip_id: null as string | null,
   };
   committedClip = { ...this.clip };

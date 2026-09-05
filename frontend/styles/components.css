@@ -907,3 +907,20 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 .working-clip-fade small { grid-column: 1 / -1; color: var(--text-muted); }
 .working-clip-fade .field-error,
 .working-fade-error { color: #ffb0aa; }
+.working-clip-loop {
+  min-width: min(100%, 38rem);
+  display: grid;
+  grid-template-columns: auto auto auto minmax(7rem, 10rem) minmax(5rem, auto);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-muted);
+}
+.working-clip-loop legend { padding: 0 0.35rem; font-weight: 800; }
+.working-clip-loop label { font-size: 0.76rem; font-weight: 700; }
+.working-clip-loop output { min-width: 5rem; font: 800 0.82rem/1 ui-monospace, monospace; }
+.working-clip-loop small { grid-column: 1 / -1; color: var(--text-muted); }
+.working-clip-loop .field-error,
+.working-loop-error { color: #ffb0aa; }

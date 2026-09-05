@@ -281,7 +281,8 @@ function sourceClip() {
   return {
     clip_id: sourceClipId, track_id: sourceTrackId, source_asset_version_id: versionId,
     timeline_start: "0.000", source_in: "0.000", source_out: "2.000",
-    source_duration: "2.000", gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null as string | null,
+    source_duration: "2.000", timeline_duration: "2.000", loop_enabled: false, loop_phase: "0",
+    gain_db: "0.00", fade_in: "0", fade_out: "0", split_from_clip_id: null as string | null,
   };
 }
 

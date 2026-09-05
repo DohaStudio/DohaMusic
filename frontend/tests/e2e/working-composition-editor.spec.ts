@@ -26,6 +26,9 @@ type Clip = {
   source_in: string;
   source_out: string;
   source_duration: string;
+  timeline_duration: string;
+  loop_enabled: boolean;
+  loop_phase: string;
   gain_db: string;
   fade_in: string;
   fade_out: string;
@@ -187,6 +190,9 @@ class StatefulWorkingBackend {
         source_in: decimal(body.source_in),
         source_out: decimal(body.source_out),
         source_duration: "30.000",
+        timeline_duration: decimal(Number(body.source_out) - Number(body.source_in)),
+        loop_enabled: false,
+        loop_phase: "0",
         gain_db: "0.00",
         fade_in: "0",
         fade_out: "0",
@@ -210,21 +216,25 @@ class StatefulWorkingBackend {
         const clip = this.requiredClip(clipId);
         clip.timeline_start = decimal(body.timeline_start);
         clip.source_in = decimal(body.source_in);
+        clip.timeline_duration = decimal(Number(clip.source_out) - Number(clip.source_in));
         return this.mutated(route, idempotencyKey, { clip_id: clipId });
       }
       if (operation === "trim-end" && method === "PATCH") {
-        this.requiredClip(clipId).source_out = decimal(body.source_out);
+        const clip = this.requiredClip(clipId);
+        clip.source_out = decimal(body.source_out);
+        clip.timeline_duration = decimal(Number(clip.source_out) - Number(clip.source_in));
         return this.mutated(route, idempotencyKey, { clip_id: clipId });
       }
       if (operation === "split" && method === "POST") {
         const original = { ...this.requiredClip(clipId) };
         const splitAt = Number(body.split_at);
-        const left: Clip = { ...original, clip_id: IDS.left, source_out: decimal(splitAt), split_from_clip_id: original.clip_id };
+        const left: Clip = { ...original, clip_id: IDS.left, source_out: decimal(splitAt), timeline_duration: decimal(splitAt - Number(original.source_in)), split_from_clip_id: original.clip_id };
         const right: Clip = {
           ...original,
           clip_id: IDS.right,
           timeline_start: decimal(Number(original.timeline_start) + splitAt - Number(original.source_in)),
           source_in: decimal(splitAt),
+          timeline_duration: decimal(Number(original.source_out) - splitAt),
           split_from_clip_id: original.clip_id,
         };
         this.clips = this.clips.filter((clip) => clip.clip_id !== clipId);
