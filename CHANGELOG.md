@@ -15,6 +15,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 - ADR-055에서 Clip source window와 timeline duration을 분리하고 loop phase를 canonical microseconds로 저장하는 Split·Trim·Fade·Preview·Snapshot·migration architecture를 확정했다.
 
+### 수정 — Loop History Phase Restore Authority
+
+- Loop가 켜진 Clip의 duration 변경은 Split·Trim이 만든 canonical nonzero phase를 보존하도록 수정했다. Off→On은 phase 0, On→Off는 `D=W, P=0` 계약을 유지한다.
+- Frontend-owned Undo/Redo가 disable 이전의 nonzero phase를 exact 복원할 수 있도록 revision-safe 전용 Loop history restore operation과 phase 포함 idempotency fingerprint를 추가했다. 일반 Loop mutation에는 phase 입력을 노출하지 않았고 DB schema·migration·Frontend production code는 변경하지 않았다.
+
 ### 수정 — Project·DAW Navigation 분리
 
 - Desktop·Mobile AppShell에서 일반 `프로젝트` 관리(`/projects`)와 `DAW 편집` 진입(`/projects?mode=daw`)을 별도 navigation entry로 분리하고 query·nested Project에 따른 단일 `aria-current` 규칙을 적용했다.

@@ -104,6 +104,10 @@ class ClipLoopUpdateRequest(WorkingMutationRequest):
     timeline_duration: Decimal = Field(gt=0)
 
 
+class ClipLoopRestoreRequest(ClipLoopUpdateRequest):
+    loop_phase: Decimal = Field(ge=0)
+
+
 class ClipTrimStartRequest(WorkingMutationRequest):
     timeline_start: Decimal = Field(ge=0)
     source_in: Decimal = Field(ge=0)

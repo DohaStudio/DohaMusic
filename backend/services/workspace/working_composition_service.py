@@ -922,7 +922,8 @@ class WorkingCompositionService:
                 raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP)
             clip.loop_enabled = loop_enabled
             clip.timeline_duration = duration_us
-            clip.loop_phase = 0
+            if not loop_enabled or not clip.loop_enabled:
+                clip.loop_phase = 0
             repository.flush()
             return clip.clip_id
 
@@ -932,6 +933,79 @@ class WorkingCompositionService:
             operation=operation,
             target_identity=clip_id,
             body={"loop_enabled": loop_enabled, "timeline_duration_us": duration_us},
+            mutate=mutate,
+            payload=lambda identity: {"clip_id": identity},
+            resource_type="composition_clip",
+            resource_id=lambda identity: identity,
+            response_status=200,
+        )
+
+    def restore_clip_loop_state(
+        self,
+        project_id: UUID,
+        *,
+        working_composition_id: UUID,
+        clip_id: UUID,
+        loop_enabled: bool,
+        timeline_duration: object,
+        loop_phase: object,
+        expected_revision: int,
+        effective_owner_id: UUID,
+        idempotency_key: str,
+    ) -> WorkingMutationResult:
+        """Restore one canonical Loop state for Frontend-owned Undo/Redo history."""
+
+        normalized = self._normalize_mutation(
+            project_id=project_id,
+            working_composition_id=working_composition_id,
+            expected_revision=expected_revision,
+            effective_owner_id=effective_owner_id,
+        )
+        _validate_uuid(clip_id, "clip_id")
+        duration_us = _seconds_to_microseconds(timeline_duration, "timeline_duration")
+        phase_us = _seconds_to_microseconds(loop_phase, "loop_phase")
+        operation = IdempotencyResultType.CLIP_LOOP_RESTORE
+
+        def mutate(
+            repository: CompositionRepository, _session: Session, working: WorkingComposition
+        ) -> UUID:
+            clip = self._require_clip(repository, working, clip_id)
+            window = clip.source_out - clip.source_in
+            valid_geometry = (loop_enabled and 0 <= phase_us < window) or (
+                not loop_enabled and duration_us == window and phase_us == 0
+            )
+            if duration_us <= 0 or not valid_geometry:
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.CLIP_LOOP_GEOMETRY_INVALID
+                )
+            _validate_clip_fade(
+                fade_in=clip.fade_in, fade_out=clip.fade_out, clip_duration=duration_us
+            )
+            end = clip.timeline_start + duration_us
+            if repository.active_clip_overlap_exists(
+                working_composition_id=working.working_composition_id,
+                track_id=clip.track_id,
+                timeline_start=clip.timeline_start,
+                timeline_end=end,
+                exclude_clip_id=clip.clip_id,
+            ):
+                raise WorkingCompositionError(WorkingCompositionErrorCode.CLIP_OVERLAP)
+            clip.loop_enabled = loop_enabled
+            clip.timeline_duration = duration_us
+            clip.loop_phase = phase_us
+            repository.flush()
+            return clip.clip_id
+
+        return self._run_idempotent_mutation(
+            **normalized,
+            idempotency_key=idempotency_key,
+            operation=operation,
+            target_identity=clip_id,
+            body={
+                "loop_enabled": loop_enabled,
+                "timeline_duration_us": duration_us,
+                "loop_phase_us": phase_us,
+            },
             mutate=mutate,
             payload=lambda identity: {"clip_id": identity},
             resource_type="composition_clip",

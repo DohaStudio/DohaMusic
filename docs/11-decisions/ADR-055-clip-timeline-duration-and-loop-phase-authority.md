@@ -117,7 +117,9 @@ additive migration `20260905_0027`은 `composition_clips`, `composition_snapshot
 
 ## API impact
 
-Loop mutation은 기존 expected revision CAS, Idempotency-Key, typed completion과 Service-owned transaction을 재사용한다. 최소 request는 absolute `loop_enabled`와 `timeline_duration`을 받는다. 외부 consumer가 phase를 임의 지정하지 않으며 phase는 create/enable에서 0, split/trim에서 위 수식으로만 생성한다. Disable caller는 `timeline_duration = W`를 명시적으로 제출해야 하며 다른 값은 `422 CLIP_LOOP_GEOMETRY_INVALID`로 side effect 없이 거부한다. Backend는 제출된 duration을 무시하거나 clamp하지 않고 request fingerprint에도 포함한다. 유효한 disable 결과의 phase는 0이다.
+일반 Loop mutation은 기존 expected revision CAS, Idempotency-Key, typed completion과 Service-owned transaction을 재사용한다. 최소 request는 absolute `loop_enabled`와 `timeline_duration`을 받는다. 외부 consumer가 일반 mutation에서 phase를 임의 지정하지 않는다. Loop off에서 enable하면 phase는 0이고, Loop on 상태의 duration update는 현재 canonical phase를 보존하며, disable 결과는 phase 0이다. Disable caller는 `timeline_duration = W`를 명시적으로 제출해야 하며 다른 값은 `422 CLIP_LOOP_GEOMETRY_INVALID`로 side effect 없이 거부한다. Backend는 제출된 duration을 무시하거나 clamp하지 않고 request fingerprint에도 포함한다.
+
+Frontend-owned Undo/Redo가 nonzero phase 상태를 exact 복원해야 할 때는 별도 history restore operation을 사용한다. 이 operation만 `loop_enabled`, `timeline_duration`, `loop_phase`의 전체 canonical state를 받고 phase까지 fingerprint에 포함한다. Loop off restore는 `D = W, P = 0`, Loop on restore는 `D > 0, 0 <= P < W`를 요구한다. 일반 Loop mutation의 phase 입력 금지와 Split·Trim phase equation은 유지된다. Restore도 같은 revision CAS, idempotency replay와 transaction authority를 사용하며 Backend command stack은 추가하지 않는다.
 
 필요한 새 오류는 입력/geometry용 `CLIP_LOOP_GEOMETRY_INVALID` 하나로 제한한다. 기존 revision, idempotency, source, overlap 및 `SPLIT_STRUCTURE_CONFLICT`를 재사용한다.
 
