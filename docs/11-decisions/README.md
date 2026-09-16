@@ -74,6 +74,9 @@
 | [ADR-068](ADR-068-canonical-multiformat-export-encoding.md) | Canonical WAV 기반 MP3/FLAC encoding authority | 승인 |
 | [ADR-069](ADR-069-ai-music-director-candidate-workflow.md) | AI Music Director Candidate workflow authority | 승인 |
 | [ADR-070](ADR-070-provider-execution-identity-and-response-loss-recovery.md) | Provider 실행 identity와 submit 응답 손실 복구 | 승인 |
+| [ADR-071](ADR-071-music-director-candidate-materialization-and-proposal-publication.md) | Candidate materialization과 proposal publication authority | 승인 |
+| [ADR-072](ADR-072-ai-music-director-provider-port-and-worker.md) | AI Music Director Provider Port와 Worker 경계 | 승인 |
+| [ADR-073](ADR-073-music-director-candidate-apply-authority.md) | Candidate APPLY atomic WorkingComposition mutation authority | 승인, 구현 대기 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

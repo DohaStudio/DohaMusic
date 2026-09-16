@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 - AI Music Director Candidate APPLY Authority
+
+- ADR-073에서 현재 selected Candidate만 적용하는 Owner/Project scope, Run·WorkingComposition 이중 CAS, 필수 Idempotency-Key와 response-loss replay 계약을 확정했다.
+- bounded proposal 전체를 하나의 Service-owned transaction과 aggregate persistent history entry로 적용하고 Undo/Redo 1회가 APPLY 전체를 exact 복원하도록 결정했다.
+- 기존 applied pointer/revision과 typed history JSON으로 authority를 표현할 수 있어 migration은 필요하지 않으며, Runtime API는 89 paths / 110 operations로 유지한다. Production APPLY 구현과 Frontend는 후속 작업이다.
+
 ### 추가 - AI Music Director Candidate와 Public API Foundation
 
 - immutable CompositionSnapshot을 입력으로 사용하는 provider-neutral Music Director Job, durable ProviderExecution identity, Mock Provider Worker와 1~4개 Candidate proposal materialization을 추가했다.
