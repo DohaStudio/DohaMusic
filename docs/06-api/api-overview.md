@@ -1,13 +1,13 @@
 # API 개요
 
 > 문서 목적: 구현된 REST API와 공통 계약을 정의한다.
-> 현재 상태: **Legacy Backend Foundation 구현 완료 / Workspace Job 계약·schema·Cursor·Service·Completion UoW·Worker execution foundation·공식 API 5/5 구현 / Provider dispatch wiring·background daemon 미구현**
+> 현재 상태: **Workspace Job 기반 / Music Director Candidate 생성·read·SELECT Public API 구현 / 실제 외부 Provider·Frontend·APPLY 미구현**
 
 기본 prefix는 `/api`다. 현재 인증과 사용자 소유권 검사는 구현하지 않았다. OpenAPI 문서는 서버 실행 후 `/docs`, 스키마는 `/openapi.json`에서 확인할 수 있다.
 
 ## 현재 Runtime API Surface
 
-`2026-09-06` 기준 실제 FastAPI application import와 OpenAPI 생성 결과는 Route 107개, APIRoute 103개, OpenAPI Path 82개, Operation 103개다. 공개 operation은 GET 40개, POST 39개, PATCH 13개, DELETE 9개, HEAD 2개이며 operation ID와 `(method, path)` 중복은 각각 0개다. 이 수치와 request/response 핵심 계약은 전역 API surface regression Gate가 검증한다. 상세 측정 방법과 fingerprint는 [API Surface 검증](../../reports/validation/VALIDATION-API-SURFACE.md)을 따른다.
+`2026-09-16` 기준 실제 FastAPI application import와 OpenAPI 생성 결과는 registered route 114개, APIRoute 110개, OpenAPI Path 89개, Operation 110개다. 공개 operation은 GET 42개, POST 42개, PATCH 15개, DELETE 9개, HEAD 2개이며 operation ID와 `(method, path)` 중복은 각각 0개다. fingerprint는 `07dd67c3a857a989eb91bf11283e3b1052876657a6e51a1f5f221977f56fd22e`다.
 
 ## Workspace v1 목표 계약 — [진행 중]
 
@@ -21,6 +21,7 @@ DohaStudio Common Specification과 Asset 중심 DB Redesign을 기준으로 `/ap
 - [D1 Composition Read Workspace 계약](composition-read-workspace.md)
 - [WorkingComposition·Working Preview Product API](working-composition-api.md)
 - [Persistent WorkingComposition History API](persistent-working-history-api.md)
+- [Music Director Public API](workspace-rest-api-endpoints.md#10-music-director-product-api--5개)
 - [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)
 - [Provider API 계약](provider-api-contract.md)
 - [API 전환 전략](api-contract-migration-strategy.md)

@@ -52,6 +52,7 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 | Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현; `/studio` 생성, `/projects` Project 관리, `/projects?mode=daw` DAW Project 선택과 `/projects/{id}` 편집 역할 구분 |
 | AI-native DAW Product Direction | [완료] | PR #94가 `develop`에 병합되어 CURRENT/TARGET/NOT IMPLEMENTED 기준 확정 |
 | Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration, Track/Clip editing·explicit Clip Copy·persistent Undo/Redo, exact AssetVersion-safe media source·Track/Clip Waveform 완료; multi-user conflict recovery 완료; Section·Mixer 미구현 |
+| AI Music Director | [부분 구현] | immutable Snapshot 기반 Job, Provider execution identity, Mock Worker, durable Candidate proposal materialization, Run/Candidate read와 CAS SELECT 구현; 실제 Provider·Frontend·APPLY 미구현 |
 | Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
 | Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
 
