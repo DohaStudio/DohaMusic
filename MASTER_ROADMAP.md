@@ -1,6 +1,6 @@
 # DohaMusic 마스터 로드맵
 
-> Provider 결과 경계 업데이트(2026-09-16): DohaVocal `0.2.0` payload consumer, 전용 PayloadLocator, verified durable local staging과 acquisition orchestration을 구현했습니다. Verified staged Artifact Completion 계약은 확정했고 production Completion/Worker wiring은 아직 미구현입니다.
+> Provider 결과 경계 업데이트(2026-09-17): DohaVocal `0.2.0` payload consumer, 전용 PayloadLocator, verified durable local staging, acquisition orchestration과 Verified Staged Artifact Completion Foundation을 구현했습니다. production Worker wiring과 rights adapter는 아직 미구현입니다.
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]

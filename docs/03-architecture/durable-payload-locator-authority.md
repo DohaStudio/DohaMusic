@@ -1,6 +1,6 @@
 # Durable Payload Locator Authority
 
-> 문서 상태: [승인: persistence·verified staging·acquisition 구현, Completion 계약 확정·미구현]
+> 문서 상태: [승인: persistence·verified staging·acquisition·Completion Foundation 구현] / [미구현: Worker wiring·production rights adapter]
 > 최종 수정일: 2026-09-16
 > 기준: DohaMusic develop `bdc141237d7c0fd407084ce1bccebfbd86d651a6`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 최종 판정: `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`
