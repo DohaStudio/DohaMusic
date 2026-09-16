@@ -110,7 +110,7 @@ class ExportDeliveryValidator:
         media_type, codec, format_name = _FORMAT_AUTHORITY[expected_format]
         if structural.media_type != media_type:
             raise ExportDeliveryValidationError(ExportDeliveryValidationErrorCode.FORMAT_MISMATCH)
-        probe = self._probe(path)
+        probe = self._probe(path, expected_format=expected_format)
         streams = probe.get("streams")
         if not isinstance(streams, list) or len(streams) != 1 or not isinstance(streams[0], dict):
             raise ExportDeliveryValidationError(ExportDeliveryValidationErrorCode.INVALID)
@@ -155,7 +155,7 @@ class ExportDeliveryValidator:
                 raise ExportDeliveryValidationError(
                     ExportDeliveryValidationErrorCode.DURATION_MISMATCH
                 )
-        decoded_frame_count = self._decode(path)
+        decoded_frame_count = self._decode(path, expected_format=expected_format)
         if expected_format is ExportDeliveryFormat.FLAC:
             expected_frame_count = round(expected_duration_us * sample_rate / 1_000_000)
             if decoded_frame_count != expected_frame_count:
@@ -173,7 +173,8 @@ class ExportDeliveryValidator:
             True,
         )
 
-    def _probe(self, path: Path) -> dict[str, object]:
+    def _probe(self, path: Path, *, expected_format: ExportDeliveryFormat) -> dict[str, object]:
+        input_format = ["-f", "wav"] if expected_format is ExportDeliveryFormat.WAV else []
         completed = _run(
             [
                 self._ffprobe,
@@ -184,6 +185,7 @@ class ExportDeliveryValidator:
                 "-count_frames",
                 "-of",
                 "json",
+                *input_format,
                 str(path),
             ],
             timeout=self._timeout,
@@ -197,8 +199,9 @@ class ExportDeliveryValidator:
             raise ExportDeliveryValidationError(ExportDeliveryValidationErrorCode.INVALID)
         return result
 
-    def _decode(self, path: Path) -> int:
+    def _decode(self, path: Path, *, expected_format: ExportDeliveryFormat) -> int:
         frame_size = EXPORT_CHANNELS * EXPORT_BIT_DEPTH // 8
+        input_format = ["-f", "wav"] if expected_format is ExportDeliveryFormat.WAV else []
         with tempfile.TemporaryFile() as decoded:
             _run(
                 [
@@ -206,6 +209,7 @@ class ExportDeliveryValidator:
                     "-v",
                     "error",
                     "-xerror",
+                    *input_format,
                     "-i",
                     str(path),
                     "-map",

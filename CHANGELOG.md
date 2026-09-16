@@ -19,6 +19,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Playwright retry와 worker override 없이 기존 설정을 사용하고, full-stack Export test runtime은
   GitHub runner temp 경로를 사용하는 cross-platform 격리 환경으로 정합화했다.
 
+### 수정 - FFmpeg WAV 입력 demuxer 호환성
+
+- Export encoder, delivery validator와 Working Preview renderer가 WAV 입력에 explicit demuxer를 지정하도록 수정해 현재 검증 환경의 automatic input detection 실패를 회피했다.
+- 패치 제거 시 재현된 Audio regression 4건을 복구해 focused Audio suite `36 passed, 0 failed`를 확인했다. 공개 API와 migration에는 변경이 없다.
+
 ### 추가 - Export Production Worker Runner
 
 - API가 생성한 queued Export Job을 Export-only claim/lease CAS로 발견해 canonical WAV

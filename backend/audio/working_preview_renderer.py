@@ -286,6 +286,8 @@ def _ffmpeg_command(
 ) -> list[str]:
     command = [executable, "-hide_banner", "-loglevel", "error", "-nostdin", "-y"]
     for path in inputs:
+        if _is_wave_file(path):
+            command.extend(["-f", "wav"])
         command.extend(["-i", str(path)])
     filters: list[str] = []
     track_labels: dict[int, list[str]] = {track.track_order: [] for track in tracks}
@@ -367,6 +369,12 @@ def _ffmpeg_command(
         ]
     )
     return command
+
+
+def _is_wave_file(path: Path) -> bool:
+    with path.open("rb") as stream:
+        header = stream.read(12)
+    return len(header) == 12 and header[:4] == b"RIFF" and header[8:] == b"WAVE"
 
 
 def _geometry(clip: PreviewRenderClip) -> tuple[int, bool, int]:
