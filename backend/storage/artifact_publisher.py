@@ -58,8 +58,8 @@ class PublishedLocalPayload:
     checksum: str
     media: ValidatedArtifactMedia
     file_identity: tuple[int, int]
-    source_path: Path
-    source_identity: tuple[int, int]
+    source_path: Path | None
+    source_identity: tuple[int, int] | None
 
 
 class PublicationOutcome(StrEnum):
@@ -190,6 +190,83 @@ class LocalArtifactPublisher:
                 file_identity=observed_final_identity,
                 source_path=source_path,
                 source_identity=source_identity,
+            )
+        except ArtifactMediaValidationError:
+            raise ArtifactPublishError(ArtifactPublishErrorCode.MEDIA_VALIDATION_FAILED) from None
+        except ArtifactPublishError:
+            if final_path is not None and final_identity is not None:
+                _unlink_if_identity_matches(final_path, final_identity)
+            raise
+        finally:
+            _unlink_if_identity_matches(pending_path, pending_identity)
+
+    def publish_stream(
+        self,
+        stream: BinaryIO,
+        *,
+        artifact_id: UUID,
+        artifact_kind: str,
+        storage_domain: str,
+        expected_media_type: str,
+        expected_sha256: str,
+        expected_size_bytes: int,
+    ) -> PublishedLocalPayload:
+        """Copy a verified stream into the normal immutable Artifact publisher."""
+
+        root = self.artifact_roots.roots[storage_domain]
+        pending_dir = _ensure_directory(root, root / ".ingestion")
+        pending_path = pending_dir / f"{artifact_id}.pending"
+        checksum, size_bytes, pending_identity = _copy_stream_exclusive(
+            stream,
+            pending_path,
+            expected_size_bytes=expected_size_bytes,
+        )
+        final_path: Path | None = None
+        final_identity: tuple[int, int] | None = None
+        try:
+            if checksum != expected_sha256 or size_bytes != expected_size_bytes:
+                raise ArtifactPublishError(ArtifactPublishErrorCode.CHECKSUM_MISMATCH)
+            media = validate_artifact_media(
+                pending_path,
+                artifact_kind=artifact_kind,
+                size_bytes=size_bytes,
+            )
+            if media.media_type != expected_media_type:
+                raise ArtifactPublishError(ArtifactPublishErrorCode.MEDIA_TYPE_MISMATCH)
+            storage_key = _build_storage_key(
+                artifact_id,
+                artifact_kind=artifact_kind,
+                storage_domain=storage_domain,
+                extension=media.extension,
+            )
+            final_path = self.artifact_roots.candidate_path(storage_domain, storage_key)
+            _ensure_directory(root, final_path.parent)
+            try:
+                os.link(pending_path, final_path)
+            except FileExistsError:
+                raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_COLLISION) from None
+            except OSError:
+                raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_FAILED) from None
+            final_identity = pending_identity
+            final_stat = final_path.stat(follow_symlinks=False)
+            observed_identity = (final_stat.st_dev, final_stat.st_ino)
+            if (
+                not stat.S_ISREG(final_stat.st_mode)
+                or observed_identity != pending_identity
+                or final_stat.st_size != size_bytes
+            ):
+                raise ArtifactPublishError(ArtifactPublishErrorCode.VERIFICATION_FAILED)
+            pending_path.unlink()
+            _sync_directory(final_path.parent)
+            return PublishedLocalPayload(
+                path=final_path,
+                storage_key=storage_key,
+                size_bytes=size_bytes,
+                checksum=checksum,
+                media=media,
+                file_identity=observed_identity,
+                source_path=None,
+                source_identity=None,
             )
         except ArtifactMediaValidationError:
             raise ArtifactPublishError(ArtifactPublishErrorCode.MEDIA_VALIDATION_FAILED) from None
@@ -372,6 +449,8 @@ class LocalArtifactPublisher:
         return removed
 
     def cleanup_staging(self, published: PublishedLocalPayload) -> bool:
+        if published.source_path is None or published.source_identity is None:
+            return True
         removed = _unlink_if_identity_matches(published.source_path, published.source_identity)
         if removed:
             _sync_directory(published.source_path.parent)
@@ -487,6 +566,48 @@ def _copy_exclusive(
     except Exception:
         _unlink_unchecked(destination_path)
         raise
+
+
+def _copy_stream_exclusive(
+    source: BinaryIO,
+    destination_path: Path,
+    *,
+    expected_size_bytes: int,
+) -> tuple[str, int, tuple[int, int]]:
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_BINARY", 0)
+    try:
+        destination_descriptor = os.open(destination_path, flags, 0o600)
+    except FileExistsError:
+        raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_COLLISION) from None
+    except OSError:
+        raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLISH_FAILED) from None
+
+    digest = hashlib.sha256()
+    size_bytes = 0
+    try:
+        with os.fdopen(destination_descriptor, "wb", closefd=True) as destination:
+            while chunk := source.read(COPY_CHUNK_SIZE):
+                if not isinstance(chunk, bytes):
+                    raise ArtifactPublishError(ArtifactPublishErrorCode.INVALID_STAGING_PAYLOAD)
+                size_bytes += len(chunk)
+                if size_bytes > expected_size_bytes:
+                    raise ArtifactPublishError(ArtifactPublishErrorCode.CHECKSUM_MISMATCH)
+                destination.write(chunk)
+                digest.update(chunk)
+            destination.flush()
+            os.fsync(destination.fileno())
+        destination_stat = destination_path.stat(follow_symlinks=False)
+        return (
+            digest.hexdigest(),
+            size_bytes,
+            (destination_stat.st_dev, destination_stat.st_ino),
+        )
+    except ArtifactPublishError:
+        _unlink_unchecked(destination_path)
+        raise
+    except Exception:
+        _unlink_unchecked(destination_path)
+        raise ArtifactPublishError(ArtifactPublishErrorCode.INVALID_STAGING_PAYLOAD) from None
 
 
 def _build_storage_key(

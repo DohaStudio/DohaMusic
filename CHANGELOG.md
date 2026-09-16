@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - DohaVocal Verified Staged Artifact Completion Foundation
+
+- `open_verified()`의 context-managed stream을 staging path 노출 없이 기존 `ArtifactIngestionService`의 `prepare_verified_stream()`으로 전달하고 SHA-256·size·media를 Artifact authority에서 다시 검증한다.
+- generation은 새 Vocal Asset/version 1, conversion·correction은 source Vocal Asset의 다음 immutable Version, analysis는 exact source Version의 JSON Artifact만 생성한다. Completion은 `selected_asset_version_id`를 변경하지 않는다.
+- Asset/Version·Artifact·StorageLocation·JobOutput·ModelUsage·`PayloadLocator.ingested`·Job `succeeded`를 session-aware 최신 rights/claim/cancel gate 뒤 하나의 DB transaction으로 확정한다. exact replay는 staging cleanup 뒤에도 I/O 없이 복구하며 conflicting replay는 fail closed한다.
+- schema·Alembic·Public API·Frontend·Worker dispatcher·production authentication·PR #130 acquisition orchestration은 변경하지 않는다.
+
 ### 문서 - DohaVocal Verified Staged Artifact Completion Contract
 
 - `open_verified()` stream을 기존 Artifact ingestion의 path-free prepare 경로로 넘기고 동일한 register·verify primitive에 합류시키는 공식 handoff를 확정했다.

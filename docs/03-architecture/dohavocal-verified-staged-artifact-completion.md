@@ -1,7 +1,7 @@
 # DohaVocal Verified Staged Artifact Completion Contract
 
-> 문서 상태: [승인: contract resolution] / [미구현: production Completion·Worker wiring]
-> 최종 수정일: 2026-09-16
+> 문서 상태: [구현: Completion Foundation] / [미구현: Worker wiring·production rights adapter]
+> 최종 수정일: 2026-09-17
 > 기준: `develop@99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
 > 최종 판정: `VERIFIED_STAGED_ARTIFACT_COMPLETION_CONTRACT_RESOLVED`
 > 관련 결정: [ADR-069](../11-decisions/ADR-069-dohavocal-verified-staged-artifact-completion-authority.md)
@@ -29,8 +29,8 @@ PayloadLocator(verified_staged)
 | source acquisition과 `verified_staged` | PR #130 acquisition orchestration |
 | staged bytes open·revalidation·delete | `VerifiedPayloadStagingPort` |
 | Artifact publish/catalog/integrity | `ArtifactIngestionService` |
-| output Asset/Version target | future `DohaVocalArtifactCompletionService` |
-| effective scope와 최신 rights | future `VocalCompletionAuthorityPort` |
+| output Asset/Version target | `DohaVocalArtifactCompletionService` |
+| effective scope와 최신 rights | session-aware `VocalCompletionAuthorityPort` |
 | `JobOutput`, `ModelUsage`, locator ingestion, Job success | same Completion transaction |
 | selected AssetVersion | explicit DohaMusic/user selection flow; Completion 아님 |
 
@@ -62,7 +62,7 @@ with staging.open_verified(verified_payload) as stream:
     )
 ```
 
-`prepare_verified_stream`은 [미구현] narrow extension이다. stream을 다 소비하는 동안 context가 열려 있어야 하며 stream handle을 저장하거나 반환하지 않는다. 입력은 처음부터 읽고 seek 가능성을 요구하지 않는다. Artifact-owned temporary object에 bounded copy하면서 SHA-256와 size를 계산하고 media parser를 실행한다. locator actual facts와 차이가 있으면 publish/DB write 없이 실패한다.
+`prepare_verified_stream`은 구현된 narrow extension이다. stream을 다 소비하는 동안 context가 열려 있어야 하며 stream handle을 저장하거나 반환하지 않는다. 입력은 처음부터 읽고 seek 가능성을 요구하지 않는다. Artifact-owned temporary object에 bounded copy하면서 SHA-256와 size를 계산하고 media parser를 실행한다. locator actual facts와 차이가 있으면 publish/DB write 없이 실패한다.
 
 성공 결과는 기존 `PreparedArtifactIngestion`이다. 이후 `register_prepared(session, prepared)`와 `verify_registered(session, artifact, prepared)`를 그대로 사용한다. 별도 Artifact registry나 trusted-existing-publication 경로를 만들지 않는다.
 

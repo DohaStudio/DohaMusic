@@ -1,6 +1,6 @@
 # ADR-069: DohaVocal verified staged Artifact Completion authority
 
-- 상태: 승인, production 구현 미착수
+- 상태: 승인, Foundation 구현 / Worker wiring·production rights adapter 미구현
 - 날짜: 2026-09-16
 - 기준: `develop@99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
 - 관련 문서: [Verified Staged Artifact Completion](../03-architecture/dohavocal-verified-staged-artifact-completion.md), [Worker Reconciliation Contract](../03-architecture/dohavocal-worker-reconciliation-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Durable Payload Locator Authority](../03-architecture/durable-payload-locator-authority.md), [ADR-051](ADR-051-verified-durable-staging-authority.md)
