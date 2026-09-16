@@ -5,11 +5,18 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-05
+> 최종 수정일: 2026-09-16
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - DohaVocal Verified Staged Artifact Completion Contract
+
+- `open_verified()` stream을 기존 Artifact ingestion의 path-free prepare 경로로 넘기고 동일한 register·verify primitive에 합류시키는 공식 handoff를 확정했다.
+- Vocal generation은 새 Project Vocal Asset/version 1, conversion·correction은 source Vocal Asset의 다음 immutable Version, analysis는 exact source Version의 JSON Artifact를 만들며 Completion이 selected Version을 자동 변경하지 않도록 결정했다.
+- Artifact·JobOutput·ModelUsage·필요한 Asset/Version, `PayloadLocator.ingested`와 Job `succeeded`를 하나의 final transaction으로 묶고, transaction 내부 latest rights/claim/cancel/revocation gate와 crash/replay/cleanup 계약을 ADR-069에 기록했다.
+- production 구현, PR #130 acquisition orchestration, Export ledger, schema와 Alembic은 변경하지 않았다.
 
 ### CI - Frontend Playwright Gate
 

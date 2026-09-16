@@ -1,10 +1,10 @@
 # Durable Payload Locator Authority
 
-> 문서 상태: [승인: persistence foundation 구현, byte staging·통합 미구현]
-> 최종 수정일: 2026-08-25
+> 문서 상태: [승인: persistence·verified staging·acquisition 구현, Completion 계약 확정·미구현]
+> 최종 수정일: 2026-09-16
 > 기준: DohaMusic develop `bdc141237d7c0fd407084ce1bccebfbd86d651a6`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 최종 판정: `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`
-> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)
+> 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md), [ADR-069](../11-decisions/ADR-069-dohavocal-verified-staged-artifact-completion-authority.md)
 
 ## 1. 결론과 범위
 
@@ -129,6 +129,7 @@ source_bound
 - source expiry는 `available_until`에서 계산하고 별도 state로 복제하지 않는다.
 - revocation은 `revoked_at`과 safe reason으로 직교 기록하며 모든 acquire·resolve·reuse·ingestion을 차단한다.
 - `ingested` 이후 성공 authority는 `Artifact`, `AssetVersion`, `JobOutput`이다. locator는 audit와 cleanup만 소유한다.
+- `verified_staged → ingested`와 exact `ingested_artifact_id`는 Artifact·JobOutput·Job `succeeded`를 만드는 동일 Completion transaction에서만 확정한다. 별도 `PayloadLocatorService.mark_ingested()` transaction을 Completion 경로에 사용하지 않는다.
 - 각 성공한 mutable transition은 `lifecycle_revision + 1` CAS로 경쟁을 감지한다.
 - 모든 backward transition은 금지한다. 특히 `cleaned → verified_staged` resurrection과 `ingested → verified_staged` 재사용은 허용하지 않는다.
 
@@ -232,11 +233,12 @@ PayloadLocator domain model
 
 Service가 persistence port의 짧은 transaction을 열고 SQLAlchemy Repository는 `flush()`만 수행한다. exact issue replay, immutable conflict, UUID collision bounded retry, revision CAS, restart, lifecycle, revocation, source/policy expiry와 staging-key security를 격리 SQLite로 검증한다. App composition root는 Service를 생성하지만 호출 API나 Worker는 없다.
 
-후속 [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 schema와 local filesystem adapter로 충분하다고 확정했고, port, local adapter, partial·exclusive publish·recover/open/delete와 `verified_staged` CAS foundation을 구현했다. downloader orchestration, Artifact ingestion wiring, Completion adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
+후속 [Verified Durable Staging Authority](verified-durable-staging-authority.md)는 기존 schema와 local filesystem adapter로 충분하다고 확정했고, port, local adapter, partial·exclusive publish·recover/open/delete와 `verified_staged` CAS foundation을 구현했다. acquisition orchestration도 구현됐다. [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)은 기존 `ingested_artifact_id`와 lifecycle revision으로 atomic handoff가 충분하다고 확정했다. Artifact ingestion/Completion production adapter, Worker reclaim/dispatcher, daemon, production authentication과 실제 Provider network는 계속 `[미구현]`이다.
 
 ```text
 PayloadLocator persistence foundation: IMPLEMENTED
 durable byte staging foundation: IMPLEMENTED
 downloader orchestration: NOT IMPLEMENTED
-Artifact ingestion wiring: NOT IMPLEMENTED
+Artifact ingestion/Completion contract: RESOLVED
+Artifact ingestion/Completion production wiring: NOT IMPLEMENTED
 ```

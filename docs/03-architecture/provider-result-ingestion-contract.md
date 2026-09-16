@@ -1,7 +1,7 @@
 # Provider Result → Artifact Ingestion Contract
 
-> 문서 상태: [완료: `0.1.0`/`0.2.0` trust gate·transient acquisition·durable locator persistence] / [미구현: staging·Completion adapter·실제 ingestion]
-> 최종 수정일: 2026-08-25
+> 문서 상태: [완료: trust gate·durable locator·verified staging·acquisition] / [계약 확정·미구현: Completion adapter]
+> 최종 수정일: 2026-09-16
 > 기준: DohaMusic `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md), [Durable Payload Locator Authority](durable-payload-locator-authority.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
 
@@ -65,7 +65,7 @@ DohaMusic runtime의 [Trusted Payload Locator / Resolver Contract](trusted-paylo
 
 검증 결과의 논리 idempotency key는 `(provider_job_binding_id, output_role, provider_artifact_id)`다. 같은 candidate를 반복 검증해도 DB·filesystem side effect가 없다. 별도 locator issue는 ordered 1:N을 보존하기 위해 binding + payload ordinal과 canonical source tuple을 unique로 사용하고 immutable expectation mismatch를 `RESULT_REPLAY_CONFLICT`로 만든다. 이 persistence foundation은 Alembic `20260825_0023`을 사용하지만 trust gate 자체의 read-only transaction 경계는 바꾸지 않는다.
 
-실제 payload ingestion이 도입되면 DB 조회 validation과 Completion write를 일관된 transaction 경계에서 재검증해야 한다. Provider network와 파일 전송은 DB transaction 밖에 둔다.
+실제 payload ingestion의 transaction과 최신 authority 재검증은 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)에 확정했다. Provider network, staged stream open과 Artifact publish는 DB transaction 밖에 두고 locator ingestion과 Workspace terminal mutation은 같은 final transaction에 둔다.
 
 Candidate role은 Completion에 직접 전달하지 않는다. DohaMusic-owned mapping이 `generated_vocal_candidate`, `converted_vocal_candidate`, `corrected_vocal_candidate`, `vocal_analysis_result`를 각각 `generated_vocal`, `converted_vocal`, `corrected_vocal`, `vocal_analysis`로 변환하며 adapter 구현 전에는 Completion에 진입할 수 없다.
 
@@ -73,8 +73,7 @@ Candidate role은 Completion에 직접 전달하지 않는다. DohaMusic-owned m
 
 - Worker / `ProviderDispatcher` wiring과 polling
 - 실제 DohaVocal 인증·Provider execution
-- trust gate → payload locator issue 연결, downloader orchestration·durable byte staging·resolver 연결
-- 실제 audio/structured Payload ingestion
+- verified staged stream → Artifact ingestion handoff 구현
 - `Artifact`·`AssetVersion`·`JobOutput`·`ModelUsage` 생성
 - Workspace Job completion
 - Product Public API

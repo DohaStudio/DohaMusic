@@ -1,10 +1,10 @@
 # DohaMusic 마스터 로드맵
 
-> Provider 결과 경계 업데이트(2026-08-26): DohaVocal `0.2.0` payload consumer, 전용 PayloadLocator persistence와 verified durable local staging foundation을 구현했습니다. Worker/Completion/Artifact ingestion은 아직 미구현입니다.
+> Provider 결과 경계 업데이트(2026-09-16): DohaVocal `0.2.0` payload consumer, 전용 PayloadLocator, verified durable local staging과 acquisition orchestration을 구현했습니다. Verified staged Artifact Completion 계약은 확정했고 production Completion/Worker wiring은 아직 미구현입니다.
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-09-03
+> 최종 수정일: 2026-09-16
 > 현재 실행 순서: [ROADMAP](ROADMAP.md)
 > 완료 판정: [Phase DoD](docs/DoD/README.md)
 
@@ -39,11 +39,11 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | 단계 | 상태 | 사실 기준 |
 |---|---|---|
 | Phase A Boundary Definition | [완료] | 책임·계약·Dataset·Artifact·Manifest·ADR 문서화와 PR #50 병합 완료 |
-| Phase B New Implementation Separation | [진행 중] | DohaVocal `0.1.0` 호환·`0.2.0` payload consumer DTO/trust/transient acquisition·Trusted Payload resolver, durable locator persistence와 verified local staging foundation 구현; reclaim·concrete wiring·downloader·Completion·실제 ingestion/model 미구현 |
+| Phase B New Implementation Separation | [진행 중] | DohaVocal `0.1.0` 호환·`0.2.0` payload consumer DTO/trust/transient acquisition·Trusted Payload resolver, durable locator·verified staging·acquisition 구현, Completion contract resolution 완료; reclaim·concrete wiring·Completion production adapter·실제 model 미구현 |
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload process-local adapter, durable PayloadLocator persistence 및 verified durable local staging foundation을 구현했다. `payloadref:v1` identity, exact replay, lifecycle CAS, revocation과 restart recovery가 CURRENT지만 atomic reclaim·concrete Worker wiring·인증·downloader·Completion adapter·Artifact payload ingestion·실제 Vocal model은 `[미구현]`이다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload process-local adapter, durable PayloadLocator persistence, verified durable local staging과 acquisition orchestration을 구현했다. `payloadref:v1` identity, exact replay, lifecycle CAS, revocation과 restart recovery가 CURRENT이며 ADR-069가 Artifact stream handoff·Vocal Asset target·atomic Completion을 확정했다. atomic reclaim·concrete Worker wiring·인증·Completion adapter·실제 Vocal model은 `[미구현]`이다.
 
 ## AI-native DAW 제품 전환 상태
 

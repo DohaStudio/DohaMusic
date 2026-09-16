@@ -72,6 +72,7 @@
 | [ADR-066](ADR-066-silent-export-quality-representation.md) | Silent/low-loudness Export 진단 품질과 nullable metric authority | 승인 |
 | [ADR-067](ADR-067-trusted-export-delivery-validation.md) | Export delivery의 전체 decode 및 형식 검증 authority | 승인 |
 | [ADR-068](ADR-068-canonical-multiformat-export-encoding.md) | Canonical WAV 기반 MP3/FLAC encoding authority | 승인 |
+| [ADR-069](ADR-069-dohavocal-verified-staged-artifact-completion-authority.md) | DohaVocal verified staging의 stream ingestion·Vocal Asset target·atomic Completion authority | 승인, production 구현 미착수 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -88,6 +89,7 @@
 - [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): 기존 Job·Provider binding·deterministic replay로 locator 전 same-Job resume을 재구성하며 새 handoff storage가 불필요함을 확정한다.
 - [ADR-049 — Durable Payload Locator Persistence Authority](ADR-049-durable-payload-locator-persistence-authority.md): source descriptor replay와 verified staging handoff를 분리하고 `ProviderJobBinding 1:N PayloadLocator` 전용 aggregate 필요성을 확정한다.
 - [ADR-051 — Verified Durable Staging Authority](ADR-051-verified-durable-staging-authority.md): 기존 staging root와 PayloadLocator schema에 locator-derived exclusive local publish, full open verification과 orphan adoption을 결합하고 새 schema가 불필요함을 확정한다.
+- [ADR-069 — DohaVocal Verified Staged Artifact Completion Authority](ADR-069-dohavocal-verified-staged-artifact-completion-authority.md): verified stream을 기존 Artifact ingestion에 넘기는 path-free handoff, Job type별 Asset/Version target, locator와 Job success의 단일 transaction 및 최신 rights gate를 확정한다.
 
 ## Workspace 데이터베이스
 
