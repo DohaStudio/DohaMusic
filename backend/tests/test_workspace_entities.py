@@ -37,10 +37,14 @@ EXPECTED_ENTITY_TABLES = {
     "JobOutput": "job_outputs",
     "JobExportResult": "job_export_results",
     "JobExportPublication": "job_export_publications",
+    "MusicDirectorRun": "music_director_runs",
+    "MusicDirectorCandidate": "music_director_candidates",
+    "MusicDirectorCandidateMaterialization": "music_director_candidate_materializations",
     "ProcessingChain": "processing_chains",
     "ProcessingStep": "processing_steps",
     "ModelUsage": "model_usages",
     "ProviderJobBinding": "provider_job_bindings",
+    "MusicDirectorProviderExecution": "music_director_provider_executions",
     "PayloadLocator": "payload_locators",
     "WorkingPreviewAsset": "working_preview_assets",
     "WorkingPreviewRender": "working_preview_renders",
@@ -314,6 +318,36 @@ EXPECTED_COLUMNS = {
         "retry_of_provider_job_id",
         "created_at",
     },
+    "music_director_candidate_materializations": {
+        "materialization_id",
+        "job_id",
+        "ordinal",
+        "materialization_key",
+        "proposal_digest",
+        "planned_run_id",
+        "planned_candidate_id",
+        "planned_asset_id",
+        "planned_asset_version_id",
+        "planned_artifact_id",
+        "storage_domain",
+        "storage_key",
+        "status",
+        "version",
+        "created_at",
+        "updated_at",
+    },
+    "music_director_provider_executions": {
+        "provider_execution_id",
+        "job_id",
+        "provider_id",
+        "model_id",
+        "client_execution_key",
+        "external_job_id",
+        "status",
+        "version",
+        "created_at",
+        "updated_at",
+    },
     "payload_locators": {
         "payload_locator_id",
         "workspace_job_id",
@@ -482,6 +516,31 @@ EXPECTED_COLUMNS["job_export_publications"] = {
     "updated_at",
 }
 
+EXPECTED_COLUMNS["music_director_runs"] = {
+    "run_id",
+    "job_id",
+    "project_id",
+    "composition_snapshot_id",
+    "selected_candidate_id",
+    "applied_candidate_id",
+    "applied_working_revision",
+    "version",
+    "created_at",
+    "updated_at",
+}
+EXPECTED_COLUMNS["music_director_candidates"] = {
+    "candidate_id",
+    "run_id",
+    "ordinal",
+    "status",
+    "proposal_digest",
+    "candidate_asset_version_id",
+    "proposal_artifact_id",
+    "preview_artifact_id",
+    "provider",
+    "model",
+    "created_at",
+}
 LEGACY_TABLES = {
     "generated_files",
     "generation_jobs",
@@ -503,9 +562,9 @@ LEGACY_TABLES = {
 def test_workspace_entity_and_table_names_are_exact() -> None:
     actual = {entity.__name__: entity.__tablename__ for entity in WORKSPACE_ENTITY_CLASSES}
 
-    assert len(WORKSPACE_ENTITY_CLASSES) == 35
+    assert len(WORKSPACE_ENTITY_CLASSES) == 39
     assert actual == EXPECTED_ENTITY_TABLES
-    assert len(set(actual.values())) == 35
+    assert len(set(actual.values())) == 39
 
 
 def test_workspace_table_columns_match_documented_contract() -> None:
@@ -529,6 +588,7 @@ def test_workspace_enums_match_common_contract() -> None:
         "recording",
         "mix",
         "export",
+        "candidate",
     }
     assert {item.value for item in JobStatus} == {
         "queued",
@@ -552,7 +612,7 @@ def test_workspace_metadata_coexists_with_legacy_tables() -> None:
     assert set(Base.metadata.tables) == (
         target_tables | storage_tables | LEGACY_TABLES | history_tables
     )
-    assert len(Base.metadata.tables) == 52
+    assert len(Base.metadata.tables) == 56
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

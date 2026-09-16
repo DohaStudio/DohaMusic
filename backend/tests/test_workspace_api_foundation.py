@@ -206,10 +206,10 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         operation_id for operation_id, count in Counter(operation_ids).items() if count > 1
     }
 
-    assert len(registered_routes) == 109
-    assert len(api_routes) == 105
-    assert len(openapi_paths) == 84
-    assert len(operation_ids) == 105
+    assert len(registered_routes) == 114
+    assert len(api_routes) == 110
+    assert len(openapi_paths) == 89
+    assert len(operation_ids) == 110
     assert (
         len(
             [
@@ -221,8 +221,8 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         == 33
     )
     assert "/health" in openapi_paths
-    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 62
-    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 50
+    assert len(_flatten_registered_routes(workspace_v1_router.routes)) == 67
+    assert len([path for path in openapi_paths if path.startswith("/api/v1")]) == 55
     v1_operations = {
         (method.upper(), path): operation
         for path, path_item in openapi_paths.items()
@@ -267,6 +267,17 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
         ("GET", "/api/v1/jobs/{job_id}"),
         ("POST", "/api/v1/jobs/{job_id}/cancel"),
         ("POST", "/api/v1/jobs/{job_id}/retry"),
+        ("POST", "/api/v1/projects/{project_id}/music-director/runs"),
+        ("GET", "/api/v1/projects/{project_id}/music-director/runs/{run_id}"),
+        (
+            "GET",
+            "/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}",
+        ),
+        (
+            "POST",
+            "/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/select",
+        ),
+        ("POST", "/api/v1/projects/{project_id}/music-director/jobs/{job_id}/cancel"),
         ("GET", "/api/v1/projects/{project_id}/working-composition"),
         ("GET", "/api/v1/projects/{project_id}/working-composition/history"),
         ("POST", "/api/v1/projects/{project_id}/working-composition/history/undo"),
@@ -345,7 +356,7 @@ def test_v1_router_adds_first_resources_and_runtime_route_count_is_stable() -> N
             "/api/v1/projects/{project_id}/working-composition/clips/{original_clip_id}/resplit",
         ),
     }
-    assert len({item["operationId"] for item in v1_operations.values()}) == 62
+    assert len({item["operationId"] for item in v1_operations.values()}) == 67
     assert all(item.get("summary") for item in v1_operations.values())
     assert all(item.get("tags") for item in v1_operations.values())
     assert duplicate_ids == set()

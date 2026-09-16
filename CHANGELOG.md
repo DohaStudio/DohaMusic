@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - AI Music Director Candidate와 Public API Foundation
+
+- immutable CompositionSnapshot을 입력으로 사용하는 provider-neutral Music Director Job, durable ProviderExecution identity, Mock Provider Worker와 1~4개 Candidate proposal materialization을 추가했다.
+- Run/Candidate를 Project scope에서 읽고 run version CAS로 Candidate를 선택하며 기존 Job cancellation authority를 재사용하는 Public API 5개를 추가했다.
+- Alembic `20260911_0033`~`0035`로 Run/Candidate, ProviderExecution과 materialization recovery authority를 추가했다. Frontend, APPLY와 실제 외부 Provider는 이번 범위에 포함하지 않는다.
+- 현재 API는 89 paths / 110 operations이며 Alembic single head는 `20260911_0035`다.
+
 ### CI - Frontend Playwright Gate
 
 - `develop` 대상 PR과 `develop` push에서 Chromium Desktop, Tablet, Mobile configured-parallel
@@ -18,6 +25,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
   `frontend-playwright` GitHub Actions job을 추가했다.
 - Playwright retry와 worker override 없이 기존 설정을 사용하고, full-stack Export test runtime은
   GitHub runner temp 경로를 사용하는 cross-platform 격리 환경으로 정합화했다.
+
+### 수정 - FFmpeg WAV 입력 demuxer 호환성
+
+- Export encoder, delivery validator와 Working Preview renderer가 WAV 입력에 explicit demuxer를 지정하도록 수정해 현재 검증 환경의 automatic input detection 실패를 회피했다.
+- 패치 제거 시 재현된 Audio regression 4건을 복구해 focused Audio suite `36 passed, 0 failed`를 확인했다. 공개 API와 migration에는 변경이 없다.
 
 ### 추가 - Export Production Worker Runner
 

@@ -82,9 +82,10 @@ OFFICIAL_JOB_TYPES = frozenset(
         "mix",
         "export",
         "working_preview",
+        "music_director",
     }
 )
-REQUIRED_SNAPSHOT_JOB_TYPES = frozenset({"mix", "export"})
+REQUIRED_SNAPSHOT_JOB_TYPES = frozenset({"mix", "export", "music_director"})
 JOB_INPUT_ROLES: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     "lyrics_generation": (frozenset(), frozenset()),
     "music_generation": (frozenset(), frozenset({"lyrics"})),
@@ -97,6 +98,7 @@ JOB_INPUT_ROLES: dict[str, tuple[frozenset[str], frozenset[str]]] = {
     ),
     "export": (frozenset(), frozenset({"mix"})),
     "working_preview": (frozenset(), frozenset()),
+    "music_director": (frozenset(), frozenset()),
 }
 BYTE_INPUT_ROLES = frozenset(
     {

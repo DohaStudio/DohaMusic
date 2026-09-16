@@ -27,6 +27,7 @@ from backend.storage.artifact_publisher import (
     ArtifactPublishErrorCode,
     LocalArtifactPublisher,
     PublishedLocalPayload,
+    TrustedPublicationIdentity,
 )
 from backend.storage.artifact_resolver import (
     APPROVED_STORAGE_DOMAINS,
@@ -152,6 +153,20 @@ class PreparedArtifactIngestion:
     request: ArtifactIngestionRequest
     artifact_id: UUID
     published: PublishedLocalPayload
+
+
+@dataclass(frozen=True, slots=True)
+class TrustedAdoptedArtifactRegistrationRequest:
+    artifact_id: UUID
+    asset_version_id: UUID
+    identity: TrustedPublicationIdentity
+    artifact_kind: str
+    producer_type: str
+    expected_media_type: str
+    expected_sha256: str
+    expected_size_bytes: int
+    producer_id: str | None = None
+    run_id: str | None = None
 
 
 class OrphanReporter(Protocol):
@@ -302,6 +317,106 @@ class ArtifactIngestionService:
                 storage_backend=SUPPORTED_STORAGE_BACKEND,
                 storage_domain=request.storage_domain,
                 storage_key=published.storage_key,
+                locator_version=SUPPORTED_LOCATOR_VERSION,
+            )
+        )
+        return artifact
+
+    def register_trusted_adopted_in_session(
+        self,
+        session: Session,
+        request: TrustedAdoptedArtifactRegistrationRequest,
+    ) -> Artifact:
+        """Revalidate and catalog a deterministic publication in a caller-owned UoW."""
+        if (
+            type(request.artifact_id) is not UUID
+            or type(request.asset_version_id) is not UUID
+            or not isinstance(request.identity, TrustedPublicationIdentity)
+            or request.expected_media_type != "application/json"
+            or len(request.expected_sha256) != 64
+            or request.expected_size_bytes <= 0
+        ):
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_REQUEST)
+        try:
+            with self._publisher.open_trusted_publication(
+                request.identity,
+                artifact_kind=request.artifact_kind,
+                expected_media_type=request.expected_media_type,
+                expected_sha256=request.expected_sha256,
+                expected_size_bytes=request.expected_size_bytes,
+            ) as (evidence, stream):
+                if stream.read(1) == b"":
+                    raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERIFICATION_FAILED)
+        except ArtifactPublishError as error:
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERIFICATION_FAILED) from error
+
+        assets = AssetRepository(session)
+        locations = ArtifactStorageRepository(session)
+        if assets.get_asset_version(request.asset_version_id) is None:
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERSION_NOT_FOUND)
+        existing = session.get(Artifact, request.artifact_id)
+        existing_location = locations.get_storage_location(request.artifact_id)
+        expected_artifact = (
+            request.asset_version_id,
+            request.artifact_kind,
+            evidence.media.media_type,
+            evidence.size_bytes,
+            evidence.media.duration_us,
+            "sha256",
+            evidence.checksum,
+            request.producer_type,
+            request.producer_id,
+            request.run_id,
+            "active",
+        )
+        if existing is not None:
+            actual_artifact = (
+                existing.asset_version_id,
+                existing.artifact_kind,
+                existing.media_type,
+                existing.size_bytes,
+                existing.duration_us,
+                existing.checksum_algorithm,
+                existing.artifact_checksum,
+                existing.producer_type,
+                existing.producer_id,
+                existing.run_id,
+                existing.retention_status,
+            )
+            if (
+                actual_artifact != expected_artifact
+                or existing_location is None
+                or existing_location.storage_backend != SUPPORTED_STORAGE_BACKEND
+                or existing_location.storage_domain != request.identity.storage_domain
+                or existing_location.storage_key != request.identity.storage_key
+                or existing_location.locator_version != SUPPORTED_LOCATOR_VERSION
+            ):
+                raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERIFICATION_FAILED)
+            return existing
+        if existing_location is not None:
+            raise ArtifactIngestionError(ArtifactIngestionErrorCode.VERIFICATION_FAILED)
+        artifact = assets.add_artifact(
+            Artifact(
+                artifact_id=request.artifact_id,
+                asset_version_id=request.asset_version_id,
+                artifact_kind=request.artifact_kind,
+                media_type=evidence.media.media_type,
+                size_bytes=evidence.size_bytes,
+                duration_us=evidence.media.duration_us,
+                checksum_algorithm="sha256",
+                artifact_checksum=evidence.checksum,
+                producer_type=request.producer_type,
+                producer_id=request.producer_id,
+                run_id=request.run_id,
+                retention_status="active",
+            )
+        )
+        locations.add_storage_location(
+            ArtifactStorageLocation(
+                artifact_id=request.artifact_id,
+                storage_backend=SUPPORTED_STORAGE_BACKEND,
+                storage_domain=request.identity.storage_domain,
+                storage_key=request.identity.storage_key,
                 locator_version=SUPPORTED_LOCATOR_VERSION,
             )
         )

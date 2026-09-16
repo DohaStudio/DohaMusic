@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-30
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace Resource 30개, D1 Product API 2개, WorkingComposition Product operation 19개와 exact AssetVersion media source read 1개 구현; Job API 5/5, 나머지 34개 Resource Endpoint 계획
+> 구현 상태: Workspace Resource 30개와 Job API 5/5, Music Director Product API 5개 구현. Product API는 64개 Resource 목표 분모와 별도로 관리
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [D1 Composition Read 계약](composition-read-workspace.md), [WorkingComposition Product API](working-composition-api.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -163,6 +163,20 @@ POST body는 `job_type`, `project_id`, type Matrix에 따른 선택적 또는 �
 Job 생성이 기존 AssetVersion을 수정하지 않습니다. 성공 결과의 `output_asset_version_ids`, `output_artifact_ids`는 DohaMusic이 Provider 결과를 검증·등록한 뒤 공개합니다.
 
 공식 type별 Snapshot·input/output role, Artifact 선택, 5-state·cancel·retry, Owner scope, Job Cursor·Index, claim·lease와 completion Unit of Work는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따릅니다. JobInput·JobOutput 독립 Endpoint는 제공하지 않습니다. 다섯 Router는 Service 경계만 호출하고 effective Workspace·Owner를 내부에서 파생하며 claim·lease와 storage path를 공개하지 않습니다. Job API는 5/5, 전체 Resource API는 30/64입니다. Provider dispatch wiring과 background daemon·scheduler는 여전히 `[미구현]`입니다.
+
+### 9.2 Music Director Product API — 5개
+
+| Method | Path | 성공 | operationId |
+|---|---|---:|---|
+| `POST` | `/api/v1/projects/{project_id}/music-director/runs` | 201/200 | `create_music_director_run` |
+| `GET` | `/api/v1/projects/{project_id}/music-director/runs/{run_id}` | 200 | `get_music_director_run` |
+| `GET` | `/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}` | 200 | `get_music_director_candidate` |
+| `POST` | `/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/select` | 200 | `select_music_director_candidate` |
+| `POST` | `/api/v1/projects/{project_id}/music-director/jobs/{job_id}/cancel` | 200/202 | `cancel_music_director_job` |
+
+Run 생성은 필수 `Idempotency-Key`, `composition_snapshot_id`, 길이가 제한된 instruction과 `1..4` candidate count를 사용한다. effective Owner는 인증 context에서 파생하며 요청에서 받지 않는다. Run read는 Job이 `succeeded`이고 요청한 Candidate 수가 모두 존재할 때만 ordinal 순서의 완전한 set을 반환한다. Candidate read는 Project와 Run lineage를 함께 검증하며 Artifact ID만 공개하고 storage locator는 노출하지 않는다.
+
+SELECT는 `expected_run_version` CAS로 selected pointer와 run version만 변경한다. stale version, 다른 Run/Project Candidate와 준비되지 않은 Run은 fail closed하며 WorkingComposition, Snapshot, history와 applied pointer는 변경하지 않는다. Cancel은 기존 owner-scoped Job cancellation authority를 재사용한다. 실제 Provider, Frontend와 APPLY는 이 API 범위가 아니다.
 
 ## 10. Recording API — 3개
 
