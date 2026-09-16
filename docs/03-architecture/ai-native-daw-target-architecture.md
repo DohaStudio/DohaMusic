@@ -202,14 +202,14 @@ flowchart LR
 |---|---|
 | Composition edit model | ADR-040·ADR-050·ADR-052·ADR-053·ADR-054·ADR-055·ADR-056와 persistent history journal/cursor, Frontend explicit Clip Copy UI·Backend Undo/Redo·Working Preview·Composition Commit 및 Clip Gain/Fade/Loop Backend/Frontend integration 구현 |
 | Provider orchestration | 외부 DohaLM·DohaAudio·DohaVocal 실제 transport 미구현 |
-| Candidate workflow | Backend durable Candidate 생성·read·SELECT 구현; Frontend 비교 UX, atomic APPLY와 실제 Provider 미구현 |
+| Candidate workflow | Backend durable Candidate 생성·read·SELECT 구현; ADR-073으로 atomic APPLY architecture 확정, 구현·Frontend 비교 UX·실제 Provider는 미구현 |
 | Composition QA | CompositionEvaluationRun, 통합 Report, RevisionPlan 실행 미구현 |
 | Reference | 승인 source ingestion·ReferenceAnalysis·FeatureRecord 연결 미구현 |
 | Learning | LearningCandidate review와 Rights/Eligibility/Dataset 연결 미구현 |
 | Frontend | Track/Clip basic editing, source-window Waveform, Working Preview, Track/Master Mixer, WAV Export UX 구현; AI Director·QA page 미구현 |
 | Export | CompositionSnapshot 기반 canonical WAV Export, Project Export Asset lineage, durable publication, production runner 구현; MP3·FLAC 미구현 |
 
-D5 AI Music Director의 immutable Snapshot input, typed MusicIntent, durable Candidate grouping, Provider-neutral Job, explicit SELECT/APPLY와 stale/idempotency 경계는 [ADR-069](../11-decisions/ADR-069-ai-music-director-candidate-workflow.md)을 따른다. Provider submit 전 durable client execution key와 응답 손실 복구 경계는 [ADR-070](../11-decisions/ADR-070-provider-execution-identity-and-response-loss-recovery.md)을 따른다.
+D5 AI Music Director의 immutable Snapshot input, typed MusicIntent, durable Candidate grouping, Provider-neutral Job, explicit SELECT/APPLY와 stale/idempotency 경계는 [ADR-069](../11-decisions/ADR-069-ai-music-director-candidate-workflow.md)을 따른다. Provider submit 전 durable client execution key와 응답 손실 복구 경계는 [ADR-070](../11-decisions/ADR-070-provider-execution-identity-and-response-loss-recovery.md)을 따른다. Candidate APPLY의 이중 CAS, 단일 transaction, aggregate history와 Undo/Redo authority는 [ADR-073](../11-decisions/ADR-073-music-director-candidate-apply-authority.md)으로 확정했으며 production 구현은 아직 없다.
 
 ## 6. 설계 보류 항목
 

@@ -178,6 +178,19 @@ Run 생성은 필수 `Idempotency-Key`, `composition_snapshot_id`, 길이가 제
 
 SELECT는 `expected_run_version` CAS로 selected pointer와 run version만 변경한다. stale version, 다른 Run/Project Candidate와 준비되지 않은 Run은 fail closed하며 WorkingComposition, Snapshot, history와 applied pointer는 변경하지 않는다. Cancel은 기존 owner-scoped Job cancellation authority를 재사용한다. 실제 Provider, Frontend와 APPLY는 이 API 범위가 아니다.
 
+#### Candidate APPLY 제안 계약 — Architecture decided / Implementation pending
+
+ADR-073은 후속 구현 endpoint를
+`POST /api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/apply`로
+고정한다. 필수 `Idempotency-Key`, `expected_run_version`과
+`expected_working_composition_revision`을 사용하며 현재 selected Candidate의 bounded proposal
+전체를 하나의 WorkingComposition transaction/history operation으로 적용한다. SELECT는 APPLY를
+수행하지 않고 APPLY도 selected pointer를 바꾸지 않는다.
+
+이 endpoint는 아직 Runtime에 등록되지 않았다. 현재 authority는 계속 89 paths / 110 operations다.
+구현 후 예상치는 90 paths / 111 operations와 POST 43이며 실제 수치와 fingerprint는 구현 Gate에서
+재측정한다.
+
 ## 10. Recording API — 3개
 
 Recording은 `recording` 유형 Asset이고 Take는 해당 Asset의 AssetVersion입니다.
