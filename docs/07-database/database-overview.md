@@ -12,6 +12,8 @@ SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 
 
 ## 문서 구조와 현재 판정
 
+Vocal current-rights의 별도 TARGET 제안은 [Production Rights Persistence](dohavocal-production-rights-persistence-design.md)와 [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)에 있다. current Grant/pointer·shared guards·evidence·completion receipt가 기존 schema에 없어 `SCHEMA_CHANGE_REQUIRED`다. ORM/schema/Alembic·실제 DB 적용은 [미구현]이며 아래 CURRENT 수치와 기존 적용 사실을 제안으로 변경하지 않는다.
+
 ```text
 Database Documentation
 ├─ CURRENT Runtime — 기존 제품 실행의 운영 source of truth

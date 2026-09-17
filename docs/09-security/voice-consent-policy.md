@@ -1,7 +1,7 @@
 # 음성 동의 정책
 
 > 문서 상태: [계획] [필수 정책]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-09-18
 > 관련 기능: Voice Profile, F6 Guided Voice Enrollment, Pipeline provenance
 > 관련 문서: [Voice Enrollment 요구사항](../02-requirements/voice-enrollment-requirements.md), [Voice Enrollment API 제안](../06-api/voice-enrollment-api.md), [ADR-004](../11-decisions/ADR-004-personal-voice-data-policy.md), [ADR-019](../11-decisions/ADR-019-secure-voice-profile-upload.md), [ADR-026](../11-decisions/ADR-026-voice-enrollment-lifecycle-cleanup.md), [모델 오용 방지](model-abuse-prevention.md)
 
@@ -57,3 +57,11 @@ F6 참조 음성 등록은 기존 Voice Conversion 입력을 준비하는 목적
 - 원본 조회·preview가 필요한 경우 private no-store 접근과 감사
 
 감사에 필요한 최소 기록의 보존 기간과 법적 근거는 운영 전 검토한다. 타인 음성 무단 복제·사칭 신고 흐름은 [모델 오용 방지](model-abuse-prevention.md)에 연결한다.
+
+## Vocal Production Rights V1 제안 [정의/설계·미구현]
+
+[ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)는 explicit current authority와 immutable Grant/event ledger를 제안한다. local consent snapshot/Approval/RightsMetadata를 ACTIVE로 자동 승격하지 않는다. authenticated owner도 exact subject/op/role의 verified 권리자 증적 없이는 발급할 수 없다. Provider/Worker는 권한 발급자가 아니다.
+
+V1은 explicit revocation-only이며 기간 제한 증적은 unsupported로 발급 거부한다. 기존 목적·기간 정책을 완화하지 않는다. expiry는 후속 ADR이다. withdrawal·grant/revoke/replace·Completion reader는 ordered evidence/scope actual write-lock을 공유해야 한다. 원문/음성/path 대신 최소 opaque reference/digest·policy·actor/revision을 보존한다. 인증/증적 검증/철회 writer/보존·법적 검토는 운영 선행 조건이며 현재 구현된 철회로 표시하지 않는다.
+
+creation 권한과 canonical output OUTPUT_READ는 별개다. source operation revoke만으로 output read를 자동 revoke하지 않고 철회 요청·증적 범위에 OUTPUT_READ가 명시돼야 한다. Completion 자동 read grant는 없고 authenticated explicit writer 이전에는 response-loss replay도 deny한다. historical receipt는 현재 read 권한이 아니다. Recording Take/Enrollment Sample 학습 재사용, VoiceProfile wildcard, Mix/Export는 V1 제외다.
