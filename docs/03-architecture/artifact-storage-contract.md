@@ -171,6 +171,8 @@ Completion Unit of Work는 기존 ingestion을 우회하지 않고 prepare·regi
 
 DohaVocal verified staging은 향후 `prepare_verified_stream()`으로 기존 prepare 결과에 합류한다. `open_verified()`의 context-managed stream을 Artifact-owned temporary object로 bounded copy하고 checksum·size·media를 독립 재검증한다. locator의 `ingested_artifact_id`, JobOutput과 Job success는 Artifact registration과 같은 DB transaction에서 확정하며 `TrustedArtifactRegistrationService`나 Export publication ledger를 사용하지 않는다.
 
+최신 Music Director의 `register_trusted_adopted_in_session()`은 검증된 JSON publication evidence를 caller-owned Session에 등록하는 공통 ingestion의 추가 경로다. Vocal PayloadLocator용 stream prepare를 대체하지 않으며, 공통 publisher infrastructure 재사용은 Export/Music Director ledger authority 재사용을 뜻하지 않는다.
+
 현재 구현은 Common Specification의 kind 중 `lyrics_text`, `audio`, `stem`, `manifest`, `evaluation`, `snapshot`만 허용한다. Audio는 WAV·FLAC·MP3 header와 WAV parser, text는 streaming UTF-8 decoder, 구조화 kind는 16MiB 상한의 UTF-8 JSON parser로 검증한다. format validator와 권리 정책이 확정되지 않은 `model`·`checkpoint`는 fail-closed한다. producer는 `user`, `provider`, `workspace`, `import`만 허용하고 새 Artifact의 retention은 caller 입력 없이 `active`로 고정한다.
 
 storage key는 caller가 지정하지 않는다. non-`music`은 `payloads/<kind>/<uuid-shard>/<artifact-id>.<validated-extension>`, `music`은 `snapshots` 또는 `runs` namespace를 사용한다. source가 다른 filesystem에 있어도 final root 내부 exclusive 임시 inode로 streaming copy·file `fsync`한 뒤 hard-link로 publish하므로 기존 target을 덮어쓰지 않는다. POSIX에서는 directory `fsync`도 시도하며 Windows directory durability는 제한된 WARNING이다.

@@ -13,10 +13,24 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 - DohaVocal Verified Staged Artifact Completion Contract
 
+- 최신 develop의 #157/#158 authority와 계약을 재검증하고, 기존 Music Director ADR-069~073을 보존하여 Vocal 결정을 ADR-074로 재번호화했다. 공통 JSON adopted registration과 Vocal verified stream의 경계, develop 미구현 상태 및 tombstone replay 규약을 명확히 했다.
 - `open_verified()` stream을 기존 Artifact ingestion의 path-free prepare 경로로 넘기고 동일한 register·verify primitive에 합류시키는 공식 handoff를 확정했다.
 - Vocal generation은 새 Project Vocal Asset/version 1, conversion·correction은 source Vocal Asset의 다음 immutable Version, analysis는 exact source Version의 JSON Artifact를 만들며 Completion이 selected Version을 자동 변경하지 않도록 결정했다.
-- Artifact·JobOutput·ModelUsage·필요한 Asset/Version, `PayloadLocator.ingested`와 Job `succeeded`를 하나의 final transaction으로 묶고, transaction 내부 latest rights/claim/cancel/revocation gate와 crash/replay/cleanup 계약을 ADR-069에 기록했다.
+- Artifact·JobOutput·ModelUsage·필요한 Asset/Version, `PayloadLocator.ingested`와 Job `succeeded`를 하나의 final transaction으로 묶고, transaction 내부 latest rights/claim/cancel/revocation gate와 crash/replay/cleanup 계약을 ADR-074에 기록했다.
 - production 구현, PR #130 acquisition orchestration, Export ledger, schema와 Alembic은 변경하지 않았다.
+
+### 문서 - AI Music Director Candidate APPLY Authority
+
+- ADR-073에서 현재 selected Candidate만 적용하는 Owner/Project scope, Run·WorkingComposition 이중 CAS, 필수 Idempotency-Key와 response-loss replay 계약을 확정했다.
+- bounded proposal 전체를 하나의 Service-owned transaction과 aggregate persistent history entry로 적용하고 Undo/Redo 1회가 APPLY 전체를 exact 복원하도록 결정했다.
+- 기존 applied pointer/revision과 typed history JSON으로 authority를 표현할 수 있어 migration은 필요하지 않으며, Runtime API는 89 paths / 110 operations로 유지한다. Production APPLY 구현과 Frontend는 후속 작업이다.
+
+### 추가 - AI Music Director Candidate와 Public API Foundation
+
+- immutable CompositionSnapshot을 입력으로 사용하는 provider-neutral Music Director Job, durable ProviderExecution identity, Mock Provider Worker와 1~4개 Candidate proposal materialization을 추가했다.
+- Run/Candidate를 Project scope에서 읽고 run version CAS로 Candidate를 선택하며 기존 Job cancellation authority를 재사용하는 Public API 5개를 추가했다.
+- Alembic `20260911_0033`~`0035`로 Run/Candidate, ProviderExecution과 materialization recovery authority를 추가했다. Frontend, APPLY와 실제 외부 Provider는 이번 범위에 포함하지 않는다.
+- 현재 API는 89 paths / 110 operations이며 Alembic single head는 `20260911_0035`다.
 
 ### CI - Frontend Playwright Gate
 
@@ -25,6 +39,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
   `frontend-playwright` GitHub Actions job을 추가했다.
 - Playwright retry와 worker override 없이 기존 설정을 사용하고, full-stack Export test runtime은
   GitHub runner temp 경로를 사용하는 cross-platform 격리 환경으로 정합화했다.
+
+### 수정 - FFmpeg WAV 입력 demuxer 호환성
+
+- Export encoder, delivery validator와 Working Preview renderer가 WAV 입력에 explicit demuxer를 지정하도록 수정해 현재 검증 환경의 automatic input detection 실패를 회피했다.
+- 패치 제거 시 재현된 Audio regression 4건을 복구해 focused Audio suite `36 passed, 0 failed`를 확인했다. 공개 API와 migration에는 변경이 없다.
 
 ### 추가 - Export Production Worker Runner
 

@@ -10,6 +10,7 @@ from backend.tests.test_export_publication_migration import _config, _revision
 
 PREVIOUS_REVISION = "20260907_0031"
 REVISION = "20260908_0032"
+CURRENT_HEAD = "20260911_0035"
 
 
 def _nullable(engine) -> dict[str, bool]:
@@ -35,7 +36,7 @@ def test_0032_upgrade_downgrade_reupgrade_without_silence(tmp_path: Path) -> Non
     assert not _nullable(engine)["integrated_loudness_lufs"]
     assert not _nullable(engine)["true_peak_dbtp"]
     command.upgrade(config, "head")
-    assert _revision(engine) == REVISION
+    assert _revision(engine) == CURRENT_HEAD
     engine.dispose()
 
 

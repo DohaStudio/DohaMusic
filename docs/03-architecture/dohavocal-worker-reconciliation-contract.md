@@ -3,7 +3,7 @@
 > 문서 상태: [승인: authoritative contract, production wiring 미구현]
 > 기준: DohaMusic `99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
 > 구현 상태: acquisition orchestration·verified staging까지 구현, verified staged Artifact Completion은 계약 확정·production 구현 미착수
-> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-069](../11-decisions/ADR-069-dohavocal-verified-staged-artifact-completion-authority.md)
+> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)
 
 ## 1. 범위와 핵심 결정
 
@@ -165,4 +165,4 @@ Provider network 호출 중 열린 DB transaction은 0개다. 이 Workspace reco
 
 다음 concrete PR의 최대 범위는 Workspace Worker에서 concrete DohaVocal dispatch, 기존 HTTP Transport, Provider Job binding/recovery, bounded polling, heartbeat/cancel, GetResult와 기존 Result trust gate까지다.
 
-durable `PayloadLocator`, verified durable byte staging과 acquisition orchestration foundation은 구현됐다. Vocal Completion의 stream handoff·output target·atomic locator handoff·latest rights port는 [ADR-069](../11-decisions/ADR-069-dohavocal-verified-staged-artifact-completion-authority.md)에서 확정했으며 production adapter는 `[미구현]`이다. reclaim wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행도 별도 후속 의존성이다.
+durable `PayloadLocator`, verified durable byte staging과 acquisition orchestration foundation은 구현됐다. Vocal Completion의 stream handoff·output target·atomic locator handoff·latest rights port는 [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)에서 확정했으며 production adapter는 `[미구현]`이다. reclaim wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행도 별도 후속 의존성이다.

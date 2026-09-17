@@ -17,6 +17,7 @@ from backend.repositories.workspace.export_publication_repository import (
     ExportPublicationRepository,
 )
 from backend.repositories.workspace.job_repository import JobRepository
+from backend.repositories.workspace.music_director_repository import MusicDirectorRepository
 from backend.repositories.workspace.payload_locator_port import (
     PayloadLocatorPersistencePort,
     PayloadLocatorRepositoryPort,
@@ -26,6 +27,9 @@ from backend.repositories.workspace.payload_locator_repository import (
     SqlAlchemyPayloadLocatorPersistence,
 )
 from backend.repositories.workspace.preview_repository import WorkingPreviewRepository
+from backend.repositories.workspace.provider_execution_repository import (
+    MusicDirectorProviderExecutionRepository,
+)
 from backend.repositories.workspace.provider_job_repository import ProviderJobRepository
 from backend.repositories.workspace.workspace_repository import WorkspaceRepository
 
@@ -37,7 +41,9 @@ __all__ = [
     "CompositionHistoryRepository",
     "ExportPublicationRepository",
     "JobRepository",
+    "MusicDirectorRepository",
     "ProviderJobRepository",
+    "MusicDirectorProviderExecutionRepository",
     "PayloadLocatorPersistencePort",
     "PayloadLocatorRepository",
     "PayloadLocatorRepositoryPort",

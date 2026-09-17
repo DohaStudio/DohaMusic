@@ -11,6 +11,7 @@ class AssetType(StrEnum):
     RECORDING = "recording"
     MIX = "mix"
     EXPORT = "export"
+    CANDIDATE = "candidate"
 
 
 class JobStatus(StrEnum):

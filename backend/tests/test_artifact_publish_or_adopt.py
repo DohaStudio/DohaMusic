@@ -71,6 +71,41 @@ def test_deterministic_identity_is_job_owned_and_rejects_forgery(tmp_path: Path)
     assert caught.value.code is ArtifactPublishErrorCode.PUBLICATION_IDENTITY_INVALID
 
 
+def test_music_director_proposal_identity_uses_canonical_candidate_storage_key(
+    tmp_path: Path,
+) -> None:
+    publisher, _ = _publisher(tmp_path)
+    job_id = uuid4()
+    first_digest = "a" * 64
+    second_digest = "b" * 64
+
+    first = TrustedPublicationIdentity.for_music_director_proposal(job_id, 0, first_digest)
+    assert first == TrustedPublicationIdentity.for_music_director_proposal(job_id, 0, first_digest)
+    assert first.storage_key == (
+        f"runs/music-director/{job_id.hex[:2]}/{job_id}/candidates/0/proposal-{first_digest}.json"
+    )
+    assert (
+        TrustedPublicationIdentity.for_music_director_proposal(job_id, 1, first_digest).storage_key
+        != first.storage_key
+    )
+    assert (
+        TrustedPublicationIdentity.for_music_director_proposal(job_id, 0, second_digest).storage_key
+        != first.storage_key
+    )
+    assert publisher._publication_path(first) == (
+        publisher.artifact_roots.roots["music"].joinpath(*first.storage_key.split("/"))
+    )
+
+    forged = TrustedPublicationIdentity(
+        job_id,
+        "music",
+        f"music-director/{job_id}/candidates/0/proposal-{first_digest}.json",
+    )
+    with pytest.raises(ArtifactPublishError) as caught:
+        publisher._publication_path(forged)
+    assert caught.value.code is ArtifactPublishErrorCode.PUBLICATION_IDENTITY_INVALID
+
+
 def test_publish_reopen_and_process_independent_exact_adoption(tmp_path: Path) -> None:
     publisher, staging = _publisher(tmp_path)
     content = _wav()

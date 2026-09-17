@@ -37,12 +37,22 @@ from backend.models.workspace.export import (
     JobExportResult,
 )
 from backend.models.workspace.job import Job, JobInput, JobOutput, ModelUsage
+from backend.models.workspace.music_director import (
+    MusicDirectorCandidate,
+    MusicDirectorCandidateMaterialization,
+    MusicDirectorMaterializationStatus,
+    MusicDirectorRun,
+)
 from backend.models.workspace.payload_locator import PayloadLocator
 from backend.models.workspace.preview import (
     WorkingPreviewAsset,
     WorkingPreviewRender,
     WorkingPreviewRenderClip,
     WorkingPreviewRenderTrack,
+)
+from backend.models.workspace.provider_execution import (
+    MusicDirectorProviderExecution,
+    MusicDirectorProviderExecutionStatus,
 )
 from backend.models.workspace.provider_job import ProviderJobBinding
 from backend.models.workspace.storage import (
@@ -72,10 +82,14 @@ WORKSPACE_ENTITY_CLASSES = (
     JobOutput,
     JobExportResult,
     JobExportPublication,
+    MusicDirectorRun,
+    MusicDirectorCandidate,
+    MusicDirectorCandidateMaterialization,
     ProcessingChain,
     ProcessingStep,
     ModelUsage,
     ProviderJobBinding,
+    MusicDirectorProviderExecution,
     PayloadLocator,
     WorkingPreviewAsset,
     WorkingPreviewRender,
@@ -115,12 +129,18 @@ __all__ = [
     "ExportPublicationState",
     "JobStatus",
     "ModelUsage",
+    "MusicDirectorRun",
+    "MusicDirectorCandidate",
+    "MusicDirectorCandidateMaterialization",
+    "MusicDirectorMaterializationStatus",
     "MusicProject",
     "ProcessingChain",
     "ProcessingStep",
     "ProjectAsset",
     "ProjectCompositionSelection",
     "ProviderJobBinding",
+    "MusicDirectorProviderExecution",
+    "MusicDirectorProviderExecutionStatus",
     "PayloadLocator",
     "RecordingEnrollment",
     "SnapshotItem",
