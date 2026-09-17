@@ -6,7 +6,7 @@
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
-SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 현재 source single head는 Rights Persistence Foundation의 `20260918_0036`이며 parent는 `20260911_0035`다. 사용자 DB의 과거 적용 기록은 `20260810_0017`이며 이번 작업은 사용자 DB를 읽거나 적용하지 않아 현재 상태를 재확인하지 않았다. 애플리케이션 startup 자동 Migration은 기본 비활성화이고 opt-in/실제 적용은 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
+SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 현재 source single head는 Rights ScopeGuard integrity의 `20260918_0037`이며 parent는 `20260918_0036`, 0036의 parent는 `20260911_0035`다. 사용자 DB의 과거 적용 기록은 `20260810_0017`이며 이번 작업은 사용자 DB를 읽거나 적용하지 않아 현재 상태를 재확인하지 않았다. 애플리케이션 startup 자동 Migration은 기본 비활성화이고 opt-in/실제 적용은 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
 
 승인 전에는 기본 URL로 `upgrade head`를 실행하지 않습니다. revision 확인과 실제 적용 명령은 Runbook의 경로 확인·backup·FK Gate를 통과한 실행 기록에서만 사용합니다.
 
@@ -62,7 +62,7 @@ Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동
 
 ## CURRENT Workspace/Domain DB와 TARGET — [부분 구현]
 
-DohaStudio Common Specification 기반 기존 Workspace registration 39개, 별도 history 2개와 `ArtifactStorageLocation` 1개에 Vocal rights persistence 11개를 추가했다. source metadata는 `20260918_0036` 기준 67 Application Tables다. 과거 사용자 DB 적용 기록은 `20260810_0017` 기준 36개이며 이번에 재검사하지 않았다. `0021`/`0022`는 nullable duration/idempotency result, `0023`은 PayloadLocator, `0024`는 Preview 4개, `0025`~`0027`은 Clip gain/fade/loop, `0028`은 history 2개, `0033`~`0035`는 Music Director domain, `0036`은 Vocal rights 11개 additive tables다. 기존 Resource/Product/Job API 수나 동작은 이번 persistence 작업으로 바뀌지 않는다.
+DohaStudio Common Specification 기반 기존 Workspace registration 39개, 별도 history 2개와 `ArtifactStorageLocation` 1개에 Vocal rights persistence 11개를 추가했다. source metadata는 `20260918_0037` 기준 67 Application Tables다. 과거 사용자 DB 적용 기록은 `20260810_0017` 기준 36개이며 이번에 재검사하지 않았다. `0021`/`0022`는 nullable duration/idempotency result, `0023`은 PayloadLocator, `0024`는 Preview 4개, `0025`~`0027`은 Clip gain/fade/loop, `0028`은 history 2개, `0033`~`0035`는 Music Director domain, `0036`은 Vocal rights 11개 additive tables, `0037`은 table/row 변경 없는 ScopeGuard INSERT integrity trigger다. 기존 Resource/Product/Job API 수나 동작은 이번 persistence 작업으로 바뀌지 않는다.
 
 이 구조는 물리 schema와 일부 Application 계층에서는 CURRENT다. 그러나 신규 Workspace Table backfill·dual write·Runtime read 전환과 Legacy 동결·제거는 수행하지 않았으므로 제품 실행의 source of truth라는 의미에서는 여전히 TARGET이다. Provider dispatch wiring과 background daemon도 미구현이며 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
 

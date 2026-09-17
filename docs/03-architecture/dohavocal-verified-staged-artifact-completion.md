@@ -168,4 +168,4 @@ generic `JobCompletionService`와 Export Completion의 기존 transaction owner�
 
 new commit은 active source/target을 요구한다. successful replay는 soft-deleted source/target을 포함한 기존 immutable identity를 대조할 수 있어야 하며, tombstone이 신규 생성 권한이 되지 않는다. 현재 output access rights와 exact committed aggregate 검증은 여전히 필수다. cleanup 이후에는 staging object를 다시 열지 않는다.
 
-현재 Alembic source single head는 `20260918_0036`이다. `0033`~`0035`는 Music Director domain, `0036`은 ADR-075 Rights Persistence Foundation의 별도 additive schema다. ADR-074 Completion Foundation 자체의 targets/atomicity/stream 계약에 schema 변경을 추가한 것이 아니며 production rights/receipt wiring은 후속이다. PR #130 acquisition 책임은 변경하지 않는다.
+현재 Alembic source single head는 `20260918_0037`이다. `0033`~`0035`는 Music Director domain, `0036`은 ADR-075 Rights Persistence Foundation의 별도 additive schema, `0037`은 ScopeGuard REPLACE/epoch reset 차단 trigger다. ADR-074 Completion Foundation 자체의 targets/atomicity/stream 계약에 schema 변경을 추가한 것이 아니며 production rights/receipt wiring은 후속이다. PR #130 acquisition 책임은 변경하지 않는다.

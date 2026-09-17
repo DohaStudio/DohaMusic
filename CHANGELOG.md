@@ -11,6 +11,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 - DohaVocal ScopeGuard REPLACE 무결성
+
+- PR #161 Final Validation에서 재현된 SQLite REPLACE의 빈 ScopeGuard 교체·epoch 초기화를 차단했다. 기존 ID 또는 owner/workspace key의 INSERT를 DB trigger가 conflict 처리하므로 `recursive_triggers=0`에서도 stable anchor가 보존된다. 정상 ensure/CAS와 caller transaction 소유권은 유지한다.
+- 기존 `20260918_0036`/frozen V1 DDL은 수정하지 않고 additive `20260918_0037`과 동일 metadata bootstrap 보호를 추가했다. direct SQL·stale CAS·rollback·기존 anchor upgrade 회귀를 추가했다. Writer/Adapter/Auth/Completion wiring은 변경하지 않으며 PR은 Draft 유지, Ready/merge는 별도 검증이다.
+
 ### 추가 - DohaVocal Rights Persistence Foundation
 
 - merged ADR-075를 기준으로 별도 ScopeGuard/EvidenceGuard, exact typed subject binding, immutable evidence/scope/Grant/event, nullable current pointer와 monotonic semantic revision, final Completion receipt/items의 11개 additive SQLite tables를 추가했다. event 하나의 expected pointer/revision 검증과 projection 전진, same-key FK·unique·CHECK·immutable SQL trigger를 제공한다.

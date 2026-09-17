@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260821_0019"
 PREVIOUS_REVISION = "20260820_0018"
 TABLE = "provider_job_bindings"
-SOURCE_HEAD = "20260918_0036"
+SOURCE_HEAD = "20260918_0037"
 
 
 def _config(database_url: str) -> Config:

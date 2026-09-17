@@ -2,7 +2,7 @@
 
 > 상태: [구현: SQLite Persistence Foundation] / [미구현: authenticated Writer·production Adapter·운영 적용]
 > 최종 수정일: 2026-09-18
-> 구현 기준: develop `7db03b7e21956472c968ce38b28ab90e4d2dae69`; source single head `20260918_0036` → parent `20260911_0035`
+> 구현 기준: develop `7db03b7e21956472c968ce38b28ab90e4d2dae69`; source single head `20260918_0037` → `20260918_0036` → `20260911_0035`
 > 관련 문서: [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md), [Database 개요](database-overview.md), [Architecture](../03-architecture/dohavocal-production-rights-domain.md)
 
 ## Existing schema 충분성
@@ -55,7 +55,9 @@ Repository는 caller-owned root Session transaction에서 flush만 한다. commi
 
 검증된 backend는 현재 source 기본 SQLite다. 실제 write-lock 유지·busy safe failure·WAL snapshot conflict는 disposable fixtures로 검증하며 unsupported engine migration/write는 fail closed한다. PostgreSQL/MySQL 동등 serialization·isolation 검증은 미수행이다. 벤더 독립 동등 보장을 주장하지 않는다. 운영 engine·timeout·WAL 설정 및 ownership writer 참여는 deployment enable 전 검증해야 한다.
 
-빈 anchor provision은 ACTIVE backfill이 아니다. migration `20260918_0036` 하나만 추가하며 parent는 실제 측정한 기존 single head `20260911_0035`다. immutable versioned DDL `backend/db/vocal_rights_schema_v1.py`를 현재 ORM과 migration이 사용한다. merge 뒤 이 V1 파일을 수정하지 않고 후속 schema version/revision을 추가해야 한다. 기존 table/column/Approval/VoiceProfile/ModelUsage/JobOutput/locator의 의미를 바꾸거나 backfill하지 않는다. metadata는 56 → 67 tables다. 사용자·production DB upgrade/startup auto migration은 수행하지 않았다.
+빈 anchor provision은 ACTIVE backfill이 아니다. 최초 migration `20260918_0036`의 parent는 실제 측정한 기존 single head `20260911_0035`다. 후속 `20260918_0037`은 ScopeGuard INSERT 보호 trigger 하나만 추가하며 기존 table/column/row를 바꾸지 않는다. 기존 `0036` 및 `backend/db/vocal_rights_schema_v1.py`는 보존하고 frozen V2 trigger DDL을 별도 module로 둔다. 현재 ORM metadata와 migration은 같은 V2 보호를 설치하며 이미 존재하는 0036 DB에는 승인된 0037 upgrade가 필요하다. merge 뒤 frozen DDL을 수정하지 않고 후속 schema version/revision을 추가해야 한다. 기존 table/column/Approval/VoiceProfile/ModelUsage/JobOutput/locator 의미를 바꾸거나 backfill하지 않는다. metadata는 56 → 67 tables다. 사용자·production DB upgrade/startup auto migration은 수행하지 않았다.
+
+PR #161 초기 H의 빈 ScopeGuard는 SQLite 기본 `recursive_triggers=0`에서 REPLACE implicit DELETE로 교체·epoch reset 가능했다. V2 `BEFORE INSERT` trigger는 기존 `scope_guard_id` 또는 `(owner_id, workspace_id)` 충돌을 먼저 RAISE(ABORT)하여 같은 ID reset과 다른 ID replacement를 모두 차단한다. recursive triggers ON에 의존하지 않는다. INSERT OR IGNORE/UPSERT의 기존 anchor 충돌도 명시적 conflict이며 정상 ensure는 기존 row를 읽어 반환한다. 실제 UPDATE CAS·ordered locks·semantic revision 계약은 변경하지 않는다. fresh metadata/0037 migration의 rights triggers는 34개다. 0037 downgrade는 ScopeGuard fact가 존재하면 보호 제거를 거부하며 빈 schema에서만 허용한다.
 
 온라인 SQLite migration과 rights가 포함된 metadata bootstrap은 driver의 실제 transaction을 확인하고 필요할 때 `BEGIN IMMEDIATE`로 DDL을 시작한다. caller가 끝을 소유하고 table/trigger 설치 중 실패하면 새 schema와 revision update를 함께 rollback한다. DDL failure injection과 metadata bootstrap rollback fixture가 이를 검사한다. offline SQL 생성·다른 SQLite driver/engine의 동등 보장은 별도 검증 대상이다.
 

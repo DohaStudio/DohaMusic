@@ -23,6 +23,7 @@ from backend.tests.test_vocal_rights_persistence import seed_legacy
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260918_0036"
+HEAD_REVISION = "20260918_0037"
 PARENT = "20260911_0035"
 
 
@@ -42,7 +43,8 @@ def snapshot(engine, tables):
 
 def test_single_additive_revision_and_exact_parent():
     script = ScriptDirectory.from_config(config("sqlite://"))
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == [HEAD_REVISION]
+    assert script.get_revision(HEAD_REVISION).down_revision == REVISION
     assert script.get_revision(REVISION).down_revision == PARENT
     assert len(TABLE_NAMES) == 11
 
@@ -53,7 +55,7 @@ def test_fresh_upgrade_empty_downgrade_reupgrade(tmp_path):
     engine = create_database_engine(url)
     assert set(inspect(engine).get_table_names()) == set(Base.metadata.tables) | {"alembic_version"}
     with engine.connect() as connection:
-        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == REVISION
+        assert connection.scalar(text("SELECT version_num FROM alembic_version")) == HEAD_REVISION
         assert connection.scalar(text("PRAGMA integrity_check")) == "ok"
         assert not connection.execute(text("PRAGMA foreign_key_check")).all()
         triggers = connection.scalars(
@@ -62,7 +64,7 @@ def test_fresh_upgrade_empty_downgrade_reupgrade(tmp_path):
                 "AND (name LIKE 'vocal_rights_%' OR name LIKE 'vocal_completion_%')"
             )
         ).all()
-        assert len(triggers) == len(integrity_ddl())
+        assert len(triggers) == len(integrity_ddl()) + 1
     command.downgrade(config(url), PARENT)
     assert set(TABLE_NAMES).isdisjoint(inspect(engine).get_table_names())
     command.upgrade(config(url), "head")
@@ -164,7 +166,7 @@ def test_downgrade_refuses_even_empty_authority_anchor_preserving_audit(tmp_path
         command.downgrade(config(url), PARENT)
     with factory.begin() as session:
         assert session.get(VocalRightsScopeGuard, guard_id) is not None
-        assert session.scalar(text("SELECT version_num FROM alembic_version")) == REVISION
+        assert session.scalar(text("SELECT version_num FROM alembic_version")) == HEAD_REVISION
 
 
 def test_migration_and_metadata_constraints_match(tmp_path):

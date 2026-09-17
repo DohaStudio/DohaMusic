@@ -14,7 +14,7 @@ from backend.tests.test_clip_gain_migration import _config
 def test_mixer_export_migration_is_single_head_and_portable(tmp_path: Path) -> None:
     config = _config(f"sqlite:///{(tmp_path / 'mixer-export.db').as_posix()}")
     script = ScriptDirectory.from_config(config)
-    assert script.get_heads() == ["20260918_0036"]
+    assert script.get_heads() == ["20260918_0037"]
     command.upgrade(config, "head")
     engine = create_database_engine(config.get_main_option("sqlalchemy.url"))
     with engine.connect() as connection:

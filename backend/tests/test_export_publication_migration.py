@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, inspect, text
 
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260907_0030"
-CURRENT_HEAD = "20260918_0036"
+CURRENT_HEAD = "20260918_0037"
 PREVIOUS_REVISION = "20260906_0029"
 TABLE = "job_export_publications"
 EXPECTED_COLUMNS = {

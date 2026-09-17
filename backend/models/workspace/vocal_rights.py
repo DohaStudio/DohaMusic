@@ -2,9 +2,11 @@
 
 from backend.db.base import Base
 from backend.db.vocal_rights_schema_v1 import define_tables, register_integrity
+from backend.db.vocal_rights_scope_guard_integrity_v2 import register_scope_guard_integrity
 
 _tables = define_tables(Base.metadata)
 register_integrity(Base.metadata)
+register_scope_guard_integrity(Base.metadata)
 
 
 class VocalRightsScopeGuard(Base):

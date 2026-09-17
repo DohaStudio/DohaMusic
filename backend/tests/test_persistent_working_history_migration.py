@@ -13,7 +13,7 @@ from backend.tests.test_clip_gain_migration import _config
 def test_persistent_history_is_single_head_and_additive(tmp_path: Path) -> None:
     config = _config(f"sqlite:///{(tmp_path / 'history.db').as_posix()}")
     script = ScriptDirectory.from_config(config)
-    assert script.get_heads() == ["20260918_0036"]
+    assert script.get_heads() == ["20260918_0037"]
     assert script.get_revision("20260906_0029").down_revision == "20260905_0028"
     command.upgrade(config, "head")
     engine = create_database_engine(config.get_main_option("sqlalchemy.url"))
