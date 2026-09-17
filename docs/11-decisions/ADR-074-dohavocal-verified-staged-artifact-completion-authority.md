@@ -1,8 +1,11 @@
-# ADR-069: DohaVocal verified staged Artifact Completion authority
+# ADR-074: DohaVocal verified staged Artifact Completion authority
 
-- 상태: 승인, Foundation 구현 / Worker wiring·production rights adapter 미구현
+- 상태: 승인, develop 기준 production 구현 미착수
 - 날짜: 2026-09-16
-- 기준: `develop@99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
+- 최종 수정일: 2026-09-17
+- 최초 결정 기준: `develop@99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
+- 재정합화 기준: `develop@e7a7dfb1c8859f198c4ded17f59f3d1376d2a77d` (#157, #158)
+- 구현 상태: PR #159 Foundation branch에서 stream adapter·Completion·Session-aware scope/binding port 구현. production current-rights adapter와 Worker wiring은 미구현. 아래 decision은 변경하지 않는다.
 - 관련 문서: [Verified Staged Artifact Completion](../03-architecture/dohavocal-verified-staged-artifact-completion.md), [Worker Reconciliation Contract](../03-architecture/dohavocal-worker-reconciliation-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Durable Payload Locator Authority](../03-architecture/durable-payload-locator-authority.md), [ADR-051](ADR-051-verified-durable-staging-authority.md)
 
 ## Context
@@ -12,6 +15,8 @@ DohaVocal `0.2.0` payload acquisition은 Provider Result를 검증하고 `Payloa
 따라서 verified payload를 열 수 있다는 사실만으로 Vocal Workspace 결과의 target, 최종 권리, Artifact 계보 또는 Job success가 결정되지 않는다. Export 전용 `ExportPublicationLedger`와 `TrustedArtifactRegistrationService`는 Project Export publication을 위한 authority이므로 이 간극을 대신할 수 없다.
 
 ## Decision
+
+최신 #157의 Music Director JSON adopted registration은 기존 Artifact ingestion에 추가된 caller-owned Session 경로이며 Vocal stream prepare 계약을 대체하지 않는다. 공통 publisher infrastructure와 Export/Music Director domain ledger authority를 구분한다. #158의 Candidate APPLY도 별도 Run/WorkingComposition selection 계약이므로 아래 Vocal output·selection·atomicity 결정은 유지한다. 상세 최신 source 경계는 관련 Completion architecture의 재정합화 절을 따른다.
 
 ### 1. Completion owner와 output target
 

@@ -78,6 +78,10 @@ def _workspace_tables() -> set[str]:
             "working_composition_history_states",
             "job_export_results",
             "job_export_publications",
+            "music_director_runs",
+            "music_director_candidates",
+            "music_director_provider_executions",
+            "music_director_candidate_materializations",
         }
     }
 
@@ -132,7 +136,7 @@ def test_workspace_revision_is_additive_and_matches_metadata() -> None:
 
     assert _revision_assignment("revision") == REVISION
     assert _revision_assignment("down_revision") == PREVIOUS_REVISION
-    assert len(WORKSPACE_ENTITY_CLASSES) == 35
+    assert len(WORKSPACE_ENTITY_CLASSES) == 39
     assert len(workspace_tables) == 21
     assert created_tables == workspace_tables
     assert dropped_tables == workspace_tables
@@ -188,6 +192,10 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
             "working_composition_history_states",
             "job_export_results",
             "job_export_publications",
+            "music_director_runs",
+            "music_director_candidates",
+            "music_director_provider_executions",
+            "music_director_candidate_materializations",
         }
     )
     engine = create_database_engine(database_url)
@@ -224,6 +232,10 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
             "working_composition_history_states",
             "job_export_results",
             "job_export_publications",
+            "music_director_runs",
+            "music_director_candidates",
+            "music_director_provider_executions",
+            "music_director_candidate_materializations",
         }
     )
     assert workspace_foreign_keys == 39

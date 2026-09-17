@@ -88,6 +88,30 @@ class TrustedPublicationIdentity:
     def for_wav_export(cls, job_id: UUID) -> TrustedPublicationIdentity:
         return cls.for_export(job_id, "wav")
 
+    @classmethod
+    def for_music_director_proposal(
+        cls, job_id: UUID, ordinal: int, proposal_digest: str
+    ) -> TrustedPublicationIdentity:
+        if type(job_id) is not UUID or type(ordinal) is not int or not 0 <= ordinal < 4:
+            raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLICATION_IDENTITY_INVALID)
+        normalized_digest = proposal_digest.strip().lower()
+        if len(normalized_digest) != 64:
+            raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLICATION_IDENTITY_INVALID)
+        try:
+            int(normalized_digest, 16)
+        except ValueError:
+            raise ArtifactPublishError(
+                ArtifactPublishErrorCode.PUBLICATION_IDENTITY_INVALID
+            ) from None
+        return cls(
+            job_id,
+            "music",
+            (
+                f"runs/music-director/{job_id.hex[:2]}/{job_id}/"
+                f"candidates/{ordinal}/proposal-{normalized_digest}.json"
+            ),
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class PublishOrAdoptResult:
@@ -386,14 +410,26 @@ class LocalArtifactPublisher:
         return removed
 
     def _publication_path(self, identity: TrustedPublicationIdentity) -> Path:
+        export_keys = {
+            f"exports/{identity.job_id.hex[:2]}/{identity.job_id}/result.{extension}"
+            for extension in ("wav", "mp3", "flac")
+        }
+        proposal_prefix = (
+            f"runs/music-director/{identity.job_id.hex[:2]}/{identity.job_id}/candidates/"
+        )
+        proposal_parts = identity.storage_key.removeprefix(proposal_prefix).split("/")
+        proposal_key_valid = (
+            identity.storage_key.startswith(proposal_prefix)
+            and len(proposal_parts) == 2
+            and proposal_parts[0] in {"0", "1", "2", "3"}
+            and proposal_parts[1].startswith("proposal-")
+            and proposal_parts[1].endswith(".json")
+            and len(proposal_parts[1]) == len("proposal-") + 64 + len(".json")
+        )
         if (
             not isinstance(identity, TrustedPublicationIdentity)
             or identity.storage_domain != "music"
-            or identity.storage_key
-            not in {
-                f"exports/{identity.job_id.hex[:2]}/{identity.job_id}/result.{extension}"
-                for extension in ("wav", "mp3", "flac")
-            }
+            or (identity.storage_key not in export_keys and not proposal_key_valid)
         ):
             raise ArtifactPublishError(ArtifactPublishErrorCode.PUBLICATION_IDENTITY_INVALID)
         try:

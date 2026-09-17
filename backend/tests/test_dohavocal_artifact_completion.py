@@ -11,7 +11,7 @@ from uuid import UUID, uuid4
 
 import pytest
 from sqlalchemy import create_engine, func, select
-from sqlalchemy.orm import Session, sessionmaker
+from sqlalchemy.orm import Session, SessionTransaction, sessionmaker
 
 import backend.models  # noqa: F401
 from backend.contracts.vocal_jobs import VOCAL_JOB_INPUT_SETTINGS_KEY, VOCAL_JOB_OUTPUT_ROLES
@@ -458,6 +458,35 @@ def test_replay_after_staging_cleanup_never_reopens_staging(tmp_path, monkeypatc
     assert graph.service.complete(graph.request) == replace(first, replayed=True)
 
 
+@pytest.mark.parametrize("mutation", ["selection", "tombstone", "rights"])
+def test_generation_replay_preserves_identity_without_granting_access(
+    tmp_path, monkeypatch, mutation
+) -> None:
+    graph = _graph(tmp_path, "vocal_generation")
+    first = graph.service.complete(graph.request)
+    with graph.factory.begin() as session:
+        asset = session.get(Asset, first.asset_id)
+        if mutation == "selection":
+            asset.selected_asset_version_id = first.asset_version_id
+        elif mutation == "tombstone":
+            asset.deleted_at = NOW
+            membership = session.scalar(
+                select(ProjectAsset).where(ProjectAsset.asset_id == first.asset_id)
+            )
+            membership.deleted_at = NOW
+    monkeypatch.setattr(graph.staging, "open_verified", lambda *_: pytest.fail("staging reopened"))
+    if mutation == "rights":
+        graph.rights.deny_on_call = 3
+        with pytest.raises(DohaVocalArtifactCompletionError) as raised:
+            graph.service.complete(graph.request)
+        assert raised.value.code is DohaVocalArtifactCompletionErrorCode.RIGHTS_DENIED
+    else:
+        assert graph.service.complete(graph.request) == replace(first, replayed=True)
+    with graph.factory() as session:
+        assert session.scalar(select(func.count()).select_from(JobOutput)) == 1
+        assert session.scalar(select(func.count()).select_from(ModelUsage)) == 1
+
+
 def _locator(graph: _Graph):
     from backend.repositories.workspace import PayloadLocatorRepository
 
@@ -470,6 +499,8 @@ def _locator(graph: _Graph):
     [
         ("rights_after_io", DohaVocalArtifactCompletionErrorCode.RIGHTS_DENIED),
         ("claim", DohaVocalArtifactCompletionErrorCode.STALE_CLAIM),
+        ("worker", DohaVocalArtifactCompletionErrorCode.STALE_CLAIM),
+        ("lease", DohaVocalArtifactCompletionErrorCode.STALE_CLAIM),
         ("cancel", DohaVocalArtifactCompletionErrorCode.CANCELLED),
         ("locator", DohaVocalArtifactCompletionErrorCode.INVALID_AUTHORITY),
         ("revoke", DohaVocalArtifactCompletionErrorCode.INVALID_AUTHORITY),
@@ -485,6 +516,10 @@ def test_final_authority_failures_leave_no_partial_db_state(tmp_path, mutation, 
             locator = session.get(PayloadLocator, graph.locator_id)
             if mutation == "claim":
                 job.claim_token = uuid4()
+            elif mutation == "worker":
+                job.claimed_by = "stale-worker"
+            elif mutation == "lease":
+                job.lease_expires_at = NOW
             elif mutation == "cancel":
                 job.cancel_requested_at = NOW
             elif mutation == "locator":
@@ -549,7 +584,7 @@ def test_scope_result_and_source_mismatch_fail_closed(tmp_path, mutation) -> Non
 
 @pytest.mark.parametrize(
     "failure_point",
-    ["asset", "version", "artifact", "job_output", "model_usage", "locator"],
+    ["asset", "version", "artifact", "verify", "job_output", "model_usage", "locator", "commit"],
 )
 def test_transaction_stage_failure_rolls_back_and_compensates(
     tmp_path, monkeypatch, failure_point
@@ -563,11 +598,25 @@ def test_transaction_stage_failure_rolls_back_and_compensates(
         "asset": (AssetRepository, "add_asset"),
         "version": (AssetRepository, "add_asset_version"),
         "artifact": (graph.ingestion, "register_prepared"),
+        "verify": (graph.ingestion, "verify_registered"),
         "job_output": (JobRepository, "add_job_output"),
         "model_usage": (JobRepository, "add_model_usage"),
         "locator": (PayloadLocatorRepository, "compare_and_set"),
     }
-    monkeypatch.setattr(*targets[failure_point], fail)
+    if failure_point == "commit":
+        original_commit = SessionTransaction.commit
+        calls = 0
+
+        def fail_final_commit(transaction, *args, **kwargs):
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                fail()
+            return original_commit(transaction, *args, **kwargs)
+
+        monkeypatch.setattr(SessionTransaction, "commit", fail_final_commit)
+    else:
+        monkeypatch.setattr(*targets[failure_point], fail)
     with pytest.raises(DohaVocalArtifactCompletionError) as raised:
         graph.service.complete(graph.request)
     assert raised.value.code is DohaVocalArtifactCompletionErrorCode.PERSISTENCE_FAILED

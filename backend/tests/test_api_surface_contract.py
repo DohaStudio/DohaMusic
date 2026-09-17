@@ -17,7 +17,7 @@ from starlette.routing import BaseRoute
 from backend.app.factory import create_app
 
 HTTP_METHODS = {"get", "post", "put", "patch", "delete", "options", "head", "trace"}
-EXPECTED_SURFACE_FINGERPRINT = "81b398c306b03a75d8a8b82469712c10668740c180ee27ed9687e76b7a24ffe4"
+EXPECTED_SURFACE_FINGERPRINT = "07dd67c3a857a989eb91bf11283e3b1052876657a6e51a1f5f221977f56fd22e"
 CRITICAL_OPERATIONS = {
     ("GET", "/api/v1/workspaces"),
     ("GET", "/api/v1/projects"),
@@ -29,6 +29,17 @@ CRITICAL_OPERATIONS = {
     ("GET", "/api/v1/jobs/{job_id}"),
     ("GET", "/api/v1/projects/{project_id}/working-composition"),
     ("GET", "/api/v1/projects/{project_id}/working-composition/history"),
+    ("POST", "/api/v1/projects/{project_id}/music-director/runs"),
+    ("GET", "/api/v1/projects/{project_id}/music-director/runs/{run_id}"),
+    (
+        "GET",
+        "/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}",
+    ),
+    (
+        "POST",
+        "/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/select",
+    ),
+    ("POST", "/api/v1/projects/{project_id}/music-director/jobs/{job_id}/cancel"),
     ("POST", "/api/v1/projects/{project_id}/working-composition/history/undo"),
     ("POST", "/api/v1/projects/{project_id}/working-composition/history/redo"),
     ("POST", "/api/v1/projects/{project_id}/working-composition/preview"),
@@ -166,13 +177,13 @@ def test_complete_runtime_api_surface_is_stable_and_valid() -> None:
     operations = _operations(schema)
 
     _assert_integrity(schema)
-    assert len(routes) == 109
-    assert len(api_routes) == 105
-    assert len(schema["paths"]) == 84
-    assert len(operations) == 105
+    assert len(routes) == 114
+    assert len(api_routes) == 110
+    assert len(schema["paths"]) == 89
+    assert len(operations) == 110
     assert Counter(method for method, _, _ in operations) == {
-        "GET": 40,
-        "POST": 39,
+        "GET": 42,
+        "POST": 42,
         "PATCH": 15,
         "DELETE": 9,
         "HEAD": 2,

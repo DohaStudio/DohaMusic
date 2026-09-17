@@ -95,6 +95,25 @@ from backend.services.workspace.job_worker_service import (
     ProviderExecutionInput,
     ProviderExecutionRequest,
 )
+from backend.services.workspace.music_director_candidate_persistence_service import (
+    CandidatePersistenceFact,
+    MusicDirectorCandidatePersistenceService,
+    MusicDirectorPersistenceError,
+    MusicDirectorPersistenceErrorCode,
+    PersistCandidateSetRequest,
+    PersistedCandidateSet,
+)
+from backend.services.workspace.music_director_materialization_service import (
+    CandidateProposal,
+    MaterializeCandidateSetRequest,
+    MusicDirectorCandidateMaterializationService,
+)
+from backend.services.workspace.music_director_public_service import MusicDirectorPublicService
+from backend.services.workspace.music_director_worker_service import (
+    MusicDirectorWorkerError,
+    MusicDirectorWorkerErrorCode,
+    MusicDirectorWorkerService,
+)
 from backend.services.workspace.payload_locator_service import PayloadLocatorService
 from backend.services.workspace.payload_staging_service import (
     PayloadStagingAuthority,
@@ -102,6 +121,11 @@ from backend.services.workspace.payload_staging_service import (
     PayloadStagingServiceError,
     PayloadStagingServiceErrorCode,
     staged_payload_from_record,
+)
+from backend.services.workspace.provider_execution_service import (
+    MusicDirectorProviderExecutionService,
+    ProviderExecutionError,
+    ProviderExecutionErrorCode,
 )
 from backend.services.workspace.provider_job_persistence_service import (
     ProviderJobPersistenceError,
@@ -231,6 +255,19 @@ __all__ = [
     "JobWorkerError",
     "JobWorkerService",
     "ModelUsageInput",
+    "CandidatePersistenceFact",
+    "MusicDirectorCandidatePersistenceService",
+    "MusicDirectorCandidateMaterializationService",
+    "MusicDirectorPublicService",
+    "MusicDirectorWorkerError",
+    "MusicDirectorWorkerErrorCode",
+    "MusicDirectorWorkerService",
+    "CandidateProposal",
+    "MaterializeCandidateSetRequest",
+    "MusicDirectorPersistenceError",
+    "MusicDirectorPersistenceErrorCode",
+    "PersistCandidateSetRequest",
+    "PersistedCandidateSet",
     "OrphanCandidate",
     "PreparedArtifactIngestion",
     "VerifiedArtifactStreamFacts",
@@ -245,6 +282,9 @@ __all__ = [
     "ProviderJobPersistenceError",
     "ProviderJobPersistenceErrorReason",
     "ProviderJobPersistenceService",
+    "MusicDirectorProviderExecutionService",
+    "ProviderExecutionError",
+    "ProviderExecutionErrorCode",
     "ProviderJobPersistenceStorageError",
     "PayloadLocatorService",
     "PayloadStagingAuthority",

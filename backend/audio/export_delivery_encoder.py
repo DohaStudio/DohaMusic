@@ -55,6 +55,8 @@ class CanonicalExportDeliveryEncoder:
             "-v",
             "error",
             "-xerror",
+            "-f",
+            "wav",
             "-i",
             str(canonical_wav),
             "-map",

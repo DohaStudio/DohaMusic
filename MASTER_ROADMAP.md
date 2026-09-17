@@ -43,7 +43,7 @@ DohaLM 저장소 분리 결정 이후 Dataset·Fine-tuning·Evaluation·Runtime�
 | Phase C Runtime Migration | [계획] | ACE-Step·Demucs·Seed-VC 이전과 Artifact URI 미착수 |
 | Phase D Legacy Removal | [계획] | 내부 Runner·구형 Adapter 유지 |
 
-DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload process-local adapter, durable PayloadLocator persistence, verified durable local staging·acquisition과 ADR-069 Completion Foundation을 구현했다. `payloadref:v1` identity, exact replay, lifecycle CAS, revocation과 restart recovery가 CURRENT다. atomic reclaim·concrete Worker wiring·인증·production rights adapter·실제 Vocal model은 `[미구현]`이다.
+DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Export를 소유한다. 기존 `PipelineExecutor`는 Legacy·Compatibility Workflow다. DohaVocal `0.1.0` 호환과 `0.2.0` payload consumer DTO·trust gate·transient acquisition, DohaMusic-owned Trusted Payload process-local adapter, durable PayloadLocator persistence, verified durable local staging·acquisition과 ADR-074 Completion Foundation을 구현했다. `payloadref:v1` identity, exact replay, lifecycle CAS, revocation과 restart recovery가 CURRENT다. atomic reclaim·concrete Worker wiring·인증·production rights adapter·실제 Vocal model은 `[미구현]`이다.
 
 ## AI-native DAW 제품 전환 상태
 
@@ -52,6 +52,7 @@ DohaMusic은 제품 서비스와 Workspace·Job Orchestrator·Mixer·최종 Expo
 | Responsive Studio MVP | [완료] | 생성·가사·음성·History·Project·Result·Settings와 Player·Cancel·Retry 구현; `/studio` 생성, `/projects` Project 관리, `/projects?mode=daw` DAW Project 선택과 `/projects/{id}` 편집 역할 구분 |
 | AI-native DAW Product Direction | [완료] | PR #94가 `develop`에 병합되어 CURRENT/TARGET/NOT IMPLEMENTED 기준 확정 |
 | Composition Runtime UI | [진행 중] | D1·D2와 D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration, Track/Clip editing·explicit Clip Copy·persistent Undo/Redo, exact AssetVersion-safe media source·Track/Clip Waveform 완료; multi-user conflict recovery 완료; Section·Mixer 미구현 |
+| AI Music Director | [부분 구현] | immutable Snapshot 기반 Job, Provider execution identity, Mock Worker, durable Candidate proposal materialization, Run/Candidate read와 CAS SELECT 구현; ADR-073 APPLY architecture 승인, 실제 Provider·Frontend·APPLY 구현은 미완료 |
 | Composition Evaluation / QA | [계획] | 통합 QA Run·Report·deep-link·Re-Evaluation 미구현 |
 | Continuous Learning Hub | [계획] | Candidate review·Rights/Eligibility/Dataset 연결 미구현 |
 

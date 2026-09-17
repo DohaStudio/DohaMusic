@@ -1,7 +1,7 @@
 # DohaVocal Verified Staged Artifact Completion Foundation 검증
 
 > 기준: PR #156 contract head `60c95f066c77418518d45082b42629fdafee6254`
-> 결정: ADR-069
+> 당시 결정 번호: Vocal ADR-069 (현재 authoritative 번호는 ADR-074). 아래 결과는 최초 Foundation head의 역사 기록이다.
 > 검증일: 2026-09-17
 
 ## 구현 범위

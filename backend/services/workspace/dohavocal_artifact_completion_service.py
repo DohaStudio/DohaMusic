@@ -650,11 +650,10 @@ class DohaVocalArtifactCompletionService:
             _fail(DohaVocalArtifactCompletionErrorCode.CONFLICT)
         if snapshot.job.job_type == "vocal_generation":
             membership = WorkspaceRepository(session).find_project_asset(
-                snapshot.project.project_id, asset.asset_id
+                snapshot.project.project_id, asset.asset_id, include_deleted=True
             )
             if (
                 asset.asset_type is not AssetType.VOCAL
-                or asset.selected_asset_version_id is not None
                 or version.version_number != 1
                 or version.parent_asset_version_id is not None
                 or membership is None

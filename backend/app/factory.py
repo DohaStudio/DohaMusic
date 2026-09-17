@@ -61,6 +61,7 @@ from backend.services.workspace import (
     ExportWorkerRunner,
     ExportWorkerService,
     JobService,
+    MusicDirectorPublicService,
     PayloadLocatorService,
     PayloadStagingService,
     TrustedArtifactRegistrationService,
@@ -218,6 +219,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         app.state.job_service = JobService(
             session_factory,
             cursor_codec=cursor_codec,
+        )
+        app.state.music_director_public_service = MusicDirectorPublicService(
+            session_factory, app.state.job_service
         )
         payload_locator_service = PayloadLocatorService(
             SqlAlchemyPayloadLocatorPersistence(session_factory)

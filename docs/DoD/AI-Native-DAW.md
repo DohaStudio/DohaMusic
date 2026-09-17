@@ -109,11 +109,16 @@
 - [ ] Preview와 WAV·MP3·FLAC 독립 Export Asset
 - [ ] 음질·Job·secure download 검증
 
-## D5. AI Music Director — [계획]
+## D5. AI Music Director — [진행 중]
 
-- [ ] TimelineSelection을 기존 MusicIntent로 materialize
+Architecture authority는 [ADR-069](../11-decisions/ADR-069-ai-music-director-candidate-workflow.md)이다. Backend Candidate 생성·read·SELECT Foundation만 구현됐으며 D5 완료를 의미하지 않는다.
+
+- [x] immutable CompositionSnapshot 기반 MusicIntent와 1~4개 Candidate Job
+- [x] ProviderExecution identity, Mock Worker와 durable proposal materialization
+- [x] Project-scoped Run/Candidate read, ordinal ordering과 CAS SELECT
+- [ ] ADR-073 atomic APPLY와 WorkingComposition/history mutation (architecture 승인, 구현 대기)
 - [ ] 실행 전 승인과 Candidate A/B 비교·선택
-- [ ] HTTP·SSE·Cancel·Retry·Readiness·오류·실제 Provider E2E
+- [ ] Frontend Candidate 비교 UX와 실제 Provider E2E
 
 ## D6. Reference Panel — [계획]
 

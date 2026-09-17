@@ -28,7 +28,7 @@
 [저장소 분리 Roadmap](planning/repository-separation-roadmap.md)에 따라 책임 경계와 Runtime 이전을 분리한다.
 
 1. Phase A `[완료]`: 책임, Provider 계약 범위, Dataset·Artifact 정책, Model Manifest와 ADR을 문서화하고 PR #50 병합 근거를 확인했다.
-2. Phase B `[진행 중]`: DohaVocal `0.1.0` 호환과 `0.2.0` payload Result DTO·trust gate·transient acquisition, Trusted Payload process-local adapter, durable `PayloadLocator`, verified local staging·acquisition과 ADR-069 Completion Foundation을 구현했다. `source_bound → verified_staged → ingested → cleanup_pending → cleaned`, terminal revocation, restart/idempotency/CAS를 보존한다. reclaim runtime, concrete Vocal Worker wiring·인증·production rights adapter·실제 model은 남아 있다.
+2. Phase B `[진행 중]`: DohaVocal `0.1.0` 호환과 `0.2.0` payload Result DTO·trust gate·transient acquisition, Trusted Payload process-local adapter, durable `PayloadLocator`, verified local staging·acquisition과 ADR-074 Completion Foundation을 구현했다. `source_bound → verified_staged → ingested → cleanup_pending → cleaned`, terminal revocation, restart/idempotency/CAS를 보존한다. reclaim runtime, concrete Vocal Worker wiring·인증·production rights adapter·실제 model은 남아 있다.
 3. Phase C `[계획]`: ACE-Step·Demucs·Seed-VC Runner를 순차 이전하고 로컬 `Path`를 Artifact ID·URI 계약으로 전환한다.
 4. Phase D `[계획]`: 전환 검증이 끝난 내부 Runner와 구형 Adapter만 제거하고 운영 계약 version과 DoD를 확정한다.
 
@@ -45,8 +45,9 @@ DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic�
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
 2. D1·D2 `[완료]`: Composition Read의 Workspace 권위와 Project 상세 연결, 읽기 전용 Timeline·Track lane·단일 Mix playback·실제 media duration·Playhead·Master/Mix Waveform·seek·scroll·zoom·keyboard 기반을 완료했다. 실제 DB 승인은 별도 유지한다.
 3. D3 `[진행 중]`: ADR-040·045·047·050·052·053·054·055·056의 WorkingComposition/Preview/Clip Gain·Fade·Loop와 persistent history authority, atomic mutation Service, Frontend Track/Clip editing·explicit Clip Copy·Backend journal/cursor Undo/Redo, exact AssetVersion-safe media source·Clip별 source-window Waveform, Working Preview·Composition Commit을 구현했다. multi-user conflict recovery까지 구현했으며 D4 Mixer·독립 Export는 `[계획]`이다.
-4. D5~D7 `[계획]`: AI Music Director·Candidate A/B, Reference Panel, Composition Evaluation/QA를 연결한다.
-5. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
+4. D5 `[진행 중]`: immutable Snapshot 기반 Music Director Job, Provider execution identity, Mock Worker, durable Candidate proposal materialization과 Project-scoped read·SELECT Public API를 구현했다. ADR-073으로 atomic APPLY 계약을 확정했으며 실제 구현, Provider와 Frontend Candidate 비교는 미구현이다.
+5. D6~D7 `[계획]`: Reference Panel과 Composition Evaluation/QA를 연결한다.
+6. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
 
 Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition atomic mutation Service를 구현했다. Frontend는 exact AssetVersion Clip create와 explicit destination Copy, Track/Clip mutation, response revision 기반 reconcile, Backend persistent history projection과 undo/redo intent, Clip별 `[source_in, source_out)` Waveform, Working Preview·Composition Commit과 selected Clip Gain·Fade·Loop control을 소비한다. Gain drag는 숫자만 local preview하고 Fade와 Loop는 canonical 값을 validation한 뒤 absolute mutation을 보내며 waveform/audio를 임의 변경하지 않는다. Backend는 exact AssetVersion lineage·canonical geometry·Clip Gain·Fade·Loop를 immutable Snapshot과 revision-pinned Working Preview manifest에 고정한다. Provider·Training·Dataset·GPU·Common Contract는 변경하지 않았고 Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
 
@@ -75,7 +76,7 @@ Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition ato
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | D0·D1·D2와 D3 WorkingComposition·Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration, Clip editing·explicit Clip Copy·persistent Undo/Redo·safe media source·Track/Clip Waveform 완료; multi-user conflict recovery 완료; 실제 DB 전환·Section·Mixer·D4~D9 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | D0·D1·D2와 D3 편집 기반 완료; D5 Music Director Backend Candidate 생성·durable materialization·read·SELECT Foundation 구현, APPLY architecture 승인, 실제 Provider·Frontend·APPLY 구현 미완료 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N, PayloadLocator persistence·verified staging·acquisition·Vocal Completion Foundation 구현; Provider dispatch wiring·production rights adapter·background daemon과 나머지 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -84,7 +85,7 @@ Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition ato
 
 ## 현재 우선 작업
 
-**최우선 NEXT:** Persistent History Authority / Foundation과 Frontend Integration까지 완료했다. 다음 단일 D3 gate는 multi-user 동시 편집 recovery다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다. 실제 사용자 DB `0017 → 0028` 전환은 별도 승인 Gate로 유지하며, Workspace Job background daemon activation은 별도 Track이다.
+**최우선 NEXT:** AI Music Director Candidate APPLY + Atomic WorkingComposition Mutation Implementation. ADR-073의 이중 CAS·단일 UoW·aggregate history 계약을 구현하며 Frontend와 실제 Provider는 이후 별도 Gate다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.

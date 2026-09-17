@@ -9,7 +9,7 @@ VerifiedPayloadStagingPort: IMPLEMENTED
 LocalFilesystemStagingAdapter: IMPLEMENTED
 verified durable staging: IMPLEMENTED
 downloader orchestration: NOT IMPLEMENTED
-Artifact ingestion/Completion contract: RESOLVED (ADR-069)
+Artifact ingestion/Completion contract: RESOLVED (ADR-074)
 Artifact ingestion/Completion Foundation: IMPLEMENTED
 Worker wiring: NOT IMPLEMENTED
 ```
@@ -270,4 +270,4 @@ VerifiedPayloadStagingPort
 
 필수 검증은 same-locator replay, collision, partial cleanup, crash-after-publish adoption, missing/tampered object, Windows drive·UNC·reserved name, traversal·URL·credential, symlink/junction/reparse, rights/cancel/revocation race, cleanup idempotency와 DB transaction 0 during I/O다.
 
-Artifact ingestion/Completion Foundation은 [ADR-069](../11-decisions/ADR-069-dohavocal-verified-staged-artifact-completion-authority.md)을 따라 구현됐다. reclaim, dispatcher, daemon, production rights/authentication adapter, DohaVocal Runtime과 model/GPU는 후속 작업이다.
+Artifact ingestion/Completion Foundation은 [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)을 따라 구현됐다. reclaim, dispatcher, daemon, production rights/authentication adapter, DohaVocal Runtime과 model/GPU는 후속 작업이다.
