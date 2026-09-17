@@ -2,7 +2,7 @@
 
 > 문서 상태: [승인: authoritative contract, production wiring 미구현]
 > 기준: DohaMusic `99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
-> 구현 상태: acquisition orchestration·verified staging까지 구현, verified staged Artifact Completion은 계약 확정·production 구현 미착수
+> 구현 상태: acquisition orchestration·verified staging 및 본 branch의 verified staged Artifact Completion Foundation 구현, production current-rights adapter·Worker wiring 미구현
 > 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)
 
 ## 1. 범위와 핵심 결정
