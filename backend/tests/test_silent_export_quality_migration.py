@@ -10,7 +10,7 @@ from backend.tests.test_export_publication_migration import _config, _revision
 
 PREVIOUS_REVISION = "20260907_0031"
 REVISION = "20260908_0032"
-CURRENT_HEAD = "20260911_0035"
+CURRENT_HEAD = "20260918_0036"
 
 
 def _nullable(engine) -> dict[str, bool]:

@@ -12,6 +12,7 @@ from sqlalchemy import inspect, text
 import backend.models  # noqa: F401
 from backend.db.base import Base
 from backend.db.session import create_database_engine
+from backend.db.vocal_rights_schema_v1 import TABLE_NAMES as VOCAL_RIGHTS_TABLE_NAMES
 from backend.models.workspace import WORKSPACE_ENTITY_CLASSES
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -173,6 +174,7 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
     workspace_tables = _workspace_tables()
     legacy_tables = (
         set(Base.metadata.tables)
+        - set(VOCAL_RIGHTS_TABLE_NAMES)
         - workspace_tables
         - {
             "artifact_storage_locations",
@@ -214,6 +216,7 @@ def test_workspace_revision_round_trip_on_temporary_sqlite(tmp_path: Path) -> No
     assert upgraded_revision == REVISION
     assert upgraded_tables - {"alembic_version"} == (
         set(Base.metadata.tables)
+        - set(VOCAL_RIGHTS_TABLE_NAMES)
         - {
             "artifact_storage_locations",
             "composition_clips",

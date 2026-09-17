@@ -59,6 +59,7 @@ from backend.models.workspace.storage import (
     ARTIFACT_STORAGE_ENTITY_CLASSES,
     ArtifactStorageLocation,
 )
+from backend.models.workspace.vocal_rights import VOCAL_RIGHTS_ENTITY_CLASSES
 from backend.models.workspace.workspace import MusicProject, ProjectAsset, Workspace
 
 WORKSPACE_ENTITY_CLASSES = (
@@ -106,6 +107,7 @@ WORKSPACE_ENTITY_CLASSES = (
 __all__ = [
     "ARTIFACT_STORAGE_ENTITY_CLASSES",
     "WORKSPACE_ENTITY_CLASSES",
+    "VOCAL_RIGHTS_ENTITY_CLASSES",
     "Approval",
     "Artifact",
     "ArtifactStorageLocation",

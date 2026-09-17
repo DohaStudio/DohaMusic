@@ -18,7 +18,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 REVISION = "20260808_0015"
 PREVIOUS_REVISION = "20260807_0014"
-SOURCE_HEAD = "20260911_0035"
+SOURCE_HEAD = "20260918_0036"
 INDEXES = {
     "ix_assets_owner_active_keyset": (
         "owner_id",

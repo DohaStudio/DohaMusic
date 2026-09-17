@@ -33,6 +33,8 @@
 
 PR #159 Foundation branch는 ADR-074의 verified stream ingestion·Vocal output target·atomic Completion과 deterministic rollback/replay/concurrency를 fixture로 검증했다. 이는 production current-rights adapter, Worker wiring 및 실제 Runtime/payload end-to-end 승인과 구분하며 위 production 완료 조건과 기존 Phase 진행률은 변경하지 않는다.
 
+ADR-075 Rights Persistence Foundation은 11개 additive SQLite tables·immutable evidence/Grant/event·explicit current projection·stable guards의 실제 conditional UPDATE·receipt fact persistence와 fixture 검증을 추가했다. authenticated Writer·production Adapter·minimal port/final-only receipt wiring·운영 DB 적용·실제 Provider 검증은 미구현/미수행이며 production 완료 체크는 변경하지 않는다. [상세 상태](../07-database/dohavocal-production-rights-persistence-design.md)를 따른다.
+
 - [ ] Provider별 Manifest·라이선스·보안·CI가 검증됐다.
 
 ## Phase C 완료 조건 — [계획]

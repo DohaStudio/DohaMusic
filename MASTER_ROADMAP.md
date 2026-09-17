@@ -10,7 +10,7 @@
 
 ## Phase 6.5 External Lyrics LLM 상태
 
-Vocal rights 독립 Track: [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 V1은 [정의/설계·승인 제안]이며 구현 완료가 아니다. `SCHEMA_CHANGE_REQUIRED`와 `MINIMAL_PORT_ADAPTATION_REQUIRED`에 따라 persistence → authenticated writer/evidence → Completion port/audit·production adapter → rollout을 후속 PR로 분리한다. authentication/rights writer/production adapter/Worker/model은 미구현이고 기존 Phase·DoD 체크·진행률은 변경하지 않는다.
+Vocal rights 독립 Track: merged #160 [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 V1에 따라 SQLite Persistence Foundation 11 tables·immutable ledger/evidence·current projection·actual guard UPDATE·final receipt persistence·additive `20260918_0036`를 구현했다. 이는 운영 권한 시스템 완료가 아니다. `MINIMAL_PORT_ADAPTATION_REQUIRED`에 따른 Completion port/audit·production adapter, authenticated writer/evidence·auth·ownership writer 협력·rollout/실제 DB 적용은 미구현/미수행이다. 우선 auth prerequisite를 해결하며 port 설계는 별도 병렬 가능하다. 기존 Phase·DoD 체크·진행률은 변경하지 않는다.
 
 | 항목 | 상태 | 근거 |
 |---|---|---|

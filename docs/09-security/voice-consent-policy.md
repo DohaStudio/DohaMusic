@@ -58,9 +58,9 @@ F6 참조 음성 등록은 기존 Voice Conversion 입력을 준비하는 목적
 
 감사에 필요한 최소 기록의 보존 기간과 법적 근거는 운영 전 검토한다. 타인 음성 무단 복제·사칭 신고 흐름은 [모델 오용 방지](model-abuse-prevention.md)에 연결한다.
 
-## Vocal Production Rights V1 제안 [정의/설계·미구현]
+## Vocal Production Rights V1 결정 [SQLite Persistence Foundation 구현 / production 미구현]
 
-[ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)는 explicit current authority와 immutable Grant/event ledger를 제안한다. local consent snapshot/Approval/RightsMetadata를 ACTIVE로 자동 승격하지 않는다. authenticated owner도 exact subject/op/role의 verified 권리자 증적 없이는 발급할 수 없다. Provider/Worker는 권한 발급자가 아니다.
+[ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)는 explicit current authority와 immutable Grant/event ledger를 결정했다. [Persistence Foundation](../07-database/dohavocal-production-rights-persistence-design.md)은 immutable evidence/exact scope·current pointer·ledger·guard·receipt만 저장하며 증적 검증·actor 인증·consent 철회 Writer는 미구현이다. local consent snapshot/Approval/RightsMetadata를 ACTIVE로 자동 승격하지 않는다. authenticated owner도 exact subject/op/role의 verified 권리자 증적 없이는 발급할 수 없다. Provider/Worker는 권한 발급자가 아니다.
 
 V1은 explicit revocation-only이며 기간 제한 증적은 unsupported로 발급 거부한다. 기존 목적·기간 정책을 완화하지 않는다. expiry는 후속 ADR이다. withdrawal·grant/revoke/replace·Completion reader는 ordered evidence/scope actual write-lock을 공유해야 한다. 원문/음성/path 대신 최소 opaque reference/digest·policy·actor/revision을 보존한다. 인증/증적 검증/철회 writer/보존·법적 검토는 운영 선행 조건이며 현재 구현된 철회로 표시하지 않는다.
 

@@ -14,7 +14,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 PREVIOUS_REVISION = "20260824_0021"
 REVISION = "20260825_0022"
-SOURCE_HEAD = "20260911_0035"
+SOURCE_HEAD = "20260918_0036"
 RESULT_COLUMNS = {
     "completed_revision",
     "result_type",

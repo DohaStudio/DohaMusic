@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - DohaVocal Rights Persistence Foundation
+
+- merged ADR-075를 기준으로 별도 ScopeGuard/EvidenceGuard, exact typed subject binding, immutable evidence/scope/Grant/event, nullable current pointer와 monotonic semantic revision, final Completion receipt/items의 11개 additive SQLite tables를 추가했다. event 하나의 expected pointer/revision 검증과 projection 전진, same-key FK·unique·CHECK·immutable SQL trigger를 제공한다.
+- caller-owned Session의 flush-only repository에서 실제 conditional guard UPDATE와 ordered locking, empty anchor provision, supplied fact append/current·ledger read를 제공한다. repository commit()/rollback()/hidden retry는 없으며 새 authorization policy/인증된 Writer/Adapter가 아니다.
+- source head `20260918_0036`의 parent는 측정한 `20260911_0035`다. legacy Approval/consent/output/ModelUsage/locator 의미와 rows를 보존하고 ACTIVE/fake receipt backfill을 하지 않는다. 새 audit facts가 있는 downgrade는 차단한다. SQLite 외 migration/write는 검증 전 fail closed다.
+- fixture-only integrity/serialization/receipt rollback·migration과 기존 Vocal/Export/Workspace 회귀를 검증한다. user/production DB·Provider·production storage에는 접근하지 않는다. authenticated Writer/evidence 검증, minimal Completion port/receipt wiring, production Adapter/Auth/Worker/API/Frontend와 PR #130은 변경하지 않는다.
+
 ### 문서 - DohaVocal Production Rights Domain Decision V1
 
 - ADR-075 승인 제안에서 Approval 강화/불변 ledger 단독/current authority+불변 Grant ledger를 비교하고 마지막 모델을 V1으로 정의했다. exact typed subject·operation·usage role의 단일 current Grant, revoke/supersede, shared writer-reader guard locking, first commit와 OUTPUT_READ replay를 분리했다.

@@ -8,7 +8,7 @@
 
 ## 1. 범위
 
-Production current-rights V1 제안은 [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)와 [Rights architecture](dohavocal-production-rights-domain.md)에 있다. [정의/설계]이며 adapter/auth/writer/schema는 [미구현]이다. 권한 facts는 `SCHEMA_CHANGE_REQUIRED`, final-only audit receipt는 `MINIMAL_PORT_ADAPTATION_REQUIRED`다. ADR-074의 final transaction·Session 소유권·targets·stream·replay identity는 변경하지 않는다.
+Production current-rights V1 결정은 merged [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)와 [Rights architecture](dohavocal-production-rights-domain.md)에 있다. `SCHEMA_CHANGE_REQUIRED`에 따른 SQLite Persistence Foundation·receipt fact 저장소는 구현했지만 adapter/auth/writer/minimal port/final-only receipt wiring은 [미구현]이다. `MINIMAL_PORT_ADAPTATION_REQUIRED`는 그대로다. ADR-074의 final transaction·Session 소유권·targets·stream·replay identity는 변경하지 않는다.
 
 이 문서는 PR #130 이후 `verified_staged`인 단일 DohaVocal payload를 immutable Workspace 결과와 Job success로 승격하는 공식 계약이다. acquisition, Provider 호출, downloader, schema, public API와 production wiring은 변경하지 않는다.
 
@@ -158,7 +158,7 @@ physical publish와 DB commit 사이에 distributed atomicity를 주장하지 �
 
 ## 11. 최신 develop authority 재정합화
 
-#157의 `ArtifactIngestionService.register_trusted_adopted_in_session()`은 Music Director proposal의 `application/json` publication evidence를 caller-owned Session에 등록하는 추가 경로다. 기존 `prepare`, `register_prepared`, `verify_registered`, `finalize_prepared`, `compensate_prepared`의 authority를 대체하지 않는다. Vocal의 path-free `prepare_verified_stream()`은 본 Foundation branch에서 구현·검증한 narrow extension이며 merged develop 기준에는 아직 없다. 새 adopted entry를 PayloadLocator의 stream handoff 대신 호출하지 않는다.
+#157의 `ArtifactIngestionService.register_trusted_adopted_in_session()`은 Music Director proposal의 `application/json` publication evidence를 caller-owned Session에 등록하는 추가 경로다. 기존 `prepare`, `register_prepared`, `verify_registered`, `finalize_prepared`, `compensate_prepared`의 authority를 대체하지 않는다. Vocal의 path-free `prepare_verified_stream()`은 merged #159 Foundation의 narrow extension이다. 새 adopted entry를 PayloadLocator의 stream handoff 대신 호출하지 않는다.
 
 `LocalArtifactPublisher`의 공통 publish/adopt infrastructure는 재사용할 수 있다. 그러나 Music Director materialization ledger, `TrustedPublicationIdentity.for_music_director_proposal()`과 Export의 `ExportPublicationLedger`는 각 domain의 authority이며 Vocal identity로 확대하지 않는다. physical publication과 DB registration은 별도 recoverable phase이고, Vocal의 최종 DB aggregate는 하나의 Completion-owned transaction에 남는다.
 
@@ -168,4 +168,4 @@ generic `JobCompletionService`와 Export Completion의 기존 transaction owner�
 
 new commit은 active source/target을 요구한다. successful replay는 soft-deleted source/target을 포함한 기존 immutable identity를 대조할 수 있어야 하며, tombstone이 신규 생성 권한이 되지 않는다. 현재 output access rights와 exact committed aggregate 검증은 여전히 필수다. cleanup 이후에는 staging object를 다시 열지 않는다.
 
-최신 Alembic source head는 `20260911_0035` 단일 head다. #157의 `0033`~`0035`는 Music Director domain 추가이며, 본 Vocal 계약의 추가 schema/migration 필요성은 0이다. PR #130 acquisition 책임은 변경하지 않는다.
+현재 Alembic source single head는 `20260918_0036`이다. `0033`~`0035`는 Music Director domain, `0036`은 ADR-075 Rights Persistence Foundation의 별도 additive schema다. ADR-074 Completion Foundation 자체의 targets/atomicity/stream 계약에 schema 변경을 추가한 것이 아니며 production rights/receipt wiring은 후속이다. PR #130 acquisition 책임은 변경하지 않는다.
