@@ -77,6 +77,7 @@
 | [ADR-071](ADR-071-music-director-candidate-materialization-and-proposal-publication.md) | Candidate materialization과 proposal publication authority | 승인 |
 | [ADR-072](ADR-072-ai-music-director-provider-port-and-worker.md) | AI Music Director Provider Port와 Worker 경계 | 승인 |
 | [ADR-073](ADR-073-music-director-candidate-apply-authority.md) | Candidate APPLY atomic WorkingComposition mutation authority | 승인, 구현 대기 |
+| [ADR-074](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md) | DohaVocal verified staging의 stream ingestion·Vocal Asset target·atomic Completion authority | 승인, production 구현 미착수 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
@@ -93,6 +94,7 @@
 - [ADR-046 — Durable Execution Handoff Authority](ADR-046-durable-execution-handoff-authority.md): 기존 Job·Provider binding·deterministic replay로 locator 전 same-Job resume을 재구성하며 새 handoff storage가 불필요함을 확정한다.
 - [ADR-049 — Durable Payload Locator Persistence Authority](ADR-049-durable-payload-locator-persistence-authority.md): source descriptor replay와 verified staging handoff를 분리하고 `ProviderJobBinding 1:N PayloadLocator` 전용 aggregate 필요성을 확정한다.
 - [ADR-051 — Verified Durable Staging Authority](ADR-051-verified-durable-staging-authority.md): 기존 staging root와 PayloadLocator schema에 locator-derived exclusive local publish, full open verification과 orphan adoption을 결합하고 새 schema가 불필요함을 확정한다.
+- [ADR-074 — DohaVocal Verified Staged Artifact Completion Authority](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md): verified stream을 기존 Artifact ingestion에 넘기는 path-free handoff, Job type별 Asset/Version target, locator와 Job success의 단일 transaction 및 최신 rights gate를 확정한다.
 
 ## Workspace 데이터베이스
 

@@ -9,8 +9,8 @@ VerifiedPayloadStagingPort: IMPLEMENTED
 LocalFilesystemStagingAdapter: IMPLEMENTED
 verified durable staging: IMPLEMENTED
 downloader orchestration: NOT IMPLEMENTED
-Artifact ingestion: NOT IMPLEMENTED
-Completion: NOT IMPLEMENTED
+Artifact ingestion/Completion contract: RESOLVED (ADR-074)
+Artifact ingestion/Completion production implementation: NOT IMPLEMENTED
 Worker wiring: NOT IMPLEMENTED
 ```
 
@@ -20,8 +20,8 @@ Worker wiring: NOT IMPLEMENTED
 
 application staging service는 파일 I/O 동안 DB transaction을 열지 않는다. I/O 전후 caller-provided claim·cancellation·rights evidence를 검증하고 마지막에 기존 `PayloadLocatorService`의 revision CAS를 호출한다. equivalent CAS winner는 재사용하고 채택되지 않은 object만 facts·identity 검증 후 정리한다. 이 foundation은 downloader, `GetPayloadContent`, Artifact ingestion, Completion 또는 Worker를 호출하지 않는다.
 
-> 문서 상태: [승인: authority 확정, adapter·통합 미구현]
-> 최종 수정일: 2026-08-26
+> 문서 상태: [승인: adapter·acquisition 구현, Completion 계약 확정·미구현]
+> 최종 수정일: 2026-09-16
 > 기준: DohaMusic `develop` `f27c01ff12b55f6f7b0dfc95acaf0d20135c0f87`
 > 최종 판정: `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`
 > 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)
@@ -40,7 +40,7 @@ VerifiedStagedPayload
 
 기존 `PayloadLocator`의 `staging_backend`, `staging_key`, actual facts, `verified_at`, lifecycle revision으로 이 authority를 표현할 수 있다. 별도 staging metadata table이나 Alembic은 필요하지 않다. 초기 구현은 narrow staging port와 local filesystem adapter로 충분하며 object storage 일반화를 선행 조건으로 두지 않는다.
 
-이번 분석은 authority만 확정한다. adapter, downloader, `GetPayloadContent`, Artifact ingestion, Completion, Worker, schema와 API는 변경하지 않는다.
+이 문서의 staging authority와 adapter foundation은 구현됐다. downstream Artifact ingestion과 Completion의 공식 경계는 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)에 확정했지만 production service는 아직 구현하지 않았다.
 
 ## 2. 현재 storage inventory
 
@@ -230,6 +230,8 @@ partial·orphan grace는 active write와 crash residue를 구분하는 운영 �
 
 healthy verified staging은 임의 TTL이 아니라 lifecycle로 유지한다. Artifact ingestion 뒤 cleanup policy가 `cleanup_pending`을 만들 때까지 보존한다. source `available_until` 만료는 이미 검증된 staging을 자동 무효화하지 않으며 locator policy와 최신 rights가 사용 가능성을 결정한다. rights revocation 뒤에는 open·reuse·ingestion·reacquire를 금지하고 cleanup만 허용한다.
 
+Artifact Completion은 `open_verified()`가 반환한 stream을 path로 역변환하지 않는다. future `ArtifactIngestionService.prepare_verified_stream()`이 stream을 Artifact publisher 소유 입력으로 복사해 독립 검증하고, locator `ingested`는 Artifact·JobOutput·Job success와 같은 DB transaction에서 기록한다. staging cleanup은 commit 이후 별도 lifecycle로 계속된다.
+
 ## 12. local durability와 보안 한계
 
 초기 구현은 process crash/restart와 정상 OS filesystem semantics에서 restart-safe하다. file `fsync`는 publish 전 필수이고 POSIX directory `fsync`는 시도한다. Windows에서 directory `fsync`와 갑작스러운 전원 손실 전체에 대한 완전한 durability는 보장하지 않는다. 문서와 운영 preflight에서 이 한계를 유지하며 확인하지 않은 guarantee를 선언하지 않는다.
@@ -268,4 +270,4 @@ VerifiedPayloadStagingPort
 
 필수 검증은 same-locator replay, collision, partial cleanup, crash-after-publish adoption, missing/tampered object, Windows drive·UNC·reserved name, traversal·URL·credential, symlink/junction/reparse, rights/cancel/revocation race, cleanup idempotency와 DB transaction 0 during I/O다.
 
-downloader orchestration, `GetPayloadContent` Worker 연결, Artifact ingestion/Completion, reclaim, dispatcher, daemon, production authentication, DohaVocal Runtime과 model/GPU는 그 다음 작업이다.
+Artifact ingestion/Completion production adapter, reclaim, dispatcher, daemon, production authentication, DohaVocal Runtime과 model/GPU는 후속 작업이다. Completion 계약은 [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)을 따른다.

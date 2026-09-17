@@ -1,8 +1,8 @@
 # DohaMusic Documentation Authority Map
 
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-08-21
-> 기준: `develop@a8e4f74ec21346da217207a9301ac5a99d85e060`
+> 최종 수정일: 2026-09-16
+> 기준: `develop@99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
 > 관련 문서: [README](../README.md), [Cleanup Plan](DOCUMENT_CLEANUP_PLAN.md), [Master Roadmap](../MASTER_ROADMAP.md), [실행 로드맵](../ROADMAP.md)
 
 ## 1. 목적과 분류 원칙
@@ -100,6 +100,7 @@
 | [docs/03-architecture/design-reference-policy.md](03-architecture/design-reference-policy.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/dohalm-integration.md](03-architecture/dohalm-integration.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |
 | [docs/03-architecture/dohavocal-consumer-contract.md](03-architecture/dohavocal-consumer-contract.md) | SUPPORTING | DohaVocal `0.1.0` Consumer DTO·mapping·transport port 계약 | [docs/03-architecture/system-architecture.md](03-architecture/system-architecture.md) | KEEP |
+| [docs/03-architecture/dohavocal-verified-staged-artifact-completion.md](03-architecture/dohavocal-verified-staged-artifact-completion.md) | SUPPORTING | verified staged payload의 Artifact stream handoff·Vocal output target·atomic Completion·latest rights 계약 | [docs/03-architecture/dohavocal-worker-reconciliation-contract.md](03-architecture/dohavocal-worker-reconciliation-contract.md) | KEEP |
 | [docs/03-architecture/frontend-architecture.md](03-architecture/frontend-architecture.md) | SUPPORTING | CURRENT Frontend 구조·state/API·design 구현 경계 | — | KEEP |
 | [docs/03-architecture/frontend-overview.md](03-architecture/frontend-overview.md) | SUPPORTING | CURRENT Frontend 경험·route·지원 범위 | — | KEEP |
 | [docs/03-architecture/kpop-generation-options.md](03-architecture/kpop-generation-options.md) | SUPPORTING | 세부 Architecture·계약 | — | KEEP |

@@ -1,9 +1,9 @@
 # DohaVocal Worker Reconciliation Contract
 
-> 문서 상태: [승인: 구현 전 authoritative contract]
-> 기준: DohaMusic `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`
-> 구현 상태: Workspace Worker·HTTP Transport·Provider Job Persistence·Result Ingestion·Trusted Payload process-local Foundation·Completion UoW는 각각 격리 구현, concrete wiring은 [미구현]
-> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
+> 문서 상태: [승인: authoritative contract, production wiring 미구현]
+> 기준: DohaMusic `99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
+> 구현 상태: acquisition orchestration·verified staging까지 구현, verified staged Artifact Completion은 계약 확정·production 구현 미착수
+> 관련 결정: [ADR-043](../11-decisions/ADR-043-doha-vocal-worker-reconciliation-authority.md), [ADR-044](../11-decisions/ADR-044-workspace-worker-reentry-lifecycle-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)
 
 ## 1. 범위와 핵심 결정
 
@@ -93,7 +93,7 @@ Provider candidate role과 Workspace output role은 서로 다른 namespace다. 
 | `vocal_correction` | `corrected_vocal_candidate` | `corrected_vocal` |
 | `vocal_analysis` | `vocal_analysis_result` | `vocal_analysis` |
 
-현재 generic Completion은 `converted_vocal`만 지원한다. 나머지 mapping과 adapter는 후속 구현 의존성이며 이번 계약은 enum, schema 또는 code를 추가하지 않는다. 알 수 없거나 Job type과 맞지 않는 role은 fail closed한다.
+현재 generic Completion은 `converted_vocal`만 지원한다. 전용 Vocal Completion의 네 role target과 Asset/Version 규칙은 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)에 확정했지만 adapter는 아직 구현하지 않았다. 알 수 없거나 Job type과 맞지 않는 role은 fail closed한다.
 
 ## 8. Completion eligibility와 replay
 
@@ -107,7 +107,7 @@ Provider candidate role과 Workspace output role은 서로 다른 namespace다. 
 - expected Artifact kind·media·출력 개수 검증
 - cancellation 없음, 유효한 claim token과 Completion 준비 완료
 
-Artifact prepare 뒤 DB commit 전 crash 또는 DB failure는 commit되지 않은 이번 invocation의 publish만 identity 확인 후 보상하고 같은 trusted payload로 replay한다. Completion DB commit 뒤 Worker 응답 전 crash는 기존 aggregate를 replay해 반환하며 AssetVersion, Artifact, Catalog, JobOutput, ModelUsage 또는 terminal mutation을 중복 생성하지 않는다. Provider inference를 다시 실행하지 않는다.
+Artifact prepare 뒤 DB commit 전 crash 또는 DB failure는 commit되지 않은 이번 invocation의 publish만 identity 확인 후 보상하고 같은 trusted payload로 replay한다. Completion transaction은 Artifact·Catalog·필요한 Asset/AssetVersion·JobOutput·ModelUsage, `PayloadLocator.ingested`와 Job `succeeded`를 함께 확정한다. commit 뒤 Worker 응답 전 crash는 기존 aggregate를 replay해 반환하며 어느 row도 중복 생성하지 않는다. Provider inference를 다시 실행하지 않는다.
 
 ## 9. Retry ownership matrix
 
@@ -165,4 +165,4 @@ Provider network 호출 중 열린 DB transaction은 0개다. 이 Workspace reco
 
 다음 concrete PR의 최대 범위는 Workspace Worker에서 concrete DohaVocal dispatch, 기존 HTTP Transport, Provider Job binding/recovery, bounded polling, heartbeat/cancel, GetResult와 기존 Result trust gate까지다.
 
-durable `PayloadLocator` persistence foundation은 구현됐다. payload downloader·verified durable byte staging, Vocal Completion adapter, Artifact ingestion wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행은 각각 별도 후속 의존성이다. 이 의존성이 없다는 사실은 계약 확정의 blocker가 아니며 해당 runtime capability를 완료로 선언하는 것만 막는다.
+durable `PayloadLocator`, verified durable byte staging과 acquisition orchestration foundation은 구현됐다. Vocal Completion의 stream handoff·output target·atomic locator handoff·latest rights port는 [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)에서 확정했으며 production adapter는 `[미구현]`이다. reclaim wiring, production authentication, background daemon과 실제 DohaVocal model/GPU 실행도 별도 후속 의존성이다.

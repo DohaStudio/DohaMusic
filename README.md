@@ -1,10 +1,10 @@
 ﻿# DohaMusic
 
-> 2026-08-26: DohaVocal `0.2.0` payload-backed Result consumer, 전용 `PayloadLocator` persistence와 verified durable local staging foundation을 구현했습니다. `VerifiedPayloadStagingPort`와 local adapter는 streaming 검증, exclusive publish, restart orphan adoption, verified open/delete 및 `source_bound → verified_staged` CAS를 제공합니다. downloader·Artifact ingestion·Completion/Worker wiring은 아직 미구현이며 자세한 경계는 [Verified Durable Staging Authority](docs/03-architecture/verified-durable-staging-authority.md)와 [ADR-051](docs/11-decisions/ADR-051-verified-durable-staging-authority.md)을 참고하십시오.
+> 2026-09-16: DohaVocal `0.2.0` payload-backed Result consumer, 전용 `PayloadLocator`, verified durable local staging과 acquisition orchestration을 구현했습니다. verified stream의 Artifact ingestion handoff, Job type별 Vocal output target, locator·Job success atomicity와 latest rights port는 [Verified Staged Artifact Completion](docs/03-architecture/dohavocal-verified-staged-artifact-completion.md)과 [ADR-074](docs/11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)에 확정했으며 production Completion/Worker wiring은 아직 미구현입니다.
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-09-03
+> 최종 수정일: 2026-09-16
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -41,7 +41,7 @@ DohaMusic = AI-native DAW
 - K-POP Structured Options와 final WAV Quality·Tempo·Hook 분석
 - 기본 Mock Provider와 선택적 ACE-Step·Demucs·Seed-VC 로컬 호환 Adapter
 - Common AI Contract의 `RightsMetadata` opt-in 검증 기반
-- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·version별 9/10 operation strict DTO, `0.1.0` metadata-only 호환과 `0.2.0` payload-backed Result·bounded acquisition 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 read-only trust gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 process-local 호환 adapter, durable persistence 및 verified local staging foundation. reclaim runtime·Worker wiring·인증·downloader orchestration·Completion adapter·실제 Artifact ingestion·실제 Vocal model은 미구현
+- [DohaVocal Consumer Contract Foundation](docs/03-architecture/dohavocal-consumer-contract.md)의 4개 capability·version별 9/10 operation strict DTO, `0.1.0` metadata-only 호환과 `0.2.0` payload-backed Result·bounded acquisition 검증, Workspace Job의 4개 Vocal type·구조화 input·role 계약, [Provider Job Persistence](docs/03-architecture/provider-job-persistence.md)의 1:N identity·retry history·restart recovery, [Provider Result Ingestion Contract](docs/03-architecture/provider-result-ingestion-contract.md)의 read-only trust gate와 [Trusted Payload Locator / Resolver Contract](docs/03-architecture/trusted-payload-locator-resolver-contract.md)의 process-local 호환 adapter, durable persistence, verified local staging과 acquisition orchestration. Completion 계약은 확정했으며 reclaim runtime·Worker wiring·인증·Completion production adapter·실제 Vocal model은 미구현
 
 다음은 CURRENT가 아니다.
 
