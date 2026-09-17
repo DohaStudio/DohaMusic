@@ -77,7 +77,7 @@
 | [ADR-071](ADR-071-music-director-candidate-materialization-and-proposal-publication.md) | Candidate materialization과 proposal publication authority | 승인 |
 | [ADR-072](ADR-072-ai-music-director-provider-port-and-worker.md) | AI Music Director Provider Port와 Worker 경계 | 승인 |
 | [ADR-073](ADR-073-music-director-candidate-apply-authority.md) | Candidate APPLY atomic WorkingComposition mutation authority | 승인, 구현 대기 |
-| [ADR-074](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md) | DohaVocal verified staging의 stream ingestion·Vocal Asset target·atomic Completion authority | 승인, production 구현 미착수 |
+| [ADR-074](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md) | DohaVocal verified staging의 stream ingestion·Vocal Asset target·atomic Completion authority | 승인, Foundation 구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

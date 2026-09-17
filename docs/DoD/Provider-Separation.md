@@ -30,6 +30,9 @@
 - [x] DohaMusic-owned opaque Trusted Payload locator·issuer·resolver Foundation의 root·symlink·expiry·immutability·byte checksum·media 경계가 deterministic fixture로 검증됐다.
 - [ ] Production payload downloader, durable cross-process locator registry와 resolver→Completion adapter가 검증됐다.
 - [ ] 실제 payload-backed Artifact ingestion과 Workspace completion이 검증됐다.
+
+PR #159 Foundation branch는 ADR-074의 verified stream ingestion·Vocal output target·atomic Completion과 deterministic rollback/replay/concurrency를 fixture로 검증했다. 이는 production current-rights adapter, Worker wiring 및 실제 Runtime/payload end-to-end 승인과 구분하며 위 production 완료 조건과 기존 Phase 진행률은 변경하지 않는다.
+
 - [ ] Provider별 Manifest·라이선스·보안·CI가 검증됐다.
 
 ## Phase C 완료 조건 — [계획]

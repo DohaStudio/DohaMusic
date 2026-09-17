@@ -5,6 +5,7 @@
 - 최종 수정일: 2026-09-17
 - 최초 결정 기준: `develop@99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
 - 재정합화 기준: `develop@e7a7dfb1c8859f198c4ded17f59f3d1376d2a77d` (#157, #158)
+- 구현 상태: PR #159 Foundation branch에서 stream adapter·Completion·Session-aware scope/binding port 구현. production current-rights adapter와 Worker wiring은 미구현. 아래 decision은 변경하지 않는다.
 - 관련 문서: [Verified Staged Artifact Completion](../03-architecture/dohavocal-verified-staged-artifact-completion.md), [Worker Reconciliation Contract](../03-architecture/dohavocal-worker-reconciliation-contract.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Durable Payload Locator Authority](../03-architecture/durable-payload-locator-authority.md), [ADR-051](ADR-051-verified-durable-staging-authority.md)
 
 ## Context

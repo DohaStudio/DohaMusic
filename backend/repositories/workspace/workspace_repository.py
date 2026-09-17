@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import and_, or_, select, update
+from sqlalchemy import and_, func, or_, select, update
 from sqlalchemy.orm import Session
 
 from backend.models.workspace.mixins import utc_now
@@ -211,6 +211,13 @@ class WorkspaceRepository:
         self.session.add(project_asset)
         self.session.flush()
         return project_asset
+
+    def next_project_asset_display_order(self, project_id: UUID) -> int:
+        statement = select(func.coalesce(func.max(ProjectAsset.display_order), -1) + 1).where(
+            ProjectAsset.project_id == project_id,
+            ProjectAsset.deleted_at.is_(None),
+        )
+        return int(self.session.scalar(statement))
 
     def get_project_asset(
         self, project_asset_id: UUID, *, include_deleted: bool = False

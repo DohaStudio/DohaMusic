@@ -11,6 +11,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - DohaVocal Verified Staged Artifact Completion Foundation
+
+- merged ADR-074 및 최신 develop ingestion/publisher와 normal merge로 재정합화했다. generation replay가 사용자의 사후 selection을 변경하거나 거부하지 않도록 분리하고, tombstone membership은 current rights 승인 없이 historical identity 검증에만 사용한다.
+- `open_verified()`의 context-managed stream을 staging path 노출 없이 기존 `ArtifactIngestionService`의 `prepare_verified_stream()`으로 전달하고 SHA-256·size·media를 Artifact authority에서 다시 검증한다.
+- generation은 새 Vocal Asset/version 1, conversion·correction은 source Vocal Asset의 다음 immutable Version, analysis는 exact source Version의 JSON Artifact만 생성한다. Completion은 `selected_asset_version_id`를 변경하지 않는다.
+- Asset/Version·Artifact·StorageLocation·JobOutput·ModelUsage·`PayloadLocator.ingested`·Job `succeeded`를 session-aware 최신 rights/claim/cancel gate 뒤 하나의 DB transaction으로 확정한다. exact replay는 staging cleanup 뒤에도 I/O 없이 복구하며 conflicting replay는 fail closed한다.
+- schema·Alembic·Public API·Frontend·Worker dispatcher·production authentication·PR #130 acquisition orchestration은 변경하지 않는다.
+
 ### 문서 - DohaVocal Verified Staged Artifact Completion Contract
 
 - 최신 develop의 #157/#158 authority와 계약을 재검증하고, 기존 Music Director ADR-069~073을 보존하여 Vocal 결정을 ADR-074로 재번호화했다. 공통 JSON adopted registration과 Vocal verified stream의 경계, develop 미구현 상태 및 tombstone replay 규약을 명확히 했다.
@@ -31,7 +39,6 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - Run/Candidate를 Project scope에서 읽고 run version CAS로 Candidate를 선택하며 기존 Job cancellation authority를 재사용하는 Public API 5개를 추가했다.
 - Alembic `20260911_0033`~`0035`로 Run/Candidate, ProviderExecution과 materialization recovery authority를 추가했다. Frontend, APPLY와 실제 외부 Provider는 이번 범위에 포함하지 않는다.
 - 현재 API는 89 paths / 110 operations이며 Alembic single head는 `20260911_0035`다.
-
 ### CI - Frontend Playwright Gate
 
 - `develop` 대상 PR과 `develop` push에서 Chromium Desktop, Tablet, Mobile configured-parallel

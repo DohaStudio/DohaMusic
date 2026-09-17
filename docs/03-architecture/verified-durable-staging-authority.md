@@ -10,7 +10,7 @@ LocalFilesystemStagingAdapter: IMPLEMENTED
 verified durable staging: IMPLEMENTED
 downloader orchestration: NOT IMPLEMENTED
 Artifact ingestion/Completion contract: RESOLVED (ADR-074)
-Artifact ingestion/Completion production implementation: NOT IMPLEMENTED
+Artifact ingestion/Completion Foundation: IMPLEMENTED
 Worker wiring: NOT IMPLEMENTED
 ```
 
@@ -20,7 +20,7 @@ Worker wiring: NOT IMPLEMENTED
 
 application staging service는 파일 I/O 동안 DB transaction을 열지 않는다. I/O 전후 caller-provided claim·cancellation·rights evidence를 검증하고 마지막에 기존 `PayloadLocatorService`의 revision CAS를 호출한다. equivalent CAS winner는 재사용하고 채택되지 않은 object만 facts·identity 검증 후 정리한다. 이 foundation은 downloader, `GetPayloadContent`, Artifact ingestion, Completion 또는 Worker를 호출하지 않는다.
 
-> 문서 상태: [승인: adapter·acquisition 구현, Completion 계약 확정·미구현]
+> 문서 상태: [승인: adapter·acquisition·Completion Foundation 구현] / [미구현: Worker wiring·production rights adapter]
 > 최종 수정일: 2026-09-16
 > 기준: DohaMusic `develop` `f27c01ff12b55f6f7b0dfc95acaf0d20135c0f87`
 > 최종 판정: `VERIFIED_DURABLE_STAGING_LOCAL_ADAPTER_SUFFICIENT`
@@ -270,4 +270,4 @@ VerifiedPayloadStagingPort
 
 필수 검증은 same-locator replay, collision, partial cleanup, crash-after-publish adoption, missing/tampered object, Windows drive·UNC·reserved name, traversal·URL·credential, symlink/junction/reparse, rights/cancel/revocation race, cleanup idempotency와 DB transaction 0 during I/O다.
 
-Artifact ingestion/Completion production adapter, reclaim, dispatcher, daemon, production authentication, DohaVocal Runtime과 model/GPU는 후속 작업이다. Completion 계약은 [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)을 따른다.
+Artifact ingestion/Completion Foundation은 [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)을 따라 구현됐다. reclaim, dispatcher, daemon, production rights/authentication adapter, DohaVocal Runtime과 model/GPU는 후속 작업이다.

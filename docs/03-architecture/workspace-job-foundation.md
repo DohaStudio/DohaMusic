@@ -4,7 +4,7 @@
 > Export-only runner가 담당한다. Provider `JobWorkerService`와 분리된 채 기존 claim/lease CAS,
 > application lifespan startup/shutdown 및 `ExportWorkerService` completion authority를 재사용한다.
 
-> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5·Provider Job persistence·Result trust·verified staging/acquisition] / [계약 확정·미구현: Vocal Completion adapter·Provider dispatch wiring·background daemon]
+> 문서 상태: [완료: 계약·Job Service·Completion UoW·Worker execution foundation·Job API 5/5·Provider Job persistence·Result trust·verified staging/acquisition·Vocal Completion Foundation] / [미구현: Provider dispatch wiring·production rights adapter·background daemon]
 > 최종 수정일: 2026-08-24
 > 관련 기능: Workspace Job, Provider Invocation, Artifact lineage와 비동기 실행 제어
 > 관련 문서: [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [Provider API 계약](../06-api/provider-api-contract.md), [Job 상태 모델](../07-database/job-state-model.md), [Artifact Storage 계약](artifact-storage-contract.md), [DohaVocal Worker Reconciliation](dohavocal-worker-reconciliation-contract.md), [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md), [ADR-033](../11-decisions/ADR-033-workspace-job-execution-boundary.md)
@@ -168,7 +168,7 @@ DohaMusic만 Provider를 호출하고 Provider 간 직접 호출을 금지한다
 
 Provider의 `success`는 Provider-side 생성 완료다. Workspace `succeeded`는 DohaMusic의 무결성 검증·publish·lineage 등록과 DB commit까지 완료됐음을 의미한다.
 
-Provider terminal success부터 payload와 Completion까지의 `running` 유지, 내부 `stage`, bounded polling, lease 소유, retry·cancel과 crash 복구는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)가 권위다. 목표 same-Job ownership transfer는 [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)의 `LEASE_EXPIRY_RECLAIMABLE`을 따른다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 dedicated aggregate, verified durable staging과 acquisition은 구현됐고 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)은 downstream 계약을 확정했다. reclaim·Completion production adapter·Worker 연결은 미구현이므로 lease expiry는 계속 retryable failure다.
+Provider terminal success부터 payload와 Completion까지의 `running` 유지, 내부 `stage`, bounded polling, lease 소유, retry·cancel과 crash 복구는 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)가 권위다. 목표 same-Job ownership transfer는 [Worker Re-entry Lifecycle](workspace-worker-reentry-lifecycle.md)의 `LEASE_EXPIRY_RECLAIMABLE`을 따른다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 dedicated aggregate, verified durable staging·acquisition과 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md) Foundation은 구현됐다. reclaim·production rights adapter·Worker 연결은 미구현이므로 lease expiry는 계속 retryable failure다.
 
 ## 11. Completion Unit of Work와 부분 출력
 

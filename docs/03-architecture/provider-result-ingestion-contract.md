@@ -1,7 +1,7 @@
 # Provider Result → Artifact Ingestion Contract
 
-> 문서 상태: [완료: trust gate·durable locator·verified staging·acquisition] / [계약 확정·미구현: Completion adapter]
-> 최종 수정일: 2026-09-16
+> 문서 상태: [완료: trust gate·durable locator·verified staging·acquisition·Completion Foundation] / [미구현: Worker wiring·production rights adapter]
+> 최종 수정일: 2026-09-17
 > 기준: DohaMusic `4f86866bb438a38b355db0bc04d4bd6f61c9db9a`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 관련 문서: [Workspace Job Foundation](workspace-job-foundation.md), [Artifact Storage 계약](artifact-storage-contract.md), [Provider Job Persistence](provider-job-persistence.md), [Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md), [Durable Payload Locator Authority](durable-payload-locator-authority.md), [ADR-039](../11-decisions/ADR-039-provider-result-ingestion-trust-boundary.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md)
 
@@ -15,7 +15,7 @@ DohaVocal의 `VocalProviderResultCandidate`는 Provider가 만든 metadata descr
 VocalProviderResultCandidate (wire)
 → ProviderResultIngestionService (trust validation)
 → TrustedProviderResultCandidate + ProviderResultIngestionDecision
-→ payload-backed Completion adapter [미구현]
+→ verified-staged `DohaVocalArtifactCompletionService` [Foundation 구현]
 ```
 
 기존 `ProviderOutput.temporary_path`와 Completion UoW는 검증된 실제 Payload 전용으로 유지한다. wire result의 path·URI를 받지 않으며 metadata-only 결과를 위해 synthetic path를 만들지 않는다.
@@ -67,13 +67,12 @@ DohaMusic runtime의 [Trusted Payload Locator / Resolver Contract](trusted-paylo
 
 실제 payload ingestion의 transaction과 최신 authority 재검증은 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)에 확정했다. Provider network, staged stream open과 Artifact publish는 DB transaction 밖에 두고 locator ingestion과 Workspace terminal mutation은 같은 final transaction에 둔다.
 
-Candidate role은 Completion에 직접 전달하지 않는다. DohaMusic-owned mapping이 `generated_vocal_candidate`, `converted_vocal_candidate`, `corrected_vocal_candidate`, `vocal_analysis_result`를 각각 `generated_vocal`, `converted_vocal`, `corrected_vocal`, `vocal_analysis`로 변환하며 adapter 구현 전에는 Completion에 진입할 수 없다.
+Candidate role은 canonical `JobOutput` role로 직접 사용하지 않는다. Completion Foundation의 DohaMusic-owned mapping이 `generated_vocal_candidate`, `converted_vocal_candidate`, `corrected_vocal_candidate`, `vocal_analysis_result`를 각각 `generated_vocal`, `converted_vocal`, `corrected_vocal`, `vocal_analysis`로 변환한다.
 
 ## 6. 미구현
 
 - Worker / `ProviderDispatcher` wiring과 polling
 - 실제 DohaVocal 인증·Provider execution
-- verified staged stream → Artifact ingestion handoff 구현
-- `Artifact`·`AssetVersion`·`JobOutput`·`ModelUsage` 생성
-- Workspace Job completion
+- Worker에서 verified-staged Completion Foundation을 호출하는 production wiring
+- session-aware current-rights port의 production adapter
 - Product Public API

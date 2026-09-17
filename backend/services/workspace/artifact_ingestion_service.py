@@ -8,7 +8,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path
-from typing import Protocol
+from typing import BinaryIO, Protocol
 from uuid import UUID
 
 from sqlalchemy.orm import Session
@@ -123,6 +123,26 @@ class ArtifactIngestionRequest:
 
 
 @dataclass(frozen=True, slots=True)
+class VerifiedStreamArtifactIngestionRequest:
+    """Path-free input for an already verified, context-managed byte stream."""
+
+    asset_version_id: UUID
+    artifact_kind: str
+    producer_type: str
+    storage_domain: str
+    producer_id: str | None = None
+    run_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class VerifiedArtifactStreamFacts:
+    checksum_algorithm: str
+    payload_checksum: str
+    size_bytes: int
+    media_type: str
+
+
+@dataclass(frozen=True, slots=True)
 class OrphanCandidate:
     """절대 경로를 포함하지 않는 reconciliation 입력."""
 
@@ -150,7 +170,7 @@ class IngestedArtifact:
 class PreparedArtifactIngestion:
     """외부 공개 없이 DB UoW가 등록·보상할 publish 결과."""
 
-    request: ArtifactIngestionRequest
+    request: ArtifactIngestionRequest | VerifiedStreamArtifactIngestionRequest
     artifact_id: UUID
     published: PublishedLocalPayload
 
@@ -284,6 +304,32 @@ class ArtifactIngestionService:
                 storage_domain=normalized.storage_domain,
                 expected_media_type=normalized.expected_media_type,
                 expected_sha256=normalized.expected_sha256,
+            )
+        except ArtifactPublishError as error:
+            raise ArtifactIngestionError(_PUBLISH_ERROR_MAP[error.code]) from error
+        return PreparedArtifactIngestion(normalized, artifact_id, published)
+
+    def prepare_verified_stream(
+        self,
+        request: VerifiedStreamArtifactIngestionRequest,
+        stream: BinaryIO,
+        *,
+        expected_facts: VerifiedArtifactStreamFacts,
+    ) -> PreparedArtifactIngestion:
+        """Publish verified bytes without exposing or reconstructing their staging path."""
+
+        normalized = _validate_stream_request(request)
+        facts = _validate_stream_facts(expected_facts)
+        artifact_id = self._artifact_id_factory()
+        try:
+            published = self._publisher.publish_stream(
+                stream,
+                artifact_id=artifact_id,
+                artifact_kind=normalized.artifact_kind,
+                storage_domain=normalized.storage_domain,
+                expected_media_type=facts.media_type,
+                expected_sha256=facts.payload_checksum,
+                expected_size_bytes=facts.size_bytes,
             )
         except ArtifactPublishError as error:
             raise ArtifactIngestionError(_PUBLISH_ERROR_MAP[error.code]) from error
@@ -549,6 +595,52 @@ def _validate_request(request: ArtifactIngestionRequest) -> ArtifactIngestionReq
         expected_media_type=expected_media_type.lower() if expected_media_type else None,
         expected_sha256=expected_sha256,
         original_filename=original_filename,
+    )
+
+
+def _validate_stream_request(
+    request: VerifiedStreamArtifactIngestionRequest,
+) -> VerifiedStreamArtifactIngestionRequest:
+    if type(request.asset_version_id) is not UUID:
+        raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_REQUEST)
+    artifact_kind = _required_text(request.artifact_kind)
+    storage_domain = _required_text(request.storage_domain)
+    producer_type = _required_text(request.producer_type)
+    if artifact_kind not in SUPPORTED_ARTIFACT_KINDS:
+        raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_KIND)
+    if storage_domain not in APPROVED_STORAGE_DOMAINS:
+        raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_DOMAIN)
+    if artifact_kind not in DOMAIN_ARTIFACT_KINDS[storage_domain]:
+        raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_KIND)
+    if producer_type not in APPROVED_PRODUCER_TYPES:
+        raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_PRODUCER)
+    return VerifiedStreamArtifactIngestionRequest(
+        asset_version_id=request.asset_version_id,
+        artifact_kind=artifact_kind,
+        producer_type=producer_type,
+        storage_domain=storage_domain,
+        producer_id=_optional_text(request.producer_id),
+        run_id=_optional_text(request.run_id),
+    )
+
+
+def _validate_stream_facts(
+    facts: VerifiedArtifactStreamFacts,
+) -> VerifiedArtifactStreamFacts:
+    if (
+        not isinstance(facts, VerifiedArtifactStreamFacts)
+        or facts.checksum_algorithm != "sha256"
+        or not SHA256_PATTERN.fullmatch(facts.payload_checksum)
+        or type(facts.size_bytes) is not int
+        or facts.size_bytes <= 0
+    ):
+        raise ArtifactIngestionError(ArtifactIngestionErrorCode.INVALID_REQUEST)
+    media_type = _required_text(facts.media_type)
+    return VerifiedArtifactStreamFacts(
+        checksum_algorithm="sha256",
+        payload_checksum=facts.payload_checksum,
+        size_bytes=facts.size_bytes,
+        media_type=media_type,
     )
 
 
