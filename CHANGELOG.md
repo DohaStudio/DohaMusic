@@ -5,11 +5,17 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-16
+> 최종 수정일: 2026-09-18
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - DohaVocal Production Rights Domain Decision V1
+
+- ADR-075 승인 제안에서 Approval 강화/불변 ledger 단독/current authority+불변 Grant ledger를 비교하고 마지막 모델을 V1으로 정의했다. exact typed subject·operation·usage role의 단일 current Grant, revoke/supersede, shared writer-reader guard locking, first commit와 OUTPUT_READ replay를 분리했다.
+- explicit revocation-only를 선택하되 기간 제한 증적은 발급 거부하고 legacy Approval/consent/metadata 자동 ACTIVE backfill을 금지했다. authenticated owner·verified evidence·withdrawal은 운영 선행 조건이다.
+- 필수 persistence는 `SCHEMA_CHANGE_REQUIRED`, final-only completion receipt는 `MINIMAL_PORT_ADAPTATION_REQUIRED`로 분류하고 후속 PR 경계를 문서화했다. production/test/migration/API/auth/Worker source와 실제 DB, ADR-074, #159/#130은 변경하지 않았다. V1은 정의/설계이며 production 구현·Phase 완료가 아니다.
 
 ### 추가 - DohaVocal Verified Staged Artifact Completion Foundation
 

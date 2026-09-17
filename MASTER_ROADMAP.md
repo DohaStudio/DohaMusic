@@ -4,11 +4,13 @@
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-09-16
+> 최종 수정일: 2026-09-18
 > 현재 실행 순서: [ROADMAP](ROADMAP.md)
 > 완료 판정: [Phase DoD](docs/DoD/README.md)
 
 ## Phase 6.5 External Lyrics LLM 상태
+
+Vocal rights 독립 Track: [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 V1은 [정의/설계·승인 제안]이며 구현 완료가 아니다. `SCHEMA_CHANGE_REQUIRED`와 `MINIMAL_PORT_ADAPTATION_REQUIRED`에 따라 persistence → authenticated writer/evidence → Completion port/audit·production adapter → rollout을 후속 PR로 분리한다. authentication/rights writer/production adapter/Worker/model은 미구현이고 기존 Phase·DoD 체크·진행률은 변경하지 않는다.
 
 | 항목 | 상태 | 근거 |
 |---|---|---|

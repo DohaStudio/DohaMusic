@@ -1,12 +1,14 @@
 # DohaVocal Verified Staged Artifact Completion Contract
 
 > 문서 상태: [구현: Completion Foundation] / [미구현: Worker wiring·production rights adapter]
-> 최종 수정일: 2026-09-17
+> 최종 수정일: 2026-09-18
 > 재정합화 기준: `develop@4250a51509df0042dca8aefac9654f74286897ac`, merged ADR-074
 > 최종 판정: `VERIFIED_STAGED_ARTIFACT_COMPLETION_CONTRACT_RESOLVED`
 > 관련 결정: [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)
 
 ## 1. 범위
+
+Production current-rights V1 제안은 [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)와 [Rights architecture](dohavocal-production-rights-domain.md)에 있다. [정의/설계]이며 adapter/auth/writer/schema는 [미구현]이다. 권한 facts는 `SCHEMA_CHANGE_REQUIRED`, final-only audit receipt는 `MINIMAL_PORT_ADAPTATION_REQUIRED`다. ADR-074의 final transaction·Session 소유권·targets·stream·replay identity는 변경하지 않는다.
 
 이 문서는 PR #130 이후 `verified_staged`인 단일 DohaVocal payload를 immutable Workspace 결과와 Job success로 승격하는 공식 계약이다. acquisition, Provider 호출, downloader, schema, public API와 production wiring은 변경하지 않는다.
 

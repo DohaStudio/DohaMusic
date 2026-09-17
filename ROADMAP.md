@@ -7,6 +7,8 @@
 
 ## Phase 6.5 후속 게이트
 
+Vocal 권한 독립 Track(2026-09-18): [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 V1은 [정의/설계·승인 제안]이다. 필수 facts 평가 결과 `SCHEMA_CHANGE_REQUIRED`, final receipt는 `MINIMAL_PORT_ADAPTATION_REQUIRED`다. NEXT는 persistence → authenticated writer/evidence → Completion port/audit 및 production adapter → rollout이다. schema/auth/운영 adapter는 미구현이며 Phase 상태·진행률은 그대로다. 아래의 과거 '새 schema는 전제하지 않는다'는 Completion 자체의 출발 원칙이며, 이번 새 rights domain의 평가 결과를 기존 schema 충분 판정으로 바꾸지 않는다.
+
 1. 사용자의 별도 승인과 API Key·비용 승인을 모두 받은 opt-in 환경에서만 한국어 발라드·시티팝·구조 유지 수정·영문 팝을 실제 측정한다. 승인 전 상태는 `[유료 실측 미수행]`이다.
 2. EVAL-006에서 Template/External 결과를 사용자가 블라인드 평가한다.
 3. OpenAI 데이터 보존·ZDR/DPA·상업 이용·생성물 권리의 법률·보안 검토를 완료한다.
