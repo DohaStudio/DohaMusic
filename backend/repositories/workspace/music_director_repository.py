@@ -58,6 +58,41 @@ class MusicDirectorRepository:
         )
         return result.rowcount == 1
 
+    def apply_candidate(
+        self,
+        *,
+        run_id: UUID,
+        candidate_id: UUID,
+        expected_version: int,
+        applied_working_revision: int,
+    ) -> bool:
+        candidate = self._session.execute(
+            update(MusicDirectorCandidate)
+            .where(
+                MusicDirectorCandidate.run_id == run_id,
+                MusicDirectorCandidate.candidate_id == candidate_id,
+                MusicDirectorCandidate.status == "generated",
+            )
+            .values(status="applied")
+        )
+        if candidate.rowcount != 1:
+            return False
+        run = self._session.execute(
+            update(MusicDirectorRun)
+            .where(
+                MusicDirectorRun.run_id == run_id,
+                MusicDirectorRun.version == expected_version,
+                MusicDirectorRun.selected_candidate_id == candidate_id,
+                MusicDirectorRun.applied_candidate_id.is_(None),
+            )
+            .values(
+                applied_candidate_id=candidate_id,
+                applied_working_revision=applied_working_revision,
+                version=expected_version + 1,
+            )
+        )
+        return run.rowcount == 1
+
     def transition_candidate_status(
         self, *, candidate_id: UUID, from_status: str, to_status: str
     ) -> bool:

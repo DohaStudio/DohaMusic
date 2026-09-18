@@ -220,9 +220,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             session_factory,
             cursor_codec=cursor_codec,
         )
-        app.state.music_director_public_service = MusicDirectorPublicService(
-            session_factory, app.state.job_service
-        )
         payload_locator_service = PayloadLocatorService(
             SqlAlchemyPayloadLocatorPersistence(session_factory)
         )
@@ -231,6 +228,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             ArtifactStorageRoots.from_base_root(resolved_settings.artifact_root)
             if resolved_settings.artifact_root is not None
             else None
+        )
+        app.state.music_director_public_service = MusicDirectorPublicService(
+            session_factory,
+            app.state.job_service,
+            artifact_roots=artifact_roots,
         )
         app.state.artifact_application_service = ArtifactApplicationService(
             session_factory,

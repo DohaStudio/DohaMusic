@@ -49,13 +49,14 @@ class CompositionHistoryRepository:
         target_id: UUID | None = None,
         before_state: Mapping[str, object],
         after_state: Mapping[str, object],
-    ) -> None:
+    ) -> WorkingCompositionHistoryEntry:
         command_targets = {
             "CLIP_GAIN": "CLIP",
             "CLIP_FADE": "CLIP",
             "CLIP_LOOP": "CLIP",
             "TRACK_MIXER": "TRACK",
             "MASTER_GAIN": "WORKING_COMPOSITION",
+            "MUSIC_DIRECTOR_APPLY": "WORKING_COMPOSITION",
         }
         if command_targets.get(command_type) != target_type:
             raise ValueError("WORKING_HISTORY_TARGET_INVALID")
@@ -74,19 +75,19 @@ class CompositionHistoryRepository:
             )
         )
         state.cursor += 1
-        self.session.add(
-            WorkingCompositionHistoryEntry(
-                working_composition_id=working_composition_id,
-                sequence=state.cursor,
-                command_type=command_type,
-                target_type=target_type,
-                target_id=resolved_target_id,
-                clip_id=clip_id,
-                before_state=dict(before_state),
-                after_state=dict(after_state),
-            )
+        entry = WorkingCompositionHistoryEntry(
+            working_composition_id=working_composition_id,
+            sequence=state.cursor,
+            command_type=command_type,
+            target_type=target_type,
+            target_id=resolved_target_id,
+            clip_id=clip_id,
+            before_state=dict(before_state),
+            after_state=dict(after_state),
         )
+        self.session.add(entry)
         self.session.flush()
+        return entry
 
     def current_undo(self, working_composition_id: UUID) -> WorkingCompositionHistoryEntry | None:
         state = self.state(working_composition_id)

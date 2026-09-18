@@ -35,6 +35,7 @@ class IdempotencyResultType(StrEnum):
     CLIP_UNSPLIT = "CLIP_UNSPLIT"
     CLIP_RESPLIT = "CLIP_RESPLIT"
     COMPOSITION_COMMIT = "COMPOSITION_COMMIT"
+    MUSIC_DIRECTOR_APPLY = "MUSIC_DIRECTOR_APPLY"
 
 
 _RESULT_PAYLOAD_KEYS: dict[IdempotencyResultType, frozenset[str]] = {
@@ -67,6 +68,9 @@ _RESULT_PAYLOAD_KEYS: dict[IdempotencyResultType, frozenset[str]] = {
         {"original_clip_id", "left_clip_id", "right_clip_id"}
     ),
     IdempotencyResultType.COMPOSITION_COMMIT: frozenset({"composition_snapshot_id"}),
+    IdempotencyResultType.MUSIC_DIRECTOR_APPLY: frozenset(
+        {"run_id", "candidate_id", "working_composition_id", "history_entry_id"}
+    ),
 }
 
 

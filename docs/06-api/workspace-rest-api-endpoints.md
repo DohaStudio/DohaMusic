@@ -3,7 +3,7 @@
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-08-30
 > 관련 기능: DohaMusic Workspace REST API 재설계
-> 구현 상태: Workspace Resource 30개와 Job API 5/5, Music Director Product API 5개 구현. Product API는 64개 Resource 목표 분모와 별도로 관리
+> 구현 상태: Workspace Resource 30개와 Job API 5/5, Music Director Product API 6개 구현. Product API는 64개 Resource 목표 분모와 별도로 관리
 > 관련 문서: [API 기반·Bootstrap](workspace-api-foundation-bootstrap.md), [공통 계약](workspace-rest-api-contract.md), [D1 Composition Read 계약](composition-read-workspace.md), [WorkingComposition Product API](working-composition-api.md), [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Provider API 계약](provider-api-contract.md), [API 전환 전략](api-contract-migration-strategy.md)
 
 ## 1. 요약
@@ -164,7 +164,7 @@ Job 생성이 기존 AssetVersion을 수정하지 않습니다. 성공 결과의
 
 공식 type별 Snapshot·input/output role, Artifact 선택, 5-state·cancel·retry, Owner scope, Job Cursor·Index, claim·lease와 completion Unit of Work는 [Workspace Job Foundation](../03-architecture/workspace-job-foundation.md)을 따릅니다. JobInput·JobOutput 독립 Endpoint는 제공하지 않습니다. 다섯 Router는 Service 경계만 호출하고 effective Workspace·Owner를 내부에서 파생하며 claim·lease와 storage path를 공개하지 않습니다. Job API는 5/5, 전체 Resource API는 30/64입니다. Provider dispatch wiring과 background daemon·scheduler는 여전히 `[미구현]`입니다.
 
-### 9.2 Music Director Product API — 5개
+### 9.2 Music Director Product API — 6개
 
 | Method | Path | 성공 | operationId |
 |---|---|---:|---|
@@ -172,24 +172,24 @@ Job 생성이 기존 AssetVersion을 수정하지 않습니다. 성공 결과의
 | `GET` | `/api/v1/projects/{project_id}/music-director/runs/{run_id}` | 200 | `get_music_director_run` |
 | `GET` | `/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}` | 200 | `get_music_director_candidate` |
 | `POST` | `/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/select` | 200 | `select_music_director_candidate` |
+| `POST` | `/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/apply` | 200 | `apply_music_director_candidate` |
 | `POST` | `/api/v1/projects/{project_id}/music-director/jobs/{job_id}/cancel` | 200/202 | `cancel_music_director_job` |
 
 Run 생성은 필수 `Idempotency-Key`, `composition_snapshot_id`, 길이가 제한된 instruction과 `1..4` candidate count를 사용한다. effective Owner는 인증 context에서 파생하며 요청에서 받지 않는다. Run read는 Job이 `succeeded`이고 요청한 Candidate 수가 모두 존재할 때만 ordinal 순서의 완전한 set을 반환한다. Candidate read는 Project와 Run lineage를 함께 검증하며 Artifact ID만 공개하고 storage locator는 노출하지 않는다.
 
-SELECT는 `expected_run_version` CAS로 selected pointer와 run version만 변경한다. stale version, 다른 Run/Project Candidate와 준비되지 않은 Run은 fail closed하며 WorkingComposition, Snapshot, history와 applied pointer는 변경하지 않는다. Cancel은 기존 owner-scoped Job cancellation authority를 재사용한다. 실제 Provider, Frontend와 APPLY는 이 API 범위가 아니다.
+SELECT는 `expected_run_version` CAS로 selected pointer와 run version만 변경한다. stale version, 다른 Run/Project Candidate와 준비되지 않은 Run은 fail closed하며 WorkingComposition, Snapshot, history와 applied pointer는 변경하지 않는다. Cancel은 기존 owner-scoped Job cancellation authority를 재사용한다. Candidate APPLY는 현재 Backend/Public API 범위에 포함되며 실제 Provider와 Frontend는 미구현이고 현재 범위 밖이다.
 
-#### Candidate APPLY 제안 계약 — Architecture decided / Implementation pending
+#### Candidate APPLY 계약 — Implemented
 
-ADR-073은 후속 구현 endpoint를
+ADR-073은 구현된 Candidate APPLY endpoint를
 `POST /api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/apply`로
 고정한다. 필수 `Idempotency-Key`, `expected_run_version`과
 `expected_working_composition_revision`을 사용하며 현재 selected Candidate의 bounded proposal
 전체를 하나의 WorkingComposition transaction/history operation으로 적용한다. SELECT는 APPLY를
 수행하지 않고 APPLY도 selected pointer를 바꾸지 않는다.
 
-이 endpoint는 아직 Runtime에 등록되지 않았다. 현재 authority는 계속 89 paths / 110 operations다.
-구현 후 예상치는 90 paths / 111 operations와 POST 43이며 실제 수치와 fingerprint는 구현 Gate에서
-재측정한다.
+이 endpoint는 Runtime에 등록됐다. 현재 authority는 90 paths / 111 operations, POST 43이며
+fingerprint는 `5805c976c4f950abce8da1db2241437f5d901d55a0363fd54d9f485d902c4dd4`다.
 
 ## 10. Recording API — 3개
 

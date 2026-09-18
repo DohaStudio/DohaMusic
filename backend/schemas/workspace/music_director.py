@@ -84,3 +84,22 @@ class MusicDirectorSelectionResult(BaseModel):
     run_id: UUID
     selected_candidate_id: UUID
     version: int
+
+
+class MusicDirectorApplyRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    expected_run_version: int = Field(ge=0, strict=True)
+    expected_working_composition_revision: int = Field(ge=0, strict=True)
+
+
+class MusicDirectorApplyResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: UUID
+    candidate_id: UUID
+    working_composition_id: UUID
+    working_composition_revision: int
+    run_version: int
+    history_entry_id: UUID
+    replayed: bool

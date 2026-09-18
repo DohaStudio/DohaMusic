@@ -12,9 +12,11 @@ from backend.models.workspace import Job, JobStatus, MusicProject, Workspace
 from backend.models.workspace.music_director import MusicDirectorCandidate, MusicDirectorRun
 from backend.repositories.workspace.music_director_repository import MusicDirectorRepository
 from backend.services.workspace.job_service import JobCreation, JobService
+from backend.services.workspace.music_director_apply_service import MusicDirectorApplyService
 from backend.services.workspace.music_director_candidate_persistence_service import (
     MusicDirectorCandidatePersistenceService,
 )
+from backend.storage.artifact_resolver import ArtifactStorageRoots
 
 
 class MusicDirectorPublicErrorCode(StrEnum):
@@ -37,10 +39,26 @@ class PublicMusicDirectorRun:
 
 
 class MusicDirectorPublicService:
-    def __init__(self, session_factory: sessionmaker[Session], job_service: JobService) -> None:
+    def __init__(
+        self,
+        session_factory: sessionmaker[Session],
+        job_service: JobService,
+        *,
+        artifact_roots: ArtifactStorageRoots | None = None,
+    ) -> None:
         self._session_factory = session_factory
         self._jobs = job_service
         self._candidates = MusicDirectorCandidatePersistenceService(session_factory)
+        self._apply = (
+            MusicDirectorApplyService(session_factory, artifact_roots=artifact_roots)
+            if artifact_roots is not None
+            else None
+        )
+
+    def apply_candidate(self, **kwargs):
+        if self._apply is None:
+            raise MusicDirectorPublicError(MusicDirectorPublicErrorCode.NOT_READY)
+        return self._apply.apply(**kwargs)
 
     def create_run_job(
         self,

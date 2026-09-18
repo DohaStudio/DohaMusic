@@ -9,12 +9,18 @@ from backend.api.v1.dependencies import get_effective_owner_id, get_request_id
 from backend.core.exceptions import AppError
 from backend.schemas.workspace import SuccessResponse
 from backend.schemas.workspace.music_director import (
+    MusicDirectorApplyRequest,
+    MusicDirectorApplyResult,
     MusicDirectorCandidateDetail,
     MusicDirectorJobCreated,
     MusicDirectorRunCreateRequest,
     MusicDirectorRunDetail,
     MusicDirectorSelectionRequest,
     MusicDirectorSelectionResult,
+)
+from backend.services.workspace.music_director_apply_service import (
+    MusicDirectorApplyError,
+    MusicDirectorApplyErrorCode,
 )
 from backend.services.workspace.music_director_candidate_persistence_service import (
     MusicDirectorPersistenceError,
@@ -156,6 +162,47 @@ def select_candidate(
 
 
 @router.post(
+    "/runs/{run_id}/candidates/{candidate_id}/apply",
+    response_model=SuccessResponse[MusicDirectorApplyResult],
+    operation_id="apply_music_director_candidate",
+)
+def apply_candidate(
+    project_id: UUID,
+    run_id: UUID,
+    candidate_id: UUID,
+    payload: MusicDirectorApplyRequest,
+    request: Request,
+    service: Service,
+    owner: Owner,
+    idempotency_key: IdempotencyKey,
+):
+    try:
+        result = service.apply_candidate(
+            effective_owner_id=owner,
+            project_id=project_id,
+            run_id=run_id,
+            candidate_id=candidate_id,
+            expected_run_version=payload.expected_run_version,
+            expected_working_composition_revision=(payload.expected_working_composition_revision),
+            idempotency_key=idempotency_key,
+        )
+    except Exception as exc:
+        raise _map_error(exc) from exc
+    return SuccessResponse(
+        data=MusicDirectorApplyResult(
+            run_id=result.run_id,
+            candidate_id=result.candidate_id,
+            working_composition_id=result.working_composition_id,
+            working_composition_revision=result.working_composition_revision,
+            run_version=result.run_version,
+            history_entry_id=result.history_entry_id,
+            replayed=result.replayed,
+        ),
+        request_id=get_request_id(request),
+    )
+
+
+@router.post(
     "/jobs/{job_id}/cancel",
     status_code=status.HTTP_200_OK,
     operation_id="cancel_music_director_job",
@@ -203,6 +250,13 @@ def _run_detail(aggregate: PublicMusicDirectorRun) -> MusicDirectorRunDetail:
 
 
 def _map_error(exc: Exception) -> AppError:
+    if isinstance(exc, MusicDirectorApplyError):
+        status_code = 404 if exc.code is MusicDirectorApplyErrorCode.NOT_FOUND else 409
+        return AppError(
+            code=f"MUSIC_DIRECTOR_APPLY_{exc.code.value}",
+            message="Music Director candidate cannot be applied.",
+            status_code=status_code,
+        )
     if isinstance(exc, MusicDirectorPublicError):
         status_code = 409 if exc.code is MusicDirectorPublicErrorCode.NOT_READY else 404
         return AppError(

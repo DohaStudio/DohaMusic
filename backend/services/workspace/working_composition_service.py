@@ -326,6 +326,7 @@ class WorkingCompositionService:
             "CLIP_LOOP": "CLIP",
             "TRACK_MIXER": "TRACK",
             "MASTER_GAIN": "WORKING_COMPOSITION",
+            "MUSIC_DIRECTOR_APPLY": "WORKING_COMPOSITION",
         }
         if matrix.get(entry.command_type) != entry.target_type:
             raise WorkingCompositionError(
@@ -351,6 +352,9 @@ class WorkingCompositionService:
             track.muted, track.solo = _history_bool(state["muted"]), _history_bool(state["solo"])
             repository.flush()
         elif entry.target_type == "WORKING_COMPOSITION":
+            if entry.command_type == "MUSIC_DIRECTOR_APPLY":
+                self._apply_music_director_history_state(repository, working, entry, state)
+                return
             if entry.target_id != working.working_composition_id or set(state) != {
                 "master_gain_db"
             }:
@@ -365,6 +369,63 @@ class WorkingCompositionService:
             raise WorkingCompositionError(
                 WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
             )
+
+    def _apply_music_director_history_state(
+        self, repository, working, entry, state: Mapping[str, object]
+    ) -> None:
+        if entry.target_id != working.working_composition_id or set(state) != {
+            "run_id",
+            "candidate_id",
+            "source_snapshot_id",
+            "proposal_digest",
+            "mutations",
+        }:
+            raise WorkingCompositionError(
+                WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+            )
+        mutations = state["mutations"]
+        if not isinstance(mutations, list) or not mutations:
+            raise WorkingCompositionError(
+                WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+            )
+        for mutation in mutations:
+            if not isinstance(mutation, dict) or set(mutation) != {
+                "operation",
+                "target_id",
+                "value",
+            }:
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+                )
+            operation = mutation["operation"]
+            target = mutation["target_id"]
+            value = Decimal(str(mutation["value"]))
+            if operation == "set_master_gain" and target is None:
+                working.master_gain_db = _normalize_mixer_gain(value, master=True)
+            elif operation == "set_clip_gain" and isinstance(target, str):
+                clip = repository.get_composition_clip(working.working_composition_id, UUID(target))
+                if clip is None:
+                    raise WorkingCompositionError(
+                        WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+                    )
+                clip.gain_db = _normalize_clip_gain_db(value)
+            elif operation in {"set_track_gain", "set_track_pan"} and isinstance(target, str):
+                track = repository.get_composition_track(
+                    working.working_composition_id, UUID(target)
+                )
+                if track is None:
+                    raise WorkingCompositionError(
+                        WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+                    )
+                if operation == "set_track_gain":
+                    track.gain_db = _normalize_mixer_gain(value, master=False)
+                else:
+                    track.pan = _normalize_pan(value)
+            else:
+                raise WorkingCompositionError(
+                    WorkingCompositionErrorCode.WORKING_HISTORY_STRUCTURE_CONFLICT
+                )
+        repository.flush()
 
     def _apply_history_clip_state(
         self,

@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - AI Music Director Candidate APPLY
+
+- 현재 selected Candidate의 proposal을 authorized Artifact resolver로 재검증하고 Candidate APPLY Public API에서 Run version과 WorkingComposition revision 이중 CAS로 적용한다.
+- 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
+- atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
+
 ### 추가 - Private Pin Facts Reader Foundation
 
 - #168을 exact-head 필수 CI 3개 SUCCESS 및 Final Validation 후 Ready/expected-head squash merge했다. 새 develop `fb10bc9367835b0d4a39837287a358fe6b46a1be`, PR/merge tree equality와 source/main 보존을 확인했다.
