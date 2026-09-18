@@ -12,6 +12,10 @@ from sqlalchemy.orm import Session
 from backend.bootstrap_authority.lifecycle_verifier import digest
 from backend.bootstrap_authority.pin_facts import PinComparisonFacts, PrivateFactsDenied
 from backend.bootstrap_authority.private_pin_reader import _PrivatePinFactsReader
+from backend.bootstrap_authority.source_custody import (
+    SourceCustodyPolicy,
+    _CustodyDesignationRecordFiles,
+)
 from backend.bootstrap_authority.windows_fact_files import _WindowsFactFiles
 from backend.bootstrap_authority.windows_serialization import CeremonySerializationDenied
 from backend.bootstrap_authority.witness_lifetime import (
@@ -45,12 +49,24 @@ class _DesignationRecordSnapshots:
     custody/authenticity/human acceptance/revocation checks are STILL unavailable.
     """
 
-    def __init__(self, *, trusted_root: str, pin_reader: _PrivatePinFactsReader):
+    def __init__(
+        self,
+        *,
+        trusted_root: str,
+        pin_reader: _PrivatePinFactsReader,
+        custody_policy: SourceCustodyPolicy | None = None,
+    ):
         if type(pin_reader) is not _PrivatePinFactsReader:
             raise PrivateFactsDenied()
         self._pin = pin_reader
         self._serialization = pin_reader._serialization
-        self._files = _DesignationRecordFiles(trusted_root)
+        # Legacy raw mechanics stay NON-authorizing. Strict policy path is also
+        # partial evidence: no designated human/current eligibility is inferred.
+        self._files = (
+            _DesignationRecordFiles(trusted_root)
+            if custody_policy is None
+            else _CustodyDesignationRecordFiles(trusted_root, custody_policy)
+        )
         self._snapshots: dict[_Handle, _Snapshot] = {}
 
     def _abandon(self, handle: object, record: _Snapshot) -> None:
@@ -110,6 +126,8 @@ class _DesignationRecordSnapshots:
             self._pin._require_open_facts(
                 record.pin_facts, lease=record.lease, session=record.session
             )
+            if type(self._files) is _CustodyDesignationRecordFiles:
+                self._files._require_unchanged()
             if type(freshly_verified_binding) is not CurrentnessBinding:
                 raise PrivateFactsDenied()
             freshly_verified_binding.__post_init__()

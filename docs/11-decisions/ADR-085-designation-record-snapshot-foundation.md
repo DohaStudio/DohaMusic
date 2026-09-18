@@ -1,8 +1,9 @@
 # ADR-085: Designation Record Snapshot Mechanics Foundation
 
-> 상태: [최소 mechanics 구현·로컬 Gate PASS; 실제 provenance/custody authority 미구현, 별도 Draft 대상·운영 비활성]
+> 상태: [채택 — #172 merged; 최소 snapshot mechanics, 실제 provenance/custody authority 미구현·운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `bebf693fb41358abdddaf5d4110686323222cf2b` (#170 squash merge)
+> 현재 후속: [ADR-086 custody policy mechanics](ADR-086-designation-source-custody-policy-foundation.md); 아래 본문은 #172 구현 시점의 범위·선택 이력이다.
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md), [ADR-083](ADR-083-private-pin-facts-reader-foundation.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [검증](../10-operations/designation-record-snapshot-validation.md)
 
 ## 선택·대안·원래 authority
