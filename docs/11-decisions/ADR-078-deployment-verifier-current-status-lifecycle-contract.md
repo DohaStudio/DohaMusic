@@ -1,9 +1,9 @@
 # ADR-078: Deployment Verifier Current-Status / Lifecycle Admission Contract
 
-> 상태: [제안 — Contract Resolution, 별도 Draft PR; 구현·운영 비활성]
+> 상태: [채택 — #164 merged; Contract 운영 비활성]
 > 작성일·최종 수정일: 2026-09-18
 > 기준 develop: `fdf71b4202486a99b9ababec898fd3ae3b664883` (#163 squash merge)
-> 관련 PR: 이 Contract의 develop 대상 Draft PR
+> 관련 PR: [#164 merged](https://github.com/DohaStudio/DohaMusic/pull/164); 별도 [ADR-079 Foundation](ADR-079-independent-lifecycle-journal-persistence-foundation.md)
 > 관련 문서: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [Architecture](../03-architecture/deployment-verifier-current-status.md), [검증](../10-operations/deployment-verifier-current-status-validation.md)
 
 ## 1. 문제·dependency와 범위

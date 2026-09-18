@@ -10,7 +10,7 @@
 
 ## What is DohaMusic?
 
-2026-09-18 [정의/설계]: [Vocal Production Rights V1](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)은 current authority + immutable Grant/event ledger의 승인 제안입니다. schema/writer/auth/production adapter는 [미구현]입니다. 후속 순서는 [Rights architecture](docs/03-architecture/dohavocal-production-rights-domain.md)를 따르며 Phase 진행률과 운영 완료 상태는 변경하지 않습니다.
+2026-09-18: [Vocal Production Rights V1](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)은 #160 merged이고 Rights Persistence schema/guard는 #161 merged(Alembic 0037)입니다. Writer/production authentication·rights adapter는 [미구현]이며 persistence 자체는 운영 권한이 아닙니다. 후속 순서는 [Rights architecture](docs/03-architecture/dohavocal-production-rights-domain.md)를 따르며 Phase 진행률과 운영 완료 상태는 변경하지 않습니다.
 
 DohaMusic은 AI-native DAW를 목표로 하는 DohaStudio의 제품·Workspace·Orchestration Repository다. 사용자가 프롬프트·가사와 동의받은 본인 음성을 이용해 음악을 만들고, 생성 과정·모델·권리·버전 계보를 확인하며 결과를 편집·평가하는 안전한 제작 환경을 지향한다.
 
@@ -25,6 +25,8 @@ DohaMusic = AI-native DAW
 현재 구현과 장기 목표의 상세 기준은 [AI-native DAW 제품 방향](docs/02-product/ai-native-daw-product-direction.md) 한 곳에서 관리한다.
 
 ## CURRENT
+
+Bootstrap 독립 Track: #164 [ADR-078 Contract](docs/03-architecture/deployment-verifier-current-status.md)는 merged다. 다음 최소 A [Lifecycle Journal Foundation](docs/11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 독립 SQLite public-fact persistence/strict event verifier/unavailable private ports를 구현·검증하는 별도 Draft다. metadata/receipt는 current authority가 아니며 실제 provisioning/admission/pin reconciliation·Claim/binding/WebAuthn/Writer/Runtime는 미구현이다. app Alembic 0037과 Phase/DoD 진행률은 유지한다.
 
 현재 `develop`에서 확인되는 범위다.
 
