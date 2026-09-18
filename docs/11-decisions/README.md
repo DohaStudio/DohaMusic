@@ -80,7 +80,8 @@
 | [ADR-074](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md) | DohaVocal verified staging의 stream ingestion·Vocal Asset target·atomic Completion authority | 승인, Foundation 구현 |
 | [ADR-075](ADR-075-dohavocal-production-rights-domain-decision.md) | current Vocal Rights Grant·writer-reader serialization·Completion/replay 권한 V1 | 승인 제안, 정의/설계; production 미구현 |
 | [ADR-076](ADR-076-product-deployment-bootstrap-authority.md) | external Product/Deployment root·signed exact approval·one-time first-binding bootstrap | #162 채택/merged, 운영 비활성 |
-| [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md) | Ed25519/JCS issuance-integrity verifier, non-authorizing receipt와 strict wire contract | Foundation Draft 구현·검증 중, 운영 비활성 |
+| [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md) | Ed25519/JCS issuance-integrity verifier, non-authorizing receipt와 strict wire contract | #163 merged, 운영 비활성; 원 ADR 파일 보존 |
+| [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md) | independently provisioned pin·fresh journal currentness·rotation/revocation admission·CAS/crash 경계 | Contract Resolution 제안/Draft, 실 구현 후속 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

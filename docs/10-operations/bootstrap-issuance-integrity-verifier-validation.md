@@ -1,5 +1,7 @@
 # Bootstrap Issuance Integrity Verifier 검증
 
+> 후속 상태(2026-09-18): 아래는 #163 최초 Draft의 로컬 기록이다. 이후 exact-head Final Validation/Ready/squash merge가 완료됐고 [후속 Contract 검증](deployment-verifier-current-status-validation.md)에 CI·merge SHA/tree evidence를 기록했다. 원 ADR-077과 crypto 구현은 변경하지 않았다.
+
 > 문서 상태: [로컬 검증 PASS — 별도 Foundation Draft PR, 운영 비활성]
 > 최종 수정일: 2026-09-18
 > 기준 develop: `771f3b18aabb7890b3a84698a6a830877cbdc0be`

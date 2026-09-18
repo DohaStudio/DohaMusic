@@ -1,6 +1,6 @@
 # Bootstrap Issuance Integrity Verifier
 
-> 문서 상태: [진행 중 — 별도 Foundation Draft PR, 운영 비활성]
+> 문서 상태: [Foundation #163 merged — 운영 비활성]
 > 최종 수정일: 2026-09-18
 > 관련 문서: [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](../11-decisions/ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [검증](../10-operations/bootstrap-issuance-integrity-verifier-validation.md)
 
@@ -17,5 +17,7 @@
 Replay/concurrent integrity checks는 같은 역사적 receipt를 반환할 수 있다. 이는 double-consume winner=1 또는 consumed/revoked bootstrap replay deny 구현의 evidence가 아니다. DB rollback/external seal/restore 및 clock rollback 감지는 후속 persistence/ceremony의 Gate다. Workspace owner/Rights/Approval/Consent에 부작용은 없고 현재 production runtime는 비활성이다.
 
 ## Dependency 판정
+
+#163 exact-head Final Validation/squash merge는 완료됐다. ADR-077 원본·approval domain/schema/구현은 보존한다. 다음 최소 D [current-status/lifecycle Contract](deployment-verifier-current-status.md)는 별도 Draft이며 journal/admission/pin proof를 issuance receipt로 대체하지 않는 것을 정의한다. 실 B persistence/port 구현은 해당 Contract의 별도 검증/채택 뒤 진행한다.
 
 ADR-076 merged develop에서 독립적으로 검증 가능한 최소 unit C를 선택했다. A는 journal/current-status/principal history 연결을, B는 principal lifecycle와 authentication provenance를 함께 요구한다. 새 authority를 도입하는 Decision은 없고 library/wire implementation details만 ADR-077에 기록한다. additive bootstrap migration과 실제 private-state provisioning은 이번 unit에 필요하지 않다. 기존 Phase/DoD 완료율은 그대로다.
