@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - Independent Lifecycle Journal Persistence Foundation
+
+- #164를 exact-head required CI 3개·Final Validation 뒤 expected-head squash merge했고 merge tree/source 보존을 확인했다. 새 develop `61b91d1bfaaceca6e3befda9c09f2ad91341a4c2`에서 다음 최소 A Foundation을 별도 Draft로 진행한다.
+- ADR-079에서 app DB/backup과 분리된 SQLite public journal schema v1, immutable ledger·stable actual-CAS guard·nullable current pointer, flush-only Repository와 strict ADR-078 Ed25519/JCS event/manifest verifier를 구현했다. REPLACE/UPSERT/terminal reactivation·stale head·thread/process CAS·crash/rollback·pin mismatch 회귀를 추가했다.
+- public history/receipt/metadata는 current authority가 아니며 private admission/provisioning/currentness ports는 unavailable다. app-side persistence가 없어 기존 Alembic 0037/ADR-077은 보존한다. 실제 keys/DB/governance/OS ceremony/Claim/binding/Auth/Writer/Adapter/Worker/Runtime는 활성화하지 않는다.
+
 ### 문서 - Deployment Verifier Current-Status / Lifecycle Contract
 
 - #163의 exact-head required CI 3개·reviews/threads·same H/T/base Final Validation을 통과한 뒤 Ready/expected-head squash merge 및 merge tree equality/source 보존을 확인했다. 새 기준 develop은 `fdf71b4202486a99b9ababec898fd3ae3b664883`다.

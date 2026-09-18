@@ -1,10 +1,12 @@
 # Deployment Verifier Current-Status / Lifecycle Contract
 
-> 문서 상태: [정의/제안 — Contract Draft PR, 구현·운영 비활성]
+> 문서 상태: [Contract #164 merged — 운영 비활성]
 > 최종 수정일: 2026-09-18
 > 관련 문서: [ADR-078](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [issuance verifier](bootstrap-issuance-integrity-verifier.md), [검증](../10-operations/deployment-verifier-current-status-validation.md)
 
 Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged issuance verifier는 그대로 유지하며 current root/status authority로 확대하지 않는다.
+
+후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 별도 Draft로 구현·검증한다. 아래 Contract 작성 시점의 '미구현'은 해당 시점 기록이며 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. production admission/pin/OS ceremony는 여전히 unavailable다.
 
 ## 서로 대체할 수 없는 evidence
 

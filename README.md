@@ -26,6 +26,8 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
+Bootstrap 독립 Track: #164 [ADR-078 Contract](docs/03-architecture/deployment-verifier-current-status.md)는 merged다. 다음 최소 A [Lifecycle Journal Foundation](docs/11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 독립 SQLite public-fact persistence/strict event verifier/unavailable private ports를 구현·검증하는 별도 Draft다. metadata/receipt는 current authority가 아니며 실제 provisioning/admission/pin reconciliation·Claim/binding/WebAuthn/Writer/Runtime는 미구현이다. app Alembic 0037과 Phase/DoD 진행률은 유지한다.
+
 현재 `develop`에서 확인되는 범위다.
 
 - D1 Composition Read Workspace와 D2 Timeline Playback, Master / Mix Waveform·richer Playhead Foundation은 완료됐다. Project 상세의 선택된 CompositionSnapshot에는 읽기 전용 초 단위 Timeline, snapshot-local Track lane, 실제 media metadata 기반 duration·Playhead, play/pause·seek, horizontal scroll·zoom과 Track 선택 기반이 있다. 단일 `mix` Item과 단일 safe audio Artifact가 없으면 `NO_CANONICAL_PLAYBACK_SOURCE`로 재생을 비활성화한다.
