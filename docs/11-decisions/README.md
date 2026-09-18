@@ -79,7 +79,8 @@
 | [ADR-073](ADR-073-music-director-candidate-apply-authority.md) | Candidate APPLY atomic WorkingComposition mutation authority | 승인, 구현 대기 |
 | [ADR-074](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md) | DohaVocal verified staging의 stream ingestion·Vocal Asset target·atomic Completion authority | 승인, Foundation 구현 |
 | [ADR-075](ADR-075-dohavocal-production-rights-domain-decision.md) | current Vocal Rights Grant·writer-reader serialization·Completion/replay 권한 V1 | 승인 제안, 정의/설계; production 미구현 |
-| [ADR-076](ADR-076-product-deployment-bootstrap-authority.md) | external Product/Deployment root·signed exact approval·one-time first-binding bootstrap | 정의/제안, Draft 검증·merge 전; 구현·운영 비활성 |
+| [ADR-076](ADR-076-product-deployment-bootstrap-authority.md) | external Product/Deployment root·signed exact approval·one-time first-binding bootstrap | #162 채택/merged, 운영 비활성 |
+| [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md) | Ed25519/JCS issuance-integrity verifier, non-authorizing receipt와 strict wire contract | Foundation Draft 구현·검증 중, 운영 비활성 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

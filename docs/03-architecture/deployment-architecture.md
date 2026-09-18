@@ -1,6 +1,6 @@
 # 배포 아키텍처
 
-> Bootstrap Decision 제안(2026-09-18): [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)의 external human designation, separately pinned verifier, signed exact approval과 one-time seal-first bootstrap을 정의했다. 이는 기존 reviewer 권한 확대 또는 운영 활성화가 아니다. [Bootstrap architecture](product-deployment-bootstrap-authority.md)를 따른다. crypto/persistence/WebAuthn/principal/binding과 실제 deployment ceremony는 미구현/미수행이다.
+> Bootstrap Decision 채택(2026-09-18): #162 merged [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)의 external human designation, separately pinned verifier, signed exact approval과 one-time seal-first bootstrap을 정의했다. 이는 기존 reviewer 권한 확대 또는 운영 활성화가 아니다. [Bootstrap architecture](product-deployment-bootstrap-authority.md)와 별도 Draft [issuance-integrity verifier Foundation](bootstrap-issuance-integrity-verifier.md)을 따른다. trusted provisioning/current status/persistence/WebAuthn/principal/binding과 실제 deployment ceremony는 미구현/미수행이다.
 
 > 문서 목적: 개발·향후 운영 환경의 배치 경계와 비밀·GPU 요구를 정의한다.
 > 현재 상태: **향후 설계 / 배포 미실행**

@@ -1,9 +1,9 @@
 # ADR-076: Product/Deployment Bootstrap Authority
 
-> 상태: [제안 — Decision 정의, Draft PR 검증·merge 전; 운영 비활성]
+> 상태: [채택 — PR #162 merged, 운영 비활성]
 > 작성일·최종 수정일: 2026-09-18
 > 기준 develop: `6778ab22e69fbce54bc232815721b01413426dde`
-> 관련 PR: 이 Decision의 Draft PR; #161/#160/#159 merged 보존, #130 OPEN/Draft 보존
+> 관련 PR: [#162 merged](https://github.com/DohaStudio/DohaMusic/pull/162); #161/#160/#159 merged 보존, #130 OPEN/Draft 보존
 > 관련 문서: [ADR-038](ADR-038-v1-reviewer-authentication-product-decision.md), [ADR-042](ADR-042-v1-local-operator-authentication-foundation.md), [ADR-075](ADR-075-dohavocal-production-rights-domain-decision.md), [Bootstrap architecture](../03-architecture/product-deployment-bootstrap-authority.md), [검증 보고서](../10-operations/product-deployment-bootstrap-authority-validation.md)
 
 ## 1. 배경·문제·설계 권한
@@ -80,9 +80,9 @@ Domain Decision 뒤 현재 source를 평가하면 installation/verifier registry
 
 DEFINED: external root designation + 검증 모델 + scope/소멸/trust chain.
 
-NOT IMPLEMENTED: crypto/verifier 및 key storage, installation/approval/custodian/claim persistence, 외부 journal/seal protocol, WebAuthn adapter, principal registry/binding, recovery, transfer, Rights Writer/Production Adapter/Evidence Authority.
+후속 [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md)은 issuance-integrity crypto verifier만 별도 Foundation Draft PR로 구현·검증 중이다. 이는 current eligibility/권한을 증명하지 않는다. NOT IMPLEMENTED: trusted verifier provisioning/key storage, current root/approval/assignment status, installation/approval/custodian/claim persistence, 외부 journal/seal protocol, WebAuthn adapter, principal registry/binding, recovery, transfer, Rights Writer/Production Adapter/Evidence Authority.
 
-순서는 이 docs-only Draft PR → 별도 Final Validation/merge → Installation/Bootstrap Persistence Foundation이다. Ready/merge는 이번 요청 범위 밖이다. 운영은 root provisioning, actual target DB locks, signature/JCS official vectors, key rotation/compromise, expired/revoked/wrong scope/principal, double consume, seal crash/old DB restore/clone, Fake fallback 금지 및 private-state boundary tests 전 차단한다. Existing user/production DB·실제 Provider 접근은 하지 않는다.
+이 docs-only Decision은 #162 Final Validation/squash merge로 authoritative develop에 들어왔다. 다음 최소 독립 unit은 ADR-077 verifier이며, Installation/Bootstrap Persistence Foundation은 별도 후속이다. 새 Foundation PR의 Ready/merge는 이번 요청 범위 밖이다. 운영은 root provisioning, actual target DB locks, signature/JCS official vectors, key rotation/compromise, expired/revoked/wrong scope/principal, double consume, seal crash/old DB restore/clone, Fake fallback 금지 및 private-state boundary tests 전 차단한다. Existing user/production DB·실제 Provider 접근은 하지 않는다.
 
 ## 11. 영향·장단점·재검토
 

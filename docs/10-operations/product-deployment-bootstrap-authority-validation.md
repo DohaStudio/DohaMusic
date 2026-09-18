@@ -1,5 +1,7 @@
 # Product/Deployment Bootstrap Authority Decision 검증
 
+> 후속 상태(2026-09-18): 아래는 #162 최초 Draft의 역사적 검증 기록이다. 이후 exact-head Final Validation/Ready/squash merge는 완료됐으며 [후속 verifier 검증](bootstrap-issuance-integrity-verifier-validation.md)에 CI·merge SHA/tree evidence를 기록했다. 다음 최소 독립 unit은 별도 Draft issuance-integrity verifier이고 persistence/ceremony·운영 권한은 여전히 미구현이다.
+
 > 상태: [docs-only 검증 — runtime 미검증]
 > 최종 수정일: 2026-09-18
 > 기준: develop `6778ab22e69fbce54bc232815721b01413426dde`, main `63633d462043ad3ba78fee92473d19e90c361431`

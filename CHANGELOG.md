@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - Bootstrap Issuance Integrity Verifier Foundation
+
+- merged #162 ADR-076의 Ed25519/JCS exact-scope approval issuance-integrity verifier를 독립 구현했다. strict UTF-8/envelope/duplicate·unknown key/typed canonical scope·24시간 window/base64url/domain separation·independent public verifier/designation/fingerprint 검증과 safe error code를 제공한다. cryptography `50.0.1`/rfc8785 `0.1.4`를 direct pin했다.
+- ADR-077은 최소 독립 unit 선택·library/wire details만 기록하며 새 root/actor/permission을 만들지 않는다. receipt는 current status/possession/authentication/one-time consume proof가 아니고 runtime consumer를 연결하지 않는다. persistence/migration/claim/journal/binding/WebAuthn/Recovery/Writer/Adapter/API/Frontend 구현은 0이다.
+- deterministic disposable memory-only keys와 RFC 공개 vectors, negative crypto/contract·기존 Authentication/Workspace/Rights/Completion 회귀를 검증한다. #162 채택 상태를 정합화하고 Phase/DoD 완료율·기존 migrations·Workspace.owner_id·권리 facts·보호 PR source는 보존한다. 새 PR은 Draft로 종료한다.
+
 ### 문서 - Product/Deployment Bootstrap Authority Decision
 
 - ADR-076 제안에서 명시 human designation을 application 밖 external root로 정의하고, initialization에서 pin한 verifier와 Ed25519/JCS signed exact-scope approval, Custodian assignment 및 WebAuthn human과 결합한 one-time 최초 principal-owner binding을 설계했다. 기존 Local Operator/reviewer/OS admin을 root나 Rights issuer로 승격하지 않는다.

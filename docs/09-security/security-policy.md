@@ -13,9 +13,9 @@ DohaMusic product identity, Orchestrator service identity와 DohaAudio human rev
 
 Authentication foundation은 raw credential을 입력·반환·로그하지 않고 opaque logical reference만 받는다. Verified context의 private subject, session binding과 provider witness는 repr·public summary에서 제외하며 safe error code는 공격자 입력을 반사하지 않는다. Test Fake가 발급한 context는 `TEST_ONLY` assurance이고 production bootstrap에서 fail-closed한다. 상세 threat boundary는 [Local Operator Authentication](../03-architecture/local-operator-authentication.md)을 따른다.
 
-## Installation Bootstrap Decision 제안
+## Installation Bootstrap Decision와 Verifier Foundation
 
-Installation 최초 trust assignment의 새 제안은 [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)을 따른다. 외부 governance의 human root designation과 독립 fingerprint 대조로 provision한 verifier만 signed exact-scope approval을 검증한다. OS admin/CLI/reviewer/WebAuthn/secret 보유는 root proof가 아니다. root/custodian은 runtime super-admin/Rights/recovery/transfer/Consent 권한이 없다. DB와 독립된 deployment journal의 seal-first fact가 bootstrap 재사용을 차단하며 journal/key 상태 불명·old restore·wrong installation은 fail closed한다. private key와 journal까지 전체 rollback/privileged compromise하는 환경의 완전 anti-rollback은 보장하지 않는다. 모든 crypto/store/ceremony는 미구현·운영 비활성이고 [검증 Gate](../10-operations/product-deployment-bootstrap-authority-validation.md) 전 활성화하지 않는다.
+Installation 최초 trust assignment는 #162 채택/merged [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)을 따른다. 외부 governance의 human root designation과 독립 fingerprint 대조로 provision한 verifier만 signed exact-scope approval을 검증한다. OS admin/CLI/reviewer/WebAuthn/secret 보유는 root proof가 아니다. root/custodian은 runtime super-admin/Rights/recovery/transfer/Consent 권한이 없다. DB와 독립된 deployment journal의 seal-first fact가 bootstrap 재사용을 차단하며 journal/key 상태 불명·old restore·wrong installation은 fail closed한다. private key와 journal까지 전체 rollback/privileged compromise하는 환경의 완전 anti-rollback은 보장하지 않는다. 별도 Draft [issuance-integrity verifier](../03-architecture/bootstrap-issuance-integrity-verifier.md)는 서명·exact issuance scope·window만 확인하며 caller-constructed root/receipt는 provisioning/current status/permission proof가 아니다. 실제 store/ceremony/proof/current eligibility/claim/journal/binding은 미구현·운영 비활성이고 전체 bootstrap 검증 전 활성화하지 않는다.
 
 ## Experimental Voice Provider 통제
 
