@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - Initializer Provenance / Policy Action Binding Comparison Foundation
+
+- #174의 동일 D/H/T/exact CI 3개 SUCCESS/reviews·threads 0/MERGEABLE·CLEAN 및 Ready 후 Gate를 확인하고 명시 승인으로 expected-head squash merge했다. 새 develop `655985b3432d4949ecae6d27e33ef8afb699c227`과 PR/merge tree equality, source/main 보존을 확인했다.
+- [ADR-088](docs/11-decisions/ADR-088-initializer-provenance-action-binding-foundation.md)의 strict public policy/action/initializer confirmation/pin/history 비교를 구현한다. full snapshot/action domain digest, exact identity/revision/type/manifest, duplicate·replay·terminal prefix·stale expected head/reset/truncate와 successor 선행 조건을 검증한다. actual storage CAS나 authenticated source proof로 승격하지 않는다.
+- SQL/I/O/Repository transaction/OS resource/schema/migration/production wiring 0, Alembic 0037 및 기존 authority/Phase/DoD 보존. 실제 governance/key/credential/ceremony/User DB/Provider 접근 0. [검증](docs/10-operations/initializer-provenance-binding-validation.md)에 executable regression과 미구현 source/authority 경계를 구분한다.
+
 ### 문서 - Custody Policy Provisioning / Initializer Provenance Linkage Contract
 
 - #173의 동일 D/H/T·exact-head CI 3개 SUCCESS·reviews/threads 0·MERGEABLE/CLEAN을 다시 확인하고 사용자 직접 승인으로 Ready/expected-head squash merge했다. 새 develop `54773b3ed4d4bfcee8bcc81000a4e6517c2245c0`, PR/merge tree equality와 source/main 보존을 확인했다. Final Validation 중 파일 수정 0이다.

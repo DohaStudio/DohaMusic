@@ -1,6 +1,7 @@
 # ADR-087: Custody Policy Provisioning / Initializer Provenance Linkage Contract
 
-> 상태: [제안 — 최소 Contract Draft; provisioning/provenance 구현·운영 미활성]
+> 상태: [채택 — #174 merged Contract; authenticated provisioning/provenance 구현·운영 미활성]
+> 관련 PR: [#174 merged](https://github.com/DohaStudio/DohaMusic/pull/174); 다음 [ADR-088 strict binding Foundation](ADR-088-initializer-provenance-action-binding-foundation.md). 아래 Draft 범위는 원래 계약 작성 단계 기록이다.
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `54773b3ed4d4bfcee8bcc81000a4e6517c2245c0` (#173 squash merge)
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [ADR-085](ADR-085-designation-record-snapshot-foundation.md), [ADR-086](ADR-086-designation-source-custody-policy-foundation.md), [검증](../10-operations/custody-policy-provisioning-contract-validation.md)

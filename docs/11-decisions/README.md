@@ -90,7 +90,8 @@
 | [ADR-084](ADR-084-designation-provenance-reader-input-contract.md) | independent designation/provisioning semantic input·partial observation·live snapshot 계약 | #170 merged Contract; 실제 full reader 미구현, 운영 비활성 |
 | [ADR-085](ADR-085-designation-record-snapshot-foundation.md) | fixed raw record snapshot·live pin/currentness lifetime 대조; provenance proof 아님 | #172 merged·운영 비활성 |
 | [ADR-086](ADR-086-designation-source-custody-policy-foundation.md) | exact private source identity·owner/protected DACL policy 비교와 snapshot fresh handoff; human proof 아님 | #173 merged 최소 mechanics·운영 비활성 |
-| [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md) | original designation·initializer 위임·actual policy 설치 action·exact snapshot/current lineage handoff | 최소 docs-only Contract Draft·구현/운영 미활성 |
+| [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md) | original designation·initializer 위임·actual policy 설치 action·exact snapshot/current lineage handoff | #174 merged Contract·authenticated source/운영 미활성 |
+| [ADR-088](ADR-088-initializer-provenance-action-binding-foundation.md) | strict installation/action/initializer/policy binding 및 terminal history 비교 | Foundation Draft·public facts는 권한이 아님 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

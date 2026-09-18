@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 독립 Track: #164~#170/#172 및 #173 [ADR-086 custody policy mechanics](docs/11-decisions/ADR-086-designation-source-custody-policy-foundation.md)는 merged다. 다음 [ADR-087 policy 설치/initializer provenance linkage Contract](docs/11-decisions/ADR-087-custody-policy-provisioning-initializer-provenance-contract.md)는 원래 accepted designation·명시 initializer 위임·실제 provisioning action·exact installed policy snapshot·fresh current-policy lineage의 연결을 정하는 docs-only Draft다. file/digest/snapshot/policy/ACL/helper/OS lock/metadata는 authority가 아니다. actual provisioning/provenance source·designation eligibility/full reader·fresh journal/history/manifest/possession/currentness·admission/pin installer·Claim/Auth/Writer/Runtime는 미구현/unavailable다. production wiring 0, app Alembic 0037/external journal v1·Phase/DoD 진행률을 보존한다.
+Bootstrap 독립 Track: #164~#170/#172/#173 mechanics 및 #174 [ADR-087 policy/action/initializer linkage Contract](docs/11-decisions/ADR-087-custody-policy-provisioning-initializer-provenance-contract.md)는 merged다. 다음 [ADR-088 strict binding comparison Foundation](docs/11-decisions/ADR-088-initializer-provenance-action-binding-foundation.md)은 installation/action/initializer/policy/pin의 exact public 연결과 terminal history·successor 선행 조건을 구현한 Draft다. 비교/digest/ACL/current enum은 authenticated provenance/currentness/actual CAS/admission/권한이 아니다. actual original-confirmation source·designation eligibility/live provenance reader·fresh history/manifest/possession·private policy transaction owner·admission/pin installer·Claim/Auth/Writer/Runtime는 미구현/unavailable다. production wiring/schema/migration 0, Alembic 0037/external journal v1·Phase/DoD 진행률을 보존한다.
 
 현재 `develop`에서 확인되는 범위다.
 
