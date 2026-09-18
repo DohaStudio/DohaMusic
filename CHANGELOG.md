@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - Windows Ceremony Serialization Foundation
+
+- #167을 exact-head 필수 CI 3개 SUCCESS 및 Final Validation 후 Ready/expected-head squash merge했다. 새 develop `2af6f7e8de7f42ea7f1758924bafcdcb25ddf56f`, PR/merge tree equality와 source/main 보존을 확인했다.
+- 다음 최소 B prerequisite인 Windows Global named mutex의 sorted exact scope 획득·process exclusion·caller root transaction lifetime·opaque lease·witness invalidation을 구현하고 실제 isolated process 경쟁/crash/partial cleanup을 검증했다. 생산 private evidence/Admission/currentness provider로 wiring하지 않는다.
+- 거절 후 lease 재활성화 3개와 cleanup failure의 reservation 소실/이중 native release 2개를 재현·회귀검증하고 permanent invalid, retained handle/quarantine/reservation 및 close-only retry로 수정했다.
+- Windows CI에 실제 serialization/witness regression step을 추가했다. app Alembic 0037/external schema v1/기존 authority·Phase/DoD 보존, 실제 keys/credential/approval/ceremony/user DB/Provider 접근·생성 0이다. 범위와 미구현 경계는 [ADR-082](docs/11-decisions/ADR-082-windows-ceremony-serialization-foundation.md) 및 [검증](docs/10-operations/windows-ceremony-serialization-validation.md)을 따른다.
+
 ### 추가 - Provider-Owned Witness Lifetime Foundation
 
 - #166을 exact-head CI 3개·Final Validation 뒤 Ready/expected-head squash merge했다. 새 develop `e45525e0c87656c8b5b6efc8986e5d2c925b48c6`, PR/merge tree equality와 source 보존을 확인했다.

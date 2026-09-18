@@ -1,8 +1,9 @@
 # ADR-081: Provider-Owned Witness Lifetime Foundation
 
-> 상태: [제안 — A 최소 선행 infrastructure 구현·로컬 Gate PASS, Draft; 운영 비활성]
+> 상태: [채택 — #167 merged, A 최소 선행 infrastructure; 운영 비활성]
 > 작성일·최종 수정일: 2026-09-18
 > 기준 develop: `e45525e0c87656c8b5b6efc8986e5d2c925b48c6` (#166 squash merge)
+> 관련 PR: [#167 merged](https://github.com/DohaStudio/DohaMusic/pull/167); 다음 [ADR-082 Windows serialization](ADR-082-windows-ceremony-serialization-foundation.md). 아래 본문은 결정 당시 범위·후속 기록을 보존한다.
 > 관련 문서: [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [검증](../10-operations/provider-witness-lifetime-validation.md)
 
 ## 배경·최소 unit·대안

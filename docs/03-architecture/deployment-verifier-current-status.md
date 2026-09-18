@@ -8,7 +8,7 @@ Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged is
 
 후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 #165 merged로 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 제공한다. 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. [ADR-080 handoff Contract](../11-decisions/ADR-080-private-admission-currentness-handoff-contract.md)는 #166 merged로 provider-owned witness/lease/durable admission/pin 설치 책임을 구체화했다. production admission/pin/OS ceremony는 여전히 unavailable다.
 
-다음 [ADR-081 helper Foundation](../11-decisions/ADR-081-provider-witness-lifetime-foundation.md)은 provider-internal opaque identity/exact public binding/lease·SessionTransaction lifetime과 mismatch 후 attempt 폐기만 구현한다. helper의 RLock은 cross-process ceremony mutex가 아니며 check 통과도 private authorization이 아니다. 실제 independent private reader/OS lease/durable admission owner/same-event pin installer는 여전히 후속이며 production ports는 unconditional unavailable다.
+[ADR-081 helper Foundation](../11-decisions/ADR-081-provider-witness-lifetime-foundation.md)은 #167 merged로 provider-internal opaque identity/exact public binding/lease·SessionTransaction lifetime과 mismatch 후 attempt 폐기를 제공한다. 다음 [ADR-082 Windows serialization](../11-decisions/ADR-082-windows-ceremony-serialization-foundation.md)은 실제 Global kernel mutex/process exclusion·transaction-bound opaque lease/cleanup을 별도 Draft에서 검증한다. helper의 RLock은 OS exclusion 대체가 아니고 실제 mutex 획득도 private authorization이 아니다. independent private evidence reader/complete manifest verification/durable admission owner/same-event pin installer는 후속이며 production ports는 unconditional unavailable다.
 
 ## 서로 대체할 수 없는 evidence
 
@@ -24,8 +24,8 @@ Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged is
 
 durable external journal admission 먼저, separately provisioned public pin projection 다음이다. exact revision/digest 연결 불명 또는 old cached DB 상태는 deny다. application DB rollback이 journal revocation/rotation을 rollback하지 않는다. completed admission의 동일 public projection 설치만 보완 가능하고 새 authority나 bootstrap success를 자동 생성하지 않는다. terminal key는 다시 ACTIVE가 되지 않는다. 과거 서명의 수학적 검증은 별개다.
 
-ADR-078의 전역 ceremony lock/private provenance/currentness/pin 설치는 여전히 설계 계약이다. ADR-079는 별도 SQLite public-fact store 내부 CAS/immutable state/wire integrity와 thread/process 같은-head 경쟁을 실행 검증했으나 이것이 전체 deployment ceremony나 trusted admission의 증거는 아니다. 실제 OS mutex/private provenance provider·production journal admission adapter·read witness가 없어 production는 unavailable이다. caller enum/UUID/receipt/public row를 허가로 사용할 수 없다.
+ADR-078의 complete ceremony/private provenance/currentness/pin 설치는 여전히 미구현이다. ADR-079 public journal CAS 및 ADR-081 lifetime, 새 ADR-082 실제 Windows exclusion mechanics를 전체 trusted admission 증거로 확대하지 않는다. reviewed independent evidence provider/production journal admission adapter·read witness가 없어 production는 unavailable이다. caller enum/UUID/receipt/public row/OS lock 획득을 허가로 사용할 수 없다.
 
 ## 다음 unit과 비목표
 
-Lifecycle Contract #164, public journal #165, private handoff Contract #166은 병합됐다. ADR-081은 A의 더 작은 직접 선행 witness lifetime implementation이며 전체 trusted provisioning/admission과 분리한다. 실제 root/key/journal provisioning·서명 ceremony를 수행하거나 현재 권한/법적 사람을 특정하지 않는다. app migration은 0이고 external schema v1은 독립 version Gate다. reviewed private readers/OS ceremony/pin install·reconciliation은 후속이며 claim/binding/WebAuthn/Recovery/Writer를 합치지 않는다.
+Lifecycle Contract #164, public journal #165, private handoff Contract #166, witness lifetime #167은 병합됐다. ADR-082는 실제 Windows exclusion의 작은 직접 prerequisite이며 전체 trusted ceremony/provisioning/admission과 분리한다. 실제 root/key/journal provisioning·서명 ceremony를 수행하거나 현재 권한/법적 사람을 특정하지 않는다. app migration은 0이고 external schema v1은 독립 version Gate다. reviewed private readers/complete manifest/currentness·production OS custody/pin install·reconciliation은 후속이며 claim/binding/WebAuthn/Recovery/Writer를 합치지 않는다.
