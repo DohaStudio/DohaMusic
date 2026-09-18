@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 - Deployment Verifier Current-Status / Lifecycle Contract
+
+- #163의 exact-head required CI 3개·reviews/threads·same H/T/base Final Validation을 통과한 뒤 Ready/expected-head squash merge 및 merge tree equality/source 보존을 확인했다. 새 기준 develop은 `fdf71b4202486a99b9ababec898fd3ae3b664883`다.
+- 다음 최소 D Contract인 ADR-078에서 B verifier lifecycle persistence의 pin provenance/current journal HEAD·private witness, normal old/new 교차서명·external redesignation, terminal key status·pending eligibility deny, stable CAS/lock order·journal/pin crash mismatch를 정의했다. caller enum/UUID/issuance receipt는 authority가 아니다.
+- docs-only이며 production/tests/migration/ADR-077 변경 0이다. actual governance/keys/credential/DB/Provider 및 claim/binding/WebAuthn/Recovery/Writer/Adapter를 구현·활성화하지 않는다. 새 Contract PR은 Draft로 종료하고 실 store/admission/persistence는 별도 Foundation으로 진행한다.
+
 ### 추가 - Bootstrap Issuance Integrity Verifier Foundation
 
 - merged #162 ADR-076의 Ed25519/JCS exact-scope approval issuance-integrity verifier를 독립 구현했다. strict UTF-8/envelope/duplicate·unknown key/typed canonical scope·24시간 window/base64url/domain separation·independent public verifier/designation/fingerprint 검증과 safe error code를 제공한다. cryptography `50.0.1`/rfc8785 `0.1.4`를 direct pin했다.
