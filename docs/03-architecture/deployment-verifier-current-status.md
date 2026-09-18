@@ -6,7 +6,7 @@
 
 Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged issuance verifier는 그대로 유지하며 current root/status authority로 확대하지 않는다.
 
-후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 별도 Draft로 구현·검증한다. 아래 Contract 작성 시점의 '미구현'은 해당 시점 기록이며 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. production admission/pin/OS ceremony는 여전히 unavailable다.
+후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 별도 Draft로 구현·검증한다. 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. production admission/pin/OS ceremony는 여전히 unavailable다.
 
 ## 서로 대체할 수 없는 evidence
 
@@ -22,8 +22,8 @@ Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged is
 
 durable external journal admission 먼저, separately provisioned public pin projection 다음이다. exact revision/digest 연결 불명 또는 old cached DB 상태는 deny다. application DB rollback이 journal revocation/rotation을 rollback하지 않는다. completed admission의 동일 public projection 설치만 보완 가능하고 새 authority나 bootstrap success를 자동 생성하지 않는다. terminal key는 다시 ACTIVE가 되지 않는다. 과거 서명의 수학적 검증은 별개다.
 
-Lock/CAS/state/wire는 설계 계약이며 현재 실행 구현·concurrency evidence가 아니다. 실제 store/OS mutex/private provenance provider·journal adapter·status writer/read witness가 없으므로 production는 unavailable이다. 이 문서로 기존 production auth를 활성화하거나 caller enum/UUID/receipt를 허가로 사용할 수 없다.
+ADR-078의 전역 ceremony lock/private provenance/currentness/pin 설치는 여전히 설계 계약이다. ADR-079는 별도 SQLite public-fact store 내부 CAS/immutable state/wire integrity와 thread/process 같은-head 경쟁을 실행 검증했으나 이것이 전체 deployment ceremony나 trusted admission의 증거는 아니다. 실제 OS mutex/private provenance provider·production journal admission adapter·read witness가 없어 production는 unavailable이다. caller enum/UUID/receipt/public row를 허가로 사용할 수 없다.
 
 ## 다음 unit과 비목표
 
-현재 작업은 B를 구현하기 위한 최소 D Contract이며 implementation은 별도 Foundation PR이다. root/key/journal의 실제 provisioning·서명 ceremony를 수행하지 않고 현재 권한/법적 사람을 특정하지 않는다. app schema/Repository migration은 0이다. 다음에는 journal fact persistence/strict event validator/admission-currentness port boundary를 한 coherent unit으로 검증하며 claim/binding/WebAuthn/Recovery/Writer를 같이 구현하지 않는다.
+최소 D Contract는 #164로 병합됐고 ADR-079의 A public-fact persistence/verifier/unavailable private port boundary는 별도 Foundation Draft다. 실제 root/key/journal provisioning·서명 ceremony를 수행하거나 현재 권한/법적 사람을 특정하지 않는다. app migration은 0이고 external schema v1은 독립 version Gate다. 다음에는 trusted provisioning/admission/currentness·OS ceremony·pin install/reconciliation을 검증하며 claim/binding/WebAuthn/Recovery/Writer를 이번 Foundation에 합치지 않는다.

@@ -32,3 +32,5 @@ A 최소 unit: 독립 SQLite public journal schema v1/flush-only repository, ADR
 - #164 source 보존, #163/#162/#161/#160/#159 state/source mutation 0, #130 OPEN/Draft/source 보존, main `63633d462043ad3ba78fee92473d19e90c361431` 무변경 확인.
 
 실제 User/production DB/Provider/keys/governance ceremony 접근 0이다. 테스트 keys는 deterministic disposable memory-only이며 raw key 저장 0이다. public facts는 trusted provisioning/currentness witness가 아니고 운영 chain은 unavailable다. full journal/key privileged clone/rollback·complete ceremony serialization·independent pin reconciliation의 실행 증거는 제공하지 않는다.
+
+최종 docs 대조에서 README의 기존 'Rights schema 미구현'과 architecture의 Contract 작성 시점 'journal fact 구현 없음' 문구를 발견했다. #161/#164 merged 및 현재 A Foundation 범위와 일치하도록 문서만 정합화했다. 별도 normal docs commit 전후 backend/ai_worker/pyproject source diff는 0이므로 위 최종 local test evidence는 유지한다. 이전 head CI는 새 exact-head 판정에 사용하지 않고 normal push의 새 run으로 검증한다.
