@@ -10,7 +10,7 @@
 
 ## Phase 6.5 External Lyrics LLM 상태
 
-Vocal rights 독립 Track: merged #160 [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 V1에 따라 SQLite Persistence Foundation 11 tables·immutable ledger/evidence·current projection·actual guard UPDATE·final receipt persistence·additive `20260918_0036`를 구현했다. 후속 `20260918_0037`은 기본 SQLite 설정에서 ScopeGuard REPLACE/epoch reset을 차단하는 trigger-only integrity 수정이며 PR #161 Draft 범위다. 이는 운영 권한 시스템 완료가 아니다. `MINIMAL_PORT_ADAPTATION_REQUIRED`에 따른 Completion port/audit·production adapter, authenticated writer/evidence·auth·ownership writer 협력·rollout/실제 DB 적용은 미구현/미수행이다. 우선 auth prerequisite를 해결하며 port 설계는 별도 병렬 가능하다. 기존 Phase·DoD 체크·진행률은 변경하지 않는다.
+Vocal rights 독립 Track: merged #160 [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 V1에 따라 SQLite Persistence Foundation 11 tables·immutable ledger/evidence·current projection·actual guard UPDATE·final receipt persistence·additive `20260918_0036`를 구현했다. 후속 `20260918_0037`은 기본 SQLite 설정에서 ScopeGuard REPLACE/epoch reset을 차단하는 trigger-only integrity 수정이며 PR #161과 함께 merged다. 이는 운영 권한 시스템 완료가 아니다. `MINIMAL_PORT_ADAPTATION_REQUIRED`에 따른 Completion port/audit·production adapter, authenticated writer/evidence·auth·ownership writer 협력·rollout/실제 DB 적용은 미구현/미수행이다. [ADR-076](docs/11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 external deployment root와 최초 binding bootstrap의 [정의/제안]이며 Draft 검증·merge 전이다. NEXT는 계약 Final Validation/merge, 그 뒤 Installation/Bootstrap Persistence Foundation이다. crypto/WebAuthn/principal/binding/Recovery/Transfer/Evidence/Writer 구현은 아직 0이다. 기존 Phase·DoD 체크·진행률은 변경하지 않는다.
 
 | 항목 | 상태 | 근거 |
 |---|---|---|

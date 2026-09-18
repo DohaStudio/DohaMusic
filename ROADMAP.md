@@ -7,7 +7,7 @@
 
 ## Phase 6.5 후속 게이트
 
-Vocal 권한 독립 Track(2026-09-18): [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 V1은 [정의/설계·승인 제안]이다. 필수 facts 평가 결과 `SCHEMA_CHANGE_REQUIRED`, final receipt는 `MINIMAL_PORT_ADAPTATION_REQUIRED`다. NEXT는 persistence → authenticated writer/evidence → Completion port/audit 및 production adapter → rollout이다. schema/auth/운영 adapter는 미구현이며 Phase 상태·진행률은 그대로다. 아래의 과거 '새 schema는 전제하지 않는다'는 Completion 자체의 출발 원칙이며, 이번 새 rights domain의 평가 결과를 기존 schema 충분 판정으로 바꾸지 않는다.
+Vocal 권한 독립 Track(2026-09-18): merged #160 [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 Rights Persistence Foundation과 ScopeGuard integrity 수정은 PR #161로 merged이며 Alembic `0037`이다. final receipt port는 `MINIMAL_PORT_ADAPTATION_REQUIRED`다. [ADR-076](docs/11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 새 external deployment root·최초 binding bootstrap의 docs-only [정의/제안]이다. NEXT는 이 계약 Draft PR Final Validation/merge → 별도 Installation/Bootstrap Persistence Foundation이다. 그 뒤 principal lifecycle/Recovery/Transfer 및 Evidence/Withdrawal 계약을 완결하고 authenticated Writer·Completion port/audit·production adapter·rollout을 진행한다. auth/bootstrap schema·crypto·운영 adapter는 미구현이며 Phase 상태·진행률은 그대로다. 아래의 과거 '새 schema는 전제하지 않는다'는 Completion 자체의 출발 원칙이며 신규 authority facts의 평가 결과를 기존 schema 충분 판정으로 바꾸지 않는다.
 
 1. 사용자의 별도 승인과 API Key·비용 승인을 모두 받은 opt-in 환경에서만 한국어 발라드·시티팝·구조 유지 수정·영문 팝을 실제 측정한다. 승인 전 상태는 `[유료 실측 미수행]`이다.
 2. EVAL-006에서 Template/External 결과를 사용자가 블라인드 평가한다.
