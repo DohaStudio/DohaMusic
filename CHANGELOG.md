@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - Designation Private Source Custody Policy Foundation
+
+- #172를 exact-head required CI 3개 SUCCESS/Final Validation 후 Ready·expected-head squash merge했다. 새 develop `702eab36ecd56eac8f47e6664d06e94dde64d6a5`, PR/merge tree equality와 source/main 보존을 확인했다.
+- [ADR-086](docs/11-decisions/ADR-086-designation-source-custody-policy-foundation.md)의 C 선행 단위로 independently injected exact root/record identity·explicit owner/SID/protected binary DACL의 같은 native handle 비교와 existing snapshot/currentness handoff fresh 재검사를 구현했다. policy/ACL/OS identity 자체를 human provenance·current eligibility·권한으로 승격하지 않는다.
+- LocalFree exception 때 descriptor ownership을 잃는 결함을 직접 재현하고 해제 시도 전 retained registration/성공 확인 뒤 제거로 수정했다. failure return/exception/cleanup retry와 concurrent ACL 변경·복원 뒤 stale snapshot/lease/witness 재사용 금지를 회귀 검증한다.
+- Windows native CI step에 새 tests를 추가했다. app migration 0/Alembic 0037/external journal v1·authority·Phase/DoD 보존, actual key/credential/designation/approval/ceremony/user DB/Provider 접근·발급 및 production wiring 0. [검증](docs/10-operations/designation-source-custody-validation.md)에 새 실행 evidence를 기록한다.
+
 ### 추가 - Designation Record Snapshot Mechanics Foundation
 
 - #170을 exact-head required CI 3개 SUCCESS/Final Validation 후 Ready·expected-head squash merge했다. 새 develop `bebf693fb41358abdddaf5d4110686323222cf2b`, PR/merge tree equality와 source/main 보존을 확인했다.

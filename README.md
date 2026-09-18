@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 독립 Track: #164~#170는 merged다. [ADR-084 designation provenance 입력·snapshot Contract](docs/11-decisions/ADR-084-designation-provenance-reader-input-contract.md) 다음 [ADR-085 record snapshot mechanics](docs/11-decisions/ADR-085-designation-record-snapshot-foundation.md)는 fixed raw record read·exact-byte digest·original live pin context·sealed snapshot/currentness witness lifetime comparison을 구현한다. file/digest/snapshot/helper/OS lock은 authority가 아니다. 실제 human designation/provisioning authenticity·ACL custody·eligibility/fresh journal/history·possession/currentness·admission/pin installer·Claim/Auth/Writer/Runtime는 미구현/unavailable이며 production wiring 0이다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 유지한다.
+Bootstrap 독립 Track: #164~#170 및 #172 [ADR-085 snapshot mechanics](docs/11-decisions/ADR-085-designation-record-snapshot-foundation.md)는 merged다. 다음 [ADR-086 custody policy mechanics](docs/11-decisions/ADR-086-designation-source-custody-policy-foundation.md)는 fixed root/record exact identity·explicit owner/protected binary DACL을 independently injected policy와 same-handle 비교하고 snapshot handoff 때 fresh 재검사하는 별도 Draft 구현이다. file/digest/snapshot/policy/ACL/helper/OS lock은 authority가 아니다. 실제 independent policy provisioning·human designation/initializer provenance·authenticity/eligibility·fresh journal/history/possession/full currentness·admission/pin installer·Claim/Auth/Writer/Runtime는 미구현/unavailable이며 production wiring 0이다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 유지한다.
 
 현재 `develop`에서 확인되는 범위다.
 
