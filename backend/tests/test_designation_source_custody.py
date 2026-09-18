@@ -22,6 +22,7 @@ from backend.tests.test_designation_record_snapshot import require
 ACCOUNT = b"\x01\x05" + b"\x00" * 5 + b"\x05" + struct.pack("<IIIII", 21, 1, 2, 3, 1001)
 SYSTEM = b"\x01\x01" + b"\x00" * 5 + b"\x05" + struct.pack("<I", 18)
 ADMINISTRATORS = b"\x01\x02" + b"\x00" * 5 + b"\x05" + struct.pack("<II", 32, 544)
+BUILTIN_ACCOUNT = ACCOUNT[:-4] + struct.pack("<I", 500)
 
 
 def acl(*sids):
@@ -81,6 +82,7 @@ def test_broad_sid_and_custom_comparison_never_accepted():
 
     for sid in (
         Hostile(ACCOUNT),
+        BUILTIN_ACCOUNT,
         b"\x01\x01" + b"\x00" * 6 + struct.pack("<I", 0),
         b"\x01\x02" + b"\x00" * 5 + b"\x05" + struct.pack("<II", 32, 544),
     ):

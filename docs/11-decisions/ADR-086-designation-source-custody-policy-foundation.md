@@ -38,6 +38,8 @@ write/delete sharing denial로 ordinary rewrite/rename/replacement/hardlink/repa
 
 #173의 최초 Windows CI는 elevated runner의 default owner가 Administrators여서 fixture가 policy 준비 단계에서 거부되는 결함을 발견했다. default owner를 승인 계정으로 추론하지 않고 [OpenProcessToken](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-openprocesstoken)의 TOKEN_QUERY/TokenUser로 선택한 disposable fixture 계정을 사용한다. owner가 다를 때만 임시 object의 owner를 설정하고 실제 root/leaf owner를 독립 재조회한다. 이미 같은 owner인 object는 불필요한 WRITE_OWNER 요청 없이 DACL만 설정한다. default account/Administrators의 두 경우를 회귀 검증하며 production SID profile·broad built-in 거부·human designation 경계는 변경하지 않는다. OS token 계정은 실제 initializer/Custodian credential이 아니다.
 
+수정 CI는 runneradmin의 TokenUser 자체가 RID 500인 built-in Administrator임을 추가 확인했다. 이 profile의 account RID 하한 1000은 그대로 유지하고 RID 500 negative를 추가한다. Windows CI의 격리된 hosted VM에서만 random disposable 비관리자 계정(Users group)을 만들어 동일 native pytest 6개 파일을 실행한다. account SID 하한 확인·명시 exit-code 전파·실패 시 finally account 제거를 요구하며 password는 메모리 안의 test-only 난수이고 출력/Git에 넣지 않는다. 계정은 실제 Custodian/initializer 또는 production credential이 아니다. 사용자 PC·actual store·production account 변경은 없다. 기존 3개 required job과 assertion/Gate/전체 native coverage는 그대로다.
+
 ## 대안·장단점·영향·migration
 
 ACL exists/OS administrator/CLI account를 designation authority로 삼는 대안과 descriptor self-pinning, signed approval로 custody/provenance를 승인하는 대안은 기각한다. full A+B/currentness/admission/possession을 한 PR에 묶지 않는다. 또 다른 docs-only input 계약을 반복하는 대신 이미 ADR-084가 허용한 concrete custody comparison을 실행한다.
