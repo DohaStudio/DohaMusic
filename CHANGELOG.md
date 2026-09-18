@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - Provider-Owned Witness Lifetime Foundation
+
+- #166을 exact-head CI 3개·Final Validation 뒤 Ready/expected-head squash merge했다. 새 develop `e45525e0c87656c8b5b6efc8986e5d2c925b48c6`, PR/merge tree equality와 source 보존을 확인했다.
+- ADR-080의 최소 선행 implementation인 provider-internal opaque handle registry와 strict public binding, exact lease/SessionTransaction identity·single assignment·release/restart/transaction end denial을 구현했다. helper는 authority provider나 OS mutex가 아니며 production ports는 unavailable다.
+- observed HEAD drift/nested transaction 거부 뒤 old handle 재활성화 우회를 regression으로 재현하고 attempt 전체를 영구 폐기하도록 수정했다. 실제 private reader/admission/durable commit/pin installer·keys/ceremony·Claim/binding/Writer/Runtime는 구현·활성화하지 않는다. app Alembic 0037/external journal v1/기존 migrations·ADR semantics·Phase/DoD를 보존한다.
+- pin bool/float counter equality 및 caller scope custom equality spoofing도 직접 재현하고 양쪽 projection의 strict counter/canonical native comparison 타입 검증으로 거부했다. 이것은 새 helper의 invariant 보강이며 private authorization 활성화가 아니다.
+
 ### 문서 - Private Admission / Currentness Handoff Contract
 
 - #165를 exact-head CI 3개·Final Validation 뒤 Ready/expected-head squash merge했다. merge develop `98d8f07163bfc6bd9dc15c5fc7e41c0b906b01c9`와 PR tree equality/source 보존을 확인했다.

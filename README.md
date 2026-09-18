@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 독립 Track: #164 ADR-078 Contract와 #165 [Lifecycle Journal Foundation](docs/11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 merged다. 독립 SQLite public-fact persistence/strict event verifier/actual CAS/unavailable private ports를 제공한다. 다음 최소 D [ADR-080 handoff Contract](docs/11-decisions/ADR-080-private-admission-currentness-handoff-contract.md)는 별도 Draft 제안이며 A private admission/currentness infrastructure의 witness·lease·durable commit 책임을 구체화한다. metadata/receipt는 current authority가 아니고 실제 provisioning/admission/pin reconciliation·Claim/binding/WebAuthn/Writer/Runtime는 미구현이다. app Alembic 0037과 Phase/DoD 진행률은 유지한다.
+Bootstrap 독립 Track: #164 ADR-078/#165 public journal/#166 [ADR-080 handoff Contract](docs/11-decisions/ADR-080-private-admission-currentness-handoff-contract.md)는 merged다. 다음 [ADR-081 Witness Lifetime Foundation](docs/11-decisions/ADR-081-provider-witness-lifetime-foundation.md)은 A의 최소 선행 helper로 opaque handle identity/exact public binding/lease·caller transaction 종료와 mismatch 후 영구 폐기를 별도 Draft에서 구현·검증한다. helper 통과/metadata/receipt는 authority가 아니며 reviewed private reader·OS ceremony/admission/durable owner/pin installation·Claim/binding/WebAuthn/Writer/Runtime는 미구현/unavailable다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 유지한다.
 
 현재 `develop`에서 확인되는 범위다.
 
