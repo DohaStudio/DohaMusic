@@ -1,6 +1,6 @@
 # ADR-084: Designation Provenance Reader Input / Snapshot Contract
 
-> 상태: [제안 — 최소 Contract Decision; reader 미구현·운영 비활성]
+> 상태: [채택 — #170 merged Contract; full provenance reader 미구현·운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `688b5f77ad1fb17bb0356e884574171c73921c42` (#169 squash merge)
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md), [ADR-083](ADR-083-private-pin-facts-reader-foundation.md), [검증](../10-operations/designation-provenance-reader-contract-validation.md)

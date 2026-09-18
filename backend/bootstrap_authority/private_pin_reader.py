@@ -26,6 +26,19 @@ class _PrivatePinFactsReader:
             raise PrivateFactsDenied()
         self._serialization = serialization
         self._files = _WindowsFactFiles(trusted_root)
+        self._active_facts: dict[int, tuple] = {}
+
+    def _require_open_facts(self, facts: object, *, lease: object, session: Session) -> None:
+        """Original live FILE snapshot identity only, NOT private provenance proof."""
+        active = self._active_facts.get(id(facts))
+        if (
+            active is None
+            or active[0] is not facts
+            or active[1] is not lease
+            or active[2] is not session
+        ):
+            raise PrivateFactsDenied()
+        self._serialization._require_live(lease, session=session, scopes=active[3].affected_scopes)
 
     @contextmanager
     def _open_facts(
@@ -56,7 +69,11 @@ class _PrivatePinFactsReader:
                     self._serialization._require_live(
                         lease, session=session, scopes=expected.affected_scopes
                     )
-                    yield facts
+                    self._active_facts[id(facts)] = (facts, lease, session, facts.binding)
+                    try:
+                        yield facts
+                    finally:
+                        self._active_facts.pop(id(facts), None)
             finally:
                 # Context exit (success/denial/exception) ends this snapshot's
                 # witness usability. Keep native OS locks until caller Tx ends.

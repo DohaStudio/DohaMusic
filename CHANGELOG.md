@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - Designation Record Snapshot Mechanics Foundation
+
+- #170을 exact-head required CI 3개 SUCCESS/Final Validation 후 Ready·expected-head squash merge했다. 새 develop `bebf693fb41358abdddaf5d4110686323222cf2b`, PR/merge tree equality와 source/main 보존을 확인했다.
+- [ADR-085](docs/11-decisions/ADR-085-designation-record-snapshot-foundation.md)의 B 선행 단위로 fixed raw designation record same-handle read·exact-byte digest·original live pin context·sealed snapshot/currentness witness lifetime comparison을 실제 구현했다. 전체 human designation/provenance/ACL custody authenticity/current permission은 구현하지 않았다.
+- context 종료/거절 후 same lease로 새 snapshot handle을 발급하는 결함을 두 regression으로 재현하고 snapshot/witness/native lease permanent invalidation으로 수정했다. shared Windows security primitive와 caller transaction/cleanup ownership을 보존했다.
+- Windows native CI step에 새 regression을 추가했다. app migration 0/Alembic 0037/external journal v1·authority·Phase/DoD 보존, actual key/credential/designation/ceremony/user DB/Provider 접근·생성 및 production wiring 0. [검증](docs/10-operations/designation-record-snapshot-validation.md)에서 새 실행 evidence를 기록한다.
+
 ### 문서 - Designation Provenance Reader Input Contract
 
 - #169를 exact-head CI 3개 SUCCESS/Final Validation 후 Ready·expected-head squash merge했다. 새 develop `688b5f77ad1fb17bb0356e884574171c73921c42`, PR/merge tree equality와 source/main 보존을 확인했다.

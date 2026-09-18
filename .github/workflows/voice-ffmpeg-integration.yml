@@ -54,7 +54,7 @@ jobs:
       - name: Windows FFmpeg integration
         run: python -m pytest -q backend/tests/test_voice_enrollment_audio.py -m integration
       - name: Windows ceremony serialization, private facts and witness mechanics
-        run: python -m pytest -q backend/tests/test_bootstrap_windows_serialization.py backend/tests/test_bootstrap_witness_lifetime.py backend/tests/test_bootstrap_pin_facts.py backend/tests/test_bootstrap_private_pin_reader.py
+        run: python -m pytest -q backend/tests/test_bootstrap_windows_serialization.py backend/tests/test_bootstrap_witness_lifetime.py backend/tests/test_bootstrap_pin_facts.py backend/tests/test_bootstrap_private_pin_reader.py backend/tests/test_designation_record_snapshot.py
 
   frontend-playwright:
     runs-on: ubuntu-latest
