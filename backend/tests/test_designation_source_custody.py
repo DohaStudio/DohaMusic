@@ -21,6 +21,7 @@ from backend.tests.test_designation_record_snapshot import require
 
 ACCOUNT = b"\x01\x05" + b"\x00" * 5 + b"\x05" + struct.pack("<IIIII", 21, 1, 2, 3, 1001)
 SYSTEM = b"\x01\x01" + b"\x00" * 5 + b"\x05" + struct.pack("<I", 18)
+ADMINISTRATORS = b"\x01\x02" + b"\x00" * 5 + b"\x05" + struct.pack("<II", 32, 544)
 
 
 def acl(*sids):
@@ -88,8 +89,8 @@ def test_broad_sid_and_custom_comparison_never_accepted():
     native()
 
 
-def native_acl(path, owner_text, *, suffix="", protected=True):
-    """Set ONLY disposable temp directory/file DACL, no parent/user/real store ACL."""
+def native_acl(path, owner_text, *, suffix="", protected=True, set_owner=False):
+    """Set ONLY disposable temp owner/DACL, no parent/user/real store ACL."""
     from ctypes import wintypes as w
 
     api, kernel = (
@@ -105,14 +106,16 @@ def native_acl(path, owner_text, *, suffix="", protected=True):
     api.SetFileSecurityW.argtypes = [w.LPCWSTR, w.DWORD, ctypes.c_void_p]
     kernel.LocalFree.argtypes, kernel.LocalFree.restype = [ctypes.c_void_p], ctypes.c_void_p
     descriptor = ctypes.c_void_p()
-    text = f"D:{'P' if protected else ''}(A;;FA;;;{owner_text})(A;;FA;;;SY){suffix}"
+    text = (f"O:{owner_text}" if set_owner else "") + (
+        f"D:{'P' if protected else ''}(A;;FA;;;{owner_text})(A;;FA;;;SY){suffix}"
+    )
     assert api.ConvertStringSecurityDescriptorToSecurityDescriptorW(
         text, 1, ctypes.byref(descriptor), None
     )
     try:
         assert api.SetFileSecurityW(
-            str(path), 4 | (0x80000000 if protected else 0x20000000), descriptor
-        )
+            str(path), 4 | int(set_owner) | (0x80000000 if protected else 0x20000000), descriptor
+        ), (owner_text, ctypes.get_last_error(), ctypes.FormatError(ctypes.get_last_error()))
     finally:
         assert not kernel.LocalFree(descriptor)
 
@@ -144,14 +147,71 @@ def owner(path):
         assert not kernel.LocalFree(text)
 
 
+def process_account():
+    """TokenUser is a disposable fixture identity, never a designated human."""
+    from ctypes import wintypes as w
+
+    api = ctypes.WinDLL("advapi32", use_last_error=True)
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    ptr = ctypes.c_void_p
+    kernel.GetCurrentProcess.restype = w.HANDLE
+    kernel.CloseHandle.argtypes, kernel.CloseHandle.restype = [w.HANDLE], w.BOOL
+    kernel.LocalFree.argtypes, kernel.LocalFree.restype = [ptr], ptr
+    api.OpenProcessToken.argtypes = [w.HANDLE, w.DWORD, ctypes.POINTER(w.HANDLE)]
+    api.GetTokenInformation.argtypes = [
+        w.HANDLE,
+        ctypes.c_int,
+        ptr,
+        w.DWORD,
+        ctypes.POINTER(w.DWORD),
+    ]
+    api.GetLengthSid.argtypes, api.GetLengthSid.restype = [ptr], w.DWORD
+    api.ConvertSidToStringSidW.argtypes = [ptr, ctypes.POINTER(ptr)]
+    token = w.HANDLE()
+    assert api.OpenProcessToken(kernel.GetCurrentProcess(), 8, ctypes.byref(token))
+    try:
+        needed = w.DWORD()
+        api.GetTokenInformation(token, 1, None, 0, ctypes.byref(needed))
+        buffer = ctypes.create_string_buffer(needed.value)
+        assert api.GetTokenInformation(token, 1, buffer, len(buffer), ctypes.byref(needed))
+        sid = ptr.from_buffer(buffer)
+        raw = ctypes.string_at(sid, api.GetLengthSid(sid))
+        text = ptr()
+        assert api.ConvertSidToStringSidW(sid, ctypes.byref(text))
+        try:
+            return raw, ctypes.wstring_at(text)
+        finally:
+            assert not kernel.LocalFree(text)
+    finally:
+        assert kernel.CloseHandle(token)
+
+
+def provision_fixture_acl(path, account):
+    sid, text = account
+    native_acl(path, text, set_owner=owner(path)[0] != sid)
+    assert owner(path) == (sid, text)
+
+
+@pytest.mark.parametrize("default_owner", [ACCOUNT, ADMINISTRATORS])
+def test_fixture_provisions_selected_account_not_default_owner(monkeypatch, default_owner):
+    module = __import__(__name__, fromlist=["owner"])
+    observed = Mock(side_effect=[(default_owner, "default"), (ACCOUNT, "account")])
+    setter = Mock()
+    monkeypatch.setattr(module, "owner", observed)
+    monkeypatch.setattr(module, "native_acl", setter)
+    provision_fixture_acl("disposable", (ACCOUNT, "account"))
+    setter.assert_called_once_with("disposable", "account", set_owner=default_owner != ACCOUNT)
+
+
 def setup(fx, tmp_path):
     from backend.bootstrap_authority.windows_fact_files import _WindowsFactFiles
 
     path = tmp_path / "designation-record-v1.txt"
     path.write_bytes(b"record")
-    sid, text = owner(tmp_path)
-    native_acl(tmp_path, text)
-    native_acl(path, text)
+    sid, text = process_account()
+    provision_fixture_acl(tmp_path, (sid, text))
+    provision_fixture_acl(path, (sid, text))
+    assert owner(tmp_path) == owner(path) == (sid, text)
     files = _WindowsFactFiles(str(tmp_path))
     identities = []
     for target, directory in ((str(tmp_path), True), (str(path), False)):
