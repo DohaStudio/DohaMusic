@@ -17,6 +17,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
 - atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
 
+### 문서 - Designation Provenance Reader Input Contract
+
+- #169를 exact-head CI 3개 SUCCESS/Final Validation 후 Ready·expected-head squash merge했다. 새 develop `688b5f77ad1fb17bb0356e884574171c73921c42`, PR/merge tree equality와 source/main 보존을 확인했다.
+- 다음 A infrastructure의 최소 선행 [ADR-084](docs/11-decisions/ADR-084-designation-provenance-reader-input-contract.md)를 제안한다. 독립 designation/provisioning semantic input·custody/eligibility·partial provenance observation·live snapshot/lease/transaction handoff와 negative acceptance를 정했다. 실제 reader/authority input 구현은 미구현이다.
+- ADR-076의 서면 self-designation·독립 대조를 새 signing trust root로 바꾸지 않는다. approval/lifecycle signature fixture/public pin·receipt/파일/OS lock을 designation authenticity 또는 current permission으로 확대하지 않는다.
+- docs-only, source/tests/ports/schema/migration/production wiring 변경 0. Alembic 0037/external journal v1·기존 authority·Phase/DoD 보존 및 실제 governance/key/credential/ceremony/user DB/Provider 접근 0. [검증](docs/10-operations/designation-provenance-reader-contract-validation.md)에 실행/기존 evidence를 구분한다.
+
 ### 추가 - Private Pin Facts Reader Foundation
 
 - #168을 exact-head 필수 CI 3개 SUCCESS 및 Final Validation 후 Ready/expected-head squash merge했다. 새 develop `fb10bc9367835b0d4a39837287a358fe6b46a1be`, PR/merge tree equality와 source/main 보존을 확인했다.

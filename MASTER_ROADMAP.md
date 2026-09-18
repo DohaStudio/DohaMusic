@@ -4,13 +4,13 @@
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-19
 > 현재 실행 순서: [ROADMAP](ROADMAP.md)
 > 완료 판정: [Phase DoD](docs/DoD/README.md)
 
 ## Phase 6.5 External Lyrics LLM 상태
 
-Bootstrap 독립 Track 최신(2026-09-19): #164/#165/#166/#167 및 [ADR-082 Windows serialization mechanics](docs/11-decisions/ADR-082-windows-ceremony-serialization-foundation.md) #168은 merged다. 다음 [ADR-083 private pin facts reader](docs/11-decisions/ADR-083-private-pin-facts-reader-foundation.md)는 작은 read-only transport/comparison 선행 구현으로 별도 Draft다. private file facts/OS exclusion/lease mechanics는 authorization이 아니며 independent private custody/provenance·fresh journal/history·authoritative manifest/possession/currentness·admission/durable owner/pin installation·Claim/binding/Auth/Writer는 미구현/unavailable다. app Alembic 0037/external journal v1·기존 Phase/DoD 진행률은 보존한다. 아래 직전 단계 기록의 NEXT는 [현재 실행 순서](ROADMAP.md#phase-65-후속-게이트)를 따른다.
+Bootstrap 독립 Track 최신(2026-09-19): #164~#169 및 [ADR-083 private pin facts transport/comparison](docs/11-decisions/ADR-083-private-pin-facts-reader-foundation.md)은 merged다. 다음 [ADR-084 designation provenance reader 입력·snapshot Contract](docs/11-decisions/ADR-084-designation-provenance-reader-input-contract.md)은 A infrastructure의 작은 직접 prerequisite이며 별도 Draft 제안이다. 실제 reader/authority input 구현은 미구현이다. private file facts/서명/OS lock/helper는 authorization이 아니며 custody/provenance·fresh journal/history·authoritative manifest/possession/currentness·admission/durable owner/pin installation·Claim/binding/Auth/Writer는 unavailable다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 보존한다. 아래 직전 단계 기록의 NEXT는 [현재 실행 순서](ROADMAP.md#phase-65-후속-게이트)를 따른다.
 
 Vocal rights 독립 Track: merged #160 [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 SQLite Persistence Foundation 11 tables·ledger/evidence·current projection·guard UPDATE·final receipt·additive `0036`과 ScopeGuard REPLACE/epoch reset 차단 `0037`은 #161 merged다. 운영 권한 완료는 아니며 `MINIMAL_PORT_ADAPTATION_REQUIRED`와 Writer/Evidence/Auth/ownership writer/rollout Gate는 유지한다. external root [ADR-076](docs/11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 #162 merged, [ADR-077 issuance verifier](docs/03-architecture/bootstrap-issuance-integrity-verifier.md)는 #163 merged이고 권한을 부여하지 않는다. #164 Contract 뒤 현재 Foundation/NEXT는 위 최신 Bootstrap Track을 따른다. trusted provisioning/private current authority/WebAuthn/principal/binding/Recovery/Transfer/Evidence/Writer는 미구현이고 ADR-077 원본·기존 Phase·DoD 체크·진행률은 보존한다.
 

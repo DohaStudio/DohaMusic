@@ -4,7 +4,7 @@
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-19
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 독립 Track: #164/#165/#166/#167 및 [ADR-082 Windows Serialization Foundation](docs/11-decisions/ADR-082-windows-ceremony-serialization-foundation.md) #168은 merged다. 다음 [ADR-083 Private Pin Facts Reader](docs/11-decisions/ADR-083-private-pin-facts-reader-foundation.md)는 별도 fixed private-boundary file의 stable Win32 read와 complete pin/manifest comparison만 구현한다. file facts/OS acquisition/helper witness는 authority가 아니다. reviewed private custody/provenance·fresh journal/history·authoritative manifest/possession/currentness verification·admission/durable owner/pin installer·Claim/binding/WebAuthn/Writer/Runtime는 미구현/unavailable이며 production wiring 0이다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 유지한다.
+Bootstrap 독립 Track: #164~#169는 merged다. [ADR-083 Private Pin Facts Reader](docs/11-decisions/ADR-083-private-pin-facts-reader-foundation.md)는 fixed private-boundary file의 stable read/complete comparison만 구현했다. 다음 [ADR-084 designation provenance 입력·snapshot 계약](docs/11-decisions/ADR-084-designation-provenance-reader-input-contract.md)은 A reader 구현의 최소 선행 Contract 제안이다. file facts/서명/helper/OS lock은 authority가 아니다. 실제 private custody/provenance·fresh journal/history·authoritative manifest/possession/currentness·admission/durable owner/pin installer·Claim/binding/WebAuthn/Writer/Runtime는 미구현/unavailable이며 production wiring 0이다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 유지한다.
 
 현재 `develop`에서 확인되는 범위다.
 
