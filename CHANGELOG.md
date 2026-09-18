@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 - Private Admission / Currentness Handoff Contract
+
+- #165를 exact-head CI 3개·Final Validation 뒤 Ready/expected-head squash merge했다. merge develop `98d8f07163bfc6bd9dc15c5fc7e41c0b906b01c9`와 PR tree equality/source 보존을 확인했다.
+- 다음 최소 D Contract ADR-080에서 provider-owned private witness, live ceremony lease/transaction binding, explicit durable admission owner와 same-admission pin installation/reconciliation handoff를 구체화했다. public DTO/서명/receipt/journal row는 현재 authority가 아니다.
+- source/tests/schema/app Alembic 0037/external journal v1은 보존한다. 실제 OS/provenance provider·keys/credential ceremony/Claim/binding/Writer/Runtime는 구현·활성화하지 않으며 후속 A implementation의 negative/crash/concurrency Gate만 정의한다. merged 상태와 README/로드맵/architecture의 stale Draft 문구를 정합화했다.
+
 ### 추가 - Independent Lifecycle Journal Persistence Foundation
 
 - #164를 exact-head required CI 3개·Final Validation 뒤 expected-head squash merge했고 merge tree/source 보존을 확인했다. 새 develop `61b91d1bfaaceca6e3befda9c09f2ad91341a4c2`에서 다음 최소 A Foundation을 별도 Draft로 진행한다.

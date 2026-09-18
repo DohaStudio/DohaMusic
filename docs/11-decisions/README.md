@@ -82,7 +82,8 @@
 | [ADR-076](ADR-076-product-deployment-bootstrap-authority.md) | external Product/Deployment root·signed exact approval·one-time first-binding bootstrap | #162 채택/merged, 운영 비활성 |
 | [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md) | Ed25519/JCS issuance-integrity verifier, non-authorizing receipt와 strict wire contract | #163 merged, 운영 비활성; 원 ADR 파일 보존 |
 | [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md) | independently provisioned pin·fresh journal currentness·rotation/revocation admission·CAS/crash 경계 | #164 merged, 운영 비활성 |
-| [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md) | independent SQLite journal public facts·strict event integrity·actual CAS/unavailable private ports | Foundation 구현·검증, 별도 Draft; 운영 비활성 |
+| [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md) | independent SQLite journal public facts·strict event integrity·actual CAS/unavailable private ports | 채택 #165 merged; 운영 비활성 |
+| [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md) | private witness/lease/durable admission/pin installation handoff; A 최소 선행 Contract D | 제안 Draft; 구현·운영 비활성 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
