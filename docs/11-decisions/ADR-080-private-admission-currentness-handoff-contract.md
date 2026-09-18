@@ -1,8 +1,9 @@
 # ADR-080: Private Admission / Currentness Handoff Contract
 
-> 상태: [제안 — 최소 선행 Contract D; 구현·운영 비활성]
+> 상태: [채택 — #166 merged; handoff Contract, 운영 비활성]
 > 작성일·최종 수정일: 2026-09-18
 > 기준 develop: `98d8f07163bfc6bd9dc15c5fc7e41c0b906b01c9` (#165 squash merge)
+> 관련 PR: [#166 merged](https://github.com/DohaStudio/DohaMusic/pull/166); 다음 [ADR-081 helper Foundation](ADR-081-provider-witness-lifetime-foundation.md)
 > 관련 문서: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md), [검증](../10-operations/private-admission-currentness-contract-validation.md)
 
 ## 배경·선택·대안
