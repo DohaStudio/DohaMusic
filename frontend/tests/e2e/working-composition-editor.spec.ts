@@ -59,6 +59,7 @@ class StatefulWorkingBackend {
   loseNextClipCreateResponse = false;
   advanceBeforeNextMutation = false;
   expectedResponseLosses = 0;
+  private pausedCanonicalRead: { started(): void; released: Promise<void> } | null = null;
   history = new PersistentHistoryFixture(IDS.working, {
     get: () => this.revision,
     increment: () => ++this.revision,
@@ -70,6 +71,15 @@ class StatefulWorkingBackend {
 
   count(suffix: string, method?: string) {
     return this.requests.filter((item) => item.path.endsWith(suffix) && (!method || item.method === method)).length;
+  }
+
+  pauseNextCanonicalRead() {
+    let markStarted!: () => void;
+    let release!: () => void;
+    const started = new Promise<void>((resolve) => { markStarted = resolve; });
+    const released = new Promise<void>((resolve) => { release = resolve; });
+    this.pausedCanonicalRead = { started: markStarted, released };
+    return { started, release };
   }
 
   requiredTrackForTest(id: string) {
@@ -117,6 +127,12 @@ class StatefulWorkingBackend {
 
     if (method === "GET" && relative === "") {
       if (!this.workingExists) return this.error(route, 404, "WORKING_COMPOSITION_NOT_FOUND");
+      const paused = this.pausedCanonicalRead;
+      this.pausedCanonicalRead = null;
+      if (paused) {
+        paused.started();
+        await paused.released;
+      }
       return this.data(route, { data: this.snapshot() });
     }
     if (method === "GET" && relative === "/history") {
@@ -649,8 +665,18 @@ test("WorkingComposition 48개 semantic scenario와 responsive control을 실제
   await page.keyboard.press("Control+Z");
   await expectRevision(page, 33);
   await expect(page.getByRole("button", { name: "편집 다시 실행" })).toBeEnabled();
+  const reconciliation = backend.pauseNextCanonicalRead();
   await page.keyboard.press("Control+Y");
   await expectRevision(page, 34);
+  await reconciliation.started;
+  const requestsBeforeHistoryRefresh = backend.requests.length;
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeDisabled();
+  reconciliation.release();
+  // The optimistic revision precedes reconcile's trailing history GET. Prove that
+  // extra request exists, then capture the unchanged editable-keyboard baseline
+  // only after the pending mutation and canonical history refresh have completed.
+  await expect(page.getByRole("button", { name: "편집 실행 취소" })).toBeEnabled();
+  expect(backend.requests).toHaveLength(requestsBeforeHistoryRefresh + 1);
 
   await page.evaluate(() => {
     const textarea = document.createElement("textarea");

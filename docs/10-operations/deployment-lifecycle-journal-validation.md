@@ -34,3 +34,13 @@ A 최소 unit: 독립 SQLite public journal schema v1/flush-only repository, ADR
 실제 User/production DB/Provider/keys/governance ceremony 접근 0이다. 테스트 keys는 deterministic disposable memory-only이며 raw key 저장 0이다. public facts는 trusted provisioning/currentness witness가 아니고 운영 chain은 unavailable다. full journal/key privileged clone/rollback·complete ceremony serialization·independent pin reconciliation의 실행 증거는 제공하지 않는다.
 
 최종 docs 대조에서 README의 기존 'Rights schema 미구현'과 architecture의 Contract 작성 시점 'journal fact 구현 없음' 문구를 발견했다. #161/#164 merged 및 현재 A Foundation 범위와 일치하도록 문서만 정합화했다. 별도 normal docs commit 전후 backend/ai_worker/pyproject source diff는 0이므로 위 최종 local test evidence는 유지한다. 이전 head CI는 새 exact-head 판정에 사용하지 않고 normal push의 새 run으로 검증한다.
+
+## CI flake 직접 해결과 한계
+
+run `35335969997`/head `bef0bcd2242d647479b9891bc2446c3b2a079c59`의 Frontend configured E2E는 101 passed/1 failed였다. WorkingComposition semantic scenario의 editable-keyboard no-request assertion에서 Expected 106/Received 107이다. 직전 run `35335634725`와 frontend subtree는 동일(`e568d5093600b6baae1020128085aeff004063a8`)이며 직전 Frontend는 SUCCESS였다. journal의 consumer/production Frontend 변경 0이다.
+
+Root cause: `runHistory()`가 먼저 optimistic revision을 표시하고 `reconcile()`의 canonical GET/history GET과 pending 해제를 나중에 수행한다. 기존 test는 revision 34 표시만 기다려 요청 수 baseline을 잡아 trailing history GET을 keyboard 요청으로 오인했다. test-only fixture에서 next canonical GET을 explicit Promise barrier로 보류·해제하고 pending-disabled → canonical-history-ready/enabled를 확인한 뒤 baseline을 잡는다. 실제 늦은 history GET +1도 exact assertion으로 증명한다. 기존 no-request assertion은 유지하며 sleep/retry/assert 완화/test 삭제/skip/production 변경 0이다.
+
+잘못된 pre-refresh baseline을 임시 적용한 local Chromium reproducer는 CI와 동일하게 Expected 106/Received 107로 **1 failed**를 재현했다. 올바른 baseline으로 즉시 복구했고 임시 잘못된 baseline은 commit하지 않는다. build/lint/typecheck PASS, 수정한 3 viewport × 3 repeats는 9 passed(31.6초); 복구 후 최종 반복 검증은 **9 passed / 0 failed / 0 skipped**, 30.8초다. backend/ai_worker/pyproject source는 그대로라 위 focused/direct/full local evidence를 유지한다. 이전 run의 success를 최종 exact-head Gate로 재사용하지 않고 normal push의 새 run을 확인한다.
+
+기존 dependency warning: `npm ci`/read-only audit는 lockfile advisory 6개(2 moderate/3 high/1 critical)를 보고했다. 대상은 @vitest/mocker/js-yaml/nanoid/next/sharp/vitest다. dependency/lockfile 변경이나 audit fix는 이번 작은 Foundation/CI harness repair에 섞지 않는다. source boundary/secret scan PASS가 전체 dependency security audit PASS라는 뜻은 아니다. 별도 security maintenance 검토가 필요하다. Python 3.12 backend의 기존 SQLite datetime adapter·Starlette/anyio 등 deprecation warnings도 제거/숨김 없이 보존한다.
