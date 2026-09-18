@@ -87,7 +87,9 @@
 | [ADR-081](ADR-081-provider-witness-lifetime-foundation.md) | provider-internal opaque handle/exact binding/lease·transaction lifetime mechanics; authorization 아님 | 채택 #167 merged; 운영 비활성 |
 | [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md) | 실제 Windows Global kernel mutex/process exclusion·opaque transaction-bound lease·cleanup; admission 아님 | #168 merged; 운영 비활성 |
 | [ADR-083](ADR-083-private-pin-facts-reader-foundation.md) | private-boundary file stable read·complete pin comparison; private authority 아님 | #169 merged; 운영 비활성 |
-| [ADR-084](ADR-084-designation-provenance-reader-input-contract.md) | independent designation/provisioning semantic input·partial observation·live snapshot 계약 | docs-only 제안; 실제 reader 미구현, 운영 비활성 |
+| [ADR-084](ADR-084-designation-provenance-reader-input-contract.md) | independent designation/provisioning semantic input·partial observation·live snapshot 계약 | #170 merged Contract; 실제 full reader 미구현, 운영 비활성 |
+| [ADR-085](ADR-085-designation-record-snapshot-foundation.md) | fixed raw record snapshot·live pin/currentness lifetime 대조; provenance proof 아님 | #172 merged·운영 비활성 |
+| [ADR-086](ADR-086-designation-source-custody-policy-foundation.md) | exact private source identity·owner/protected DACL policy 비교와 snapshot fresh handoff; human proof 아님 | 최소 mechanics 구현·로컬 Gate PASS, 별도 Draft 대상·운영 비활성 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

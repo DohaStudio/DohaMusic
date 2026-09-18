@@ -51,6 +51,9 @@ class _WindowsFactFiles:
     All path handles remain open with no write/delete sharing through the yield.
     """
 
+    _fixed_name = PIN_FACTS_FILE
+    _read_control = False
+
     def __init__(self, root: str) -> None:
         self._paths = _root_components(root)
         if sys.platform != "win32":
@@ -106,7 +109,7 @@ class _WindowsFactFiles:
         # OPEN_EXISTING; OPEN_REPARSE_POINT for EACH component, not just the leaf.
         handle = self._api.CreateFileW(
             path,
-            0x80 if directory else 0x80000000,
+            (0x80 if directory else 0x80000000) | (0x20000 if self._read_control else 0),
             1,
             None,
             3,
@@ -156,7 +159,7 @@ class _WindowsFactFiles:
                 handle = self._open(path, directory=True)
                 handles.append(handle)
                 observations.append((handle, path, self._check(handle, path, directory=True)))
-            path = ntpath.join(self._paths[-1], PIN_FACTS_FILE)
+            path = ntpath.join(self._paths[-1], self._fixed_name)
             handle = self._open(path, directory=False)
             handles.append(handle)
             before = self._check(handle, path, directory=False)

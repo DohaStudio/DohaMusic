@@ -54,7 +54,42 @@ jobs:
       - name: Windows FFmpeg integration
         run: python -m pytest -q backend/tests/test_voice_enrollment_audio.py -m integration
       - name: Windows ceremony serialization, private facts and witness mechanics
-        run: python -m pytest -q backend/tests/test_bootstrap_windows_serialization.py backend/tests/test_bootstrap_witness_lifetime.py backend/tests/test_bootstrap_pin_facts.py backend/tests/test_bootstrap_private_pin_reader.py
+        shell: pwsh
+        run: |
+          # Hosted runneradmin may be RID 500. Do not widen the production SID profile.
+          # This disposable non-admin account exists ONLY on the ephemeral CI VM.
+          $ErrorActionPreference = 'Stop'
+          if ($env:GITHUB_ACTIONS -ne 'true' -or $env:RUNNER_OS -ne 'Windows') { throw 'Hosted Windows CI fixture only' }
+          $fixtureName = 'doha-ci-' + [guid]::NewGuid().ToString('N').Substring(0, 8)
+          $fixturePassword = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)) + '!Aa9'
+          $fixtureSecret = ConvertTo-SecureString $fixturePassword -AsPlainText -Force
+          $fixtureCredential = [pscredential]::new("$env:COMPUTERNAME\$fixtureName", $fixtureSecret)
+          $fixtureRoot = Join-Path $env:WINDIR ('Temp\' + $fixtureName)
+          $fixtureCreated = $false
+          try {
+            $fixtureUser = New-LocalUser -Name $fixtureName -Password $fixtureSecret -AccountNeverExpires -PasswordNeverExpires
+            $fixtureCreated = $true
+            if ([int]($fixtureUser.SID.Value.Split('-')[-1]) -lt 1000) { throw 'Unsupported disposable account SID' }
+            Add-LocalGroupMember -SID 'S-1-5-32-545' -Member $fixtureUser
+            New-Item -ItemType Directory -Path $fixtureRoot | Out-Null
+            $fixtureAcl = Get-Acl -LiteralPath $fixtureRoot
+            $fixtureRule = [Security.AccessControl.FileSystemAccessRule]::new($fixtureUser.SID, 'FullControl', 'ContainerInherit,ObjectInherit', 'None', 'Allow')
+            $fixtureAcl.AddAccessRule($fixtureRule)
+            Set-Acl -LiteralPath $fixtureRoot -AclObject $fixtureAcl
+            $fixtureOutput = Join-Path $fixtureRoot 'stdout.txt'
+            $fixtureError = Join-Path $fixtureRoot 'stderr.txt'
+            $fixtureTemp = Join-Path $fixtureRoot 'pytest'
+            $fixtureArgs = '-m pytest -q --basetemp "' + $fixtureTemp + '" backend/tests/test_bootstrap_windows_serialization.py backend/tests/test_bootstrap_witness_lifetime.py backend/tests/test_bootstrap_pin_facts.py backend/tests/test_bootstrap_private_pin_reader.py backend/tests/test_designation_record_snapshot.py backend/tests/test_designation_source_custody.py'
+            $fixtureProcess = Start-Process -FilePath (Get-Command python).Source -ArgumentList $fixtureArgs -Credential $fixtureCredential -LoadUserProfile -WorkingDirectory $env:GITHUB_WORKSPACE -WindowStyle Hidden -RedirectStandardOutput $fixtureOutput -RedirectStandardError $fixtureError -Wait -PassThru
+            Get-Content -LiteralPath $fixtureOutput
+            Get-Content -LiteralPath $fixtureError
+            if ($fixtureProcess.ExitCode -ne 0) { throw "Native pytest failed: $($fixtureProcess.ExitCode)" }
+          } finally {
+            if ($fixtureCreated) { Remove-LocalUser -Name $fixtureName }
+            $fixtureSecret.Dispose()
+            $fixturePassword = $null
+            $fixtureCredential = $null
+          }
 
   frontend-playwright:
     runs-on: ubuntu-latest
