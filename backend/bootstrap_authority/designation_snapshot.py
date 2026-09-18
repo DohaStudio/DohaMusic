@@ -144,3 +144,27 @@ class _DesignationRecordSnapshots:
         except (PrivateFactsDenied, WitnessLifetimeDenied, CeremonySerializationDenied):
             self._abandon(handle, record)
             raise PrivateFactsDenied() from None
+
+    def _require_open_snapshot(self, handle, *, lease, session, pin_facts) -> None:
+        """Original live partial snapshot ONLY; no authentication/witness check.
+
+        Used by another raw snapshot inside this held context. Public facts/copies
+        cannot substitute the original provider's identity. Denial abandons it.
+        """
+        if type(handle) is not _Handle or handle not in self._snapshots:
+            raise PrivateFactsDenied()
+        record = self._snapshots[handle]
+        try:
+            if (
+                record.lease is not lease
+                or record.session is not session
+                or record.pin_facts is not pin_facts
+            ):
+                raise PrivateFactsDenied()
+            self._pin._require_open_facts(pin_facts, lease=lease, session=session)
+            if type(self._files) is _CustodyDesignationRecordFiles:
+                record.binding.__post_init__()
+                self._files._require_same_bytes(record.binding.designation_record_digest)
+        except (PrivateFactsDenied, WitnessLifetimeDenied, CeremonySerializationDenied):
+            self._abandon(handle, record)
+            raise PrivateFactsDenied() from None

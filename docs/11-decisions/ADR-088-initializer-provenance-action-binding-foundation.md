@@ -1,7 +1,7 @@
 # ADR-088: Initializer Provenance / Policy Action Binding Comparison Foundation
 
-> 상태: [제안 — 구현·로컬 검증 PASS; Foundation Draft, 운영 비활성]
-> 관련 PR: 이 Foundation의 별도 develop 대상 Draft PR (Ready/merge 승인 없음)
+> 상태: [채택 — #175 merged Foundation; public comparison은 권한이 아님, 운영 비활성]
+> 관련 PR: [#175 merged](https://github.com/DohaStudio/DohaMusic/pull/175); 다음 [ADR-089 raw confirmation snapshot](ADR-089-original-confirmation-raw-snapshot-foundation.md). 아래 Draft 범위는 원래 작성 단계 기록이다.
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `655985b3432d4949ecae6d27e33ef8afb699c227` (#174 squash merge)
 > 관련: [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [ADR-086](ADR-086-designation-source-custody-policy-foundation.md), [검증](../10-operations/initializer-provenance-binding-validation.md)

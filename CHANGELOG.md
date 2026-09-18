@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - Original Confirmation Raw Snapshot Foundation
+
+- #175 same D/H/T/exact-head required CI 3 SUCCESS/reviews·threads 0/MERGEABLE·CLEAN 및 Ready 후 Guard를 재확인해 expected-head squash merge했다. 새 develop `3ae77bda08c3661a72d2f3c2052f027fc54b7db1`, PR/merge tree equality 및 source/main 보존을 확인했다.
+- [ADR-089](docs/11-decisions/ADR-089-original-confirmation-raw-snapshot-foundation.md)의 bounded original-confirmation raw snapshot을 기존 live pin/designation/custody/OS lease/caller transaction과 strict action/history comparison에 연결했다. 원래 held handles의 bytes/digest를 reread하고 관측 mismatch/terminal/transaction/API/ACL 변화 후 stale handle/lease reuse를 deny한다. 실제 confirmation authentication/current-lineage reader/admission은 미구현이며 생산 ports는 unavailable다.
+- Custom equality 호출 순서, 기존 CloseHandle exception의 retained quarantine 손실, pending-quarantine 새 snapshot yield 및 제자리 lineage 변경의 anchor 재연결을 직접 재현·수정하고 regression을 추가했다. 기존 Windows isolated non-admin CI에 새 test 2개 파일만 추가하며 보안 Gate를 완화하지 않는다. [검증](docs/10-operations/original-confirmation-snapshot-validation.md)에 실제 evidence와 source-authentication 한계를 기록한다. Schema/migration/Repository commit·rollback/production wiring 및 실제 governance/key/credential/ceremony/User DB/Provider 접근 0.
+
 ### 추가 - Initializer Provenance / Policy Action Binding Comparison Foundation
 
 - #174의 동일 D/H/T/exact CI 3개 SUCCESS/reviews·threads 0/MERGEABLE·CLEAN 및 Ready 후 Gate를 확인하고 명시 승인으로 expected-head squash merge했다. 새 develop `655985b3432d4949ecae6d27e33ef8afb699c227`과 PR/merge tree equality, source/main 보존을 확인했다.
