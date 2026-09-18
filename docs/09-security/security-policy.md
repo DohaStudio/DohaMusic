@@ -1,7 +1,7 @@
 # 보안 정책
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-27
+> 최종 수정일: 2026-09-18
 > 관련 기능: Storage·Voice·Frontend public contract 보안
 > 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md)
 
@@ -12,6 +12,10 @@ API와 Storage 접근은 사용자·자원 소유권을 확인하고 Worker는 �
 DohaMusic product identity, Orchestrator service identity와 DohaAudio human reviewer identity·ReviewerAuthority는 별도 경계다. V1은 OS-bound local operator credential proof와 DohaMusic-issued delegated assertion을 요구한다. localhost, caller-supplied reviewer ID, OS/GitHub username, UI 접근 또는 service token을 human reviewer proof로 사용하지 않는다. Concrete proof mechanism은 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL`로 선택했지만 OS adapter는 미구현이다. 현재·V1·future topology와 implementation Gate는 [Reviewer Authentication 배포 권위](reviewer-authentication-deployment-authority.md)를 단일 기준으로 사용한다.
 
 Authentication foundation은 raw credential을 입력·반환·로그하지 않고 opaque logical reference만 받는다. Verified context의 private subject, session binding과 provider witness는 repr·public summary에서 제외하며 safe error code는 공격자 입력을 반사하지 않는다. Test Fake가 발급한 context는 `TEST_ONLY` assurance이고 production bootstrap에서 fail-closed한다. 상세 threat boundary는 [Local Operator Authentication](../03-architecture/local-operator-authentication.md)을 따른다.
+
+## Installation Bootstrap Decision 제안
+
+Installation 최초 trust assignment의 새 제안은 [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)을 따른다. 외부 governance의 human root designation과 독립 fingerprint 대조로 provision한 verifier만 signed exact-scope approval을 검증한다. OS admin/CLI/reviewer/WebAuthn/secret 보유는 root proof가 아니다. root/custodian은 runtime super-admin/Rights/recovery/transfer/Consent 권한이 없다. DB와 독립된 deployment journal의 seal-first fact가 bootstrap 재사용을 차단하며 journal/key 상태 불명·old restore·wrong installation은 fail closed한다. private key와 journal까지 전체 rollback/privileged compromise하는 환경의 완전 anti-rollback은 보장하지 않는다. 모든 crypto/store/ceremony는 미구현·운영 비활성이고 [검증 Gate](../10-operations/product-deployment-bootstrap-authority-validation.md) 전 활성화하지 않는다.
 
 ## Experimental Voice Provider 통제
 

@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 - Product/Deployment Bootstrap Authority Decision
+
+- ADR-076 제안에서 명시 human designation을 application 밖 external root로 정의하고, initialization에서 pin한 verifier와 Ed25519/JCS signed exact-scope approval, Custodian assignment 및 WebAuthn human과 결합한 one-time 최초 principal-owner binding을 설계했다. 기존 Local Operator/reviewer/OS admin을 root나 Rights issuer로 승격하지 않는다.
+- installation proof와 DB 밖 deployment journal의 seal-first contract, clone/restore 한계, root rotation/compromise·bootstrap 권한 소멸을 기록했다. 실패 시 자동 unseal/re-bootstrap은 없으며 Recovery/Transfer/Evidence/Rights Writer는 별도 계약이다.
+- schema 필요는 domain 평가이며 crypto/persistence/WebAuthn/principal/binding·production/test/migration 변경은 0이다. Draft 계약 PR Final Validation/merge 후에만 persistence 작업을 시작한다. #161 merged 상태를 Roadmap에 정합화하고 기존 Phase/DoD 진행률·ADR-042/075 의미·보호 PR source는 보존했다.
+
 ### 수정 - DohaVocal ScopeGuard REPLACE 무결성
 
 - PR #161 Final Validation에서 재현된 SQLite REPLACE의 빈 ScopeGuard 교체·epoch 초기화를 차단했다. 기존 ID 또는 owner/workspace key의 INSERT를 DB trigger가 conflict 처리하므로 `recursive_triggers=0`에서도 stable anchor가 보존된다. 정상 ensure/CAS와 caller transaction 소유권은 유지한다.

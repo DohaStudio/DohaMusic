@@ -1,8 +1,10 @@
 # Local Operator Authentication Foundation
 
 > 문서 상태: [Foundation 구현 / concrete adapter 미구현]
-> 최종 수정일: 2026-08-21
+> 최종 수정일: 2026-09-18
 > 관련 문서: [Authority](../09-security/reviewer-authentication-deployment-authority.md), [Mechanism 비교](../01-research/local-operator-proof-mechanism-comparison.md), [ADR-042](../11-decisions/ADR-042-v1-local-operator-authentication-foundation.md)
+
+> Bootstrap 연계 제안(2026-09-18): [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)의 외부 deployment designation/approval/custodian과 target human authentication은 별개다. WebAuthn 성공만으로 기존 owner claim, Local Operator를 root/Rights issuer로 승격하는 것은 금지한다. [Bootstrap architecture](product-deployment-bootstrap-authority.md)는 미구현 adapter의 future trusted internal-principal requirement를 정의하며 기존 authentication 계약·algorithm·TTL은 변경하지 않는다.
 
 ## 책임과 흐름
 
