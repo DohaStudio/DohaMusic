@@ -1,9 +1,9 @@
 # ADR-086: Designation Private Source Custody Policy Verification Foundation
 
-> 상태: [최소 policy mechanics 구현·로컬 Gate PASS; 별도 Draft 대상·운영 비활성]
+> 상태: [채택 — #173 merged 최소 policy mechanics; 운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `702eab36ecd56eac8f47e6664d06e94dde64d6a5` (#172 squash merge)
-> 관련 PR: 이 Foundation의 별도 develop 대상 Draft PR
+> 관련 PR: [#173 merged](https://github.com/DohaStudio/DohaMusic/pull/173); 다음 [ADR-087 설치/initializer linkage Contract](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md). 아래 본문은 원래 Draft 작업의 결정·범위 이력이며 후속 PR은 별도 Draft다.
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md), [ADR-083](ADR-083-private-pin-facts-reader-foundation.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [ADR-085](ADR-085-designation-record-snapshot-foundation.md), [검증](../10-operations/designation-source-custody-validation.md)
 
 ## 배경·최소 unit·선택 이유
