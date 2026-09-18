@@ -1,6 +1,6 @@
 # ADR-083: Private Pin Facts Reader Foundation
 
-> 상태: [최소 transport/comparison 구현·로컬 Gate PASS; 별도 Draft 대상, 운영 비활성]
+> 상태: [채택 — #169 merged; 최소 transport/comparison, 운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `fb10bc9367835b0d4a39837287a358fe6b46a1be` (#168 squash merge)
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md), [검증](../10-operations/private-pin-facts-reader-validation.md)
