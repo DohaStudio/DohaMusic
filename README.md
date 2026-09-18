@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 독립 Track: #164/#165/#166 및 [ADR-081 Witness Lifetime Foundation](docs/11-decisions/ADR-081-provider-witness-lifetime-foundation.md) #167은 merged다. 다음 [ADR-082 Windows Serialization Foundation](docs/11-decisions/ADR-082-windows-ceremony-serialization-foundation.md)은 실제 Global kernel mutex/process exclusion·opaque caller transaction-bound lease·failure cleanup을 별도 Draft에서 구현·검증한다. OS acquisition/helper witness/public scope는 authority가 아니다. reviewed private evidence reader·complete manifest/currentness verification·admission/durable owner/pin installer·Claim/binding/WebAuthn/Writer/Runtime는 미구현/unavailable이며 production wiring 0이다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 유지한다.
+Bootstrap 독립 Track: #164/#165/#166/#167 및 [ADR-082 Windows Serialization Foundation](docs/11-decisions/ADR-082-windows-ceremony-serialization-foundation.md) #168은 merged다. 다음 [ADR-083 Private Pin Facts Reader](docs/11-decisions/ADR-083-private-pin-facts-reader-foundation.md)는 별도 fixed private-boundary file의 stable Win32 read와 complete pin/manifest comparison만 구현한다. file facts/OS acquisition/helper witness는 authority가 아니다. reviewed private custody/provenance·fresh journal/history·authoritative manifest/possession/currentness verification·admission/durable owner/pin installer·Claim/binding/WebAuthn/Writer/Runtime는 미구현/unavailable이며 production wiring 0이다. app Alembic 0037/external journal v1·Phase/DoD 진행률은 유지한다.
 
 현재 `develop`에서 확인되는 범위다.
 

@@ -1,6 +1,6 @@
 # ADR-082: Windows Ceremony Serialization Foundation
 
-> 상태: [제안 — 최소 OS mechanics 구현·로컬 Gate PASS, 별도 Draft; 운영 비활성]
+> 상태: [채택 — #168 merged; 최소 OS mechanics, 운영 비활성]
 > 작성일·최종 수정일: 2026-09-18
 > 기준 develop: `2af6f7e8de7f42ea7f1758924bafcdcb25ddf56f` (#167 squash merge)
 > 관련 문서: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [검증](../10-operations/windows-ceremony-serialization-validation.md)
