@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 독립 Track: #164 [ADR-078 Contract](docs/03-architecture/deployment-verifier-current-status.md)는 merged다. 다음 최소 A [Lifecycle Journal Foundation](docs/11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 독립 SQLite public-fact persistence/strict event verifier/unavailable private ports를 구현·검증하는 별도 Draft다. metadata/receipt는 current authority가 아니며 실제 provisioning/admission/pin reconciliation·Claim/binding/WebAuthn/Writer/Runtime는 미구현이다. app Alembic 0037과 Phase/DoD 진행률은 유지한다.
+Bootstrap 독립 Track: #164 ADR-078 Contract와 #165 [Lifecycle Journal Foundation](docs/11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 merged다. 독립 SQLite public-fact persistence/strict event verifier/actual CAS/unavailable private ports를 제공한다. 다음 최소 D [ADR-080 handoff Contract](docs/11-decisions/ADR-080-private-admission-currentness-handoff-contract.md)는 별도 Draft 제안이며 A private admission/currentness infrastructure의 witness·lease·durable commit 책임을 구체화한다. metadata/receipt는 current authority가 아니고 실제 provisioning/admission/pin reconciliation·Claim/binding/WebAuthn/Writer/Runtime는 미구현이다. app Alembic 0037과 Phase/DoD 진행률은 유지한다.
 
 현재 `develop`에서 확인되는 범위다.
 
@@ -60,7 +60,7 @@ Bootstrap 독립 Track: #164 [ADR-078 Contract](docs/03-architecture/deployment-
 
 V1 product authority는 local-only, 일반 product login 없음과 별도 single owner/operator reviewer authentication을 결정했다. DohaMusic의 provider-independent local operator authentication foundation과 `WINDOWS_WEBAUTHN_PLATFORM_CREDENTIAL` mechanism selection은 구현됐지만 concrete OS adapter는 미구현이다. Review는 향후 DohaMusic local governance UI에서 시작하고 DohaMusic identity verification을 거쳐 DohaAudio의 delegated assertion adapter로 연결한다. 이 foundation은 production authentication이나 ReviewerAuthority 활성화를 뜻하지 않으며 자세한 기준은 [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md)를 따른다.
 
-Installation bootstrap의 [ADR-076](docs/11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 #162로 채택/merged됐고 [issuance-integrity verifier Foundation](docs/03-architecture/bootstrap-issuance-integrity-verifier.md)은 #163으로 merged됐다. 결과는 bootstrap 권한이 아니다. 다음 최소 [current-status/lifecycle Contract](docs/03-architecture/deployment-verifier-current-status.md)는 별도 Draft이며 trusted provisioning/current status/journal/claim/principal binding/WebAuthn·production runtime는 아직 미구현이다. ADR-077 원본·crypto 코드는 보존한다.
+Installation bootstrap의 [ADR-076](docs/11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 #162로 채택/merged됐고 [issuance-integrity verifier Foundation](docs/03-architecture/bootstrap-issuance-integrity-verifier.md)은 #163으로 merged됐다. 결과는 bootstrap 권한이 아니다. [current-status/lifecycle Contract](docs/03-architecture/deployment-verifier-current-status.md)는 #164 merged, public journal은 #165 merged다. trusted provisioning/private current authority/claim/principal binding/WebAuthn·production runtime는 아직 미구현이다. ADR-077 원본·crypto 코드는 보존한다.
 
 세부 API와 구현 근거는 [API 개요](docs/06-api/api-overview.md), [Frontend Overview](docs/03-architecture/frontend-overview.md), [Validation 보고서](docs/DOCUMENT_AUTHORITY_MAP.md#validation--reports)에서 확인한다.
 

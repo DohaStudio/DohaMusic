@@ -1,9 +1,9 @@
 # ADR-079: Independent Lifecycle Journal Persistence Foundation
 
-> 상태: [제안 — 구현·검증 중, 별도 Draft PR; 운영 비활성]
+> 상태: [채택 — #165 merged; public Foundation, 운영 비활성]
 > 작성일·최종 수정일: 2026-09-18
 > 기준 develop: `61b91d1bfaaceca6e3befda9c09f2ad91341a4c2` (#164 squash merge)
-> 관련 PR: 이 Foundation의 별도 develop 대상 Draft PR
+> 관련 PR: [#165 merged](https://github.com/DohaStudio/DohaMusic/pull/165); 다음 [ADR-080 Contract](ADR-080-private-admission-currentness-handoff-contract.md)
 > 관련 문서: [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [DB 계약](../07-database/deployment-lifecycle-journal.md), [검증](../10-operations/deployment-lifecycle-journal-validation.md)
 
 ## 배경·선택·대안

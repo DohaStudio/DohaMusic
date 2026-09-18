@@ -6,7 +6,7 @@
 
 Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged issuance verifier는 그대로 유지하며 current root/status authority로 확대하지 않는다.
 
-후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 별도 Draft로 구현·검증한다. 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. production admission/pin/OS ceremony는 여전히 unavailable다.
+후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 #165 merged로 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 제공한다. 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. 다음 D [ADR-080 handoff Contract](../11-decisions/ADR-080-private-admission-currentness-handoff-contract.md)는 provider-owned witness/lease/durable admission/pin 설치 책임을 구체화하는 Draft 제안이다. production admission/pin/OS ceremony는 여전히 unavailable다.
 
 ## 서로 대체할 수 없는 evidence
 
@@ -26,4 +26,4 @@ ADR-078의 전역 ceremony lock/private provenance/currentness/pin 설치는 여
 
 ## 다음 unit과 비목표
 
-최소 D Contract는 #164로 병합됐고 ADR-079의 A public-fact persistence/verifier/unavailable private port boundary는 별도 Foundation Draft다. 실제 root/key/journal provisioning·서명 ceremony를 수행하거나 현재 권한/법적 사람을 특정하지 않는다. app migration은 0이고 external schema v1은 독립 version Gate다. 다음에는 trusted provisioning/admission/currentness·OS ceremony·pin install/reconciliation을 검증하며 claim/binding/WebAuthn/Recovery/Writer를 이번 Foundation에 합치지 않는다.
+Lifecycle Contract는 #164, ADR-079 public-fact persistence/verifier/unavailable private port boundary는 #165로 병합됐다. 다음 최소 D는 ADR-080 private handoff Contract이며 A implementation과 분리한다. 실제 root/key/journal provisioning·서명 ceremony를 수행하거나 현재 권한/법적 사람을 특정하지 않는다. app migration은 0이고 external schema v1은 독립 version Gate다. 다음 A implementation에서 trusted provisioning/admission/currentness·OS ceremony·pin install/reconciliation infrastructure를 검증하며 claim/binding/WebAuthn/Recovery/Writer를 합치지 않는다.
