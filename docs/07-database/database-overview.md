@@ -2,17 +2,17 @@
 
 > 문서 상태: [운영 기준]
 > 문서 역할: CURRENT Runtime·CURRENT Workspace/Domain·TARGET·TRANSITION 문서의 Canonical entry point
-> 최종 수정일: 2026-09-03
+> 최종 수정일: 2026-09-18
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
-SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 소스 head는 persistent WorkingComposition history를 추가한 `20260905_0028`이고 실제 사용자 DB는 `20260810_0017`이다. 애플리케이션 startup의 자동 Migration은 기본 비활성화이며 `DOHAMUSIC_AUTO_MIGRATE=true`를 명시한 경우에만 기존 `upgrade head`를 실행한다. 사용자 DB에는 opt-in을 사용하지 않고 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
+SQLAlchemy 2.x ORM을 사용하고 Alembic이 스키마 버전을 관리한다. 현재 source single head는 Rights ScopeGuard integrity의 `20260918_0037`이며 parent는 `20260918_0036`, 0036의 parent는 `20260911_0035`다. 사용자 DB의 과거 적용 기록은 `20260810_0017`이며 이번 작업은 사용자 DB를 읽거나 적용하지 않아 현재 상태를 재확인하지 않았다. 애플리케이션 startup 자동 Migration은 기본 비활성화이고 opt-in/실제 적용은 [Workspace DB Migration Runbook](../10-operations/workspace-db-migration-runbook.md)의 승인 절차를 따른다.
 
 승인 전에는 기본 URL로 `upgrade head`를 실행하지 않습니다. revision 확인과 실제 적용 명령은 Runbook의 경로 확인·backup·FK Gate를 통과한 실행 기록에서만 사용합니다.
 
 ## 문서 구조와 현재 판정
 
-Vocal current-rights의 별도 TARGET 제안은 [Production Rights Persistence](dohavocal-production-rights-persistence-design.md)와 [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)에 있다. current Grant/pointer·shared guards·evidence·completion receipt가 기존 schema에 없어 `SCHEMA_CHANGE_REQUIRED`다. ORM/schema/Alembic·실제 DB 적용은 [미구현]이며 아래 CURRENT 수치와 기존 적용 사실을 제안으로 변경하지 않는다.
+Vocal current-rights는 merged [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 `SCHEMA_CHANGE_REQUIRED`에 따라 [Production Rights Persistence](dohavocal-production-rights-persistence-design.md)의 11개 additive SQLite tables·ORM·flush-only primitives·`0036`를 구현했다. 실제 운영 적용과 authenticated Writer/production Adapter/minimal Completion port/receipt wiring은 미구현/미수행이다. legacy approval/consent/output의 의미·데이터를 자동 전환하지 않는다.
 
 ```text
 Database Documentation
@@ -36,9 +36,10 @@ Database Documentation
 | 계산 범위 | 수 | 근거 |
 |---|---:|---|
 | Runtime application tables | 14 | `backend/models/`의 Workspace 외 `__tablename__` 14개. 현재 제품 실행 source of truth |
-| Workspace domain entities/tables | source 33 / 실제 DB 21 | 기존 21개, `ProjectCompositionSelection`, `ProviderJobBinding`, `PayloadLocator`, Clip persistence 5개와 Preview persistence 4개 table |
+| Workspace domain entities/tables | source registration 39 + history 2 / 과거 적용 기록 21 | 기존 Workspace registration과 별도 history state/entry |
+| Vocal rights persistence | source 11 / 운영 적용 미수행 | 별도 `VOCAL_RIGHTS_ENTITY_CLASSES`; `0036` additive SQLite schema |
 | Workspace storage catalog | 1 | `ArtifactStorageLocation` / `artifact_storage_locations`, revision `20260809_0016` |
-| Application metadata tables | source 48 / 실제 DB 36 | Runtime 14 + Workspace domain source 33(실제 21) + Catalog 1 |
+| Application metadata tables | source 67 / 과거 적용 기록 36 | Runtime 14 + Workspace 39 + history 2 + Catalog 1 + Vocal rights 11; 사용자 DB 재확인 없음 |
 
 `20260807_0013`~`0015`는 신규 Table이 아니라 keyset Index를 추가하고 `20260810_0017`은 Workspace Job Column·Index를 추가한다. source `0018`은 selection, `0019`는 Provider binding, `0020`은 Clip persistence 5개 table, `0021`은 nullable `artifacts.duration_us`, `0022`는 idempotency completion result Column 4개, `0023`은 `payload_locators`, `0024`는 Working Preview persistence 4개 table을 추가하며 `0018` 이후는 실제 사용자 DB에 적용하지 않았다.
 
@@ -57,11 +58,11 @@ Database Documentation
 
 [CURRENT Runtime Core Table Definition](table-definition.md)은 이 중 공통·Generation·Stem·Lyrics·Project·Voice Profile/Enrollment 10개를 정의한다. Pipeline 2개와 Voice Conversion 2개는 각각의 상세 문서가 Authority다. [CURRENT Runtime ERD](erd.md)는 세 문서를 합친 14개 Runtime 관계만 나타낸다.
 
-Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동의된 Voice Profile을 참조한다. Pipeline Job은 동의된 Voice Profile과 요청·진행률·결과 metadata를 보존한다. Lyrics는 로컬 Template·Mock Provider가 짧게 동기 실행되므로 Job 테이블 없이 요청·섹션·본문·Provider·검증 metadata를 보존한다. PostgreSQL 또는 MySQL 전환은 실제 운영 요구를 확인한 뒤 별도 검증하며, 현재 스키마에는 벤더 전용 타입이나 SQL을 사용하지 않는다.
+Stem Job은 입력 generated file을, Voice Conversion Job은 vocals Stem과 동의된 Voice Profile을 참조한다. Pipeline Job은 동의된 Voice Profile과 요청·진행률·결과 metadata를 보존한다. Lyrics는 로컬 Template·Mock Provider가 짧게 동기 실행되므로 Job 테이블 없이 요청·섹션·본문·Provider·검증 metadata를 보존한다. PostgreSQL/MySQL 전환은 별도 검증 대상이다. 새 Vocal rights Foundation은 SQLite 전용 immutable/integrity trigger와 실제 UPDATE lock을 사용하므로 다른 engine의 migration/write는 검증 전 차단한다. 벤더 독립 동등 보장은 주장하지 않는다.
 
 ## CURRENT Workspace/Domain DB와 TARGET — [부분 구현]
 
-DohaStudio Common Specification을 기준으로 source Entity 33개와 별도 `ArtifactStorageLocation` Entity를 구현했다. source metadata는 `20260905_0028` 기준 50개 Application Table이고 실제 사용자 DB는 `20260810_0017` 기준 36개다. `0021`과 `0022`는 Table 수를 늘리지 않고 각각 nullable trusted Artifact duration과 versioned idempotency completion result를 추가하고 `0023`은 PayloadLocator 1개, `0024`는 Working Preview 4개 table, `0025`는 세 Clip table의 Gain column, `0026`은 같은 table의 Fade column, `0027`은 Loop geometry column, `0028`은 persistent history state·entry 2개 table을 추가한다. Workspace Resource API 30개와 별도 Product aggregate API, Job API 5개도 구현했다.
+DohaStudio Common Specification 기반 기존 Workspace registration 39개, 별도 history 2개와 `ArtifactStorageLocation` 1개에 Vocal rights persistence 11개를 추가했다. source metadata는 `20260918_0037` 기준 67 Application Tables다. 과거 사용자 DB 적용 기록은 `20260810_0017` 기준 36개이며 이번에 재검사하지 않았다. `0021`/`0022`는 nullable duration/idempotency result, `0023`은 PayloadLocator, `0024`는 Preview 4개, `0025`~`0027`은 Clip gain/fade/loop, `0028`은 history 2개, `0033`~`0035`는 Music Director domain, `0036`은 Vocal rights 11개 additive tables, `0037`은 table/row 변경 없는 ScopeGuard INSERT integrity trigger다. 기존 Resource/Product/Job API 수나 동작은 이번 persistence 작업으로 바뀌지 않는다.
 
 이 구조는 물리 schema와 일부 Application 계층에서는 CURRENT다. 그러나 신규 Workspace Table backfill·dual write·Runtime read 전환과 Legacy 동결·제거는 수행하지 않았으므로 제품 실행의 source of truth라는 의미에서는 여전히 TARGET이다. Provider dispatch wiring과 background daemon도 미구현이며 현행 Runtime Table 14개를 변경하거나 제거하지 않는다.
 

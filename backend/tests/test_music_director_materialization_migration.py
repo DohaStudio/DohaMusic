@@ -29,7 +29,7 @@ def _revision(engine) -> str:
 def test_0035_is_single_successor_head(tmp_path) -> None:
     value = _config(tmp_path / "head.db")
     script = ScriptDirectory.from_config(value)
-    assert script.get_heads() == [REVISION]
+    assert script.get_heads() == ["20260918_0037"]
     assert script.get_revision(REVISION).down_revision == PREVIOUS_REVISION
 
 
@@ -45,7 +45,7 @@ def test_0035_upgrade_empty_downgrade_and_reupgrade(tmp_path) -> None:
     assert _revision(engine) == PREVIOUS_REVISION
     assert TABLE not in inspect(engine).get_table_names()
     command.upgrade(value, "head")
-    assert _revision(engine) == REVISION
+    assert _revision(engine) == "20260918_0037"
     engine.dispose()
 
 
@@ -54,7 +54,7 @@ def test_0035_fresh_database_reaches_head(tmp_path) -> None:
     value = _config(database)
     command.upgrade(value, "head")
     engine = create_engine(f"sqlite:///{database.as_posix()}")
-    assert _revision(engine) == REVISION
+    assert _revision(engine) == "20260918_0037"
     columns = {column["name"] for column in inspect(engine).get_columns(TABLE)}
     assert columns == {
         "materialization_id",

@@ -1,9 +1,10 @@
 # ADR-075: DohaVocal Production Rights Domain Decision
 
-> 상태: 승인 제안 — V1 [정의/설계]; production [미구현]
+> 상태: PR #160 merged V1 결정; SQLite Persistence Foundation [구현], production Writer·Adapter [미구현]
 > 작성일·최종 수정일: 2026-09-18
 > 기준: develop `890ad1d015d57f34a226f29eeca131872da38f75`
-> 관련 PR: 본 문서의 Draft PR; #159 merged Foundation, #130 별도 acquisition 책임
+> 관련 PR: #160 merged Domain Decision; #159 merged Foundation, #130 별도 acquisition 책임
+> 상태 이력: 아래 본문은 Domain Decision 당시 범위·미구현 기록을 보존한다. 후속 persistence 구현/검증 상태는 [Persistence](../07-database/dohavocal-production-rights-persistence-design.md)를 따른다. 본문 semantics 변경 없음.
 > 관련 문서: [ADR-074](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md), [Rights architecture](../03-architecture/dohavocal-production-rights-domain.md), [Persistence](../07-database/dohavocal-production-rights-persistence-design.md), [동의 정책](../09-security/voice-consent-policy.md)
 
 ## 1. 배경과 문제

@@ -1,12 +1,12 @@
 # DohaVocal Production Rights Domain
 
-> 상태: V1 [정의/설계] 승인 제안; production [미구현]
+> 상태: V1 ADR-075 결정 / [구현: SQLite Persistence Foundation] / production Writer·Adapter [미구현]
 > 최종 수정일: 2026-09-18
 > 관련 문서: [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md), [Completion](dohavocal-verified-staged-artifact-completion.md), [Persistence](../07-database/dohavocal-production-rights-persistence-design.md)
 
 ## Authority와 transaction 경계
 
-Canonical 결정은 ADR-075다. VocalRightsAuthority는 explicit current projection + immutable issuance/event ledger이며 exact typed subject/operation/usage role별 단일 current Grant를 관리한다. ownership/authentication/evidence와 operation Grant는 AND 조건이고 Provider permission·Approval·consent snapshot·RightsMetadata·PayloadLocator는 대체 authority가 아니다. 새 schema/reader/writer는 미구현이다.
+Canonical 결정은 merged PR #160의 ADR-075다. VocalRightsAuthority는 explicit current projection + immutable issuance/event ledger이며 exact typed subject/operation/usage role별 단일 current Grant를 관리한다. ownership/authentication/evidence와 operation Grant는 AND 조건이고 Provider permission·Approval·consent snapshot·RightsMetadata·PayloadLocator는 대체 authority가 아니다. 11개 additive SQLite persistence tables와 flush-only repository·guard primitive를 구현했으며 authenticated Writer/production reader Adapter는 미구현이다.
 
 | 단계 | 권한 책임 | transaction/I/O |
 |---|---|---|
@@ -26,12 +26,12 @@ generation은 workspace CREATE_OUTPUT와 lyrics/melody Artifact, present timing/
 
 OUTPUT_READ는 exact canonical Artifact 권한이다. creation Grant revoke만으로 자동 output read revoke하지 않으며 명시적 withdrawal 범위가 필요하다. Completion 자동 발급은 없고 authenticated explicit writer 이전에는 response-loss replay도 deny한다. historical receipt/source tombstone은 현재 read 허가가 아니다. output 자체 tombstone이면 일반 read deny다.
 
-## 후속 PR decomposition — 모두 [계획/미구현]
+## PR decomposition — persistence와 후속 운영 구현 구분
 
-1. Persistence Foundation: typed FK/guards/current pointer/Grant·event·receipt, additive migration, integrity와 DB locking tests. active backfill 0.
+1. Persistence Foundation [구현/운영 적용 미수행]: typed FK/guards/current pointer/Grant·event·receipt, additive `20260918_0036`, SQLite integrity/locking fixture tests. active/fake receipt backfill 0. target DB equivalence는 SQLite 외 미검증.
 2. Authenticated Writer/Evidence Foundation: issuer/revoke authority·증적 검증/withdrawal·idempotency·ordered locking. API/auth UX 권한은 별도 확인.
 3. Completion Port/Audit Adaptation: opaque context/final-only hook, one-transaction rollback/replay/compensation 회귀. ADR-074 semantics 유지.
 4. Production Rights Adapter: trusted source-role resolution/fresh current query/guard/receipt/auth, all-subject races·fail-closed tests.
 5. Rollout/Access Inventory: legacy output explicit reauthorization, 모든 output access/withdrawal/deletion coverage, 승인된 DB 적용/보존·법적 검토/DoD 증거.
 
-auth/writer/schema 없이 adapter부터 구현하지 않는다. **SCHEMA_CHANGE_REQUIRED**다. missing production adapter는 deny하며 explicit test Fake를 자동 fallback하지 않는다. #130 acquisition/#159 Foundation/ADR-074는 변경하지 않는다. Phase 진행률·실제 model/Worker 완료 상태는 그대로다.
+**SCHEMA_CHANGE_REQUIRED**에 따른 Foundation은 구현했지만 auth/writer 없이 production adapter를 enable하지 않는다. persistence facts에 대한 minimal port 설계는 병렬 가능하나 port adaptation implementation·receipt wiring은 이번 범위 밖이다. missing production adapter는 deny하며 explicit test Fake를 자동 fallback하지 않는다. #130 acquisition/#159 Foundation/ADR-074는 변경하지 않는다. Phase 진행률·실제 model/Worker 완료 상태는 그대로다.

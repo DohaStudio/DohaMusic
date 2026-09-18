@@ -17,7 +17,7 @@ from backend.db.session import create_database_engine
 ROOT = Path(__file__).resolve().parents[2]
 PREVIOUS_REVISION = "20260824_0020"
 REVISION = "20260824_0021"
-SOURCE_HEAD = "20260911_0035"
+SOURCE_HEAD = "20260918_0037"
 
 
 def _config(database_url: str) -> Config:

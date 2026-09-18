@@ -7,6 +7,7 @@ from sqlalchemy.orm import configure_mappers
 
 import backend.models  # noqa: F401
 from backend.db.base import Base
+from backend.db.vocal_rights_schema_v1 import TABLE_NAMES as VOCAL_RIGHTS_TABLE_NAMES
 from backend.models.workspace import (
     ARTIFACT_STORAGE_ENTITY_CLASSES,
     WORKSPACE_ENTITY_CLASSES,
@@ -610,9 +611,13 @@ def test_workspace_metadata_coexists_with_legacy_tables() -> None:
         "working_composition_history_states",
     }
     assert set(Base.metadata.tables) == (
-        target_tables | storage_tables | LEGACY_TABLES | history_tables
+        target_tables
+        | storage_tables
+        | LEGACY_TABLES
+        | history_tables
+        | set(VOCAL_RIGHTS_TABLE_NAMES)
     )
-    assert len(Base.metadata.tables) == 56
+    assert len(Base.metadata.tables) == 67
 
 
 def test_workspace_foreign_keys_resolve_and_relationships_are_symmetric() -> None:

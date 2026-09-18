@@ -8,7 +8,7 @@ from sqlalchemy import create_engine, inspect, text
 ROOT = Path(__file__).resolve().parents[2]
 PREVIOUS_REVISION = "20260908_0032"
 REVISION = "20260911_0033"
-CURRENT_HEAD = "20260911_0035"
+CURRENT_HEAD = "20260918_0037"
 TABLES = {"music_director_runs", "music_director_candidates"}
 
 
