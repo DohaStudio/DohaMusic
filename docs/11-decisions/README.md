@@ -85,7 +85,8 @@
 | [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md) | independent SQLite journal public facts·strict event integrity·actual CAS/unavailable private ports | 채택 #165 merged; 운영 비활성 |
 | [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md) | private witness/lease/durable admission/pin installation handoff; A 최소 선행 Contract D | 채택 #166 merged; 운영 비활성 |
 | [ADR-081](ADR-081-provider-witness-lifetime-foundation.md) | provider-internal opaque handle/exact binding/lease·transaction lifetime mechanics; authorization 아님 | 채택 #167 merged; 운영 비활성 |
-| [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md) | 실제 Windows Global kernel mutex/process exclusion·opaque transaction-bound lease·cleanup; admission 아님 | Foundation 구현·로컬 Gate PASS, 별도 Draft; 운영 비활성 |
+| [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md) | 실제 Windows Global kernel mutex/process exclusion·opaque transaction-bound lease·cleanup; admission 아님 | #168 merged; 운영 비활성 |
+| [ADR-083](ADR-083-private-pin-facts-reader-foundation.md) | private-boundary file stable read·complete pin comparison; private authority 아님 | 최소 Foundation 구현; 별도 Draft 대상, 운영 비활성 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

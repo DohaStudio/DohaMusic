@@ -1,14 +1,14 @@
 # Deployment Verifier Current-Status / Lifecycle Contract
 
 > 문서 상태: [Contract #164 merged — 운영 비활성]
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-19
 > 관련 문서: [ADR-078](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [issuance verifier](bootstrap-issuance-integrity-verifier.md), [검증](../10-operations/deployment-verifier-current-status-validation.md)
 
 Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged issuance verifier는 그대로 유지하며 current root/status authority로 확대하지 않는다.
 
 후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 #165 merged로 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 제공한다. 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. [ADR-080 handoff Contract](../11-decisions/ADR-080-private-admission-currentness-handoff-contract.md)는 #166 merged로 provider-owned witness/lease/durable admission/pin 설치 책임을 구체화했다. production admission/pin/OS ceremony는 여전히 unavailable다.
 
-[ADR-081 helper Foundation](../11-decisions/ADR-081-provider-witness-lifetime-foundation.md)은 #167 merged로 provider-internal opaque identity/exact public binding/lease·SessionTransaction lifetime과 mismatch 후 attempt 폐기를 제공한다. 다음 [ADR-082 Windows serialization](../11-decisions/ADR-082-windows-ceremony-serialization-foundation.md)은 실제 Global kernel mutex/process exclusion·transaction-bound opaque lease/cleanup을 별도 Draft에서 검증한다. helper의 RLock은 OS exclusion 대체가 아니고 실제 mutex 획득도 private authorization이 아니다. independent private evidence reader/complete manifest verification/durable admission owner/same-event pin installer는 후속이며 production ports는 unconditional unavailable다.
+[ADR-081 helper Foundation](../11-decisions/ADR-081-provider-witness-lifetime-foundation.md)은 #167 merged로 provider-internal opaque identity/exact public binding/lease·SessionTransaction lifetime과 mismatch 후 attempt 폐기를 제공한다. [ADR-082 Windows serialization](../11-decisions/ADR-082-windows-ceremony-serialization-foundation.md) #168은 실제 Global kernel mutex/process exclusion·transaction-bound opaque lease/cleanup 검증 후 merged다. 다음 [ADR-083 private pin facts reader](../11-decisions/ADR-083-private-pin-facts-reader-foundation.md)는 fixed private-boundary file의 stable read와 complete pin comparison만 구현한다. private file facts/helper/mutex는 authorization이 아니다. independent private custody/provenance·fresh journal/history·authoritative complete manifest/possession/currentness·durable admission owner/same-event pin installer는 후속이며 production ports는 unconditional unavailable다.
 
 ## 서로 대체할 수 없는 evidence
 
@@ -28,4 +28,4 @@ ADR-078의 complete ceremony/private provenance/currentness/pin 설치는 여전
 
 ## 다음 unit과 비목표
 
-Lifecycle Contract #164, public journal #165, private handoff Contract #166, witness lifetime #167은 병합됐다. ADR-082는 실제 Windows exclusion의 작은 직접 prerequisite이며 전체 trusted ceremony/provisioning/admission과 분리한다. 실제 root/key/journal provisioning·서명 ceremony를 수행하거나 현재 권한/법적 사람을 특정하지 않는다. app migration은 0이고 external schema v1은 독립 version Gate다. reviewed private readers/complete manifest/currentness·production OS custody/pin install·reconciliation은 후속이며 claim/binding/WebAuthn/Recovery/Writer를 합치지 않는다.
+Lifecycle Contract #164, public journal #165, private handoff Contract #166, witness lifetime #167, Windows serialization #168은 병합됐다. ADR-083은 작은 transport/comparison prerequisite이며 전체 trusted ceremony/provisioning/admission과 분리한다. 실제 root/key/journal provisioning·서명 ceremony를 수행하거나 현재 권한/법적 사람을 특정하지 않는다. app migration은 0이고 external schema v1은 독립 version Gate다. reviewed private readers/complete manifest/currentness·production OS custody/pin install·reconciliation은 후속이며 claim/binding/WebAuthn/Recovery/Writer를 합치지 않는다.
