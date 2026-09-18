@@ -1,12 +1,12 @@
 # Product/Deployment Bootstrap Authority
 
-> 문서 상태: [정의/제안 — 운영 비활성]
+> 문서 상태: [Decision 채택 — #162 merged, 운영 비활성]
 > 최종 수정일: 2026-09-18
 > 관련 문서: [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [인증](local-operator-authentication.md), [Rights](dohavocal-production-rights-domain.md), [검증](../10-operations/product-deployment-bootstrap-authority-validation.md)
 
 ## Authority와 검증 경계
 
-Canonical 결정 제안은 ADR-076이다. external human designation → separately pinned root verifier → signed exact-scope deployment approval → custodian proof/assignment → installation-local claim AND fresh WebAuthn human principal → first principal-owner binding으로 이어진다. Designation은 application 밖의 governance root assertion이며 self-hosted human의 명시 지정·수락과 trusted ceremony의 독립 fingerprint 대조가 root provenance다. OS admin/설치자/CLI/Local Operator/reviewer/secret possession으로 root를 추정하지 않는다.
+Canonical 채택 결정은 #162 merged ADR-076이다. external human designation → separately pinned root verifier → signed exact-scope deployment approval → custodian proof/assignment → installation-local claim AND fresh WebAuthn human principal → first principal-owner binding으로 이어진다. Designation은 application 밖의 governance root assertion이며 self-hosted human의 명시 지정·수락과 trusted ceremony의 독립 fingerprint 대조가 root provenance다. OS admin/설치자/CLI/Local Operator/reviewer/secret possession으로 root를 추정하지 않는다.
 
 Custodian stable opaque deployment reference와 pin한 public proof key는 미래 target internal principal UUID와 별개다. 같은 human이어도 custodian assignment proof와 target authentication은 둘 다 필요하다. Approval과 claim은 exact installation/Workspace/existing owner를 bind하고 claim은 target principal도 bind한다. Workspace owner 변경·ACTIVE Grant 자동 생성은 없다.
 
@@ -22,6 +22,6 @@ Installation random ID와 private proof key의 possession을 함께 검사한다
 
 ## 현재 상태와 후속
 
-DEFINED: bootstrap external root 및 verification/trust-chain contract 제안.
+DEFINED/ADOPTED: bootstrap external root 및 verification/trust-chain contract (#162).
 
-NOT IMPLEMENTED: crypto/verifier/private store, installation/approval/custodian/claim/journal, WebAuthn adapter, principal registry/binding, Recovery/Transfer/Rights Writer/Evidence/Production Adapter. schema 필요는 Domain Decision 평가이며 migration 0이다. 인증 구현이 없다는 사실과 정의 가능한 contract를 구분한다. ADR-042의 credential TTL/algorithm 또는 ADR-075의 Grant/Revoke semantics를 변경하지 않는다. 계약 Draft PR Final Validation/merge 이후 persistence 작업을 별도로 시작한다.
+별도 [issuance-integrity verifier Foundation](bootstrap-issuance-integrity-verifier.md)은 Draft 구현·검증 중이며 서명 결과를 permission/current status proof로 사용하지 않는다. NOT IMPLEMENTED: trusted provisioning/private store/current status, installation/approval/custodian/claim/journal, WebAuthn adapter, principal registry/binding, Recovery/Transfer/Rights Writer/Evidence/Production Adapter. bootstrap 전체 schema 필요 판정은 유지하고 이번 pure verifier는 migration 0이다. ADR-042 credential TTL/algorithm과 ADR-075 Grant/Revoke semantics는 보존한다. persistence/ceremony는 다음 별도 unit이다.
