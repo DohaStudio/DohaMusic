@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - Scoped Provisioning Authority Verification Foundation
+
+- #179를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `cfa1678519b6fba7ea2b0699f5bca518eae99bfb`, tree equality 및 source/main 보존을 확인했다.
+- [ADR-093](docs/11-decisions/ADR-093-scoped-provisioning-authority-verification-foundation.md)에 Product/Deployment governance가 승인한 `INSTALLATION_POLICY_PROVISIONING_ONLY` exact installation/producer/verifier authority와 고정 Original Confirmation/live-lineage/policy domain을 기록했다. 기존 deployment approval verifier의 자동 목적 확대나 새 trust root가 아니다.
+- Root-signed AUTHORIZE/ROTATE/REVOKE event history의 strict JCS/Ed25519, revision/predecessor, terminal projection과 key/event non-reuse를 검증한다. 결과는 public integrity receipt일 뿐 complete/current authenticated source, Original Confirmation, CurrentnessWitness 또는 admission이 아니다. Schema/migration/production port와 실제 key·credential·ceremony 접근은 0이다.
+
 ### 추가·수정 - Fresh Journal–Lineage Observation Foundation
 
 - #178을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `0148d0491c5d947a88ebe353d0f4f37e30b9da60`, tree equality 및 source/main 보존을 확인했다.
