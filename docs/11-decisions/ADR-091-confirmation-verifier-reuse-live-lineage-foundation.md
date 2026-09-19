@@ -1,8 +1,9 @@
 # ADR-091: Confirmation Verifier Reuse / Live Current-Lineage Foundation
 
-> 상태: [제안 — 구현 및 검증 완료; Foundation Draft, 운영 비활성]
+> 상태: [채택 — #178 merged; 운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `edab5d461e8f2be393fc1e1c7d0bc772d9bf2de5` (#177 squash merge)
+> 관련 PR: [#178 merged](https://github.com/DohaStudio/DohaMusic/pull/178); 다음 [ADR-092](ADR-092-fresh-journal-lineage-observation-foundation.md)
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md), [검증](../10-operations/live-current-lineage-reader-validation.md)
 
 ## Verifier reuse audit와 판정

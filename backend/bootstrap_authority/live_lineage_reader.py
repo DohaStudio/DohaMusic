@@ -189,6 +189,13 @@ class _LivePolicyLineageSnapshots:
     def _abandon(self, handle):
         self._records.pop(handle, None)
 
+    def _abandon_chain(self, *, lineage_handle, confirmation_handle):
+        """Permanently abandon this held source and its parent attempt."""
+        self._abandon(lineage_handle)
+        if confirmation_handle in self._confirmation._records:
+            parent = self._confirmation._records[confirmation_handle]
+            self._confirmation._abandon(confirmation_handle, parent)
+
     @contextmanager
     def _open_current(self, *, confirmation_handle, expected_payload, action, lineage):
         if type(expected_payload) is not ExpectedConfirmationPayload:
@@ -219,9 +226,7 @@ class _LivePolicyLineageSnapshots:
                 finally:
                     self._abandon(handle)
         except Exception:
-            if confirmation_handle in self._confirmation._records:
-                parent = self._confirmation._records[confirmation_handle]
-                self._confirmation._abandon(confirmation_handle, parent)
+            self._abandon_chain(lineage_handle=None, confirmation_handle=confirmation_handle)
             raise PrivateFactsDenied() from None
 
     def _require_current(self, handle, *, confirmation_handle, expected_payload, action, lineage):
@@ -245,8 +250,5 @@ class _LivePolicyLineageSnapshots:
             ):
                 raise PrivateFactsDenied()
         except Exception:
-            self._abandon(handle)
-            if confirmation_handle in self._confirmation._records:
-                parent = self._confirmation._records[confirmation_handle]
-                self._confirmation._abandon(confirmation_handle, parent)
+            self._abandon_chain(lineage_handle=handle, confirmation_handle=confirmation_handle)
             raise PrivateFactsDenied() from None

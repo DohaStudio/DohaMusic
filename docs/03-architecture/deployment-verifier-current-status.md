@@ -8,7 +8,7 @@ Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged is
 
 후속 [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)은 #165 merged로 독립 public journal persistence/strict event verifier와 unavailable private port 골격을 제공한다. 실제 최신 범위·제한은 ADR-079와 [DB 계약](../07-database/deployment-lifecycle-journal.md)을 따른다. [ADR-080 handoff Contract](../11-decisions/ADR-080-private-admission-currentness-handoff-contract.md)는 #166 merged로 provider-owned witness/lease/durable admission/pin 설치 책임을 구체화했다. production admission/pin/OS ceremony는 여전히 unavailable다.
 
-Bootstrap 최신 Track: #164~#170/#172~#177 raw/canonical chain은 merged다. [ADR-091 live current-lineage reader](../11-decisions/ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)는 deployment verifier의 infrastructure-only reuse를 확정하고 별도 held record를 exact journal head/action/history/confirmation/pin/lease에 연결하는 Draft Foundation이다. Handle/record equality는 authenticity/currentness witness/admission이 아니다. 실제 confirmation verifier authority·private writer/provisioning·journal atomic handoff·Runtime는 미구현/unavailable이며 schema/migration과 Alembic 0037을 유지한다.
+Bootstrap 최신 Track: #164~#170/#172~#178은 merged다. [ADR-091 live current-lineage reader](../11-decisions/ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)는 held record를 exact source chain에 연결했다. 다음 [ADR-092 fresh journal-lineage observation](../11-decisions/ADR-092-fresh-journal-lineage-observation-foundation.md)은 별도 journal transaction의 complete history/head를 held lineage/pin/lease와 결합하는 Draft Foundation이다. 두 결과 모두 authenticity/currentness witness/admission이 아니며 production ports는 unavailable, schema/migration과 Alembic 0037은 유지된다.
 
 ## 서로 대체할 수 없는 evidence
 
