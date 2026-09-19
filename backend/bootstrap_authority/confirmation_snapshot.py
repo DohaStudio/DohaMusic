@@ -8,6 +8,10 @@ is NOT authentic confirmation; production composition remains unavailable.
 from contextlib import contextmanager
 from dataclasses import dataclass
 
+from backend.bootstrap_authority.confirmation_payload import (
+    ExpectedConfirmationPayload,
+    parse_canonical_confirmation_payload,
+)
 from backend.bootstrap_authority.designation_snapshot import _DesignationRecordSnapshots
 from backend.bootstrap_authority.lifecycle_verifier import digest
 from backend.bootstrap_authority.pin_facts import PrivateFactsDenied
@@ -195,4 +199,36 @@ class _OriginalConfirmationSnapshots:
         except Exception:
             # Even unexpected API errors cannot leave a reusable original record.
             self._abandon(handle, record)
+            raise PrivateFactsDenied() from None
+
+    def _require_canonical_payload(self, handle, *, expected, fresh_action, fresh_lineage):
+        """Bind canonical bytes to existing live facts; still NOT authentication."""
+        if type(handle) is not _Handle or handle not in self._records:
+            raise PrivateFactsDenied()
+        record = self._records[handle]
+        try:
+            if type(expected) is not ExpectedConfirmationPayload:
+                raise PrivateFactsDenied()
+            expected.__post_init__()
+            self._require_unchanged(handle, fresh_action=fresh_action, fresh_lineage=fresh_lineage)
+            confirmation = record.action.confirmation
+            if (
+                expected.confirmation_id != confirmation.provenance_id
+                or expected.original_confirmation_ref != confirmation.original_confirmation_ref
+                or expected.initializer_ref != confirmation.initializer_ref
+                or expected.installation_id != record.action.policy.installation_id
+                or expected.installation_proof_key_fingerprint
+                != record.action.policy.installation_proof_key_fingerprint
+                or expected.action_id != record.action.action_id
+                or expected.policy_digest != confirmation.policy_digest
+                or expected.designation_digest != record.pin_facts.binding.designation_record_digest
+            ):
+                raise PrivateFactsDenied()
+            raw = self._files._require_same_bytes(
+                record.action.confirmation.original_confirmation_digest
+            )
+            return parse_canonical_confirmation_payload(raw, expected=expected)
+        except Exception:
+            if handle in self._records:
+                self._abandon(handle, record)
             raise PrivateFactsDenied() from None

@@ -93,6 +93,8 @@
 | [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md) | original designation·initializer 위임·actual policy 설치 action·exact snapshot/current lineage handoff | #174 merged Contract·authenticated source/운영 미활성 |
 | [ADR-088](ADR-088-initializer-provenance-action-binding-foundation.md) | strict installation/action/initializer/policy binding 및 terminal history 비교 | #175 merged Foundation·public facts는 권한이 아님 |
 | [ADR-089](ADR-089-original-confirmation-raw-snapshot-foundation.md) | held raw original-confirmation transport/action/history binding·stale reuse 및 retained cleanup | Foundation Draft·authentication/currentness/admission 미구현 |
+| [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md) | raw snapshot과 future verifier 사이 exact JCS identity/scope/replay payload boundary | Foundation Draft·signature/currentness/admission 미구현 |
+| [ADR-091](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md) | deployment verifier infrastructure-only reuse 판정과 held live current-lineage record | Foundation Draft·authenticity/admission/production writer 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

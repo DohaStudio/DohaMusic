@@ -177,6 +177,14 @@ def action_comparison_digest(action: ProvisioningActionFacts) -> str:
     return _hash(b"DohaMusicPolicyActionComparisonV1", action)
 
 
+def lineage_comparison_digest(lineage: "PolicyLineageFacts") -> str:
+    """Digest of fully validated public history; never authoritative currentness."""
+    if type(lineage) is not PolicyLineageFacts:
+        raise ProvisioningBindingDenied()
+    lineage.__post_init__()
+    return _hash(b"DohaMusicPolicyLineageComparisonV1", lineage)
+
+
 def require_action_binding(*, action, policy, pin, confirmation) -> None:
     """Necessary full equality only; independent source authenticity is REQUIRED.
 

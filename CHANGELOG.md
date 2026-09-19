@@ -16,6 +16,18 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 현재 selected Candidate의 proposal을 authorized Artifact resolver로 재검증하고 Candidate APPLY Public API에서 Run version과 WorkingComposition revision 이중 CAS로 적용한다.
 - 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
 - atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
+### 추가·수정 - Live Current-Lineage Reader Foundation
+
+- #177을 exact-head CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `edab5d461e8f2be393fc1e1c7d0bc772d9bf2de5`, tree equality 및 source/main 보존을 확인했다.
+- [ADR-091](docs/11-decisions/ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)에서 deployment verifier는 crypto/JCS infrastructure만 재사용 가능하다고 판정했다. Approval root/key purpose/domain/lifecycle을 confirmation authenticity로 확대하지 않고 Live Current-Lineage held-record Foundation을 추가했다.
+- Exact journal head/installation/action/history/confirmation/initializer/policy/designation/predecessor/terminal facts를 별도 same-handle record와 기존 confirmation/pin/custody/lease/transaction에 연결한다. 결과는 internal handle일 뿐 currentness witness/admission이 아니며 schema/migration/production port/실제 key·credential 접근은 0이다.
+
+### 추가·수정 - Original Confirmation Canonical Payload Boundary Foundation
+
+- #176을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `034ca95a9173bf3a6f2950df93351c001214373c` 및 tree equality/source 보존을 확인했다.
+- [ADR-090](docs/11-decisions/ADR-090-original-confirmation-canonical-payload-foundation.md)의 exact JCS payload parser와 held snapshot handoff를 추가했다. Installation/action/policy/designation/initializer/verifier/replay 기대값을 strict 비교하고 mismatch 뒤 stale handle/lease 재사용을 차단한다.
+- Oversize Windows test ID, hostile string-subclass equality 및 payload identifier 검사를 expectation 불일치에만 의존한 경계를 직접 재현·수정했다. 실제 private key/signature verification/verifier provisioning/currentness/admission/production wiring과 schema·migration·Repository transaction은 추가하지 않았다. Payload·digest·fingerprint 표시는 authority가 아니다.
+
 ### 추가·수정 - Original Confirmation Raw Snapshot Foundation
 
 - #175 same D/H/T/exact-head required CI 3 SUCCESS/reviews·threads 0/MERGEABLE·CLEAN 및 Ready 후 Guard를 재확인해 expected-head squash merge했다. 새 develop `3ae77bda08c3661a72d2f3c2052f027fc54b7db1`, PR/merge tree equality 및 source/main 보존을 확인했다.
