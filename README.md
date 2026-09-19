@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 최신 Track: #164~#170/#172~#176 mechanics·strict binding·raw snapshot Foundation은 merged다. 다음 [ADR-090 canonical payload boundary](docs/11-decisions/ADR-090-original-confirmation-canonical-payload-foundation.md)는 held raw bytes를 exact JCS installation/action/policy/designation/initializer/verifier/replay 입력에 연결하는 Draft Foundation이다. canonical payload·digest·verifier fingerprint는 authentication/currentness/admission/권한이 아니다. 실제 signature verifier provisioning·authenticity·live authoritative lineage/private transaction owner·Runtime는 미구현/unavailable이며 schema/migration과 Alembic 0037을 유지한다.
+Bootstrap 최신 Track: #164~#170/#172~#177 raw/canonical chain은 merged다. [ADR-091 live current-lineage reader](docs/11-decisions/ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)는 deployment verifier의 infrastructure-only reuse를 확정하고 별도 held record를 exact journal head/action/history/confirmation/pin/lease에 연결하는 Draft Foundation이다. Handle/record equality는 authenticity/currentness witness/admission이 아니다. 실제 confirmation verifier authority·private writer/provisioning·journal atomic handoff·Runtime는 미구현/unavailable이며 schema/migration과 Alembic 0037을 유지한다.
 
 현재 `develop`에서 확인되는 범위다.
 
