@@ -142,7 +142,13 @@ class _WindowsFactFiles:
 
     def _close(self, handles: list[int]) -> None:
         while handles:
-            if not self._api.CloseHandle(handles[-1]):
+            try:
+                closed = self._api.CloseHandle(handles[-1])
+            except Exception:
+                # Keep list ownership untouched; _snapshot retains it in
+                # quarantine exactly as for a native FALSE result.
+                raise PrivateFactsDenied() from None
+            if not closed:
                 raise PrivateFactsDenied()
             handles.pop()
 
@@ -153,6 +159,8 @@ class _WindowsFactFiles:
 
     @contextmanager
     def _snapshot(self):
+        if self._quarantine:
+            raise PrivateFactsDenied()
         handles, observations = [], []
         try:
             for path in self._paths:

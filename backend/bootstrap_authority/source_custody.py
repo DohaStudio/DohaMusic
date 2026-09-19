@@ -10,6 +10,8 @@ import struct
 from contextlib import contextmanager
 from dataclasses import dataclass
 
+from backend.bootstrap_authority.contracts import require_digest
+from backend.bootstrap_authority.lifecycle_verifier import digest
 from backend.bootstrap_authority.pin_facts import PrivateFactsDenied
 from backend.bootstrap_authority.windows_fact_files import _WindowsFactFiles
 
@@ -210,6 +212,15 @@ class _CustodyDesignationRecordFiles(_WindowsFactFiles):
         self._security = _SecurityDescriptors()
         self._live: dict[int, tuple] | None = None
         self._invalid = False
+        from ctypes import wintypes as w
+
+        self._api.SetFilePointerEx.argtypes = [
+            w.HANDLE,
+            ctypes.c_longlong,
+            ctypes.POINTER(ctypes.c_longlong),
+            w.DWORD,
+        ]
+        self._api.SetFilePointerEx.restype = w.BOOL
 
     def _check(self, handle, path, *, directory):
         identity = super()._check(handle, path, directory=directory)
@@ -249,3 +260,35 @@ class _CustodyDesignationRecordFiles(_WindowsFactFiles):
         finally:
             self._invalid = True
             self._live = None
+
+    def _require_same_bytes(self, expected_digest):
+        """Bounded fresh read from ORIGINAL held leaf; never a source auth proof."""
+        try:
+            self._read_held_bytes(expected_digest)
+        except Exception:
+            self._invalid = True
+            raise PrivateFactsDenied() from None
+
+    def _read_held_bytes(self, expected_digest):
+        if type(expected_digest) is not str:
+            raise PrivateFactsDenied()
+        try:
+            require_digest(expected_digest)
+        except ValueError:
+            raise PrivateFactsDenied() from None
+        self._require_unchanged()
+        leaves = [
+            (handle, prior) for handle, (_, directory, prior) in self._live.items() if not directory
+        ]
+        if len(leaves) != 1:
+            raise PrivateFactsDenied()
+        handle, before = leaves[0]
+        size = (before[2] << 32) | before[3]
+        if not 0 < size <= 1_048_576 or not self._api.SetFilePointerEx(handle, 0, None, 0):
+            raise PrivateFactsDenied()
+        buffer, count = ctypes.create_string_buffer(size + 1), ctypes.c_ulong(0)
+        if not self._api.ReadFile(handle, buffer, size + 1, ctypes.byref(count), None):
+            raise PrivateFactsDenied()
+        self._require_unchanged()
+        if count.value != size or digest(buffer.raw[:size]) != expected_digest:
+            raise PrivateFactsDenied()
