@@ -1,6 +1,6 @@
 # Live Current-Lineage Reader Foundation 검증
 
-> 상태: [검증 완료 — Foundation Draft 전용; 운영 미활성]
+> 상태: [검증 완료 — #178 merged; 운영 미활성]
 > 최종 수정일: 2026-09-19
 > 구현 계약: [ADR-091](../11-decisions/ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)
 
@@ -15,3 +15,5 @@ Verifier reuse는 C infrastructure-only로 판정했다. 기존 deployment appro
 초기 negative suite에서 float case가 `rfc8785.dumps(1.0)`에 의해 integer wire로 정규화되어 공격을 재현하지 못했고, revision 1 action의 predecessor 변경은 reader 전에 domain constructor가 차단했다. 실제 JSON float wire와 revision 2 successor fixture로 교정했다. 구현 Gate나 테스트를 삭제·skip하지 않았다.
 
 최종 source/test 고정 후 새 negative `35 passed`, focused 10 files `480 passed`, direct 20 files `906 passed`, full backend `2384 passed / 12 skipped / 0 failed`다. Ruff/format/compileall/diff/UTF-8/relative links/ADR·보호 범위/security scan은 PASS, Alembic은 `20260918_0037` single head다. Repository `commit()`/`rollback()`과 app/external schema migration/production port 변경은 0이다. 기존 Starlette/httpx deprecation warning 1개 외 새 warning은 없다.
+
+#178 H `9443d711786559b578982b5dac73df4b9ccb467f`, T `a4ee0005eae94a1eff90fb6f1d4b740bb20ead6f`, run `35431836085`의 required 3개 SUCCESS와 review/thread 0, MERGEABLE·CLEAN을 재확인해 expected-head squash merge했다. Merge/develop `0148d0491c5d947a88ebe353d0f4f37e30b9da60`의 tree는 T와 같고 source branch와 main은 보존됐다.

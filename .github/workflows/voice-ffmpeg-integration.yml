@@ -79,7 +79,7 @@ jobs:
             $fixtureOutput = Join-Path $fixtureRoot 'stdout.txt'
             $fixtureError = Join-Path $fixtureRoot 'stderr.txt'
             $fixtureTemp = Join-Path $fixtureRoot 'pytest'
-            $fixtureArgs = '-m pytest -q --basetemp "' + $fixtureTemp + '" backend/tests/test_bootstrap_windows_serialization.py backend/tests/test_bootstrap_witness_lifetime.py backend/tests/test_bootstrap_pin_facts.py backend/tests/test_bootstrap_private_pin_reader.py backend/tests/test_designation_record_snapshot.py backend/tests/test_designation_source_custody.py backend/tests/test_provisioning_binding.py backend/tests/test_confirmation_snapshot.py backend/tests/test_confirmation_payload.py backend/tests/test_live_lineage_reader.py'
+            $fixtureArgs = '-m pytest -q --basetemp "' + $fixtureTemp + '" backend/tests/test_bootstrap_windows_serialization.py backend/tests/test_bootstrap_witness_lifetime.py backend/tests/test_bootstrap_pin_facts.py backend/tests/test_bootstrap_private_pin_reader.py backend/tests/test_designation_record_snapshot.py backend/tests/test_designation_source_custody.py backend/tests/test_provisioning_binding.py backend/tests/test_confirmation_snapshot.py backend/tests/test_confirmation_payload.py backend/tests/test_live_lineage_reader.py backend/tests/test_fresh_journal_lineage.py'
             $fixtureProcess = Start-Process -FilePath (Get-Command python).Source -ArgumentList $fixtureArgs -Credential $fixtureCredential -LoadUserProfile -WorkingDirectory $env:GITHUB_WORKSPACE -WindowStyle Hidden -RedirectStandardOutput $fixtureOutput -RedirectStandardError $fixtureError -Wait -PassThru
             Get-Content -LiteralPath $fixtureOutput
             Get-Content -LiteralPath $fixtureError
