@@ -94,7 +94,8 @@
 | [ADR-088](ADR-088-initializer-provenance-action-binding-foundation.md) | strict installation/action/initializer/policy binding 및 terminal history 비교 | #175 merged Foundation·public facts는 권한이 아님 |
 | [ADR-089](ADR-089-original-confirmation-raw-snapshot-foundation.md) | held raw original-confirmation transport/action/history binding·stale reuse 및 retained cleanup | Foundation Draft·authentication/currentness/admission 미구현 |
 | [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md) | raw snapshot과 future verifier 사이 exact JCS identity/scope/replay payload boundary | Foundation Draft·signature/currentness/admission 미구현 |
-| [ADR-091](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md) | deployment verifier infrastructure-only reuse 판정과 held live current-lineage record | Foundation Draft·authenticity/admission/production writer 미구현 |
+| [ADR-091](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md) | deployment verifier infrastructure-only reuse 판정과 held live current-lineage record | #178 merged·authenticity/admission/production writer 미구현 |
+| [ADR-092](ADR-092-fresh-journal-lineage-observation-foundation.md) | fresh complete public journal과 held lineage/pin/lease/두 transaction의 provider-internal correlation | Foundation Draft·currentness witness/admission 아님 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

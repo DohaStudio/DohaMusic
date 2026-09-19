@@ -16,6 +16,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 현재 selected Candidate의 proposal을 authorized Artifact resolver로 재검증하고 Candidate APPLY Public API에서 Run version과 WorkingComposition revision 이중 CAS로 적용한다.
 - 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
 - atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
+### 추가·수정 - Fresh Journal–Lineage Observation Foundation
+
+- #178을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `0148d0491c5d947a88ebe353d0f4f37e30b9da60`, tree equality 및 source/main 보존을 확인했다.
+- [ADR-092](docs/11-decisions/ADR-092-fresh-journal-lineage-observation-foundation.md)에서 authenticated source·CurrentnessWitness·confirmation authenticity·Durable Admission dependency를 비교하고 D의 최소 prerequisite를 선택했다. 별도 journal Session의 complete history/head를 held lineage/confirmation/pin/lease/caller transaction과 전후 재검증한다.
+- 결과는 provider-internal opaque observation일 뿐 currentness witness/admission/authorization이 아니다. moving head/history·transaction/source mismatch와 예외는 whole source chain을 영구 폐기하고 foreign handle은 valid source를 폐기하지 않는다. Schema/migration/production port/실제 key·credential 접근은 0이다.
+
 ### 추가·수정 - Live Current-Lineage Reader Foundation
 
 - #177을 exact-head CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `edab5d461e8f2be393fc1e1c7d0bc772d9bf2de5`, tree equality 및 source/main 보존을 확인했다.
