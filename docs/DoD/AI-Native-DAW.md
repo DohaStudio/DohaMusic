@@ -116,7 +116,7 @@ Architecture authority는 [ADR-069](../11-decisions/ADR-069-ai-music-director-ca
 - [x] immutable CompositionSnapshot 기반 MusicIntent와 1~4개 Candidate Job
 - [x] ProviderExecution identity, Mock Worker와 durable proposal materialization
 - [x] Project-scoped Run/Candidate read, ordinal ordering과 CAS SELECT
-- [ ] ADR-073 atomic APPLY와 WorkingComposition/history mutation (architecture 승인, 구현 대기)
+- [x] ADR-073 atomic APPLY와 WorkingComposition/history mutation
 - [ ] 실행 전 승인과 Candidate A/B 비교·선택
 - [ ] Frontend Candidate 비교 UX와 실제 Provider E2E
 

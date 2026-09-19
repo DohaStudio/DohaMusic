@@ -3,7 +3,7 @@
 > 상태: 승인
 > 작성일: 2026-09-17
 > 최종 수정일: 2026-09-17
-> 구현 상태: Architecture decided / Implementation pending
+> 구현 상태: Implemented
 > 관련 기능: AI-native DAW D5 Candidate APPLY, WorkingComposition atomic mutation
 > 관련 문서: [ADR-069](ADR-069-ai-music-director-candidate-workflow.md), [ADR-056](ADR-056-persistent-working-composition-history.md), [ADR-057](ADR-057-working-composition-multi-user-conflict-recovery-authority.md), [ADR-059](ADR-059-typed-persistent-history-target-authority.md), [Workspace API](../06-api/workspace-rest-api-endpoints.md)
 
@@ -123,9 +123,12 @@ Request body:
 }
 ```
 
-Response는 `run_id`, `candidate_id`, `working_composition_id`, `completed_revision`,
+Response는 `run_id`, `candidate_id`, `working_composition_id`, `working_composition_revision`,
 `run_version`, `history_entry_id`, `replayed`만 반환한다. storage path, claim/client execution key와
 Provider payload는 반환하지 않는다.
+
+Internal idempotency completion은 `completed_revision`을 저장하며 replay 시 이를 Public result의
+`working_composition_revision`으로 변환한다. 두 field는 같은 최초 APPLY 완료 revision을 나타낸다.
 
 Project/Run/Candidate 비존재와 scope mismatch는 canonical not-found, materialization/selection/Job
 state와 already-applied는 typed conflict, stale Run/WorkingComposition은 기존 conflict, proposal
@@ -139,9 +142,8 @@ conflict로 매핑한다. transaction failure는 rollback 후 sanitized internal
 JSON이 필요한 authority를 이미 표현한다. 구현 시 code-level history command와 idempotency result
 type은 추가하지만 새 column/table은 필요하지 않다.
 
-현재 Runtime API는 89 paths / 110 operations이며 이 architecture-only 결정으로 바뀌지 않는다.
-후속 구현에서 위 path 하나와 POST operation 하나가 추가되면 예상치는 90 paths / 111 operations,
-POST 43이다. 실제 fingerprint는 구현 시 재측정한다.
+현재 Runtime API는 90 paths / 111 operations, POST 43이며 fingerprint는
+`5805c976c4f950abce8da1db2241437f5d901d55a0363fd54d9f485d902c4dd4`다.
 
 ## 보안
 
@@ -160,6 +162,5 @@ credential, raw Provider response, local model path, stack trace, command와 PID
 
 ## 결과와 후속 작업
 
-Architecture authority만 확정됐다. Production endpoint, Service/UoW, history command, tests,
-Frontend와 migration은 이 변경에 포함되지 않는다. 다음 작업은
-`AI Music Director Candidate APPLY + Atomic WorkingComposition Mutation Implementation Pass`다.
+Production endpoint, Service-owned UoW, aggregate history command와 focused tests를 구현했다.
+Migration은 필요하지 않으며 Frontend Candidate 비교 UX와 실제 Provider 연결은 후속 작업이다.

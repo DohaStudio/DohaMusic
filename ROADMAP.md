@@ -49,7 +49,7 @@ DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic�
 1. D0 `[완료]`: PR #94로 CURRENT/TARGET/NOT IMPLEMENTED, 공통 계약 재사용과 제품 객체 후보를 `develop`에 정합화했다.
 2. D1·D2 `[완료]`: Composition Read의 Workspace 권위와 Project 상세 연결, 읽기 전용 Timeline·Track lane·단일 Mix playback·실제 media duration·Playhead·Master/Mix Waveform·seek·scroll·zoom·keyboard 기반을 완료했다. 실제 DB 승인은 별도 유지한다.
 3. D3 `[진행 중]`: ADR-040·045·047·050·052·053·054·055·056의 WorkingComposition/Preview/Clip Gain·Fade·Loop와 persistent history authority, atomic mutation Service, Frontend Track/Clip editing·explicit Clip Copy·Backend journal/cursor Undo/Redo, exact AssetVersion-safe media source·Clip별 source-window Waveform, Working Preview·Composition Commit을 구현했다. multi-user conflict recovery까지 구현했으며 D4 Mixer·독립 Export는 `[계획]`이다.
-4. D5 `[진행 중]`: immutable Snapshot 기반 Music Director Job, Provider execution identity, Mock Worker, durable Candidate proposal materialization과 Project-scoped read·SELECT Public API를 구현했다. ADR-073으로 atomic APPLY 계약을 확정했으며 실제 구현, Provider와 Frontend Candidate 비교는 미구현이다.
+4. D5 `[진행 중]`: immutable Snapshot 기반 Music Director Job, Provider execution identity, Mock Worker, durable Candidate proposal materialization과 Project-scoped read·SELECT·atomic APPLY Public API를 구현했다. 실제 Provider와 Frontend Candidate 비교는 미구현이다.
 5. D6~D7 `[계획]`: Reference Panel과 Composition Evaluation/QA를 연결한다.
 6. D8~D9 `[계획]`: 명시적 opt-in Learning Review Hub와 운영 전환을 검증한다.
 
@@ -80,7 +80,7 @@ Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition ato
 | 7. Doha Voice | [계획] | Dataset·개인화 학습 미착수 | [Phase-07](docs/DoD/Phase-07.md) |
 | 8. Doha Studio | [완료] | 100%: 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·WAV Player/Download·Cancel·Retry 완료 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 구현·자동 Browser Validation 완료; 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
-| AI-native DAW Product | [진행 중] | D0·D1·D2와 D3 편집 기반 완료; D5 Music Director Backend Candidate 생성·durable materialization·read·SELECT Foundation 구현, APPLY architecture 승인, 실제 Provider·Frontend·APPLY 구현 미완료 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
+| AI-native DAW Product | [진행 중] | D0·D1·D2와 D3 편집 기반 완료; D5 Music Director Backend Candidate 생성·durable materialization·read·SELECT·atomic APPLY 구현, 실제 Provider·Frontend 비교 UX 미완료 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료, K3.4 Preview Export 다음 구현 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N, PayloadLocator persistence·verified staging·acquisition·Vocal Completion Foundation 구현; Provider dispatch wiring·production rights adapter·background daemon과 나머지 API 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | 운영 인프라 미구현 | [Phase-09](docs/DoD/Phase-09.md) |
@@ -89,7 +89,7 @@ Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition ato
 
 ## 현재 우선 작업
 
-**최우선 NEXT:** AI Music Director Candidate APPLY + Atomic WorkingComposition Mutation Implementation. ADR-073의 이중 CAS·단일 UoW·aggregate history 계약을 구현하며 Frontend와 실제 Provider는 이후 별도 Gate다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다.
+**최우선 NEXT:** AI Music Director Frontend Candidate 비교·SELECT·APPLY UX. Backend의 이중 CAS·단일 UoW·aggregate history authority를 재사용하며 실제 Provider 연결은 별도 Gate다. MIDI·Piano Roll은 NOT IMPLEMENTED, SoundFont는 NOT INTEGRATED 상태의 별도 우선순위다.
 
 1. [EVAL-005](reports/evaluations/EVAL-005-lyrics-quality.md)에서 실제 가사 초안의 주제 적합성·자연스러움·후렴 기억성·창작 활용성을 사용자가 평가한다.
 2. 외부 Lyrics LLM 후보는 공식 API·라이선스·데이터 처리·비용·한국어 품질 근거를 확보한 뒤 별도 ADR로 검토한다.

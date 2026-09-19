@@ -48,6 +48,12 @@ def _result(
             "base_composition_snapshot_id": str(uuid4()),
         },
         IdempotencyResultType.COMPOSITION_COMMIT: {"composition_snapshot_id": str(uuid4())},
+        IdempotencyResultType.MUSIC_DIRECTOR_APPLY: {
+            "run_id": str(uuid4()),
+            "candidate_id": str(uuid4()),
+            "working_composition_id": str(uuid4()),
+            "history_entry_id": str(uuid4()),
+        },
         IdempotencyResultType.TRACK_CREATE: {"track_id": str(uuid4())},
         IdempotencyResultType.TRACK_DELETE: {"track_id": str(uuid4())},
         IdempotencyResultType.TRACK_RESTORE: {"track_id": str(uuid4())},

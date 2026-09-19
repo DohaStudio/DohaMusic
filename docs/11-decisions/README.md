@@ -76,7 +76,7 @@
 | [ADR-070](ADR-070-provider-execution-identity-and-response-loss-recovery.md) | Provider 실행 identity와 submit 응답 손실 복구 | 승인 |
 | [ADR-071](ADR-071-music-director-candidate-materialization-and-proposal-publication.md) | Candidate materialization과 proposal publication authority | 승인 |
 | [ADR-072](ADR-072-ai-music-director-provider-port-and-worker.md) | AI Music Director Provider Port와 Worker 경계 | 승인 |
-| [ADR-073](ADR-073-music-director-candidate-apply-authority.md) | Candidate APPLY atomic WorkingComposition mutation authority | 승인, 구현 대기 |
+| [ADR-073](ADR-073-music-director-candidate-apply-authority.md) | Candidate APPLY atomic WorkingComposition mutation authority | 승인, 구현됨 |
 | [ADR-074](ADR-074-dohavocal-verified-staged-artifact-completion-authority.md) | DohaVocal verified staging의 stream ingestion·Vocal Asset target·atomic Completion authority | 승인, Foundation 구현 |
 | [ADR-075](ADR-075-dohavocal-production-rights-domain-decision.md) | current Vocal Rights Grant·writer-reader serialization·Completion/replay 권한 V1 | 승인 제안, 정의/설계; production 미구현 |
 | [ADR-076](ADR-076-product-deployment-bootstrap-authority.md) | external Product/Deployment root·signed exact approval·one-time first-binding bootstrap | #162 채택/merged, 운영 비활성 |
