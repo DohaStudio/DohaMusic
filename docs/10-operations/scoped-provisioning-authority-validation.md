@@ -1,7 +1,7 @@
 # Scoped Provisioning Authority Verification Foundation 검증
 
-> 상태: [검증 완료 — Foundation Draft 전용; 운영 비활성]
-> 최종 수정일: 2026-09-19
+> 상태: [검증 완료 — #180 merged; 운영 비활성]
+> 최종 수정일: 2026-09-20
 > 구현 계약: [ADR-093](../11-decisions/ADR-093-scoped-provisioning-authority-verification-foundation.md)
 
 ## BASE·Decision·구현
