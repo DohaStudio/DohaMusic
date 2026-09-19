@@ -16,6 +16,23 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 현재 selected Candidate의 proposal을 authorized Artifact resolver로 재검증하고 Candidate APPLY Public API에서 Run version과 WorkingComposition revision 이중 CAS로 적용한다.
 - 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
 - atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
+### 추가·수정 - Original Confirmation Raw Snapshot Foundation
+
+- #175 same D/H/T/exact-head required CI 3 SUCCESS/reviews·threads 0/MERGEABLE·CLEAN 및 Ready 후 Guard를 재확인해 expected-head squash merge했다. 새 develop `3ae77bda08c3661a72d2f3c2052f027fc54b7db1`, PR/merge tree equality 및 source/main 보존을 확인했다.
+- [ADR-089](docs/11-decisions/ADR-089-original-confirmation-raw-snapshot-foundation.md)의 bounded original-confirmation raw snapshot을 기존 live pin/designation/custody/OS lease/caller transaction과 strict action/history comparison에 연결했다. 원래 held handles의 bytes/digest를 reread하고 관측 mismatch/terminal/transaction/API/ACL 변화 후 stale handle/lease reuse를 deny한다. 실제 confirmation authentication/current-lineage reader/admission은 미구현이며 생산 ports는 unavailable다.
+- Custom equality 호출 순서, 기존 CloseHandle exception의 retained quarantine 손실, pending-quarantine 새 snapshot yield 및 제자리 lineage 변경의 anchor 재연결을 직접 재현·수정하고 regression을 추가했다. 기존 Windows isolated non-admin CI에 새 test 2개 파일만 추가하며 보안 Gate를 완화하지 않는다. [검증](docs/10-operations/original-confirmation-snapshot-validation.md)에 실제 evidence와 source-authentication 한계를 기록한다. Schema/migration/Repository commit·rollback/production wiring 및 실제 governance/key/credential/ceremony/User DB/Provider 접근 0.
+
+### 추가 - Initializer Provenance / Policy Action Binding Comparison Foundation
+
+- #174의 동일 D/H/T/exact CI 3개 SUCCESS/reviews·threads 0/MERGEABLE·CLEAN 및 Ready 후 Gate를 확인하고 명시 승인으로 expected-head squash merge했다. 새 develop `655985b3432d4949ecae6d27e33ef8afb699c227`과 PR/merge tree equality, source/main 보존을 확인했다.
+- [ADR-088](docs/11-decisions/ADR-088-initializer-provenance-action-binding-foundation.md)의 strict public policy/action/initializer confirmation/pin/history 비교를 구현한다. full snapshot/action domain digest, exact identity/revision/type/manifest, duplicate·replay·terminal prefix·stale expected head/reset/truncate와 successor 선행 조건을 검증한다. actual storage CAS나 authenticated source proof로 승격하지 않는다.
+- SQL/I/O/Repository transaction/OS resource/schema/migration/production wiring 0, Alembic 0037 및 기존 authority/Phase/DoD 보존. 실제 governance/key/credential/ceremony/User DB/Provider 접근 0. [검증](docs/10-operations/initializer-provenance-binding-validation.md)에 executable regression과 미구현 source/authority 경계를 구분한다.
+
+### 문서 - Custody Policy Provisioning / Initializer Provenance Linkage Contract
+
+- #173의 동일 D/H/T·exact-head CI 3개 SUCCESS·reviews/threads 0·MERGEABLE/CLEAN을 다시 확인하고 사용자 직접 승인으로 Ready/expected-head squash merge했다. 새 develop `54773b3ed4d4bfcee8bcc81000a4e6517c2245c0`, PR/merge tree equality와 source/main 보존을 확인했다. Final Validation 중 파일 수정 0이다.
+- 다음 E 최소 선행 [ADR-087](docs/11-decisions/ADR-087-custody-policy-provisioning-initializer-provenance-contract.md)는 original accepted designation·명시 initializer 위임·실제 provisioning action·exact installed policy snapshot·fresh current-policy lineage의 연결 및 terminal/replacement/current-pointer·TOCTOU handoff를 정한다. metadata/ACL/서명 단독을 provenance로 승격하지 않는다.
+- docs-only, source/tests/CI/ports/schema/migration/production wiring 변경 0. ADR-076의 unsigned 서면 assertion·root/authority, Alembic 0037/external journal v1·Phase/DoD 및 caller transaction을 보존한다. [검증](docs/10-operations/custody-policy-provisioning-contract-validation.md)에 새 regression과 기존 exact-source full evidence를 구분한다. 실제 governance/key/credential/ceremony/User DB/Provider 접근·발급 0.
 
 ### 추가 - Designation Private Source Custody Policy Foundation
 
