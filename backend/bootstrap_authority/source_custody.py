@@ -264,7 +264,7 @@ class _CustodyDesignationRecordFiles(_WindowsFactFiles):
     def _require_same_bytes(self, expected_digest):
         """Bounded fresh read from ORIGINAL held leaf; never a source auth proof."""
         try:
-            self._read_held_bytes(expected_digest)
+            return self._read_held_bytes(expected_digest)
         except Exception:
             self._invalid = True
             raise PrivateFactsDenied() from None
@@ -292,3 +292,4 @@ class _CustodyDesignationRecordFiles(_WindowsFactFiles):
         self._require_unchanged()
         if count.value != size or digest(buffer.raw[:size]) != expected_digest:
             raise PrivateFactsDenied()
+        return buffer.raw[:size]

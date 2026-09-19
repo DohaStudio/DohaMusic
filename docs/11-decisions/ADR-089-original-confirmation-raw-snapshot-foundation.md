@@ -1,9 +1,9 @@
 # ADR-089: Original Confirmation Raw Snapshot Foundation
 
-> 상태: [제안 — 구현 및 검증 완료; Foundation Draft, 운영 비활성]
+> 상태: [채택 — #176 merged; 운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `3ae77bda08c3661a72d2f3c2052f027fc54b7db1` (#175 squash merge)
-> 관련 PR: 이 Foundation의 별도 develop 대상 Draft PR
+> 관련 PR: [#176 merged](https://github.com/DohaStudio/DohaMusic/pull/176); 다음 [ADR-090 canonical payload boundary](ADR-090-original-confirmation-canonical-payload-foundation.md)
 > 관련: [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-088](ADR-088-initializer-provenance-action-binding-foundation.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [ADR-086](ADR-086-designation-source-custody-policy-foundation.md), [검증](../10-operations/original-confirmation-snapshot-validation.md)
 
 ## 배경·가장 작은 선택·대안
