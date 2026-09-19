@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 최신 Track: #164~#170/#172~#178은 merged다. [ADR-091 live current-lineage reader](docs/11-decisions/ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)는 held record를 exact source chain에 연결했다. 다음 [ADR-092 fresh journal-lineage observation](docs/11-decisions/ADR-092-fresh-journal-lineage-observation-foundation.md)은 별도 journal transaction의 complete history/head를 held lineage/pin/lease와 결합하는 Draft Foundation이다. 두 결과 모두 authenticity/currentness witness/admission이 아니며 production ports는 unavailable, schema/migration과 Alembic 0037은 유지된다.
+Bootstrap 최신 Track: #164~#170/#172~#179는 merged다. [ADR-092 fresh journal-lineage observation](docs/11-decisions/ADR-092-fresh-journal-lineage-observation-foundation.md)은 별도 journal transaction의 complete history/head를 held lineage/pin/lease와 결합한다. 새 [ADR-093 scoped provisioning authority](docs/11-decisions/ADR-093-scoped-provisioning-authority-verification-foundation.md)는 governance가 승인한 exact purpose/scope/domain과 root-signed rotation/revocation history를 검증한다. 두 결과 모두 currentness witness/admission이 아니며 production ports는 unavailable, schema/migration과 Alembic 0037은 유지된다.
 
 현재 `develop`에서 확인되는 범위다.
 

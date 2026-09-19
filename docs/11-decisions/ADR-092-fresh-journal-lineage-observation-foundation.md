@@ -1,6 +1,6 @@
 # ADR-092: Fresh Journal–Lineage Observation Foundation
 
-> 상태: [제안 — 구현 및 검증 완료; Foundation Draft, 운영 비활성]
+> 상태: [채택 — #179 merged; 운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `0148d0491c5d947a88ebe353d0f4f37e30b9da60` (#178 squash merge)
 > 관련: [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-091](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md), [검증](../10-operations/fresh-journal-lineage-observation-validation.md)
@@ -44,4 +44,4 @@ valid signature != current authority, authenticated source != currentness, curre
 
 Repository는 기존처럼 flush/read-only 계약이며 이 Foundation의 `commit()`·`rollback()`·hidden retry는 0이다. app DB, external journal schema v1과 Alembic `20260918_0037`을 변경하지 않는다. journal과 private file의 distributed atomicity, writer/provisioning, crash reconciliation, same-event pin installer도 구현하지 않는다.
 
-다음 dependency는 independently authenticated lineage/provisioning source 또는 externally approved Original Confirmation verifier purpose다. 그 authority가 마련된 뒤에만 이 observation을 actual `CurrentnessWitness` 발급의 필요 입력으로 사용할 수 있다. Durable Admission은 authenticity, custody/provenance, live lineage, witness lifetime, OS serialization, exact binding과 transaction ownership이 독립 검증된 뒤 별도 Foundation으로 진행한다. 이 PR은 OPEN/Draft에서 종료하고 Ready/merge/source 삭제하지 않는다.
+후속 [ADR-093](ADR-093-scoped-provisioning-authority-verification-foundation.md)은 Product/Deployment governance가 승인한 `INSTALLATION_POLICY_PROVISIONING_ONLY` scoped authorization의 root-signed integrity/lifecycle verifier를 정의한다. 그 complete current source와 confirmation/live-lineage authenticity가 마련된 뒤에만 이 observation을 actual `CurrentnessWitness` 발급의 필요 입력으로 사용할 수 있다. Durable Admission은 authenticity, custody/provenance, live lineage, witness lifetime, OS serialization, exact binding과 transaction ownership이 독립 검증된 뒤 별도 Foundation으로 진행한다.
