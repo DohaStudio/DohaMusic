@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - Live Current-Lineage Reader Foundation
+
+- #177을 exact-head CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `edab5d461e8f2be393fc1e1c7d0bc772d9bf2de5`, tree equality 및 source/main 보존을 확인했다.
+- [ADR-091](docs/11-decisions/ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)에서 deployment verifier는 crypto/JCS infrastructure만 재사용 가능하다고 판정했다. Approval root/key purpose/domain/lifecycle을 confirmation authenticity로 확대하지 않고 Live Current-Lineage held-record Foundation을 추가했다.
+- Exact journal head/installation/action/history/confirmation/initializer/policy/designation/predecessor/terminal facts를 별도 same-handle record와 기존 confirmation/pin/custody/lease/transaction에 연결한다. 결과는 internal handle일 뿐 currentness witness/admission이 아니며 schema/migration/production port/실제 key·credential 접근은 0이다.
+
 ### 추가·수정 - Original Confirmation Canonical Payload Boundary Foundation
 
 - #176을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `034ca95a9173bf3a6f2950df93351c001214373c` 및 tree equality/source 보존을 확인했다.

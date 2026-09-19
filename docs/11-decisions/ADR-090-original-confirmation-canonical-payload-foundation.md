@@ -1,8 +1,9 @@
 # ADR-090: Original Confirmation Canonical Payload Boundary Foundation
 
-> 상태: [제안 — 구현 및 검증 완료; Foundation Draft, 운영 비활성]
+> 상태: [채택 — #177 merged; 운영 비활성]
 > 작성일·최종 수정일: 2026-09-19
 > 기준 develop: `034ca95a9173bf3a6f2950df93351c001214373c` (#176 squash merge)
+> 관련 PR: [#177 merged](https://github.com/DohaStudio/DohaMusic/pull/177); 다음 [ADR-091 verifier reuse와 live lineage](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md)
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-089](ADR-089-original-confirmation-raw-snapshot-foundation.md), [검증](../10-operations/original-confirmation-canonical-payload-validation.md)
 
 ## 결정과 범위
