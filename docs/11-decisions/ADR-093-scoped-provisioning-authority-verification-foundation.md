@@ -1,7 +1,7 @@
 # ADR-093: Scoped Provisioning Authority Verification Foundation
 
-> 상태: [제안 — governance Decision 및 Foundation 구현·검증 완료; 운영 비활성]
-> 작성일·최종 수정일: 2026-09-19
+> 상태: [채택 — #180 merged; 운영 비활성]
+> 작성일·최종 수정일: 2026-09-20
 > 기준 develop: `cfa1678519b6fba7ea2b0699f5bca518eae99bfb` (#179 squash merge)
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-091](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md), [ADR-092](ADR-092-fresh-journal-lineage-observation-foundation.md), [검증](../10-operations/scoped-provisioning-authority-validation.md)
 
