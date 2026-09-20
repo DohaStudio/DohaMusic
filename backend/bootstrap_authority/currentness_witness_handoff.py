@@ -42,6 +42,7 @@ class _WitnessRecord:
     transaction: object
     binding: CurrentnessBinding
     exact_scope: tuple[str, str, str]
+    invalidated: bool = False
 
 
 def _correlation_arguments(record):
@@ -174,8 +175,9 @@ class _CurrentnessWitnessHandoff:
         )
 
     def _invalidate(self, record):
-        if record is None:
+        if record is None or record.invalidated:
             return
+        record.invalidated = True
         self._records.pop(record.witness, None)
         with suppress(WitnessLifetimeDenied):
             self._lifetime._reject_attempt(record.attempt, witness=record.witness)

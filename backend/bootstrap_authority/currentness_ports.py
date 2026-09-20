@@ -13,6 +13,14 @@ class ProvisionedVerifierReader(Protocol):
 
 
 class VerifierLifecycleAdmissionPort(Protocol):
+    def prepare(
+        self,
+        lease: object,
+        provisioning: object,
+        artifact: bytes,
+        manifest: bytes,
+    ) -> object: ...
+
     def admit_with_private_ceremony_witness(self, witness: object) -> None: ...
 
 
@@ -24,6 +32,15 @@ class UnavailableCurrentnessPorts:
     """Never converts public metadata/receipts, test fakes or absent stores to permission."""
 
     def read_private_provisioning_witness(self) -> object:
+        raise CurrentnessUnavailable()
+
+    def prepare(
+        self,
+        lease: object,
+        provisioning: object,
+        artifact: bytes,
+        manifest: bytes,
+    ) -> object:
         raise CurrentnessUnavailable()
 
     def admit_with_private_ceremony_witness(self, witness: object) -> None:
