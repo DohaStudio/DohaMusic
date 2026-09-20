@@ -95,6 +95,12 @@ from backend.services.workspace.job_worker_service import (
     ProviderExecutionInput,
     ProviderExecutionRequest,
 )
+from backend.services.workspace.music_director_apply_service import (
+    MusicDirectorApplyError,
+    MusicDirectorApplyErrorCode,
+    MusicDirectorApplyResult,
+    MusicDirectorApplyService,
+)
 from backend.services.workspace.music_director_candidate_persistence_service import (
     CandidatePersistenceFact,
     MusicDirectorCandidatePersistenceService,
@@ -259,6 +265,10 @@ __all__ = [
     "MusicDirectorCandidatePersistenceService",
     "MusicDirectorCandidateMaterializationService",
     "MusicDirectorPublicService",
+    "MusicDirectorApplyError",
+    "MusicDirectorApplyErrorCode",
+    "MusicDirectorApplyResult",
+    "MusicDirectorApplyService",
     "MusicDirectorWorkerError",
     "MusicDirectorWorkerErrorCode",
     "MusicDirectorWorkerService",

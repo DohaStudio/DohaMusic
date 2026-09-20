@@ -4,8 +4,10 @@ from uuid import uuid4
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 
 from backend.models.workspace import CompositionSnapshot, Job
+from backend.schemas.workspace.music_director import MusicDirectorApplyRequest
 from backend.services.workspace import (
     JobService,
     MusicDirectorCandidatePersistenceService,
@@ -158,3 +160,33 @@ def test_fresh_session_read_orders_complete_set_and_selects_with_cas(tmp_path) -
     assert selected.version == replay.version == 1
     assert graph.revision() == 7
     graph.engine.dispose()
+
+
+def test_apply_requires_strict_cas_body_and_idempotency_key(client: TestClient) -> None:
+    project_id, run_id, candidate_id = uuid4(), uuid4(), uuid4()
+    path = (
+        f"/api/v1/projects/{project_id}/music-director/runs/{run_id}"
+        f"/candidates/{candidate_id}/apply"
+    )
+    body = {
+        "expected_run_version": 0,
+        "expected_working_composition_revision": 0,
+    }
+
+    operation = client.app.openapi()["paths"][
+        "/api/v1/projects/{project_id}/music-director/runs/{run_id}/candidates/{candidate_id}/apply"
+    ]["post"]
+    idempotency = next(
+        item for item in operation["parameters"] if item["name"] == "Idempotency-Key"
+    )
+    assert idempotency["in"] == "header"
+    assert idempotency["required"] is True
+    with pytest.raises(ValidationError):
+        MusicDirectorApplyRequest.model_validate({**body, "unexpected": True})
+    response = client.post(
+        path,
+        headers={"Idempotency-Key": "apply-contract"},
+        json=body,
+    )
+    assert response.status_code == 409
+    assert response.json()["error"]["error_code"] == "WORKSPACE_BOOTSTRAP_REQUIRED"
