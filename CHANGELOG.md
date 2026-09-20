@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - Authentic Confirmation–Lineage Correlation Foundation
+
+- #183을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `6cc249db1fe9dd1e455fcf47a30b68c1d108f845`, tree equality와 source/main 보존을 확인했다.
+- [ADR-097](docs/11-decisions/ADR-097-authentic-confirmation-lineage-correlation-foundation.md)에 따라 ADR-096 authenticity, held live lineage와 fresh journal observation을 같은 confirmation/authority handles, Windows lease와 분리된 caller/journal root transactions에 exact 결합했다.
+- 결과는 provider-internal opaque correlation handle뿐이며 CurrentnessWitness/admission/authorization으로 승격하지 않는다. schema/migration/Repository/production port와 실제 private key·credential 변경은 0이다.
+
 ### 추가·수정 - Original Confirmation Authenticity Foundation
 
 - #182를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `3f7a390d04f8bd39fdce7163a3322a78f8b7e06d`, tree equality와 source/main 보존을 확인했다.

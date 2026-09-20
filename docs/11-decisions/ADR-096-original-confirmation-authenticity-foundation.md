@@ -1,6 +1,6 @@
 # ADR-096: Original Confirmation Authenticity Foundation
 
-> 상태: 제안 — Foundation 구현·검증 완료, 운영 비활성
+> 상태: 채택 — #183 merged, 운영 비활성
 > 작성/최종 수정일: 2026-09-20
 > 기준 develop: `3f7a390d04f8bd39fdce7163a3322a78f8b7e06d` (#182 squash merge)
 > 관련: [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md), [ADR-093](ADR-093-scoped-provisioning-authority-verification-foundation.md), [ADR-094](ADR-094-authenticated-scoped-provisioning-authority-source-foundation.md), [ADR-095](ADR-095-active-provisioning-verifier-material-foundation.md), [검증](../10-operations/original-confirmation-authenticity-validation.md)
@@ -31,4 +31,4 @@ Production signer/private key/credential/ceremony/port, app DB·external journal
 
 ## 후속 dependency
 
-다음 단계는 authentic confirmation을 기존 authenticated live lineage와 ADR-092 fresh journal-lineage observation에 exact 비교하는 더 작은 prerequisite를 재평가하는 것이다. 이번 Foundation에서 CurrentnessWitness나 Admission으로 확장하지 않는다.
+후속 [ADR-097](ADR-097-authentic-confirmation-lineage-correlation-foundation.md)은 authentic confirmation을 기존 held live lineage와 ADR-092 fresh journal-lineage observation에 exact 비교한다. 이번 Foundation에서 CurrentnessWitness나 Admission으로 확장하지 않는다.
