@@ -1,6 +1,6 @@
 # Active Provisioning Verifier Material Foundation 검증
 
-> 상태: Foundation Draft 검증
+> 상태: #182 merged 검증
 > 최종 수정일: 2026-09-20
 > 계약: [ADR-095](../11-decisions/ADR-095-active-provisioning-verifier-material-foundation.md)
 
