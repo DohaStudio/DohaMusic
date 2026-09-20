@@ -1,1 +1,1 @@
-"""ADR-076 issuance-integrity foundation, not bootstrap authorization or runtime wiring."""
+"""Bootstrap authority foundations; production source/currentness remains unavailable."""
