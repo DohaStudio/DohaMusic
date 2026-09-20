@@ -1,6 +1,6 @@
 # ADR-095: Active Provisioning Verifier Material Foundation
 
-> 상태: 제안 — Foundation 구현·검증 완료, 운영 비활성
+> 상태: 채택 — #182 merged, 운영 비활성
 > 작성/최종 수정일: 2026-09-20
 > 기준 develop: `0d5478859075122e472124ac19a7458139b6144e` (#181 squash merge)
 > 관련: [ADR-093](ADR-093-scoped-provisioning-authority-verification-foundation.md), [ADR-094](ADR-094-authenticated-scoped-provisioning-authority-source-foundation.md), [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md), [검증](../10-operations/active-provisioning-verifier-material-validation.md)
@@ -27,4 +27,4 @@ Public verifier material은 private key나 signer가 아니다. ACTIVE authority
 
 ## 후속 dependency
 
-다음 최소 Foundation은 이 opaque ACTIVE material을 기존 canonical Original Confirmation payload와 고정 confirmation signing domain의 Ed25519 signature 검증에 결합한다. 그 결과도 currentness witness나 admission이 아니다.
+후속 [ADR-096](ADR-096-original-confirmation-authenticity-foundation.md)은 이 opaque ACTIVE material을 기존 canonical Original Confirmation payload와 고정 confirmation signing domain의 Ed25519 signature 검증에 결합한다. 그 결과도 currentness witness나 admission이 아니다.
