@@ -42,4 +42,3 @@ CurrentnessWitness는 “한 exact attempt에서 필요한 authenticated/current
 - production private key, signer, credential provisioning 또는 external trust root
 
 Witness와 attempt는 메모리 내부 lifetime에만 존재한다. DB persistence, migration, Repository `commit()`/`rollback()`, writer, public API, frontend 또는 runtime wiring은 추가하지 않는다. Alembic head `20260918_0037`을 유지한다. Durable Admission은 이 witness를 소비하는 별도 Foundation에서만 결정한다.
-
