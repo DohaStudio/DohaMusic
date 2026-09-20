@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 최신 Track: #164~#170/#172~#180은 merged다. [ADR-092 fresh journal-lineage observation](docs/11-decisions/ADR-092-fresh-journal-lineage-observation-foundation.md)은 별도 journal transaction의 complete history/head를 held lineage/pin/lease와 결합한다. [ADR-093 scoped provisioning authority](docs/11-decisions/ADR-093-scoped-provisioning-authority-verification-foundation.md)는 governance가 승인한 exact purpose/scope/domain과 root-signed rotation/revocation history를 검증한다. 새 [ADR-094 authenticated authority source](docs/11-decisions/ADR-094-authenticated-scoped-provisioning-authority-source-foundation.md)는 그 complete history를 custody-bound fixed private source와 same-handle lease에 결합한다. 결과는 currentness witness/admission이 아니며 production ports는 unavailable, schema/migration과 Alembic 0037은 유지된다.
+Bootstrap 최신 Track: #164~#170/#172~#182는 merged다. [ADR-092 fresh journal-lineage observation](docs/11-decisions/ADR-092-fresh-journal-lineage-observation-foundation.md)은 별도 journal transaction의 complete history/head를 held lineage/pin/lease와 결합한다. [ADR-093 scoped provisioning authority](docs/11-decisions/ADR-093-scoped-provisioning-authority-verification-foundation.md)~[ADR-095 active verifier material](docs/11-decisions/ADR-095-active-provisioning-verifier-material-foundation.md)은 root-signed ACTIVE lifecycle을 custody-bound exact Ed25519 public bytes와 연결한다. 새 [ADR-096 Original Confirmation authenticity](docs/11-decisions/ADR-096-original-confirmation-authenticity-foundation.md)는 held canonical payload와 exact confirmation-domain signature를 검증한다. 결과는 currentness witness/admission이 아니며 production ports는 unavailable, schema/migration과 Alembic 0037은 유지된다.
 
 현재 `develop`에서 확인되는 범위다.
 

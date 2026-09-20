@@ -1,6 +1,6 @@
 # ADR-094: Authenticated Scoped Provisioning Authority Source Foundation
 
-> 상태: 제안 — Foundation 구현·검증 완료, 운영 비활성
+> 상태: 채택 — #181 merged, 운영 비활성
 > 작성/최종 수정일: 2026-09-20
 > 기준 develop: `82c19261f9b7f2074dcf6e23305b7067465ffcae` (#180 squash merge)
 > 관련: [ADR-083](ADR-083-private-pin-facts-reader-foundation.md), [ADR-086](ADR-086-designation-source-custody-policy-foundation.md), [ADR-093](ADR-093-scoped-provisioning-authority-verification-foundation.md), [검증](../10-operations/authenticated-provisioning-authority-source-validation.md)
@@ -27,4 +27,4 @@ Source currentness는 열린 동일 handle의 bytes/identity/custody가 교체�
 
 ## 후속 dependency
 
-다음 최소 후보는 이 held authenticated authority source에서 선택된 ACTIVE verifier bytes의 별도 provisioning 계약과 Original Confirmation authenticity를 결합하는 Foundation이다. 그 단계도 authenticated source와 CurrentnessWitness, admission을 분리해야 한다.
+후속 [ADR-095](ADR-095-active-provisioning-verifier-material-foundation.md)는 held authenticated authority source의 ACTIVE projection을 custody-bound exact verifier bytes와 결합한다. Original Confirmation authenticity는 그 다음 Foundation이며 authenticated source와 CurrentnessWitness, admission을 계속 분리한다.

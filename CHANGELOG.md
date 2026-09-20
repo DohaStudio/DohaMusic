@@ -17,6 +17,18 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
 - atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
 
+### 추가·수정 - Original Confirmation Authenticity Foundation
+
+- #182를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `3f7a390d04f8bd39fdce7163a3322a78f8b7e06d`, tree equality와 source/main 보존을 확인했다.
+- [ADR-096](docs/11-decisions/ADR-096-original-confirmation-authenticity-foundation.md)에 따라 held canonical Original Confirmation과 ADR-095 ACTIVE material을 exact confirmation-domain Ed25519 signature로 결합했다.
+- 결과는 provider-internal opaque authenticity handle뿐이며 CurrentnessWitness, admission, Rights로 승격하지 않는다. schema/migration/Repository/production port와 실제 private key·credential 변경은 0이다.
+
+### 추가·수정 - Active Provisioning Verifier Material Foundation
+
+- #181을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `0d5478859075122e472124ac19a7458139b6144e`, tree equality와 source/main 보존을 확인했다.
+- [ADR-095](docs/11-decisions/ADR-095-active-provisioning-verifier-material-foundation.md)에 따라 held ADR-094 ACTIVE authority source를 별도 custody-bound fixed verifier-material file, exact Ed25519 key ID/fingerprint/public bytes와 same-handle로 결합했다.
+- 결과는 provider-internal opaque handle뿐이며 signer, Original Confirmation authenticity, CurrentnessWitness 또는 admission으로 승격하지 않는다. schema/migration/Repository/production port와 실제 private key·credential 변경은 0이다.
+
 ### 추가·수정 - Authenticated Scoped Provisioning Authority Source Foundation
 
 - #180을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `82c19261f9b7f2074dcf6e23305b7067465ffcae`, tree equality와 source/main 보존을 확인했다.
