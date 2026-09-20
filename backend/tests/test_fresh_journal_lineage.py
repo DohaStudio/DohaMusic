@@ -58,7 +58,7 @@ def journal_engine(tmp_path):
 
 
 @contextmanager
-def source_fixture(tmp_path, journal_engine):
+def source_fixture(tmp_path, journal_engine, *, register_currentness=True):
     payload, expected = event()
     payload["designation_record_digest"] = digest(b"record")
     expected = replace(expected, designation_record_digest=payload["designation_record_digest"])
@@ -91,7 +91,11 @@ def source_fixture(tmp_path, journal_engine):
         attempt = lifetime._begin_after_verified_lease(
             lease=lease, session=source_session, binding=binding
         )
-        lifetime._register_after_independent_currentness(attempt)
+        witness = (
+            lifetime._register_after_independent_currentness(attempt)
+            if register_currentness
+            else None
+        )
         args = {
             "lease": lease,
             "session": source_session,
@@ -99,7 +103,7 @@ def source_fixture(tmp_path, journal_engine):
             "installation_id": SCOPES[0][0],
             "installation_proof_key_fingerprint": INSTALLATION_FP,
         }
-        fx = (pin_reader, args, pin_path, lifetime, None, None, serialization)
+        fx = (pin_reader, args, pin_path, lifetime, attempt, witness, serialization)
         try:
             yield fx
         finally:
