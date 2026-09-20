@@ -1,6 +1,6 @@
 # Authenticated Scoped Provisioning Authority Source Foundation 검증
 
-> 상태: Foundation Draft 검증
+> 상태: #181 merged 검증
 > 최종 수정일: 2026-09-20
 > 계약: [ADR-094](../11-decisions/ADR-094-authenticated-scoped-provisioning-authority-source-foundation.md)
 
