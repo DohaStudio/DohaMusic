@@ -96,7 +96,8 @@
 | [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md) | raw snapshot과 future verifier 사이 exact JCS identity/scope/replay payload boundary | Foundation Draft·signature/currentness/admission 미구현 |
 | [ADR-091](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md) | deployment verifier infrastructure-only reuse 판정과 held live current-lineage record | #178 merged·authenticity/admission/production writer 미구현 |
 | [ADR-092](ADR-092-fresh-journal-lineage-observation-foundation.md) | fresh complete public journal과 held lineage/pin/lease/두 transaction의 provider-internal correlation | #179 merged·currentness witness/admission 아님 |
-| [ADR-093](ADR-093-scoped-provisioning-authority-verification-foundation.md) | `INSTALLATION_POLICY_PROVISIONING_ONLY` root-signed exact scope·domain·rotation/revocation integrity | Foundation Draft·authenticated current source/admission 아님 |
+| [ADR-093](ADR-093-scoped-provisioning-authority-verification-foundation.md) | `INSTALLATION_POLICY_PROVISIONING_ONLY` root-signed exact scope·domain·rotation/revocation integrity | #180 merged·authenticated current source/admission 아님 |
+| [ADR-094](ADR-094-authenticated-scoped-provisioning-authority-source-foundation.md) | custody-bound fixed private source와 ADR-093 complete history의 same-handle 인증 | Foundation Draft·CurrentnessWitness/admission 아님 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
