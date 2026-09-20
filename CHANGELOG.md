@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - CurrentnessWitness Handoff Foundation
+
+- #184를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `d319790cf8e39cf5f19300ad2761e73089948271` 및 tree equality와 source/main 보존을 확인했다.
+- [ADR-098](docs/11-decisions/ADR-098-currentness-witness-handoff-foundation.md)에 따라 ADR-097 exact correlation을 동일 Windows lease, caller root transaction, exact scope와 `_ProviderWitnessLifetime` single attempt에 결합했다.
+- 발급 전후와 매 사용 시 parent chain을 재검증하고 mismatch/release/rejection/context exit/consumer exception을 one-way invalidation한다. 결과는 opaque ephemeral CurrentnessWitness뿐이며 Durable Admission/authorization으로 확장하지 않는다. Schema/migration/Repository/production port와 실제 private key·credential 변경은 0이다.
+
 ### 추가·수정 - Authentic Confirmation–Lineage Correlation Foundation
 
 - #183을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge하고 새 develop `6cc249db1fe9dd1e455fcf47a30b68c1d108f845`, tree equality와 source/main 보존을 확인했다.

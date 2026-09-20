@@ -280,6 +280,18 @@ class _ProviderWitnessLifetime:
                 if record.lease is not lease
             }
 
+    def _reject_attempt(self, attempt: object, *, witness: object | None) -> None:
+        """Permanently reject one exact attempt without pretending to release its OS lease."""
+        with self._lock:
+            if type(attempt) is not _Handle:
+                raise WitnessLifetimeDenied()
+            record = self._attempts.get(attempt)
+            if record is None:
+                return
+            if witness is not None and record.witness is not witness:
+                raise WitnessLifetimeDenied()
+            self._attempts.pop(attempt, None)
+
     def _close(self) -> None:
         """Provider shutdown/restart abandons all handles; no persistence/import."""
         with self._lock:

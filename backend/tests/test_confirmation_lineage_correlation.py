@@ -71,8 +71,8 @@ def correlation_journal_engine(tmp_path):
 
 
 @contextmanager
-def correlated(tmp_path, engine):
-    with source_fixture(tmp_path, engine) as fx:
+def correlated(tmp_path, engine, *, register_currentness=True):
+    with source_fixture(tmp_path, engine, register_currentness=register_currentness) as fx:
         args = fx[1]
         binding = args["expected"]
         root_key = keys()[binding.root_key_id]
