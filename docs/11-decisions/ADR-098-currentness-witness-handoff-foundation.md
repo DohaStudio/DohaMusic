@@ -1,8 +1,9 @@
 # ADR-098: CurrentnessWitness Handoff Foundation
 
-> 상태: 제안 — Foundation 구현·검증 완료, 운영 비활성
+> 상태: 채택 — #185 merged, 운영 비활성
 > 작성/최종 수정일: 2026-09-21
 > 기준 develop: `d319790cf8e39cf5f19300ad2761e73089948271` (#184 squash merge)
+> 관련 PR: [#185 merged](https://github.com/DohaStudio/DohaMusic/pull/185); 다음 [ADR-099](ADR-099-admission-attempt-provider-foundation.md)
 > 관련: [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-081](ADR-081-provider-witness-lifetime-foundation.md), [ADR-082](ADR-082-windows-ceremony-serialization-foundation.md), [ADR-097](ADR-097-authentic-confirmation-lineage-correlation-foundation.md), [검증](../10-operations/currentness-witness-handoff-validation.md)
 
 ## 결정

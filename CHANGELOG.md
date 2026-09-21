@@ -5,11 +5,17 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-19
+> 최종 수정일: 2026-09-21
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가·수정 - AdmissionAttempt Provider Foundation
+
+- #185를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `82d8e1fcb3d2d8c5ef4fbb3c569e72420b5864cb`, tree equality와 source/main 보존을 확인했다.
+- [ADR-099](docs/11-decisions/ADR-099-admission-attempt-provider-foundation.md)에 Product/Deployment governance의 candidate provider, external transaction owner, commit reconciler 분리 결정을 기록하고 가장 작은 A를 구현했다.
+- Live CurrentnessWitness를 strict canonical lifecycle candidate, expected journal head/revision, exact scope/current predecessor, correlation digest, native lease와 caller root transaction에 opaque single-attempt로 결합한다. App DB/journal write·commit·rollback, schema/migration, production key/credential/port와 실제 admission은 추가하지 않았다.
 
 ### 추가·수정 - CurrentnessWitness Handoff Foundation
 
