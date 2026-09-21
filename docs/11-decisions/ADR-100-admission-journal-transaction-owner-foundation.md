@@ -1,6 +1,6 @@
 # ADR-100: Admission Journal Transaction Owner Foundation
 
-> 상태: 제안 — Foundation 구현/로컬 검증 완료, 운영 비활성
+> 상태: #187 merged — Foundation 구현/검증 완료, 운영 비활성
 > 작성일: 2026-09-21
 > 기준 develop: `2fba391f6c94313ba50bbe46e4c94c42efce0953` (#186 squash merge)
 > 관련: [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md), [ADR-098](ADR-098-currentness-witness-handoff-foundation.md), [ADR-099](ADR-099-admission-attempt-provider-foundation.md), [검증](../10-operations/admission-journal-transaction-owner-validation.md)
@@ -53,4 +53,4 @@ Failure injection 경계는 begin 이전, candidate 검증, append/flush, final 
 
 기존 external journal schema v1이면 충분하다. App DB authority row, app Alembic migration, external journal migration, backfill은 없다. Alembic `20260918_0037` single head를 유지한다.
 
-이 Foundation은 Commit Reconciler 전체, Durable Admission orchestration, production adapter/port, Worker/API/frontend, Rights Writer/Adapter, Recovery/Transfer를 구현하지 않는다. 실제 production journal/DB/User DB/private key/credential/admission에는 접근하지 않는다. 다음 최소 dependency는 **Admission Commit Reconciler Foundation(C)** 이다.
+이 Foundation은 Durable Admission orchestration, production adapter/port, Worker/API/frontend, Rights Writer/Adapter, Recovery/Transfer를 구현하지 않는다. 실제 production journal/DB/User DB/private key/credential/admission에는 접근하지 않는다. Dependency C는 [ADR-101](ADR-101-admission-commit-reconciler-foundation.md)의 read-only Admission Commit Reconciler Foundation으로 구현했다.

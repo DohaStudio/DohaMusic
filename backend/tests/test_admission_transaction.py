@@ -55,9 +55,9 @@ def test_commit_is_only_success_linearization_point(tmp_path, currentness_journa
         result = commit(value)
         assert observed == ["commit"]
         assert result.outcome is _AdmissionCommitOutcome.COMMITTED
-        assert result.reconciliation.event_revision == 2
-        assert result.reconciliation.event_digest.startswith("sha256:")
-        assert result.reconciliation.attempt_id
+        assert result.identity.event_revision == 2
+        assert result.identity.event_digest.startswith("sha256:")
+        assert result.identity.attempt_id
         with pytest.raises(AdmissionAttemptDenied):
             provider._require_prepared(
                 attempt,
@@ -105,7 +105,7 @@ def test_commit_exception_is_unknown_even_when_commit_happened(
         journal_session.commit = lose_response
         result = commit(value)
         assert result.outcome is _AdmissionCommitOutcome.RECONCILIATION_REQUIRED
-        assert result.reconciliation.journal_id
+        assert result.identity.journal_id
         with pytest.raises(AdmissionTransactionDenied):
             owner(value).commit(
                 attempt,
@@ -129,7 +129,7 @@ def test_commit_exception_never_guesses_not_committed(tmp_path, currentness_jour
         journal_session.commit = fail_during_commit
         result = commit(value)
         assert result.outcome is _AdmissionCommitOutcome.RECONCILIATION_REQUIRED
-        assert result.reconciliation.event_id
+        assert result.identity.event_id
         assert not journal_session.in_transaction()
     with Session(currentness_journal_engine) as session:
         assert JournalRepository(session).read_public_head().revision == 1

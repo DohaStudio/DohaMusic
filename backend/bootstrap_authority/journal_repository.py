@@ -37,6 +37,16 @@ class PublicKeyHistory:
     invalidated_at_revision: int | None
 
 
+@dataclass(frozen=True, slots=True)
+class JournalEvent:
+    event_id: str
+    journal_id: str
+    revision: int
+    previous_digest: str | None
+    event_digest: str
+    envelope: bytes
+
+
 class JournalRepository:
     """Caller owns the independent-store Session/transaction and error rollback.
 
@@ -190,3 +200,41 @@ class JournalRepository:
             installed_public_head != self.read_public_head()
         ):
             raise RuntimeError("JOURNAL_PIN_MISMATCH")
+
+    def read_verified_events(self) -> tuple[JournalEvent, ...]:
+        """Return an exact immutable event view after complete-history verification."""
+        before = self.read_public_head()
+        self.read_public_history()
+        rows = self.session.execute(
+            text(
+                "SELECT event_id,journal_id,revision,previous_digest,event_digest,envelope "
+                "FROM deployment_journal_events ORDER BY revision"
+            )
+        ).all()
+        events = []
+        try:
+            for row in rows:
+                envelope = row.envelope
+                payload = json.loads(envelope)["payload"]
+                if (
+                    type(row.event_id) is not str
+                    or type(row.journal_id) is not str
+                    or type(row.revision) is not int
+                    or type(row.previous_digest) not in {str, type(None)}
+                    or type(row.event_digest) is not str
+                    or type(envelope) is not bytes
+                    or rfc8785.dumps(json.loads(envelope)) != envelope
+                    or digest(envelope) != row.event_digest
+                    or payload["event_id"] != row.event_id
+                    or payload["journal_id"] != row.journal_id
+                    or payload["revision"] != row.revision
+                    or payload["previous_event_digest"] != row.previous_digest
+                ):
+                    raise ValueError("EVENT")
+                events.append(JournalEvent(*row))
+            after = self.read_public_head()
+            if before != after or len(events) != after.revision:
+                raise ValueError("MOVING_HEAD")
+        except (ValueError, TypeError, KeyError, UnicodeError, rfc8785.CanonicalizationError):
+            raise RuntimeError("JOURNAL_INCONSISTENT") from None
+        return tuple(events)
