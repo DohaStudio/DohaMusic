@@ -146,6 +146,32 @@ class _AdmissionJournalTransactionOwner:
         self._reconciliations[id(handoff)] = record
         return _AdmissionCommitResult(outcome, handoff, identity)
 
+    def _require_result(self, result, *, admission_attempt=None) -> _ReconciliationRecord:
+        """Authenticate an exact result minted by this owner."""
+        if type(result) is not _AdmissionCommitResult:
+            raise AdmissionTransactionDenied()
+        record = self._reconciliations.get(id(result.reconciliation))
+        if (
+            type(record) is not _ReconciliationRecord
+            or record.handoff is not result.reconciliation
+            or record.outcome is not result.outcome
+            or record.identity is not result.identity
+            or _identity(record.attempt) != record.identity
+            or (admission_attempt is not None and record.attempt.handle is not admission_attempt)
+        ):
+            raise AdmissionTransactionDenied()
+        return record
+
+    def _release_known_result(self, result, *, admission_attempt) -> _ReconciliationRecord:
+        """Consume a known result after orchestration; ambiguous handoffs remain replayable."""
+        record = self._require_result(result, admission_attempt=admission_attempt)
+        if record.outcome is _AdmissionCommitOutcome.RECONCILIATION_REQUIRED:
+            raise AdmissionTransactionDenied()
+        if self._reconciliations.get(id(record.handoff)) is not record:
+            raise AdmissionTransactionDenied()
+        self._reconciliations.pop(id(record.handoff))
+        return record
+
     @staticmethod
     def _require_transaction(record: _AttemptRecord) -> None:
         session = record.journal_session

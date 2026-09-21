@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - Durable Admission Orchestration Foundation
+
+- #188을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `3347a94dc0e48111f1d14a69ec1e5411c1467604`, tree equality와 source/main 보존을 확인했다.
+- [ADR-102](docs/11-decisions/ADR-102-durable-admission-orchestration-foundation.md)에 따라 CurrentnessWitness → AdmissionAttempt Provider → Transaction Owner → Commit Reconciler를 exact component identity로만 조합하는 내부 coordinator를 추가했다.
+- Direct `COMMITTED`와 reconciled `COMMITTED_EXACT`만 durable success로 수렴하며 `NOT_COMMITTED`, `CONFLICT`, `UNAVAILABLE`는 fail-closed로 보존한다. Orchestrator 직접 SQL/CAS/commit, blind retry, witness·attempt 재발급, app success authority, schema/migration 및 production wiring은 추가하지 않았다.
+
 ### 추가·수정 - Admission Commit Reconciler Foundation
 
 - #187을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `902d28c262a506c6da8779366d044393f6f5047b`, tree equality와 source/main 보존을 확인했다.
