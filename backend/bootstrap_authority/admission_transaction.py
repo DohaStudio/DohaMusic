@@ -43,6 +43,35 @@ class _AdmissionCommitOutcome(Enum):
     RECONCILIATION_REQUIRED = "RECONCILIATION_REQUIRED"
 
 
+_RECONCILIATION_MINT = object()
+
+
+class _ReconciliationHandoff:
+    """Opaque owner-registry capability; its fields cannot be caller-rebuilt."""
+
+    __slots__ = ()
+
+    def __new__(cls, mint=None):
+        if mint is not _RECONCILIATION_MINT:
+            raise AdmissionTransactionDenied()
+        return super().__new__(cls)
+
+    def __init_subclass__(cls, **kwargs):
+        raise TypeError("OPAQUE_RECONCILIATION_HANDOFF")
+
+    def __copy__(self):
+        raise TypeError("OPAQUE_RECONCILIATION_HANDOFF")
+
+    def __deepcopy__(self, memo):
+        raise TypeError("OPAQUE_RECONCILIATION_HANDOFF")
+
+    def __reduce_ex__(self, protocol):
+        raise TypeError("OPAQUE_RECONCILIATION_HANDOFF")
+
+    def __repr__(self):
+        return "<opaque reconciliation handoff>"
+
+
 @dataclass(frozen=True, slots=True, repr=False)
 class _ReconciliationIdentity:
     installation_ids: tuple[str, ...]
@@ -62,7 +91,16 @@ class _AdmissionCommitResult:
     """A report, not a receipt, credential, admission or retry capability."""
 
     outcome: _AdmissionCommitOutcome
-    reconciliation: _ReconciliationIdentity
+    reconciliation: _ReconciliationHandoff
+    identity: _ReconciliationIdentity
+
+
+@dataclass(frozen=True, slots=True, repr=False)
+class _ReconciliationRecord:
+    handoff: _ReconciliationHandoff
+    outcome: _AdmissionCommitOutcome
+    identity: _ReconciliationIdentity
+    attempt: _AttemptRecord
 
 
 def _identity(record: _AttemptRecord) -> _ReconciliationIdentity:
@@ -95,6 +133,18 @@ class _AdmissionJournalTransactionOwner:
         self._attempts = attempts
         self._journal = journal_repository
         self._lock = RLock()
+        self._reconciliations: dict[int, _ReconciliationRecord] = {}
+
+    def _result(
+        self,
+        outcome: _AdmissionCommitOutcome,
+        identity: _ReconciliationIdentity,
+        attempt: _AttemptRecord,
+    ) -> _AdmissionCommitResult:
+        handoff = _ReconciliationHandoff(_RECONCILIATION_MINT)
+        record = _ReconciliationRecord(handoff, outcome, identity, attempt)
+        self._reconciliations[id(handoff)] = record
+        return _AdmissionCommitResult(outcome, handoff, identity)
 
     @staticmethod
     def _require_transaction(record: _AttemptRecord) -> None:
@@ -242,10 +292,10 @@ class _AdmissionJournalTransactionOwner:
                 )
                 self._cleanup_failed_transaction(record, commit_started=commit_started)
                 self._consume(record, self._attempts)
-                return _AdmissionCommitResult(outcome, reconciliation)
+                return self._result(outcome, reconciliation, record)
 
             self._consume(record, self._attempts)
-            return _AdmissionCommitResult(_AdmissionCommitOutcome.COMMITTED, reconciliation)
+            return self._result(_AdmissionCommitOutcome.COMMITTED, reconciliation, record)
 
 
 __all__ = ["AdmissionTransactionDenied"]
