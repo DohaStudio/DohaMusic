@@ -14,6 +14,7 @@ from contextlib import contextmanager, suppress
 from dataclasses import dataclass, fields
 from threading import RLock
 from types import MappingProxyType
+from uuid import uuid4
 
 import rfc8785
 
@@ -81,6 +82,7 @@ class _Candidate:
     expected_head_revision: int
     expected_semantic_revision: int
     affected_scopes: tuple[tuple[str, str, str], ...]
+    expected: LifecycleExpectations
 
 
 @dataclass(frozen=True, slots=True, repr=False)
@@ -91,8 +93,11 @@ class _AttemptRecord:
     currentness_arguments: Mapping[str, object]
     candidate: _Candidate
     correlation_digest: str
+    attempt_id: str
     lease: object
     caller_transaction: object
+    journal_session: object
+    journal_transaction: object
 
 
 def _correlation_digest(record: _WitnessRecord) -> str:
@@ -177,6 +182,7 @@ def _canonical_candidate(
         payload["revision"] - 1,
         payload["previous_trust_revision"],
         expected.authoritative_scopes,
+        expected,
     )
 
 
@@ -262,8 +268,11 @@ class _AdmissionAttemptProvider:
                     MappingProxyType(dict(currentness_arguments)),
                     candidate,
                     _correlation_digest(witness_record),
+                    str(uuid4()),
                     witness_record.lease,
                     witness_record.transaction,
+                    witness_record.correlation_record.journal_transaction.session,
+                    witness_record.correlation_record.journal_transaction,
                 )
                 self._records[handle] = record
                 self._by_witness[currentness_witness] = handle

@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - Admission Journal Transaction Owner Foundation
+
+- #186을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `2fba391f6c94313ba50bbe46e4c94c42efce0953`, tree equality와 source/main 보존을 확인했다.
+- [ADR-100](docs/11-decisions/ADR-100-admission-journal-transaction-owner-foundation.md)에 따라 live opaque AdmissionAttempt가 고정한 exact independent journal Session/transaction에서 기존 schema v1 CAS append, private lineage/lease/root transaction final guard와 authoritative commit outcome을 소유한다.
+- External commit 정상 반환만 `COMMITTED`, commit 전 rollback 경계는 `NOT_COMMITTED`, commit 호출 예외는 stable reconciliation identity를 포함한 `RECONCILIATION_REQUIRED`로 분리한다. Blind retry·witness resurrection·app Repository transaction·schema/migration·production wiring은 추가하지 않았다.
+
 ### 추가·수정 - AdmissionAttempt Provider Foundation
 
 - #185를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `82d8e1fcb3d2d8c5ef4fbb3c569e72420b5864cb`, tree equality와 source/main 보존을 확인했다.
