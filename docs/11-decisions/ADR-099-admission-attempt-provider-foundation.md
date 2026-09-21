@@ -1,6 +1,6 @@
 # ADR-099: AdmissionAttempt Provider Foundation
 
-> 상태: 제안 — Product/Deployment Decision 반영·Foundation 구현/검증 완료, 운영 비활성
+> 상태: #186 merged — Product/Deployment Decision 반영·Foundation 구현/검증 완료, 운영 비활성
 > 작성/최종 수정일: 2026-09-21
 > 기준 develop: `82d8e1fcb3d2d8c5ef4fbb3c569e72420b5864cb` (#185 squash merge)
 > 관련: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-080](ADR-080-private-admission-currentness-handoff-contract.md), [ADR-098](ADR-098-currentness-witness-handoff-foundation.md), [검증](../10-operations/admission-attempt-provider-validation.md)
@@ -67,4 +67,4 @@ Prepare 전/후, append 전/후, final guard, commit 중, commit 성공 후 resp
 
 AdmissionAttempt와 CurrentnessWitness는 ephemeral이다. Durable success는 외부 journal authority에만 기록한다. App DB success row를 admission authority로 사용하지 않으며 새 app schema, migration, backfill 또는 external journal schema 변경은 없다. Alembic `20260918_0037` single head와 journal schema v1을 유지한다.
 
-실제 production journal/DB/User DB/private key/credential/admission에는 접근하지 않는다. 이 internal Foundation의 disposable signed candidate는 mechanics 검증용이며 production에서 independently designated record를 대신하지 않는다. 실제 concrete provider는 trusted deployment composition에서 candidate designation source를 독립 검증해야 하고 그 전 production port는 unconditional unavailable이다. Rights, Workspace ownership, Recovery/Transfer, Worker/runtime, public API, frontend, WebAuthn과 pin installer는 non-goal이다. 다음 최소 dependency는 **Admission Journal Transaction Owner Foundation(B)**이며, 그 뒤 lost-response **Commit Reconciliation Foundation(C)**을 구현한다.
+실제 production journal/DB/User DB/private key/credential/admission에는 접근하지 않는다. 이 internal Foundation의 disposable signed candidate는 mechanics 검증용이며 production에서 independently designated record를 대신하지 않는다. 실제 concrete provider는 trusted deployment composition에서 candidate designation source를 독립 검증해야 하고 그 전 production port는 unconditional unavailable이다. Rights, Workspace ownership, Recovery/Transfer, Worker/runtime, public API, frontend, WebAuthn과 pin installer는 non-goal이다. Dependency B는 [ADR-100](ADR-100-admission-journal-transaction-owner-foundation.md)의 Admission Journal Transaction Owner Foundation으로 구현했다. Lost-response **Commit Reconciliation Foundation(C)**은 후속이다.
