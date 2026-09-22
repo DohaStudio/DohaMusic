@@ -54,6 +54,12 @@ class _ReconciliationResult:
     identity: _ReconciliationIdentity
 
 
+@dataclass(frozen=True, slots=True, repr=False)
+class _ReconciliationResultRecord:
+    result: _ReconciliationResult
+    handoff: _ReconciliationHandoff
+
+
 class _AdmissionCommitReconciler:
     """Exact-handoff reader over the owner's independently bound journal."""
 
@@ -66,6 +72,7 @@ class _AdmissionCommitReconciler:
             raise AdmissionReconciliationDenied()
         self._owner = transaction_owner
         self._engine = journal_engine
+        self._results: dict[int, _ReconciliationResultRecord] = {}
 
     def _require_handoff(self, handoff) -> _ReconciliationRecord:
         if type(handoff) is not _ReconciliationHandoff:
@@ -88,6 +95,32 @@ class _AdmissionCommitReconciler:
             if repository.read_public_head() != head:
                 raise RuntimeError("MOVING_JOURNAL")
             return _JournalSnapshot(head, events)
+
+    def _result(self, outcome, record: _ReconciliationRecord) -> _ReconciliationResult:
+        result = _ReconciliationResult(outcome, record.identity)
+        self._results[id(result)] = _ReconciliationResultRecord(result, record.handoff)
+        return result
+
+    def _require_result(self, result, *, handoff) -> _ReconciliationResult:
+        """Authenticate an exact result minted for one owner handoff."""
+        if type(result) is not _ReconciliationResult:
+            raise AdmissionReconciliationDenied()
+        record = self._results.get(id(result))
+        owner_record = self._require_handoff(handoff)
+        if (
+            type(record) is not _ReconciliationResultRecord
+            or record.result is not result
+            or record.handoff is not handoff
+            or result.identity is not owner_record.identity
+            or type(result.outcome) is not _ReconciliationOutcome
+        ):
+            raise AdmissionReconciliationDenied()
+        return result
+
+    def _consume_result(self, result, *, handoff) -> _ReconciliationResult:
+        result = self._require_result(result, handoff=handoff)
+        self._results.pop(id(result))
+        return result
 
     @staticmethod
     def _classify(record: _ReconciliationRecord, snapshot: _JournalSnapshot):
@@ -136,10 +169,10 @@ class _AdmissionCommitReconciler:
             first = self._read_snapshot()
             second = self._read_snapshot()
         except Exception:
-            return _ReconciliationResult(_ReconciliationOutcome.UNAVAILABLE, record.identity)
+            return self._result(_ReconciliationOutcome.UNAVAILABLE, record)
         if first != second:
-            return _ReconciliationResult(_ReconciliationOutcome.UNAVAILABLE, record.identity)
-        return _ReconciliationResult(self._classify(record, second), record.identity)
+            return self._result(_ReconciliationOutcome.UNAVAILABLE, record)
+        return self._result(self._classify(record, second), record)
 
 
 __all__ = ["AdmissionReconciliationDenied"]
