@@ -5,11 +5,17 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-21
+> 최종 수정일: 2026-09-22
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가·수정 - Durable Admission Production Composition Foundation
+
+- #189를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `a7469a5dd8f5a3106cb258c4848b36ffd0ae3ad0`, tree equality와 source/main 보존을 확인했다.
+- [ADR-103](docs/11-decisions/ADR-103-durable-admission-production-composition-foundation.md)에 따라 exact authority graph, caller root transaction과 별도 external journal transaction만 ceremony-scoped composition에 결합하는 strict activation gate를 추가했다.
+- 누락·교체·subclass/test graph, app DB journal alias, inactive/nested transaction, duplicate/cross-request graph는 거부한다. Production startup은 실제 source/configuration/authentication adapter가 없으므로 unconditional unavailable이며 Fake/in-memory/no-op fallback, Worker/API wiring, schema/migration은 추가하지 않았다.
 
 ### 추가·수정 - Durable Admission Orchestration Foundation
 
