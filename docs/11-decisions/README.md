@@ -106,7 +106,8 @@
 | [ADR-100](ADR-100-admission-journal-transaction-owner-foundation.md) | exact AdmissionAttempt와 external journal CAS/final guard/commit outcome의 one-shot transaction ownership | #187 merged·reconciliation/admission 아님 |
 | [ADR-101](ADR-101-admission-commit-reconciler-foundation.md) | opaque ambiguous-commit handoff의 complete journal read-only exact reconciliation | #188 merged·orchestration/admission 아님 |
 | [ADR-102](ADR-102-durable-admission-orchestration-foundation.md) | CurrentnessWitness·AdmissionAttempt·Transaction Owner·Commit Reconciler의 fail-closed durable admission 조정 | #189 merged·production composition 아님 |
-| [ADR-103](ADR-103-durable-admission-production-composition-foundation.md) | exact provider graph·caller/external transaction을 ceremony scope에 결합하는 strict composition/activation gate | Foundation Draft·production activation unavailable |
+| [ADR-103](ADR-103-durable-admission-production-composition-foundation.md) | exact provider graph·caller/external transaction을 ceremony scope에 결합하는 strict composition/activation gate | #190 merged·production activation unavailable |
+| [ADR-104](ADR-104-reviewed-production-deployment-configuration-foundation.md) | exact production identity/path/domain을 고정하는 canonical reviewed routing configuration; authority 아님 | Foundation Draft·production activation unavailable |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
