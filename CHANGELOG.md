@@ -5,7 +5,7 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-21
+> 최종 수정일: 2026-09-22
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
@@ -16,6 +16,18 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 현재 selected Candidate의 proposal을 authorized Artifact resolver로 재검증하고 Candidate APPLY Public API에서 Run version과 WorkingComposition revision 이중 CAS로 적용한다.
 - 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
 - atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
+### 추가·수정 - Durable Admission Production Composition Foundation
+
+- #189를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `a7469a5dd8f5a3106cb258c4848b36ffd0ae3ad0`, tree equality와 source/main 보존을 확인했다.
+- [ADR-103](docs/11-decisions/ADR-103-durable-admission-production-composition-foundation.md)에 따라 exact authority graph, caller root transaction과 별도 external journal transaction만 ceremony-scoped composition에 결합하는 strict activation gate를 추가했다.
+- 누락·교체·subclass/test graph, app DB journal alias, inactive/nested transaction, duplicate/cross-request graph는 거부한다. Production startup은 실제 source/configuration/authentication adapter가 없으므로 unconditional unavailable이며 Fake/in-memory/no-op fallback, Worker/API wiring, schema/migration은 추가하지 않았다.
+
+### 추가·수정 - Durable Admission Orchestration Foundation
+
+- #188을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `3347a94dc0e48111f1d14a69ec1e5411c1467604`, tree equality와 source/main 보존을 확인했다.
+- [ADR-102](docs/11-decisions/ADR-102-durable-admission-orchestration-foundation.md)에 따라 CurrentnessWitness → AdmissionAttempt Provider → Transaction Owner → Commit Reconciler를 exact component identity로만 조합하는 내부 coordinator를 추가했다.
+- Direct `COMMITTED`와 reconciled `COMMITTED_EXACT`만 durable success로 수렴하며 `NOT_COMMITTED`, `CONFLICT`, `UNAVAILABLE`는 fail-closed로 보존한다. Orchestrator 직접 SQL/CAS/commit, blind retry, witness·attempt 재발급, app success authority, schema/migration 및 production wiring은 추가하지 않았다.
+
 ### 추가·수정 - Admission Commit Reconciler Foundation
 
 - #187을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `902d28c262a506c6da8779366d044393f6f5047b`, tree equality와 source/main 보존을 확인했다.

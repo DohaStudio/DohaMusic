@@ -1,6 +1,6 @@
 # ADR-101: Admission Commit Reconciler Foundation
 
-> 상태: 제안 — Foundation 구현/로컬 검증 완료, 운영 비활성
+> 상태: #188 merged — Foundation 구현/검증 완료, 운영 비활성
 > 작성일: 2026-09-21
 > 기준 develop: `902d28c262a506c6da8779366d044393f6f5047b` (#187 squash merge)
 > 관련: [ADR-099](ADR-099-admission-attempt-provider-foundation.md), [ADR-100](ADR-100-admission-journal-transaction-owner-foundation.md), [검증](../10-operations/admission-commit-reconciler-validation.md)
@@ -39,4 +39,4 @@ Event ID, digest, revision, public receipt, cached state 또는 commit 호출 �
 
 기존 external journal schema v1과 app Alembic `20260918_0037`이면 충분하다. App DB reconciliation authority row, migration, backfill 또는 production wiring은 추가하지 않는다. 실제 production journal/DB/User DB/key/credential/admission에는 접근하지 않는다.
 
-CurrentnessWitness → AdmissionAttempt → Transaction Owner → Commit Reconciler 최소 chain은 구현됐으므로 다음 dependency인 **Durable Admission Orchestration Foundation** 설계를 시작할 준비가 됐다. 이 ADR은 orchestration, Worker/runtime, API/frontend, Rights integration, Recovery/Transfer를 구현하지 않는다.
+CurrentnessWitness → AdmissionAttempt → Transaction Owner → Commit Reconciler 최소 chain은 구현됐으며 [ADR-102](ADR-102-durable-admission-orchestration-foundation.md)가 이 exact component들을 조합하는 Durable Admission Orchestration Foundation을 정의한다. 이 ADR 자체는 orchestration, Worker/runtime, API/frontend, Rights integration, Recovery/Transfer를 구현하지 않는다.

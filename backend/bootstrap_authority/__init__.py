@@ -1,1 +1,1 @@
-"""Bootstrap authority foundations; production source/currentness remains unavailable."""
+"""Bootstrap authority foundations; production activation remains unavailable."""
