@@ -5,7 +5,7 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-19
+> 최종 수정일: 2026-09-21
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
@@ -16,6 +16,29 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 - 현재 selected Candidate의 proposal을 authorized Artifact resolver로 재검증하고 Candidate APPLY Public API에서 Run version과 WorkingComposition revision 이중 CAS로 적용한다.
 - 필수 Idempotency-Key와 proposal Artifact UUID·digest·contract version fingerprint를 사용하며 conflict와 in-progress를 구분한다.
 - atomic WorkingComposition mutation과 단일 MUSIC_DIRECTOR_APPLY aggregate history, aggregate Undo/Redo를 구현했다. Migration delta는 0이다.
+### 추가·수정 - Admission Commit Reconciler Foundation
+
+- #187을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `902d28c262a506c6da8779366d044393f6f5047b`, tree equality와 source/main 보존을 확인했다.
+- [ADR-101](docs/11-decisions/ADR-101-admission-commit-reconciler-foundation.md)에 따라 exact Transaction Owner가 mint한 opaque ambiguous-commit handoff만 동일 external journal engine의 두 complete-history snapshot으로 read-only 판정한다.
+- Exact committed tuple은 `COMMITTED_EXACT`, unchanged exact predecessor는 `NOT_COMMITTED`, partial identity/lineage mismatch는 `CONFLICT`, incomplete/moving/read·close failure는 `UNAVAILABLE`로 분리한다. Append/CAS/DML/commit retry·repair·witness resurrection·app schema/migration·production wiring은 추가하지 않았다.
+
+### 추가·수정 - Admission Journal Transaction Owner Foundation
+
+- #186을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `2fba391f6c94313ba50bbe46e4c94c42efce0953`, tree equality와 source/main 보존을 확인했다.
+- [ADR-100](docs/11-decisions/ADR-100-admission-journal-transaction-owner-foundation.md)에 따라 live opaque AdmissionAttempt가 고정한 exact independent journal Session/transaction에서 기존 schema v1 CAS append, private lineage/lease/root transaction final guard와 authoritative commit outcome을 소유한다.
+- External commit 정상 반환만 `COMMITTED`, commit 전 rollback 경계는 `NOT_COMMITTED`, commit 호출 예외는 stable reconciliation identity를 포함한 `RECONCILIATION_REQUIRED`로 분리한다. Blind retry·witness resurrection·app Repository transaction·schema/migration·production wiring은 추가하지 않았다.
+
+### 추가·수정 - AdmissionAttempt Provider Foundation
+
+- #185를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `82d8e1fcb3d2d8c5ef4fbb3c569e72420b5864cb`, tree equality와 source/main 보존을 확인했다.
+- [ADR-099](docs/11-decisions/ADR-099-admission-attempt-provider-foundation.md)에 Product/Deployment governance의 candidate provider, external transaction owner, commit reconciler 분리 결정을 기록하고 가장 작은 A를 구현했다.
+- Live CurrentnessWitness를 strict canonical lifecycle candidate, expected journal head/revision, exact scope/current predecessor, correlation digest, native lease와 caller root transaction에 opaque single-attempt로 결합한다. App DB/journal write·commit·rollback, schema/migration, production key/credential/port와 실제 admission은 추가하지 않았다.
+
+### 추가·수정 - CurrentnessWitness Handoff Foundation
+
+- #184를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `d319790cf8e39cf5f19300ad2761e73089948271` 및 tree equality와 source/main 보존을 확인했다.
+- [ADR-098](docs/11-decisions/ADR-098-currentness-witness-handoff-foundation.md)에 따라 ADR-097 exact correlation을 동일 Windows lease, caller root transaction, exact scope와 `_ProviderWitnessLifetime` single attempt에 결합했다.
+- 발급 전후와 매 사용 시 parent chain을 재검증하고 mismatch/release/rejection/context exit/consumer exception을 one-way invalidation한다. 결과는 opaque ephemeral CurrentnessWitness뿐이며 Durable Admission/authorization으로 확장하지 않는다. Schema/migration/Repository/production port와 실제 private key·credential 변경은 0이다.
 
 ### 추가·수정 - Authentic Confirmation–Lineage Correlation Foundation
 
