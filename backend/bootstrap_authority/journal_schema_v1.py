@@ -76,6 +76,25 @@ DDL = (
         END""",
 )
 
+IMMUTABILITY_DDL = tuple(
+    f"CREATE TRIGGER {table}_{operation.lower()} BEFORE {operation} ON {table} "
+    "BEGIN SELECT RAISE(ABORT,'IMMUTABLE_JOURNAL'); END"
+    for table in ("deployment_journal_schema", "deployment_journal_events")
+    for operation in ("UPDATE", "DELETE")
+) + (
+    "CREATE TRIGGER deployment_journal_schema_insert "
+    "BEFORE INSERT ON deployment_journal_schema "
+    "BEGIN SELECT RAISE(ABORT,'IMMUTABLE_JOURNAL'); END",
+    "CREATE TRIGGER deployment_journal_guard_delete BEFORE DELETE ON deployment_journal_guard "
+    "BEGIN SELECT RAISE(ABORT,'IMMUTABLE_JOURNAL'); END",
+)
+
+# Exact object DDL is public schema metadata for strict runtime verification.
+# The one provisioning INSERT in DDL is intentionally excluded.
+SCHEMA_OBJECT_DDL = tuple(statement for statement in DDL if statement.startswith("CREATE")) + (
+    IMMUTABILITY_DDL
+)
+
 
 def migrate_empty_journal(connection: Connection) -> None:
     """Schema installation is NOT journal identity initialization/admission.
@@ -93,18 +112,5 @@ def migrate_empty_journal(connection: Connection) -> None:
         connection.exec_driver_sql("BEGIN")
     for statement in DDL:
         connection.exec_driver_sql(statement)
-    for table in ("deployment_journal_schema", "deployment_journal_events"):
-        for operation in ("UPDATE", "DELETE"):
-            connection.exec_driver_sql(
-                f"CREATE TRIGGER {table}_{operation.lower()} BEFORE {operation} ON {table} "
-                "BEGIN SELECT RAISE(ABORT,'IMMUTABLE_JOURNAL'); END"
-            )
-    connection.exec_driver_sql(
-        "CREATE TRIGGER deployment_journal_schema_insert "
-        "BEFORE INSERT ON deployment_journal_schema "
-        "BEGIN SELECT RAISE(ABORT,'IMMUTABLE_JOURNAL'); END"
-    )
-    connection.exec_driver_sql(
-        "CREATE TRIGGER deployment_journal_guard_delete BEFORE DELETE ON deployment_journal_guard "
-        "BEGIN SELECT RAISE(ABORT,'IMMUTABLE_JOURNAL'); END"
-    )
+    for statement in IMMUTABILITY_DDL:
+        connection.exec_driver_sql(statement)
