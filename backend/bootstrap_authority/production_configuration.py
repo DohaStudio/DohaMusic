@@ -153,7 +153,7 @@ def _reject_number(_value):
 
 
 def _windows_absolute_path(value: object, *, expected_file: str | None = None) -> str:
-    if type(value) is not str or not re.fullmatch(r"[A-Za-z]:\\[^\\]+(?:\\[^\\]+)*", value):
+    if type(value) is not str or not re.fullmatch(r"[A-Z]:\\[^\\]+(?:\\[^\\]+)*", value):
         raise ValueError("PATH")
     parts = value[3:].split("\\")
     for part in parts:

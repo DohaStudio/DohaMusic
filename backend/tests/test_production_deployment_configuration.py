@@ -143,6 +143,7 @@ def test_wrong_reviewed_identity_is_denied(field):
     ("field", "path"),
     [
         ("private_source_root", r"relative\authority"),
+        ("private_source_root", r"d:\Authority"),
         ("private_source_root", r"D:\Authority\..\Escape"),
         ("private_source_root", r"\\server\share\Authority"),
         ("private_source_root", r"\\?\D:\Authority"),

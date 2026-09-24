@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 - Production Private Authority Source Factory Foundation
+
+- #191을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `94351e57c37160b3688aac2895d4862a42ffb06b`, tree equality와 source/main 보존을 확인했다.
+- [ADR-105](docs/11-decisions/ADR-105-production-private-authority-source-factory-foundation.md)에 따라 reviewed configuration을 designation/pin/authority history/verifier material/original confirmation/live lineage의 exact immutable descriptor bundle로 변환한다.
+- Factory는 파일을 열거나 custody/authenticity/currentness를 주장하지 않고 test/Fake/default source를 만들지 않는다. Lowercase drive alias도 canonical configuration에서 거부하며 production sources와 activation은 unavailable로 유지한다.
+
 ### 추가·수정 - Reviewed Production Deployment Configuration Foundation
 
 - #190을 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `758a0ba84460da2950e3b976301565afc3422a5c`, tree equality와 source/main 보존을 확인했다.
