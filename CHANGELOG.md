@@ -5,11 +5,17 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-23
+> 최종 수정일: 2026-09-24
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 추가·수정 - Production External Journal Factory Foundation
+
+- #192를 exact-head required CI 3 SUCCESS와 same D/H/T/review/mergeability Gate에서 expected-head squash merge했고 새 develop `cda9fa8bd1974d20d431b5efdc80ec024bfd3a21`, tree equality와 source/main 보존을 확인했다.
+- [ADR-106](docs/11-decisions/ADR-106-production-external-journal-factory-foundation.md)에 따라 reviewed exact external journal을 existing-only `mode=rw`로 열고 schema/version/identity/complete history/integrity와 Windows native path identity를 검증한다.
+- Runtime-pinned SQLite connection과 single bounded root Session이 Transaction Owner/Reconciler에 동일 opened file을 제공한다. Factory commit/admission authority, implicit create/migration/GENESIS/repair와 app DB·memory·test fallback은 없으며 실제 journal provisioning과 production activation은 unavailable로 유지한다.
 
 ### 추가·수정 - Production Private Authority Source Factory Foundation
 
