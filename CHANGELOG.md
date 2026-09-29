@@ -5,11 +5,16 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-24
+> 최종 수정일: 2026-09-29
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 수정 - Production Journal Session 종료 경합
+
+- root Session close가 완료될 때까지 기존 Runtime 잠금과 registry를 유지하여 다음 root Session과 transaction lifetime이 겹치지 않도록 수정했다. 초기 검증 실패와 shutdown 정리도 같은 잠금 경계를 사용한다.
+- Session close 실패는 Runtime을 영구 거부 상태로 만들고 이전 capability 및 새 Session 발급을 차단한다. Event 기반 경합 재현과 close 실패·동시 진입·foreign runtime·transaction identity 회귀 검증을 추가했다.
 
 ### 추가·수정 - Production External Journal Factory Foundation
 

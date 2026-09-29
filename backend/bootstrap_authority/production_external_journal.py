@@ -330,14 +330,12 @@ class _ProductionExternalJournalRuntime:
 
     @contextmanager
     def open_session(self):
-        session = Session(self._engine, autoflush=False, expire_on_commit=False)
-        transaction = None
-        token = object()
-        capability = None
-        try:
-            with self._lock:
-                if self._closed or self._sessions:
-                    raise ProductionExternalJournalFactoryDenied()
+        with self._lock:
+            if self._closed or self._sessions:
+                raise ProductionExternalJournalFactoryDenied()
+            session = Session(self._engine, autoflush=False, expire_on_commit=False)
+            token = object()
+            try:
                 transaction = session.begin()
                 self._verify(session)
                 capability = _ProductionJournalSession(
@@ -349,23 +347,24 @@ class _ProductionExternalJournalRuntime:
                     get_ident(),
                 )
                 self._sessions[token] = capability
-        except Exception:
-            try:
-                session.close()
             except Exception:
-                self._closed = True
-            raise ProductionExternalJournalFactoryDenied() from None
+                try:
+                    session.close()
+                except Exception:
+                    self._closed = True
+                raise ProductionExternalJournalFactoryDenied() from None
 
         try:
             yield capability
         finally:
             with self._lock:
-                self._sessions.pop(token, None)
-            try:
-                session.close()
-            except Exception:
-                self._closed = True
-                raise ProductionExternalJournalFactoryDenied() from None
+                try:
+                    session.close()
+                except Exception:
+                    self._closed = True
+                    raise ProductionExternalJournalFactoryDenied() from None
+                finally:
+                    self._sessions.pop(token, None)
 
     def _require_session(self, capability) -> _ProductionJournalSession:
         try:
@@ -405,19 +404,19 @@ class _ProductionExternalJournalRuntime:
         with self._lock:
             active = tuple(self._sessions.values())
             self._closed = True
+            failed = bool(active)
+            for capability in active:
+                try:
+                    capability._session.close()
+                except Exception:
+                    failed = True
             self._sessions.clear()
-        failed = bool(active)
-        for capability in active:
             try:
-                capability._session.close()
+                self._engine.dispose()
             except Exception:
                 failed = True
-        try:
-            self._engine.dispose()
-        except Exception:
-            failed = True
-        if failed:
-            raise ProductionExternalJournalFactoryDenied()
+            if failed:
+                raise ProductionExternalJournalFactoryDenied()
 
 
 class ProductionExternalJournalFactory:

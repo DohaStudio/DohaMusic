@@ -9,6 +9,7 @@ from concurrent.futures import ThreadPoolExecutor
 from contextlib import suppress
 from dataclasses import FrozenInstanceError, replace
 from pathlib import Path
+from threading import Event, get_ident
 from uuid import uuid4
 
 import pytest
@@ -121,6 +122,15 @@ def test_runtime_denies_overlapping_sessions_and_allows_orderly_reopen(journal_p
         with runtime.open_session() as first:
             with pytest.raises(ProductionExternalJournalFactoryDenied), runtime.open_session():
                 pass
+            with ThreadPoolExecutor(max_workers=1) as pool:
+
+                def overlapping_open():
+                    with runtime.open_session():
+                        pytest.fail("overlapping root session admitted")
+
+                assert type(pool.submit(overlapping_open).exception(timeout=10)) is (
+                    ProductionExternalJournalFactoryDenied
+                )
             assert runtime.verified_snapshot(first).head.journal_id == JOURNAL
         with runtime.open_session() as second:
             assert runtime.verified_snapshot(second).head.revision == 1
@@ -289,3 +299,126 @@ def test_factory_open_and_verification_do_not_mutate_journal(journal_path):
         assert connection.execute("SELECT COUNT(*) FROM deployment_journal_events").fetchone() == (
             1,
         )
+
+
+def test_cleanup_finishes_before_next_root_session(journal_path, monkeypatch):
+    raw, expected = reviewed(str(journal_path))
+    close_started, finish_close, contender_observed = Event(), Event(), Event()
+    contender_thread = []
+    acquired = []
+    transactions = []
+    connections = []
+    with ProductionExternalJournalFactory().open_existing(raw, expected=expected) as runtime:
+        original_lock = runtime._lock
+
+        class ObservedLock:
+            def __enter__(self):
+                if contender_thread and get_ident() == contender_thread[0]:
+                    if not original_lock.acquire(blocking=False):
+                        contender_observed.set()
+                        original_lock.acquire()
+                else:
+                    original_lock.acquire()
+                return self
+
+            def __exit__(self, *_):
+                original_lock.release()
+
+        monkeypatch.setattr(runtime, "_lock", ObservedLock())
+
+        def first_session():
+            with runtime.open_session() as first:
+                transactions.append(first._transaction)
+                connections.append(first._session.connection().connection.driver_connection)
+                original_close = first._session.close
+
+                def controlled_close():
+                    close_started.set()
+                    assert finish_close.wait(10), "cleanup release not signalled"
+                    original_close()
+
+                monkeypatch.setattr(first._session, "close", controlled_close)
+
+        def next_session():
+            contender_thread.append(get_ident())
+            try:
+                with runtime.open_session() as second:
+                    acquired.append(True)
+                    connections.append(second._session.connection().connection.driver_connection)
+                    contender_observed.set()
+                    assert not transactions[0].is_active
+                    assert runtime.verified_snapshot(second).head.revision == 1
+            finally:
+                contender_observed.set()
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            first_future = pool.submit(first_session)
+            assert close_started.wait(10), "cleanup did not start"
+            next_future = pool.submit(next_session)
+            try:
+                assert contender_observed.wait(10), "contender did not reach admission"
+                assert transactions[0].is_active
+                assert acquired == []
+            finally:
+                finish_close.set()
+            first_future.result(timeout=10)
+            next_future.result(timeout=10)
+        assert acquired == [True]
+        assert connections[0] is connections[1]
+
+
+def test_close_failure_permanently_denies_runtime(journal_path, monkeypatch):
+    raw, expected = reviewed(str(journal_path))
+    with ProductionExternalJournalFactory().open_existing(raw, expected=expected) as runtime:
+        with (
+            pytest.raises(ProductionExternalJournalFactoryDenied) as denied,
+            runtime.open_session() as capability,
+        ):
+            original_close = capability._session.close
+
+            def failed_close():
+                raise RuntimeError("private cleanup detail")
+
+            monkeypatch.setattr(capability._session, "close", failed_close)
+        assert str(denied.value) == "PRODUCTION_EXTERNAL_JOURNAL_FACTORY_DENIED"
+        assert runtime._closed
+        assert not runtime._sessions
+        with pytest.raises(ProductionExternalJournalFactoryDenied):
+            runtime.verified_snapshot(capability)
+        with pytest.raises(ProductionExternalJournalFactoryDenied), runtime.open_session():
+            pass
+        assert not runtime._sessions
+        # Explicit fixture cleanup does not make the failed runtime reusable.
+        original_close()
+        with pytest.raises(ProductionExternalJournalFactoryDenied), runtime.open_session():
+            pass
+
+
+def test_foreign_runtime_capability_is_denied(journal_path):
+    raw, expected = reviewed(str(journal_path))
+    with (
+        ProductionExternalJournalFactory().open_existing(raw, expected=expected) as first,
+        ProductionExternalJournalFactory().open_existing(raw, expected=expected) as second,
+        first.open_session() as capability,
+    ):
+        with pytest.raises(ProductionExternalJournalFactoryDenied):
+            second.verified_snapshot(capability)
+        assert first.verified_snapshot(capability).head.revision == 1
+
+
+def test_replaced_root_transaction_invalidates_capability(journal_path):
+    raw, expected = reviewed(str(journal_path))
+    with (
+        ProductionExternalJournalFactory().open_existing(raw, expected=expected) as runtime,
+        runtime.open_session() as capability,
+    ):
+        original = capability._transaction
+        assert capability._session.get_transaction() is original
+        capability._session.rollback()
+        replacement = capability._session.begin()
+        assert replacement is not original
+        assert replacement.is_active
+        with pytest.raises(ProductionExternalJournalFactoryDenied):
+            runtime.verified_snapshot(capability)
+        with pytest.raises(ProductionExternalJournalFactoryDenied):
+            runtime._reconciliation_engine(capability)
