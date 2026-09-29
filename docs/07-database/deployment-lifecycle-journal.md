@@ -1,6 +1,6 @@
 # Independent Deployment Lifecycle Journal Schema v1
 
-> 문서 상태: [구현 — Foundation Draft 검증 중, 운영 비활성]
+> 문서 상태: [구현 — Foundation #165 merged, 운영 비활성]
 > 최종 수정일: 2026-09-18
 > 관련 문서: [ADR-079](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md), [ADR-078](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [검증](../10-operations/deployment-lifecycle-journal-validation.md)
 
