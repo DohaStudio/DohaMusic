@@ -92,8 +92,8 @@
 | [ADR-086](ADR-086-designation-source-custody-policy-foundation.md) | exact private source identity·owner/protected DACL policy 비교와 snapshot fresh handoff; human proof 아님 | #173 merged 최소 mechanics·운영 비활성 |
 | [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md) | original designation·initializer 위임·actual policy 설치 action·exact snapshot/current lineage handoff | #174 merged Contract·authenticated source/운영 미활성 |
 | [ADR-088](ADR-088-initializer-provenance-action-binding-foundation.md) | strict installation/action/initializer/policy binding 및 terminal history 비교 | #175 merged Foundation·public facts는 권한이 아님 |
-| [ADR-089](ADR-089-original-confirmation-raw-snapshot-foundation.md) | held raw original-confirmation transport/action/history binding·stale reuse 및 retained cleanup | Foundation Draft·authentication/currentness/admission 미구현 |
-| [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md) | raw snapshot과 future verifier 사이 exact JCS identity/scope/replay payload boundary | Foundation Draft·signature/currentness/admission 미구현 |
+| [ADR-089](ADR-089-original-confirmation-raw-snapshot-foundation.md) | held raw original-confirmation transport/action/history binding·stale reuse 및 retained cleanup | #176 merged Foundation·authentication/currentness/admission 미구현 |
+| [ADR-090](ADR-090-original-confirmation-canonical-payload-foundation.md) | raw snapshot과 future verifier 사이 exact JCS identity/scope/replay payload boundary | #177 merged Foundation·signature/currentness/admission 미구현 |
 | [ADR-091](ADR-091-confirmation-verifier-reuse-live-lineage-foundation.md) | deployment verifier infrastructure-only reuse 판정과 held live current-lineage record | #178 merged·authenticity/admission/production writer 미구현 |
 | [ADR-092](ADR-092-fresh-journal-lineage-observation-foundation.md) | fresh complete public journal과 held lineage/pin/lease/두 transaction의 provider-internal correlation | #179 merged·currentness witness/admission 아님 |
 | [ADR-093](ADR-093-scoped-provisioning-authority-verification-foundation.md) | `INSTALLATION_POLICY_PROVISIONING_ONLY` root-signed exact scope·domain·rotation/revocation integrity | #180 merged·authenticated current source/admission 아님 |
@@ -108,7 +108,8 @@
 | [ADR-102](ADR-102-durable-admission-orchestration-foundation.md) | CurrentnessWitness·AdmissionAttempt·Transaction Owner·Commit Reconciler의 fail-closed durable admission 조정 | #189 merged·production composition 아님 |
 | [ADR-103](ADR-103-durable-admission-production-composition-foundation.md) | exact provider graph·caller/external transaction을 ceremony scope에 결합하는 strict composition/activation gate | #190 merged·production activation unavailable |
 | [ADR-104](ADR-104-reviewed-production-deployment-configuration-foundation.md) | exact production identity/path/domain을 고정하는 canonical reviewed routing configuration; authority 아님 | #191 merged·production activation unavailable |
-| [ADR-105](ADR-105-production-private-authority-source-factory-foundation.md) | reviewed config를 exact six-role immutable private-source descriptor bundle로 변환; custody/authority 아님 | Foundation Draft·sources/production activation unavailable |
+| [ADR-105](ADR-105-production-private-authority-source-factory-foundation.md) | reviewed config를 exact six-role immutable private-source descriptor bundle로 변환; custody/authority 아님 | #192 merged·sources/production activation unavailable |
+| [ADR-106](ADR-106-production-external-journal-factory-foundation.md) | reviewed exact external journal을 existing-only로 검증·open하고 bounded Session/Engine handoff 제공 | Foundation Draft·journal provisioning/production activation unavailable |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

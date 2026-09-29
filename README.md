@@ -26,7 +26,7 @@ DohaMusic = AI-native DAW
 
 ## CURRENT
 
-Bootstrap 최신 Track: #164~#170/#172~#184는 merged다. [ADR-097 exact correlation](docs/11-decisions/ADR-097-authentic-confirmation-lineage-correlation-foundation.md)은 authenticity·held live lineage·fresh observation을 같은 handles/lease/두 transaction에 결합한다. 새 [ADR-098 CurrentnessWitness handoff](docs/11-decisions/ADR-098-currentness-witness-handoff-foundation.md)는 그 correlation을 동일 Windows lease·caller transaction·provider single attempt에서 재검증해 opaque ephemeral witness 하나만 발급한다. 결과는 Durable Admission/authorization이 아니며 production ports는 unavailable, schema/migration과 Alembic 0037은 유지된다.
+Bootstrap 최신 Track: #164~#170/#172~#192는 merged다. [ADR-097 exact correlation](docs/11-decisions/ADR-097-authentic-confirmation-lineage-correlation-foundation.md)은 authenticity·held live lineage·fresh observation을 같은 handles/lease/두 transaction에 결합한다. [ADR-098 CurrentnessWitness handoff](docs/11-decisions/ADR-098-currentness-witness-handoff-foundation.md)는 그 correlation을 동일 Windows lease·caller transaction·provider single attempt에서 재검증해 opaque ephemeral witness 하나만 발급한다. [ADR-106 Production External Journal Factory](docs/11-decisions/ADR-106-production-external-journal-factory-foundation.md)는 이미 provision된 exact journal만 검증·open한다. 실제 private sources/journal provisioning, authentication wiring과 production activation은 unavailable이며 app DB schema와 Alembic 0037은 유지된다.
 
 현재 `develop`에서 확인되는 범위다.
 

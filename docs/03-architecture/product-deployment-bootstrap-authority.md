@@ -1,7 +1,7 @@
 # Product/Deployment Bootstrap Authority
 
 > 문서 상태: [Decision 채택 — #162 merged, 운영 비활성]
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-29
 > 관련 문서: [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [인증](local-operator-authentication.md), [Rights](dohavocal-production-rights-domain.md), [검증](../10-operations/product-deployment-bootstrap-authority-validation.md)
 
 ## Authority와 검증 경계
@@ -24,4 +24,4 @@ Installation random ID와 private proof key의 possession을 함께 검사한다
 
 DEFINED/ADOPTED: bootstrap external root 및 verification/trust-chain contract (#162).
 
-별도 [issuance-integrity verifier Foundation](bootstrap-issuance-integrity-verifier.md)은 #163 merged이며 결과는 permission/current status proof가 아니다. 직접 선행 [current-status/lifecycle Contract](deployment-verifier-current-status.md)는 별도 Draft다. NOT IMPLEMENTED: trusted provisioning/private store/current status, installation/approval/custodian/claim/journal, WebAuthn adapter, principal registry/binding, Recovery/Transfer/Rights Writer/Evidence/Production Adapter. 전체 bootstrap schema 필요 판정은 유지하며 이번 Contract는 migration 0이다. ADR-042/075 의미와 ADR-077 원본·crypto source는 보존한다. persistence/ceremony는 Contract 검증/채택 뒤 별도 Foundation이다.
+별도 [issuance-integrity verifier Foundation](bootstrap-issuance-integrity-verifier.md)은 #163 merged이며 결과는 permission/current status proof가 아니다. [ADR-078 current-status/lifecycle Contract](deployment-verifier-current-status.md)는 #164로 채택·merged됐고, 이후 public journal·currentness·admission chain과 production configuration/private source Foundation은 #192까지 병합됐다. 현재 PR #193의 ADR-106 existing-only External Journal Factory를 포함한 최신 범위는 연결된 lifecycle 문서를 따른다. 실제 trusted private sources/journal provisioning, 초기 ACL/custody·identity/GENESIS 확립, authentication·final admission/activation wiring과 전체 production bootstrap은 여전히 비활성이다. installation/approval/custodian/claim의 운영 ceremony, WebAuthn adapter, principal registry/binding, Recovery/Transfer/Rights Writer/Evidence/Production Adapter는 미구현이다. 전체 bootstrap schema 필요 판정, ADR-042/075 의미와 ADR-077 원본·crypto source를 보존하며 application DB schema와 Alembic `20260918_0037`은 변경하지 않는다. 다음 후보는 ADR-106이 분리한 Production External Journal Provisioning Contract/Foundation이다.

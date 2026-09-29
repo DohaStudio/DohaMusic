@@ -1,7 +1,7 @@
 # 보안 정책
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-29
 > 관련 기능: Storage·Voice·Frontend public contract 보안
 > 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md)
 
@@ -15,7 +15,7 @@ Authentication foundation은 raw credential을 입력·반환·로그하지 않�
 
 ## Installation Bootstrap Decision와 Verifier Foundation
 
-#163 issuance-integrity와 #164 [ADR-078 Contract](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md)는 merged됐으나 production current eligibility는 비활성이다. 별도 Draft [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)의 independent public journal/strict event verifier/CAS는 trusted governance/pin/currentness witness가 아니다. private ports는 unavailable이고 실제 key provisioning/서명·OS ceremony/pin install/Claim/binding/Writer/Runtime는 미구현이다. 기존 ADR-077은 그대로 보존한다.
+#163 issuance-integrity와 #164 [ADR-078 Contract](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md)는 merged됐으나 production current eligibility는 비활성이다. #165 merged [ADR-079 Foundation](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md)의 independent public journal/strict event verifier/CAS는 trusted governance/pin/currentness witness가 아니다. private ports는 unavailable이고 실제 key provisioning/서명·OS ceremony/pin install/Claim/binding/Writer/Runtime는 미구현이다. 기존 ADR-077은 그대로 보존한다.
 
 Installation 최초 trust assignment는 #162 채택/merged [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)을 따른다. 외부 governance의 human root designation과 독립 fingerprint 대조로 provision한 verifier만 signed exact-scope approval을 검증한다. OS admin/CLI/reviewer/WebAuthn/secret 보유는 root proof가 아니다. root/custodian은 runtime super-admin/Rights/recovery/transfer/Consent 권한이 없다. DB와 독립된 deployment journal의 seal-first fact가 bootstrap 재사용을 차단하며 journal/key 상태 불명·old restore·wrong installation은 fail closed한다. private key와 journal까지 전체 rollback/privileged compromise하는 환경의 완전 anti-rollback은 보장하지 않는다. #163 merged [issuance-integrity verifier](../03-architecture/bootstrap-issuance-integrity-verifier.md)는 서명·exact issuance scope·window만 확인하며 caller-constructed root/receipt는 provisioning/current status/permission proof가 아니다. 실제 store/ceremony/proof/current eligibility/claim/journal/binding은 미구현·운영 비활성이고 전체 bootstrap 검증 전 활성화하지 않는다.
 

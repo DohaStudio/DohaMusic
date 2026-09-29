@@ -1,12 +1,12 @@
 # DohaVocal Production Rights Domain
 
 > 상태: V1 ADR-075 결정 / [구현: SQLite Persistence Foundation] / production Writer·Adapter [미구현]
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-29
 > 관련 문서: [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md), [Completion](dohavocal-verified-staged-artifact-completion.md), [Persistence](../07-database/dohavocal-production-rights-persistence-design.md)
 
 ## Authority와 transaction 경계
 
-#162 merged [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 별도의 external deployment root와 최초 owner binding bootstrap을 정의한 채택 Decision이다. root/custodian은 Rights issuer가 아니며 bootstrap은 Rights·Approval·Consent·OUTPUT_READ를 발급하지 않는다. ADR-075의 authenticated current owner 발급 및 current owner 또는 original authenticated issuer Revoke 의미는 그대로다. 별도 Draft [issuance-integrity verifier](bootstrap-issuance-integrity-verifier.md)는 current eligibility/권한을 증명하지 않는다. trusted provisioning/current status/journal/principal/binding/Recovery/Transfer/Evidence/Writer는 여전히 미구현이다.
+#162 merged [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 별도의 external deployment root와 최초 owner binding bootstrap을 정의한 채택 Decision이다. root/custodian은 Rights issuer가 아니며 bootstrap은 Rights·Approval·Consent·OUTPUT_READ를 발급하지 않는다. ADR-075의 authenticated current owner 발급 및 current owner 또는 original authenticated issuer Revoke 의미는 그대로다. #163 merged [issuance-integrity verifier](bootstrap-issuance-integrity-verifier.md)는 current eligibility/권한을 증명하지 않는다. trusted provisioning/current status/journal/principal/binding/Recovery/Transfer/Evidence/Writer는 여전히 미구현이다.
 
 Canonical 결정은 merged PR #160의 ADR-075다. VocalRightsAuthority는 explicit current projection + immutable issuance/event ledger이며 exact typed subject/operation/usage role별 단일 current Grant를 관리한다. ownership/authentication/evidence와 operation Grant는 AND 조건이고 Provider permission·Approval·consent snapshot·RightsMetadata·PayloadLocator는 대체 authority가 아니다. 11개 additive SQLite persistence tables와 flush-only repository·guard primitive를 구현했으며 authenticated Writer/production reader Adapter는 미구현이다.
 
