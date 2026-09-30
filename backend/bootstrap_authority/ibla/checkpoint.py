@@ -11,6 +11,7 @@ from backend.bootstrap_authority.ibla.codec import (
     control_wire,
     parse_control,
     parse_event,
+    require_audit_time,
 )
 from backend.bootstrap_authority.ibla.contracts import (
     CheckpointView,
@@ -40,10 +41,15 @@ class OperationResult:
 class CheckpointRepository(_Repository):
     role = "H"
 
-    def __init__(self, session, binding, *, ledger_reader):
+    def __init__(self, session, binding, *, ledger_reader, recorded_at):
         super().__init__(session, binding)
         if type(ledger_reader) is not LedgerRepository or ledger_reader.binding != binding:
             raise IblaDenied()
+        try:
+            require_audit_time(recorded_at)
+        except ValueError:
+            raise IblaInconsistent() from None
+        self._recorded_at = recorded_at
         self._ledger_reader = ledger_reader
 
     def _ledger(self):
@@ -135,6 +141,7 @@ class CheckpointRepository(_Repository):
             kind=kind,
             confirmed=confirmed,
             pending=candidate.envelope,
+            recorded_at=self._recorded_at,
         )
         p, _, _, control_digest = parse_control(wire, self.binding)
         self._insert(

@@ -1,6 +1,7 @@
 """Bounded canonical public facts. Digests do not authenticate commissioning."""
 
 from dataclasses import asdict
+from datetime import UTC, datetime
 
 import rfc8785
 
@@ -18,6 +19,16 @@ OPERATION_DOMAIN = b"DohaMusicIblaOperationV1\x00"
 KINDS = frozenset({"COMMISSION", "HISTORY_BLOCK", "RETIRE"})
 
 
+def require_audit_time(value):
+    # Same canonical UTC-second profile as the existing lifecycle verifier.
+    # This is an audit fact, never a freshness, clock trust or permission check.
+    if type(value) is not str:
+        raise ValueError("AUDIT_TIME")
+    parsed = datetime.strptime(value, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=UTC)
+    if parsed.strftime("%Y-%m-%dT%H:%M:%SZ") != value:
+        raise ValueError("AUDIT_TIME")
+
+
 def canonical(raw):
     value = _read(raw, LIMIT, 4)
     if type(value) is not dict or rfc8785.dumps(value) != raw:
@@ -32,7 +43,7 @@ def binding_wire(binding):
     return rfc8785.dumps(asdict(binding))
 
 
-def encode_event(binding, *, event_id, operation_id, expected, kind, evidence_digest):
+def encode_event(binding, *, event_id, operation_id, expected, kind, evidence_digest, recorded_at):
     binding_wire(binding)
     if type(expected) is not Head:
         raise ValueError("HEAD")
@@ -46,6 +57,7 @@ def encode_event(binding, *, event_id, operation_id, expected, kind, evidence_di
         previous_digest=expected.digest,
         kind=kind,
         evidence_digest=evidence_digest,
+        recorded_at=recorded_at,
     )
     wire = rfc8785.dumps(payload)
     parse_event(wire, binding)
@@ -64,6 +76,7 @@ def parse_event(raw, binding):
         "previous_digest",
         "kind",
         "evidence_digest",
+        "recorded_at",
     }:
         raise ValueError("FIELDS")
     if p["schema"] != EVENT_SCHEMA or p["binding"] != asdict(binding):
@@ -79,6 +92,7 @@ def parse_event(raw, binding):
     if type(p["evidence_digest"]) is not str:
         raise ValueError("EVIDENCE")
     require_digest(p["evidence_digest"])
+    require_audit_time(p["recorded_at"])
     head = Head(p["revision"], digest(EVENT_DOMAIN + raw))
     head.validate()
     previous = Head(head.revision - 1, p["previous_digest"])
@@ -99,7 +113,7 @@ def parse_event(raw, binding):
     )
 
 
-def control_wire(binding, *, sequence, previous, kind, confirmed, pending):
+def control_wire(binding, *, sequence, previous, kind, confirmed, pending, recorded_at):
     return rfc8785.dumps(
         dict(
             schema=CONTROL_SCHEMA,
@@ -109,6 +123,7 @@ def control_wire(binding, *, sequence, previous, kind, confirmed, pending):
             kind=kind,
             confirmed=asdict(confirmed),
             pending=canonical(pending),
+            recorded_at=recorded_at,
         )
     )
 
@@ -118,13 +133,23 @@ def parse_control(raw, binding):
     p = canonical(raw)
     if (
         set(p)
-        != {"schema", "binding", "sequence", "previous_digest", "kind", "confirmed", "pending"}
+        != {
+            "schema",
+            "binding",
+            "sequence",
+            "previous_digest",
+            "kind",
+            "confirmed",
+            "pending",
+            "recorded_at",
+        }
         or p["schema"] != CONTROL_SCHEMA
     ):
         raise ValueError("CONTROL")
     if p["binding"] != asdict(binding):
         raise ValueError("BINDING")
     Binding(**p["binding"]).validate()
+    require_audit_time(p["recorded_at"])
     Head(p["sequence"], digest(CONTROL_DOMAIN + raw)).validate()
     Head(p["sequence"] - 1, p["previous_digest"]).validate()
     confirmed = Head(**p["confirmed"])

@@ -20,9 +20,9 @@ ADR-076/078의 외부 root·GENESIS 독립 evidence, ADR-079의 immutable journa
 
 ## 실행 검증
 
-- focused: 99 passed, 0 skipped, 0 failed, pytest 8.31s (추가 Full Backend 전 source 상태).
+- focused: 106 passed, 0 skipped, 0 failed, pytest 8.45s. L/H recorded_at의 strict UTC-second·persisted digest·비권한 경계까지 검증.
 - compileall backend/ai_worker, Ruff check 및 format 전체 PASS.
-- direct-impact regression: 976 passed, 0 skipped, 0 failed, pytest 57.33s, exit 0. Full Backend는 별도 source commit에서 실행 예정이며 결과 없는 PASS를 기록하지 않는다.
+- direct-impact regression: 976 passed, 0 skipped, 0 failed, pytest 57.33s, exit 0. 최초 Full Backend(540feca)는 audit time 보완을 위해 의도적으로 중단했다(exit -1, JUnit 없음, PASS 아님). 보완한 source commit에서 Full Backend를 새로 실행하며 결과 없는 PASS를 기록하지 않는다.
 - Alembic heads: 20260918_0037 single head. app migration 0.
 - 새 process의 abrupt exit 후 pending/committed/confirmed 재조회, complete history, exact replay/reconcile를 검증했다.
 - deterministic Barrier/Event로 두 L writers, 두 H prepare, prepare/confirm 및 restart reconcile/new operation, replay/concurrent writer를 검증한다. sleep race 0.

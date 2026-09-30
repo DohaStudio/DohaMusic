@@ -25,7 +25,7 @@ A 자체의 서명/validity/외부 ceremony reader는 없다. binding의 anchor 
 - H schema: dohamusic/ibla-checkpoint-control/v1. digest domain은 DohaMusicIblaCheckpointControlV1 + NUL이다.
 - operation fingerprint: DohaMusicIblaOperationV1 + NUL + exact canonical L envelope. kind·scope·epoch·predecessor·payload·event/operation ID를 모두 포함한다.
 - 16 KiB strict UTF-8 canonical envelope, 고정 fields, duplicate/unknown key·float/bool counter·nonfinite·unsupported schema/kind·safe-integer overflow를 거부한다. record digest 자체는 hash 입력에 포함하지 않는다. 서명을 만들거나 검증하는 신규 protocol은 아니다.
-- audit timestamp는 이번 최소 schema에 추가하지 않는다. clock/validity가 권한을 제공하는 future source/authorization은 구현하지 않았다. 저장된 순서는 revision/control sequence로만 표현한다.
+- L/H 각각의 recorded_at은 caller가 명시한 canonical UTC-second 감사 시각이며 기존 lifecycle의 YYYY-MM-DDTHH:MM:SSZ profile을 따른다. stored envelope/digest에 포함하지만 freshness·clock trust·권한 판단으로 사용하지 않는다. control 순서는 monotonic sequence이며 time ordering으로 history를 대체하지 않는다. clock/validity가 권한을 제공하는 future source/authorization은 미구현이다.
 - 각 DB의 ibla_identity는 version=1, role L/H, exact canonical binding을 보존한다. ibla_events는 sequence/revision, record ID, operation ID/fingerprint, predecessor/digest/kind/envelope를 보존한다. ibla_head는 single current projection이다.
 - UPDATE/DELETE와 identity/head INSERT/REPLACE를 trigger로 거부한다. event INSERT는 actual expected-head conditional UPDATE를 trigger로 실행하며 event+unique operation index+projection이 한 SQL statement다. REPLACE의 implicit DELETE 우회도 사전 duplicate 검사로 차단한다.
 - H의 operation lookup은 (operation_id, revision) index, L은 operation unique index, revision/current head는 INTEGER PRIMARY KEY를 사용한다. complete ordered history는 revision 순서의 의도된 전체 scan이며 temp sort가 필요 없다.

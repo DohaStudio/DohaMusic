@@ -178,11 +178,18 @@ def test_conflicting_operation_never_rewritten(tmp_path):
 def test_confirmation_rejects_public_summary_and_uncommitted_writer(tmp_path):
     lp, hp = stores(tmp_path)
     with session(hp) as hs, session(lp) as ls:
-        h = CheckpointRepository(hs, BINDING, ledger_reader=LedgerRepository(ls, BINDING))
+        h = CheckpointRepository(
+            hs,
+            BINDING,
+            ledger_reader=LedgerRepository(ls, BINDING),
+            recorded_at="2026-10-01T00:00:00Z",
+        )
         with pytest.raises(IblaDenied):
             h.prepare(candidate(), expected=Head())
     with session(hp) as hs, pytest.raises(IblaDenied):
-        CheckpointRepository(hs, BINDING, ledger_reader=object())
+        CheckpointRepository(
+            hs, BINDING, ledger_reader=object(), recorded_at="2026-10-01T00:00:00Z"
+        )
 
 
 def test_same_directory_is_not_independent(tmp_path):
@@ -256,3 +263,41 @@ def test_query_plan_uses_head_revision_and_operation_indexes(tmp_path):
             text("EXPLAIN QUERY PLAN SELECT * FROM ibla_events ORDER BY revision")
         ).all()
         assert "TEMP B-TREE" not in " ".join(str(row) for row in plan)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        None,
+        True,
+        1.0,
+        "2026-02-30T00:00:00Z",
+        "2026-10-01T00:00:00+00:00",
+        "2026-10-01T00:00:00.000Z",
+    ],
+)
+def test_audit_time_strict_in_ledger_and_keeper(tmp_path, value):
+    payload = json.loads(candidate())
+    payload["recorded_at"] = value
+    with pytest.raises(ValueError):
+        parse_event(rfc8785.dumps(payload), BINDING)
+    lp, hp = stores(tmp_path)
+    with session(hp) as hs, session(lp, readonly=True) as ls, pytest.raises(IblaDenied):
+        CheckpointRepository(
+            hs, BINDING, ledger_reader=LedgerRepository(ls, BINDING), recorded_at=value
+        )
+
+
+def test_audit_times_are_persisted_not_currentness_authority(tmp_path):
+    lp, hp = stores(tmp_path)
+    first = advance(lp, hp)
+    assert json.loads(first.envelope)["recorded_at"] == "2026-10-01T00:00:00Z"
+    with keeper(lp, hp) as h:
+        rows = h.session.execute(text("SELECT envelope FROM ibla_events")).all()
+        assert all(json.loads(row[0])["recorded_at"] == "2026-10-01T00:00:00Z" for row in rows)
+    # A canonical future audit time is just a fact, not eligibility/freshness.
+    payload = json.loads(candidate())
+    payload["recorded_at"] = "2100-01-01T00:00:00Z"
+    parsed = parse_event(rfc8785.dumps(payload), BINDING)
+    with pytest.raises(IblaDenied):
+        UnavailableIblaPersistence().open(parsed)

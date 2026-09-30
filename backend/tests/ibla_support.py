@@ -96,7 +96,12 @@ def ledger(path, *, readonly=False, binding=BINDING):
 def keeper(lp, h, *, binding=BINDING):
     # H writer owns only H + separate read-only L; no L write connection.
     with session(h) as hs, session(lp, readonly=True) as ls:
-        yield CheckpointRepository(hs, binding, ledger_reader=LedgerRepository(ls, binding))
+        yield CheckpointRepository(
+            hs,
+            binding,
+            ledger_reader=LedgerRepository(ls, binding),
+            recorded_at="2026-10-01T00:00:00Z",
+        )
 
 
 def candidate(expected=None, *, number=100, kind=None, binding=BINDING):
@@ -108,6 +113,7 @@ def candidate(expected=None, *, number=100, kind=None, binding=BINDING):
         expected=expected,
         kind=kind or ("COMMISSION" if expected.revision == 0 else "HISTORY_BLOCK"),
         evidence_digest=digest(b"public fixture evidence"),
+        recorded_at="2026-10-01T00:00:00Z",
     )
 
 
