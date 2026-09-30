@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 기준]
 > 문서 역할: CURRENT Runtime·CURRENT Workspace/Domain·TARGET·TRANSITION 문서의 Canonical entry point
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-30
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
@@ -82,3 +82,7 @@ DohaLM 공동 창작 연동에서 필요한 Project·Version·Generation·Analys
 `Asset`, `AssetVersion`, `Artifact`, `CompositionSnapshot`과 공통 `Job`은 목표 ORM과 `0012`~`0017` additive migration으로 실제 사용자 DB에 적용됐고 Runtime source of truth는 전환하지 않았다. source `0018`~`0024`는 구현·임시 DB 검증만 완료했다. `0020`은 Clip persistence를, `0021`은 trusted Artifact duration을, `0022`는 revision-safe idempotency result를, `0023`은 durable PayloadLocator를, `0024`는 Project Preview Asset binding과 revision-pinned Preview manifest를 제공한다. WorkingComposition mutation·Preview Product API와 Job API를 구현했지만 실제 사용자 DB에는 적용하지 않았다.
 
 Mix Asset, Export Asset, Preview, Snapshot과 실행 기록의 목표 도메인은 `DohaArtifacts/music`이다. Workspace DB의 Artifact에는 로컬 절대·상대 경로를 저장하지 않고, 내부 논리 URI는 `artifact://<artifact_id>`를 사용한다. 물리 위치는 별도 내부 `artifact_storage_locations` Catalog Table의 backend·domain·canonical storage key가 소유한다. Catalog Entity와 revision `20260809_0016`은 실제 사용자 DB에 적용했고 Catalog 조회·local Resolver·trusted ingestion, owner/retention read Gate·dry-run reconciliation과 Artifact Metadata·content·download·single-byte Range를 구현했다. 실제 Catalog row는 0개이며 destructive reconciliation은 미구현이다. 현재 `pipeline_jobs`, `pipeline_files`, `AUDIO_STORAGE_ROOT`와 Runtime source of truth는 변경하지 않는다. 세부 계약은 [Artifact Storage 계약](../03-architecture/artifact-storage-contract.md), [Workspace Artifact 모델](../03-architecture/workspace-artifact-model.md)과 [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md)을 따른다.
+
+## IBLA 외부 저장소 계약
+
+[ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 Draft다. 다음은 Ledger/Checkpoint Persistence Foundation이며, Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS가 뒤따른다. 이 구현들은 모두 NOT IMPLEMENTED다. Ledger는 ADR-107 registry의 event authority이며 app DB 및 ADR-106 target journal과 별도다. high-water source는 독립 current state를 보존한다. 논리 version v1만 결정했고 실제 table/DDL/migration은 없다. app Alembic 20260918_0037은 유지한다.

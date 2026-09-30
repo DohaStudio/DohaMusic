@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 - IBLA Anchor·Ledger·Checkpoint 계약
+
+- [ADR-108](docs/11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)에서 최초 외부 commissioning anchor, complete-domain append-only ledger와 독립 current high-water keeper의 책임을 정의했다. signed checkpoint artifact와 현재 authority를 구분한다.
+- PREPARED barrier와 ledger-first confirmed checkpoint, crash/replay/conflict·rollback 한계·무기한 보존을 문서화했다. 초기화의 신뢰는 ADR-076 외부 ceremony에 연결하고 새 root를 도입하지 않는다.
+- 현재 실행 순서를 Ledger/Checkpoint Persistence Foundation → Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS로 정렬했다. 계약만 DECIDED이며 코드·schema·migration·운영 데이터 변경은 없다.
+
+
 ### 문서 - 독립 Bootstrap Lineage Authority 결정
 
 - [ADR-107](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 ADR-076 외부 root 아래 독립 append-only registry와 signed intent를 분리하고 최초 등록의 positive origin/coverage, writer·reader, irreversible consume-before-GENESIS와 별도 checkpoint를 정의한다.
