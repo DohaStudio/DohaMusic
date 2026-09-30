@@ -11,6 +11,14 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가·수정 — DohaVocal 0.2.0 Consumer E2E Foundation
+
+- 기본 0.1.0 호환을 유지하고 명시적 0.2.0 capability query·CreateJob/Manifest preflight를 연결했다.
+- PR #130의 미병합 reconciliation을 현재 develop에서 재사용해 exact ordinal/source binding, current authority checkpoint, identity encoding·bounded streaming 검증과 durable staging을 연결했다.
+- 실제 pinned DohaVocal Fake ASGI app의 4 capability를 기존 trust·locator·Completion에 연결하는 격리 E2E 및 실패/replay 검증을 추가했다. generation의 source/parent trust 검증을 기존 계약과 정합화했다.
+- production 권한·Worker·schema·Public API는 변경하지 않았다. 상세 범위와 #130 supersede 판정은 [E2E 경계](docs/03-architecture/dohavocal-payload-acquisition-orchestration.md)를 따른다.
+
+
 ### 수정 - Windows storage publication 경합
 
 - 부모 디렉터리가 생성되는 동안 Windows native path 해석 결과에 extended-length prefix가 남아 같은 storage target을 외부 경로로 오인하던 false conflict를 수정했다.

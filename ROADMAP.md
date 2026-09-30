@@ -1,5 +1,8 @@
 # DohaMusic 실행 로드맵
 
+> 2026-09-29: [DohaVocal 0.2.0 Consumer E2E Foundation](docs/03-architecture/dohavocal-payload-acquisition-orchestration.md)은 실제 pinned Fake ASGI Runtime에서 기존 trust·durable staging·Artifact Completion까지 격리 검증합니다. 0.1.0 기본값을 유지하며 production rights/auth·Worker·실제 모델은 미구현입니다.
+
+
 > DohaVocal `0.2.0` consumer, 전용 `PayloadLocator`, verified durable local staging·acquisition orchestration과 verified-staged Artifact Completion Foundation을 구현했습니다. Worker wiring과 production rights adapter는 별도 후속입니다.
 >
 > 문서 역할: 현재 실행 순서와 NEXT/LATER
@@ -36,9 +39,9 @@ Vocal 권한 독립 Track(2026-09-18): merged #160 [ADR-075](docs/11-decisions/A
 3. Phase C `[계획]`: ACE-Step·Demucs·Seed-VC Runner를 순차 이전하고 로컬 `Path`를 Artifact ID·URI 계약으로 전환한다.
 4. Phase D `[계획]`: 전환 검증이 끝난 내부 Runner와 구형 Adapter만 제거하고 운영 계약 version과 DoD를 확정한다.
 
-DohaVocal `0.1.0` Fake Runtime 호환과 DohaMusic `0.2.0` Consumer DTO·capability negotiation·config 기반 transient binary HTTP acquisition·Result trust gate, dedicated PayloadLocator schema/Runtime과 verified local staging foundation은 구현했다. Worker 연결·인증·downloader·Artifact payload·AssetVersion commit, DohaAudio Runtime과 공통 Model Registry는 구현하지 않았다.
+DohaVocal `0.1.0` Fake Runtime 호환과 DohaMusic `0.2.0` Consumer DTO·capability negotiation·config 기반 transient binary HTTP acquisition·Result trust gate, dedicated PayloadLocator schema/Runtime과 verified local staging foundation은 구현했다. Fake ASGI E2E는 acquisition·staging·Artifact Completion까지 연결한다. production Worker·인증·rights와 DohaAudio Runtime·공통 Model Registry는 미구현이다.
 
-DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic은 transient acquisition adapter 기반을 구현했다. 실제 Workspace Artifact locator·ingestion, DohaAudio Runtime API와 공통 Model Registry는 구현하지 않았다.
+DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic은 transient acquisition adapter 기반을 구현했다. Workspace Artifact locator·ingestion·Completion Foundation은 격리 E2E로 검증한다. production wiring, DohaAudio Runtime API와 공통 Model Registry는 미구현이다.
 
 ## AI-native DAW Product Track
 

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import StrEnum
@@ -30,6 +31,7 @@ class VocalPayloadAcquisitionRequest:
     job_id: str
     payload: VocalProviderPayloadEntry
     max_size_bytes: int
+    check_current: Callable[[], None] | None = None
 
     def __post_init__(self) -> None:
         if self.max_size_bytes <= 0:

@@ -54,7 +54,7 @@
 | [ADR-048](ADR-048-dohavocal-payload-acquisition-consumer.md) | DohaVocal 0.2.0 payload Result trust와 transient acquisition 경계 | 승인, durable locator는 ADR-049에서 후속 구현 |
 | [ADR-049](ADR-049-durable-payload-locator-persistence-authority.md) | Result replay와 verified staging을 분리한 전용 PayloadLocator persistence 권위 | 승인, persistence foundation 구현 |
 | [ADR-050](ADR-050-working-composition-inverse-mutation-authority.md) | WorkingComposition same-ID restore·exact split inverse mutation과 history boundary | 승인 |
-| [ADR-051](ADR-051-verified-durable-staging-authority.md) | locator-derived local publish·restart adoption·cleanup의 verified byte authority | 승인, adapter 구현 대기 |
+| [ADR-051](ADR-051-verified-durable-staging-authority.md) | locator-derived local publish·restart adoption·cleanup의 verified byte authority | 승인, adapter 구현·Consumer E2E 연결 |
 | [ADR-052](ADR-052-working-composition-preview-render-authority.md) | revision-pinned manifest와 non-canonical Preview Asset/AssetVersion/Artifact 수명주기 | 승인, Backend foundation 구현 |
 | [ADR-053](ADR-053-clip-gain-authority.md) | Clip별 static Gain, split inverse·Preview DSP·Commit freeze 계약 | 승인, Backend foundation 구현 |
 | [ADR-054](ADR-054-clip-fade-authority.md) | Clip-relative linear Fade, geometry·inverse identity·Preview DSP·Commit freeze 계약 | 승인, Backend foundation 구현 |

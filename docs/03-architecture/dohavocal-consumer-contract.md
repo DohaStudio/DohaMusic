@@ -1,12 +1,14 @@
 # DohaVocal Consumer Contract Foundation
 
+> 2026-09-29 현재 구현: 명시적 get_capabilities(api_contract_version="0.2.0")는 구조화 query를 사용한다. 0.2 CreateJob은 exact capabilities와 Manifest version/capability를 preflight하고, 기본 0.1 호출은 그대로다. 실제 pinned Provider ASGI의 4 capability → trusted Result → durable staging → Completion E2E는 [실행 경계](dohavocal-payload-acquisition-orchestration.md)를 따른다. 아래 역사적 기준선은 당시 계약 출처이며 현재 우선순위는 merged Music code/ADR → pinned Vocal Runtime이다.
+
 > 문서 역할: Provider Boundary와 System Architecture를 보충하는 SUPPORTING 계약
 > 문서 상태: [구현·검증 완료]
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-09-29
 > 적용 범위: DohaVocal Runtime `0.1.0` metadata-only 호환 및 `0.2.0` payload-backed DTO·capability negotiation·read-only acquisition transport
 > 관련 문서: [Provider API 계약](../06-api/provider-api-contract.md), [Workspace Job Foundation](workspace-job-foundation.md), [저장소와 Provider 경계](repository-provider-boundaries.md), [ADR-034](../11-decisions/ADR-034-dohavocal-consumer-contract.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md)
 
-`0.1.0`은 기존 9개 operation과 `payload_present=false`를 그대로 유지한다. `0.2.0`은 `GetPayloadContent` 및 exact `payload_acquisition` 광고가 있을 때만 선택하며, Result의 ordered payload entry를 strict DTO로 파싱한다. acquisition adapter는 고정 origin·redirect 금지·bounded streaming·Content-Type/size/SHA-256 검증 후 transient bytes만 반환한다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 전용 persistence schema/Runtime foundation은 구현됐지만 durable byte staging, downloader orchestration, Artifact ingestion과 Worker 연결은 아직 구현되지 않았다.
+`0.1.0`은 기존 9개 operation과 `payload_present=false`를 그대로 유지한다. `0.2.0`은 `GetPayloadContent` 및 exact `payload_acquisition` 광고가 있을 때만 선택하며, Result의 ordered payload entry를 strict DTO로 파싱한다. acquisition adapter는 고정 origin·redirect 금지·bounded streaming·Content-Type/size/SHA-256 검증 후 transient bytes만 반환한다. [Durable Payload Locator Authority](durable-payload-locator-authority.md)의 전용 persistence schema/Runtime foundation, [acquisition E2E](dohavocal-payload-acquisition-orchestration.md), verified staging·Artifact Completion Foundation은 구현했다. production Worker·rights adapter 연결은 미구현이다.
 
 ## 1. 기준선과 권위
 
@@ -65,7 +67,7 @@ Retry는 기존 Job을 초기화하지 않는다. 새 `job_id`와 `retry_of_job_
 
 ## 5. Artifact 후보와 계보
 
-현재 DohaVocal Fake Runtime 결과는 실제 audio payload가 아닌 `VocalProviderResultCandidate`다. `output_asset_version_id`가 있어도 DohaMusic DB에 AssetVersion이 생성됐다는 뜻이 아니다. AssetVersion·Artifact 등록과 선택 authority는 계속 DohaMusic에 있고 실제 commit은 후속 Artifact Catalog/Resolver 통합 범위다.
+0.1.0 Fake Runtime 결과는 metadata-only `VocalProviderResultCandidate`다. 0.2.0은 deterministic Fake WAV/JSON payload를 제공하며 실제 AI inference는 아니다. `output_asset_version_id`가 있어도 DohaMusic DB에 AssetVersion이 생성됐다는 뜻이 아니다. AssetVersion·Artifact 등록과 선택 authority는 계속 DohaMusic에 있다. 격리 E2E는 기존 Completion commit까지 검증하며 운영 권한과 Worker 통합은 후속이다.
 
 Provider `succeeded`는 Workspace `succeeded`가 아니다. metadata-only 결과의 `running` 유지, trust gate, payload reconciliation, role mapping과 Completion 허용 조건은 [DohaVocal Worker Reconciliation Contract](dohavocal-worker-reconciliation-contract.md)를 따른다. Consumer 또는 Provider가 Workspace output role이나 terminal 상태를 직접 결정하지 않는다.
 
@@ -110,8 +112,8 @@ connect·read·write·pool timeout은 각각 설정 가능하고 무한 timeout�
 이번 Foundation에 포함하지 않은 항목은 다음과 같다.
 
 - 실제 외부 HTTP 또는 localhost 호출과 production 인증
-- 실제 DohaVocal process·Provider·AI model·GPU 호출
+- 별도 DohaVocal process·실제 AI model·GPU 호출 (실제 Fake ASGI app은 in-process 검증)
 - Workspace Worker dispatcher 조립과 polling policy
-- Artifact payload·Catalog·Resolver·AssetVersion commit
+- production Artifact payload·Catalog·Resolver·AssetVersion commit wiring
 - 공개 DohaMusic API 변경. Provider Job DB binding은 별도 [Persistence Contract](provider-job-persistence.md)에서 구현했지만 Consumer transport가 직접 사용하지 않는다.
 - production authentication, 운영 timeout 정책, circuit breaker와 background daemon

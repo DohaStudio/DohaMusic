@@ -1,5 +1,7 @@
 # 보안 정책
 
+> 2026-09-29 Vocal E2E: [취득 경계](../03-architecture/dohavocal-payload-acquisition-orchestration.md)는 fixed origin·redirect deny·identity encoding·bounded streaming·current authority checkpoint와 actual byte/media 검증을 적용한다. tests의 Fake rights는 production fallback이 아니며 user audio·DB·운영 Artifact를 사용하지 않는다.
+
 > 문서 상태: [진행 중]
 > 최종 수정일: 2026-09-29
 > 관련 기능: Storage·Voice·Frontend public contract 보안
@@ -40,7 +42,7 @@ Pipeline 생성 요청도 기존 Voice Profile 동의와 `voices/references` Sto
 
 현재 파일 접근은 로컬 단일 사용자 개발 범위다. Voice upload/list/get은 구현됐지만 인증·리소스 소유권, rate limit, 감사 로그, 보존 기간·삭제 재시도와 접근 통제가 구현되기 전에는 공개 Production 배포를 승인하지 않는다.
 
-Verified payload staging은 config-owned process-private root에 opaque locator-derived filename만 사용한다. DB·로그·오류·공개 DTO에 absolute path, storage root, user·voice·Provider source identity, URL·credential과 raw bytes를 저장하지 않는다. 구현된 local adapter는 partial과 published object의 symlink·junction·reparse·regular-file·root containment을 검사하고 published object는 매 open actual SHA-256·size·media를 재검증한다. rights/cancel/revocation은 staging reuse보다 우선하며 자세한 authority는 [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)을 따른다. downloader와 Worker 연결은 아직 미구현이다.
+Verified payload staging은 config-owned process-private root에 opaque locator-derived filename만 사용한다. DB·로그·오류·공개 DTO에 absolute path, storage root, user·voice·Provider source identity, URL·credential과 raw bytes를 저장하지 않는다. 구현된 local adapter는 partial과 published object의 symlink·junction·reparse·regular-file·root containment을 검사하고 published object는 매 open actual SHA-256·size·media를 재검증한다. rights/cancel/revocation은 staging reuse보다 우선하며 자세한 authority는 [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md)을 따른다. acquisition orchestration은 구현했고 production Worker 연결은 미구현이다.
 
 후보 평가 점수나 Stars를 신뢰 경계로 사용하지 않는다. 새 Provider를 구현하기 전에는 공식 배포 경로의 checkpoint hash, pickle 등 역직렬화 형식, 원격 코드 실행 요구, 의존성 lock, 취약점과 모델 출처를 검토한다. RVC처럼 사용자별 학습 산출물을 만드는 후보는 동의 철회 시 checkpoint·feature index·cache까지 삭제하는 정책이 먼저 필요하다. Experimental과 Rejected Provider는 자동 fallback 또는 사용자 입력 처리 경로에 참여하지 않는다.
 

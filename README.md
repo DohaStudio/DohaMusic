@@ -1,5 +1,8 @@
 ﻿# DohaMusic
 
+> 2026-09-29: [DohaVocal 0.2.0 Consumer E2E Foundation](docs/03-architecture/dohavocal-payload-acquisition-orchestration.md)은 실제 pinned Fake ASGI Runtime에서 기존 trust·durable staging·Artifact Completion까지 격리 검증합니다. 0.1.0 기본값을 유지하며 production rights/auth·Worker·실제 모델은 미구현입니다.
+
+
 > 2026-09-17: DohaVocal `0.2.0` verified payload를 path-free stream으로 Artifact에 publish하고, Job type별 Vocal target·JobOutput·ModelUsage·locator ingestion·Job success를 단일 transaction으로 확정하는 Completion Foundation을 구현했습니다. [Verified Staged Artifact Completion](docs/03-architecture/dohavocal-verified-staged-artifact-completion.md)과 [ADR-074](docs/11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)을 따르며 Worker wiring과 production rights adapter는 아직 미구현입니다.
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
