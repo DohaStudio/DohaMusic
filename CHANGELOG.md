@@ -5,11 +5,20 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-30
+> 최종 수정일: 2026-10-01
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - IBLA Anchor·Ledger·Checkpoint 계약
+
+- #197 최종 감사에서 현재 문서의 Draft 종료 표현을 설계 결정 및 PR 상태 참조로 정렬했다. 최초 검증 기록과 구현·운영 비활성 경계는 보존한다.
+
+- [ADR-108](docs/11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)에서 최초 외부 commissioning anchor, complete-domain append-only ledger와 독립 current high-water keeper의 책임을 정의했다. signed checkpoint artifact와 현재 authority를 구분한다.
+- PREPARED barrier와 ledger-first confirmed checkpoint, crash/replay/conflict·rollback 한계·무기한 보존을 문서화했다. 초기화의 신뢰는 ADR-076 외부 ceremony에 연결하고 새 root를 도입하지 않는다.
+- 현재 실행 순서를 Ledger/Checkpoint Persistence Foundation → Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS로 정렬했다. 계약만 DECIDED이며 코드·schema·migration·운영 데이터 변경은 없다.
+
 
 ### 문서 - 독립 Bootstrap Lineage Authority 결정
 

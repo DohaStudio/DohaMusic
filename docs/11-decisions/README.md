@@ -111,6 +111,7 @@
 | [ADR-105](ADR-105-production-private-authority-source-factory-foundation.md) | reviewed config를 exact six-role immutable private-source descriptor bundle로 변환; custody/authority 아님 | #192 merged·sources/production activation unavailable |
 | [ADR-106](ADR-106-production-external-journal-factory-foundation.md) | reviewed exact external journal을 existing-only로 검증·open하고 bounded Session/Engine handoff 제공 | Foundation #193 merged·journal provisioning/production activation unavailable |
 | [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md) | 독립 lineage registry·외부 최초 등록·GENESIS 전 영구 소비 및 crash 경계 | Decision DECIDED·PR #195 / 구현·운영 BLOCKED |
+| [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md) | Commissioning Anchor·complete domain Ledger·독립 current checkpoint 및 crash 계약 | Contract DECIDED·PR #197 / persistence·verifier 미구현 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 
