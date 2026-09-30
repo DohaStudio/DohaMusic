@@ -11,6 +11,12 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 추가 - IBLA Ledger / Independent Checkpoint Persistence Foundation
+
+- [ADR-109](docs/11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)에 따라 app DB/production journal과 분리된 SQLite L/H의 불변 이력·canonical digest·expected-head CAS·전체 history verification을 구현했다.
+- H의 COMMISSIONING_PENDING/PREPARED/CONFIRMED/UNCERTAIN 및 read-only L confirmation, exact replay/conflict·restart/crash/rollback 검증을 추가했다. repository는 caller transaction을 commit/rollback하지 않는다.
+- Source Verifier·최초 등록/Initial Authorization·GENESIS/Provisioning·운영 custody/인증/활성화는 비활성이다. v1은 고정 A/epoch와 제한된 public event kinds만 지원하며 미지원 authority 전환은 거부한다.
+
 ### 문서 - IBLA Anchor·Ledger·Checkpoint 계약
 
 - #197 최종 감사에서 현재 문서의 Draft 종료 표현을 설계 결정 및 PR 상태 참조로 정렬했다. 최초 검증 기록과 구현·운영 비활성 경계는 보존한다.
