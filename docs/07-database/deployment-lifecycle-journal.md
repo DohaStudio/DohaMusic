@@ -1,7 +1,7 @@
 # Independent Deployment Lifecycle Journal Schema v1
 
 > 문서 상태: [구현 — Foundation #165 merged, 운영 비활성]
-> 최종 수정일: 2026-09-18
+> 최종 수정일: 2026-09-30
 > 관련 문서: [ADR-079](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md), [ADR-078](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [검증](../10-operations/deployment-lifecycle-journal-validation.md)
 
 application DB와 독립 lifecycle의 SQLite public-fact store다. 앱 ORM metadata/Alembic/startup/backup/default path에 연결하지 않는다. caller 제공 isolated connection으로 empty database schema v1을 명시 설치하며 transaction을 caller가 소유한다. production 초기화/upgrade/downgrade 명령은 제공하지 않는다. app Alembic 0037 single head는 그대로다.
@@ -17,3 +17,7 @@ event ID/revision/digest/new key ID/fingerprint는 unique다. GENESIS만 revisio
 read_public_history는 immutable envelope의 local hash/canonicality/order/column projection/head를 대조하며 terminal 상태·taint·old-key invalidation cutoff를 파생한다. cutoff는 public audit fact이고 fresh authoritative reader/ceremony lease 없이 claim eligibility에 사용할 수 없다. pending app row를 async 수정하는 것으로 revocation을 강제했다고 주장하지 않는다.
 
 JournalRepository는 Session.execute/flush만 사용하며 commit()/rollback()/retry 0이다. exception 발생 시 caller는 전체 transaction을 포기한다. event append SQL statement의 failure는 ledger와 pointer 모두 rollback된다. 외부 pin과는 분산 atomicity가 없고 public pin mismatch는 deny한다. production pin store와 application transaction integration은 미구현이다.
+
+## 최초 생성의 독립 권한
+
+[ADR-107 Independent Bootstrap Lineage Authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다. 이 문서의 journal schema v1은 registry schema가 아니며 no-prior/소비 authority를 제공하지 않는다. 이번 결정의 DB schema·migration 변경은 0이다.
