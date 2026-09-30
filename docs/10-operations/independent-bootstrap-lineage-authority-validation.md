@@ -44,3 +44,15 @@ README, ROADMAP, MASTER_ROADMAP, bootstrap/lifecycle/issuance architecture, jour
 실제 storage engine/DDL/wire/TTL/OS ACL 구현, authentic commissioning/reader/writer, independent checkpoint와 backup/restore, concurrent consume/cancel 및 crash injection 검증은 미수행이다. Runtime WebAuthn·principal/binding·Recovery/Transfer·production provisioning/GENESIS/activation도 unavailable이다. IBLA authenticity 구현이 없다는 사실을 실제 설계 root의 부재와 혼동하지 않으며 운영 차단은 유지한다.
 
 이 작업은 commit → normal push → develop 대상 Draft PR에서 종료한다. Ready/merge 및 main 변경은 금지하며 CI 실행 결과를 local docs 검증 결과와 구분한다.
+
+## PR #195 최종 검증 — develop 전진 반영
+
+위 Draft 검증은 최초 head 59e7316057ac37a8af66a67f1b9654f514a3cda3 당시 기록이다. 후속 요청은 모든 Gate 통과 뒤 Ready 및 expected-head guarded squash merge를 허용한다. 원격 develop은 fe2f02f0ca68bc3c4e2ccd1e8c64078b7f727379 (#196 merged)로 전진했다. upstream DohaVocal E2E 39개 파일 변경은 기존 authority/GENESIS 계약을 변경하지 않는다. 일반 merge로 이 이력을 반영하고 CHANGELOG의 두 작업 기록을 모두 보존했다. latest develop 대비 PR delta는 여전히 Markdown 13개이며 code/config/test/workflow/dependency/schema/migration delta는 모두 0이다.
+
+현재 문서의 Draft-only 종료 표현은 새 최종 검증 범위와 분리했다. ADR-107 최초 root/commissioning·positive origin/complete coverage, stable mappings, 영구 consume-before-GENESIS, checkpoint mismatch deny, response loss/deletion/restore 이후 재사용 금지, Recovery/Transfer 분리와 private/public facts를 재감사했다. ADR-093/094 purpose, ADR-099 GENESIS deny, ADR-106 existing-only 및 runtime authentication/activation unavailable를 유지한다. checkpoint는 독립 관측/high-water evidence이고 root나 새 authorization이 아니다. 설계 순환 의존 및 관련 CURRENT contradiction은 0이며 실제 운영 구현 검증을 뜻하지 않는다.
+
+통합 문서에서 UTF-8/fence·상대 파일 링크 551개·ADR index를 재확인했다. 검색 범위는 루트 current 문서와 docs/·planning/ 전체 334개 Markdown이며 registry/checkpoint/Recovery/Transfer 및 관련 ADR/PR 키워드를 포함한다. 기존 ADR·validation의 당시 상태는 역사 기록으로 보존한다. Phase 9는 0/18, Alembic heads는 20260918_0037 single head다. 민감 정보·private key·credential·실제 production path/data 추가는 없고 실제 production 접근은 하지 않았다.
+
+Local Full Backend는 docs-only delta이므로 재실행하지 않는다. 기존 head의 required CI 3 SUCCESS를 새 head의 결과로 재사용하지 않으며, 새 exact head에서 세 required checks SUCCESS·reviews/threads·mergeability·D/H/main race Gate를 확인하기 전 Ready/merge하지 않는다. 병합 결과와 최종 tree equality는 PR 및 최종 보고서의 실제 결과를 따른다.
+
+다음 선행 unit은 IBLA Commissioning / Registration Source Contract/Foundation이다. registry 첫 record의 positive origin·complete coverage와 current source authenticity·checkpoint commissioning anchor를 먼저 명확히 검증 가능한 입력으로 확립해야 한다. 그 다음 durable transactional persistence/checkpoint Foundation과 initial wire/TTL, provisioning writer 순서다. public-fact persistence만 구현할 수 있더라도 독립 source 없이 admission을 허용할 수 없다. 이번 작업에서 후속 구현은 시작하지 않는다.

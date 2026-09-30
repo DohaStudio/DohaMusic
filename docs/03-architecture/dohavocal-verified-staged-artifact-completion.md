@@ -1,5 +1,7 @@
 # DohaVocal Verified Staged Artifact Completion Contract
 
+> 2026-09-29 구현 note: PR #130은 미병합이며 acquisition 책임은 [current-develop Consumer E2E](dohavocal-payload-acquisition-orchestration.md)로 supersede한다. 기존 Completion service/Session-aware port를 explicit test Fake rights로 검증한다. ADR-074/075 의미와 production 미구현 상태는 유지한다.
+
 > 문서 상태: [구현: Completion Foundation] / [미구현: Worker wiring·production rights adapter]
 > 최종 수정일: 2026-09-18
 > 재정합화 기준: `develop@4250a51509df0042dca8aefac9654f74286897ac`, merged ADR-074
@@ -10,7 +12,7 @@
 
 Production current-rights V1 결정은 merged [ADR-075](../11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)와 [Rights architecture](dohavocal-production-rights-domain.md)에 있다. `SCHEMA_CHANGE_REQUIRED`에 따른 SQLite Persistence Foundation·receipt fact 저장소는 구현했지만 adapter/auth/writer/minimal port/final-only receipt wiring은 [미구현]이다. `MINIMAL_PORT_ADAPTATION_REQUIRED`는 그대로다. ADR-074의 final transaction·Session 소유권·targets·stream·replay identity는 변경하지 않는다.
 
-이 문서는 PR #130 이후 `verified_staged`인 단일 DohaVocal payload를 immutable Workspace 결과와 Job success로 승격하는 공식 계약이다. acquisition, Provider 호출, downloader, schema, public API와 production wiring은 변경하지 않는다.
+이 문서는 acquisition orchestration 이후 `verified_staged`인 단일 DohaVocal payload를 immutable Workspace 결과와 Job success로 승격하는 공식 계약이다. acquisition, Provider 호출, downloader, schema, public API와 production wiring은 변경하지 않는다.
 
 ```text
 PayloadLocator(verified_staged)
@@ -28,7 +30,7 @@ PayloadLocator(verified_staged)
 |---|---|
 | Provider execution과 Result | DohaVocal Runtime + persisted ProviderJobBinding |
 | Result/Workspace trust와 role mapping | `ProviderResultIngestionService` + DohaMusic mapping |
-| source acquisition과 `verified_staged` | PR #130 acquisition orchestration |
+| source acquisition과 `verified_staged` | [Consumer E2E acquisition orchestration](dohavocal-payload-acquisition-orchestration.md) |
 | staged bytes open·revalidation·delete | `VerifiedPayloadStagingPort` |
 | Artifact publish/catalog/integrity | `ArtifactIngestionService` |
 | output Asset/Version target | `DohaVocalArtifactCompletionService` |
@@ -168,4 +170,4 @@ generic `JobCompletionService`와 Export Completion의 기존 transaction owner�
 
 new commit은 active source/target을 요구한다. successful replay는 soft-deleted source/target을 포함한 기존 immutable identity를 대조할 수 있어야 하며, tombstone이 신규 생성 권한이 되지 않는다. 현재 output access rights와 exact committed aggregate 검증은 여전히 필수다. cleanup 이후에는 staging object를 다시 열지 않는다.
 
-현재 Alembic source single head는 `20260918_0037`이다. `0033`~`0035`는 Music Director domain, `0036`은 ADR-075 Rights Persistence Foundation의 별도 additive schema, `0037`은 ScopeGuard REPLACE/epoch reset 차단 trigger다. ADR-074 Completion Foundation 자체의 targets/atomicity/stream 계약에 schema 변경을 추가한 것이 아니며 production rights/receipt wiring은 후속이다. PR #130 acquisition 책임은 변경하지 않는다.
+현재 Alembic source single head는 `20260918_0037`이다. `0033`~`0035`는 Music Director domain, `0036`은 ADR-075 Rights Persistence Foundation의 별도 additive schema, `0037`은 ScopeGuard REPLACE/epoch reset 차단 trigger다. ADR-074 Completion Foundation 자체의 targets/atomicity/stream 계약에 schema 변경을 추가한 것이 아니며 production rights/receipt wiring은 후속이다. acquisition과 Completion의 책임 분리는 유지한다.

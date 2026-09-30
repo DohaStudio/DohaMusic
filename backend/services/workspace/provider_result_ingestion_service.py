@@ -387,7 +387,11 @@ class ProviderResultIngestionService:
             expected_source = job_input.source_asset_version_id
             if expected_source not in resolved_input_versions:
                 _reject(ProviderResultContractErrorReason.LINEAGE_MISMATCH)
-        expected_parent = job_input.parent_asset_version_id or expected_source
+        expected_parent = (
+            expected_source
+            if isinstance(job_input, VocalGenerationJobInput)
+            else job_input.parent_asset_version_id or expected_source
+        )
         source_id = _uuid(candidate.lineage.source_asset_version_id)
         parent_id = _uuid(candidate.lineage.parent_asset_version_id)
         if source_id != expected_source or parent_id != expected_parent:

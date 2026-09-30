@@ -1,7 +1,9 @@
 # Durable Payload Locator Authority
 
+> 2026-09-29: [Consumer E2E](dohavocal-payload-acquisition-orchestration.md)는 기존 ordered locator issue/replay와 source_bound → verified_staged를 재사용한다. schema 변경은 없다.
+
 > 문서 상태: [승인: persistence·verified staging·acquisition·Completion Foundation 구현] / [미구현: Worker wiring·production rights adapter]
-> 최종 수정일: 2026-09-16
+> 최종 수정일: 2026-09-30
 > 기준: DohaMusic develop `bdc141237d7c0fd407084ce1bccebfbd86d651a6`, DohaVocal PR #6 merge `b0527ea6877f02cdfdb9ada750a285daa1c8ef21`
 > 최종 판정: `DURABLE_LOCATOR_DEDICATED_AUTHORITY_REQUIRED`
 > 관련 결정: [ADR-041](../11-decisions/ADR-041-trusted-payload-locator-authority.md), [ADR-046](../11-decisions/ADR-046-durable-execution-handoff-authority.md), [ADR-048](../11-decisions/ADR-048-dohavocal-payload-acquisition-consumer.md), [ADR-049](../11-decisions/ADR-049-durable-payload-locator-persistence-authority.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md), [ADR-074](../11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)
@@ -18,7 +20,7 @@ DohaVocal `0.2.0` Result의 `provider_subresource` source descriptor는 Provider
 - revocation, Artifact handoff와 cleanup lifecycle
 - 같은 Result replay의 idempotent issue와 immutable conflict 판정
 
-이 fact는 append-only Provider execution identity와 cardinality·mutation·retention이 다르다. 따라서 `ProviderJobBinding` Column 확장이 아니라 전용 `PayloadLocator` aggregate/table이 필요하다. Domain·persistence port·SQLAlchemy/SQLite adapter·additive Alembic `20260825_0023`과 issue/replay/revoke/resolve lifecycle은 구현했다. downloader, byte staging, Artifact ingestion, Completion, Worker와 network는 변경하지 않았다.
+이 fact는 append-only Provider execution identity와 cardinality·mutation·retention이 다르다. 따라서 `ProviderJobBinding` Column 확장이 아니라 전용 `PayloadLocator` aggregate/table이 필요하다. Domain·persistence port·SQLAlchemy/SQLite adapter·additive Alembic `20260825_0023`과 issue/replay/revoke/resolve lifecycle은 구현했다. 이 persistence 결정 이후 byte staging·acquisition·Completion Foundation을 구현했다. production Worker와 external Provider network 연결은 미구현이다.
 
 ```text
 Provider Result replay authority
@@ -31,7 +33,9 @@ Artifact + AssetVersion + JobOutput authority
   = Completion commit 이후 사용자 결과
 ```
 
-## 2. 현재 구현과 fact 분류
+## 2. 결정 당시 구현과 fact 분류
+
+아래 표와 PR #6 상태는 2026-08-25 locator 결정의 배경이다. 현재 구현 상태를 뜻하지 않는다.
 
 `InMemoryTrustedPayloadRegistry`는 `payloadref:v1:<32 lowercase UUID hex>`를 실제 trusted staging regular file에 결합하고 resolve 때 file identity·SHA-256·size·media·expiry를 재검증하는 process-local Foundation이다. restart, multi-process와 durable cleanup에는 사용할 수 없다. DohaMusic `0.2.0` consumer의 acquisition 결과도 verified bytes를 메모리에만 보유한다.
 
@@ -47,6 +51,10 @@ Artifact + AssetVersion + JobOutput authority
 | revocation·Artifact handoff·cleanup lifecycle | 없음 | 재구성 불가 |
 
 DohaVocal PR #6은 stable source·immutable Result·availability의 TARGET authority를 승인했지만 실제 `0.2.0` Runtime persistence와 bytes endpoint는 아직 미구현이다. 이 사실은 schema 판정을 막지 않으며 production wiring 완료를 선언하는 것만 막는다.
+
+### 현재 구현 상태 (2026-09-30)
+
+현재 Provider 0.2.0 Fake Runtime은 process-local Result/source와 deterministic bytes endpoint를 제공한다. Production Provider persistence는 미구현이다. Consumer transport의 `VerifiedVocalPayload.content`는 transient bytes지만, reconciliation은 기존 durable locator와 verified filesystem staging에 연결한다. staging key·actual verification facts·revocation·handoff·cleanup lifecycle은 현재 전용 persistence authority에 보존된다. Fake ASGI E2E는 기존 Completion까지 검증하며 production Worker/rights wiring은 미구현이다.
 
 ## 3. Result replay와 source availability
 
@@ -238,7 +246,7 @@ Service가 persistence port의 짧은 transaction을 열고 SQLAlchemy Repositor
 ```text
 PayloadLocator persistence foundation: IMPLEMENTED
 durable byte staging foundation: IMPLEMENTED
-downloader orchestration: NOT IMPLEMENTED
+payload acquisition orchestration: IMPLEMENTED (Fake Runtime E2E)
 Artifact ingestion/Completion contract: RESOLVED
 Artifact ingestion/Completion production wiring: NOT IMPLEMENTED
 ```

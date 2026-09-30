@@ -1,5 +1,7 @@
 # DohaVocal Worker Reconciliation Contract
 
+> 2026-09-29: [Consumer E2E](dohavocal-payload-acquisition-orchestration.md)는 in-process Fake Runtime 경로를 검증한다. Worker dispatcher·polling·daemon 연결은 추가하지 않는다.
+
 > 문서 상태: [승인: authoritative contract, production wiring 미구현]
 > 기준: DohaMusic `99511b9b778b9b7c85b9b0cec0acd778b9b2a5d1`
 > 구현 상태: acquisition orchestration·verified staging 및 본 branch의 verified staged Artifact Completion Foundation 구현, production current-rights adapter·Worker wiring 미구현
@@ -93,7 +95,7 @@ Provider candidate role과 Workspace output role은 서로 다른 namespace다. 
 | `vocal_correction` | `corrected_vocal_candidate` | `corrected_vocal` |
 | `vocal_analysis` | `vocal_analysis_result` | `vocal_analysis` |
 
-현재 generic Completion은 `converted_vocal`만 지원한다. 전용 Vocal Completion의 네 role target과 Asset/Version 규칙은 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)에 확정했지만 adapter는 아직 구현하지 않았다. 알 수 없거나 Job type과 맞지 않는 role은 fail closed한다.
+현재 generic Completion은 `converted_vocal`만 지원한다. 전용 Vocal Completion의 네 role target과 Asset/Version 규칙은 [Verified Staged Artifact Completion](dohavocal-verified-staged-artifact-completion.md)에 확정하고 Foundation을 구현했다. 실제 Fake Runtime E2E는 기존 adapter를 사용하며 production rights/Worker wiring은 미구현이다. 알 수 없거나 Job type과 맞지 않는 role은 fail closed한다.
 
 ## 8. Completion eligibility와 replay
 

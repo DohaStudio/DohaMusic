@@ -1,5 +1,8 @@
 # DohaMusic 실행 로드맵
 
+> 2026-09-29: [DohaVocal 0.2.0 Consumer E2E Foundation](docs/03-architecture/dohavocal-payload-acquisition-orchestration.md)은 실제 pinned Fake ASGI Runtime에서 기존 trust·durable staging·Artifact Completion까지 격리 검증합니다. 0.1.0 기본값을 유지하며 production rights/auth·Worker·실제 모델은 미구현입니다.
+
+
 > DohaVocal `0.2.0` consumer, 전용 `PayloadLocator`, verified durable local staging·acquisition orchestration과 verified-staged Artifact Completion Foundation을 구현했습니다. Worker wiring과 production rights adapter는 별도 후속입니다.
 >
 > 문서 역할: 현재 실행 순서와 NEXT/LATER
@@ -9,7 +12,7 @@
 
 Bootstrap 최신 Track: #164~#170/#172~#193는 merged다. [ADR-097 exact correlation](docs/11-decisions/ADR-097-authentic-confirmation-lineage-correlation-foundation.md)과 [ADR-098 CurrentnessWitness handoff](docs/11-decisions/ADR-098-currentness-witness-handoff-foundation.md)에 이어 AdmissionAttempt Provider·Transaction Owner·Commit Reconciler와 [ADR-102 Durable Admission Orchestrator](docs/11-decisions/ADR-102-durable-admission-orchestration-foundation.md)의 내부 chain을 구현했다. [ADR-103 Production Composition](docs/11-decisions/ADR-103-durable-admission-production-composition-foundation.md), [ADR-104 reviewed configuration](docs/11-decisions/ADR-104-reviewed-production-deployment-configuration-foundation.md), [ADR-105 private authority source descriptors](docs/11-decisions/ADR-105-production-private-authority-source-factory-foundation.md)가 후속 Foundation이며, merged PR #193의 [ADR-106 Production External Journal Factory](docs/11-decisions/ADR-106-production-external-journal-factory-foundation.md)는 reviewed configuration에 결합된 이미 provision된 exact external journal만 existing-only `mode=rw`로 검증·open한다. Windows native path/file identity, exact schema/version·integrity·complete history, pinned SQLite connection과 bounded root Session handoff를 검증한다. 실제 private sources/journal provisioning·초기 ACL/custody·identity/GENESIS 확립, production authentication wiring과 final admission/activation wiring은 unavailable이다. Factory open 성공은 provisioning이나 운영 권한을 뜻하지 않는다. application DB schema와 Alembic `20260918_0037`은 유지한다.
 
-[ADR-107 Independent Bootstrap Lineage Authority](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 결정한 Draft 제안이다. 설계 DECIDED와 운영 채택·구현을 구분한다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다.
+[ADR-107 Independent Bootstrap Lineage Authority](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다.
 
 Vocal 권한 독립 Track(2026-09-18): merged #160 [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 Rights Persistence Foundation·ScopeGuard integrity는 #161 merged, Alembic `0037`이며 final receipt port는 `MINIMAL_PORT_ADAPTATION_REQUIRED`다. [ADR-076](docs/11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 #162 merged, [ADR-077 verifier](docs/03-architecture/bootstrap-issuance-integrity-verifier.md)는 #163 merged이고 receipt는 권한이 아니다. #164 Contract 뒤 현재 Foundation/NEXT는 위 Bootstrap 실행 순서를 따른다. trusted provisioning/private current authority·Claim/binding/운영 adapter는 미구현이며 Phase/DoD 진행률은 그대로다. 과거 '새 schema는 전제하지 않는다'는 Completion 출발 원칙이며 신규 authority facts의 schema 필요 판정을 바꾸지 않는다.
 
@@ -38,9 +41,9 @@ Vocal 권한 독립 Track(2026-09-18): merged #160 [ADR-075](docs/11-decisions/A
 3. Phase C `[계획]`: ACE-Step·Demucs·Seed-VC Runner를 순차 이전하고 로컬 `Path`를 Artifact ID·URI 계약으로 전환한다.
 4. Phase D `[계획]`: 전환 검증이 끝난 내부 Runner와 구형 Adapter만 제거하고 운영 계약 version과 DoD를 확정한다.
 
-DohaVocal `0.1.0` Fake Runtime 호환과 DohaMusic `0.2.0` Consumer DTO·capability negotiation·config 기반 transient binary HTTP acquisition·Result trust gate, dedicated PayloadLocator schema/Runtime과 verified local staging foundation은 구현했다. Worker 연결·인증·downloader·Artifact payload·AssetVersion commit, DohaAudio Runtime과 공통 Model Registry는 구현하지 않았다.
+DohaVocal `0.1.0` Fake Runtime 호환과 DohaMusic `0.2.0` Consumer DTO·capability negotiation·config 기반 transient binary HTTP acquisition·Result trust gate, dedicated PayloadLocator schema/Runtime과 verified local staging foundation은 구현했다. Fake ASGI E2E는 acquisition·staging·Artifact Completion까지 연결한다. production Worker·인증·rights와 DohaAudio Runtime·공통 Model Registry는 미구현이다.
 
-DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic은 transient acquisition adapter 기반을 구현했다. 실제 Workspace Artifact locator·ingestion, DohaAudio Runtime API와 공통 Model Registry는 구현하지 않았다.
+DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic은 transient acquisition adapter 기반을 구현했다. Workspace Artifact locator·ingestion·Completion Foundation은 격리 E2E로 검증한다. production wiring, DohaAudio Runtime API와 공통 Model Registry는 미구현이다.
 
 ## AI-native DAW Product Track
 

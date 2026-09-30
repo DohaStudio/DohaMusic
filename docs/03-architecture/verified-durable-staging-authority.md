@@ -1,6 +1,8 @@
 # Verified Durable Staging Authority
 
-> 구현 업데이트(2026-08-26): `VerifiedPayloadStagingPort`, `LocalFilesystemStagingAdapter`, verified open/delete와 `PayloadStagingService`의 `source_bound → verified_staged` CAS를 구현했다. composition root에서 생성 가능하지만 Worker/downloader caller에는 등록하지 않았다.
+> 2026-09-29: [Consumer E2E](dohavocal-payload-acquisition-orchestration.md)가 실제 Fake ASGI GetPayloadContent를 기존 staging·Completion에 연결한다. staging service 자체의 transaction/CAS/cleanup 의미는 유지한다.
+
+> 구현 업데이트(2026-08-26): `VerifiedPayloadStagingPort`, `LocalFilesystemStagingAdapter`, verified open/delete와 `PayloadStagingService`의 `source_bound → verified_staged` CAS를 구현했다. composition root와 acquisition orchestration에서 사용하며 production Worker caller에는 등록하지 않았다.
 
 ## 구현 상태
 
@@ -8,7 +10,7 @@
 VerifiedPayloadStagingPort: IMPLEMENTED
 LocalFilesystemStagingAdapter: IMPLEMENTED
 verified durable staging: IMPLEMENTED
-downloader orchestration: NOT IMPLEMENTED
+payload acquisition orchestration: IMPLEMENTED (Fake Runtime E2E)
 Artifact ingestion/Completion contract: RESOLVED (ADR-074)
 Artifact ingestion/Completion Foundation: IMPLEMENTED
 Worker wiring: NOT IMPLEMENTED

@@ -1,5 +1,7 @@
 # ADR-048: DohaVocal Payload Acquisition Consumer 경계
 
+> 구현 note (2026-09-29): 결정 의미는 유지한다. 기존 local staging·Completion Foundation과 실제 Fake ASGI acquisition의 현재 상태는 [Consumer E2E](../03-architecture/dohavocal-payload-acquisition-orchestration.md)를 따른다. 아래 배경/순서는 결정 당시 기록이며 production Worker·rights adapter는 미구현이다.
+
 > 상태: 승인
 > 결정일: 2026-08-25
 > 기준: DohaMusic `develop` 347525cc6655950ca2a397d33b61d1864ca9cd95, DohaVocal PR #6 merge b0527ea6877f02cdfdb9ada750a285daa1c8ef21

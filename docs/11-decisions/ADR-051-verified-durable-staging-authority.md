@@ -1,6 +1,8 @@
 # ADR-051: Verified Durable Staging Authority
 
-> 상태: 승인·구현 대기
+> 구현 note (2026-09-29): 결정 의미는 유지한다. 기존 local staging·Completion Foundation과 실제 Fake ASGI acquisition의 현재 상태는 [Consumer E2E](../03-architecture/dohavocal-payload-acquisition-orchestration.md)를 따른다. 아래 배경/순서는 결정 당시 기록이며 production Worker·rights adapter는 미구현이다.
+
+> 상태: 승인·local adapter 구현; production wiring 미구현
 > 작성일: 2026-08-25
 > 최종 수정일: 2026-08-26
 > 관련 기능: PayloadLocator `verified_staged` restart-safe byte authority

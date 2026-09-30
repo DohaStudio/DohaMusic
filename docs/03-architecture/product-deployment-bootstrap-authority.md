@@ -28,4 +28,4 @@ DEFINED/ADOPTED: bootstrap external root 및 verification/trust-chain contract (
 
 ## 독립 최초 등록과 소비 authority
 
-[ADR-107 Independent Bootstrap Lineage Authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 결정한 Draft 제안이다. 설계 DECIDED와 운영 채택·구현을 구분한다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다.
+[ADR-107 Independent Bootstrap Lineage Authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다.

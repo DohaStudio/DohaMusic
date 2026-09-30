@@ -1,9 +1,9 @@
 # ADR-107: Independent Bootstrap Lineage and Initial Authorization Consumption Authority
 
-> 상태: [결정 제안 — DECIDED / Draft PR 검토 대상, 운영 비활성]
+> 상태: [설계 결정 — DECIDED, 구현·운영 비활성]
 > 작성일·최종 수정일: 2026-09-30
 > 기준 develop: 83d63f8908a4efb35a62aba95824fca87879f860 (#194 merged)
-> 관련 PR: 이 문서를 포함하는 develop 대상 Draft PR. 병합·운영 채택 전이다.
+> 관련 PR: [#195](https://github.com/DohaStudio/DohaMusic/pull/195). 병합 상태는 PR 기록을 따르며 운영 활성화와 구분한다.
 > 관련 결정: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md)
 > 관련 문서: [Bootstrap architecture](../03-architecture/product-deployment-bootstrap-authority.md), [검증 보고서](../10-operations/independent-bootstrap-lineage-authority-validation.md)
 
@@ -170,4 +170,4 @@ ADR-076 external root·서면 designation·Recovery/Transfer 제외와 ADR-078 n
 
 장점: first-ever와 consumed-but-missing을 구별하는 책임이 target 밖에 존재하고 crash 때 entitlement가 되살아나지 않는다. 비용: 별도 store/checkpoint/ceremony와 보존 책임, 실패 후 unavailable 및 Recovery 미정에 따른 수동 중단이다. 다음 작업은 IBLA의 authentic commissioning/registration source와 transactional persistence/checkpoint 계약·검증 계획이다. Initial artifact wire, provisioning/GENESIS writer 구현은 그 이후 별도 작업이다.
 
-원격 topology, multi-root, stronger rollback/clone threat model, legal deletion, live Recovery/Transfer, 새로운 store technology/crypto/wire 선택 또는 기존 root scope 변경 요구 시 재검토한다. 이 문서는 Draft PR에서 종료하며 Ready/merge하지 않는다.
+원격 topology, multi-root, stronger rollback/clone threat model, legal deletion, live Recovery/Transfer, 새로운 store technology/crypto/wire 선택 또는 기존 root scope 변경 요구 시 재검토한다. 최초 작성은 Draft PR 범위였다. 후속 사용자 요청에 따른 최종 검증에서는 문서·exact-head CI·review/race Gate를 모두 통과한 경우에만 #195의 Ready/guarded squash merge를 허용하며 구현은 시작하지 않는다.

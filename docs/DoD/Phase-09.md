@@ -23,7 +23,7 @@ Studio MVP, 부하·비용·SLO·보안 요구사항과 명시적 릴리스 승�
 
 K-POP Creation Control Track은 제품 제어 고도화이며 인증·권한·감사·분산 Queue 등 이 Phase의 Production 차단 조건을 대체하지 않는다.
 
-[ADR-107 독립 lineage authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 인증·권한·감사 및 Backup/Restore의 선행 설계 Draft다. registry/commissioning/authentication/GENESIS 구현·운영 검증은 없으므로 완료 체크와 진행률 0/18, 0%는 유지한다.
+[ADR-107 독립 lineage authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 인증·권한·감사 및 Backup/Restore의 선행 설계 결정이다. registry/commissioning/authentication/GENESIS 구현·운영 검증은 없으므로 완료 체크와 진행률 0/18, 0%는 유지한다.
 
 ## 완료 체크리스트
 

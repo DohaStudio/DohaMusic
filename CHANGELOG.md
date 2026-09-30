@@ -13,9 +13,17 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ### 문서 - 독립 Bootstrap Lineage Authority 결정
 
-- [ADR-107](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md) Draft는 ADR-076 외부 root 아래 독립 append-only registry와 signed intent를 분리하고 최초 등록의 positive origin/coverage, writer·reader, irreversible consume-before-GENESIS와 별도 checkpoint를 정의한다.
+- [ADR-107](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 ADR-076 외부 root 아래 독립 append-only registry와 signed intent를 분리하고 최초 등록의 positive origin/coverage, writer·reader, irreversible consume-before-GENESIS와 별도 checkpoint를 정의한다.
 - 삭제·restore·reinstall·clone·crash 시 자동 재-bootstrap을 거부하고 terminal history 무기한 보존 및 별도 Recovery/Transfer 경계를 명시했다.
 - current architecture와 Phase 9 선행 조건을 동기화했다. 설계 DECIDED이며 provisioning/GENESIS는 BLOCKED / NOT IMPLEMENTED, authentication/activation은 UNAVAILABLE다. 코드·schema·migration·운영 데이터 변경은 없다.
+
+### 추가·수정 — DohaVocal 0.2.0 Consumer E2E Foundation
+
+- 기본 0.1.0 호환을 유지하고 명시적 0.2.0 capability query·CreateJob/Manifest preflight를 연결했다.
+- PR #130의 미병합 reconciliation을 현재 develop에서 재사용해 exact ordinal/source binding, current authority checkpoint, identity encoding·bounded streaming 검증과 durable staging을 연결했다.
+- 실제 pinned DohaVocal Fake ASGI app의 4 capability를 기존 trust·locator·Completion에 연결하는 격리 E2E 및 실패/replay 검증을 추가했다. generation의 source/parent trust 검증을 기존 계약과 정합화했다.
+- production 권한·Worker·schema·Public API는 변경하지 않았다. 상세 범위와 #130 supersede 판정은 [E2E 경계](docs/03-architecture/dohavocal-payload-acquisition-orchestration.md)를 따른다.
+
 
 ### 수정 - Windows storage publication 경합
 

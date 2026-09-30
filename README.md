@@ -1,5 +1,8 @@
 ﻿# DohaMusic
 
+> 2026-09-29: [DohaVocal 0.2.0 Consumer E2E Foundation](docs/03-architecture/dohavocal-payload-acquisition-orchestration.md)은 실제 pinned Fake ASGI Runtime에서 기존 trust·durable staging·Artifact Completion까지 격리 검증합니다. 0.1.0 기본값을 유지하며 production rights/auth·Worker·실제 모델은 미구현입니다.
+
+
 > 2026-09-17: DohaVocal `0.2.0` verified payload를 path-free stream으로 Artifact에 publish하고, Job type별 Vocal target·JobOutput·ModelUsage·locator ingestion·Job success를 단일 transaction으로 확정하는 Completion Foundation을 구현했습니다. [Verified Staged Artifact Completion](docs/03-architecture/dohavocal-verified-staged-artifact-completion.md)과 [ADR-074](docs/11-decisions/ADR-074-dohavocal-verified-staged-artifact-completion-authority.md)을 따르며 Worker wiring과 production rights adapter는 아직 미구현입니다.
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
@@ -28,7 +31,7 @@ DohaMusic = AI-native DAW
 
 Bootstrap 최신 Track: #164~#170/#172~#193는 merged다. [ADR-097 exact correlation](docs/11-decisions/ADR-097-authentic-confirmation-lineage-correlation-foundation.md)은 authenticity·held live lineage·fresh observation을 같은 handles/lease/두 transaction에 결합한다. [ADR-098 CurrentnessWitness handoff](docs/11-decisions/ADR-098-currentness-witness-handoff-foundation.md)는 그 correlation을 동일 Windows lease·caller transaction·provider single attempt에서 재검증해 opaque ephemeral witness 하나만 발급한다. [ADR-106 Production External Journal Factory](docs/11-decisions/ADR-106-production-external-journal-factory-foundation.md)는 이미 provision된 exact journal만 검증·open한다. 실제 private sources/journal provisioning, authentication wiring과 production activation은 unavailable이며 app DB schema와 Alembic 0037은 유지된다.
 
-[ADR-107 Independent Bootstrap Lineage Authority](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 결정한 Draft 제안이다. 설계 DECIDED와 운영 채택·구현을 구분한다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다.
+[ADR-107 Independent Bootstrap Lineage Authority](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다.
 
 현재 `develop`에서 확인되는 범위다.
 
