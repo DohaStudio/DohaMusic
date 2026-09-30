@@ -37,6 +37,9 @@ ADR-075 Rights Persistence Foundation은 11개 additive SQLite tables·immutable
 
 - [ ] Provider별 Manifest·라이선스·보안·CI가 검증됐다.
 
+
+2026-09-29 Consumer E2E 작업은 pinned DohaVocal 0.2.0 Fake ASGI app에서 기존 trust·durable staging·Artifact Completion까지 격리 검증한다. [실행 경계](../03-architecture/dohavocal-payload-acquisition-orchestration.md)의 test-only rights를 사용하며 production 완료 체크와 Phase 진행률은 변경하지 않는다. 전체 regression Gate 및 병합 상태는 별도 검증 결과를 따른다.
+
 ## Phase C 완료 조건 — [계획]
 
 - [ ] ACE-Step·Demucs·Seed-VC가 Provider별로 순차 이전됐다.

@@ -52,10 +52,35 @@ class VocalProviderClient:
     def __init__(self, transport: VocalProviderTransport) -> None:
         self._transport = transport
 
-    def get_capabilities(self) -> VocalCapabilities:
-        return self._request("GET", "/v1/capabilities", VocalCapabilities)
+    def get_capabilities(
+        self, *, api_contract_version: str = DOHAVOCAL_CONTRACT_VERSION
+    ) -> VocalCapabilities:
+        if api_contract_version not in {
+            DOHAVOCAL_CONTRACT_VERSION,
+            DOHAVOCAL_PAYLOAD_CONTRACT_VERSION,
+        }:
+            raise _unsupported_contract_version()
+        result = self._request(
+            "GET",
+            "/v1/capabilities",
+            VocalCapabilities,
+            api_contract_version=(
+                api_contract_version if api_contract_version != DOHAVOCAL_CONTRACT_VERSION else None
+            ),
+        )
+        if result.api_contract_version != api_contract_version:
+            raise _unsupported_contract_version()
+        return result
 
     def create_job(self, request: VocalCreateJobRequest) -> BaseVocalJob:
+        if request.api_contract_version == DOHAVOCAL_PAYLOAD_CONTRACT_VERSION:
+            capabilities = self.get_capabilities(api_contract_version=request.api_contract_version)
+            manifest = self.get_model_manifest(request.model_manifest_id)
+            if (
+                manifest.api_contract_version != capabilities.api_contract_version
+                or request.capability not in manifest.capabilities
+            ):
+                raise _unsupported_contract_version()
         job = self._request_job(
             "POST",
             "/v1/jobs",
@@ -150,8 +175,9 @@ class VocalProviderClient:
         model: type[ResponseModel],
         *,
         expected_status: int = 200,
+        api_contract_version: str | None = None,
     ) -> ResponseModel:
-        response = self._send(method, path)
+        response = self._send(method, path, api_contract_version=api_contract_version)
         payload = self._payload(response, expected_status)
         try:
             return model.model_validate(payload)
@@ -164,10 +190,16 @@ class VocalProviderClient:
         path: str,
         *,
         json_body: dict[str, object] | None = None,
+        api_contract_version: str | None = None,
     ) -> VocalTransportResponse:
         try:
             return self._transport.send(
-                VocalTransportRequest(method=method, path=path, json_body=json_body)
+                VocalTransportRequest(
+                    method=method,
+                    path=path,
+                    json_body=json_body,
+                    api_contract_version=api_contract_version,
+                )
             )
         except TimeoutError:
             raise VocalProviderTimeoutError(

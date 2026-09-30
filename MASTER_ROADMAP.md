@@ -1,5 +1,8 @@
 # DohaMusic 마스터 로드맵
 
+> 2026-09-29: [DohaVocal 0.2.0 Consumer E2E Foundation](docs/03-architecture/dohavocal-payload-acquisition-orchestration.md)은 실제 pinned Fake ASGI Runtime에서 기존 trust·durable staging·Artifact Completion까지 격리 검증합니다. 0.1.0 기본값을 유지하며 production rights/auth·Worker·실제 모델은 미구현입니다.
+
+
 > Provider 결과 경계 업데이트(2026-09-17): DohaVocal `0.2.0` payload consumer, 전용 PayloadLocator, verified durable local staging, acquisition orchestration과 Verified Staged Artifact Completion Foundation을 구현했습니다. production Worker wiring과 rights adapter는 아직 미구현입니다.
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
@@ -131,16 +134,16 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | AI-native DAW Product | [진행 중] | `D0·D1·D2·D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration·Clip editing·Clip Copy·safe media source·Track/Clip Waveform·persistent history 완료` | Backend journal/cursor Undo/Redo·exact version media resolution·Clip source-window Waveform·revision-pinned Preview·immutable Commit·static Clip Gain/Fade와 Loop UI 완료; multi-user conflict recovery 완료; 실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
 | K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
-| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현, reconciliation 계약 확정; Provider dispatch wiring·durable payload ingestion·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
+| Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현, reconciliation 계약 확정; Fake Runtime acquisition·staging·Completion E2E 구현; production Provider dispatch·rights·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
-| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract·HTTP Transport·metadata Result trust gate 구현, Worker wiring·실제 Artifact payload 통합 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
+| AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract·HTTP Transport·metadata Result trust gate 구현, Fake Runtime Artifact Completion E2E 구현; production Worker·rights wiring 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 | Reviewer Authentication Authority | [Foundation 구현 / OS adapter 미구현] | 독립 authority | V1 local-only·single owner/operator·Windows WebAuthn platform credential mechanism과 fail-closed contract 구현; production adapter·assertion·mapping·authority 활성화 미구현 | [ADR-042](docs/11-decisions/ADR-042-v1-local-operator-authentication-foundation.md) |
 
 K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 
-Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency, PayloadLocator, Working Preview와 Clip Gain·Fade·Loop·persistent history Backend Foundation을 구현해 source metadata는 50개 Table·Alembic `20260905_0028`이다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
+Workspace Artifact·Job Domain은 진행 중 Track이다. Job Cursor·Service·Completion UoW와 Worker foundation에 공식 Job API 5개를 연결했다. Provider Job identity는 1:N binding history로 복구하고 PayloadLocator는 ordered payload lifecycle을 별도 보존한다. D1-A product API 2개, D3 Clip Persistence·Authority, Revision-safe Idempotency, PayloadLocator, Working Preview와 Clip Gain·Fade·Loop·persistent history Backend Foundation을 구현해 현재 source metadata는 67개 Table·Alembic `20260918_0037`이며 이번 E2E의 schema 변경은 없다. 실제 사용자 DB는 36개 Table·`20260810_0017`로 유지한다. Provider dispatch wiring과 background daemon·scheduler, 실제 DB 전환은 미구현이다.
 
 ## Phase 0. 프로젝트 문서화 — [완료]
 

@@ -157,6 +157,11 @@ from backend.services.workspace.trusted_media_metadata_service import (
     TrustedMediaMetadataErrorCode,
     TrustedMediaMetadataService,
 )
+from backend.services.workspace.vocal_payload_reconciliation_service import (
+    VocalPayloadReconciliationError,
+    VocalPayloadReconciliationErrorCode,
+    VocalPayloadReconciliationService,
+)
 from backend.services.workspace.working_composition_service import (
     ClipMediaSource,
     WorkingCompositionAggregate,
@@ -192,6 +197,9 @@ from backend.storage.trusted_payload import (
 )
 
 __all__ = [
+    "VocalPayloadReconciliationError",
+    "VocalPayloadReconciliationErrorCode",
+    "VocalPayloadReconciliationService",
     "SNAPSHOT_ITEM_ROLES",
     "ArtifactAccessError",
     "ArtifactAccessErrorCode",

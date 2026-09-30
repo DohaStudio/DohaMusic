@@ -1,9 +1,9 @@
 # DohaMusic Provider API 계약
 
 > 문서 상태: [부분 구현]
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-09-30
 > 관련 기능: DohaMusic Workspace Job Orchestrator와 DohaLM·DohaAudio·DohaVocal Provider 연결
-> 구현 상태: DohaVocal `0.1.0` metadata-only 호환 및 `0.2.0` payload DTO·capability negotiation·read-only binary HTTP acquisition foundation 구현. Public API·production 인증·Artifact ingestion은 미구현
+> 구현 상태: DohaVocal `0.1.0` metadata-only 호환 및 `0.2.0` payload DTO·capability negotiation·read-only binary HTTP acquisition foundation 구현. 공개 Provider orchestration API·production 인증/Worker wiring은 미구현. Fake ASGI acquisition·staging·기존 Artifact Completion의 격리 검증은 [Consumer E2E](../03-architecture/dohavocal-payload-acquisition-orchestration.md)를 따른다
 > 관련 문서: [Workspace API 계약](workspace-rest-api-contract.md), [Endpoint 목록](workspace-rest-api-endpoints.md), [AI Pipeline](../03-architecture/ai-pipeline.md)
 
 ## 1. 목적

@@ -75,6 +75,12 @@ class HttpVocalProviderTransport:
         if self._closed:
             raise OSError("DohaVocal HTTP transport is closed")
         _validate_origin_relative_path(request.path)
+        if request.api_contract_version is not None and (
+            request.method != "GET"
+            or request.path != "/v1/capabilities"
+            or request.api_contract_version not in {"0.1.0", "0.2.0"}
+        ):
+            raise OSError("DohaVocal contract selection is invalid")
         headers = dict(request.headers)
         headers["Accept"] = "application/json"
         kwargs: dict[str, object] = {
@@ -82,6 +88,8 @@ class HttpVocalProviderTransport:
             "timeout": self._timeout,
             "follow_redirects": False,
         }
+        if request.api_contract_version is not None:
+            kwargs["params"] = {"api_contract_version": request.api_contract_version}
         if request.json_body is not None:
             kwargs["json"] = dict(request.json_body)
         try:
@@ -112,6 +120,8 @@ class HttpVocalProviderTransport:
             raise VocalPayloadAcquisitionError(
                 VocalPayloadAcquisitionErrorCode.PAYLOAD_TRANSFER_FAILED
             )
+        if request.check_current is not None:
+            request.check_current()
         payload = request.payload
         maximum_bytes = min(request.max_size_bytes, self._payload_max_bytes)
         if payload.expected_size_bytes > maximum_bytes:
@@ -126,11 +136,16 @@ class HttpVocalProviderTransport:
             with self._client.stream(
                 "GET",
                 f"{self._base_url}{path}",
-                headers={"Accept": payload.expected_media_type},
+                headers={"Accept": payload.expected_media_type, "Accept-Encoding": "identity"},
                 timeout=self._timeout,
                 follow_redirects=False,
             ) as response:
                 _require_payload_status(response.status_code)
+                if (
+                    response.headers.get("content-encoding", "identity").strip().lower()
+                    != "identity"
+                ):
+                    raise _payload_integrity_error()
                 media_type = _normalized_media_type(response.headers.get("content-type"))
                 if media_type != payload.expected_media_type:
                     raise _payload_integrity_error()
@@ -144,12 +159,19 @@ class HttpVocalProviderTransport:
                 digest = sha256()
                 chunks: list[bytes] = []
                 size = 0
-                for chunk in response.iter_bytes():
+                for chunk in response.iter_bytes(chunk_size=64 * 1024):
+                    if request.check_current is not None:
+                        try:
+                            request.check_current()
+                        except Exception as error:
+                            raise _CurrentAuthorityRejected(error) from None
                     size += len(chunk)
                     if size > maximum_bytes or size > payload.expected_size_bytes:
                         raise _payload_integrity_error()
                     digest.update(chunk)
                     chunks.append(chunk)
+        except _CurrentAuthorityRejected as error:
+            raise error.reason from None
         except VocalPayloadAcquisitionError:
             raise
         except httpx.TimeoutException:
@@ -161,6 +183,8 @@ class HttpVocalProviderTransport:
                 VocalPayloadAcquisitionErrorCode.PAYLOAD_TRANSFER_FAILED
             ) from None
 
+        if request.check_current is not None:
+            request.check_current()
         if size != payload.expected_size_bytes:
             raise _payload_integrity_error()
         actual_checksum = digest.hexdigest()
@@ -194,6 +218,13 @@ class HttpVocalProviderTransport:
         traceback: TracebackType | None,
     ) -> None:
         self.close()
+
+
+class _CurrentAuthorityRejected(Exception):
+    """Keep caller authority failures distinct from HTTP client RuntimeError."""
+
+    def __init__(self, reason: Exception) -> None:
+        self.reason = reason
 
 
 def _normalize_base_url(value: str) -> str:

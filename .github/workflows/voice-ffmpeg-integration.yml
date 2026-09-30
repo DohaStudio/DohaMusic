@@ -32,7 +32,18 @@ jobs:
         run: python -m ruff check --no-cache backend ai_worker
       - name: Ruff format
         run: python -m ruff format --check --no-cache backend ai_worker
-      - name: Backend tests with real FFmpeg
+      - name: Checkout pinned DohaVocal Fake Runtime fixture
+        uses: actions/checkout@v4
+        with:
+          repository: DohaStudio/DohaVocal
+          ref: e28320ef26a2dc49eaefdfa62bceea0c8c69e6ed
+          path: .test-provider
+          persist-credentials: false
+      - name: Install pinned Provider fixture dependencies
+        run: python -m pip install ./.test-provider
+      - name: Backend tests with real FFmpeg and DohaVocal ASGI
+        env:
+          DOHAVOCAL_E2E_SOURCE: ${{ github.workspace }}/.test-provider
         run: python -m pytest -q
 
   ffmpeg-windows:

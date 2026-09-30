@@ -13,6 +13,7 @@ class VocalTransportRequest:
     path: str
     json_body: Mapping[str, Any] | None = None
     headers: Mapping[str, str] = field(default_factory=dict)
+    api_contract_version: str | None = None
 
 
 @dataclass(frozen=True, slots=True)

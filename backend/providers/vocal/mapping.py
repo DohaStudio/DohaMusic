@@ -7,7 +7,13 @@ from dataclasses import dataclass
 from typing import Any
 from uuid import UUID
 
-from .contracts import VocalCapability, VocalCreateJobRequest, VocalJobInput
+from .contracts import (
+    DOHAVOCAL_CONTRACT_VERSION,
+    VocalCapability,
+    VocalContractVersion,
+    VocalCreateJobRequest,
+    VocalJobInput,
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,6 +31,7 @@ class AuthorizedVocalJobContext:
     settings_snapshot: dict[str, Any]
     job_input: VocalJobInput
     composition_snapshot_id: UUID | None = None
+    api_contract_version: VocalContractVersion = DOHAVOCAL_CONTRACT_VERSION
 
 
 def map_authorized_create_job(
@@ -34,6 +41,7 @@ def map_authorized_create_job(
 
     return VocalCreateJobRequest(
         capability=context.capability,
+        api_contract_version=context.api_contract_version,
         idempotency_key=context.idempotency_key,
         project_id=str(context.project_id),
         input_asset_version_ids=tuple(map(str, context.input_asset_version_ids)),
