@@ -5,11 +5,17 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-09-29
+> 최종 수정일: 2026-09-30
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - 독립 Bootstrap Lineage Authority 결정
+
+- [ADR-107](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md) Draft는 ADR-076 외부 root 아래 독립 append-only registry와 signed intent를 분리하고 최초 등록의 positive origin/coverage, writer·reader, irreversible consume-before-GENESIS와 별도 checkpoint를 정의한다.
+- 삭제·restore·reinstall·clone·crash 시 자동 재-bootstrap을 거부하고 terminal history 무기한 보존 및 별도 Recovery/Transfer 경계를 명시했다.
+- current architecture와 Phase 9 선행 조건을 동기화했다. 설계 DECIDED이며 provisioning/GENESIS는 BLOCKED / NOT IMPLEMENTED, authentication/activation은 UNAVAILABLE다. 코드·schema·migration·운영 데이터 변경은 없다.
 
 ### 수정 - Windows storage publication 경합
 

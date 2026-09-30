@@ -1,7 +1,7 @@
 # Bootstrap Issuance Integrity Verifier
 
 > 문서 상태: [Foundation #163 merged — 운영 비활성]
-> 최종 수정일: 2026-09-29
+> 최종 수정일: 2026-09-30
 > 관련 문서: [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](../11-decisions/ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [검증](../10-operations/bootstrap-issuance-integrity-verifier-validation.md)
 
 ## 구현한 경계
@@ -18,6 +18,10 @@ Replay/concurrent integrity checks는 같은 역사적 receipt를 반환할 수 
 
 ## Dependency 판정
 
-#163 exact-head Final Validation/squash merge는 완료됐다. ADR-077 원본·approval domain/schema/구현은 보존한다. [ADR-078 current-status/lifecycle Contract](deployment-verifier-current-status.md)는 #164 merged이며 이후 public journal·currentness·admission chain은 별도 Foundation으로 진행됐다. 최신 #192 merged progression과 현재 PR #193의 ADR-106 Factory 범위는 연결된 lifecycle 문서를 따른다. Issuance verifier는 과거 receipt의 issuance integrity만 검증하며 journal/admission/pin proof, current authorization 또는 human authentication proof로 승격되지 않는다. 실제 provisioning·authentication·production activation은 계속 unavailable이다.
+#163 exact-head Final Validation/squash merge는 완료됐다. ADR-077 원본·approval domain/schema/구현은 보존한다. [ADR-078 current-status/lifecycle Contract](deployment-verifier-current-status.md)는 #164 merged이며 이후 public journal·currentness·admission chain은 별도 Foundation으로 진행됐다. 최신 #192 merged progression과 merged PR #193의 ADR-106 Factory 범위는 연결된 lifecycle 문서를 따른다. Issuance verifier는 과거 receipt의 issuance integrity만 검증하며 journal/admission/pin proof, current authorization 또는 human authentication proof로 승격되지 않는다. 실제 provisioning·authentication·production activation은 계속 unavailable이다.
 
 ADR-076 merged develop에서 독립적으로 검증 가능한 최소 unit C를 선택했다. A는 journal/current-status/principal history 연결을, B는 principal lifecycle와 authentication provenance를 함께 요구한다. 새 authority를 도입하는 Decision은 없고 library/wire implementation details만 ADR-077에 기록한다. additive bootstrap migration과 실제 private-state provisioning은 이번 unit에 필요하지 않다. 기존 Phase/DoD 완료율은 그대로다.
+
+## 독립 최초 등록과 소비 authority
+
+[ADR-107 Independent Bootstrap Lineage Authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 결정한 Draft 제안이다. 설계 DECIDED와 운영 채택·구현을 구분한다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다.

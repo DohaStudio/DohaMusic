@@ -1,7 +1,7 @@
 # 보안 정책
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-09-29
+> 최종 수정일: 2026-09-30
 > 관련 기능: Storage·Voice·Frontend public contract 보안
 > 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md)
 
@@ -47,3 +47,7 @@ Verified payload staging은 config-owned process-private root에 opaque locator-
 ## Lyrics 입력 통제
 
 Lyrics API는 topic·keywords·instructions·직접 작성 가사의 길이를 제한하고 제어 문자와 script/style·HTML을 제거한다. 로그는 Provider·언어·문서 ID·처리 시간만 기록하며 전체 사용자 입력을 남기지 않는다. 현재 인증·소유권이 없으므로 `lyrics_documents`는 개발 환경 전용이며 운영 배포 전 사용자별 조회·삭제 권한과 보존 기간을 구현해야 한다.
+
+## Initial GENESIS lineage·소비 보존
+
+[ADR-107 Independent Bootstrap Lineage Authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 결정한 Draft 제안이다. 설계 DECIDED와 운영 채택·구현을 구분한다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. 다음 작업은 registry commissioning/registration source와 durable consumption/checkpoint 계약이며 provisioning 구현은 그 이후다. registry와 별도 governance checkpoint의 custody·backup/restore는 app DB 및 journal과 분리한다. journal 삭제나 새 UUID는 최초 등록 증거가 아니다. consume 뒤 실패·불명은 재사용을 허용하지 않으며 Recovery/Transfer 권한을 root나 custodian에게 추가하지 않는다. 전체 private state·checkpoint의 동시 rollback 및 root/privileged compromise의 한계는 ADR-076 그대로다.
