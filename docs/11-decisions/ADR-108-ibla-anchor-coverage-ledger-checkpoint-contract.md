@@ -1,7 +1,8 @@
 # ADR-108: IBLA Commissioning Anchor, Complete-Coverage Ledger and Independent Checkpoint
 
-> 상태: [Contract DECIDED — Draft 검토 대상, 구현·운영 비활성]
-> 작성일·최종 수정일: 2026-09-30
+> 상태: [Contract DECIDED — 구현·운영 비활성]
+> 작성일: 2026-09-30
+> 최종 수정일: 2026-10-01
 > 기준 develop: 7831991239534be5aa7db532676646a1d5e90785 (#195 merged)
 > 관련 결정: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-078](ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md)
 > 검증: [Contract 감사 보고서](../10-operations/ibla-anchor-ledger-checkpoint-contract-validation.md)
@@ -202,4 +203,4 @@ commissioning origin/current source의 authentic verifier와 lifetime capability
 
 이번 code/schema/migration delta 0. Alembic 20260918_0037 유지. Phase 9 0/18 및 기존 Phase 진행률 보존. Anchor/H/L persistence, source verifier/capability, Initial Authorization, Provisioning/GENESIS는 NOT IMPLEMENTED, Production Authentication/Activation은 UNAVAILABLE다. 실제 user DB/journal/credential/private key/production filesystem 접근 0이다.
 
-장점은 원본 외부 commissioning과 current coverage의 소유자가 분리되고 stale prefix·응답 유실·pending write의 실패 정책을 구현 가능한 형태로 좁힌 것이다. 비용은 독립 keeper custody, complete-domain history 검사, prewrite barrier 이후 실패 시 수동 중단이다. stronger anti-rollback, remote/multi-root, retention 삭제, Recovery/Transfer 또는 trust-purpose 변경 시 재검토한다. 이번 작업은 commit/push/develop 대상 Draft PR에서 종료하고 Ready/merge하지 않는다.
+장점은 원본 외부 commissioning과 current coverage의 소유자가 분리되고 stale prefix·응답 유실·pending write의 실패 정책을 구현 가능한 형태로 좁힌 것이다. 비용은 독립 keeper custody, complete-domain history 검사, prewrite barrier 이후 실패 시 수동 중단이다. stronger anti-rollback, remote/multi-root, retention 삭제, Recovery/Transfer 또는 trust-purpose 변경 시 재검토한다. 최초 계약 작성은 Draft PR에서 종료했다. 후속 최종 감사와 Ready·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다.
