@@ -1,7 +1,7 @@
 ﻿# Artifact Storage Resolver와 무결성 계약
 
 > 문서 상태: [승인]
-> 최종 수정일: 2026-08-25
+> 최종 수정일: 2026-09-30
 > 관련 기능: Artifact Catalog, Storage Resolver, 안전한 ingestion과 content·download
 > 관련 문서: [Workspace Artifact 모델](workspace-artifact-model.md), [Workspace Job Foundation](workspace-job-foundation.md), [Storage Architecture](storage-architecture.md), [Verified Durable Staging Authority](verified-durable-staging-authority.md), [Workspace REST API 계약](../06-api/workspace-rest-api-contract.md), [ADR-032](../11-decisions/ADR-032-artifact-storage-resolver-integrity.md), [ADR-051](../11-decisions/ADR-051-verified-durable-staging-authority.md), [Common Artifact Specification](https://github.com/DohaStudio/.github/blob/main/docs/specifications/03-artifact-specification.md), [Common Provider Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/04-provider-contract.md), [Common Job Contract](https://github.com/DohaStudio/.github/blob/main/docs/specifications/05-job-contract.md)
 
@@ -287,6 +287,8 @@ Audio 재생을 위해 두 delivery Endpoint는 단일 byte range를 지원한�
 Range 검증 전에 owner·retention·integrity 검증을 우회하지 않는다.
 
 ## 15. Path·symlink·TOCTOU 방어
+
+Windows native `resolve()` 결과의 DOS drive/UNC extended-length anchor는 동일한 일반 anchor와 containment 비교에서 동등하다. Resolver의 단일 내부 비교 helper가 `PureWindowsPath` anchor를 명시적으로 대응시키며, 실제 I/O `Path`와 DB의 canonical POSIX relative `storage_key`는 변경하지 않는다. 다른 drive/share/root와 device namespace는 합치지 않는다. 이 규칙은 검증된 내부 native path 비교에만 적용하고, storage key의 drive/UNC/절대 경로·URI·traversal 거부와 symlink/junction/reparse 및 열린 descriptor identity 검사를 대체하지 않는다. 부모 디렉터리 생성 경합으로 native 해석의 prefix 표시가 바뀌어도 publication identity와 conflict 의미는 동일해야 한다. [경합 검증](../10-operations/storage-publication-concurrency-fix-validation.md)에서 재현과 보안 회귀를 기록한다.
 
 - 승인된 root는 application 설정에서만 주입하며 사용자 입력으로 선택하지 않는다.
 - canonical key를 root와 결합한 후 `resolve()`하고 root containment를 다시 검사한다.

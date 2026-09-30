@@ -8,7 +8,7 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import StrEnum
-from pathlib import Path, PurePosixPath
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
 from types import MappingProxyType
 from typing import BinaryIO, Protocol
 from uuid import UUID
@@ -107,7 +107,7 @@ class ArtifactStorageRoots:
         candidate = root.joinpath(*key.parts)
         _assert_no_link_or_reparse(root, candidate)
         try:
-            candidate.resolve(strict=False).relative_to(root)
+            _storage_relative_path(candidate.resolve(strict=False), root)
         except (OSError, RuntimeError, ValueError):
             raise ArtifactStorageError(ArtifactStorageErrorCode.STORAGE_ESCAPE) from None
         return candidate
@@ -152,7 +152,7 @@ class ArtifactStorageResolver:
             raise ArtifactStorageError(ArtifactStorageErrorCode.CONTENT_UNAVAILABLE) from None
 
         try:
-            resolved_path.relative_to(root)
+            _storage_relative_path(resolved_path, root)
         except ValueError:
             raise ArtifactStorageError(ArtifactStorageErrorCode.STORAGE_ESCAPE) from None
 
@@ -249,9 +249,38 @@ def _assert_path_components_are_directories(path: Path) -> None:
             raise ArtifactStorageError(ArtifactStorageErrorCode.CONFIGURATION_ERROR)
 
 
+def _storage_relative_path(candidate: PurePath, root: PurePath) -> PurePath:
+    """Compare resolved native paths without treating a Windows namespace as identity.
+
+    Only DOS drive and UNC extended-length anchors have ordinary-path equivalents.
+    This projection is for containment comparison, never for opening a file or
+    accepting a storage key. Other device namespaces remain distinct.
+    """
+
+    def comparison_path(path: PurePath) -> PurePath:
+        if not isinstance(path, PureWindowsPath):
+            return path
+        drive = path.drive
+        if drive.upper().startswith("\\\\?\\UNC\\"):
+            drive = "\\\\" + drive[8:]
+        elif (
+            drive.startswith("\\\\?\\")
+            and len(drive) == 6
+            and drive[4].isascii()
+            and drive[4].isalpha()
+            and drive[5] == ":"
+        ):
+            drive = drive[4:]
+        else:
+            return path
+        return PureWindowsPath(drive + path.root, *path.parts[1:])
+
+    return comparison_path(candidate).relative_to(comparison_path(root))
+
+
 def _assert_no_link_or_reparse(root: Path, candidate: Path) -> None:
     try:
-        relative_parts = candidate.relative_to(root).parts
+        relative_parts = _storage_relative_path(candidate, root).parts
     except ValueError:
         raise ArtifactStorageError(ArtifactStorageErrorCode.STORAGE_ESCAPE) from None
 
