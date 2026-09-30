@@ -11,6 +11,13 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 - Windows storage publication 경합
+
+- 부모 디렉터리가 생성되는 동안 Windows native path 해석 결과에 extended-length prefix가 남아 같은 storage target을 외부 경로로 오인하던 false conflict를 수정했다.
+- Storage Resolver 한 곳에서 내부 containment 비교용 drive/UNC anchor 동등성을 처리한다. 실제 I/O 경로, canonical relative storage key, reparse/escape 검사와 publication·transaction 충돌 의미는 유지한다.
+- Event 기반 native 재현, 실제 publication 충돌·독립 target 회귀 및 Windows CI 검증을 추가했다. DohaVocal E2E 변경과 독립된 수정이다. [검증 보고서](docs/10-operations/storage-publication-concurrency-fix-validation.md)를 따른다.
+
+
 ### 수정 - Production Journal Session 종료 경합
 
 - root Session close가 완료될 때까지 기존 Runtime 잠금과 registry를 유지하여 다음 root Session과 transaction lifetime이 겹치지 않도록 수정했다. 초기 검증 실패와 shutdown 정리도 같은 잠금 경계를 사용한다.
