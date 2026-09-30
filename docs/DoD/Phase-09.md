@@ -2,7 +2,7 @@
 
 > 상태: [계획]
 > 진행률: 0/18, 0%
-> 최종 수정일: 2026-09-30
+> 최종 수정일: 2026-10-01
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-9-production--계획), [Deployment Guide](../10-operations/deployment-guide.md)
 
 ## 목표
@@ -25,7 +25,7 @@ K-POP Creation Control Track은 제품 제어 고도화이며 인증·권한·�
 
 [ADR-107 독립 lineage authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 인증·권한·감사 및 Backup/Restore의 선행 설계 결정이다. registry/commissioning/authentication/GENESIS 구현·운영 검증은 없으므로 완료 체크와 진행률 0/18, 0%는 유지한다.
 
-[ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 A/L/H 및 crash/rollback 계약을 정의한 Draft다. 다음 persistence Foundation의 선행 조건이며 구현·운영 완료 체크를 추가하지 않는다.
+[ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 A/L/H 및 crash/rollback 계약을 정의한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. 다음 persistence Foundation의 선행 조건이며 구현·운영 완료 체크를 추가하지 않는다.
 
 ## 완료 체크리스트
 

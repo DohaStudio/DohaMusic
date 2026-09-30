@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 기준]
 > 문서 역할: CURRENT Runtime·CURRENT Workspace/Domain·TARGET·TRANSITION 문서의 Canonical entry point
-> 최종 수정일: 2026-09-30
+> 최종 수정일: 2026-10-01
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
@@ -85,4 +85,4 @@ Mix Asset, Export Asset, Preview, Snapshot과 실행 기록의 목표 도메인�
 
 ## IBLA 외부 저장소 계약
 
-[ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 Draft다. 다음은 Ledger/Checkpoint Persistence Foundation이며, Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS가 뒤따른다. 이 구현들은 모두 NOT IMPLEMENTED다. Ledger는 ADR-107 registry의 event authority이며 app DB 및 ADR-106 target journal과 별도다. high-water source는 독립 current state를 보존한다. 논리 version v1만 결정했고 실제 table/DDL/migration은 없다. app Alembic 20260918_0037은 유지한다.
+[ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. 다음은 Ledger/Checkpoint Persistence Foundation이며, Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS가 뒤따른다. 이 구현들은 모두 NOT IMPLEMENTED다. Ledger는 ADR-107 registry의 event authority이며 app DB 및 ADR-106 target journal과 별도다. high-water source는 독립 current state를 보존한다. 논리 version v1만 결정했고 실제 table/DDL/migration은 없다. app Alembic 20260918_0037은 유지한다.
