@@ -1,6 +1,6 @@
 # ADR-109: IBLA Ledger / Independent Checkpoint Persistence Foundation
 
-> 상태: [구현·검증 중 — Draft 검토 대상, 운영 비활성]
+> 상태: [Foundation implemented — Draft 검토 대상, 운영 비활성]
 > 작성일·최종 수정일: 2026-10-01
 > 기준 develop: 34c57b8ce52e623d6da85163e34d13104207b485 (#197 merged)
 > 관련 결정: [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md)
@@ -73,3 +73,7 @@ L-only rollback은 current H와 mismatch, H-only confirmed-prefix rollback은 �
 새 app migration 0, Alembic 20260918_0037 single head 유지. 기존 journal schema/API/Frontend/config/workflow/dependencies 변경 0. 기존 ADR-076~108 의미와 user data/다른 worktree/stash를 보존한다. Phase 9는 운영 보안·Backup/Restore 승인까지 입증하지 않았으므로 0/18 유지한다.
 
 다음은 independently provisioned custody/current source 및 authentic Commissioning Source Verifier/Capability의 별도 검증이다. A origin/complete domain membership, production L/H custody/lease, supported epoch/alias transitions가 충분하지 않으면 unavailable를 유지한다. Initial Authorization/소비 → Provisioning/GENESIS는 그 뒤다. 새로운 backend, multiple A/epoch/alias 지원, wire 확장, 운영 custody, retention 삭제 또는 stronger rollback 요구는 ADR-108 불변식을 재검토한다. 이번 작업은 Draft PR까지이며 Ready/merge하지 않는다.
+
+## 실행 증거
+
+Focused 106 passed, direct-impact 976 passed, source commit 366e4a8024ffff918338a6832b0a6f7d427cb7ba의 Full Backend 2887 passed/12 skipped(2899 tests, failures/errors 0, JUnit 892.455s, process exit 0). compile/Ruff check/format 및 문서 정적 검증 PASS. [상세 검증과 미실행 사유](../10-operations/ibla-persistence-foundation-validation.md)를 따른다.

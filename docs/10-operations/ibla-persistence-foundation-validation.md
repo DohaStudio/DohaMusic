@@ -1,6 +1,6 @@
 # IBLA L/H Persistence Foundation 검증
 
-> 상태: [진행 중 — focused/static 통과, 회귀·Full Backend 확인 중]
+> 상태: [검증됨 — Draft 검토 대상, 운영 비활성]
 > 최종 수정일: 2026-10-01
 > 관련 결정: [ADR-109](../11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md), [ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)
 
@@ -22,7 +22,7 @@ ADR-076/078의 외부 root·GENESIS 독립 evidence, ADR-079의 immutable journa
 
 - focused: 106 passed, 0 skipped, 0 failed, pytest 8.45s. L/H recorded_at의 strict UTC-second·persisted digest·비권한 경계까지 검증.
 - compileall backend/ai_worker, Ruff check 및 format 전체 PASS.
-- direct-impact regression: 976 passed, 0 skipped, 0 failed, pytest 57.33s, exit 0. 최초 Full Backend(540feca)는 audit time 보완을 위해 의도적으로 중단했다(exit -1, JUnit 없음, PASS 아님). 보완한 source commit에서 Full Backend를 새로 실행하며 결과 없는 PASS를 기록하지 않는다.
+- direct-impact regression: 976 passed, 0 skipped, 0 failed, pytest 57.33s, exit 0. Full Backend: 아래 final 실행으로 검증했다. 직접 영향 회귀 이후 변경은 새 IBLA audit-time codec/tests뿐이며 기존 dependency 코드는 변경하지 않았다. final Full Backend는 이 변경을 포함한다.
 - Alembic heads: 20260918_0037 single head. app migration 0.
 - 새 process의 abrupt exit 후 pending/committed/confirmed 재조회, complete history, exact replay/reconcile를 검증했다.
 - deterministic Barrier/Event로 두 L writers, 두 H prepare, prepare/confirm 및 restart reconcile/new operation, replay/concurrent writer를 검증한다. sleep race 0.
@@ -35,3 +35,20 @@ ADR-076/078의 외부 root·GENESIS 독립 evidence, ADR-079의 immutable journa
 L/H public persistence mechanics만 구현했다. production entry는 unconditional unavailable이며 test fixture setup/transaction owners를 production에서 import하지 않는다. Source Verifier/First-Registration Capability/Initial Authorization/consumption/GENESIS/Provisioning/Auth/Activation/Recovery/Transfer는 구현하지 않는다. 기존 ADR-106 Factory에는 변경이 없다.
 
 두 파일과 read-only reader만으로 독립 운영 custody·backup domain을 증명하지 않는다. native path/ACL/cleanup·writer separation·domain lease의 운영 adapter는 후속 Gate이고, 이 미구현 경계에서 production을 활성화하지 않는다. Phase 9 0/18 유지. AI 모델 실행/음성 데이터/실제 credential·production DB 접근 없음.
+
+## Full Backend 최종 결과 authority
+
+- Source HEAD: 366e4a8024ffff918338a6832b0a6f7d427cb7ba. 실행 전후 Python 553개 SHA-256 일치, source drift 0. 이후 변경은 검증 결과·PR 참조 문서뿐이다.
+- 명령: python -m pytest -q --tb=short --junitxml=.cache/ibla-full-ssd.xml. 기본 OS 임시 디렉터리 사용.
+- Native Windows, Python 3.12.5, 실제 FFmpeg; CI와 동일한 clean DohaVocal fixture e28320ef26a2dc49eaefdfa62bceea0c8c69e6ed를 DOHAVOCAL_E2E_SOURCE로 지정했다. 실제 production Provider나 음성 모델을 호출하지 않았다.
+- process exit: 0. JUnit exists/parseable: YES. tests 2899, passed 2887, failures 0, errors 0, skipped 12, JUnit duration 892.455s (pytest 892.50s).
+- 로컬 격리 worktree의 .cache/ibla-full-ssd.log, .cache/ibla-full-ssd.exit, .cache/ibla-full-ssd.xml, .cache/ibla-full-ssd-source-head.txt와 .cache/ibla-tested-python-manifest.json에 실행 증거를 보존한다. 바이너리 fixture는 커밋하지 않는다.
+- skipped 12: GPU/benchmark opt-in 4, 유료 API opt-in 1, Windows symlink 생성 권한 제한 7. 이 항목의 실검증을 주장하지 않는다.
+- 기존 suite DeprecationWarning 16845: Python 3.12 SQLite datetime adapter 16664, Starlette TestClient timeout 181. 이번 범위 밖이므로 수정하지 않았다.
+- 최초 540feca 실행은 audit-time 누락 보완을 위해 중단했고, 두 번째 366e4a8 실행은 HDD 임시 DB로 인한 지연을 진단한 뒤 중단했다. 둘 다 exit -1/JUnit 없음이며 PASS 아님. 동일 range case는 기본 SSD 임시 경로에서 1 passed/1.95s였고, 세 번째 전체 실행의 위 결과만 Full Backend authority로 사용한다.
+
+## 최종 정적·문서·범위 검증
+
+Python compileall backend/ai_worker, Ruff check, Ruff format(553 files), git diff --check PASS. 변경 문서 15개의 strict UTF-8·fence 및 상대 파일 링크를 검사했다. CURRENT 문서/ADR index는 persistence implemented와 Source Verifier/운영 custody 미구현을 분리한다. 과거 ADR/validation의 당시 상태는 보존한다. relative file path만 검사했으며 외부 HTTP 응답과 모든 fragment anchor 전수 검증은 하지 않았다.
+
+25개 변경 파일: production Python 6, tests/support 4, Markdown 15. config/dependency/workflow/public API/Frontend 및 app ORM/Alembic·기존 journal schema/Factory 변경 0. 원격 검토를 위해 Draft PR로 제출하며 Ready/merge하지 않는다.
