@@ -5,11 +5,15 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-10-01
+> 최종 수정일: 2026-10-02
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - IBLA Persistence 최종 감사
+
+- #198 최종 감사에서 현재 문서의 Draft 고정 표현을 PR 검토·병합 상태 참조로 정렬했다. public persistence 구현, 운영 비활성 및 Phase 9 0/18 경계는 유지한다.
 
 ### 추가 - IBLA Ledger / Independent Checkpoint Persistence Foundation
 

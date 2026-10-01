@@ -2,7 +2,7 @@
 
 > 문서 상태: [운영 기준]
 > 문서 역할: CURRENT Runtime·CURRENT Workspace/Domain·TARGET·TRANSITION 문서의 Canonical entry point
-> 최종 수정일: 2026-10-01
+> 최종 수정일: 2026-10-02
 
 현재 기본 DB는 `backend/storage/doha_music.db`의 SQLite다. 연결 문자열은 `DATABASE_URL` 환경 변수로 변경할 수 있으며 Repository Pattern을 통해 Service와 Worker가 특정 DB 구현에 직접 의존하지 않도록 구성했다.
 
@@ -85,4 +85,4 @@ Mix Asset, Export Asset, Preview, Snapshot과 실행 기록의 목표 도메인�
 
 ## IBLA 외부 저장소 계약
 
-[ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. [ADR-109](../11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)의 L/H Persistence Foundation public mechanics를 구현·검증했으며 Draft 검토 대상이다. Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS는 계속 NOT IMPLEMENTED다. 독립 운영 custody·commissioning/authentication/activation은 unavailable다. Ledger는 ADR-107 registry의 event authority이며 app DB 및 ADR-106 target journal과 별도다. high-water source는 독립 current state를 보존한다. 별도 L/H SQLite schema v1은 ADR-109에 구현하며 app schema/migration은 변경하지 않는다. app Alembic 20260918_0037은 유지한다.
+[ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. [ADR-109](../11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)의 L/H Persistence Foundation public mechanics를 구현·검증했다. 검토·병합 상태는 [PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)을 따른다. Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS는 계속 NOT IMPLEMENTED다. 독립 운영 custody·commissioning/authentication/activation은 unavailable다. Ledger는 ADR-107 registry의 event authority이며 app DB 및 ADR-106 target journal과 별도다. high-water source는 독립 current state를 보존한다. 별도 L/H SQLite schema v1은 ADR-109에 구현하며 app schema/migration은 변경하지 않는다. app Alembic 20260918_0037은 유지한다.

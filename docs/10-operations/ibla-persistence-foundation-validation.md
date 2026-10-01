@@ -1,7 +1,7 @@
 # IBLA L/H Persistence Foundation 검증
 
-> 상태: [검증됨 — Draft 검토 대상, 운영 비활성]
-> 최종 수정일: 2026-10-01
+> 상태: [검증됨 — 운영 비활성]
+> 최종 수정일: 2026-10-02
 > 관련 결정: [ADR-109](../11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md), [ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)
 
 ## 시작 authority 및 보존
@@ -51,8 +51,12 @@ L/H public persistence mechanics만 구현했다. production entry는 unconditio
 
 Python compileall backend/ai_worker, Ruff check, Ruff format(553 files), git diff --check PASS. 변경 문서 15개의 strict UTF-8·fence 및 상대 파일 링크를 검사했다. CURRENT 문서/ADR index는 persistence implemented와 Source Verifier/운영 custody 미구현을 분리한다. 과거 ADR/validation의 당시 상태는 보존한다. relative file path만 검사했으며 외부 HTTP 응답과 모든 fragment anchor 전수 검증은 하지 않았다.
 
-25개 변경 파일: production Python 6, tests/support 4, Markdown 15. config/dependency/workflow/public API/Frontend 및 app ORM/Alembic·기존 journal schema/Factory 변경 0. 원격 검토를 위해 Draft PR로 제출하며 Ready/merge하지 않는다.
+25개 변경 파일: production Python 6, tests/support 4, Markdown 15. config/dependency/workflow/public API/Frontend 및 app ORM/Alembic·기존 journal schema/Factory 변경 0. 최초 구현은 원격 검토를 위해 Draft PR로 제출했다.
 
-## 제출 상태
+## 최초 제출 이력
 
-[PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)은 develop 대상 OPEN/Draft다. Ready/merge/auto-merge/branch deletion/force push는 실행하지 않았다. 최종 원격 head의 CI 상태는 PR checks를 따르며 로컬 Full Backend PASS와 혼동하지 않는다.
+[PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)은 최초 제출 당시 develop 대상 OPEN/Draft였다. Ready/merge/auto-merge/branch deletion/force push는 실행하지 않았다. 최종 원격 head의 CI 상태는 PR checks를 따르며 로컬 Full Backend PASS와 혼동하지 않는다.
+
+## 최종 감사와 병합 Gate
+
+2026-10-02 재확인 시 develop은 34c57b8, PR head는 680ac22로 유지됐고 해당 head의 backend-ubuntu/ffmpeg-windows/frontend-playwright는 모두 SUCCESS였다. 집중 테스트를 다시 실행해 106 passed, exit 0 및 JUnit을 확인했다. 최종 검토에서 현재 문서의 Draft 고정 표현을 PR 상태 참조로 정렬하며 코드·테스트·의존성·workflow를 변경하지 않는다. 이 문서 변경 후 새 exact head의 CI를 다시 확인한 뒤에만 Ready 및 expected-head guarded squash merge가 가능하다. 실제 최종 검토·병합 결과는 [PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)을 따른다.

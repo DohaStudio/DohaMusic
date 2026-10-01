@@ -1,11 +1,12 @@
 # ADR-109: IBLA Ledger / Independent Checkpoint Persistence Foundation
 
-> 상태: [Foundation implemented — Draft 검토 대상, 운영 비활성]
-> 작성일·최종 수정일: 2026-10-01
+> 상태: [Foundation implemented — 운영 비활성]
+> 작성일: 2026-10-01
+> 최종 수정일: 2026-10-02
 > 기준 develop: 34c57b8ce52e623d6da85163e34d13104207b485 (#197 merged)
 > 관련 결정: [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md)
 > 검증: [실행 검증 보고서](../10-operations/ibla-persistence-foundation-validation.md)
-> 관련 PR: [#198](https://github.com/DohaStudio/DohaMusic/pull/198) (develop 대상 Draft)
+> 관련 PR: [#198](https://github.com/DohaStudio/DohaMusic/pull/198) (develop 대상; 검토·병합 상태는 PR 참조)
 
 ## 배경·문제·결정
 
@@ -72,7 +73,7 @@ L-only rollback은 current H와 mismatch, H-only confirmed-prefix rollback은 �
 
 새 app migration 0, Alembic 20260918_0037 single head 유지. 기존 journal schema/API/Frontend/config/workflow/dependencies 변경 0. 기존 ADR-076~108 의미와 user data/다른 worktree/stash를 보존한다. Phase 9는 운영 보안·Backup/Restore 승인까지 입증하지 않았으므로 0/18 유지한다.
 
-다음은 independently provisioned custody/current source 및 authentic Commissioning Source Verifier/Capability의 별도 검증이다. A origin/complete domain membership, production L/H custody/lease, supported epoch/alias transitions가 충분하지 않으면 unavailable를 유지한다. Initial Authorization/소비 → Provisioning/GENESIS는 그 뒤다. 새로운 backend, multiple A/epoch/alias 지원, wire 확장, 운영 custody, retention 삭제 또는 stronger rollback 요구는 ADR-108 불변식을 재검토한다. 이번 작업은 Draft PR까지이며 Ready/merge하지 않는다.
+다음은 independently provisioned custody/current source 및 authentic Commissioning Source Verifier/Capability의 별도 검증이다. A origin/complete domain membership, production L/H custody/lease, supported epoch/alias transitions가 충분하지 않으면 unavailable를 유지한다. Initial Authorization/소비 → Provisioning/GENESIS는 그 뒤다. 새로운 backend, multiple A/epoch/alias 지원, wire 확장, 운영 custody, retention 삭제 또는 stronger rollback 요구는 ADR-108 불변식을 재검토한다. 최초 구현은 Draft PR까지 제출했다. 후속 최종 감사·Ready·병합 상태는 PR #198을 따른다.
 
 ## 실행 증거
 

@@ -1,7 +1,7 @@
 # Deployment Verifier Current-Status / Lifecycle Contract
 
 > 문서 상태: [Contract #164 merged — 운영 비활성]
-> 최종 수정일: 2026-10-01
+> 최종 수정일: 2026-10-02
 > 관련 문서: [ADR-078](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [issuance verifier](bootstrap-issuance-integrity-verifier.md), [검증](../10-operations/deployment-verifier-current-status-validation.md)
 
 Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged issuance verifier는 그대로 유지하며 current root/status authority로 확대하지 않는다.
@@ -32,4 +32,4 @@ Lifecycle Contract #164, public journal #165, private handoff #166, witness life
 
 ## 독립 최초 등록과 소비 authority
 
-[ADR-107 Independent Bootstrap Lineage Authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. [ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. [ADR-109](../11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)의 L/H Persistence Foundation public mechanics를 구현·검증했으며 Draft 검토 대상이다. Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS는 계속 NOT IMPLEMENTED다. 독립 운영 custody·commissioning/authentication/activation은 unavailable다.
+[ADR-107 Independent Bootstrap Lineage Authority](../11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. [ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. [ADR-109](../11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)의 L/H Persistence Foundation public mechanics를 구현·검증했다. 검토·병합 상태는 [PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)을 따른다. Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS는 계속 NOT IMPLEMENTED다. 독립 운영 custody·commissioning/authentication/activation은 unavailable다.

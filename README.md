@@ -7,7 +7,7 @@
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-10-01
+> 최종 수정일: 2026-10-02
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -31,7 +31,7 @@ DohaMusic = AI-native DAW
 
 Bootstrap 최신 Track: #164~#170/#172~#193는 merged다. [ADR-097 exact correlation](docs/11-decisions/ADR-097-authentic-confirmation-lineage-correlation-foundation.md)은 authenticity·held live lineage·fresh observation을 같은 handles/lease/두 transaction에 결합한다. [ADR-098 CurrentnessWitness handoff](docs/11-decisions/ADR-098-currentness-witness-handoff-foundation.md)는 그 correlation을 동일 Windows lease·caller transaction·provider single attempt에서 재검증해 opaque ephemeral witness 하나만 발급한다. [ADR-106 Production External Journal Factory](docs/11-decisions/ADR-106-production-external-journal-factory-foundation.md)는 이미 provision된 exact journal만 검증·open한다. 실제 private sources/journal provisioning, authentication wiring과 production activation은 unavailable이며 app DB schema와 Alembic 0037은 유지된다.
 
-[ADR-107 Independent Bootstrap Lineage Authority](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. [ADR-108](docs/11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. [ADR-109](docs/11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)의 L/H Persistence Foundation public mechanics를 구현·검증했으며 Draft 검토 대상이다. Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS는 계속 NOT IMPLEMENTED다. 독립 운영 custody·commissioning/authentication/activation은 unavailable다.
+[ADR-107 Independent Bootstrap Lineage Authority](docs/11-decisions/ADR-107-independent-bootstrap-lineage-authority.md)는 독립 registry + signed intent, 외부 root 기반 최초 등록과 GENESIS 전 영구 소비를 정의한 설계 결정이다. 설계 DECIDED와 구현·운영을 구분하며 병합 상태는 [PR #195](https://github.com/DohaStudio/DohaMusic/pull/195)를 따른다. Production External Journal Provisioning 및 Initial GENESIS 실행은 BLOCKED / NOT IMPLEMENTED, authentication·activation은 UNAVAILABLE다. [ADR-108](docs/11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 Anchor / Complete-Coverage Ledger / Independent Checkpoint Contract를 DECIDED한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. [ADR-109](docs/11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)의 L/H Persistence Foundation public mechanics를 구현·검증했다. 검토·병합 상태는 [PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)을 따른다. Source Verifier/Capability → Initial Authorization → Provisioning/GENESIS는 계속 NOT IMPLEMENTED다. 독립 운영 custody·commissioning/authentication/activation은 unavailable다.
 
 현재 `develop`에서 확인되는 범위다.
 
