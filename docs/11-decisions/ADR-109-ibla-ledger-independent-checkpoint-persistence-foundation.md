@@ -5,7 +5,7 @@
 > 기준 develop: 34c57b8ce52e623d6da85163e34d13104207b485 (#197 merged)
 > 관련 결정: [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-079](ADR-079-independent-lifecycle-journal-persistence-foundation.md)
 > 검증: [실행 검증 보고서](../10-operations/ibla-persistence-foundation-validation.md)
-> 관련 PR: 이 브랜치의 develop 대상 Draft PR에서 기록한다.
+> 관련 PR: [#198](https://github.com/DohaStudio/DohaMusic/pull/198) (develop 대상 Draft)
 
 ## 배경·문제·결정
 

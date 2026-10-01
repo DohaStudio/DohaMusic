@@ -52,3 +52,7 @@ L/H public persistence mechanics만 구현했다. production entry는 unconditio
 Python compileall backend/ai_worker, Ruff check, Ruff format(553 files), git diff --check PASS. 변경 문서 15개의 strict UTF-8·fence 및 상대 파일 링크를 검사했다. CURRENT 문서/ADR index는 persistence implemented와 Source Verifier/운영 custody 미구현을 분리한다. 과거 ADR/validation의 당시 상태는 보존한다. relative file path만 검사했으며 외부 HTTP 응답과 모든 fragment anchor 전수 검증은 하지 않았다.
 
 25개 변경 파일: production Python 6, tests/support 4, Markdown 15. config/dependency/workflow/public API/Frontend 및 app ORM/Alembic·기존 journal schema/Factory 변경 0. 원격 검토를 위해 Draft PR로 제출하며 Ready/merge하지 않는다.
+
+## 제출 상태
+
+[PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)은 develop 대상 OPEN/Draft다. Ready/merge/auto-merge/branch deletion/force push는 실행하지 않았다. 최종 원격 head의 CI 상태는 PR checks를 따르며 로컬 Full Backend PASS와 혼동하지 않는다.
