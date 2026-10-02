@@ -1,7 +1,8 @@
 # ADR-110: IBLA Authentic Source / Complete Coverage / First-Registration Eligibility & Capability Handoff Contract
 
-> 상태: [설계 결정 — DECIDED — implementation not yet present]
-> 작성일·최종 수정일: 2026-10-02
+> 상태: [설계 결정 — DECIDED — Source Verifier/Capability IMPLEMENTED FOUNDATION]
+> 작성일: 2026-10-02
+> 최종 수정일: 2026-10-03
 > 기준 develop: dd6181a6eebff3001e171ba167055af760272fb7 (#198 merged)
 > 구현 준비 판정: IMPLEMENTATION_READY — 아래 제한된 Source Verifier + Capability Foundation에 한함
 > 관련 PR: 이 문서의 docs/ibla-source-registration-contract Draft PR. Ready·merge는 이번 제출 범위 밖이다.
@@ -205,6 +206,8 @@ app DB/schema/Alembic/L/H v1/wire의 기존 event 종류·API/Frontend/Worker/ru
 
 ## 13. Implementation-ready exit / 다음 순서 / 상태
 
+2026-10-03 구현 상태: 이 결정의 계약을 재설계하지 않고 read-only Source Verifier/Capability를 구현했다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)에 코드 경계·새 검증을 기록한다. production source는 unavailable이며 Initial Authorization·registration writer 등 다음 단계는 미구현이다. 아래 당시 Decision 제출 기록은 보존한다.
+
 IMPLEMENTATION_READY: §3~10은 input port, 원본 authenticated bundle·A/C/I codec, correlation·coverage·scope absence, eligibility, opaque capability/registry/lifetime/handoff·error/redaction·negative tests를 추가 architecture Decision 없이 구현하도록 결정했다. 이는 production readiness가 아니다. 실제 operating source가 없는 adapter는 unavailable가 맞고, disposable fixture를 production source로 자동 선택하지 않는다. source-specific mechanics/codec/read-only adapters는 **다음 하나의 구현 PR 안에서 직접 확장**한다. 별도 중간 Foundation을 삽입하지 않는다.
 
 후속 test matrix는 [보고서의 28개 exit 질문과 acceptance matrix](../10-operations/ibla-source-registration-contract-validation.md)를 따른다. signed A/C만 있고 independent provenance가 없는 경우, root/initializer key self-enrollment, external unknown/prior/alias/epoch, incomplete domain history/H prefix/pending, each identity mismatch, stale/foreign/copied handle, mint/handoff 경쟁, transaction/lease/source release·cleanup quarantine, source replacement/ACL drift, proof replay/expiry/clock rollback, mutation 0을 검증한다. 이번 tests 실행 결과가 아니다.
@@ -212,10 +215,10 @@ IMPLEMENTATION_READY: §3~10은 input port, 원본 authenticated bundle·A/C/I c
 | 항목 | 현재 상태 |
 |---|---|
 | L/H Persistence | IMPLEMENTED FOUNDATION / #198 merged |
-| Authentic Source Contract | DECIDED / 구현 없음 |
-| First-Registration Eligibility Contract | DECIDED / 구현 없음 |
-| Source Verifier | NOT IMPLEMENTED |
-| First-Registration Capability | NOT IMPLEMENTED |
+| Authentic Source Contract | DECIDED / read-only Foundation 구현 |
+| First-Registration Eligibility Contract | DECIDED / read-only Foundation 구현 |
+| Source Verifier | IMPLEMENTED FOUNDATION / Draft 검토·병합 미완료 |
+| First-Registration Capability | IMPLEMENTED FOUNDATION / Draft 검토·병합 미완료 |
 | Initial Authorization | NOT IMPLEMENTED |
 | Provisioning / GENESIS | NOT IMPLEMENTED |
 | Authentication / Activation | UNAVAILABLE |
