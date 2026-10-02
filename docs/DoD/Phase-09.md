@@ -27,6 +27,9 @@ K-POP Creation Control Track은 제품 제어 고도화이며 인증·권한·�
 
 [ADR-108](../11-decisions/ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md)은 A/L/H 및 crash/rollback 계약을 정의한 설계 결정이다. 검토·병합 상태는 [PR #197](https://github.com/DohaStudio/DohaMusic/pull/197)을 따른다. [ADR-109](../11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md) L/H Persistence Foundation public mechanics를 구현·검증했다. 검토·병합 상태는 [PR #198](https://github.com/DohaStudio/DohaMusic/pull/198)을 따른다. 운영 custody/인증/Backup·Restore 승인이나 전체 Phase 통합 완료 증거가 아니므로 체크와 0/18을 유지한다.
 
+
+[ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다(implementation not yet present). root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약 판정은 IMPLEMENTATION_READY이며 다음 구현은 Authentic IBLA Source Verifier + First-Registration Capability Foundation으로 고정한다. L/H는 IMPLEMENTED FOUNDATION, Source Verifier/Capability·Initial Authorization·Provisioning/GENESIS는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다.
+
 ## 완료 체크리스트
 
 - [ ] PostgreSQL schema·migration 검증
