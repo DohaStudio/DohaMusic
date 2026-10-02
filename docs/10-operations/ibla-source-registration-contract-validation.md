@@ -92,7 +92,7 @@ IMPLEMENTATION_READY는 다음 **Authentic IBLA Source Verifier + First-Registra
 | L/H coverage | full revision 1..N/digests/schema/projection/H controls/live tuple. gap/truncation/hidden suffix/unsupported kind/epoch/H EMPTY/PENDING/PREPARED/UNCERTAIN/RETIRE/HISTORY_BLOCK 거절 |
 | proof/custody | provider nonce/fresh exact key response, independently bound protected roots/leaves. proof replay/caller nonce/foreign key/reparse/hardlink/replacement/rename/delete/ACL drift 거절 |
 | capability | original registry/tuple, single assignment·single handoff, 모든 held lifetime 유지. forged/copied/foreign/cross-domain/subclass/serialized/replayed/expired handle 거절 |
-| lifetime/crash | source/lease/transactions/context 종료·replacement/savepoint/provider restart/thread 이동/consumer exception/cleanup 실패 후 stale 영구 거절. restored facts revive 0 |
+| lifetime/crash | source/lease/context 종료·read 중 예상 밖 transaction 종료·replacement/savepoint/provider restart/thread 이동/consumer exception/cleanup 실패 후 stale 영구 거절. 정상 read pass 종료는 observation 종료가 아님. restored facts revive 0 |
 | race/mutation | mint/handoff race winner 최대1(instance 범위). duplicate loser가 winner 폐기하지 않음. authority mutation/partial state 0. domain-wide durable registration winner claim 없음 |
 | fail closed/security | safe 3 IBLA categories만, paths/keys/raw sources/ACL/handles/stack leak 0. unsupported production/private source/Fake fallback 0 |
 

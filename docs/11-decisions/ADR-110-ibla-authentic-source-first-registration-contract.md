@@ -90,7 +90,7 @@ private source roots와 leaf의 independently provisioned native volume/file ide
 
 Windows ADR-083/086/089의 OPEN_EXISTING, 각 ancestor/leaf OPEN_REPARSE_POINT, local DOS path profile, resolved path/disk/directory, volume/128-bit file ID, no reparse·hardlink count 1, held same-handle bounded read/reread, no write/delete sharing, owner/protected exact DACL revalidation, retained cleanup quarantine를 재사용한다. IBLA fixed-role internal reader에서 mechanics를 직접 확장하며 기존 file purpose·typed policy handles를 승격하지 않는다. ADR-106 SQLite existing-file/native-handle/connection identity 검증 pattern은 L/H read-only 역할에만 적용한다. journal factory를 L/H factory로 호출하지 않는다.
 
-currentness는 timestamp 최신값이 아니라 독립 live H 전체 control history/current confirmed tuple, complete L, held 원본/custody/위임·proof와 domain lease의 동시 검증이다. mutable bytes/ACL/native identity/head/manifest/위임/transaction 변화·cleanup 불명은 observation 전체를 영구 abandon한다. 값 복원·matching ACL·새 transaction으로 old observation을 되살리지 않는다.
+currentness는 timestamp 최신값이 아니라 독립 live H 전체 control history/current confirmed tuple, complete L, held 원본/custody/위임·proof와 domain lease의 동시 검증이다. mutable bytes/ACL/native identity/head/manifest/위임 변화·read 중 예상 밖 transaction 변화·cleanup 불명은 observation 전체를 영구 abandon한다. 값 복원·matching ACL·새 transaction으로 old observation을 되살리지 않는다.
 
 ## 6. Complete Coverage와 authoritative Scope Inventory
 
