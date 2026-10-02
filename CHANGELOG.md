@@ -5,11 +5,21 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-10-01
+> 최종 수정일: 2026-10-02
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - IBLA Persistence 최종 감사
+
+- #198 최종 감사에서 현재 문서의 Draft 고정 표현을 PR 검토·병합 상태 참조로 정렬했다. public persistence 구현, 운영 비활성 및 Phase 9 0/18 경계는 유지한다.
+
+### 추가 - IBLA Ledger / Independent Checkpoint Persistence Foundation
+
+- [ADR-109](docs/11-decisions/ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)에 따라 app DB/production journal과 분리된 SQLite L/H의 불변 이력·canonical digest·expected-head CAS·전체 history verification을 구현했다.
+- L/H canonical envelope의 명시적 감사 시각과 H의 COMMISSIONING_PENDING/PREPARED/CONFIRMED/UNCERTAIN 및 read-only L confirmation, exact replay/conflict·restart/crash/rollback 검증을 추가했다. repository는 caller transaction을 commit/rollback하지 않는다.
+- Source Verifier·최초 등록/Initial Authorization·GENESIS/Provisioning·운영 custody/인증/활성화는 비활성이다. v1은 고정 A/epoch와 제한된 public event kinds만 지원하며 미지원 authority 전환은 거부한다.
 
 ### 문서 - IBLA Anchor·Ledger·Checkpoint 계약
 
