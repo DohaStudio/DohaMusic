@@ -11,6 +11,11 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 - IBLA source 진정성과 최초 등록 계약
+
+- [ADR-110](docs/11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)에서 기존 external root/독립 initializer의 positive origin, A-bound complete scope inventory와 full L/current H correlation, 최초 등록 PRE/POST 경계 및 opaque capability의 수명·단일 handoff를 결정했다. 직전 MISSING_DECIDED_CONTRACT 두 gap을 해소하고 다음 Source Verifier + First-Registration Capability Foundation을 IMPLEMENTATION_READY로 한정한다.
+- 계약 결정과 구현을 구분한다. Production code/tests/API/ORM/Alembic/L/H schema 변경 0, Source Verifier/Capability·Initial Authorization·Provisioning/GENESIS는 미구현, Authentication/Activation은 unavailable, Phase 9는 0/18을 유지한다. 이번 제출은 docs-only Draft PR까지이며 Ready/merge하지 않는다.
+
 ### 문서 - IBLA Persistence 최종 감사
 
 - #198 최종 감사에서 현재 문서의 Draft 고정 표현을 PR 검토·병합 상태 참조로 정렬했다. public persistence 구현, 운영 비활성 및 Phase 9 0/18 경계는 유지한다.
