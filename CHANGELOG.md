@@ -11,6 +11,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서 - IBLA Foundation 최종 감사 상태 정정
+
+- #200 최종 감사에서 현재 문서의 Draft 제출 제한·docs-only 잔여 문구와 ADR 목록의 verifier 미구현 상태를 정정했다. 검토·병합 상태는 PR 기록을 따르며 계약·Python 코드·테스트·schema·Phase 9 진행률은 변경하지 않았다.
+
 ### 추가 - Authentic IBLA Source Verifier / 최초 등록 Capability Foundation
 
 - ADR-110의 IBLA 전용 A/C/I canonical signature, independent commissioning originals/pins/mapping/native custody correlation, 전체 query-only L/H·complete supported coverage·canonical 8개 eligibility 조건을 검증하는 read-only 내부 source verifier를 구현했다.

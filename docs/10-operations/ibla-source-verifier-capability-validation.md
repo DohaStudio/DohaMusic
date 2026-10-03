@@ -1,10 +1,10 @@
 # Authentic IBLA Source Verifier / First-Registration Capability 구현 검증
 
-> 문서 상태: [완료 — local Foundation Gate 검증 / Draft 검토·병합 미완료]
+> 문서 상태: [완료 — local Foundation Gate 검증 / 검토·병합 상태는 PR #200 참조]
 > 작성일·최종 수정일: 2026-10-03
 > 관련 계약: [ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)
 > 기준 develop: e3488cc6efa7e286f2c8504867a02663237ba111
-> 제출 경계: 작업 브랜치 → develop Draft PR. Ready/merge/auto-merge/branch 삭제 없음.
+> 최초 제출: 작업 브랜치 → develop Draft PR. 후속 최종 감사·Ready·guarded squash merge 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. auto-merge·branch 삭제 없음.
 
 ## 구현 경계와 최초 신뢰
 
@@ -68,7 +68,7 @@ Original read connection owners는 mode=ro, query_only=ON, synchronous=EXTRA이�
 
 Focused tests는 실제 disposable protected Windows roots/leafs/original handles/SQLite L/H를 사용한다. happy path, native identity 각 role mismatch, wrong independent pins/original/delegation/action/signature/domain, incomplete inventory/unsupported alias/import/external prior IA/GENESIS/registration, corrupt full history/head/hidden suffix, unconfirmed/uncertain H, proof replay, cap copy/serialize/duplicate, original-thread deterministic Barrier 경쟁, source/lease/clock/provider release, ACL drift/restore, read transaction/savepoint change, callback loss/release, held source write/rename/delete/hardlink 방어, cleanup quarantine 및 mutation 0을 확인했다. Linux native tests는 명시 skip하며 기존 ffmpeg-windows의 disposable non-admin fixture 실행 목록에 신규 native test file만 추가했다. required check 완화 없음.
 
-Python 코드 변경으로 중단한 진단 Full Backend 및 WAL guard 보강 전 완료된 구버전 run(2,988 passed/12 skipped, exit 0, 861.99s)은 최종 gate/authority에서 제외했다. 소스 manifest를 고정한 뒤 focused/direct PASS 후 시작한 새 gate의 exit/JUnit만 인정한다. precommit gate의 Git HEAD는 기준 develop이며 실제 신규 Python 소스는 위 manifest로 고정·전후 대조했다. commit 뒤 동일 소스의 exact final HEAD Full Backend/JUnit 및 Draft exact-head CI를 최종 보고에서 별도로 확인한다. 구버전 HEAD의 테스트를 새 구현 검증으로 재사용하지 않는다. JUnit/logs/test DB/source files/cache는 commit하지 않는다.
+Python 코드 변경으로 중단한 진단 Full Backend 및 WAL guard 보강 전 완료된 구버전 run(2,988 passed/12 skipped, exit 0, 861.99s)은 최종 gate/authority에서 제외했다. 소스 manifest를 고정한 뒤 focused/direct PASS 후 시작한 새 gate의 exit/JUnit만 인정한다. 최종 구현 HEAD dd96f70783d080884ea1208fc6662d06427e6bd9의 별도 Full Backend는 3,002 tests / 2,990 passed / skipped 12 / failures·errors 0, 823.725s, exit 0이며 JUnit이 존재하고 parseable하다. 최종 감사에서 560개 소스 manifest와 pinned fixture의 불변을 재확인했다. 이후 문서 상태 정정만 추가하며 Python/code/tests/schema/workflow 변경은 없다. 새 PR head의 CI·review/race 결과는 PR 기록에서 확인한다. precommit gate의 Git HEAD는 기준 develop이며 실제 신규 Python 소스는 위 manifest로 고정·전후 대조했다. commit 뒤 동일 소스의 exact final HEAD Full Backend/JUnit 및 Draft exact-head CI를 최종 보고에서 별도로 확인한다. 구버전 HEAD의 테스트를 새 구현 검증으로 재사용하지 않는다. JUnit/logs/test DB/source files/cache는 commit하지 않는다.
 
 ## 문서 영향 / 안전 / 후속
 
@@ -78,4 +78,4 @@ README/ROADMAP/MASTER_ROADMAP, bootstrap/deployment/current lifecycle/issuance a
 
 운영 custody/ceremony/source와 backup·restore separation은 미검증·미실행이다. power-loss/storage-controller durability, hardware anti-rollback/remote consensus는 미검증/미지원이며 H standalone rollback 및 consistent L/H historical rollback limitation을 해결했다고 주장하지 않는다. 실제 Initial Authorization, REGISTRATION_COMMITTED writer, production journal provisioning/GENESIS, Authentication/Activation, Recovery/Transfer는 미구현/unavailable다.
 
-현재 다음 작업은 이 구현 Draft PR의 최종 검증·병합이며 이번 작업에서 Ready/merge하지 않는다. 이후 develop 병합이 검증된 뒤 Initial Authorization issue/consume/cancel을 별도 범위로 재확인한다.
+최초 구현 제출은 Draft PR까지였다. 후속 최종 감사는 PR #200의 exact-head 검증·review/race Gate 뒤 Ready·guarded squash merge를 수행한다. develop 병합 검증 뒤에는 Initial Authorization issue/consume/cancel의 authoritative 계약을 먼저 재확인하고, implementation-ready가 아니면 누락된 Decision만 확정한다.

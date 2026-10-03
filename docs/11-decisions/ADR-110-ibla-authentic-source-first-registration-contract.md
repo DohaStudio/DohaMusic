@@ -5,7 +5,7 @@
 > 최종 수정일: 2026-10-03
 > 기준 develop: dd6181a6eebff3001e171ba167055af760272fb7 (#198 merged)
 > 구현 준비 판정: IMPLEMENTATION_READY — 아래 제한된 Source Verifier + Capability Foundation에 한함
-> 관련 PR: 이 문서의 docs/ibla-source-registration-contract Draft PR. Ready·merge는 이번 제출 범위 밖이다.
+> 관련 PR: 계약 결정 [#199](https://github.com/DohaStudio/DohaMusic/pull/199), Foundation 구현·최종 검토 [#200](https://github.com/DohaStudio/DohaMusic/pull/200). 상태는 각 PR 기록을 따른다.
 > 관련 결정: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-109](ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)
 > 감사·검증: [Authority Audit / 문서 Gate 보고서](../10-operations/ibla-source-registration-contract-validation.md)
 
@@ -217,8 +217,8 @@ IMPLEMENTATION_READY: §3~10은 input port, 원본 authenticated bundle·A/C/I c
 | L/H Persistence | IMPLEMENTED FOUNDATION / #198 merged |
 | Authentic Source Contract | DECIDED / read-only Foundation 구현 |
 | First-Registration Eligibility Contract | DECIDED / read-only Foundation 구현 |
-| Source Verifier | IMPLEMENTED FOUNDATION / Draft 검토·병합 미완료 |
-| First-Registration Capability | IMPLEMENTED FOUNDATION / Draft 검토·병합 미완료 |
+| Source Verifier | IMPLEMENTED FOUNDATION / 검토·병합 상태는 PR #200 참조 |
+| First-Registration Capability | IMPLEMENTED FOUNDATION / 검토·병합 상태는 PR #200 참조 |
 | Initial Authorization | NOT IMPLEMENTED |
 | Provisioning / GENESIS | NOT IMPLEMENTED |
 | Authentication / Activation | UNAVAILABLE |
