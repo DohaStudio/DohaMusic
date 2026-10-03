@@ -5,7 +5,7 @@
 > 최종 수정일: 2026-10-04
 > 기준 develop: 26452a675c2bf2ab6ae327d6e17e282bbc818a1f (#200 merged)
 > 구현 준비 판정: IMPLEMENTATION_READY — Registration Commit Writer Foundation에 한함
-> 관련 PR: 이번 Decision의 Draft PR은 [검증 보고서](../10-operations/ibla-registration-commit-authority-contract-validation.md)를 따른다. Ready·병합은 이번 작업 범위 밖이다.
+> 관련 PR: [#201](https://github.com/DohaStudio/DohaMusic/pull/201). 최초 Decision은 Draft 제출에서 종료했으며 후속 최종 감사·Ready·병합 상태는 PR 기록과 [검증 보고서](../10-operations/ibla-registration-commit-authority-contract-validation.md)를 따른다.
 > 관련 결정: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-109](ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md), [ADR-110](ADR-110-ibla-authentic-source-first-registration-contract.md)
 
 ## 1. 배경·문제·기존 결정 보존
@@ -183,4 +183,4 @@ L/H·Source Verifier·First-Registration Capability는 IMPLEMENTED FOUNDATION. R
 
 별도 consumer/lifetime, multiple A/epoch/lineage, 다른 native identity, external migration policy 변경, stronger durability/anti-rollback, IA 목적 변경 필요가 실제 발생하면 새 Decision을 요청한다. 현재의 new intermediate Foundation은 필요 없다. [검증 보고서](../10-operations/ibla-registration-commit-authority-contract-validation.md)의 25/25 exit questions가 이 exact 계약에 답한다.
 
-판정은 **IMPLEMENTATION_READY**: First-Registration Capability direct handoff → exact Registration Commit permission/Writer → REGISTRATION_COMMITTED → H/reconciliation → POST handoff만이다. IA 전체 구현 준비 완료가 아니다. 이 Decision Draft가 이후 별도 최종 검증·Ready·guarded squash merge로 develop authority가 된 경우에만 다음 작업 **Registration Commit Writer Foundation**을 시작한다. 이번에는 Draft 제출에서 종료하고 writer 구현/Ready/merge는 하지 않는다.
+판정은 **IMPLEMENTATION_READY**: First-Registration Capability direct handoff → exact Registration Commit permission/Writer → REGISTRATION_COMMITTED → H/reconciliation → POST handoff만이다. IA 전체 구현 준비 완료가 아니다. 이 Decision이 별도 최종 검증·Ready·guarded squash merge로 develop authority가 된 경우에만 다음 작업 **Registration Commit Writer Foundation**을 시작한다. 최초 Decision 작업은 Draft 제출에서 종료했다. 후속 최종 감사·Ready·guarded squash merge 상태는 PR #201 기록을 따르며 writer 구현은 별도 작업이다.

@@ -114,7 +114,7 @@
 | [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md) | Commissioning Anchor·complete domain Ledger·독립 current checkpoint 및 crash 계약 | Contract DECIDED·PR #197 / persistence 구현은 ADR-109, verifier/capability 구현은 ADR-110 |
 | [ADR-109](ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md) | 독립 SQLite L/H 불변 이력·CAS·pending/confirmation 및 crash/replay mechanics | Foundation implemented / PR #198·운영 비활성 |
 | [ADR-110](ADR-110-ibla-authentic-source-first-registration-contract.md) | external positive origin·complete scope·PRE/POST registration·opaque capability lifetime/handoff | DECIDED / Source Verifier·Capability IMPLEMENTED FOUNDATION, 구현 검토·병합 상태는 PR #200 참조 |
-| [ADR-111](ADR-111-ibla-registration-commit-authority-post-boundary-contract.md) | exact Registration Writer direct handoff·등록 전용 permission·REGISTRATION_COMMITTED wire·L/H v2·crash/replay·POST와 IA readiness 분리 | DECIDED / 제한된 Writer Foundation IMPLEMENTATION_READY, writer NOT IMPLEMENTED; Draft 검토 |
+| [ADR-111](ADR-111-ibla-registration-commit-authority-post-boundary-contract.md) | exact Registration Writer direct handoff·등록 전용 permission·REGISTRATION_COMMITTED wire·L/H v2·crash/replay·POST와 IA readiness 분리 | DECIDED / 제한된 Writer Foundation IMPLEMENTATION_READY, writer NOT IMPLEMENTED; 최종 검토·병합 상태는 [PR #201](https://github.com/DohaStudio/DohaMusic/pull/201) 참조 |
 
 결정 변경 시 기존 문서를 삭제하지 않고 상태와 대체 ADR 링크를 갱신한다.
 

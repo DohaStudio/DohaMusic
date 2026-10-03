@@ -6,7 +6,7 @@
 > main: 63633d462043ad3ba78fee92473d19e90c361431 (무변경)
 > 작업 branch: docs/ibla-registration-commit-authority-contract
 > 계약: [ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)
-> 제출 상태: Draft 전용. PR 번호·exact head·commit/push 결과는 해당 GitHub PR metadata와 최종 보고를 따른다. Ready/merge 미수행.
+> 제출·검토 상태: 최초 Decision은 Draft 제출까지 수행했다. 후속 최종 감사·Ready·병합 및 exact head는 [PR #201](https://github.com/DohaStudio/DohaMusic/pull/201)의 실제 기록과 최종 보고를 따른다.
 
 ## 1. Conflict·authority audit
 
@@ -99,3 +99,7 @@ WARNING: 실제 production custody 미검증, commissioning ceremony 미실행, 
 미수행: Production Python/tests/Full Backend, 실제 등록 append, cap 구현 변경, IA issue/consume/cancel/INITIAL_SEALED, Provisioning/GENESIS/Auth/Activation/Recovery/Transfer, Frontend/public API/app migration/schema, 실제 DB/Artifact/source/key/credential, Ready/merge/auto-merge/branch 삭제.
 
 다음 정확한 작업은 **이 Decision PR을 별도 최종 검증·Ready·guarded squash merge한 이후 Registration Commit Writer Foundation**이다. exact handoff/writer/event/L support/CAS/one-shot/replay/H/crash/tests/implementation docs만 허용한다. 이 Draft 제출과 동시에 구현하지 않는다. Writer가 develop에 병합된 후에만 POST-registration IA 계약의 후속 gap을 감사한다.
+
+## 6. PR #201 후속 최종 감사의 범위
+
+2026-10-04 후속 최종 감사에서 최초 Draft 제출 제한을 현재 검토 상태로 오해할 수 있는 문구를 PR 기록 참조로 정정했다. 위 최초 Decision 당시 검증·미수행 사실과 ADR-107/110의 목적, ADR-111의 permission/wire/version/crash 계약은 보존한다. 최종 감사는 현재 exact head의 docs-only/static/25개 exit/기준값·Actions·reviews/threads를 재확인하고, Ready 직전·직후 race 검사와 expected-head guarded squash merge 및 병합 후 tree 대조를 수행하는 별도 단계다. 그 실제 완료 결과는 PR 기록과 최종 보고를 따른다. 병합 자체는 Writer/IA 구현 또는 Phase 9 완료 증거가 아니다.
