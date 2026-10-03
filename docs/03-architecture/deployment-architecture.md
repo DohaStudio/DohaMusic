@@ -4,6 +4,7 @@
 
 > 문서 목적: 개발·향후 운영 환경의 배치 경계와 비밀·GPU 요구를 정의한다.
 > 현재 상태: **향후 설계 / 배포 미실행**
+> 최종 수정일: 2026-10-04
 
 초기 로컬 환경은 Web, API, Worker, Database, Audio Storage를 한 개발 머신에 둘 수 있으나 프로세스와 설정은 분리한다. Worker만 GPU에 접근한다. 운영 전환 시 API/Worker 분리, 객체 저장소, 관리형 DB, Redis 큐, TLS, 중앙 비밀 저장소와 모니터링을 검토한다.
 
@@ -23,3 +24,5 @@ Local operator proof의 concrete mechanism은 `WINDOWS_WEBAUTHN_PLATFORM_CREDENT
 
 
 [ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
+
+[ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)의 등록 permission은 고정 custodian Writer와 독립 H keeper의 transaction 소유권을 구분한다. external L/H physical v2 이행은 offline custody maintenance 조건으로 결정만 했고 실제 구현은 v1이다. app startup/backup/migration에 포함하거나 새 empty source로 대체하지 않는다.

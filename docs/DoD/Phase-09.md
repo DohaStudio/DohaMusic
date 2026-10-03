@@ -2,7 +2,7 @@
 
 > 상태: [계획]
 > 진행률: 0/18, 0%
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 관련 문서: [Master Roadmap](../../MASTER_ROADMAP.md#phase-9-production--계획), [Deployment Guide](../10-operations/deployment-guide.md)
 
 ## 목표
@@ -29,6 +29,9 @@ K-POP Creation Control Track은 제품 제어 고도화이며 인증·권한·�
 
 
 [ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
+
+[ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)은 등록 전용 Writer permission/L/H/reconciliation/POST 계약만 DECIDED했다. Writer·IA·Provisioning/GENESIS 구현 및 실제 production custody·ceremony·durability 증거는 없으므로 이번 Decision으로 DoD 항목을 체크하지 않는다. Phase 9는 **0/18, 0%**를 유지한다.
+
 
 ## 완료 체크리스트
 

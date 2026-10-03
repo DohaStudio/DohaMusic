@@ -5,11 +5,21 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - Registration Commit Decision 최종 감사 상태 정정
+
+- #201 최종 감사에서 최초 Draft 제출 단계의 제한을 현재 검토 상태로 오해하지 않도록 ADR-111·ADR 목록·ROADMAP·검증 보고서를 PR 기록 참조로 정정했다. 기존 IA POST 의미·등록 계약·코드·schema·Phase 9 진행률은 변경하지 않았다.
+
+### 문서 - IBLA 등록 전용 authority와 POST 경계
+
+- ADR-111에서 First-Registration Capability의 exact Registry Custodian Writer direct one-shot handoff를 선택하고, 등록 전용 root intent·독립 initializer 확인·binding/lifetime·REGISTRATION_COMMITTED canonical wire·external L/H v2 compatibility·CAS/replay·crash/reconciliation 계약을 확정했다. 별도 persistent token은 만들지 않는다.
+- ADR-107의 POST-registration Initial Authorization과 ADR-110의 PRE capability/irreversible L commit 의미를 보존했다. L durable 등록은 POST이고 fresh L/H confirmation은 후속 IA 진입의 별도 조건이다.
+- 관련 CURRENT 문서와 ADR 목록·검증 보고서를 동기화했다. Writer/IA/Provisioning/GENESIS는 미구현, Auth/Activation은 unavailable, Phase 9는 0/18·0%다. 실제 코드·tests·schema/migration·API 변경은 없고 Decision Draft 제출에서 종료한다.
 
 ### 문서 - IBLA Foundation 최종 감사 상태 정정
 

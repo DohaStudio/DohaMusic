@@ -1,7 +1,7 @@
 # Product/Deployment Bootstrap Authority
 
 > 문서 상태: [Decision 채택 — #162 merged, 운영 비활성]
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 관련 문서: [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [인증](local-operator-authentication.md), [Rights](dohavocal-production-rights-domain.md), [검증](../10-operations/product-deployment-bootstrap-authority-validation.md)
 
 ## Authority와 검증 경계
@@ -32,3 +32,5 @@ DEFINED/ADOPTED: bootstrap external root 및 verification/trust-chain contract (
 
 
 [ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
+
+[ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)은 명시 위임된 Registry Custodian의 exact Registration Writer로 PRE capability를 direct one-shot handoff하고, 등록 전용 root intent·독립 initializer 확인을 별도로 요구한다. H PREPARED → L durable REGISTRATION_COMMITTED(POST) → 독립 H CONFIRMED를 적용하며 Writer는 NOT IMPLEMENTED다. 후속 IA의 POST 목적과 INITIAL_SEALED 소비 의미는 기존 ADR-107을 보존한다.

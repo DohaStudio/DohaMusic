@@ -1,7 +1,7 @@
 # Deployment Verifier Current-Status / Lifecycle Contract
 
 > 문서 상태: [Contract #164 merged — 운영 비활성]
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 관련 문서: [ADR-078](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [ADR-076](../11-decisions/ADR-076-product-deployment-bootstrap-authority.md), [issuance verifier](bootstrap-issuance-integrity-verifier.md), [검증](../10-operations/deployment-verifier-current-status-validation.md)
 
 Canonical 결정·wire·state·admission 계약은 ADR-078이다. #163 merged issuance verifier는 그대로 유지하며 current root/status authority로 확대하지 않는다.
@@ -36,3 +36,5 @@ Lifecycle Contract #164, public journal #165, private handoff #166, witness life
 
 
 [ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
+
+[ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)은 PRE 등록 Writer와 POST IA의 목적을 분리한다. L durable registration은 POST이고 fresh supported whole L/current H CONFIRMED가 후속 IA 진입의 별도 조건이다. First-Registration verifier를 POST reader나 IA issuer로 승격하지 않으며 등록 Writer는 NOT IMPLEMENTED다.
