@@ -3,7 +3,7 @@
 > 2026-09-29 Vocal E2E: [취득 경계](../03-architecture/dohavocal-payload-acquisition-orchestration.md)는 fixed origin·redirect deny·identity encoding·bounded streaming·current authority checkpoint와 actual byte/media 검증을 적용한다. tests의 Fake rights는 production fallback이 아니며 user audio·DB·운영 Artifact를 사용하지 않는다.
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 관련 기능: Storage·Voice·Frontend public contract 보안
 > 관련 문서: [Reviewer Authentication과 배포 권위](reviewer-authentication-deployment-authority.md), [Verified Durable Staging Authority](../03-architecture/verified-durable-staging-authority.md)
 
@@ -56,3 +56,5 @@ Lyrics API는 topic·keywords·instructions·직접 작성 가사의 길이를 �
 
 
 [ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
+
+[ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)의 permission은 exact 등록 1건에 한정된 direct handoff이고, source/lease/native thread/monotonic deadline/transaction 교집합 밖에서 재사용하지 않는다. PRE capability·등록 승인 원본·등록 audit result를 POST IA 또는 GENESIS 권한으로 승격하지 않는다. ambiguous append는 새 L write 없이 실제 이력 대조만 허용하며 production custody와 기존 rollback 탐지 한계는 미해결이다.

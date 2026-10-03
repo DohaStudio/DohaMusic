@@ -1,7 +1,7 @@
 # Independent Deployment Lifecycle Journal Schema v1
 
 > 문서 상태: [구현 — Foundation #165 merged, 운영 비활성]
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 관련 문서: [ADR-079](../11-decisions/ADR-079-independent-lifecycle-journal-persistence-foundation.md), [ADR-078](../11-decisions/ADR-078-deployment-verifier-current-status-lifecycle-contract.md), [검증](../10-operations/deployment-lifecycle-journal-validation.md)
 
 application DB와 독립 lifecycle의 SQLite public-fact store다. 앱 ORM metadata/Alembic/startup/backup/default path에 연결하지 않는다. caller 제공 isolated connection으로 empty database schema v1을 명시 설치하며 transaction을 caller가 소유한다. production 초기화/upgrade/downgrade 명령은 제공하지 않는다. app Alembic 0037 single head는 그대로다.
@@ -24,3 +24,5 @@ JournalRepository는 Session.execute/flush만 사용하며 commit()/rollback()/r
 
 
 [ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
+
+[ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)의 external IBLA L/H v2·등록 event·offline 이행 조건은 결정만 했으며 현재 구현은 v1이다. 별도 L durable 등록이 POST 경계이고 이 journal/app row는 그 authority가 아니다. 등록 Writer는 NOT IMPLEMENTED이며 등록 permission은 journal 생성·GENESIS 권한을 주지 않는다.

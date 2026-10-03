@@ -17,6 +17,9 @@ Bootstrap 최신 Track: #164~#170/#172~#193는 merged다. [ADR-097 exact correla
 
 [ADR-110](docs/11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](docs/10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
 
+다음 작업은 [ADR-111](docs/11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md) Decision PR의 별도 검증·병합 이후 **Registration Commit Writer Foundation**이다. 이번에는 Draft 제출에서 종료하며 Writer/IA/Provisioning/GENESIS 구현이나 Phase 9 완료 체크를 추가하지 않는다. POST-registration IA 계약 감사는 Writer가 develop에 병합된 뒤 수행한다.
+
+
 Vocal 권한 독립 Track(2026-09-18): merged #160 [ADR-075](docs/11-decisions/ADR-075-dohavocal-production-rights-domain-decision.md)의 Rights Persistence Foundation·ScopeGuard integrity는 #161 merged, Alembic `0037`이며 final receipt port는 `MINIMAL_PORT_ADAPTATION_REQUIRED`다. [ADR-076](docs/11-decisions/ADR-076-product-deployment-bootstrap-authority.md)은 #162 merged, [ADR-077 verifier](docs/03-architecture/bootstrap-issuance-integrity-verifier.md)는 #163 merged이고 receipt는 권한이 아니다. #164 Contract 뒤 현재 Foundation/NEXT는 위 Bootstrap 실행 순서를 따른다. trusted provisioning/private current authority·Claim/binding/운영 adapter는 미구현이며 Phase/DoD 진행률은 그대로다. 과거 '새 schema는 전제하지 않는다'는 Completion 출발 원칙이며 신규 authority facts의 schema 필요 판정을 바꾸지 않는다.
 
 1. 사용자의 별도 승인과 API Key·비용 승인을 모두 받은 opt-in 환경에서만 한국어 발라드·시티팝·구조 유지 수정·영문 팝을 실제 측정한다. 승인 전 상태는 `[유료 실측 미수행]`이다.
@@ -64,7 +67,7 @@ DohaVocal은 `0.2.0` payload-backed Runtime contract를 제공하고 DohaMusic�
 Clip Persistence·Authority, revision-safe idempotency와 WorkingComposition atomic mutation Service를 구현했다. Frontend는 exact AssetVersion Clip create와 explicit destination Copy, Track/Clip mutation, response revision 기반 reconcile, Backend persistent history projection과 undo/redo intent, Clip별 `[source_in, source_out)` Waveform, Working Preview·Composition Commit과 selected Clip Gain·Fade·Loop control을 소비한다. Gain drag는 숫자만 local preview하고 Fade와 Loop는 canonical 값을 validation한 뒤 absolute mutation을 보내며 waveform/audio를 임의 변경하지 않는다. Backend는 exact AssetVersion lineage·canonical geometry·Clip Gain·Fade·Loop를 immutable Snapshot과 revision-pinned Working Preview manifest에 고정한다. Provider·Training·Dataset·GPU·Common Contract는 변경하지 않았고 Section·Mixer·range selection은 구현하지 않았다. Phase 8 `100%`는 로컬 MVP 판정이며 이 Track의 완료율이 아니다.
 
 > 문서 상태: [운영 중]
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 현재 상태: **Responsive Studio MVP 완료 / AI-native DAW D0 완료·D1 계약 확정·D1~D9 구현 계획 / 외부 Provider Runtime 보류**
 > 상위 기준: [Master Roadmap](MASTER_ROADMAP.md)
 > 완료 기준: [Phase별 Definition of Done](docs/DoD/README.md)

@@ -7,7 +7,7 @@
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -35,6 +35,9 @@ Bootstrap 최신 Track: #164~#170/#172~#193는 merged다. [ADR-097 exact correla
 
 
 [ADR-110](docs/11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](docs/10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
+
+등록 전용 계약은 [ADR-111](docs/11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)에서 DECIDED했다. First-Registration Capability의 exact Writer direct handoff → L REGISTRATION_COMMITTED durable commit(POST) → fresh L/H 확인 → 후속 기존 IA 순서이며, Registration Commit Writer·IA·Provisioning/GENESIS는 NOT IMPLEMENTED다. 구현 준비 판정은 등록 Writer에 한하며 Phase 9는 0/18, 0%를 유지한다.
+
 
 현재 `develop`에서 확인되는 범위다.
 
