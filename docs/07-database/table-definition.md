@@ -2,7 +2,7 @@
 
 > 문서 상태: [완료: CURRENT Runtime Core]
 > 문서 범위: 운영 source of truth 14개 중 Core·Generation·Stem·Lyrics·Project·Voice Profile/Enrollment 10개 Table
-> 최종 수정일: 2026-10-02
+> 최종 수정일: 2026-10-03
 > 전체 CURRENT 관계: [CURRENT Runtime ERD](erd.md)
 > 별도 CURRENT 상세: [Pipeline Table 2개](pipeline-tables.md), [Voice Conversion Table 2개](voice-conversion-tables.md)
 > TARGET 구조: [TARGET Table Definition](database-redesign-table-definition.md) — [부분 구현]
@@ -182,6 +182,6 @@ Alembic 0009는 `cancel_requested_at`, `cancelled_at`, `retry_of_job_id` self FK
 
 ## IBLA 최초 등록 책임 경계
 
-[ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다(implementation not yet present). root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약 판정은 IMPLEMENTATION_READY이며 다음 구현은 Authentic IBLA Source Verifier + First-Registration Capability Foundation으로 고정한다. L/H는 IMPLEMENTED FOUNDATION, Source Verifier/Capability·Initial Authorization·Provisioning/GENESIS는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다.
+[ADR-110](../11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](../10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
 
-IBLA external L/H는 application metadata/기존 deployment journal과 별도다. ADR-110의 scope inventory는 signed A의 read input이며 app registration table/absence store를 추가하지 않는다. app row 부재는 no-prior 증거가 아니고 실제 최초 등록 경계는 future authorized L writer의 durable registration fact다. 이번 docs-only 변경은 ORM/table/column/index/Alembic·L/H schema delta 0이다.
+IBLA external L/H는 application metadata/기존 deployment journal과 별도다. ADR-110의 scope inventory는 signed A의 read input이며 app registration table/absence store를 추가하지 않는다. app row 부재는 no-prior 증거가 아니고 실제 최초 등록 경계는 future authorized L writer의 durable registration fact다. 이번 read-only Foundation은 ORM/table/column/index/Alembic·L/H schema delta 0이다.

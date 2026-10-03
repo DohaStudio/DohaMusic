@@ -5,11 +5,21 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-10-02
+> 최종 수정일: 2026-10-03
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 문서 - IBLA Foundation 최종 감사 상태 정정
+
+- #200 최종 감사에서 현재 문서의 Draft 제출 제한·docs-only 잔여 문구와 ADR 목록의 verifier 미구현 상태를 정정했다. 검토·병합 상태는 PR 기록을 따르며 계약·Python 코드·테스트·schema·Phase 9 진행률은 변경하지 않았다.
+
+### 추가 - Authentic IBLA Source Verifier / 최초 등록 Capability Foundation
+
+- ADR-110의 IBLA 전용 A/C/I canonical signature, independent commissioning originals/pins/mapping/native custody correlation, 전체 query-only L/H·complete supported coverage·canonical 8개 eligibility 조건을 검증하는 read-only 내부 source verifier를 구현했다.
+- provider registry의 opaque PRE capability, fresh installation challenge, 최대 monotonic 15분 및 source/lease/process/thread 수명 교집합, mint-once·handoff-once·fresh handoff revalidation과 안전한 fail-closed 오류를 구현했다.
+- 실제 Windows disposable custody fixture와 crypto/history/lifetime/replay/concurrency/cleanup 검증을 추가했다. production source는 unavailable이고 등록 writer·Initial Authorization·GENESIS·Provisioning/Auth/Activation은 구현하지 않는다. app/API/schema 변경 0, Phase 9 0/18을 유지하며 [구현 검증 보고서](docs/10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
 
 ### 문서 - IBLA source 진정성과 최초 등록 계약
 
