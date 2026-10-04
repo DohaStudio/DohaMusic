@@ -9,6 +9,8 @@
 > 관련 결정: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-084](ADR-084-designation-provenance-reader-input-contract.md), [ADR-087](ADR-087-custody-policy-provisioning-initializer-provenance-contract.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-109](ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md)
 > 감사·검증: [Authority Audit / 문서 Gate 보고서](../10-operations/ibla-source-registration-contract-validation.md)
 
+> 등록 Writer 통합 보충: [ADR-112](ADR-112-ibla-registration-attempt-durable-boundary-restart-contract.md)는 마지막 전체 PRE revalidation → keeper의 exact H PREPARED durable 예약 → 자기 pending의 operation-specific checks → final one-shot handoff 순서를 정의한다. Source Verifier/Capability mint의 read-only·opaque prerequisite·one-delivery 의미는 유지하며 이 등록 준비는 별도 Writer owner 책임이다. 다른 consumer의 기존 handoff와 아래 원 결정 이력은 보존한다.
+
 ## 1. 배경·문제·결정 권한
 
 #198은 L/H public persistence를 구현했으나 A의 anchor_digest는 외부 commissioning 진정성 증명이 아니다. 직전 Source Verifier 구현 감사는 승인 입력/coverage와 최초 등록 eligibility/handoff 부재로 MISSING_DECIDED_CONTRACT에서 중단했다. 이번 사용자 요청은 이 두 gap만 결정하도록 허용한다. Production code·tests·새 DB/schema·credential·실제 ceremony·Initial Authorization·GENESIS를 구현하지 않는다.

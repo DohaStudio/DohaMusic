@@ -36,7 +36,9 @@ Bootstrap 최신 Track: #164~#170/#172~#193는 merged다. [ADR-097 exact correla
 
 [ADR-110](docs/11-decisions/ADR-110-ibla-authentic-source-first-registration-contract.md)은 Authentic Source / Complete Coverage / First-Registration Eligibility / Capability Handoff Contract를 DECIDED했다. root-signed A와 독립 initializer 원본·complete scope inventory·전체 L/current H를 결합하며, PRE-REGISTRATION capability와 L durable REGISTRATION_COMMITTED 이후 POST 경계를 구분한다. 계약에 따른 Authentic IBLA Source Verifier + First-Registration Capability Foundation을 구현했다. 검토·병합 상태는 [PR #200](https://github.com/DohaStudio/DohaMusic/pull/200)을 따른다. L/H와 Source Verifier/Capability는 IMPLEMENTED FOUNDATION, Initial Authorization·REGISTRATION_COMMITTED writer·Provisioning/GENESIS·Recovery/Transfer는 NOT IMPLEMENTED, Authentication/Activation은 UNAVAILABLE다. Phase 9는 0/18, 0%를 유지한다. capability는 등록 완료·Authorization이 아니며 L/H/app DB/journal mutation은 0이다. 실제 production source는 unavailable를 유지한다. [구현 검증 보고서](docs/10-operations/ibla-source-verifier-capability-validation.md)를 따른다.
 
-등록 전용 계약은 [ADR-111](docs/11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)에서 DECIDED했다. First-Registration Capability의 exact Writer direct handoff → L REGISTRATION_COMMITTED durable commit(POST) → fresh L/H 확인 → 후속 기존 IA 순서이며, Registration Commit Writer·IA·Provisioning/GENESIS는 NOT IMPLEMENTED다. 구현 준비 판정은 등록 Writer에 한하며 Phase 9는 0/18, 0%를 유지한다.
+등록 전용 permission/R/Q/L/H v2/POST 계약은 [ADR-111](docs/11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)에서 DECIDED했다. handoff/PREPARED/restart 순서는 아래 ADR-112가 부분 대체한다. Registration Commit Writer·IA·Provisioning/GENESIS는 NOT IMPLEMENTED다.
+
+[ADR-112](docs/11-decisions/ADR-112-ibla-registration-attempt-durable-boundary-restart-contract.md)은 H PREPARED durable 예약을 final capability handoff보다 먼저 두고 pre-PREPARED restart 모순을 해결하는 docs-only Decision이다. pending 이후 새 cap/자동 append/reset은 금지한다. Writer는 NOT IMPLEMENTED, Phase 9는 0/18·0%이며 이번 작업은 Draft 제출까지다.
 
 
 현재 `develop`에서 확인되는 범위다.

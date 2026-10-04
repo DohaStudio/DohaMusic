@@ -32,6 +32,8 @@ K-POP Creation Control Track은 제품 제어 고도화이며 인증·권한·�
 
 [ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)은 등록 전용 Writer permission/L/H/reconciliation/POST 계약만 DECIDED했다. Writer·IA·Provisioning/GENESIS 구현 및 실제 production custody·ceremony·durability 증거는 없으므로 이번 Decision으로 DoD 항목을 체크하지 않는다. Phase 9는 **0/18, 0%**를 유지한다.
 
+[ADR-112](../11-decisions/ADR-112-ibla-registration-attempt-durable-boundary-restart-contract.md)는 pre-PREPARED/restart/crash semantics만 15/15 IMPLEMENTATION_READY로 결정했다. 실패 prototype은 production Writer 구현/검증 증거가 아니며 NOT IMPLEMENTED를 유지한다. 이번 Draft Decision으로 완료 체크를 추가하지 않고 Phase 9는 **0/18, 0%**다.
+
 
 ## 완료 체크리스트
 
