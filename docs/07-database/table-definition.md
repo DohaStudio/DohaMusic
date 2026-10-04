@@ -11,6 +11,8 @@
 
 [ADR-111](../11-decisions/ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)의 Registration Commit은 별도 external IBLA L/H 책임이다. external physical v2/event/index/migration 조건은 설계 결정만 했으며 현재 구현은 v1이다. Application metadata 67개·Alembic 20260918_0037·이 문서의 Runtime tables는 변경하지 않는다. app row 삭제/rollback은 L durable REGISTRATION_COMMITTED의 POST 경계를 되돌리지 않는다.
 
+[ADR-112](../11-decisions/ADR-112-ibla-registration-attempt-durable-boundary-restart-contract.md)는 기존 계획된 external v2 H PREPARED/full candidate를 재사용하므로 추가 DDL/field/index 및 app DB 변경 0이다. registration 최대 1은 ADR-111의 CAS/operation fingerprint/unique registration 및 H correlation으로 유지한다. 실제 Writer/v2는 NOT IMPLEMENTED다.
+
 이 문서는 전체 36개 Application Table의 단일 정의서가 아니다. Runtime 14개 중 아래 10개만 상세 정의하며, Pipeline과 Voice Conversion 4개는 기존 상세 문서를 유지한다. Workspace 도메인 21개와 Storage Catalog 1개는 실제 schema에 추가됐지만 Runtime source of truth가 아니므로 TARGET Table Definition과 Migration 전략에서 다룬다.
 
 | 책임 | 이 문서의 CURRENT Table |

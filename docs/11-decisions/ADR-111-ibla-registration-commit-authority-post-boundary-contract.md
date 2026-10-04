@@ -1,12 +1,14 @@
 # ADR-111: IBLA Registration Commit Authority and POST Boundary Contract
 
-> 상태: [설계 결정 — DECIDED — Writer NOT IMPLEMENTED]
+> 상태: [설계 결정 — DECIDED — ordering/restart 부분 대체됨 — Writer NOT IMPLEMENTED]
 > 작성일: 2026-10-04
 > 최종 수정일: 2026-10-04
 > 기준 develop: 26452a675c2bf2ab6ae327d6e17e282bbc818a1f (#200 merged)
-> 구현 준비 판정: IMPLEMENTATION_READY — Registration Commit Writer Foundation에 한함
+> 구현 준비 판정: 원 판정은 IMPLEMENTATION_READY였으나 pre-PREPARED restart 모순이 재현됐다. 해당 경로의 현행 판정·계약은 ADR-112를 따른다.
 > 관련 PR: [#201](https://github.com/DohaStudio/DohaMusic/pull/201). 최초 Decision은 Draft 제출에서 종료했으며 후속 최종 감사·Ready·병합 상태는 PR 기록과 [검증 보고서](../10-operations/ibla-registration-commit-authority-contract-validation.md)를 따른다.
 > 관련 결정: [ADR-076](ADR-076-product-deployment-bootstrap-authority.md), [ADR-077](ADR-077-bootstrap-issuance-integrity-verifier-foundation.md), [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-109](ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md), [ADR-110](ADR-110-ibla-authentic-source-first-registration-contract.md)
+
+> 부분 대체: [ADR-112](ADR-112-ibla-registration-attempt-durable-boundary-restart-contract.md)가 §2 authority-chain 순서, §5 final handoff/deadline, §8 steps 1~3, §9 pre-PREPARED/restart/prepare 응답 유실 정책 및 이에 의존한 구현 준비 판정을 부분 대체한다. 아래 원문 순서·restart 제한은 역사이며 해당 범위의 구현 근거로 사용하지 않는다. 나머지 R/Q/wire/v2/POST/독립 H 확인 계약은 보존한다.
 
 ## 1. 배경·문제·기존 결정 보존
 

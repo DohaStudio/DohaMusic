@@ -11,6 +11,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 문서
+
+- ADR-112에서 Registration Commit Writer의 pre-PREPARED restart 모순을 기록하고 H PREPARED durable 예약 후 capability final handoff 순서를 결정했다. ADR-111 해당 부분을 명시적으로 대체하며 boundary 전 fresh 검증, boundary 후 pending 보존·자동 재시도/새 cap/reset 금지, crash matrix와 15/15 구현 준비 답변을 확정했다. Writer는 NOT IMPLEMENTED이며 Phase 9 0/18·0%와 실패 prototype을 보존한다. 이번 Decision은 Draft 제출까지만 수행한다.
+
 ### 문서 - Registration Commit Decision 최종 감사 상태 정정
 
 - #201 최종 감사에서 최초 Draft 제출 단계의 제한을 현재 검토 상태로 오해하지 않도록 ADR-111·ADR 목록·ROADMAP·검증 보고서를 PR 기록 참조로 정정했다. 기존 IA POST 의미·등록 계약·코드·schema·Phase 9 진행률은 변경하지 않았다.
