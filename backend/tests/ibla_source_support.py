@@ -116,7 +116,7 @@ def payloads():
     return a, c, root, initializer, proof, designation, ceremony
 
 
-def native_fixture(tmp_path, *, stage="confirmed", transform=None, consumer=None):
+def native_fixture(tmp_path, *, stage="confirmed", transform=None, consumer=None, version=1):
     if sys.platform != "win32":
         pytest.skip("IBLA native held custody requires Windows; codec tests run independently")
     from backend.tests.test_designation_source_custody import (
@@ -192,7 +192,7 @@ def native_fixture(tmp_path, *, stage="confirmed", transform=None, consumer=None
 
         e = engine(path)
         with e.begin() as connection:
-            install_empty_store(connection, role=role, binding=b)
+            install_empty_store(connection, role=role, binding=b, version=version)
         e.dispose()
     wire = encode_event(
         b,
@@ -204,19 +204,19 @@ def native_fixture(tmp_path, *, stage="confirmed", transform=None, consumer=None
         recorded_at=a["issued_at"],
     )
     if stage != "empty":
-        with keeper(*paths[-2:], binding=b) as h:
+        with keeper(*paths[-2:], binding=b, version=version) as h:
             h.prepare(wire, expected=h.read().head)
     if stage == "uncertain":
         from backend.bootstrap_authority.ibla.codec import parse_event
 
         event = parse_event(wire, b)
-        with keeper(*paths[-2:], binding=b) as h:
+        with keeper(*paths[-2:], binding=b, version=version) as h:
             h.mark_uncertain(event.operation_id, event.fingerprint)
     if stage in {"appended", "confirmed"}:
-        with ledger(paths[-2], binding=b) as ledger_writer:
+        with ledger(paths[-2], binding=b, version=version) as ledger_writer:
             event = ledger_writer.append(wire, expected=Head())
     if stage == "confirmed":
-        with keeper(*paths[-2:], binding=b) as h:
+        with keeper(*paths[-2:], binding=b, version=version) as h:
             h.confirm(event.operation_id, event.fingerprint)
     paths[4].write_bytes(
         rfc8785.dumps(

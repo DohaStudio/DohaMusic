@@ -165,7 +165,7 @@ class _HeldSource:
         self.engines.append(engine)
         return engine
 
-    def open(self):
+    def open(self, *, originals_only=False):
         setup = self.setup
         custody_digest(setup.roles, custody_identities(_read(setup.accepted_anchor, 1_048_576, 8)))
         for role, reader_type in zip(setup.roles, READERS, strict=True):
@@ -176,7 +176,8 @@ class _HeldSource:
                 self._engine(reader)
             else:
                 self.raw.append(self.stack.enter_context(reader._snapshot()))
-        return self.read(datetime.now(UTC))
+        if not originals_only:
+            return self.read(datetime.now(UTC))
 
     def _correlate(self, checked):
         s = self.setup
@@ -314,12 +315,18 @@ class _HeldSource:
                     database_path(session)
                 ) != ntpath.normcase(files._journal_path):
                     raise IblaDenied()
-            ledger = LedgerRepository(ls, binding)
+            versions = [
+                s.execute(text("SELECT version FROM ibla_identity")).scalar_one() for s in (ls, hs)
+            ]
+            if versions[0] != versions[1] or versions[0] not in {1, 2}:
+                raise IblaDenied()
+            ledger = LedgerRepository(ls, binding, version=versions[0])
             h = CheckpointRepository(
                 hs,
                 binding,
                 ledger_reader=ledger,
                 recorded_at=checked.strftime("%Y-%m-%dT%H:%M:%SZ"),
+                version=versions[0],
             )
             try:
                 lv = h._ledger()
@@ -332,6 +339,8 @@ class _HeldSource:
             hv = h.read()
             h._require_confirmed(hv, lv)
             if len(lv.events) != 1:
+                if any(e.kind == "REGISTRATION_COMMITTED" for e in lv.events):
+                    raise IblaDenied()
                 if any(e.kind in {"HISTORY_BLOCK", "RETIRE"} for e in lv.events):
                     raise IblaConflict()
                 raise IblaInconsistent()

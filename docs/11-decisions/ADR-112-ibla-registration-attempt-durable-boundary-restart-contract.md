@@ -1,6 +1,6 @@
 # ADR-112: IBLA Registration Attempt Durable Boundary and Restart Contract
 
-> 상태: [설계 결정 — DECIDED — Writer NOT IMPLEMENTED]
+> 상태: [설계 결정 — DECIDED — Writer IMPLEMENTED FOUNDATION (작업 브랜치)]
 > 작성일: 2026-10-04
 > 최종 수정일: 2026-10-04
 > 기준 develop: 9ad483d0ae15ff6e185ef67c107d1a937066f222 (#201 merged)
@@ -8,6 +8,8 @@
 > 관련 PR: 이 Decision은 Draft 제출에서 종료한다. Ready/merge는 이번 작업 범위가 아니다.
 > 관련 결정: [ADR-107](ADR-107-independent-bootstrap-lineage-authority.md), [ADR-108](ADR-108-ibla-anchor-coverage-ledger-checkpoint-contract.md), [ADR-109](ADR-109-ibla-ledger-independent-checkpoint-persistence-foundation.md), [ADR-110](ADR-110-ibla-authentic-source-first-registration-contract.md), [ADR-111](ADR-111-ibla-registration-commit-authority-post-boundary-contract.md)
 > 검증: [Decision validation](../10-operations/ibla-registration-attempt-restart-contract-validation.md)
+
+> 현재 구현 상태 (이 작업 브랜치): ADR-111/112 Registration Commit Writer·v2 L/H·original frame/forward reconciliation Foundation을 구현·검증했다. [Writer 검증 보고서](../10-operations/ibla-registration-commit-writer-validation.md)를 따른다. 아래 NOT IMPLEMENTED/docs-only/Draft 제출 문구는 최초 Decision 당시 이력이며 이번 Writer 구현 또는 production 완료를 뜻하지 않는다. 후속 develop 병합은 PR 기록으로 확인한다.
 
 ## 1. 배경과 재현된 모순
 

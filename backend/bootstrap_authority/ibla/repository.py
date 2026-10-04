@@ -58,7 +58,7 @@ def database_path(session):
 class _Repository:
     role = None
 
-    def __init__(self, session, binding):
+    def __init__(self, session, binding, *, version=1):
         if type(session) is not Session:
             raise IblaDenied()
         try:
@@ -66,6 +66,9 @@ class _Repository:
         except (ValueError, TypeError):
             raise IblaInconsistent() from None
         self.session, self.binding = session, binding
+        if type(version) is not int or version not in {1, 2}:
+            raise IblaDenied()
+        self.version = version
         self._failed = False
         self._transaction = session.get_transaction()
         if self._transaction is None or session.in_nested_transaction():
@@ -88,7 +91,7 @@ class _Repository:
             or self.session.execute(text("PRAGMA synchronous")).scalar_one() != 3
         ):
             raise IblaDenied()
-        require_schema(self.session, self.role, self.binding)
+        require_schema(self.session, self.role, self.binding, self.version)
 
     def _head(self):
         rows = self.session.execute(text("SELECT revision,digest FROM ibla_head")).all()
@@ -151,7 +154,7 @@ class LedgerRepository(_Repository):
         previous = None
         retired = False
         for revision, row in enumerate(self._rows(), 1):
-            event = parse_event(row.envelope, self.binding)
+            event = parse_event(row.envelope, self.binding, version=self.version)
             if (
                 tuple(row)
                 != (
@@ -185,7 +188,9 @@ class LedgerRepository(_Repository):
         if type(expected) is not Head:
             raise IblaInconsistent()
         expected.validate()
-        candidate = parse_event(envelope, self.binding)
+        candidate = parse_event(envelope, self.binding, version=self.version)
+        if candidate.kind == "REGISTRATION_COMMITTED":
+            raise IblaDenied()
         if (candidate.revision, candidate.previous_digest) != (
             expected.revision + 1,
             expected.digest,

@@ -11,6 +11,16 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 - IBLA Writer Windows CI 호출
+
+- Writer native 테스트 두 개 추가로 Windows 비관리자 credential 프로세스의 명령줄 한도를 넘은 CI 호출을 동일한 20개 테스트의 pytest 인수 파일 전달로 수정했다. 테스트·권한·timeout·required check를 유지하며 production/test Python·DB/API·Phase 상태는 변경하지 않았다.
+
+### 추가 - IBLA Registration Commit Writer Foundation
+
+- ADR-111/112의 exact R/Q/current delegation·original cap/private Writer frame을 검증하고 H PREPARED durable 예약과 full revalidation 뒤 final one-shot handoff를 수행하는 내부 Writer Foundation을 구현했다. 실제 별도 L transaction의 REGISTRATION_COMMITTED durable commit을 POST로 기록하고 독립 H actual-L confirmation/forward reconciliation을 제공한다.
+- strict external L/H v2 catalog·registration event/index·v1 byte-preserving reader를 구현했다. generic 등록 append/prepare를 거부하며 runtime 자동 migration/production offline 이행은 추가하지 않았다.
+- 원 실패 process-exit regression을 유지·통과하고 경계 전 fresh attempt, 경계 후 pending/stale/경쟁/응답 유실 회귀를 추가했다. Source Verifier/Capability mint는 read-only, IA·GENESIS·Provisioning 및 실제 production source/custody는 미구현·unavailable, Phase 9 0/18·0%를 유지한다. 구현 제출은 Draft PR까지다.
+
 ### 문서
 
 - ADR-112에서 Registration Commit Writer의 pre-PREPARED restart 모순을 기록하고 H PREPARED durable 예약 후 capability final handoff 순서를 결정했다. ADR-111 해당 부분을 명시적으로 대체하며 boundary 전 fresh 검증, boundary 후 pending 보존·자동 재시도/새 cap/reset 금지, crash matrix와 15/15 구현 준비 답변을 확정했다. Writer는 NOT IMPLEMENTED이며 Phase 9 0/18·0%와 실패 prototype을 보존한다. 이번 Decision은 Draft 제출까지만 수행한다.

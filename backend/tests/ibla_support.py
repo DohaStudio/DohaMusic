@@ -54,7 +54,7 @@ def engine(path, *, readonly=False):
     return result
 
 
-def provision(path, role, binding=BINDING):
+def provision(path, role, binding=BINDING, *, version=1):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     # Fixture-only explicit exclusive creation. Never a runtime missing-file fallback.
@@ -63,15 +63,15 @@ def provision(path, role, binding=BINDING):
     e = engine(path)
     try:
         with e.begin() as c:
-            install_empty_store(c, role=role, binding=binding)
+            install_empty_store(c, role=role, binding=binding, version=version)
     finally:
         e.dispose()
 
 
-def stores(root):
+def stores(root, *, version=1):
     lp, h = Path(root) / "ledger" / "lp.sqlite", Path(root) / "keeper" / "h.sqlite"
-    provision(lp, "L")
-    provision(h, "H")
+    provision(lp, "L", version=version)
+    provision(h, "H", version=version)
     return lp, h
 
 
@@ -87,20 +87,21 @@ def session(path, *, readonly=False):
 
 
 @contextmanager
-def ledger(path, *, readonly=False, binding=BINDING):
+def ledger(path, *, readonly=False, binding=BINDING, version=1):
     with session(path, readonly=readonly) as s:
-        yield LedgerRepository(s, binding)
+        yield LedgerRepository(s, binding, version=version)
 
 
 @contextmanager
-def keeper(lp, h, *, binding=BINDING):
+def keeper(lp, h, *, binding=BINDING, version=1):
     # H writer owns only H + separate read-only L; no L write connection.
     with session(h) as hs, session(lp, readonly=True) as ls:
         yield CheckpointRepository(
             hs,
             binding,
-            ledger_reader=LedgerRepository(ls, binding),
+            ledger_reader=LedgerRepository(ls, binding, version=version),
             recorded_at="2026-10-01T00:00:00Z",
+            version=version,
         )
 
 

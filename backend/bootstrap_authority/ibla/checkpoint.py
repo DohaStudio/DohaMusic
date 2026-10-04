@@ -41,8 +41,8 @@ class OperationResult:
 class CheckpointRepository(_Repository):
     role = "H"
 
-    def __init__(self, session, binding, *, ledger_reader, recorded_at):
-        super().__init__(session, binding)
+    def __init__(self, session, binding, *, ledger_reader, recorded_at, version=1):
+        super().__init__(session, binding, version=version)
         if type(ledger_reader) is not LedgerRepository or ledger_reader.binding != binding:
             raise IblaDenied()
         try:
@@ -51,6 +51,8 @@ class CheckpointRepository(_Repository):
             raise IblaInconsistent() from None
         self._recorded_at = recorded_at
         self._ledger_reader = ledger_reader
+        if ledger_reader.version != version:
+            raise IblaDenied()
 
     def _ledger(self):
         reader = self._ledger_reader
@@ -80,10 +82,17 @@ class CheckpointRepository(_Repository):
         head = self._head()
         state, confirmed, pending = "EMPTY", Head(), None
         prior_digest = None
+        v2_seen = False
         operations = {}
         rows = self._rows()
         for sequence, row in enumerate(rows, 1):
-            p, saved, candidate, control_digest = parse_control(row.envelope, self.binding)
+            p, saved, candidate, control_digest = parse_control(
+                row.envelope, self.binding, version=self.version
+            )
+            v2 = p["schema"] == "dohamusic/ibla-checkpoint-control/v2"
+            if v2_seen and not v2:
+                raise IblaInconsistent()
+            v2_seen = v2_seen or v2
             if (
                 tuple(row)
                 != (
@@ -142,8 +151,9 @@ class CheckpointRepository(_Repository):
             confirmed=confirmed,
             pending=candidate.envelope,
             recorded_at=self._recorded_at,
+            version=self.version,
         )
-        p, _, _, control_digest = parse_control(wire, self.binding)
+        p, _, _, control_digest = parse_control(wire, self.binding, version=self.version)
         self._insert(
             (
                 p["sequence"],
@@ -174,7 +184,7 @@ class CheckpointRepository(_Repository):
         ).all()
         if not rows:
             return None
-        p, _, candidate, _ = parse_control(rows[-1][0], self.binding)
+        p, _, candidate, _ = parse_control(rows[-1][0], self.binding, version=self.version)
         if candidate.fingerprint != fingerprint:
             raise IblaConflict()
         return OperationResult(
@@ -183,10 +193,29 @@ class CheckpointRepository(_Repository):
 
     @guarded
     def prepare(self, envelope, *, expected):
+        candidate = parse_event(envelope, self.binding, version=self.version)
+        if candidate.kind == "REGISTRATION_COMMITTED":
+            raise IblaDenied()
+        return self._prepare_candidate(envelope, expected=expected)
+
+    @guarded
+    def _prepare_registration(self, writer, record, *, expected):
+        from backend.bootstrap_authority.ibla.registration_writer import _RegistrationCommitWriter
+
+        if type(writer) is not _RegistrationCommitWriter:
+            raise IblaDenied()
+        writer._preparing(record, self.session)
+        if record.event.kind != "REGISTRATION_COMMITTED" or record.source.binding != self.binding:
+            raise IblaDenied()
+        result = self._prepare_candidate(record.event.envelope, expected=expected)
+        writer._preparing(record, self.session)
+        return result
+
+    def _prepare_candidate(self, envelope, *, expected):
         if type(expected) is not Head:
             raise IblaInconsistent()
         expected.validate()
-        candidate = parse_event(envelope, self.binding)
+        candidate = parse_event(envelope, self.binding, version=self.version)
         view = self.read()
         ledger = self._ledger()
         prior = self._operation(candidate.operation_id, candidate.fingerprint)
@@ -218,7 +247,7 @@ class CheckpointRepository(_Repository):
             return prior
         if view.pending is None:
             raise IblaConflict()
-        candidate = parse_event(view.pending, self.binding)
+        candidate = parse_event(view.pending, self.binding, version=self.version)
         if candidate.operation_id != operation_id or candidate.fingerprint != fingerprint:
             raise IblaConflict()
         if (
@@ -236,7 +265,7 @@ class CheckpointRepository(_Repository):
         prior = self._operation(operation_id, fingerprint)
         if prior is None or prior.state == "CONFIRMED" or view.pending is None:
             raise IblaConflict()
-        candidate = parse_event(view.pending, self.binding)
+        candidate = parse_event(view.pending, self.binding, version=self.version)
         if candidate.operation_id != operation_id:
             raise IblaConflict()
         if view.state == "UNCERTAIN":

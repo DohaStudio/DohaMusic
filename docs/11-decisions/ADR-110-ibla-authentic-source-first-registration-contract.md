@@ -2,7 +2,7 @@
 
 > 상태: [설계 결정 — DECIDED — Source Verifier/Capability IMPLEMENTED FOUNDATION]
 > 작성일: 2026-10-02
-> 최종 수정일: 2026-10-03
+> 최종 수정일: 2026-10-04
 > 기준 develop: dd6181a6eebff3001e171ba167055af760272fb7 (#198 merged)
 > 구현 준비 판정: IMPLEMENTATION_READY — 아래 제한된 Source Verifier + Capability Foundation에 한함
 > 관련 PR: 계약 결정 [#199](https://github.com/DohaStudio/DohaMusic/pull/199), Foundation 구현·최종 검토 [#200](https://github.com/DohaStudio/DohaMusic/pull/200). 상태는 각 PR 기록을 따른다.
@@ -10,6 +10,8 @@
 > 감사·검증: [Authority Audit / 문서 Gate 보고서](../10-operations/ibla-source-registration-contract-validation.md)
 
 > 등록 Writer 통합 보충: [ADR-112](ADR-112-ibla-registration-attempt-durable-boundary-restart-contract.md)는 마지막 전체 PRE revalidation → keeper의 exact H PREPARED durable 예약 → 자기 pending의 operation-specific checks → final one-shot handoff 순서를 정의한다. Source Verifier/Capability mint의 read-only·opaque prerequisite·one-delivery 의미는 유지하며 이 등록 준비는 별도 Writer owner 책임이다. 다른 consumer의 기존 handoff와 아래 원 결정 이력은 보존한다.
+
+> 현재 구현 상태 (이 작업 브랜치): ADR-111/112 Registration Commit Writer·v2 L/H·original frame/forward reconciliation Foundation을 구현·검증했다. [Writer 검증 보고서](../10-operations/ibla-registration-commit-writer-validation.md)를 따른다. 아래 NOT IMPLEMENTED/docs-only/Draft 제출 문구는 최초 Decision 당시 이력이며 이번 Writer 구현 또는 production 완료를 뜻하지 않는다. 후속 develop 병합은 PR 기록으로 확인한다.
 
 ## 1. 배경·문제·결정 권한
 
