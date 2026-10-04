@@ -48,3 +48,19 @@ App Alembic 20260918_0037 single head, metadata 67, routes 114/APIRoutes110/path
 Foundation 구현은 이 작업 브랜치의 테스트된 내부 mechanics다. develop 병합 상태와 production readiness를 혼동하지 않는다. actual production Source/Writer port는 unavailable다. IA issue/consume/cancel, INITIAL_SEALED, Provisioning/GENESIS, Recovery/Transfer/Auth/Activation, offline production migration/actual custody/ceremony/power-loss/controller/hardware anti-rollback/remote consensus는 미구현·미검증이다. H 마지막 PREPARED 및 consistent L/H rollback 탐지 기존 한계를 보존한다. Phase 9 0/18·0%와 체크리스트는 유지한다.
 
 모든 새 Gate PASS 후 한국어 commit/push/develop 대상 Draft PR까지만 제출한다. Ready/merge/auto merge/branch 삭제는 이번 작업에서 수행하지 않는다. 다음은 Draft의 exact-head 최종 감사·별도 병합 작업이며 그 이후에만 POST-registration IA 계약을 감사한다.
+
+## PR #203 exact-head CI 실패와 workflow 보정
+
+기존 head bce3e6eb806d7039a2ee43fe15a08906a3d589b3의 [run 37192485441](https://github.com/DohaStudio/DohaMusic/actions/runs/37192485441)은 backend-ubuntu/frontend-playwright SUCCESS, ffmpeg-windows FAILURE였다. 첫 실제 실패는 Windows ceremony serialization, private facts and witness mechanics step의 Start-Process -Credential 호출이며 오류는 `This command cannot be run due to the error: The parameter is incorrect.`, step exit 1이다. native pytest child는 시작되지 않아 Writer assertion failure나 cascading test failure는 없다. 뒤 post-setup-python skip은 선행 step 실패의 결과다.
+
+분류는 E(workflow configuration)이며 C(Windows credential 실행 제한)가 원인이다. 신규 Writer/failure 두 경로 추가 후 20개 test path와 options를 포함한 argument 1,017자 + CI Python executable 59자 = 전체 command 1,076자로, [CreateProcessWithLogonW의 1,024자 한도](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-createprocesswithlogonw)를 넘었다. 기존 18개 목록의 command는 한도 이하였다. CI는 pytest 8.4.2를 설치했으며 [pytest 공식 @file 지원](https://docs.pytest.org/en/stable/how-to/usage.html#read-arguments-from-file)은 8.2부터 제공한다.
+
+동일한 20개 경로를 disposable fixture root의 UTF-8(no BOM) argument file에 한 줄씩 쓰고 python -m pytest -q --basetemp 원 경로 @file로 전달한다. RID≥1000 non-admin account·native ACL·Start-Process credential/Profile/hidden·stdout/stderr·실패 exit 강제·timeout·required checks·pinned DohaVocal fixture는 유지한다. test 삭제/skip/xfail/continue-on-error·production SID 완화·dependency 변경 없음.
+
+PowerShell AST parse와 동일 path/순서/실재 파일, 공백을 포함한 response-file 경로와 기존 native ASCII basetemp 경로의 실제 Start-Process 호출과 native suite를 로컬 검증한다. 로컬 새 계정/credential 실행은 하지 않으며 해당 보장은 새 exact-head hosted Windows CI가 담당한다. original/focused/v1/Source는 다시 실행한다. production/test Python source와 동작은 수정하지 않아 570-file manifest는 이전 head와 동일하다. 따라서 direct-impact/로컬 Full은 재실행하지 않으며 이전 1269/3074 PASS를 새 head 결과로 승계하지 않는다. 새 head에서는 기존 backend-ubuntu Full 및 Windows native required check를 실제 확인한다. 상세 새 HEAD/JUnit/time/exit/manifest 및 세 required check 결과는 PR 본문과 ignored .cache/ci-failure-203 evidence에 기록한다.
+
+application DB/API/모델·Frontend 및 ADR 계약 변경 없음. Phase 9 0/18·0%, production unavailable, Draft 유지다. Ready/merge/auto-merge/branch 삭제는 수행하지 않는다.
+
+로컬 harness의 최초 공백 basetemp 실행은 기존 native ASCII root 정책에서 거부됐다. 이 진단 결과를 별도 보존하고, production 정책·테스트를 변경하지 않은 채 basetemp를 원 지원 ASCII 경로로 고쳤다. response-file 경로의 공백 quoting 검증은 유지한다. 이 잘못된 fixture 실행을 Writer 회귀 PASS/FAIL 판정에 사용하지 않는다.
+
+보정 작업의 로컬 재검증(실행 source HEAD bce3e6eb806d7039a2ee43fe15a08906a3d589b3 + workflow/docs-only 변경): native20파일 754 passed/failed0/errors0/skips0, 166.20s, exit0, parseable JUnit. original 2 / focused 84 / v1 106 / Source 103 passed, 각각 JUnit 2.748s/23.997s/9.171s/11.406s, 실패·오류·skip0, exit0, JUnit 존재/parseable, 전후 manifest 일치다. compileall/Ruff check·format570/diff/UTF-8/fences/relative links65/secret·generated·scope 감사 PASS, prototype21파일 그대로다. workflow ASCII CI command는 176자로 줄었다. app baseline은 Alembic0037 single head/metadata67/API114·110·89·110·duplicate0이며 변화0이다.

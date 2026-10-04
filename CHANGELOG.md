@@ -11,6 +11,10 @@ DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은
 
 ## [Unreleased]
 
+### 수정 - IBLA Writer Windows CI 호출
+
+- Writer native 테스트 두 개 추가로 Windows 비관리자 credential 프로세스의 명령줄 한도를 넘은 CI 호출을 동일한 20개 테스트의 pytest 인수 파일 전달로 수정했다. 테스트·권한·timeout·required check를 유지하며 production/test Python·DB/API·Phase 상태는 변경하지 않았다.
+
 ### 추가 - IBLA Registration Commit Writer Foundation
 
 - ADR-111/112의 exact R/Q/current delegation·original cap/private Writer frame을 검증하고 H PREPARED durable 예약과 full revalidation 뒤 final one-shot handoff를 수행하는 내부 Writer Foundation을 구현했다. 실제 별도 L transaction의 REGISTRATION_COMMITTED durable commit을 POST로 기록하고 독립 H actual-L confirmation/forward reconciliation을 제공한다.
