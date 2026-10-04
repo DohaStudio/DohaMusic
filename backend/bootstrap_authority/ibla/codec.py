@@ -29,8 +29,8 @@ def require_audit_time(value):
         raise ValueError("AUDIT_TIME")
 
 
-def canonical(raw):
-    value = _read(raw, LIMIT, 4)
+def canonical(raw, *, version=1):
+    value = _read(raw, LIMIT, 6 if version == 2 else 4)
     if type(value) is not dict or rfc8785.dumps(value) != raw:
         raise ValueError("CANONICAL")
     return value
@@ -64,9 +64,13 @@ def encode_event(binding, *, event_id, operation_id, expected, kind, evidence_di
     return wire
 
 
-def parse_event(raw, binding):
+def parse_event(raw, binding, *, version=1):
     binding_wire(binding)
-    p = canonical(raw)
+    p = canonical(raw, version=version)
+    if version == 2 and p.get("schema") == "dohamusic/ibla-ledger-event/v2":
+        from backend.bootstrap_authority.ibla.registration_codec import parse_event as registration
+
+        return registration(raw, binding)
     if set(p) != {
         "schema",
         "binding",
@@ -113,48 +117,50 @@ def parse_event(raw, binding):
     )
 
 
-def control_wire(binding, *, sequence, previous, kind, confirmed, pending, recorded_at):
+def control_wire(binding, *, sequence, previous, kind, confirmed, pending, recorded_at, version=1):
     return rfc8785.dumps(
         dict(
-            schema=CONTROL_SCHEMA,
+            schema=CONTROL_SCHEMA if version == 1 else "dohamusic/ibla-checkpoint-control/v2",
             binding=asdict(binding),
             sequence=sequence,
             previous_digest=previous,
             kind=kind,
             confirmed=asdict(confirmed),
-            pending=canonical(pending),
+            pending=canonical(pending, version=version),
             recorded_at=recorded_at,
         )
     )
 
 
-def parse_control(raw, binding):
+def parse_control(raw, binding, *, version=1):
     binding_wire(binding)
-    p = canonical(raw)
-    if (
-        set(p)
-        != {
-            "schema",
-            "binding",
-            "sequence",
-            "previous_digest",
-            "kind",
-            "confirmed",
-            "pending",
-            "recorded_at",
-        }
-        or p["schema"] != CONTROL_SCHEMA
+    p = canonical(raw, version=version)
+    v2 = p.get("schema") == "dohamusic/ibla-checkpoint-control/v2"
+    domain = b"DohaMusicIblaCheckpointControlV2\x00" if v2 else CONTROL_DOMAIN
+    if set(p) != {
+        "schema",
+        "binding",
+        "sequence",
+        "previous_digest",
+        "kind",
+        "confirmed",
+        "pending",
+        "recorded_at",
+    } or p["schema"] not in (
+        {CONTROL_SCHEMA, "dohamusic/ibla-checkpoint-control/v2"}
+        if version == 2
+        else {CONTROL_SCHEMA}
     ):
         raise ValueError("CONTROL")
     if p["binding"] != asdict(binding):
         raise ValueError("BINDING")
     Binding(**p["binding"]).validate()
     require_audit_time(p["recorded_at"])
-    Head(p["sequence"], digest(CONTROL_DOMAIN + raw)).validate()
+    Head(p["sequence"], digest(domain + raw)).validate()
     Head(p["sequence"] - 1, p["previous_digest"]).validate()
     confirmed = Head(**p["confirmed"])
     confirmed.validate()
-    candidate = parse_event(rfc8785.dumps(p["pending"]), binding)
+    candidate = parse_event(rfc8785.dumps(p["pending"]), binding, version=2 if v2 else 1)
     if p["kind"] not in {"COMMISSIONING_PENDING", "PREPARED", "CONFIRMED", "UNCERTAIN"}:
         raise ValueError("STATE")
-    return p, confirmed, candidate, digest(CONTROL_DOMAIN + raw)
+    return p, confirmed, candidate, digest(domain + raw)

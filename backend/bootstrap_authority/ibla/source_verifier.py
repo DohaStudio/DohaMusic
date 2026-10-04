@@ -1,7 +1,9 @@
 """ADR-110 PRE-only read-only verifier and ephemeral first-registration handoff.
 
-Production remains unavailable. There is no registration/IA/GENESIS writer,
-HTTP wiring, source enrollment, serializer, fallback or persistent token.
+Production remains unavailable. ADR-111's private exact registration consumer
+uses ADR-112 durable preparation before final handoff. IA/GENESIS, HTTP wiring
+and source enrollment remain unavailable. There is no serializer, fallback or
+persistent capability token.
 """
 
 import base64
@@ -68,6 +70,15 @@ class _Observation:
     proof_used: bool = False
     delivered: bool = False
     delivering: bool = False
+    writer: object = None
+    authority: object = None
+    event: object = None
+    writer_deadline: float | None = None
+    preparing: bool = False
+    writer_prepared: object = None
+    writer_h_transaction: object = None
+    writer_started: bool = False
+    writer_transaction: object = None
 
 
 class UnavailableIblaSourceVerifier:
@@ -290,15 +301,37 @@ class _IblaSourceVerifier:
     def handoff(self, capability):
         with self._lock:
             record = self._lookup(capability, "capability")
-            if record.delivered:
+            if record.delivered or record.preparing or record.writer is not None:
                 raise IblaConflict()
             self._eligibility(record)
+            from backend.bootstrap_authority.ibla.registration_writer import (
+                _RegistrationCommitWriter,
+            )
+
+            if type(self._consumer) is _RegistrationCommitWriter:
+                try:
+                    record.preparing = True
+                    record.writer_deadline = min(record.deadline, time.monotonic() + 30)
+                    self._consumer._preflight(self, record)
+                    self._consumer._prepare(record)
+                    self._consumer._reverify(record)
+                except IblaDenied:
+                    record.invalid = True
+                    raise
+                except Exception:
+                    record.invalid = True
+                    raise IblaInconsistent() from None
+                finally:
+                    record.preparing = False
             # All query-only read passes have ended before calling the consumer.
             record.delivered, record.delivering = True, True
             try:
                 result = self._consumer(capability)
                 self._live(record, read=False)
                 return result
+            except IblaDenied:
+                record.invalid = True
+                raise
             except Exception:
                 record.invalid = True
                 raise IblaDenied() from None

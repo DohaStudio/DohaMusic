@@ -10,7 +10,9 @@ from backend.bootstrap_authority.ibla.contracts import IblaInconsistent
 VERSION = 1
 
 
-def objects(role):
+def objects(role, version=1):
+    if type(version) is not int or version not in {1, 2}:
+        raise ValueError("VERSION")
     if role not in {"L", "H"}:
         raise ValueError("ROLE")
     kinds = (
@@ -18,6 +20,8 @@ def objects(role):
         if role == "L"
         else ("'COMMISSIONING_PENDING','PREPARED','CONFIRMED','UNCERTAIN'")
     )
+    if role == "L" and version == 2:
+        kinds += ",'REGISTRATION_COMMITTED'"
     uniqueness = "UNIQUE(operation_id)" if role == "L" else "UNIQUE(operation_id,kind)"
     operation_duplicate = "operation_id=NEW.operation_id" + (
         " AND kind=NEW.kind" if role == "H" else ""
@@ -25,7 +29,7 @@ def objects(role):
     ddl = [
         f"""CREATE TABLE ibla_identity (
             singleton INTEGER PRIMARY KEY CHECK(singleton=1),
-            version INTEGER NOT NULL CHECK(version=1),
+            version INTEGER NOT NULL CHECK(version={version}),
             role TEXT NOT NULL CHECK(role='{role}'),
             binding BLOB NOT NULL CHECK(typeof(binding)='blob' AND length(binding)<=16384))""",
         """CREATE TABLE ibla_head (
@@ -74,17 +78,22 @@ def objects(role):
     # Explicit H index supports operation replay across multiple control states.
     if role == "H":
         ddl.append("CREATE INDEX ibla_operation ON ibla_events(operation_id,revision)")
+    elif version == 2:
+        ddl.append(
+            "CREATE UNIQUE INDEX ibla_single_registration ON ibla_events(kind) "
+            "WHERE kind='REGISTRATION_COMMITTED'"
+        )
     return tuple(ddl)
 
 
-def install_empty_store(connection, *, role, binding):
+def install_empty_store(connection, *, role, binding, version=1):
     """Explicit PUBLIC fixture/setup mechanics, NOT commissioned authority.
 
     Caller must own/commit an isolated connection transaction. Runtime never calls
     this helper. No implicit file creation, backfill, upgrade, reset or downgrade.
     """
     wire = binding_wire(binding)
-    ddl = objects(role)
+    ddl = objects(role, version)
     if (
         connection.dialect.name != "sqlite"
         or connection.exec_driver_sql(
@@ -97,21 +106,21 @@ def install_empty_store(connection, *, role, binding):
     for sql in ddl[:3]:
         connection.exec_driver_sql(sql)
     connection.execute(
-        text("INSERT INTO ibla_identity VALUES(1,1,:role,:binding)"),
-        {"role": role, "binding": wire},
+        text("INSERT INTO ibla_identity VALUES(1,:version,:role,:binding)"),
+        {"version": version, "role": role, "binding": wire},
     )
     connection.exec_driver_sql("INSERT INTO ibla_head VALUES(1,0,NULL)")
     for sql in ddl[3:]:
         connection.exec_driver_sql(sql)
 
 
-def require_schema(session, role, binding):
+def require_schema(session, role, binding, version=1):
     def normalize(value):
         return " ".join(value.split())
 
     expected = {}
-    for sql in objects(role):
-        kind, name = re.match(r"CREATE (TABLE|TRIGGER|INDEX) (\w+)", sql).groups()
+    for sql in objects(role, version):
+        kind, name = re.match(r"CREATE (?:UNIQUE )?(TABLE|TRIGGER|INDEX) (\w+)", sql).groups()
         expected[(kind.lower(), name)] = normalize(sql)
     actual = {
         (r[0], r[1]): normalize(r[2])
@@ -120,7 +129,7 @@ def require_schema(session, role, binding):
         )
     }
     identity = session.execute(text("SELECT * FROM ibla_identity")).all()
-    if actual != expected or identity != [(1, VERSION, role, binding_wire(binding))]:
+    if actual != expected or identity != [(1, version, role, binding_wire(binding))]:
         raise IblaInconsistent()
     if session.execute(text("PRAGMA integrity_check")).all() != [("ok",)]:
         raise IblaInconsistent()
