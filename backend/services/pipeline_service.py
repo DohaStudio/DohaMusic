@@ -32,6 +32,7 @@ PUBLIC_AUDIO_FILE_TYPES = {
     "instrumental",
     "converted_voice",
     "final",
+    "preview",
 }
 ALLOWED_AUDIO_TYPES = {("audio/wav", ".wav"), ("audio/x-wav", ".wav")}
 MAX_AUDIO_FILE_BYTES = 1_073_741_824
@@ -221,6 +222,10 @@ class PipelineService:
             files = repository.list_files(job_id)
             for item in files:
                 available = job.status == "COMPLETED" and self._is_accessible(item)
+                if item.file_type == "preview":
+                    available = available and (job.result_metadata.get("preview") or {}).get(
+                        "status"
+                    ) == "ready"
                 item.content_available = available
                 item.download_available = available
                 item.content_url = (
@@ -256,6 +261,10 @@ class PipelineService:
                     "완료된 Pipeline 파일만 사용할 수 있습니다.",
                     409,
                 )
+            if item.file_type == "preview" and (
+                job.result_metadata.get("preview") or {}
+            ).get("status") != "ready":
+                raise AppError("FILE_CONTENT_UNAVAILABLE", "미리듣기가 준비되지 않았습니다.", 409)
             try:
                 path, size = self._validate_file(item)
             except AppError as error:

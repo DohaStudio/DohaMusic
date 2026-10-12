@@ -29,6 +29,7 @@ from backend.pipeline.errors import PipelineError
 from backend.pipeline.executor import PipelineExecutor
 from backend.pipeline.steps import PipelineStep
 from backend.repositories.pipeline_repository import PipelineRepository
+from backend.services.pipeline_preview_service import PipelinePreviewService
 from backend.storage.service import StorageService
 
 logger = get_logger(__name__)
@@ -54,6 +55,7 @@ class PipelineWorker:
         self.audio_quality_analyzer = audio_quality_analyzer
         self.tempo_analyzer = tempo_analyzer
         self.hook_analyzer = hook_analyzer
+        self.preview_service = PipelinePreviewService(session_factory, storage)
 
     def run(self, job_id: str) -> None:
         started_at = time.perf_counter()
@@ -63,6 +65,9 @@ class PipelineWorker:
             job = repository.get(job_id)
             if job is None:
                 logger.error("pipeline_job_not_found job_id=%s", job_id)
+                return
+            if job.status == JobStatus.COMPLETED.value:
+                self.preview_service.run(job_id)
                 return
             context: PipelineContext | None = None
             try:
@@ -102,8 +107,13 @@ class PipelineWorker:
                 self._ensure_not_cancelled(repository, job)
                 metadata = self._complete_audio_analysis(repository, job, context, metadata)
                 self._ensure_not_cancelled(repository, job)
+                metadata["preview"] = {"version": "1.0", "status": "pending"}
                 if not repository.finalize_success(job, metadata, self._file_entries(context)):
                     raise PipelineCancelled
+                try:
+                    self.preview_service.run(job_id)
+                except Exception:
+                    logger.exception("pipeline_preview_postprocess_failed job_id=%s", job_id)
                 logger.info(
                     "pipeline_worker_completed job_id=%s duration_ms=%s",
                     job_id,
@@ -127,6 +137,9 @@ class PipelineWorker:
             except Exception as exc:
                 logger.exception("pipeline_worker_failed job_id=%s", job_id)
                 session.rollback()
+                session.refresh(job)
+                if job.status == JobStatus.COMPLETED.value:
+                    return
                 wrapped = PipelineError("PIPELINE_FAILED", str(exc), step=job.current_step)
                 self._fail(repository, job, context, started_at, wrapped)
             finally:

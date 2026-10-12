@@ -2,7 +2,7 @@
 
 > 상태: [승인]
 > 작성일: 2026-07-31
-> 최종 수정일: 2026-07-31
+> 최종 수정일: 2026-10-12
 > 관련 기능: K3 Audio Analysis·Preview
 > 관련 문서: [제품 정의](../02-product/k3-audio-analysis-product-definition.md), [결과 계약](../03-architecture/audio-analysis-result-contract.md), [실패 정책](../03-architecture/audio-analysis-failure-policy.md), [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)
 
@@ -15,7 +15,7 @@ Tempo·Hook·Chorus는 오탐·미탐이 가능하고 loudness·True Peak도 표
 ## Decision
 
 1. 최종 믹스 `final.wav`를 K3 MVP의 유일한 기본 분석 source로 한다.
-2. 최종 WAV export 성공을 Pipeline 성공 경계로 두고 Audio Analysis와 Preview를 비차단 후처리로 실행한다.
+2. 실제 Worker 순서는 `final.wav → Quality·Tempo·Hook 분석 → 취소 확인 → finalize_success() → Preview 독립 후처리`다. 분석 실패는 안전한 분석 상태로 변환하되 분석 자체는 성공 확정 전에 유지한다. DB의 `COMPLETED` 확정 이후에는 Preview 실패로 Job 실패 또는 원본 cleanup을 수행하지 않는다.
 3. Pipeline status와 별도로 versioned `analysis_status`, Preview status, warning과 confidence를 기록한다.
 4. K3 MVP 분석 상세는 기존 `result_metadata`·`metadata.json`의 `audio_analysis` JSON에 저장하고 Preview는 기존 `pipeline_files`와 secure content/download 경계를 재사용한다. Migration은 하지 않는다.
 5. 공개 API는 nested allowlist projection만 제공하고 path·command·stack·raw debug를 숨긴다.
@@ -23,6 +23,10 @@ Tempo·Hook·Chorus는 오탐·미탐이 가능하고 loudness·True Peak도 표
 7. Preview는 신뢰 가능한 Hook 후보 또는 deterministic 중앙 fallback에서 15초 WAV를 만들고 짧은 fade를 적용한다.
 8. Pipeline Retry는 새 음악과 새 분석을 만들며 결과를 복사하지 않는다. 동일 WAV Re-analysis와 history는 후속 단계다.
 9. analyzer·library는 EVAL-008, Windows/Python 호환, 성능과 라이선스 Gate를 통과한 뒤 채택한다.
+10. K3.4는 성공 확정 transaction에 `preview={version: "1.0", status: "pending"}`을 기록한다. 기존 `pipeline_files`에 `preview` row와 `ready` metadata를 같은 transaction으로 등록한다. Job UPDATE의 DB write lock으로 동일 DB의 Preview writer를 직렬화하며 렌더링 동안 transaction을 유지한다.
+11. DB가 source of truth다. startup은 `COMPLETED`의 pending/ready 후처리를 재제출하고 ready WAV를 검증·재사용한다. pending의 미등록 확정 파일은 다시 생성·atomic replace하며 남은 예약 prefix WAV 임시 파일을 정리한다. `metadata.json`은 DB commit 후 atomic replace하고 불일치는 startup/후처리 재실행으로 복구한다.
+12. 로컬 filesystem rename과 DB commit은 하나의 원자적 transaction이 아니다. SQLite write lock이 다른 Job 쓰기에도 영향을 줄 수 있으며 긴 WAV 메모리·운영 동시성은 추가 검증이 필요하다. DB 장애와 프로세스 중단이 겹치면 pending·임시 JSON·미등록 파일이 다음 복구까지 남을 수 있다. 여러 DB가 같은 Storage를 공유하거나 임의 writer가 직접 row를 추가하는 환경은 보장하지 않는다. 확장 시 durable queue/outbox·file role unique constraint·정기 reconciliation을 재검토한다.
+13. 현재 복구는 application startup과 Service 재실행에서 수행한다. 실행 중 정기 pending sweep과 공개 Preview 재시도 API는 없다. startup 이후 DB 장애로 pending이 남으면 다음 재시작 또는 운영자의 Service 재실행이 필요하다. metadata 임시 JSON은 중단 시 남을 수 있어 정기 reconciliation 도입 시 별도 안전 cleanup을 추가한다.
 
 ## 선택 이유
 

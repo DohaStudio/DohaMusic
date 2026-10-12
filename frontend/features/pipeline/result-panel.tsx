@@ -7,7 +7,7 @@ import { Vinyl } from "@/components/brand";
 import { Badge, Button, ErrorAlert } from "@/components/ui";
 import { usePipeline } from "@/hooks/use-pipeline";
 import { mapSafeFiles, selectPreferredAudioFile } from "@/lib/mappers";
-import { publicMetadataRows } from "@/lib/result-metadata";
+import { previewStatus, publicMetadataRows } from "@/lib/result-metadata";
 import { parseAudioAnalysis } from "@/lib/audio-analysis";
 import { AudioQualitySummary } from "@/features/audio/audio-quality-summary";
 import { TempoSummary } from "@/features/audio/tempo-summary";
@@ -31,6 +31,11 @@ export function ResultPanel({ jobId }: { jobId: string }) {
     enabled: jobQuery.data?.status === "COMPLETED",
   });
   const job = jobQuery.data;
+  const previewState = previewStatus(job?.result_metadata);
+  const refetchFiles = filesQuery.refetch;
+  useEffect(() => {
+    if (previewState === "ready") void refetchFiles();
+  }, [previewState, refetchFiles]);
   const files = mapSafeFiles(filesQuery.data ?? []);
   const preferred = selectPreferredAudioFile(files);
   const selected = files.find((file) => file.id === selectedId) ?? preferred;
@@ -117,6 +122,28 @@ export function ResultPanel({ jobId }: { jobId: string }) {
         <AudioQualitySummary analysis={audioAnalysis} />
         <TempoSummary analysis={audioAnalysis} />
         <HookSummary analysis={audioAnalysis} />
+        <h3>미리듣기</h3>
+        <p role="status">
+          {previewState === "pending" ? "미리듣기 준비 중"
+            : previewState === "ready" ? "미리듣기 준비 완료"
+              : previewState === "failed"
+                ? "미리듣기를 만들지 못했습니다. 완성곡은 사용할 수 있습니다."
+                : "미리듣기 미제공"}
+        </p>
+        {previewState === "ready" && files
+          .filter((file) => file.fileType === "preview")
+          .map((file) => (
+            <div className="actions" key={file.id}>
+              <Button disabled={!file.contentAvailable} onClick={() => play(file)}>
+                미리듣기 재생
+              </Button>
+              {file.downloadAvailable && file.downloadUrl && (
+                <a className="button secondary" href={file.downloadUrl}>
+                  미리듣기 WAV 다운로드
+                </a>
+              )}
+            </div>
+          ))}
         <h3>재생할 파일</h3>
         {filesQuery.error && (
           <ErrorAlert message="생성 파일 목록을 조회할 수 없습니다." />

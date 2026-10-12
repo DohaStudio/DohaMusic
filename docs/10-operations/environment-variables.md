@@ -5,6 +5,8 @@
 
 | 변수 | 용도 | 기본값 |
 |---|---|---|
+| `DOHAMUSIC_TEST_IN_PROCESS` | `1`이면 Vitest의 Native config loader와 함께 기존 TypeScript compiler·thread pool을 사용한다. 테스트 본문·assertion·jsdom은 유지하며 subprocess pipe에 의존하지 않는다. Node 24.15.0에서 검증 | 미설정: 기존 esbuild 실행 |
+| `DOHAMUSIC_BUILD_WORKER_THREADS` | `1`이면 Next.js의 지원 옵션 `experimental.workerThreads`로 TypeScript·page data·static generation을 실행한다. 오류 검사나 build 단계를 생략하지 않음 | 미설정: 기존 process worker |
 | `DATABASE_URL` | Runtime DB 연결 URL. 실제 경로는 로그·문서에 노출하지 않음 | `sqlite:///./backend/storage/doha_music.db` |
 | `DOHAMUSIC_AUTO_MIGRATE` | 앱 startup의 Alembic `upgrade head` 명시적 opt-in. 사용자·운영 DB에서는 Runbook 승인 전 활성화 금지 | `false` |
 | `DOHA_ARTIFACT_ROOT` | Artifact Resolver의 local base root. 하위 `lm`, `audio`, `vocal`, `music` directory를 사용하며 공개 DTO·로그에 값을 노출하지 않음 | 미설정 |

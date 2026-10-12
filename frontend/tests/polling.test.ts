@@ -36,6 +36,12 @@ const state = (overrides = {}) => ({
   ...overrides,
 });
 describe("adaptive polling", () => {
+  it("Preview pending은 완료 후 polling하고 terminal Preview는 중단한다", () => {
+    for (const status of ["pending", "ready", "failed", "unavailable"]) {
+      const completed = { ...job("COMPLETED"), result_metadata: { preview: { status } } };
+      expect(getPollingInterval(state({ job: completed }))).toBe(status === "pending" ? 1000 : false);
+    }
+  });
   it("정상 초기 5회는 1초, 이후 2초다", () => {
     expect(getPollingInterval(state())).toBe(1000);
     expect(getPollingInterval(state({ successCount: 5 }))).toBe(2000);

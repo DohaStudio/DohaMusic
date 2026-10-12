@@ -7,7 +7,7 @@
 >
 > 문서 역할: Repository entry point와 현재 상태 요약
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-10-04
+> 최종 수정일: 2026-10-12
 > 기준 브랜치: `develop`
 > 관련 문서: [제품 방향](docs/02-product/ai-native-daw-product-direction.md), [시스템 아키텍처](docs/03-architecture/system-architecture.md), [현재 실행 로드맵](ROADMAP.md), [문서 Authority Map](docs/DOCUMENT_AUTHORITY_MAP.md)
 
@@ -120,7 +120,7 @@ Provider는 서로 직접 호출하지 않는다. DohaMusic의 Orchestrator가 �
 
 - AI-native DAW D0 제품 목표 정합화: [완료]
 - 현재 제품 단계: D1 Composition Read Workspace [완료] / D2 Timeline Playback·Master/Mix Waveform·Richer Playhead [완료] / D3 WorkingComposition 기반 [진행 중] / D5 AI Music Director Backend Candidate 생성·read·SELECT Foundation [부분 구현] / Candidate APPLY architecture [승인, 구현 대기]
-- 병행 Track: AI Provider 저장소 분리, [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md), F6 Voice Enrollment 운영 검증, K3.4 Preview Export, 사용자 청취 평가
+- 병행 Track: AI Provider 저장소 분리, [Reviewer Authentication 배포 권위](docs/09-security/reviewer-authentication-deployment-authority.md), F6 Voice Enrollment 운영 검증, [K3.4 Preview Export](planning/kpop-creation-roadmap.md) 로컬 구현·통합 검증 진행, 사용자 청취 평가
 
 현재 실행 순서와 `NEXT / LATER`는 [ROADMAP](ROADMAP.md), 장기 Phase·Track·Gate는 [MASTER_ROADMAP](MASTER_ROADMAP.md), 완료 판정은 [DoD](docs/DoD/README.md)를 기준으로 한다.
 

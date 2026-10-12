@@ -2,9 +2,11 @@
 
 > 문서 상태: [완료: CURRENT Runtime]
 > 문서 범위: 운영 source of truth인 Pipeline 2개 Table
-> 최종 수정일: 2026-08-20
+> 최종 수정일: 2026-10-12
 > migration: `20260729_0004`, `20260731_0009`
 > 관련 문서: [Database Overview](database-overview.md), [CURRENT Runtime ERD](erd.md), [CURRENT Runtime Core Table Definition](table-definition.md)
+
+K3.4 로컬 구현은 기존 `pipeline_files.file_type=preview`와 `pipeline_jobs.result_metadata.preview` JSON을 사용한다. 신규 table·column·index·Migration은 없다. 성공 확정 transaction에 pending을 저장하고 Preview row와 ready JSON은 하나의 transaction에 등록한다. DB Job UPDATE write lock으로 서비스의 중복 실행을 직렬화하며 ready row를 재사용한다. file role의 DB unique constraint는 추가하지 않아 직접 SQL writer까지 단일 row를 보장하지 않는다. DB가 authoritative하고 metadata.json은 사후 동기화한다. SQLite는 렌더링 중 다른 writer도 대기할 수 있다. 상태·복구 계약은 [Audio Analysis 결과 계약](../03-architecture/audio-analysis-result-contract.md)을 참조한다.
 
 ## `pipeline_jobs`
 

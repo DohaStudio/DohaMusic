@@ -28,6 +28,7 @@ def wait_for_pipeline(client: TestClient, job_id: str) -> dict[str, object]:
         analysis_status = (job.get("audio_analysis") or {}).get("analysis_status")
         if job["status"] in {"FAILED", "CANCELLED"} or (
             job["status"] == "COMPLETED" and analysis_status != "PENDING"
+            and (job.get("result_metadata", {}).get("preview") or {}).get("status") != "pending"
         ):
             return job
         time.sleep(0.01)
@@ -113,6 +114,7 @@ def test_pipeline_success_progress_metadata_and_outputs(client: TestClient) -> N
         "converted_voice",
         "final",
         "metadata",
+        "preview",
     }
     final = next(item for item in files if item["file_type"] == "final")
     assert all("file_path" not in item for item in files)
