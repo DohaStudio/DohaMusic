@@ -7,7 +7,7 @@
 >
 > 문서 역할: 장기 Product Phase·독립 Track·완료 Gate의 최상위 기준
 > 문서 상태: [운영 기준]
-> 최종 수정일: 2026-10-04
+> 최종 수정일: 2026-10-12
 > 현재 실행 순서: [ROADMAP](ROADMAP.md)
 > 완료 판정: [Phase DoD](docs/DoD/README.md)
 
@@ -119,7 +119,7 @@ F6       Guided Voice Enrollment     [진행 중]
   ↓ 독립 장기 전환
 Track    AI-native DAW Product       [D0·D1·D2·D3 Backend/Frontend Clip editing·safe media source·Track/Clip Waveform·Preview·Commit 완료 / 잔여 D3 gate / D4~D9 계획]
   ↓
-K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획]
+K0~K4   K-POP Creation Control      [K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4 로컬 구현·검증 진행 / K4 계획]
   ↓ 병행
 Track    Workspace Artifact·Job      [진행 중]
   ↓ 병행
@@ -143,13 +143,13 @@ Track    AI Provider 저장소 분리     [Phase A 완료 / Phase B 진행 중 /
 | 8. Doha Studio | [완료] | `██████████ 100%` | 로컬 단일 사용자 Responsive Studio MVP의 Voice·History·Project·Audio·Cancel·Retry 완료; DAW TARGET과 분리 | [Phase-08](docs/DoD/Phase-08.md) |
 | F6. Guided Voice Enrollment | [진행 중] | 독립 체크리스트 | 구현·자동 Browser Validation 완료, 실제 사용자 마이크·실기기와 인증은 미검증 | [Validation Report](reports/validation/VALIDATION-VOICE-ENROLLMENT.md) |
 | AI-native DAW Product | [진행 중] | `D0·D1·D2·D3 WorkingComposition·Working Preview·Composition Commit·Clip Gain/Fade/Loop Backend/Frontend integration·Clip editing·Clip Copy·safe media source·Track/Clip Waveform·persistent history 완료` | Backend journal/cursor Undo/Redo·exact version media resolution·Clip source-window Waveform·revision-pinned Preview·immutable Commit·static Clip Gain/Fade와 Loop UI 완료; multi-user conflict recovery 완료; 실제 DB 적용·Section·Mixer·QA·Learning 미구현 | [AI-native DAW DoD](docs/DoD/AI-Native-DAW.md) |
-| K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4~K4 계획` | Structured Options와 final WAV Quality Metrics·LUFS·Tempo·Hook 후보 후처리 완료 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
+| K0~K4. K-POP Creation Control | [진행 중] | `K0·K1·K2·K3.0·K3.1·K3.2·K3.3 완료 / K3.4 로컬 검증·Git 대기 / K4 계획` | Preview Backend 94 통과·1 환경 skip; Frontend 명시적 실행 모드에서 260개 단위·typecheck·Lint·build 통과; develop 병합 대기 | [K-POP Roadmap](planning/kpop-creation-roadmap.md) |
 | Workspace Artifact·Job Domain | [진행 중] | 독립 체크리스트 | Job Service·Completion UoW·Worker 실행 기반·공식 API 5/5, 4개 Vocal Job 계약, Provider Job 1:N persistence와 metadata Result trust gate 구현, reconciliation 계약 확정; Fake Runtime acquisition·staging·Completion E2E 구현; production Provider dispatch·rights·background daemon 미구현 | [Workspace Job Foundation](docs/03-architecture/workspace-job-foundation.md) |
 | 9. Production | [계획] | `░░░░░░░░░░ 0%` | 운영 인프라·보안 승인 미착수 | [Phase-09](docs/DoD/Phase-09.md) |
 | AI Provider 저장소 분리 | [진행 중] | 독립 체크리스트 | Phase A 완료; DohaVocal Consumer Contract·HTTP Transport·metadata Result trust gate 구현, Fake Runtime Artifact Completion E2E 구현; production Worker·rights wiring 미구현 | [DohaVocal Consumer Contract](docs/03-architecture/dohavocal-consumer-contract.md) |
 | Reviewer Authentication Authority | [Foundation 구현 / OS adapter 미구현] | 독립 authority | V1 local-only·single owner/operator·Windows WebAuthn platform credential mechanism과 fail-closed contract 구현; production adapter·assertion·mapping·authority 활성화 미구현 | [ADR-042](docs/11-decisions/ADR-042-v1-local-operator-authentication-foundation.md) |
 
-K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. Preview는 K3.4, 모델 적응은 K4 계획으로 유지한다. Phase 8 완료를 취소하지 않으며 Phase 9 운영 준비와 병행할 수 있다.
+K-POP Track은 기존 Phase에 흡수하지 않는 제품 고도화 Track이다. K0·K1·K2·K3.0, K3.1 Audio Quality Metrics, K3.2 Tempo Analysis와 K3.3 Hook Candidate를 완료했다. K3.4 Preview는 로컬 구현·검증 진행 중이며 통합 검증과 develop 병합 전이다. 모델 적응은 K4 계획이다. 기존 Phase DoD·진행률은 변경하지 않는다.
 
 AI-native DAW Product Track도 기존 Phase 8 완료를 취소하지 않는다. D0 문서 기준은 PR #94 병합으로 완료됐고, D1은 [Composition Read 계약](docs/06-api/composition-read-workspace.md)과 [ADR-035](docs/11-decisions/ADR-035-d1-composition-read-authority.md), D3 선행 설계는 [ADR-040](docs/11-decisions/ADR-040-canonical-track-clip-working-composition-authority.md)에서 확정했다. Clip Editing Runtime부터 D9 운영 전환까지는 구현·테스트·계약·ADR Gate를 각각 통과해야 한다.
 

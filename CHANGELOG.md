@@ -5,11 +5,26 @@ Total output lines: 715
 
 > 문서 목적: 사용자와 개발자에게 의미 있는 저장소 변경을 기록한다.
 > 현재 상태: **운영 중**
-> 최종 수정일: 2026-10-04
+> 최종 수정일: 2026-10-12
 
 DohaMusic 프로젝트의 주요 변경 사항을 기록한다. 일반 작업은 `[Unreleased]`에 기록하고 프로젝트 버전 정책은 구현 단계에서 결정한다.
 
 ## [Unreleased]
+
+### 수정 - K3.4 PR #204 리뷰
+
+- 잘못된 Preview metadata의 문자열·배열·숫자·null·상태값이 파일 목록과 content/download API에서 처리되지 않은 예외를 발생시키지 않도록 기존 상태 판별 경로를 재사용했다. 미준비 Preview는 기존 409 계약을 유지한다.
+- 최종 파일 row가 없어 `unavailable`이 DB에 확정된 이후 metadata.json mirror 실패가 `failed`로 덮어쓰지 않도록 했다. SQLite 재열기·재실행과 ready 재사용의 mirror 실패 회귀를 추가했다.
+- PR #204 Ubuntu CI가 지적한 K3.4 Python 파일 5개의 Ruff format 차이를 정리했다. 실행 결과와 로컬/CI 버전 차이·전체 테스트 환경 제약은 EVAL-008에 기록한다.
+
+### 추가 - K3.4 Preview Export 로컬 구현
+
+- Frontend 검증의 Windows subprocess pipe EPERM을 기존 TypeScript compiler·Vitest thread pool 및 Next.js thread worker의 opt-in 실행 모드로 분리했다. 기존 Inter·Manrope와 전체 subset·fallback metrics를 로컬 WOFF2·OFL 고지로 보존하여 Google Fonts 연결 없는 production build를 구현했다. Preview/Result 46개와 전체 Frontend 단위 260개가 실제 통과했으며 typecheck·Lint·production build를 확인했다. 기본 esbuild 경로와 실제 브라우저 시각/청취 비교는 별도 검증 대상이다.
+
+- final WAV에서 최대 15초 PCM16 Preview를 생성하고 원본 sample rate·채널을 유지한다. 검증된 Hook 후보 confidence ≥0.50을 우선 사용하고 부적합 후보는 중앙 fallback, 양끝 20ms linear fade를 적용한다.
+- 성공 확정 시 Preview pending을 기록하고 독립 후처리에서 기존 pipeline_files와 ready metadata를 같은 DB transaction으로 등록한다. startup pending/ready 복구, ready 재사용, DB 기준 metadata.json 동기화와 실패 cleanup을 추가했다.
+- Result의 미리듣기 상태·Player 재생·WAV 다운로드·pending polling·ready 파일 재조회를 추가했다. 기존 Quality·Tempo·Hook → 취소 확인 → finalize_success 순서를 보존했다.
+- Windows pytest private temp 접근 오류를 실행 전용 임시 fixture로 분리하여 Backend 파일 기반 회귀를 재검증했다. 95개 중 94 통과·1 symlink 권한 skip이며 Frontend는 위 명시적 실행 모드에서 단위 회귀·typecheck·Lint·build를 통과했다. K3.4 develop 병합 전 완료 판정은 보류한다. 새 인증·소유권 인가·DB migration·모델 실행은 없다.
 
 ### 문서
 

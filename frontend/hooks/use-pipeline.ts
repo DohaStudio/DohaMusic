@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { ApiError } from "@/services/api-client";
 import { dohaApi } from "@/services/doha-api";
+import { previewStatus } from "@/lib/result-metadata";
 import type { PipelineJobDto } from "@/types/api";
 
 interface PollingState {
@@ -16,7 +17,8 @@ interface PollingState {
 export function getPollingInterval(state: PollingState): number | false {
   if (
     state.job?.status === "COMPLETED" &&
-    state.job.audio_analysis?.analysis_status === "PENDING"
+    (state.job.audio_analysis?.analysis_status === "PENDING" ||
+      previewStatus(state.job.result_metadata) === "pending")
   ) {
     return state.hidden ? 5_000 : 1_000;
   }

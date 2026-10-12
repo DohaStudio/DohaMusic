@@ -1,7 +1,7 @@
 # K3 Audio Analysis 제품 정의
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-10-12
 > 관련 기능: K3.0 계약·평가, K3.1 Audio Quality Metrics MVP, K3.2 Tempo Analysis MVP, K3.3 Hook Candidate MVP
 > 관련 문서: [결과 계약](../03-architecture/audio-analysis-result-contract.md), [실패 정책](../03-architecture/audio-analysis-failure-policy.md), [K-POP Roadmap](../../planning/kpop-creation-roadmap.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
@@ -9,7 +9,7 @@
 
 K3 Audio Analysis는 생성된 WAV의 기술적 품질과 음악적 특성을 후처리 단계에서 분석해 사용자에게 참고 정보를 제공하는 계층이다. 분석값은 생성 모델의 구조 준수를 보장하지 않으며 오탐·미탐·실패 가능성이 있는 측정 또는 추정 결과다. K3는 K2의 Prompt 목표를 검증할 단서를 제공하지만 Provider를 제어하거나 결과를 교정하지 않는다.
 
-K3.0 계약에 따라 K3.1·K3.2·K3.3은 완료 Pipeline의 `final.wav`를 Provider-neutral 후처리로 분석한다. DB·Provider·기존 파일 API는 변경하지 않았으며 K3.4 Preview Export는 `[계획]`이다.
+K3.1·K3.2·K3.3은 생성된 `final.wav`를 성공 확정 전에 분석한다. K3.4 Preview Export는 `[진행 중]`이며 성공 확정 이후 독립 후처리와 Result 재생·다운로드의 로컬 구현을 추가했다. 통합 실행 검증과 develop 병합은 아직 완료하지 않았다.
 
 ## 값의 의미
 
@@ -47,13 +47,14 @@ Music Generation
 → Voice Conversion
 → Mixer
 → Final WAV Export
-→ Final WAV 성공 경계
-→ Audio Analysis (비차단)
+→ Quality·Tempo·Hook 분석 (실패 격리)
+→ 취소 확인
+→ finalize_success() 성공 경계 (Preview pending)
 → Preview Export (독립 상태)
 → Result metadata 분석 결과 갱신
 ```
 
-최종 WAV 생성 성공이 Pipeline 성공 조건이다. Audio Analysis 또는 Preview 실패만으로 재생 가능한 Result를 `FAILED`로 바꾸지 않는다. Pipeline 상태와 별도로 `analysis_status`, `preview.status`를 기록한다. 이 방식은 분석 완료까지 Result 최종화를 기다리는 방식보다 사용자 결과를 보호하고 rollback이 쉽지만, 부분 완료 UX와 후처리 상태 추적이 필요하다.
+final WAV 생성과 취소 확인 후 `finalize_success()`가 Pipeline 성공을 확정한다. Quality·Tempo·Hook 실패는 안전한 분석 상태로 기록하며 Preview 실패는 이미 성공한 Result를 `FAILED`로 바꾸지 않는다. Preview는 별도 `pending|ready|failed|unavailable` 상태를 표시한다. Result는 준비 중 polling하고 ready 전환 때 파일 목록을 갱신한다.
 
 ## K3 단계
 
@@ -116,14 +117,14 @@ DoD:
 
 차단 조건: “정확한 Hook/Chorus” 표현, ground truth·허용 오차 부재, 저신뢰 후보의 자동 확정.
 
-### K3.4 Preview Export — [계획]
+### K3.4 Preview Export — [진행 중]
 
 - 기본 형식: 최종 믹스에서 추출한 PCM WAV, MIME `audio/wav`
-- 기본 길이: 원본이 15초 이상이면 정확히 15초, 더 짧으면 전체 길이와 `short_source` 표시
+- 기본 길이: 원본이 15초 이상이면 정확히 15초, 더 짧으면 padding 없이 전체 길이
 - 1순위: Hook 후보 confidence가 provisional `0.50` 이상이고 15초 window가 유효하면 후보 구간
 - fallback: 곡 중앙에 정렬한 deterministic 15초 구간
 - 경계 처리: 앞·뒤 20 ms linear fade; 원본은 변경하지 않음
-- 파일명: 내부 `preview_15s.wav`; 공개 다운로드 filename은 기존 안전한 ASCII 규칙 사용
+- 파일명: 내부 `preview.wav`; 공개 다운로드 filename은 기존 안전한 ASCII 규칙 사용
 
 DoD:
 

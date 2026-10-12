@@ -1,7 +1,7 @@
 # Audio Analysis 실패 정책
 
 > 문서 상태: [완료]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-10-12
 > 관련 기능: K3.0 계약, K3.1 Quality, K3.2 Tempo와 K3.3 Hook 실패·Cancel·Retry
 > 관련 문서: [제품 정의](../02-product/k3-audio-analysis-product-definition.md), [결과 계약](audio-analysis-result-contract.md), [Pipeline Orchestrator](pipeline-orchestrator.md), [ADR-023](../11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)
 
@@ -18,7 +18,7 @@ K3.1·K3.2·K3.3의 JSON 저장값과 공개 DTO는 다음 대문자 상태를 �
 | `ANALYSIS_FAILED` | `FAILED` | 핵심 WAV 분석 결과를 신뢰할 수 없음 |
 | `ANALYSIS_UNSUPPORTED` | `UNSUPPORTED` | 형식·채널·sample type이 지원 범위 밖 |
 
-Preview는 `not_requested|pending|completed|failed|unsupported`를 별도로 기록한다. Hook 후보 부재와 낮은 tempo confidence는 Pipeline 오류가 아니라 부분/미사용 가능한 분석 결과다.
+Preview는 `pending|ready|failed|unavailable`를 별도로 기록한다. 구형 결과의 필드 부재는 unavailable로 표시한다. Hook 후보 부재와 낮은 tempo confidence는 Pipeline 오류가 아니라 부분/미사용 가능한 분석 결과다.
 
 ## 실패 원인과 처리
 
@@ -47,7 +47,7 @@ Preview는 `not_requested|pending|completed|failed|unsupported`를 별도로 기
 
 ## Cancel 계약
 
-K3 후처리는 단계 경계와 장시간 analyzer 내부의 cooperative check에서 취소를 확인한다.
+현재 Worker는 Quality·Tempo·Hook 분석 전후의 단계 경계에서 취소를 확인한다. 장시간 analyzer 내부 cooperative check는 아직 없다.
 
 1. 분석을 중단하고 아직 검증되지 않은 partial metric을 공개하지 않는다.
 2. 유효 지표만 남길 수 있으면 `partial`, 아니면 `failed/cancel_requested`를 기록한다.
@@ -55,7 +55,9 @@ K3 후처리는 단계 경계와 장시간 analyzer 내부의 cooperative check�
 4. Final WAV 성공 경계를 통과했다면 원본 WAV와 Pipeline `COMPLETED`는 유지한다.
 5. 성공 경계 전 기존 Pipeline 취소는 현행처럼 부분 산출물을 정리하고 `CANCELLED`로 끝난다.
 
-K3.1·K3.2·K3.3은 Export 후 metadata·file row와 `COMPLETED`를 먼저 원자적으로 확정한 뒤 동기 Worker 안의 비차단 실패 경계에서 Quality·Tempo·Hook을 독립 실행한다. Tempo 또는 Hook만 실패하면 다른 유효 분석을 보존하고 aggregate를 `PARTIAL`로 둔다. Hook confidence가 `0.50` 미만이면 `fallback_middle`과 safe warning을 기록한다. 성공 경계 전 취소는 기존 정책을 따르고, 이후 취소 API는 `409`이므로 완료 Job을 `CANCELLED`로 되돌리지 않는다. 별도 분석 취소·Queue·Re-analysis API는 없다.
+실제 순서는 Export → Quality·Tempo·Hook → 취소 확인 → metadata·file row와 `COMPLETED`의 원자적 확정 → Preview 독립 후처리다. Tempo 또는 Hook만 실패하면 다른 유효 분석을 보존하고 aggregate를 `PARTIAL`로 둔다. Hook confidence가 `0.50` 미만이면 Preview는 중앙 fallback을 사용한다. 분석 중에는 단계 경계의 취소 확인이 적용되며 analyzer 내부의 별도 취소 API는 없다. 성공 확정 이후 취소 API는 `409`다. Preview 예외는 원본 cleanup이나 Job `FAILED` 전이에 도달하지 않는다.
+
+Preview 등록 실패는 transaction을 rollback하고 새 파생 WAV를 정리한다. 재실행 시 이미 ready가 확정된 경우는 삭제하지 않는다. 실패 상태 DB 저장도 실패하면 기존 pending을 보존하고 startup에서 재시도한다. ready 이후 metadata.json 저장 실패는 ready와 파일을 유지하고 DB를 기준으로 재동기화한다. 최종 파일 row 부재로 unavailable이 DB에 확정된 경우에도 mirror 실패는 해당 상태를 failed로 바꾸지 않는다. unavailable은 자동 복구 대상이 아니며 재실행으로 렌더링하지 않는다. 모든 실패는 내부 로그에 기록한다. 복구 한계·DB write lock의 영향은 ADR-023에 기록한다.
 
 ## Retry와 재분석
 

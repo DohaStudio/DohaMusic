@@ -1,7 +1,7 @@
 # K-POP Creation Control Roadmap
 
 > 문서 상태: [진행 중]
-> 최종 수정일: 2026-08-01
+> 최종 수정일: 2026-10-12
 > 관련 기능: Phase 8 이후 K-POP 제품 고도화 Track
 > 관련 문서: [제품 정의](../docs/02-product/kpop-creation-product-definition.md), [K3 제품 정의](../docs/02-product/k3-audio-analysis-product-definition.md), [ADR-022](../docs/11-decisions/ADR-022-kpop-generation-control-layer.md), [ADR-023](../docs/11-decisions/ADR-023-audio-analysis-and-preview-architecture.md), [EVAL-008](../reports/evaluations/EVAL-008-audio-analysis-validation.md)
 
@@ -85,7 +85,9 @@ DoD: 반복·에너지 피크·후보 없음·짧은 WAV·무음 fixture, 비차
 
 차단 조건: Hook/Chorus 확정 표현, 권리 확보 평가 데이터 부재, 저신뢰 자동 선택.
 
-### K3.4 — Preview Export [계획]
+### K3.4 — Preview Export [진행 중]
+
+2026-10-12: Backend 단위·파일 통합·K3.3/Pipeline/API 회귀 95개 중 94 통과·1 Windows symlink 권한 skip. Frontend는 명시적 TypeScript/thread 실행 모드에서 Preview/Result 46개·전체 단위 260개, typecheck·Lint를 통과했고 로컬 동일 폰트·Next thread worker로 production build를 완료했다. 기본 esbuild 경로·브라우저 시각/청취·process kill은 별도 검증 대상이다. 아래 DoD는 develop 병합 전까지 완료로 체크하지 않는다. 실행 명령은 [EVAL-008](../reports/evaluations/EVAL-008-audio-analysis-validation.md), 복구·실패 정책은 [ADR-023](../docs/11-decisions/ADR-023-audio-analysis-and-preview-architecture.md)을 따른다.
 
 - [ ] final WAV 기반 15초 PCM WAV
 - [ ] 신뢰 가능한 Hook 후보 또는 deterministic 중앙 fallback

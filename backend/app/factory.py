@@ -393,6 +393,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if export_runner is not None:
             await export_runner.start()
         logger.info("application_started")
+        for job_id in pipeline_worker.preview_service.recoverable_ids():
+            pipeline_dispatcher.submit(job_id)
         try:
             yield
         finally:

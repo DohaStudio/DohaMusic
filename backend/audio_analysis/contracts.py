@@ -280,6 +280,17 @@ def sanitize_result_metadata(metadata: object) -> dict[str, Any]:
     if not isinstance(metadata, dict):
         return {}
     sanitized = dict(metadata)
+    preview = metadata.get("preview")
+    sanitized.pop("preview", None)
+    if (
+        isinstance(preview, dict)
+        and isinstance(preview.get("status"), str)
+        and preview.get("status") in {"pending", "ready", "failed", "unavailable"}
+    ):
+        sanitized["preview"] = {
+            "status": preview["status"],
+            "version": "1.0",
+        }
     analysis = public_audio_analysis(metadata)
     if analysis is None:
         sanitized.pop("audio_analysis", None)

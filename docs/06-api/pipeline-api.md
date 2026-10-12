@@ -1,8 +1,14 @@
 # Pipeline API
 
-> 문서 상태: [완료]
-> 최종 수정일: 2026-08-01
-> 관련 기능: Phase 5 Pipeline, Phase 8 Result, K3.1 Quality, K3.2 Tempo, K3.3 Hook
+> 문서 상태: [완료: 기존 API / K3.4 검증 진행 중]
+> 최종 수정일: 2026-10-12
+> 관련 기능: Phase 5 Pipeline, Phase 8 Result, K3.1 Quality, K3.2 Tempo, K3.3 Hook, K3.4 Preview
+
+## K3.4 Preview Export [진행 중 — 로컬 구현]
+
+`GET /api/pipelines/{job_id}`의 `result_metadata.preview`는 공개 allowlist `{version: "1.0", status: "pending|ready|failed|unavailable"}`를 제공한다. 필드가 없는 구형 결과는 미제공으로 표시한다. 신규 성공 Job은 pending이고 ready 전환까지 polling한다. ready 전환 시 `GET /api/pipelines/{job_id}/files`를 재조회하여 `file_type=preview`의 기존 content/download URL을 사용한다. 신규 endpoint·인증·소유권 인가는 추가하지 않는다.
+
+content/download는 기존 완료 상태·Job 소속·Storage 경로·symlink·WAV·Range 검증과 `private, no-store`를 유지한다. Preview metadata가 ready가 아니면 파일 URL capability를 제공하지 않고 직접 접근은 `409 FILE_CONTENT_UNAVAILABLE`로 거부한다. Pipeline 오류 상태·Retry·Cancel 계약은 유지한다. 저장 실패는 성공 Job을 FAILED로 바꾸지 않는다. 실행 검증 상태는 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 참조한다.
 
 ## 생성
 

@@ -2,6 +2,24 @@
 
 > 문서 역할: 실행·환경·운영 문서의 Canonical entry point
 
+## Windows subprocess pipe 제한 환경의 Frontend 검증
+
+Node 24.15.0·현재 lockfile에서 다음 실행 모드를 검증했다. 일반 `npm test` 경로는 유지한다. Node child process의 stdio pipe 생성이 EPERM으로 차단될 때만 opt-in하며 관리자 권한·ACL·시스템 보안을 변경하지 않는다.
+
+```powershell
+Set-Location frontend
+$env:DOHAMUSIC_TEST_IN_PROCESS = "1"
+npm run test -- --configLoader native
+npm run typecheck
+$env:DOHAMUSIC_BUILD_WORKER_THREADS = "1"
+$env:NEXT_TELEMETRY_DISABLED = "1"
+npm run build
+```
+
+테스트 모드는 기존 tsconfig의 TypeScript compiler로 실제 TS/TSX source를 변환하고 syntactic diagnostics를 오류로 처리한다. 전체 typecheck는 별도로 실행한다. Vite dependency optimization은 비활성화하고 `preserveSymlinks`로 Windows network-drive discovery의 `net use` subprocess를 피한다. 현재 npm 설치는 일반 directory/file이며 symlink module identity와 다른 Node 버전은 별도 검증 대상이다. 테스트를 skip하거나 API/Player를 새로운 fake 검증으로 대체하지 않는다.
+
+Production 폰트는 기존 Inter·Manrope의 모든 subset·fallback metrics를 [로컬 정적 자산](../../frontend/public/fonts/README.md)으로 보존한다. Google Fonts 연결 없이 build하며 preload·폰트 이름·weight·Unicode range를 유지한다. 실행 이력·제한은 [EVAL-008](../../reports/evaluations/EVAL-008-audio-analysis-validation.md)을 따른다.
+
 ## 운영 문서 Navigation
 
 | 목적 | 문서 |

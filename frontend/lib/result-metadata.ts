@@ -3,6 +3,16 @@ export interface PublicMetadataRow {
   value: string;
 }
 
+export type PreviewStatus = "pending" | "ready" | "failed" | "unavailable";
+
+export function previewStatus(metadata: unknown): PreviewStatus {
+  if (!isRecord(metadata) || !isRecord(metadata.preview)) return "unavailable";
+  const status = metadata.preview.status;
+  return status === "pending" || status === "ready" || status === "failed"
+    ? status
+    : "unavailable";
+}
+
 const providerLabels: Readonly<Record<string, string>> = {
   music: "음악 생성 Provider",
   stem: "음원 분리 Provider",
