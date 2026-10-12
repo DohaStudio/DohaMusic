@@ -22,6 +22,7 @@ from backend.models.pipeline_job import PipelineJob
 from backend.models.project import Project
 from backend.repositories.pipeline_repository import PipelineRepository
 from backend.schemas.pipeline import PipelineCreate
+from backend.services.pipeline_preview_service import _preview_status
 from backend.storage.service import StorageService
 
 logger = get_logger(__name__)
@@ -223,9 +224,7 @@ class PipelineService:
             for item in files:
                 available = job.status == "COMPLETED" and self._is_accessible(item)
                 if item.file_type == "preview":
-                    available = available and (job.result_metadata.get("preview") or {}).get(
-                        "status"
-                    ) == "ready"
+                    available = available and _preview_status(job.result_metadata) == "ready"
                 item.content_available = available
                 item.download_available = available
                 item.content_url = (
@@ -261,9 +260,7 @@ class PipelineService:
                     "완료된 Pipeline 파일만 사용할 수 있습니다.",
                     409,
                 )
-            if item.file_type == "preview" and (
-                job.result_metadata.get("preview") or {}
-            ).get("status") != "ready":
+            if item.file_type == "preview" and _preview_status(job.result_metadata) != "ready":
                 raise AppError("FILE_CONTENT_UNAVAILABLE", "미리듣기가 준비되지 않았습니다.", 409)
             try:
                 path, size = self._validate_file(item)

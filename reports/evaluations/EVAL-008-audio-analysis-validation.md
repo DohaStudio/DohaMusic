@@ -1,6 +1,6 @@
 # EVAL-008: Audio Analysis 검증 계획
 
-> 상태: [진행 중 — K3.4 Backend·Frontend 명시적 실행 모드 검증·Git 대기]
+> 상태: [진행 중 — K3.4 PR #204 리뷰 수정·로컬 회귀 검증]
 > 작성일: 2026-07-31
 > 최종 수정일: 2026-10-12
 > 관련 기능: K3.1~K3.4 Audio Quality·Tempo·Hook·Preview 평가
@@ -256,3 +256,46 @@ Frontend는 위 명시적 실행 모드에서 실제 260개 단위 회귀·typec
 기본 esbuild/process-worker 경로는 현재 환경에서 여전히 차단된다. 다른 Node/OS, symlink module 설치, 브라우저 시각 비교·실제 audio 청취/Playwright E2E, 강제 process kill·power loss·다중 프로세스 Preview 경쟁, Windows symlink 접근 거부는 추가 검증 대상이다. 기존 phase 진행률·ADR·모델·DB·인증 정책은 변경하지 않았다. 운영 재현 명령은 local-development 및 environment-variables 문서에 기록했다.
 
 최종 read-only 검증은 WOFF2 13개가 source cache와 byte/SHA256 동일함, CSS font-face 15개, 현재 node_modules의 symlink/junction 0개, Markdown 상대 링크 421개 누락 없음, git diff --check 통과를 확인했다. package-lock SHA256은 기존 `022D0B69CD295CE479B58267B2CB22A5D6C468C24BDB3FEA3C8505BA9243792C`를 유지한다. 브랜치·HEAD는 `feat/k3-preview-export` / `1944b365` 그대로다.
+
+## PR #204 P2 리뷰 수정 및 Ruff CI 조사 (2026-10-12)
+
+### 시작 상태와 범위
+
+- 작업 경로는 지정된 K3.4 worktree, branch `feat/k3-preview-export`, HEAD `0150e5eb02242c0b1b40d1e40f4386426bc0ef02`다. 시작 시 추적 파일 변경·staged 변경은 없었으며 기존 `.k34-validation-*`만 미추적이었다. 접근 불가 cache와 기존 scratch를 보존했다.
+- 이번 수정은 파일 API의 비정상 Preview metadata 처리, DB unavailable 확정 후 mirror 실패 격리, CI에서 지적한 5개 Python 파일의 포맷에 한정한다. Frontend/API 응답 계약·공개 retry·scheduler·Pipeline 분석 순서는 변경하지 않았다.
+- commit/push/PR 수정/merge와 Git 공유 metadata 쓰기는 실행하지 않았다. 원본 저장소와 다른 worktree 파일을 수정하지 않았다.
+
+### 수정 전 재현과 수정
+
+- 실행 전용 fixture runner `python <scratch>/review_runner.py backend/tests/test_preview_export.py -q -k 'malformed_preview_metadata or missing_final_mirror' --maxfail=2`: **2 failed, 31 deselected**, 11.10초. 최초 `unavailable`이 mirror 오류 이후 `failed`로 덮어써졌으며 문자열 Preview를 가진 Job의 파일 목록 조회는 AttributeError를 발생시켰다. 이 실행은 의도한 결함 재현이며 통과로 집계하지 않는다.
+- PipelineService의 list_files/access_audio_file은 기존 `_preview_status()`를 재사용한다. Preview 문자열·배열·숫자·null·빈 객체·unknown/list/null status는 파일 목록에서 URL과 availability를 제공하지 않고 직접 content/download 요청은 기존 `409 FILE_CONTENT_UNAVAILABLE`로 처리한다. 정상 ready 검증·Range·Job 소속·경로 검증은 유지한다.
+- 최종 파일 row가 없는 경우 `set_metadata()`의 DB commit 성공 직후 `published=True`를 설정한다. 후속 mirror 실패는 내부 예외 로그를 남기되 authoritative unavailable을 failed로 덮어쓰지 않는다. 기존 ready 확정/재사용 역시 보존하며 unavailable은 재실행의 생성 대상이 아니다.
+- 수정 후 같은 runner/선택(최대 실패 1): **9 passed, 31 deselected**, 84.62초. malformed API 8개와 missing final/mirror failure 1개가 통과했다.
+- `python <scratch>/review_runner.py backend/tests/test_preview_export.py -q -k 'sqlite_missing_final or memory_metadata_sync'`: **2 passed, 39 deselected**, 0.81초. 실제 SQLite 파일을 닫고 재열어 unavailable 유지·재실행 무동작을 확인했다. ready 재사용의 mirror 실패에서도 render 1회·파일 row 1개·COMPLETED 유지·Preview 삭제 없음이 통과했다.
+- runner는 앞선 검증과 같은 run-only tmp_path fixture다. 매번 새 UUID 경로를 기본 상속 권한으로 생성하고 TEMP/TMP/TMPDIR와 명시적 --basetemp를 설정하며 cacheprovider를 비활성화한다. 저장소 conftest와 assertion은 약화하지 않는다. 새 runner·로그·format diff는 기존 scratch 아래 보존한다.
+
+### CI 로그와 Ruff
+
+- [Run 38189484323 backend-ubuntu](https://github.com/DohaStudio/DohaMusic/actions/runs/38189484323/job/114618948635)의 decoded 로그를 GitHub connector로 확보했다. Ruff **0.16.4**, Python **3.12.15**, Ubuntu **24.04.5**다. `python -m ruff check --no-cache backend ai_worker`는 통과했고 `python -m ruff format --check --no-cache backend ai_worker`는 5 files would be reformatted / 558 already formatted, exit 1이었다. Backend tests는 skipped다. frontend-playwright/ffmpeg-windows 작업은 success로 확인했으나 이번 로컬 수정 후 CI 결과가 아니다.
+- 실제 diff는 contracts의 set indentation, PipelineService 조건 wrapping, PreviewService의 PipelineFile 생성 wrapping, Pipeline API의 조건 wrapping, Preview 테스트의 multiline dict/call·소수 표기·함수 주변 공백이다. CI format 단계 원문과 로컬 `--diff`는 scratch에 보존했다.
+- 로컬은 Python **3.12.5**, pytest **8.4.2**, Ruff **0.15.22**다. 같은 범위/pyproject 설정으로 같은 5개 파일의 format 실패를 재현했다. formatter는 그 5개 파일에만 적용했다. 전체 Backend 무차별 포맷은 하지 않았다.
+- CI 버전 준비 명령 `python -m pip install --target <scratch>/ruff-0164 --no-cache-dir --disable-pip-version-check ruff==0.16.4`는 **실패**(No matching distribution). PIP_NO_INDEX=1을 확인했고, 실행별 PIP_NO_INDEX=0 및 scratch TEMP/TMP로 재시도해도 패키지를 확보하지 못했다. 전역 설치·권한 변경은 하지 않았고 임시 잔여 디렉터리는 보존했다. **Ruff 0.16.4 로컬 실행은 미검증**이다.
+- 수정 후 로컬 `python -m ruff check --no-cache backend ai_worker`: **PASS**. `python -m ruff format --check --no-cache backend ai_worker`: **PASS**, 563 files already formatted. `python -m compileall -q backend ai_worker`: **PASS**. `git diff --check`: **PASS**.
+
+### Backend 전체 실행의 환경 차단
+
+- `python <scratch>/review_runner.py --collect-only -q -m 'not gpu and not paid and not external'`: **3037/3042 collected, 5 deselected** (추가 SQLite 테스트 전 수집). 실제 AI·GPU·외부/유료 테스트는 제외했다.
+- `python <scratch>/review_runner.py -q -m 'not gpu and not paid and not external' --maxfail=1`: **14 passed, 1 failed, 5 deselected**, 1.68초, exit 1. 최초 실패는 기존 `test_admission_attempt.py::test_attempt_is_opaque_exact_candidate_and_not_admission[NORMAL_ROTATION]`의 Windows custody fixture `SetFileSecurityW`가 access denied(5)로 실패한 것이다. K3 Preview 코드는 도달하지 않았다. 잔여 3022개는 이 실행에서 미실행이다.
+- 전체 실행 전에 이 fixture의 ACL 설정을 식별하지 못했다. disposable scratch 경로에 대한 ACL 설정 호출은 Windows가 거부했다. ACL을 변경하거나 관리자/샌드박스 권한을 높여 재시도하지 않았으며 보안 assertion을 약화하지 않았다. 전체 Backend 통과를 주장하지 않는다. Ubuntu CI와 적절한 Windows fixture 환경에서 재검증이 필요하다.
+
+### K3 대상 전체 회귀 실행
+
+- 명령: `python <scratch>/review_runner.py backend/tests/test_preview_export.py backend/tests/test_pipeline_api.py backend/tests/test_pipeline_file_access_api.py backend/tests/test_hook_analyzer.py backend/tests/test_audio_quality_analyzer.py backend/tests/test_tempo_analyzer.py -q --maxfail=1`.
+- 실행 결과: **103 passed, 1 skipped**, 564.44초, exit 0. 이 묶음 실행 시작 이후 추가한 SQLite unavailable 재열기 테스트 1개도 앞의 별도 실행에서 통과했다. 따라서 현재 대상 105개 중 **104 passed / 1 environment skip / 0 failed**다. 별도 반복한 신규 9개와 ready mirror 재사용 1개는 중복 합산하지 않는다.
+- Preview 실패 격리·COMPLETED/final 보존·pending startup 복구·ready 재사용·Range·secure file API·K3.3 분석 순서/취소/Retry 회귀가 통과했다. skip은 기존 Windows symlink 생성 권한 테스트다. 전체 Backend의 14 passed/1 환경 실패 실행과 이 K3 회귀 결과는 별도 실행으로 보고하며 전체 suite 성공을 주장하지 않는다.
+
+### 문서 및 잔여 범위
+
+- CHANGELOG와 실패 정책에 결함 수정 및 unavailable mirror 실패 경계를 반영했다. 제품 범위·Phase 진행률·README/Roadmap 완료 상태는 변경하지 않는다. 기존 ADR-023의 DB authoritative/mirror 보조 결정에 따른 수정으로 새 ADR·AI 실험 보고서는 필요하지 않다.
+- Frontend 파일·응답 계약 변경이 없어 이번 Frontend typecheck/test/build를 재실행하지 않았다. 이전 수치는 앞 절에 남기며 이번 통과 수로 집계하지 않는다.
+- 실제 process kill/power loss·multiprocess 경쟁, 현재 Windows symlink, 이번 수정 후 Ubuntu CI와 Ruff 0.16.4 실행은 별도 확인이 필요하다.

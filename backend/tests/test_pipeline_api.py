@@ -27,7 +27,8 @@ def wait_for_pipeline(client: TestClient, job_id: str) -> dict[str, object]:
         job = response.json()
         analysis_status = (job.get("audio_analysis") or {}).get("analysis_status")
         if job["status"] in {"FAILED", "CANCELLED"} or (
-            job["status"] == "COMPLETED" and analysis_status != "PENDING"
+            job["status"] == "COMPLETED"
+            and analysis_status != "PENDING"
             and (job.get("result_metadata", {}).get("preview") or {}).get("status") != "pending"
         ):
             return job

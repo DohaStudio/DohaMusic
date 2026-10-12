@@ -57,7 +57,7 @@ Preview는 `pending|ready|failed|unavailable`를 별도로 기록한다. 구형 
 
 실제 순서는 Export → Quality·Tempo·Hook → 취소 확인 → metadata·file row와 `COMPLETED`의 원자적 확정 → Preview 독립 후처리다. Tempo 또는 Hook만 실패하면 다른 유효 분석을 보존하고 aggregate를 `PARTIAL`로 둔다. Hook confidence가 `0.50` 미만이면 Preview는 중앙 fallback을 사용한다. 분석 중에는 단계 경계의 취소 확인이 적용되며 analyzer 내부의 별도 취소 API는 없다. 성공 확정 이후 취소 API는 `409`다. Preview 예외는 원본 cleanup이나 Job `FAILED` 전이에 도달하지 않는다.
 
-Preview 등록 실패는 transaction을 rollback하고 새 파생 WAV를 정리한다. 재실행 시 이미 ready가 확정된 경우는 삭제하지 않는다. 실패 상태 DB 저장도 실패하면 기존 pending을 보존하고 startup에서 재시도한다. ready 이후 metadata.json 저장 실패는 ready와 파일을 유지하고 DB를 기준으로 재동기화한다. 모든 실패는 내부 로그에 기록한다. 복구 한계·DB write lock의 영향은 ADR-023에 기록한다.
+Preview 등록 실패는 transaction을 rollback하고 새 파생 WAV를 정리한다. 재실행 시 이미 ready가 확정된 경우는 삭제하지 않는다. 실패 상태 DB 저장도 실패하면 기존 pending을 보존하고 startup에서 재시도한다. ready 이후 metadata.json 저장 실패는 ready와 파일을 유지하고 DB를 기준으로 재동기화한다. 최종 파일 row 부재로 unavailable이 DB에 확정된 경우에도 mirror 실패는 해당 상태를 failed로 바꾸지 않는다. unavailable은 자동 복구 대상이 아니며 재실행으로 렌더링하지 않는다. 모든 실패는 내부 로그에 기록한다. 복구 한계·DB write lock의 영향은 ADR-023에 기록한다.
 
 ## Retry와 재분석
 

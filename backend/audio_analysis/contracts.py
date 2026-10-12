@@ -285,9 +285,7 @@ def sanitize_result_metadata(metadata: object) -> dict[str, Any]:
     if (
         isinstance(preview, dict)
         and isinstance(preview.get("status"), str)
-        and preview.get("status") in {
-        "pending", "ready", "failed", "unavailable"
-        }
+        and preview.get("status") in {"pending", "ready", "failed", "unavailable"}
     ):
         sanitized["preview"] = {
             "status": preview["status"],

@@ -36,18 +36,31 @@ from backend.workers.pipeline_worker import PipelineWorker
 
 def hook(**changes):
     result = {
-        "hook_analysis_version": "1.0", "status": "COMPLETED",
-        "candidate": {"start_seconds": 2, "end_seconds": 17, "duration_seconds": 15,
-                      "confidence": 0.5, "selection_strategy": "energy_peak"},
+        "hook_analysis_version": "1.0",
+        "status": "COMPLETED",
+        "candidate": {
+            "start_seconds": 2,
+            "end_seconds": 17,
+            "duration_seconds": 15,
+            "confidence": 0.5,
+            "selection_strategy": "energy_peak",
+        },
     }
     result.update(changes)
     return result
 
 
-@pytest.mark.parametrize("rate,channels,frames", [
-    (8000, 1, 160000), (44100, 2, 882000), (48000, 2, 1000),
-    (8000, 1, 1), (8000, 1, 3), (8000, 1, 120000),
-])
+@pytest.mark.parametrize(
+    "rate,channels,frames",
+    [
+        (8000, 1, 160000),
+        (44100, 2, 882000),
+        (48000, 2, 1000),
+        (8000, 1, 1),
+        (8000, 1, 3),
+        (8000, 1, 120000),
+    ],
+)
 def test_audio_contract_in_memory(monkeypatch, rate, channels, frames):
     # Real scipy WAV codec, routed through memory to avoid filesystem dependencies.
     raw = np.full((frames, channels), 16000, dtype=np.int16)
@@ -68,22 +81,26 @@ def test_audio_contract_in_memory(monkeypatch, rate, channels, frames):
     assert metadata["duration_seconds"] == min(frames, 15 * rate) / rate
     assert metadata["channels"] == channels
     assert source.getvalue() == original
-    fade = min(round(rate * .020), len(pcm) // 2)
+    fade = min(round(rate * 0.020), len(pcm) // 2)
     if fade:
         assert np.all(pcm[0] == 0) and np.all(pcm[-1] == 0)
         expected = np.rint(16000 * np.linspace(0, 1, fade)).astype(np.int16)
         assert np.array_equal(pcm[:fade] if channels == 1 else pcm[:fade, 0], expected)
 
 
-@pytest.mark.parametrize("candidate,expected", [
-    (hook(), "hook_candidate"), (None, "fallback_middle"),
-    (hook(status="FAILED"), "fallback_middle"),
-    (hook(hook_analysis_version="2.0"), "fallback_middle"),
-    (hook(candidate={**hook()["candidate"], "confidence": .49}), "fallback_middle"),
-    (hook(candidate={**hook()["candidate"], "end_seconds": 50}), "fallback_middle"),
-    (hook(candidate={**hook()["candidate"], "start_seconds": -1}), "fallback_middle"),
-    (hook(candidate={**hook()["candidate"], "confidence": float("nan")}), "fallback_middle"),
-])
+@pytest.mark.parametrize(
+    "candidate,expected",
+    [
+        (hook(), "hook_candidate"),
+        (None, "fallback_middle"),
+        (hook(status="FAILED"), "fallback_middle"),
+        (hook(hook_analysis_version="2.0"), "fallback_middle"),
+        (hook(candidate={**hook()["candidate"], "confidence": 0.49}), "fallback_middle"),
+        (hook(candidate={**hook()["candidate"], "end_seconds": 50}), "fallback_middle"),
+        (hook(candidate={**hook()["candidate"], "start_seconds": -1}), "fallback_middle"),
+        (hook(candidate={**hook()["candidate"], "confidence": float("nan")}), "fallback_middle"),
+    ],
+)
 def test_hook_validation(monkeypatch, candidate, expected):
     monkeypatch.setattr(wavfile, "read", lambda _: (8000, np.zeros(160000, np.int16)))
     monkeypatch.setattr(wavfile, "write", lambda *args: None)
@@ -95,9 +112,15 @@ def test_hook_validation(monkeypatch, candidate, expected):
 def test_source_overwrite_and_public_projection():
     with pytest.raises(ValueError):
         render_preview(Path("final.wav"), Path("final.wav"))
-    assert sanitize_result_metadata({"preview": {
-        "status": "ready", "version": "1.0", "file_path": "secret",
-    }})["preview"] == {"status": "ready", "version": "1.0"}
+    assert sanitize_result_metadata(
+        {
+            "preview": {
+                "status": "ready",
+                "version": "1.0",
+                "file_path": "secret",
+            }
+        }
+    )["preview"] == {"status": "ready", "version": "1.0"}
     assert "preview" not in sanitize_result_metadata({"preview": {"status": "unknown"}})
 
 
@@ -114,7 +137,7 @@ def test_file_wav_duration_fade_and_source_hash(tmp_path, rate, channels, frames
     actual_rate, samples = wavfile.read(destination)
     assert hashlib.sha256(source.read_bytes()).digest() == original_hash
     assert actual_rate == rate and samples.dtype == np.int16
-    assert samples.shape == raw[:min(frames, 15 * rate)].shape
+    assert samples.shape == raw[: min(frames, 15 * rate)].shape
     assert result["duration_seconds"] == min(frames, 15 * rate) / rate
     assert result["selection_strategy"] == (
         "hook_candidate" if frames >= 17 * rate else "fallback_middle"
@@ -130,34 +153,61 @@ def memory_publication(monkeypatch):
     factory = sessionmaker(engine)
     root = Path.cwd() / "synthetic-preview-storage"
     storage = SimpleNamespace(
-        root=root, pipeline_dir=root / "pipelines",
+        root=root,
+        pipeline_dir=root / "pipelines",
         relative_path=lambda path: path.relative_to(root).as_posix(),
     )
     with factory() as session:
-        session.add(PipelineJob(
-            id="job", voice_profile_id="voice", status="COMPLETED", current_step="completed",
-            prompt="synthetic", duration_seconds=30, pipeline_version="test",
-            result_metadata={"success": True, "preview": {"version": "1.0", "status": "pending"}},
-        ))
-        session.add(PipelineFile(
-            job_id="job", file_type="final", mime_type="audio/wav",
-            file_path="pipelines/job/final.wav",
-        ))
+        session.add(
+            PipelineJob(
+                id="job",
+                voice_profile_id="voice",
+                status="COMPLETED",
+                current_step="completed",
+                prompt="synthetic",
+                duration_seconds=30,
+                pipeline_version="test",
+                result_metadata={
+                    "success": True,
+                    "preview": {"version": "1.0", "status": "pending"},
+                },
+            )
+        )
+        session.add(
+            PipelineFile(
+                job_id="job",
+                file_type="final",
+                mime_type="audio/wav",
+                file_path="pipelines/job/final.wav",
+            )
+        )
         session.commit()
     preview_service = PipelinePreviewService(factory, storage)
-    monkeypatch.setattr(PipelineService, "_validate_file", lambda _, row: (
-        root / row.file_path, 44,
-    ))
+    monkeypatch.setattr(
+        PipelineService,
+        "_validate_file",
+        lambda _, row: (
+            root / row.file_path,
+            44,
+        ),
+    )
     monkeypatch.setattr(Path, "glob", lambda *args: [])
     monkeypatch.setattr(Path, "replace", lambda _, target: target)
     removed = []
     monkeypatch.setattr(Path, "unlink", lambda path, **kwargs: removed.append(path.name))
-    monkeypatch.setattr("backend.services.pipeline_preview_service.tempfile.mkstemp", lambda **kw: (
-        os.dup(1), str(root / "pipelines/job/preview-synthetic.wav"),
-    ))
+    monkeypatch.setattr(
+        "backend.services.pipeline_preview_service.tempfile.mkstemp",
+        lambda **kw: (
+            os.dup(1),
+            str(root / "pipelines/job/preview-synthetic.wav"),
+        ),
+    )
     metadata = {
-        "status": "ready", "version": "1.0", "sample_rate": 8000,
-        "channels": 1, "duration_seconds": 15,
+        "status": "ready",
+        "version": "1.0",
+        "sample_rate": 8000,
+        "channels": 1,
+        "duration_seconds": 15,
     }
     calls = []
 
@@ -170,9 +220,10 @@ def memory_publication(monkeypatch):
     wav = io.BytesIO()
     wavfile.write(wav, 8000, np.zeros(120000, np.int16))
     open_wave = wave.open
-    monkeypatch.setattr("backend.services.pipeline_preview_service.wave.open", lambda *args: (
-        open_wave(io.BytesIO(wav.getvalue()), "rb")
-    ))
+    monkeypatch.setattr(
+        "backend.services.pipeline_preview_service.wave.open",
+        lambda *args: open_wave(io.BytesIO(wav.getvalue()), "rb"),
+    )
     yield preview_service, factory, calls, removed
     engine.dispose()
 
@@ -229,25 +280,157 @@ def test_memory_pending_recovery_and_missing_source(memory_publication):
 
 
 def test_memory_metadata_sync_failure_preserves_ready(memory_publication, monkeypatch):
-    preview_service, factory, _, removed = memory_publication
+    preview_service, factory, calls, removed = memory_publication
 
     def fail_sync(*args):
         raise OSError("metadata mirror unavailable")
 
     monkeypatch.setattr(preview_service, "_sync_metadata", fail_sync)
     preview_service.run("job")
+    preview_service.run("job")
     with factory() as session:
         job = session.get(PipelineJob, "job")
         assert job.status == "COMPLETED" and job.result_metadata["preview"]["status"] == "ready"
         assert session.query(PipelineFile).filter_by(file_type="preview").count() == 1
     assert "preview.wav" not in removed
+    assert len(calls) == 1
+
+
+def test_memory_missing_final_mirror_failure_preserves_unavailable(
+    memory_publication,
+    monkeypatch,
+):
+    preview_service, factory, calls, removed = memory_publication
+    with factory() as session:
+        session.query(PipelineFile).delete()
+        session.commit()
+
+    def fail_sync(*args):
+        raise OSError("metadata mirror unavailable")
+
+    monkeypatch.setattr(preview_service, "_sync_metadata", fail_sync)
+    preview_service.run("job")
+    preview_service.run("job")
+    with factory() as session:
+        job = session.get(PipelineJob, "job")
+        assert job.status == "COMPLETED" and job.result_metadata["success"] is True
+        assert job.result_metadata["preview"]["status"] == "unavailable"
+        assert session.query(PipelineFile).count() == 0
+    assert calls == [] and removed == []
+
+
+def test_sqlite_missing_final_mirror_failure_preserves_unavailable(tmp_path, monkeypatch):
+    database = tmp_path / "preview.db"
+    engine = create_engine(f"sqlite:///{database.as_posix()}")
+    PipelineJob.__table__.create(engine)
+    PipelineFile.__table__.create(engine)
+    factory = sessionmaker(engine)
+    storage = SimpleNamespace(root=tmp_path, pipeline_dir=tmp_path / "pipelines")
+    with factory() as session:
+        session.add(
+            PipelineJob(
+                id="missing-final",
+                voice_profile_id="voice",
+                status="COMPLETED",
+                current_step="completed",
+                prompt="synthetic",
+                duration_seconds=1,
+                pipeline_version="test",
+                result_metadata={"preview": {"status": "pending"}},
+            )
+        )
+        session.commit()
+    preview_service = PipelinePreviewService(factory, storage)
+    mirrored_statuses = []
+
+    def fail_sync(job_id, metadata):
+        mirrored_statuses.append(metadata["preview"]["status"])
+        raise OSError("metadata mirror unavailable")
+
+    monkeypatch.setattr(preview_service, "_sync_metadata", fail_sync)
+    preview_service.run("missing-final")
+    engine.dispose()
+    # Reopen the persisted SQLite file, then verify rerun leaves unavailable alone.
+    engine = create_engine(f"sqlite:///{database.as_posix()}")
+    factory = sessionmaker(engine)
+    restarted = PipelinePreviewService(factory, storage)
+    monkeypatch.setattr(restarted, "_sync_metadata", fail_sync)
+    restarted.run("missing-final")
+    with factory() as session:
+        job = session.get(PipelineJob, "missing-final")
+        assert job.status == "COMPLETED"
+        assert job.result_metadata["preview"]["status"] == "unavailable"
+        assert session.query(PipelineFile).count() == 0
+    assert mirrored_statuses == ["unavailable"]
+    engine.dispose()
+
+
+@pytest.mark.parametrize(
+    "preview",
+    [
+        "ready",
+        ["ready"],
+        7,
+        None,
+        {},
+        {"status": "unknown"},
+        {"status": ["ready"]},
+        {"status": None},
+    ],
+)
+def test_malformed_preview_metadata_file_apis(client, preview):
+    storage = client.app.state.storage
+    directory = storage.pipeline_dir / "malformed-preview"
+    directory.mkdir()
+    final = directory / "final.wav"
+    wavfile.write(final, 8000, np.zeros(8000, np.int16))
+    original_hash = hashlib.sha256(final.read_bytes()).digest()
+    with client.app.state.session_factory() as session:
+        session.add(
+            PipelineJob(
+                id="malformed-preview",
+                voice_profile_id=create_profile(client),
+                status="COMPLETED",
+                current_step="completed",
+                prompt="synthetic",
+                duration_seconds=1,
+                pipeline_version="test",
+                result_metadata={"preview": preview},
+            )
+        )
+        item = PipelineFile(
+            id="malformed-preview-file",
+            job_id="malformed-preview",
+            file_type="preview",
+            mime_type="audio/wav",
+            file_path=storage.relative_path(final),
+        )
+        session.add(item)
+        session.commit()
+    base = "/api/pipelines/malformed-preview"
+    assert client.get(base).status_code == 200
+    response = client.get(base + "/files")
+    assert response.status_code == 200
+    row = response.json()[0]
+    assert row["content_available"] is False and row["download_available"] is False
+    assert row["content_url"] is None and row["download_url"] is None
+    assert "file_path" not in row
+    for action in ("content", "download"):
+        response = client.get(base + "/files/malformed-preview-file/" + action)
+        assert response.status_code == 409
+        assert response.json()["error"]["code"] == "FILE_CONTENT_UNAVAILABLE"
+    assert hashlib.sha256(final.read_bytes()).digest() == original_hash
+    with client.app.state.session_factory() as session:
+        assert session.get(PipelineJob, "malformed-preview").status == "COMPLETED"
 
 
 def test_memory_db_outage_retains_pending_for_recovery(memory_publication, monkeypatch):
     preview_service, factory, calls, _ = memory_publication
     with monkeypatch.context() as patch:
+
         def fail_commit(session):
             raise RuntimeError("DB unavailable")
+
         patch.setattr(Session, "commit", fail_commit)
         preview_service.run("job")
     with factory() as session:
@@ -263,7 +446,9 @@ def test_memory_db_outage_retains_pending_for_recovery(memory_publication, monke
 
 @pytest.mark.parametrize("scenario", ["success", "cancel", "preview_exception"])
 def test_memory_worker_analysis_completion_and_preview_boundary(
-    memory_publication, monkeypatch, scenario,
+    memory_publication,
+    monkeypatch,
+    scenario,
 ):
     preview_service, factory, _, removed = memory_publication
     events = []
@@ -276,9 +461,14 @@ def test_memory_worker_analysis_completion_and_preview_boundary(
     storage = preview_service.storage
     storage.resolve_voice_reference = lambda _: storage.root / "synthetic-reference.wav"
     monkeypatch.setattr(Path, "is_file", lambda _: True)
-    monkeypatch.setattr(PipelineRepository, "get_profile", lambda *_: SimpleNamespace(
-        consent_confirmed=True, reference_file_path="synthetic-reference.wav",
-    ))
+    monkeypatch.setattr(
+        PipelineRepository,
+        "get_profile",
+        lambda *_: SimpleNamespace(
+            consent_confirmed=True,
+            reference_file_path="synthetic-reference.wav",
+        ),
+    )
 
     def execute(context, *_):
         events.append("final")
@@ -293,17 +483,20 @@ def test_memory_worker_analysis_completion_and_preview_boundary(
                     PipelineRepository(session).request_cancel(job)
             events.append(name)
             return result
+
         return SimpleNamespace(analyze=run)
 
     worker = PipelineWorker(
-        factory, SimpleNamespace(execute=execute), storage,
+        factory,
+        SimpleNamespace(execute=execute),
+        storage,
         analyze("quality", AudioAnalysisResult.failed()),
         analyze("tempo", TempoAnalysisResult.pending(None)),
         analyze("hook", HookAnalysisResult.pending()),
     )
-    monkeypatch.setattr(worker, "_write_metadata", lambda *_: (
-        storage.pipeline_dir / "job/metadata.json"
-    ))
+    monkeypatch.setattr(
+        worker, "_write_metadata", lambda *_: storage.pipeline_dir / "job/metadata.json"
+    )
 
     def postprocess(job_id):
         with factory() as session:
@@ -341,7 +534,7 @@ def wait_preview(client, job_id):
             and job["result_metadata"]["preview"]["status"] != "pending"
         ):
             return job
-        time.sleep(.01)
+        time.sleep(0.01)
     raise AssertionError("Preview did not finish")
 
 
@@ -365,7 +558,8 @@ def test_publication_recovery_duplicate_range_and_metadata_repair(client):
         # Simulate termination after file rename but before inventory commit.
         session.delete(preview)
         job.result_metadata = {
-            **job.result_metadata, "preview": {"status": "pending", "version": "1.0"}
+            **job.result_metadata,
+            "preview": {"status": "pending", "version": "1.0"},
         }
         session.commit()
     assert job_id in preview_service.recoverable_ids()
@@ -390,19 +584,21 @@ def test_publication_recovery_duplicate_range_and_metadata_repair(client):
 @pytest.mark.parametrize("failure", ["render", "registration"])
 def test_preview_failure_isolated_and_cleanup(client, monkeypatch, failure):
     if failure == "render":
+
         def fail(*args):
             raise OSError("synthetic failure")
+
         monkeypatch.setattr("backend.services.pipeline_preview_service.render_preview", fail)
     else:
         original_commit = Session.commit
 
         def commit(session):
             if any(
-                isinstance(row, PipelineFile) and row.file_type == "preview"
-                for row in session.new
+                isinstance(row, PipelineFile) and row.file_type == "preview" for row in session.new
             ):
                 raise RuntimeError("synthetic DB registration failure")
             return original_commit(session)
+
         monkeypatch.setattr(Session, "commit", commit)
     job_id = create_pipeline(client, create_profile(client))["id"]
     completed = wait_preview(client, job_id)
@@ -443,7 +639,7 @@ def test_file_metadata_sync_failure_keeps_ready_and_repairs(client, monkeypatch)
     assert wait_preview(client, job_id)["result_metadata"]["preview"]["status"] == "ready"
     deadline = time.monotonic() + 5
     while not failures and time.monotonic() < deadline:
-        time.sleep(.01)
+        time.sleep(0.01)
     assert failures
     files = client.get(f"/api/pipelines/{job_id}/files").json()
     preview = next(row for row in files if row["file_type"] == "preview")
@@ -464,7 +660,7 @@ def test_pending_preview_recovers_on_application_restart(app, monkeypatch):
             job = first.get(f"/api/pipelines/{job_id}").json()
             if job["status"] == "COMPLETED":
                 break
-            time.sleep(.01)
+            time.sleep(0.01)
         assert job["status"] == "COMPLETED"
         assert job["result_metadata"]["preview"]["status"] == "pending"
         source = app.state.storage.pipeline_dir / job_id / "final.wav"

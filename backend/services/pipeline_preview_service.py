@@ -92,6 +92,7 @@ class PipelinePreviewService:
                     if final is None:
                         metadata["preview"] = {"version": "1.0", "status": "unavailable"}
                         repository.set_metadata(job, metadata)
+                        published = True
                     else:
                         source, _ = access._validate_file(final)
                         expected = (self.storage.pipeline_dir / job_id).resolve()
@@ -117,11 +118,14 @@ class PipelinePreviewService:
                         temporary = None
                         generated = destination
                         if existing is None:
-                            session.add(PipelineFile(
-                                job_id=job_id, file_type="preview",
-                                file_path=self.storage.relative_path(destination),
-                                mime_type="audio/wav",
-                            ))
+                            session.add(
+                                PipelineFile(
+                                    job_id=job_id,
+                                    file_type="preview",
+                                    file_path=self.storage.relative_path(destination),
+                                    mime_type="audio/wav",
+                                )
+                            )
                         else:
                             existing.file_path = self.storage.relative_path(destination)
                             existing.mime_type = "audio/wav"
