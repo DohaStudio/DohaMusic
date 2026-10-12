@@ -155,7 +155,7 @@ K3.4 DoD는 체크하지 않는다. 허용된 테스트 디렉터리와 Frontend
 
 ### Windows 임시 디렉터리 원인
 
-- Python 3.12.5. 기존 최초 traceback은 pytest `tmp_path → TempPathFactory.getbasetemp → make_numbered_dir → os.scandir`에서 `C:\Users\doha\AppData\Local\Temp\pytest-of-doha` 접근이 `WinError 5`로 거부된 것이다. K3.4 함수나 app fixture 본문 실행 전에 실패했다.
+- Python 3.12.5. 기존 최초 traceback은 pytest `tmp_path → TempPathFactory.getbasetemp → make_numbered_dir → os.scandir`에서 `C:\Users\<USER>\AppData\Local\Temp\pytest-of-<USER>` 접근이 `WinError 5`로 거부된 것이다. K3.4 함수나 app fixture 본문 실행 전에 실패했다.
 - 새 UUID 경로 `D:\DohaMusic-k3-preview-export\.k34-validation-9b8e6a1ec198413e8fde8196a93bcf9f`는 존재하지 않음을 확인하고 일반 `Path.mkdir()`로 생성했다. probe 파일 생성·읽기·directory listing이 성공했다. root ACL은 Modify 권한을 포함한다.
 - 같은 root의 새 `pytest-run-01`, `pytest-run-02`를 명시적 `--basetemp`로 지정하고 첫 실행에는 TEMP·TMP·TMPDIR도 새 root로 지정했으나 pytest가 생성한 basetemp는 접근이 거부됐다. 따라서 예전 잔여 디렉터리와의 이름 충돌이나 parent 쓰기 권한 부족만으로 설명되지 않는다.
 - 별도 첫 오류 reporter로 `test_hook_analyzer.py -x`를 재현했다. `getbasetemp()`의 `basetemp.mkdir(mode=0o700)` 이후 `mktemp → make_numbered_dir → os.scandir(new basetemp)`에서 접근이 거부되고 session cleanup도 실패했다. 디렉터리 생성 자체보다 생성 후 private 권한 디렉터리 접근이 문제다. 해당 디렉터리의 Get-Acl도 거부돼 정확한 ACE/실행 토큰 조합은 확인하지 못했다.
